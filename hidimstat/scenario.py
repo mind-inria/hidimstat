@@ -190,7 +190,7 @@ def multivariate_simulation(n_samples=100,
     X = []
 
     for i in np.arange(n_samples):
-        Xi = ndimage.filters.gaussian_filter(X_[i], smooth_X)
+        Xi = ndimage.gaussian_filter(X_[i], smooth_X)
         X.append(Xi.ravel())
 
     X = np.asarray(X)
