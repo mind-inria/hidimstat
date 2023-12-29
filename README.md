@@ -15,7 +15,7 @@ pip install hidimstat
 ```
 
 Or if you want the latest version available (for example to contribute to
-the development of this project:
+the development of this project):
 
 ```
 pip install -U git+https://github.com/Parietal-INRIA/hidimstat.git
