@@ -2,3 +2,5 @@ numpy
 joblib
 scipy
 scikit-learn
+torch
+torchmetrics
