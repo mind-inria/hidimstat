@@ -221,7 +221,7 @@ try:
 except Exception:
     pass
 else:
-    brain_scraper = mne.viz._brain._BrainScraper()
+    brain_scraper = mne.viz._scraper._BrainScraper()
     scrapers += (brain_scraper, 'pyvista')
 if any(x in scrapers for x in ('pyvista')):
     from traits.api import push_exception_handler
