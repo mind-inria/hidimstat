@@ -33,7 +33,7 @@ Chevalier et al. (2021) [1]_). Indeed, when the number of features is much
 greater than the number of samples, standard statistical methods are
 unlikely to recover the support. Then, the idea of clustered inference is to
 compress the data without breaking the spatial structure, leading to a
-compressed problem  close to the original problem. This leads to a
+compressed problem  close to the original problem. This results in a more
 powerful spatially relaxed inference. Indeed, thanks to the dimension reduction
 the support recovery is feasible. However, due to the spatial compression,
 there is a limited (and quantifiable) spatial uncertainty concerning the shape
@@ -82,6 +82,7 @@ def weight_map_2D_extended(shape, roi_size, delta):
 
     roi_size_extended = roi_size + delta
 
+    # Create four regions in the corners
     w = np.zeros(shape + (5,))
     w[0:roi_size, 0:roi_size, 0] = 0.5
     w[-roi_size:, -roi_size:, 1] = 0.5
@@ -92,6 +93,7 @@ def weight_map_2D_extended(shape, roi_size, delta):
     w[0:roi_size_extended, -roi_size_extended:, 2] += 0.5
     w[-roi_size_extended:, 0:roi_size_extended, 3] += 0.5
 
+    # round the shape a little bit
     for i in range(roi_size_extended):
         for j in range(roi_size_extended):
             if (i - roi_size) + (j - roi_size) >= delta:
@@ -131,7 +133,7 @@ def add_one_subplot(ax, map, title):
         ax.get_yaxis().set_visible(False)
 
 
-def plot(maps, titles, save_fig=False):
+def plot(maps, titles):
     '''Make a summary plot from estimated supports'''
 
     fig, axes = plt.subplots(3, 2, figsize=(4, 6))
@@ -142,11 +144,6 @@ def plot(maps, titles, save_fig=False):
             add_one_subplot(axes[i][j], maps[k], titles[k])
 
     fig.tight_layout()
-
-    if save_fig:
-        figname = 'figures/simu_2D.png'
-        plt.savefig(figname)
-        print(f'Save figure to {figname}')
 
     plt.show()
 
@@ -188,9 +185,8 @@ X_init, y, beta, epsilon, _, _ = \
 # cluster diameter. However this choice is conservative, notably in the case
 # of ensembled clustered inference. For these algorithms, we recommend to take
 # the average cluster radius. In this example, we choose ``n_clusters = 200``,
-# leading to a theoretical spatial tolerance ``delta = 6``. However, it
-# turns out that ``delta = 2``, the average cluster radius, would have been
-# sufficient for ensembled clustered inference algorithms (see Results).
+# leading to a theoretical spatial tolerance ``delta = 6``, which is still
+# conservative (see Results).
 
 # hyper-parameters
 n_clusters = 200
@@ -208,9 +204,9 @@ n_jobs = 1
 #
 # Below, we translate the FWER target into z-score targets.
 # To compute the z-score targets we also take into account for the multiple
-# testing correction. To do so, we consider the Bonferroni correction.
+# testing correction. To do so, we consider Bonferroni correction.
 # For methods that do not reduce the feature space, the correction
-# consists in dividing the FWER target by the number of features.
+# consists in dividing the targeted FWER target by the number of features.
 # For methods that group features into clusters, the correction
 # consists in dividing by the number of clusters.
 
@@ -326,13 +322,14 @@ plot(maps, titles)
 #############################################################################
 # Analysis of the results
 # -----------------------
-# As argued in the first section of this example, the standard method that
-# do not compress the problem is not relevant as it dramatically lacks power.
+# As argued in the first section of this example, standard inference methods that
+# do not compress the problem dramatically lack power.
 # The support estimated from CluDL provides a more reasonable solution
 # since we recover the four regions. However the shape of the estimated support
-# is a bit rough.
+# is a bit rough (as it is bound to a sub-optimal clustering).
 # Finally, the solution provided by EnCluDL is more accurate since the shape
 # of the estimated support is closer to the true support.
 # Also, one can note that the theoretical spatial tolerance is quite
-# conservative. In practice, we argue that the statistical guarantees are valid
-# for a lower spatial tolerance thanks to the clustering randomization.
+# conservative. In practice, Type-1 Error guarantees seem to hold
+# for a lower spatial tolerance. This is an additional benefit of clustering
+# randomization.
