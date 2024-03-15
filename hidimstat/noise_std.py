@@ -59,8 +59,13 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
     cv = KFold(n_splits=5, shuffle=True, random_state=seed)
 
     clf_lasso_cv = \
-        LassoCV(eps=eps, normalize=False, fit_intercept=False,
-                cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs)
+        LassoCV(
+            eps=eps,
+            fit_intercept=False,
+            cv=cv,
+            tol=tol,
+            max_iter=max_iter,
+            n_jobs=n_jobs)
 
     clf_lasso_cv.fit(X, y)
     beta_hat = clf_lasso_cv.coef_
@@ -164,8 +169,13 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
     if fit_Y:
 
         clf_mtlcv = \
-            MultiTaskLassoCV(eps=eps, normalize=False, fit_intercept=False,
-                             cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs)
+            MultiTaskLassoCV(
+                eps=eps,
+                fit_intercept=False,
+                cv=cv,
+                tol=tol,
+                max_iter=max_iter,
+                n_jobs=n_jobs)
 
         clf_mtlcv.fit(X, Y)
         beta_hat = clf_mtlcv.coef_
