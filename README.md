@@ -15,7 +15,7 @@ pip install hidimstat
 ```
 
 Or if you want the latest version available (for example to contribute to
-the development of this project:
+the development of this project):
 
 ```
 pip install -U git+https://github.com/Parietal-INRIA/hidimstat.git
@@ -90,6 +90,18 @@ Application to decoding (fMRI data):
 Application to source localization (MEG/EEG data):
 
 * Chevalier, J. A., Gramfort, A., Salmon, J., & Thirion, B. (2020). __Statistical control for spatio-temporal MEG/EEG source imaging with desparsified multi-task Lasso__. In _Proceedings of the 34th Conference on Neural Information Processing Systems (NeurIPS 2020)_, Vancouver, Canada.
+
+Single/Group statistically validated importance using conditional permutations:
+
+* Chamma, A., Thirion, B., & Engemann, D. (2024). __Variable importance in
+  high-dimensional settings requires grouping__. In _Proceedings of
+  the 38th Conference of the Association for the Advancement of Artificial
+  Intelligence(AAAI 2024)_, Vancouver, Canada.
+
+* Chamma, A., Engemann, D., & Thirion, B. (2023). __Statistically Valid Variable
+  Importance Assessment through Conditional Permutations__. In _Proceedings of
+  the 37th Conference on Neural Information Processing Systems (NeurIPS 2023)_,
+  New Orleans, USA.
 
 If you use our packages, we would appreciate citations to the relevant aforementioned papers.
 

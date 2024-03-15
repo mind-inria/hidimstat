@@ -1,4 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cu118
 numpy
 joblib
 scipy
 scikit-learn
+torch
+torchmetrics
+pandas
