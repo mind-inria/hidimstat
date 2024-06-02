@@ -109,7 +109,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         index_i=None,
         random_state=2023,
         com_imp=True,
-        group_fold = None,
+        group_fold=None,
     ):
         self.estimator = estimator
         self.importance_estimator = importance_estimator
@@ -786,6 +786,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
                                     random_state=list_seeds_imp[perm],
+                                    verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
                                 for perm in range(self.n_perm)
@@ -829,6 +830,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     list_seeds=list_seeds_imp,
                                     Perm=self.Perm,
                                     output_dim=output_dim,
+                                    verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
                             )
