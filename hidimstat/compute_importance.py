@@ -407,7 +407,8 @@ def joblib_compute_conditional(
                     )
 
     if prob_type in ("classification", "binary"):
-        score = roc_auc_score(y_test, org_pred)
+        nonzero_cols = np.where(y_test.any(axis=0))[0]
+        score = roc_auc_score(y_test[:, nonzero_cols], org_pred[:, nonzero_cols])
     else:
         score = (
             mean_absolute_error(y_test, org_pred),
@@ -710,7 +711,9 @@ def joblib_compute_permutation(
 
         res = (y_test - pred_i) ** 2 - (y_test - org_pred) ** 2
     else:
-        score = roc_auc_score(y_test, org_pred)
+        nonzero_cols = np.where(y_test.any(axis=0))[0]
+        score = roc_auc_score(y_test[:, nonzero_cols],
+                              org_pred[:, nonzero_cols])
         if type_predictor == "DNN":
             pred_i = estimator.predict_proba(current_X_test_list, scale=False)
         else:

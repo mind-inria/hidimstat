@@ -134,6 +134,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.random_state = random_state
         self.X_test = [None] * max(self.k_fold, 1)
         self.y_test = [None] * max(self.k_fold, 1)
+        self.y_train = [None] * max(self.k_fold, 1)
         self.org_pred = [None] * max(self.k_fold, 1)
         self.pred_scores = [None] * max(self.k_fold, 1)
         self.X_nominal = [None] * max(self.k_fold, 1)
@@ -449,6 +450,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                 self.X_test[ind_fold] = X_test.copy()
                 self.y_test[ind_fold] = y_test.copy()
+                self.y_train[ind_fold] = y_train.copy()
 
                 # Find the list of optimal sub-models to be used in the
                 # following steps (Default estimator)
@@ -459,6 +461,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 self.list_estimators[ind_fold] = copy(self.estimator)
 
         else:
+            self.y_train = y.copy()
             if not self.apply_ridge:
                 if self.coffeine_transformer is not None:
                     X = self.coffeine_transformers[0].fit_transform(
@@ -549,7 +552,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                         self.estimator.fit(X_train_scaled, y_train_curr)
 
-                        list_loss.append(self.loss(y_valid_curr, func(X_valid_scaled)))
+                        if self.prob_type == "classification":
+                            list_loss.append(self.loss(y_valid_curr,
+                                                       func(X_valid_scaled)[:, np.unique(y_valid_curr)]))
+                        else:
+                            list_loss.append(self.loss(y_valid_curr,
+                                                       func(X_valid_scaled)))
 
             ind_min = np.argmin(list_loss)
             best_hyper = list_hyper[ind_min]
@@ -761,11 +769,10 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     )[y_col]
             else:
                 if self.prob_type in ("classification", "binary"):
-                    y[ind_fold] = (
-                        OneHotEncoder(handle_unknown="ignore")
-                        .fit_transform(y[ind_fold].reshape(-1, 1))
-                        .toarray()
-                    )
+                    one_hot = (OneHotEncoder(handle_unknown="ignore")
+                                .fit(self.y_train[ind_fold].reshape(-1, 1)))
+                    y[ind_fold] = (one_hot.transform(y[ind_fold]
+                                                    .reshape(-1, 1)).toarray())
             if self.com_imp:
                 if not self.conditional:
                     self.pred_scores[ind_fold], score_cur = list(
