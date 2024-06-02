@@ -82,7 +82,7 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
 
 
 def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
-               eps=1e-2, tol=1e-4, max_iter=1e4, n_jobs=1, seed=0):
+               eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
 
     """Estimation of the covariance matrix using group Reid procedure
 

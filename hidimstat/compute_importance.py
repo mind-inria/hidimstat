@@ -1,6 +1,6 @@
 import warnings
 from collections import Counter
-
+import itertools
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
@@ -34,10 +34,12 @@ def joblib_compute_conditional(
     encoder={},
     proc_col=None,
     index_i=None,
+    sub_groups=None,
     group_stacking=False,
     list_seeds=None,
     Perm=False,
     output_dim=1,
+    verbose=0,
 ):
     """This function applies the conditional approach for feature importance.
     Parameters
@@ -86,7 +88,8 @@ def joblib_compute_conditional(
     Perm: bool, default=False
         The use of permutations or random sampling with CPI-DNN.
     output_dim:
-
+    verbose: int, default=0
+        If verbose > 0, the fitted iterations will be printed.
     """
     rng = np.random.RandomState(seed)
 
@@ -99,6 +102,25 @@ def joblib_compute_conditional(
         )
         for X_test_el in X_test_list
     ]
+
+    el_ind = None
+    # Conditioning on a subset of variables
+    if sub_groups[1] is not None:
+        if (proc_col+1) in sub_groups[1].keys():
+            # Get the indices of the provided variables/groups
+            el = [i-1 for i in sub_groups[1][proc_col+1]]
+            if not group_stacking:
+                el = list(itertools.chain(*[sub_groups[0][i] for i in el]))
+                el_ind = []
+                for val in el:
+                    if val in dict_nom.keys():
+                        el_ind += dict_nom[val]
+                    if val in dict_cont.keys():
+                        el_ind += dict_cont[val]
+                el_ind = list(set(el_ind))
+            else:
+                # Needs to be tested with multi-output neurones
+                el_ind = el.copy()
 
     Res_col = [None] * len(current_X_test_list)
     X_col_pred = {
@@ -194,13 +216,16 @@ def joblib_compute_conditional(
     if importance_estimator != "Mod_RF":
         if var_type["regression"]:
             for counter_test, X_test_comp in enumerate(current_X_test_list):
-                X_test_minus_idx = np.delete(
-                    np.copy(X_test_comp),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
-                    -1,
-                )
+                if el_ind is not None:
+                    X_test_minus_idx = np.copy(X_test_comp)[..., el_ind]
+                else:
+                    X_test_minus_idx = np.delete(
+                        np.copy(X_test_comp),
+                        p_col_n["regression"]
+                        + p_col_n["classification"]
+                        + p_col_n["ordinal"],
+                        -1,
+                    )
 
                 # Nb of y outputs x Nb of samples x Nb of regression outputs
                 output["regression"] = X_test_comp[..., p_col_n["regression"]]
@@ -236,11 +261,14 @@ def joblib_compute_conditional(
         # is the same without the stacking part (where extra sub-linear layers are used), therefore identical inputs
         # won't need looping classification process. This is not the case with the regression part.
         if var_type["classification"]:
-            X_test_minus_idx = np.delete(
-                np.copy(current_X_test_list[0]),
-                p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
-                -1,
-            )
+            if el_ind is not None:
+                X_test_minus_idx = np.copy(current_X_test_list[0])[..., el_ind]
+            else:
+                X_test_minus_idx = np.delete(
+                    np.copy(current_X_test_list[0]),
+                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    -1,
+                )
             output["classification"] = np.array(X_nominal[grp_nom])
             X_col_pred["classification"] = []
             for cur_output_ind in range(X_test_minus_idx.shape[0]):
@@ -264,11 +292,14 @@ def joblib_compute_conditional(
                     X_col_pred["classification"] = [X_col_pred["classification"]]
 
         if var_type["ordinal"]:
-            X_test_minus_idx = np.delete(
-                np.copy(current_X_test_list[0]),
-                p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
-                -1,
-            )
+            if el_ind is not None:
+                X_test_minus_idx = np.copy(current_X_test_list[0])[..., el_ind]
+            else:
+                X_test_minus_idx = np.delete(
+                    np.copy(current_X_test_list[0]),
+                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    -1,
+                )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
             X_col_pred["ordinal"] = []
             for cur_output_ind in range(X_test_minus_idx.shape[0]):
@@ -293,13 +324,16 @@ def joblib_compute_conditional(
     else:
         for counter_test, X_test_comp in enumerate(current_X_test_list):
             if var_type["regression"]:
-                X_test_minus_idx = np.delete(
-                    np.copy(X_test_comp),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
-                    -1,
-                )
+                if el_ind is not None:
+                    X_test_minus_idx = np.copy(X_test_comp)[..., el_ind]
+                else:
+                    X_test_minus_idx = np.delete(
+                        np.copy(X_test_comp),
+                        p_col_n["regression"]
+                        + p_col_n["classification"]
+                        + p_col_n["ordinal"],
+                        -1,
+                    )
                 output["regression"] = X_test_comp[..., p_col_n["regression"]]
                 for cur_output_ind in range(X_test_minus_idx.shape[0]):
                     importance_models["regression"] = hypertune_predictor(
@@ -318,11 +352,14 @@ def joblib_compute_conditional(
                     ].sample_same_leaf(X_test_minus_idx[cur_output_ind, ...])
 
         if var_type["classification"]:
-            X_test_minus_idx = np.delete(
-                np.copy(current_X_test_list[0]),
-                p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
-                -1,
-            )
+            if el_ind is not None:
+                X_test_minus_idx = np.copy(current_X_test_list[0])[..., el_ind]
+            else:
+                X_test_minus_idx = np.delete(
+                    np.copy(current_X_test_list[0]),
+                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    -1,
+                )
             output["classification"] = np.array(X_nominal[grp_nom])
             for cur_output_ind in range(X_test_minus_idx.shape[0]):
                 importance_models["classification"] = hypertune_predictor(
@@ -340,11 +377,14 @@ def joblib_compute_conditional(
                 ].sample_same_leaf(X_test_minus_idx[cur_output_ind, ...])
 
         if var_type["ordinal"]:
-            X_test_minus_idx = np.delete(
-                np.copy(current_X_test_list[0]),
-                p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
-                -1,
-            )
+            if el_ind is not None:
+                X_test_minus_idx = np.copy(current_X_test_list[0])[..., el_ind]
+            else:
+                X_test_minus_idx = np.delete(
+                    np.copy(current_X_test_list[0]),
+                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    -1,
+                )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
 
             for cur_output_ind in range(X_test_minus_idx.shape[0]):
@@ -375,12 +415,13 @@ def joblib_compute_conditional(
         )
 
     for sample in range(n_sample):
-        if index_i is not None:
-            print(
-                f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Sample:{sample+1}"
-            )
-        else:
-            print(f"Processing col:{proc_col+1}")
+        if verbose > 0:
+            if index_i is not None:
+                print(
+                    f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Sample:{sample+1}"
+                )
+            else:
+                print(f"Processing col:{proc_col+1}")
         # Same shuffled indices across the sub-models items
         indices = np.arange(current_X_test_list[0].shape[1])
         if importance_estimator != "Mod_RF":
@@ -584,6 +625,7 @@ def joblib_compute_permutation(
     index_i=None,
     group_stacking=False,
     random_state=None,
+    verbose=0,
 ):
     """This function applies the permutation feature importance (PFI).
 
@@ -620,15 +662,18 @@ def joblib_compute_permutation(
         Apply the stacking-based method for the provided groups.
     random_state: int, default=None
         Fixing the seeds of the random generator.
+    verbose: int, default=0
+        If verbose > 0, the fitted iterations will be printed.
     """
     rng = np.random.RandomState(random_state)
 
-    if index_i is not None:
-        print(
-            f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Permutation:{perm+1}"
-        )
-    else:
-        print(f"Processing col:{proc_col+1}, Permutation:{perm+1}")
+    if verbose > 0:
+        if index_i is not None:
+            print(
+                f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Permutation:{perm+1}"
+            )
+        else:
+            print(f"Processing col:{proc_col+1}, Permutation:{perm+1}")
 
     # A list of copied items to avoid any overlapping in the process
     current_X_test_list = [X_test_el.copy() for X_test_el in X_test_list]
@@ -682,7 +727,6 @@ def joblib_compute_permutation(
 
 
 def hypertune_predictor(estimator, X, y, param_grid):
-    # param_grid = {"max_depth": [2, 5, 10]}
     grid_search = GridSearchCV(estimator, param_grid=param_grid, cv=2)
     grid_search.fit(X, y)
     return grid_search.best_estimator_

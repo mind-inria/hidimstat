@@ -16,7 +16,7 @@ from sklearn.metrics import (
     roc_auc_score,
     r2_score,
 )
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, GroupKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.validation import check_is_fitted
@@ -79,11 +79,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         Fixing the seeds of the random generator.
     com_imp: boolean, default=True
         Compute or not the importance scores.
+    group_label: list, default=None
+        The list of group labels to perform GroupKFold
     Attributes
     ----------
     ToDO
     """
-
     def __init__(
         self,
         estimator=None,
@@ -102,11 +103,13 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         verbose=0,
         groups=None,
         group_stacking=False,
+        sub_groups=None,
         k_fold=2,
         prop_out_subLayers=0,
         index_i=None,
         random_state=2023,
         com_imp=True,
+        group_fold=None,
     ):
         self.estimator = estimator
         self.importance_estimator = importance_estimator
@@ -123,6 +126,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.n_jobs = n_jobs
         self.verbose = verbose
         self.groups = groups
+        self.sub_groups = sub_groups
         self.group_stacking = group_stacking
         self.k_fold = k_fold
         self.prop_out_subLayers = prop_out_subLayers
@@ -139,6 +143,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.scaler_x = [None] * max(self.k_fold, 1)
         self.scaler_y = [None] * max(self.k_fold, 1)
         self.com_imp = com_imp
+        self.group_fold = group_fold
         # Check for applying the stacking approach with the RidgeCV estimator
         self.apply_ridge = False
         # Check for the case of a coffeine transformer with provided groups
@@ -221,14 +226,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # number of variables provided
         list_count = [item for sublist in self.groups for item in sublist]
         if self.coffeine_transformer is None:
-            if len(list_count) != X.shape[1]:
+            if len(set(list_count)) != X.shape[1]:
                 raise Exception("The provided groups are missing some variables!")
         else:
             if self.transformer_grp:
-                if len(list_count) != (X.shape[1] * self.coffeine_transformer[1]):
+                if len(set(list_count)) != (X.shape[1] * self.coffeine_transformer[1]):
                     raise Exception("The provided groups are missing some variables!")
             else:
-                if len(list_count) != X.shape[1]:
+                if len(set(list_count)) != X.shape[1]:
                     raise Exception("The provided groups are missing some variables!")
 
         # Check if categorical variables exist within the columns of the design
@@ -319,6 +324,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         current_grp += self.dict_cont[i]
                 self.list_grps.append(current_grp)
             
+            # To check
             if len(self.coffeine_transformers) == 1:
                 X = self.coffeine_transformers[0].fit_transform(
                     pd.DataFrame(X, columns=self.X_cols), np.ravel(y))
@@ -406,12 +412,18 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         if self.k_fold != 0:
             # Implementing k-fold cross validation as the default behavior
-            kf = KFold(
-                n_splits=self.k_fold,
-                random_state=self.random_state,
-                shuffle=True,
-            )
-            for ind_fold, (train_index, test_index) in enumerate(kf.split(X)):
+            if self.group_fold:
+                kf = GroupKFold(n_splits=self.k_fold)
+                list_splits = kf.split(X, y, self.group_fold)
+            else:
+                kf = KFold(
+                    n_splits=self.k_fold,
+                    random_state=self.random_state,
+                    shuffle=True,
+                )
+                list_splits = kf.split(X)
+
+            for ind_fold, (train_index, test_index) in enumerate(list_splits):
                 print(f"Processing: {ind_fold+1}")
                 X_fold = X.copy()
                 y_fold = y.copy()
@@ -697,11 +709,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         else:
             if self.coffeine_transformer is not None:
                 X = self.coffeine_transformers[0].transform(pd.DataFrame(X, columns=self.X_cols))
-                # Variables are provided as the third element of the
-                # coffeine transformer parameter
-                if len(self.coffeine_transformer) > 2:
-                    X = X[:, self.coffeine_transformer[2]]
-                    self.list_cont = np.arange(len(self.coffeine_transformer[2]))
+                if not self.transformer_grp:
+                    # Variables are provided as the third element of the
+                    # coffeine transformer parameter
+                    if len(self.coffeine_transformer) > 2:
+                        X = X[:, self.coffeine_transformer[2]]
+                        self.list_cont = np.arange(len(self.coffeine_transformer[2]))
             # Perform stacking if enabled
             if self.apply_ridge:
                 X_prev = X.copy()
@@ -773,6 +786,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
                                     random_state=list_seeds_imp[perm],
+                                    verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
                                 for perm in range(self.n_perm)
@@ -812,9 +826,11 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     proc_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
+                                    sub_groups=[self.list_cols, self.sub_groups],
                                     list_seeds=list_seeds_imp,
                                     Perm=self.Perm,
                                     output_dim=output_dim,
+                                    verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
                             )
