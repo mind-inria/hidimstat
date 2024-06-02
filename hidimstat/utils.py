@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Author: Binh Nguyen <tuan-binh.nguyen@inria.fr> & Jerome-Alexis Chevalier
+# Authors: Binh Nguyen & Jerome-Alexis Chevalier & Ahmad Chamma
 import copy
 import numpy as np
 import torch

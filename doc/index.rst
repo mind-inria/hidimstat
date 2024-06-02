@@ -116,6 +116,18 @@ Application to source localization (MEG/EEG data):
   desparsified multi-task Lasso. In Proceedings of the 34th Conference on
   Neural Information Processing Systems (NeurIPS 2020), Vancouver, Canada.
 
+Single/Group statistically validated importance using conditional permutations:
+
+* Chamma, A., Thirion, B., & Engemann, D. (2024). **Variable importance in
+high-dimensional settings requires grouping**. In Proceedings of the 38th
+Conference of the Association for the Advancement of Artificial
+Intelligence(AAAI 2024), Vancouver, Canada.
+
+* Chamma, A., Engemann, D., & Thirion, B. (2023). **Statistically Valid Variable
+Importance Assessment through Conditional Permutations**. In Proceedings of the
+37th Conference on Neural Information Processing Systems (NeurIPS 2023), New
+Orleans, USA.
+
 If you use our packages, we would appreciate citations to the relevant
 aforementioned papers.
 
