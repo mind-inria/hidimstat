@@ -764,6 +764,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         for ind_fold, estimator in enumerate(self.list_estimators):
             if self.type == "DNN":
                 for y_col in range(y[ind_fold].shape[-1]):
+                    _ = self.estimator.encode_outcome(
+                        self.y_train[ind_fold], train=True
+                    )[y_col]
                     y[ind_fold] = self.estimator.encode_outcome(
                         y[ind_fold], train=False
                     )[y_col]
