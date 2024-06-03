@@ -833,7 +833,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     proc_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    sub_groups=[self.list_cols, self.sub_groups],
+                                    sub_groups=[self.list_cols,
+                                                self.sub_groups],
                                     list_seeds=list_seeds_imp,
                                     Perm=self.Perm,
                                     output_dim=output_dim,
@@ -847,10 +848,13 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 score_imp_l.append(score_cur[0])
             else:
                 if self.prob_type in ("classification", "binary"):
-                    score = roc_auc_score(y[ind_fold], self.org_pred[ind_fold])
+                    nonzero_cols = np.where(y[ind_fold].any(axis=0))[0]
+                    score = roc_auc_score(y[ind_fold][:, nonzero_cols],
+                                          self.org_pred[ind_fold][:, nonzero_cols])
                 else:
                     score = (
-                        mean_absolute_error(y[ind_fold], self.org_pred[ind_fold]),
+                        mean_absolute_error(y[ind_fold],
+                                            self.org_pred[ind_fold]),
                         r2_score(y[ind_fold], self.org_pred[ind_fold]),
                     )
                 score_imp_l.append(score)
