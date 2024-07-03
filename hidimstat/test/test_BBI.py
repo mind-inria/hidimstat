@@ -34,7 +34,7 @@ def test_BBI():
     bbi_perm.fit(X, y)
     results_perm = bbi_perm.compute_importance()
     pvals_perm = -np.log10(results_perm["pval"] + 1e-10)
-    assert len(pvals_perm) == len(y)
+    assert len(pvals_perm) == X.shape[1]
 
     # Conditional Method
     bbi_cond = BlockBasedImportance(
@@ -54,4 +54,4 @@ def test_BBI():
     bbi_cond.fit(X, y)
     results_cond = bbi_cond.compute_importance()
     pvals_cond = -np.log10(results_cond["pval"] + 1e-5)
-    assert len(pvals_cond) == len(y)
+    assert len(pvals_cond) == X.shape[1]
