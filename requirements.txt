@@ -6,3 +6,4 @@ scikit-learn
 torch
 torchmetrics
 pandas
+mne
