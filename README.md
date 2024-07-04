@@ -1,5 +1,5 @@
 # HiDimStat: High-dimensional statistical inference tool for Python
-![build](https://github.com/Parietal-INRIA/hidimstat/actions/workflows/python-package.yml/badge.svg)  [![codecov](https://codecov.io/gh/Parietal-INRIA/hidimstat/branch/main/graph/badge.svg?token=979G94XCE7)](https://codecov.io/gh/Parietal-INRIA/hidimstat)
+[![Build](https://github.com/Parietal-INRIA/hidimstat/actions/workflows/build_package.yml/badge.svg?branch=main)](https://github.com/Parietal-INRIA/hidimstat/actions/workflows/build_package.yml)  [![codecov](https://codecov.io/gh/Parietal-INRIA/hidimstat/branch/main/graph/badge.svg?token=979G94XCE7)](https://codecov.io/gh/Parietal-INRIA/hidimstat)
 
 The HiDimStat package provides statistical inference methods to solve the
 problem of support recovery in the context of high-dimensional and
