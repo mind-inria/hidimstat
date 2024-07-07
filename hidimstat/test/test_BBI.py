@@ -92,8 +92,26 @@ def _generate_data(n_samples=100, n_features=10, prob_type="regression",
 def test_BBI_DNN():
 
     X, y, grps, list_nominal = _generate_data()
-    # Permutation Method
-    bbi_perm = BlockBasedImportance(
+    # Compute importance with residuals
+    bbi_res = BlockBasedImportance(
+        estimator=None,
+        importance_estimator=None,
+        do_hyper=True,
+        dict_hyper=None,
+        group_stacking=False,
+        prob_type="regression",
+        k_fold=2,
+        list_nominal=list_nominal,
+        n_jobs=10,
+        verbose=0,
+        n_perm=100,
+        )
+    bbi_res.fit(X, y)
+    results_res = bbi_res.compute_importance()
+    assert len(results_res["pval"]) == X.shape[1]
+
+    # Compute importance with sampling RF
+    bbi_samp = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
         do_hyper=True,
@@ -106,10 +124,9 @@ def test_BBI_DNN():
         verbose=0,
         n_perm=100,
         )
-    bbi_perm.fit(X, y)
-    results_perm = bbi_perm.compute_importance()
-    assert len(results_perm["pval"]) == X.shape[1]
-
+    bbi_samp.fit(X, y)
+    results_samp = bbi_samp.compute_importance()
+    assert len(results_samp["pval"]) == X.shape[1]
 
 # def test_BBI_samplingRF():
 
