@@ -1,0 +1,19 @@
+--extra-index-url https://download.pytorch.org/whl/cu118
+joblib
+matplotlib
+memory_profiler
+mne
+nilearn
+numpy
+numpydoc
+pandas
+pillow
+PyQt5
+pyvista
+pyvistaqt
+scikit-learn
+scipy
+sphinx-bootstrap-theme
+sphinx-gallery
+torch
+torchmetrics

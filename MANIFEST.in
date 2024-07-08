@@ -1,0 +1,20 @@
+include .circleci/config.yml
+include build_package.sh
+include *.txt
+include *.yml
+include LICENSE
+
+recursive-include doc *.css
+recursive-include doc *.py
+recursive-include doc *.rst
+recursive-include doc *.txt
+recursive-include doc Makefile
+recursive-include examples *.py
+recursive-include examples *.txt
+recursive-include examples_not_exhibited *.py
+recursive-include hidimstat *.py
+
+recursive-exclude doc/_build *
+recursive-exclude doc/generated *
+recursive-exclude doc/auto_examples *
+recursive-exclude examples/figures *.png
