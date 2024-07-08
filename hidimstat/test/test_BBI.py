@@ -61,7 +61,27 @@ def _generate_data(
 def test_BBI_reg():
 
     X, y, _, list_nominal = _generate_data(prob_type="regression")
-    bbi_reg = BlockBasedImportance(
+    # DNN
+    bbi_reg_dnn = BlockBasedImportance(
+        estimator="None",
+        importance_estimator="Mod_RF",
+        do_hyper=True,
+        dict_hyper=None,
+        conditional=False,
+        group_stacking=False,
+        prob_type="regression",
+        k_fold=2,
+        list_nominal=list_nominal,
+        n_jobs=10,
+        verbose=0,
+        n_perm=100,
+    )
+    bbi_reg_dnn.fit(X, y)
+    results_reg_dnn = bbi_reg_dnn.compute_importance()
+    assert len(results_reg_dnn["pval"]) == X.shape[1]
+
+    # RF
+    bbi_reg_rf = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
         do_hyper=True,
@@ -75,15 +95,16 @@ def test_BBI_reg():
         verbose=0,
         n_perm=100,
     )
-    bbi_reg.fit(X, y)
-    results_reg = bbi_reg.compute_importance()
-    assert len(results_reg["pval"]) == X.shape[1]
+    bbi_reg_rf.fit(X, y)
+    results_reg_rf = bbi_reg_rf.compute_importance()
+    assert len(results_reg_rf["pval"]) == X.shape[1]
 
 
 def test_BBI_class():
 
     X, y, _, list_nominal = _generate_data(prob_type="classification")
-    bbi_class = BlockBasedImportance(
+    # DNN
+    bbi_class_dnn = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
         do_hyper=True,
@@ -97,9 +118,28 @@ def test_BBI_class():
         verbose=0,
         n_perm=100,
     )
-    bbi_class.fit(X, y)
-    results_class = bbi_class.compute_importance()
-    assert len(results_class["pval"]) == X.shape[1]
+    bbi_class_dnn.fit(X, y)
+    results_class_dnn = bbi_class_dnn.compute_importance()
+    assert len(results_class_dnn["pval"]) == X.shape[1]
+
+    # RF
+    bbi_class_rf = BlockBasedImportance(
+        estimator="RF",
+        importance_estimator="Mod_RF",
+        do_hyper=True,
+        dict_hyper=None,
+        conditional=False,
+        group_stacking=False,
+        prob_type="regression",
+        k_fold=2,
+        list_nominal=list_nominal,
+        n_jobs=10,
+        verbose=0,
+        n_perm=100,
+    )
+    bbi_class_rf.fit(X, y)
+    results_class_rf = bbi_class_rf.compute_importance()
+    assert len(results_class_rf["pval"]) == X.shape[1]
 
 
 def test_BBI_condDNN():
