@@ -10,9 +10,16 @@ from sklearn.pipeline import Pipeline
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 
 
-def permutation_test_cv(X, y, n_permutations=1000,
-                        C=None, Cs=np.logspace(-7, 1, 9),
-                        seed=0, n_jobs=1, verbose=1):
+def permutation_test_cv(
+    X,
+    y,
+    n_permutations=1000,
+    C=None,
+    Cs=np.logspace(-7, 1, 9),
+    seed=0,
+    n_jobs=1,
+    verbose=1,
+):
     """Cross-validated permutation test shuffling the target
 
     Parameters
@@ -62,27 +69,32 @@ def permutation_test_cv(X, y, n_permutations=1000,
 
     if C is None:
 
-        steps = [('SVR', LinearSVR())]
+        steps = [("SVR", LinearSVR())]
         pipeline = Pipeline(steps)
-        parameters = {'SVR__C': Cs}
+        parameters = {"SVR__C": Cs}
         grid = GridSearchCV(pipeline, param_grid=parameters, n_jobs=n_jobs)
         grid.fit(X, y)
-        C = grid.best_params_['SVR__C']
+        C = grid.best_params_["SVR__C"]
         estimator = LinearSVR(C=C)
 
     else:
 
         estimator = LinearSVR(C=C)
 
-    pval_corr, one_minus_pval_corr = \
-        permutation_test(X, y, estimator, n_permutations=n_permutations,
-                         seed=seed, n_jobs=n_jobs, verbose=verbose)
+    pval_corr, one_minus_pval_corr = permutation_test(
+        X,
+        y,
+        estimator,
+        n_permutations=n_permutations,
+        seed=seed,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     return pval_corr, one_minus_pval_corr
 
 
-def permutation_test(X, y, estimator, n_permutations=1000,
-                     seed=0, n_jobs=1, verbose=1):
+def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=1):
     """Permutation test shuffling the target
 
     Parameters
@@ -123,19 +135,19 @@ def permutation_test(X, y, estimator, n_permutations=1000,
 
     stat = _permutation_test_stat(clone(estimator), X, y)
 
-    permutation_stats = \
-        Parallel(n_jobs=n_jobs, verbose=verbose)(
-            delayed(_permutation_test_stat)(clone(estimator), X,
-                                            _shuffle(y, rng))
-            for _ in range(n_permutations))
+    permutation_stats = Parallel(n_jobs=n_jobs, verbose=verbose)(
+        delayed(_permutation_test_stat)(clone(estimator), X, _shuffle(y, rng))
+        for _ in range(n_permutations)
+    )
 
     permutation_stats = np.array(permutation_stats)
     two_sided_pval_corr = step_down_max_T(stat, permutation_stats)
 
     stat_sign = np.sign(stat)
 
-    pval_corr, _, one_minus_pval_corr, _ = \
-        pval_from_two_sided_pval_and_sign(two_sided_pval_corr, stat_sign)
+    pval_corr, _, one_minus_pval_corr, _ = pval_from_two_sided_pval_and_sign(
+        two_sided_pval_corr, stat_sign
+    )
 
     return pval_corr, one_minus_pval_corr
 
@@ -182,21 +194,22 @@ def step_down_max_T(stat, permutation_stats):
     stat_ranked[index_ordered] = np.arange(n_features)
     stat_ranked = stat_ranked.astype(int)
     stat_sorted = np.copy(np.abs(stat)[index_ordered])
-    permutation_stats_ordered = \
-        np.copy(np.abs(permutation_stats)[:, index_ordered])
+    permutation_stats_ordered = np.copy(np.abs(permutation_stats)[:, index_ordered])
 
     for i in range(1, n_features):
-        permutation_stats_ordered[:, i] = \
-            np.maximum(permutation_stats_ordered[:, i - 1],
-                       permutation_stats_ordered[:, i])
+        permutation_stats_ordered[:, i] = np.maximum(
+            permutation_stats_ordered[:, i - 1], permutation_stats_ordered[:, i]
+        )
 
-    two_sided_pval_corr = \
-        (np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
-         / n_permutations)
+    two_sided_pval_corr = (
+        np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
+        / n_permutations
+    )
 
     for i in range(n_features - 1)[::-1]:
-        two_sided_pval_corr[i] = \
-            np.maximum(two_sided_pval_corr[i], two_sided_pval_corr[i + 1])
+        two_sided_pval_corr[i] = np.maximum(
+            two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
+        )
 
     two_sided_pval_corr = np.copy(two_sided_pval_corr[stat_ranked])
 

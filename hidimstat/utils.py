@@ -17,19 +17,17 @@ def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
         return _fixed_quantile_aggregation(pvals, gamma)
 
 
-def fdr_threshold(pvals, fdr=0.1, method='bhq', reshaping_function=None):
-    if method == 'bhq':
+def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
+    if method == "bhq":
         return _bhq_threshold(pvals, fdr=fdr)
-    elif method == 'bhy':
-        return _bhy_threshold(
-            pvals, fdr=fdr, reshaping_function=reshaping_function)
+    elif method == "bhy":
+        return _bhy_threshold(pvals, fdr=fdr, reshaping_function=reshaping_function)
     else:
-        raise ValueError(
-            '{} is not support FDR control method'.format(method))
+        raise ValueError("{} is not support FDR control method".format(method))
 
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
-    """ Calculate power and False Discovery Proportion
+    """Calculate power and False Discovery Proportion
 
     Parameters
     ----------
@@ -62,8 +60,7 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 
 
 def _bhq_threshold(pvals, fdr=0.1):
-    """Standard Benjamini-Hochberg for controlling False discovery rate
-    """
+    """Standard Benjamini-Hochberg for controlling False discovery rate"""
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
     selected_index = 2 * n_features
@@ -117,8 +114,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     1D ndarray (n_tests, )
         Vector of aggregated p-value
     """
-    converted_score = (1 / gamma) * (
-        np.percentile(pvals, q=100*gamma, axis=0))
+    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
 
     return np.minimum(1, converted_score)
 
@@ -127,8 +123,7 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """adaptive version of the quantile aggregation method, Meinshausen et al.
     (2008)"""
     gammas = np.arange(gamma_min, 1.05, 0.05)
-    list_Q = np.array([
-        _fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
+    list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
 
     return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))
 
@@ -704,14 +699,10 @@ def dnn_net(
 def compute_imp_std(pred_scores):
     weights = np.array([el.shape[-2] for el in pred_scores])
     # Compute the mean of each fold over the number of observations
-    pred_mean = np.array(
-        [np.mean(el.copy(), axis=-2) for el in pred_scores]
-    )
+    pred_mean = np.array([np.mean(el.copy(), axis=-2) for el in pred_scores])
 
     # Weighted average
-    imp = np.average(
-        pred_mean, axis=0, weights=weights
-    )
+    imp = np.average(pred_mean, axis=0, weights=weights)
 
     # Compute the standard deviation of each fold
     # over the number of observations
@@ -724,8 +715,5 @@ def compute_imp_std(pred_scores):
             for el in pred_scores
         ]
     )
-    std = np.sqrt(
-        np.average(pred_std, axis=0, weights=weights)
-        / (np.sum(weights) - 1)
-    )
+    std = np.sqrt(np.average(pred_std, axis=0, weights=weights) / (np.sum(weights) - 1))
     return (imp, std)

@@ -58,14 +58,9 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
 
     cv = KFold(n_splits=5, shuffle=True, random_state=seed)
 
-    clf_lasso_cv = \
-        LassoCV(
-            eps=eps,
-            fit_intercept=False,
-            cv=cv,
-            tol=tol,
-            max_iter=max_iter,
-            n_jobs=n_jobs)
+    clf_lasso_cv = LassoCV(
+        eps=eps, fit_intercept=False, cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs
+    )
 
     clf_lasso_cv.fit(X, y)
     beta_hat = clf_lasso_cv.coef_
@@ -81,9 +76,19 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
     return sigma_hat, beta_hat
 
 
-def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
-               eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
-
+def group_reid(
+    X,
+    Y,
+    fit_Y=True,
+    stationary=True,
+    method="simple",
+    order=1,
+    eps=1e-2,
+    tol=1e-4,
+    max_iter=10000,
+    n_jobs=1,
+    seed=0,
+):
     """Estimation of the covariance matrix using group Reid procedure
 
     Parameters
@@ -155,10 +160,10 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
     n_samples, n_features = X.shape
     n_times = Y.shape[1]
 
-    if method == 'simple':
-        print('Group reid: simple cov estimation')
+    if method == "simple":
+        print("Group reid: simple cov estimation")
     else:
-        print(f'Group reid: {method}{order} cov estimation')
+        print(f"Group reid: {method}{order} cov estimation")
 
     if (max_iter // 5) <= n_features:
         max_iter = n_features * 5
@@ -168,14 +173,14 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
 
     if fit_Y:
 
-        clf_mtlcv = \
-            MultiTaskLassoCV(
-                eps=eps,
-                fit_intercept=False,
-                cv=cv,
-                tol=tol,
-                max_iter=max_iter,
-                n_jobs=n_jobs)
+        clf_mtlcv = MultiTaskLassoCV(
+            eps=eps,
+            fit_intercept=False,
+            cv=cv,
+            tol=tol,
+            max_iter=max_iter,
+            n_jobs=n_jobs,
+        )
 
         clf_mtlcv.fit(X, Y)
         beta_hat = clf_mtlcv.coef_
@@ -203,19 +208,20 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
         corr_emp = np.corrcoef(residual_rescaled.T)
 
     # Median method
-    if not stationary or method == 'simple':
+    if not stationary or method == "simple":
 
         rho_hat = np.median(np.diag(corr_emp, 1))
-        corr_hat = \
-            toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
+        corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
     # Yule-Walker method
-    elif stationary and method == 'AR':
+    elif stationary and method == "AR":
 
         if order > n_times - 1:
-            raise ValueError('The requested AR order is to high with ' +
-                             'respect to the number of time steps.')
+            raise ValueError(
+                "The requested AR order is to high with "
+                + "respect to the number of time steps."
+            )
 
         rho_ar = np.zeros(order + 1)
         rho_ar[0] = 1
@@ -231,14 +237,14 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
         for i in range(order):
             # time window used to estimate the residual from AR model
             start = order - i - 1
-            end = - i - 1
+            end = -i - 1
             residual_estimate += coef_ar[i] * residual[:, start:end]
 
         residual_diff = residual[:, order:] - residual_estimate
         sigma_eps = np.median(norm(residual_diff, axis=0) / np.sqrt(n_samples))
 
         rho_ar_full = np.zeros(n_times)
-        rho_ar_full[:rho_ar.size] = rho_ar
+        rho_ar_full[: rho_ar.size] = rho_ar
 
         for i in range(order + 1, n_times):
             start = i - order
@@ -250,7 +256,7 @@ def group_reid(X, Y, fit_Y=True, stationary=True, method='simple', order=1,
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
     else:
-        raise ValueError('Unknown method for estimating the covariance matrix')
+        raise ValueError("Unknown method for estimating the covariance matrix")
 
     return cov_hat, beta_hat
 

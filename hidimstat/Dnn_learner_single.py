@@ -424,8 +424,10 @@ class DNN_learner_single(BaseEstimator):
             total_n_elements += 1
         res_pred = res_pred.copy() / total_n_elements
         if self.prob_type == "binary":
-            res_pred = np.array([[1-res_pred[i][0], res_pred[i][0]] for i in range(res_pred.shape[0])])
-        
+            res_pred = np.array(
+                [[1 - res_pred[i][0], res_pred[i][0]] for i in range(res_pred.shape[0])]
+            )
+
         return res_pred
 
     def __scale_test(self, X):

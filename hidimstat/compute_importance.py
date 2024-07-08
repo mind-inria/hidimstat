@@ -106,9 +106,9 @@ def joblib_compute_conditional(
     el_ind = None
     # Conditioning on a subset of variables
     if sub_groups[1] is not None:
-        if (proc_col+1) in sub_groups[1].keys():
+        if (proc_col + 1) in sub_groups[1].keys():
             # Get the indices of the provided variables/groups
-            el = [i-1 for i in sub_groups[1][proc_col+1]]
+            el = [i - 1 for i in sub_groups[1][proc_col + 1]]
             if not group_stacking:
                 el = list(itertools.chain(*[sub_groups[0][i] for i in el]))
                 el_ind = []
@@ -235,7 +235,7 @@ def joblib_compute_conditional(
                         importance_models["regression"],
                         X_test_minus_idx[cur_output_ind, ...],
                         output["regression"][cur_output_ind, ...],
-                        param_grid={"max_depth": [2, 5, 10]}
+                        param_grid={"max_depth": [2, 5, 10]},
                     )
                     importance_models["regression"].fit(
                         X_test_minus_idx[cur_output_ind, ...],
@@ -266,7 +266,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    p_col_n["regression"]
+                    + p_col_n["classification"]
+                    + p_col_n["ordinal"],
                     -1,
                 )
             output["classification"] = np.array(X_nominal[grp_nom])
@@ -276,7 +278,7 @@ def joblib_compute_conditional(
                     importance_models["classification"],
                     X_test_minus_idx[cur_output_ind, ...],
                     output["classification"],
-                    param_grid={"max_depth": [2, 5, 10]}
+                    param_grid={"max_depth": [2, 5, 10]},
                 )
                 importance_models["classification"].fit(
                     X_test_minus_idx[cur_output_ind, ...],
@@ -297,7 +299,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    p_col_n["regression"]
+                    + p_col_n["classification"]
+                    + p_col_n["ordinal"],
                     -1,
                 )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
@@ -311,7 +315,7 @@ def joblib_compute_conditional(
                         importance_models["ordinal"],
                         X_test_minus_idx[cur_output_ind, ...],
                         cur_ordinal,
-                        param_grid={"max_depth": [2, 5, 10]}
+                        param_grid={"max_depth": [2, 5, 10]},
                     )
                     importance_models["ordinal"].fit(
                         X_test_minus_idx[cur_output_ind, ...], cur_ordinal
@@ -340,7 +344,7 @@ def joblib_compute_conditional(
                         importance_models["regression"],
                         X_test_minus_idx[cur_output_ind, ...],
                         output["regression"][cur_output_ind, ...],
-                        param_grid={"min_samples_leaf": [10, 15, 20]}
+                        param_grid={"min_samples_leaf": [10, 15, 20]},
                     )
 
                     importance_models["regression"].fit(
@@ -357,7 +361,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    p_col_n["regression"]
+                    + p_col_n["classification"]
+                    + p_col_n["ordinal"],
                     -1,
                 )
             output["classification"] = np.array(X_nominal[grp_nom])
@@ -366,7 +372,7 @@ def joblib_compute_conditional(
                     importance_models["classification"],
                     X_test_minus_idx[cur_output_ind, ...],
                     output["classification"],
-                    param_grid={"min_samples_leaf": [10, 15, 20]}
+                    param_grid={"min_samples_leaf": [10, 15, 20]},
                 )
                 importance_models["classification"].fit(
                     X_test_minus_idx[cur_output_ind, ...],
@@ -382,7 +388,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"] + p_col_n["classification"] + p_col_n["ordinal"],
+                    p_col_n["regression"]
+                    + p_col_n["classification"]
+                    + p_col_n["ordinal"],
                     -1,
                 )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
@@ -393,7 +401,7 @@ def joblib_compute_conditional(
                         importance_models["ordinal"],
                         X_test_minus_idx[cur_output_ind, ...],
                         cur_ordinal,
-                        param_grid={"min_samples_leaf": [10, 15, 20]}
+                        param_grid={"min_samples_leaf": [10, 15, 20]},
                     )
 
                     importance_models["ordinal"].fit(
@@ -712,8 +720,7 @@ def joblib_compute_permutation(
         res = (y_test - pred_i) ** 2 - (y_test - org_pred) ** 2
     else:
         nonzero_cols = np.where(y_test.any(axis=0))[0]
-        score = roc_auc_score(y_test[:, nonzero_cols],
-                              org_pred[:, nonzero_cols])
+        score = roc_auc_score(y_test[:, nonzero_cols], org_pred[:, nonzero_cols])
         if type_predictor == "DNN":
             pred_i = estimator.predict_proba(current_X_test_list, scale=False)
         else:

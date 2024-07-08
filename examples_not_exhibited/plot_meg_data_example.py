@@ -35,8 +35,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.metrics.pairwise import pairwise_distances
 
 from hidimstat.clustered_inference import clustered_inference
-from hidimstat.ensemble_clustered_inference import \
-    ensemble_clustered_inference
+from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.stat_tools import zscore_from_pval
 
 ##############################################################################
@@ -50,23 +49,23 @@ from hidimstat.stat_tools import zscore_from_pval
 
 
 def _load_sample(cond):
-    '''Load data from the sample dataset'''
+    """Load data from the sample dataset"""
 
     # Get data paths
-    subject = 'sample'
+    subject = "sample"
     data_path = sample.data_path()
-    fwd_fname_suffix = 'MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif'
+    fwd_fname_suffix = "MEG/sample/sample_audvis-meg-eeg-oct-6-fwd.fif"
     fwd_fname = os.path.join(data_path, fwd_fname_suffix)
-    ave_fname = os.path.join(data_path, 'MEG/sample/sample_audvis-ave.fif')
-    cov_fname_suffix = 'MEG/sample/sample_audvis-shrunk-cov.fif'
+    ave_fname = os.path.join(data_path, "MEG/sample/sample_audvis-ave.fif")
+    cov_fname_suffix = "MEG/sample/sample_audvis-shrunk-cov.fif"
     cov_fname = os.path.join(data_path, cov_fname_suffix)
-    cov_fname = data_path + '/' + cov_fname_suffix
-    subjects_dir = os.path.join(data_path, 'subjects')
+    cov_fname = data_path + "/" + cov_fname_suffix
+    subjects_dir = os.path.join(data_path, "subjects")
 
-    if cond == 'audio':
-        condition = 'Left Auditory'
-    elif cond == 'visual':
-        condition = 'Left visual'
+    if cond == "audio":
+        condition = "Left Auditory"
+    elif cond == "visual":
+        condition = "Left visual"
 
     # Read noise covariance matrix
     noise_cov = mne.read_cov(cov_fname)
@@ -75,9 +74,8 @@ def _load_sample(cond):
     forward = mne.read_forward_solution(fwd_fname)
 
     # Handling average file
-    evoked = mne.read_evokeds(ave_fname, condition=condition,
-                              baseline=(None, 0))
-    evoked = evoked.pick_types('grad')
+    evoked = mne.read_evokeds(ave_fname, condition=condition, baseline=(None, 0))
+    evoked = evoked.pick_types("grad")
 
     # Selecting relevant time window
     evoked.plot()
@@ -86,8 +84,17 @@ def _load_sample(cond):
 
     pca = False
 
-    return (subject, subjects_dir, noise_cov, forward, evoked,
-            t_min, t_max, t_step, pca)
+    return (
+        subject,
+        subjects_dir,
+        noise_cov,
+        forward,
+        evoked,
+        t_min,
+        t_max,
+        t_step,
+        pca,
+    )
 
 
 ##############################################################################
@@ -95,32 +102,35 @@ def _load_sample(cond):
 
 
 def _load_somato(cond):
-    '''Load data from the somato dataset'''
+    """Load data from the somato dataset"""
 
     # Get data paths
     data_path = somato.data_path()
-    subject = '01'
-    subjects_dir = data_path / '/derivatives/freesurfer/subjects'
-    raw_fname = os.path.join(data_path, f'sub-{subject}', 'meg',
-                             f'sub-{subject}_task-{cond}_meg.fif')
-    fwd_fname = os.path.join(data_path, 'derivatives', f'sub-{subject}',
-                             f'sub-{subject}_task-{cond}-fwd.fif')
+    subject = "01"
+    subjects_dir = data_path / "/derivatives/freesurfer/subjects"
+    raw_fname = os.path.join(
+        data_path, f"sub-{subject}", "meg", f"sub-{subject}_task-{cond}_meg.fif"
+    )
+    fwd_fname = os.path.join(
+        data_path, "derivatives", f"sub-{subject}", f"sub-{subject}_task-{cond}-fwd.fif"
+    )
 
     # Read evoked
     raw = mne.io.read_raw_fif(raw_fname)
-    events = mne.find_events(raw, stim_channel='STI 014')
+    events = mne.find_events(raw, stim_channel="STI 014")
     reject = dict(grad=4000e-13, eog=350e-6)
     picks = mne.pick_types(raw.info, meg=True, eeg=True, eog=True)
 
-    event_id, tmin, tmax = 1, -.2, .25
-    epochs = mne.Epochs(raw, events, event_id, tmin, tmax, picks=picks,
-                        reject=reject, preload=True)
+    event_id, tmin, tmax = 1, -0.2, 0.25
+    epochs = mne.Epochs(
+        raw, events, event_id, tmin, tmax, picks=picks, reject=reject, preload=True
+    )
     evoked = epochs.average()
-    evoked = evoked.pick_types('grad')
+    evoked = evoked.pick_types("grad")
     # evoked.plot()
 
     # Compute noise covariance matrix
-    noise_cov = mne.compute_covariance(epochs, rank='info', tmax=0.)
+    noise_cov = mne.compute_covariance(epochs, rank="info", tmax=0.0)
 
     # Read forward matrix
     forward = mne.read_forward_solution(fwd_fname)
@@ -134,8 +144,17 @@ def _load_somato(cond):
     # number of 64 samples.
     pca = True
 
-    return (subject, subjects_dir, noise_cov, forward, evoked,
-            t_min, t_max, t_step, pca)
+    return (
+        subject,
+        subjects_dir,
+        noise_cov,
+        forward,
+        evoked,
+        t_min,
+        t_max,
+        t_step,
+        pca,
+    )
 
 
 ##############################################################################
@@ -143,8 +162,9 @@ def _load_somato(cond):
 # whitened MEG/EEG measurements and prepares the gain matrix.
 
 
-def preprocess_meg_eeg_data(evoked, forward, noise_cov, loose=0., depth=0.,
-                            pca=False):
+def preprocess_meg_eeg_data(
+    evoked, forward, noise_cov, loose=0.0, depth=0.0, pca=False
+):
     """Preprocess MEG or EEG data to produce the whitened MEG/EEG measurements
     (target) and the preprocessed gain matrix (design matrix). This function
     is mainly wrapping the `_prepare_gain` MNE function.
@@ -194,12 +214,20 @@ def preprocess_meg_eeg_data(evoked, forward, noise_cov, loose=0., depth=0.,
     all_ch_names = evoked.ch_names
 
     # Handle depth weighting and whitening (here is no weights)
-    forward, G, gain_info, whitener, _, _ = \
-        _prepare_gain(forward, evoked.info, noise_cov, pca=pca, depth=depth,
-                      loose=loose, weights=None, weights_min=None, rank=None)
+    forward, G, gain_info, whitener, _, _ = _prepare_gain(
+        forward,
+        evoked.info,
+        noise_cov,
+        pca=pca,
+        depth=depth,
+        loose=loose,
+        weights=None,
+        weights_min=None,
+        rank=None,
+    )
 
     # Select channels of interest
-    sel = [all_ch_names.index(name) for name in gain_info['ch_names']]
+    sel = [all_ch_names.index(name) for name in gain_info["ch_names"]]
 
     M = evoked.data[sel]
     M = np.dot(whitener, M)
@@ -220,8 +248,9 @@ def _compute_stc(zscore_active_set, active_set, evoked, forward):
     if X.shape[1] > 1 and X.shape[0] == 1:
         X = X.T
 
-    stc = _make_sparse_stc(X, active_set, forward, tmin=evoked.times[0],
-                           tstep=1. / evoked.info['sfreq'])
+    stc = _make_sparse_stc(
+        X, active_set, forward, tmin=evoked.times[0], tstep=1.0 / evoked.info["sfreq"]
+    )
     return stc
 
 
@@ -265,18 +294,20 @@ def _fix_connectivity(X, connectivity, affinity):
 # the corresponding evoked, forward and noise covariance matrices.
 
 # Choose the experiment (task)
-list_cond = ['audio', 'visual', 'somato']
+list_cond = ["audio", "visual", "somato"]
 cond = list_cond[2]
 print(f"Let's process the condition: {cond}")
 
 # Load the data
-if cond in ['audio', 'visual']:
-    sub, subs_dir, noise_cov, forward, evoked, t_min, t_max, t_step, pca = \
-        _load_sample(cond)
+if cond in ["audio", "visual"]:
+    sub, subs_dir, noise_cov, forward, evoked, t_min, t_max, t_step, pca = _load_sample(
+        cond
+    )
 
-elif cond == 'somato':
-    sub, subs_dir, noise_cov, forward, evoked, t_min, t_max, t_step, pca = \
-        _load_somato(cond)
+elif cond == "somato":
+    sub, subs_dir, noise_cov, forward, evoked, t_min, t_max, t_step, pca = _load_somato(
+        cond
+    )
 
 ##############################################################################
 # Preparing data for clustered inference
@@ -286,17 +317,17 @@ elif cond == 'somato':
 # and the ``connectivity`` matrix, which is a sparse adjacency matrix.
 
 # Collecting features' connectivity
-connectivity = mne.source_estimate.spatial_src_adjacency(forward['src'])
+connectivity = mne.source_estimate.spatial_src_adjacency(forward["src"])
 
 # Croping evoked according to relevant time window
 evoked.crop(tmin=t_min, tmax=t_max)
 
 # Choosing frequency and number of clusters used for compression.
 # Reducing the frequency to 100Hz to make inference faster
-step = int(t_step * evoked.info['sfreq'])
+step = int(t_step * evoked.info["sfreq"])
 evoked.decimate(step)
 t_min = evoked.times[0]
-t_step = 1. / evoked.info['sfreq']
+t_step = 1.0 / evoked.info["sfreq"]
 
 # Preprocessing MEG data
 X, Y, forward = preprocess_meg_eeg_data(evoked, forward, noise_cov, pca=pca)
@@ -316,22 +347,23 @@ n_clusters = 1000
 fwer_target = 0.1
 
 # Computing threshold taking into account for Bonferroni correction
-correction_clust_inf = 1. / n_clusters
+correction_clust_inf = 1.0 / n_clusters
 zscore_threshold = zscore_from_pval((fwer_target / 2) * correction_clust_inf)
 
 # Initializing FeatureAgglomeration object used for the clustering step
-connectivity_fixed, _ = \
-    _fix_connectivity(X.T, connectivity, affinity="euclidean")
+connectivity_fixed, _ = _fix_connectivity(X.T, connectivity, affinity="euclidean")
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 # Making the inference with the clustered inference algorithm
-inference_method = 'desparsified-group-lasso'
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-    clustered_inference(X, Y, ward, n_clusters, method=inference_method)
+inference_method = "desparsified-group-lasso"
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = clustered_inference(
+    X, Y, ward, n_clusters, method=inference_method
+)
 
 # Extracting active set (support)
-active_set = np.logical_or(pval_corr < fwer_target / 2,
-                           one_minus_pval_corr < fwer_target / 2)
+active_set = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
 active_set_full = np.copy(active_set)
 active_set_full[:] = True
 
@@ -349,43 +381,47 @@ zscore_active_set = zscore[active_set]
 stc = _compute_stc(zscore_active_set, active_set, evoked, forward)
 
 # Plotting parameters
-if cond == 'audio':
-    hemi = 'lh'
-    view = 'lateral'
-elif cond == 'visual':
-    hemi = 'rh'
-    view = 'medial'
-elif cond == 'somato':
-    hemi = 'rh'
-    view = 'lateral'
+if cond == "audio":
+    hemi = "lh"
+    view = "lateral"
+elif cond == "visual":
+    hemi = "rh"
+    view = "medial"
+elif cond == "somato":
+    hemi = "rh"
+    view = "lateral"
 
 # Plotting clustered inference solution
 mne.viz.set_3d_backend("pyvista")
 
 if active_set.sum() != 0:
     max_stc = np.max(np.abs(stc.data))
-    clim = dict(pos_lims=(3, zscore_threshold, max_stc), kind='value')
-    brain = stc.plot(subject=sub, hemi=hemi, clim=clim, subjects_dir=subs_dir,
-                     views=view, time_viewer=False)
-    brain.add_text(0.05, 0.9, f'{cond} - cd-MTLasso', 'title',
-                   font_size=20)
+    clim = dict(pos_lims=(3, zscore_threshold, max_stc), kind="value")
+    brain = stc.plot(
+        subject=sub,
+        hemi=hemi,
+        clim=clim,
+        subjects_dir=subs_dir,
+        views=view,
+        time_viewer=False,
+    )
+    brain.add_text(0.05, 0.9, f"{cond} - cd-MTLasso", "title", font_size=20)
 
 # Hack for nice figures on HiDimStat website
 save_fig = False
 plot_saved_fig = True
 if save_fig:
-    brain.save_image(f'figures/meg_{cond}_cd-MTLasso.png')
+    brain.save_image(f"figures/meg_{cond}_cd-MTLasso.png")
 if plot_saved_fig:
     brain.close()
-    img = mpimg.imread(f'figures/meg_{cond}_cd-MTLasso.png')
+    img = mpimg.imread(f"figures/meg_{cond}_cd-MTLasso.png")
     plt.imshow(img)
-    plt.axis('off')
+    plt.axis("off")
     plt.show()
 
 interactive_plot = False
 if interactive_plot:
-    brain = \
-        stc.plot(subject=sub, hemi='both', subjects_dir=subs_dir, clim=clim)
+    brain = stc.plot(subject=sub, hemi="both", subjects_dir=subs_dir, clim=clim)
 
 ##############################################################################
 # Comparision with sLORETA
@@ -394,15 +430,16 @@ if interactive_plot:
 # obtained from the one of the most standard approach: sLORETA.
 
 # Running sLORETA with standard hyper-parameter
-lambda2 = 1. / 9
-inv = make_inverse_operator(evoked.info, forward, noise_cov, loose=0.,
-                            depth=0., fixed=True)
-stc_full = apply_inverse(evoked, inv, lambda2=lambda2, method='sLORETA')
+lambda2 = 1.0 / 9
+inv = make_inverse_operator(
+    evoked.info, forward, noise_cov, loose=0.0, depth=0.0, fixed=True
+)
+stc_full = apply_inverse(evoked, inv, lambda2=lambda2, method="sLORETA")
 stc_full = stc_full.mean()
 
 # Computing threshold taking into account for Bonferroni correction
 n_features = stc_full.data.size
-correction = 1. / n_features
+correction = 1.0 / n_features
 zscore_threshold_no_clust = zscore_from_pval((fwer_target / 2) * correction)
 
 # Computing estimated support by sLORETA
@@ -411,25 +448,32 @@ active_set = active_set.flatten()
 
 # Putting the solution into the format supported by the plotting functions
 sLORETA_solution = np.atleast_2d(stc_full.data[active_set]).flatten()
-stc = _make_sparse_stc(sLORETA_solution, active_set, forward, stc_full.tmin,
-                       tstep=stc_full.tstep)
+stc = _make_sparse_stc(
+    sLORETA_solution, active_set, forward, stc_full.tmin, tstep=stc_full.tstep
+)
 
 # Plotting sLORETA solution
 if active_set.sum() != 0:
     max_stc = np.max(np.abs(stc.data))
-    clim = dict(pos_lims=(3, zscore_threshold_no_clust, max_stc), kind='value')
-    brain = stc.plot(subject=sub, hemi=hemi, clim=clim, subjects_dir=subs_dir,
-                     views=view, time_viewer=False)
-    brain.add_text(0.05, 0.9, f'{cond} - sLORETA', 'title', font_size=20)
+    clim = dict(pos_lims=(3, zscore_threshold_no_clust, max_stc), kind="value")
+    brain = stc.plot(
+        subject=sub,
+        hemi=hemi,
+        clim=clim,
+        subjects_dir=subs_dir,
+        views=view,
+        time_viewer=False,
+    )
+    brain.add_text(0.05, 0.9, f"{cond} - sLORETA", "title", font_size=20)
 
     # Hack for nice figures on HiDimStat website
     if save_fig:
-        brain.save_image(f'figures/meg_{cond}_sLORETA.png')
+        brain.save_image(f"figures/meg_{cond}_sLORETA.png")
     if plot_saved_fig:
         brain.close()
-        img = mpimg.imread(f'figures/meg_{cond}_sLORETA.png')
+        img = mpimg.imread(f"figures/meg_{cond}_sLORETA.png")
         plt.imshow(img)
-        plt.axis('off')
+        plt.axis("off")
         plt.show()
 
 ##############################################################################
@@ -455,13 +499,16 @@ run_ensemble_clustered_inference = False
 
 if run_ensemble_clustered_inference:
     # Making the inference with the ensembled clustered inference algorithm
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-        ensemble_clustered_inference(X, Y, ward, n_clusters,
-                                     inference_method=inference_method)
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        ensemble_clustered_inference(
+            X, Y, ward, n_clusters, inference_method=inference_method
+        )
+    )
 
     # Extracting active set (support)
-    active_set = np.logical_or(pval_corr < fwer_target / 2,
-                               one_minus_pval_corr < fwer_target / 2)
+    active_set = np.logical_or(
+        pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+    )
     active_set_full = np.copy(active_set)
     active_set_full[:] = True
 
@@ -475,23 +522,26 @@ if run_ensemble_clustered_inference:
     # Plotting ensemble clustered inference solution
     if active_set.sum() != 0:
         max_stc = np.max(np.abs(stc._data))
-        clim = dict(pos_lims=(3, zscore_threshold, max_stc), kind='value')
-        brain = stc.plot(subject=sub, hemi=hemi, clim=clim,
-                         subjects_dir=subs_dir, views=view,
-                         time_viewer=False)
-        brain.add_text(0.05, 0.9, f'{cond} - ecd-MTLasso',
-                       'title', font_size=20)
+        clim = dict(pos_lims=(3, zscore_threshold, max_stc), kind="value")
+        brain = stc.plot(
+            subject=sub,
+            hemi=hemi,
+            clim=clim,
+            subjects_dir=subs_dir,
+            views=view,
+            time_viewer=False,
+        )
+        brain.add_text(0.05, 0.9, f"{cond} - ecd-MTLasso", "title", font_size=20)
 
         # Hack for nice figures on HiDimStat website
         if save_fig:
-            brain.save_image(f'figures/meg_{cond}_ecd-MTLasso.png')
+            brain.save_image(f"figures/meg_{cond}_ecd-MTLasso.png")
         if plot_saved_fig:
             brain.close()
-            img = mpimg.imread(f'figures/meg_{cond}_ecd-MTLasso.png')
+            img = mpimg.imread(f"figures/meg_{cond}_ecd-MTLasso.png")
             plt.imshow(img)
-            plt.axis('off')
+            plt.axis("off")
             plt.show()
 
         if interactive_plot:
-            brain = stc.plot(subject=sub, hemi='both',
-                             subjects_dir=subs_dir, clim=clim)
+            brain = stc.plot(subject=sub, hemi="both", subjects_dir=subs_dir, clim=clim)

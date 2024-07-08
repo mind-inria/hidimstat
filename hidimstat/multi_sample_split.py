@@ -24,10 +24,12 @@ def aggregate_medians(list_one_sided_pval):
     n_iter, n_features = list_one_sided_pval.shape
 
     one_sided_pval = np.median(list_one_sided_pval, axis=0)
-    one_sided_pval[one_sided_pval > 0.5] = \
-        np.maximum(0.5, 1 - (1 - one_sided_pval[one_sided_pval > 0.5]) * 2)
-    one_sided_pval[one_sided_pval < 0.5] = \
-        np.minimum(0.5, one_sided_pval[one_sided_pval < 0.5] * 2)
+    one_sided_pval[one_sided_pval > 0.5] = np.maximum(
+        0.5, 1 - (1 - one_sided_pval[one_sided_pval > 0.5]) * 2
+    )
+    one_sided_pval[one_sided_pval < 0.5] = np.minimum(
+        0.5, one_sided_pval[one_sided_pval < 0.5] * 2
+    )
 
     return one_sided_pval
 
@@ -69,18 +71,17 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     for i in np.arange(n_features):
 
-        adjusted_ordered_pval = \
-            min([ordered_pval[j, i] * m / (j + 1) for j in seq])
+        adjusted_ordered_pval = min([ordered_pval[j, i] * m / (j + 1) for j in seq])
         adjusted_ordered_pval = min(0.5, adjusted_ordered_pval)
 
-        adjusted_rev_ordered_pval = \
-            max([1 - (1 - rev_ordered_pval[j, i]) * m / (j + 1) for j in seq])
+        adjusted_rev_ordered_pval = max(
+            [1 - (1 - rev_ordered_pval[j, i]) * m / (j + 1) for j in seq]
+        )
         adjusted_rev_ordered_pval = max(0.5, adjusted_rev_ordered_pval)
 
         if (1 - adjusted_rev_ordered_pval) < adjusted_ordered_pval:
 
-            one_sided_pval[i] = \
-                np.maximum(0.5, 1 - (1 - adjusted_rev_ordered_pval) * r)
+            one_sided_pval[i] = np.maximum(0.5, 1 - (1 - adjusted_rev_ordered_pval) * r)
 
         else:
 

@@ -85,6 +85,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     ----------
     ToDO
     """
+
     def __init__(
         self,
         estimator=None,
@@ -195,7 +196,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Move the ordinal columns with 2 values to the binary part
         if self.list_nominal["ordinal"] != []:
-            for ord_col in set(self.list_nominal["ordinal"]).intersection(list(X.columns)):
+            for ord_col in set(self.list_nominal["ordinal"]).intersection(
+                list(X.columns)
+            ):
                 if len(np.unique(X[ord_col])) < 3:
                     self.list_nominal["binary"].append(ord_col)
                     self.list_nominal["ordinal"].remove(ord_col)
@@ -239,9 +242,15 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Check if categorical variables exist within the columns of the design
         # matrix
-        self.list_nominal["binary"] = list(set(self.list_nominal["binary"]).intersection(list(X.columns)))
-        self.list_nominal["ordinal"] = list(set(self.list_nominal["ordinal"]).intersection(list(X.columns)))
-        self.list_nominal["nominal"] = list(set(self.list_nominal["nominal"]).intersection(list(X.columns)))
+        self.list_nominal["binary"] = list(
+            set(self.list_nominal["binary"]).intersection(list(X.columns))
+        )
+        self.list_nominal["ordinal"] = list(
+            set(self.list_nominal["ordinal"]).intersection(list(X.columns))
+        )
+        self.list_nominal["nominal"] = list(
+            set(self.list_nominal["nominal"]).intersection(list(X.columns))
+        )
 
         self.list_cols = self.groups.copy()
         self.list_cat_tot = list(
@@ -324,11 +333,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     else:
                         current_grp += self.dict_cont[i]
                 self.list_grps.append(current_grp)
-            
+
             # To check
             if len(self.coffeine_transformers) == 1:
                 X = self.coffeine_transformers[0].fit_transform(
-                    pd.DataFrame(X, columns=self.X_cols), np.ravel(y))
+                    pd.DataFrame(X, columns=self.X_cols), np.ravel(y)
+                )
 
             if self.estimator is not None:
                 # Force the output to 1 neurone per group
@@ -357,7 +367,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     y_train, _ = y[train], y[test]
                     if len(self.coffeine_transformers) > 1:
                         X_train = self.coffeine_transformers[ind_fold].fit_transform(
-                            pd.DataFrame(X_train, columns=self.X_cols), np.ravel(y_train)
+                            pd.DataFrame(X_train, columns=self.X_cols),
+                            np.ravel(y_train),
                         )
                         X_test = self.coffeine_transformers[ind_fold].transform(
                             pd.DataFrame(X_test, columns=self.X_cols)
@@ -365,7 +376,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     for grp_ind, grp in enumerate(self.list_grps):
                         self.ridge_mods[ind_fold][grp_ind].fit(X_train[:, grp], y_train)
                         X[test, grp_ind] = (
-                            self.ridge_mods[ind_fold][grp_ind].predict(X_test[:, grp]).ravel()
+                            self.ridge_mods[ind_fold][grp_ind]
+                            .predict(X_test[:, grp])
+                            .ravel()
                         )
                 self.apply_ridge = True
 
@@ -441,7 +454,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 if not self.apply_ridge:
                     if self.coffeine_transformer is not None:
                         X_train = self.coffeine_transformers[ind_fold].fit_transform(
-                            pd.DataFrame(X_train, columns=self.X_cols), np.ravel(y_train)
+                            pd.DataFrame(X_train, columns=self.X_cols),
+                            np.ravel(y_train),
                         )
 
                         X_test = self.coffeine_transformers[ind_fold].transform(
@@ -465,13 +479,16 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             if not self.apply_ridge:
                 if self.coffeine_transformer is not None:
                     X = self.coffeine_transformers[0].fit_transform(
-                        pd.DataFrame(X, columns=self.X_cols), np.ravel(y))
+                        pd.DataFrame(X, columns=self.X_cols), np.ravel(y)
+                    )
                     if not self.transformer_grp:
                         # Variables are provided as the third element of the
                         # coffeine transformer parameter
                         if len(self.coffeine_transformer) > 2:
                             X = X[:, self.coffeine_transformer[2]]
-                            self.list_cont = np.arange(len(self.coffeine_transformer[2]))
+                            self.list_cont = np.arange(
+                                len(self.coffeine_transformer[2])
+                            )
 
             # Hyperparameter tuning
             if self.do_hyper:
@@ -553,11 +570,16 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         self.estimator.fit(X_train_scaled, y_train_curr)
 
                         if self.prob_type == "classification":
-                            list_loss.append(self.loss(y_valid_curr,
-                                                       func(X_valid_scaled)[:, np.unique(y_valid_curr)]))
+                            list_loss.append(
+                                self.loss(
+                                    y_valid_curr,
+                                    func(X_valid_scaled)[:, np.unique(y_valid_curr)],
+                                )
+                            )
                         else:
-                            list_loss.append(self.loss(y_valid_curr,
-                                                       func(X_valid_scaled)))
+                            list_loss.append(
+                                self.loss(y_valid_curr, func(X_valid_scaled))
+                            )
 
             ind_min = np.argmin(list_loss)
             best_hyper = list_hyper[ind_min]
@@ -716,7 +738,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             encoding = False
         else:
             if self.coffeine_transformer is not None:
-                X = self.coffeine_transformers[0].transform(pd.DataFrame(X, columns=self.X_cols))
+                X = self.coffeine_transformers[0].transform(
+                    pd.DataFrame(X, columns=self.X_cols)
+                )
                 if not self.transformer_grp:
                     # Variables are provided as the third element of the
                     # coffeine transformer parameter
@@ -772,10 +796,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     )[y_col]
             else:
                 if self.prob_type in ("classification", "binary"):
-                    one_hot = (OneHotEncoder(handle_unknown="ignore")
-                                .fit(self.y_train[ind_fold].reshape(-1, 1)))
-                    y[ind_fold] = (one_hot.transform(y[ind_fold]
-                                                    .reshape(-1, 1)).toarray())
+                    one_hot = OneHotEncoder(handle_unknown="ignore").fit(
+                        self.y_train[ind_fold].reshape(-1, 1)
+                    )
+                    y[ind_fold] = one_hot.transform(
+                        y[ind_fold].reshape(-1, 1)
+                    ).toarray()
             if self.com_imp:
                 if not self.conditional:
                     self.pred_scores[ind_fold], score_cur = list(
@@ -836,8 +862,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     proc_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    sub_groups=[self.list_cols,
-                                                self.sub_groups],
+                                    sub_groups=[self.list_cols, self.sub_groups],
                                     list_seeds=list_seeds_imp,
                                     Perm=self.Perm,
                                     output_dim=output_dim,
@@ -852,12 +877,13 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             else:
                 if self.prob_type in ("classification", "binary"):
                     nonzero_cols = np.where(y[ind_fold].any(axis=0))[0]
-                    score = roc_auc_score(y[ind_fold][:, nonzero_cols],
-                                          self.org_pred[ind_fold][:, nonzero_cols])
+                    score = roc_auc_score(
+                        y[ind_fold][:, nonzero_cols],
+                        self.org_pred[ind_fold][:, nonzero_cols],
+                    )
                 else:
                     score = (
-                        mean_absolute_error(y[ind_fold],
-                                            self.org_pred[ind_fold]),
+                        mean_absolute_error(y[ind_fold], self.org_pred[ind_fold]),
                         r2_score(y[ind_fold], self.org_pred[ind_fold]),
                     )
                 score_imp_l.append(score)
