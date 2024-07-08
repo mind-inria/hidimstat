@@ -63,7 +63,7 @@ def test_BBI_reg():
     X, y, _, list_nominal = _generate_data(prob_type="regression")
     # DNN
     bbi_reg_dnn = BlockBasedImportance(
-        estimator="None",
+        estimator=None,
         importance_estimator="Mod_RF",
         do_hyper=True,
         dict_hyper=None,
@@ -105,7 +105,7 @@ def test_BBI_class():
     X, y, _, list_nominal = _generate_data(prob_type="classification")
     # DNN
     bbi_class_dnn = BlockBasedImportance(
-        estimator="RF",
+        estimator=None,
         importance_estimator="Mod_RF",
         do_hyper=True,
         dict_hyper=None,
