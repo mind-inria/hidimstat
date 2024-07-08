@@ -78,7 +78,7 @@ from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 
 
 def weight_map_2D_extended(shape, roi_size, delta):
-    '''Build weight map with visible tolerance region'''
+    """Build weight map with visible tolerance region"""
 
     roi_size_extended = roi_size + delta
 
@@ -98,9 +98,9 @@ def weight_map_2D_extended(shape, roi_size, delta):
         for j in range(roi_size_extended):
             if (i - roi_size) + (j - roi_size) >= delta:
                 w[i, j, 0] = 0
-                w[-i-1, -j-1, 1] = 0
-                w[i, -j-1, 2] = 0
-                w[-i-1, j, 3] = 0
+                w[-i - 1, -j - 1, 1] = 0
+                w[i, -j - 1, 2] = 0
+                w[-i - 1, j, 3] = 0
 
     beta_extended = w.sum(-1).ravel()
 
@@ -113,28 +113,29 @@ def weight_map_2D_extended(shape, roi_size, delta):
 
 
 def add_one_subplot(ax, map, title):
-    '''Add one subplot into the summary plot'''
+    """Add one subplot into the summary plot"""
 
     if map is not None:
         im = ax.imshow(map)
         im.set_clim(-1, 1)
         ax.tick_params(
-            axis='both',
-            which='both',
+            axis="both",
+            which="both",
             bottom=False,
             top=False,
             left=False,
             labelbottom=False,
-            labelleft=False)
+            labelleft=False,
+        )
         ax.set_title(title)
     else:
-        ax.axis('off')
+        ax.axis("off")
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
 
 
 def plot(maps, titles):
-    '''Make a summary plot from estimated supports'''
+    """Make a summary plot from estimated supports"""
 
     fig, axes = plt.subplots(3, 2, figsize=(4, 6))
 
@@ -165,9 +166,9 @@ sigma = 2.0  # noise standard deviation
 smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 
 # generating the data
-X_init, y, beta, epsilon, _, _ = \
-    multivariate_simulation(n_samples, shape, roi_size, sigma, smooth_X,
-                            seed=1)
+X_init, y, beta, epsilon, _, _ = multivariate_simulation(
+    n_samples, shape, roi_size, sigma, smooth_X, seed=1
+)
 
 ##############################################################################
 # Choosing inference parameters
@@ -212,8 +213,8 @@ n_jobs = 1
 
 
 # computing the z-score thresholds for feature selection
-correction_no_cluster = 1. / n_features
-correction_cluster = 1. / n_clusters
+correction_no_cluster = 1.0 / n_features
+correction_cluster = 1.0 / n_clusters
 thr_c = zscore_from_pval((fwer_target / 2) * correction_cluster)
 thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
 
@@ -237,16 +238,16 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 # compute desparsified lasso
 beta_hat, cb_min, cb_max = desparsified_lasso(X_init, y, n_jobs=n_jobs)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-    pval_from_cb(cb_min, cb_max)
+pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(cb_min, cb_max)
 
 # compute estimated support (first method)
 zscore = zscore_from_pval(pval, one_minus_pval)
 selected_dl = zscore > thr_nc  # use the "no clustering threshold"
 
 # compute estimated support (second method)
-selected_dl = np.logical_or(pval_corr < fwer_target / 2,
-                            one_minus_pval_corr < fwer_target / 2)
+selected_dl = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
 
 #############################################################################
 # Now, we compute the support estimated using a clustered inference algorithm
@@ -255,23 +256,24 @@ selected_dl = np.logical_or(pval_corr < fwer_target / 2,
 
 # Define the FeatureAgglomeration object that performs the clustering.
 # This object is necessary to run the current algorithm and the following one.
-connectivity = image.grid_to_graph(n_x=shape[0],
-                                   n_y=shape[1])
-ward = FeatureAgglomeration(n_clusters=n_clusters,
-                            connectivity=connectivity,
-                            linkage='ward')
+connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
+ward = FeatureAgglomeration(
+    n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+)
 
 # clustered desparsified lasso (CluDL)
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-    clustered_inference(X_init, y, ward, n_clusters)
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = clustered_inference(
+    X_init, y, ward, n_clusters
+)
 
 # compute estimated support (first method)
 zscore = zscore_from_pval(pval, one_minus_pval)
 selected_cdl = zscore > thr_c  # use the "clustering threshold"
 
 # compute estimated support (second method)
-selected_cdl = np.logical_or(pval_corr < fwer_target / 2,
-                             one_minus_pval_corr < fwer_target / 2)
+selected_cdl = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
 
 #############################################################################
 # Finally, we compute the support estimated by an ensembled clustered
@@ -281,13 +283,14 @@ selected_cdl = np.logical_or(pval_corr < fwer_target / 2,
 # solutions are then aggregated into one.
 
 # ensemble of clustered desparsified lasso (EnCluDL)
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-    ensemble_clustered_inference(X_init, y, ward,
-                                 n_clusters, train_size=0.3)
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+    ensemble_clustered_inference(X_init, y, ward, n_clusters, train_size=0.3)
+)
 
 # compute estimated support
-selected_ecdl = np.logical_or(pval_corr < fwer_target / 2,
-                              one_minus_pval_corr < fwer_target / 2)
+selected_ecdl = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
 
 #############################################################################
 # Results
@@ -300,22 +303,22 @@ maps = []
 titles = []
 
 maps.append(np.reshape(beta, shape))
-titles.append('True weights')
+titles.append("True weights")
 
 maps.append(np.reshape(beta_extended, shape))
-titles.append('True weights \nwith tolerance')
+titles.append("True weights \nwith tolerance")
 
 maps.append(np.reshape(selected_dl, shape))
-titles.append('Desparsified Lasso')
+titles.append("Desparsified Lasso")
 
 maps.append(None)
 titles.append(None)
 
 maps.append(np.reshape(selected_cdl, shape))
-titles.append('CluDL')
+titles.append("CluDL")
 
 maps.append(np.reshape(selected_ecdl, shape))
-titles.append('EnCluDL')
+titles.append("EnCluDL")
 
 plot(maps, titles)
 

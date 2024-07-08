@@ -5,14 +5,14 @@ import sys
 
 from setuptools import find_packages
 
-PKG = 'hidimstat'
+PKG = "hidimstat"
 DESCRIPTION = "High-dimensional statistical inference tools for Python"
-LONG_DESCRIPTION = open('README.md').read()
-MAINTAINER = 'Chevalier (ja-che), Nguyen (tbng), Alexandre Blain (alexblnn), Ahmad Chamma (achamma723) and Bertrand Thirion (bthirion)'
-MAINTAINER_EMAIL = 'bertrand.thirion@inria.fr'
-URL = 'https://github.com/Parietal-INRIA/hidimstat'
-DOWNLOAD_URL = 'https://github.com/Parietal-INRIA/hidimstat'
-LICENSE = 'BSD'
+LONG_DESCRIPTION = open("README.md").read()
+MAINTAINER = "Chevalier (ja-che), Nguyen (tbng), Alexandre Blain (alexblnn), Ahmad Chamma (achamma723) and Bertrand Thirion (bthirion)"
+MAINTAINER_EMAIL = "bertrand.thirion@inria.fr"
+URL = "https://github.com/Parietal-INRIA/hidimstat"
+DOWNLOAD_URL = "https://github.com/Parietal-INRIA/hidimstat"
+LICENSE = "BSD"
 
 
 def load_version():
@@ -22,7 +22,7 @@ def load_version():
     # load all vars into globals, otherwise
     #   the later function call using global vars doesn't work.
     globals_dict = {}
-    with open(os.path.join('hidimstat', 'version.py')) as fp:
+    with open(os.path.join("hidimstat", "version.py")) as fp:
         exec(fp.read(), globals_dict)
 
     return globals_dict
@@ -37,29 +37,29 @@ def setup_package(version):
     from numpy.distutils.core import setup
 
     setup(
-        packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+        packages=find_packages(exclude=["contrib", "docs", "tests"]),
         name=PKG,
         maintainer=MAINTAINER,
         include_package_data=True,
         maintainer_email=MAINTAINER_EMAIL,
         description=DESCRIPTION,
         long_description=LONG_DESCRIPTION,
-        long_description_content_type='text/markdown',
+        long_description_content_type="text/markdown",
         license=LICENSE,
         url=URL,
         version=version,
         # download_url=DOWNLOAD_URL,
         zip_safe=False,  # the package can run out of an .egg file
         classifiers=[
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 3.5',
-            'Development Status :: 3 - Alpha'
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3.5",
+            "Development Status :: 3 - Alpha",
         ],
     )
 
 
 _VERSION_GLOBALS = load_version()
-VERSION = _VERSION_GLOBALS['__version__']
+VERSION = _VERSION_GLOBALS["__version__"]
 
 if __name__ == "__main__":
     setup_package(VERSION)
