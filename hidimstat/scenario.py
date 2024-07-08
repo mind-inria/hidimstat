@@ -8,9 +8,15 @@ ROI_SIZE_3D = 2
 SHAPE_3D = (12, 12, 12)
 
 
-def multivariate_1D_simulation(n_samples=100, n_features=500,
-                               support_size=10, sigma=1.0,
-                               rho=0.0, shuffle=True, seed=0):
+def multivariate_1D_simulation(
+    n_samples=100,
+    n_features=500,
+    support_size=10,
+    sigma=1.0,
+    rho=0.0,
+    shuffle=True,
+    seed=0,
+):
     """Generate 1D data with Toeplitz design matrix
 
     Parameters
@@ -57,7 +63,7 @@ def multivariate_1D_simulation(n_samples=100, n_features=500,
     X[:, 0] = rng.standard_normal(n_samples)
 
     for i in np.arange(1, n_features):
-        rand_vector = ((1 - rho ** 2) ** 0.5) * rng.standard_normal(n_samples)
+        rand_vector = ((1 - rho**2) ** 0.5) * rng.standard_normal(n_samples)
         X[:, i] = rho * X[:, i - 1] + rand_vector
 
     if shuffle:
@@ -120,19 +126,24 @@ def generate_3D_weight(shape, roi_size):
     w[-roi_size:, -roi_size:, 0:roi_size, 1] = 1.0
     w[0:roi_size, -roi_size:, -roi_size:, 2] = -1.0
     w[-roi_size:, 0:roi_size, -roi_size:, 3] = 1.0
-    w[(shape[0] - roi_size) // 2:(shape[0] + roi_size) // 2,
-      (shape[1] - roi_size) // 2:(shape[1] + roi_size) // 2,
-      (shape[2] - roi_size) // 2:(shape[2] + roi_size) // 2, 4] = 1.0
+    w[
+        (shape[0] - roi_size) // 2 : (shape[0] + roi_size) // 2,
+        (shape[1] - roi_size) // 2 : (shape[1] + roi_size) // 2,
+        (shape[2] - roi_size) // 2 : (shape[2] + roi_size) // 2,
+        4,
+    ] = 1.0
     return w
 
 
-def multivariate_simulation(n_samples=100,
-                            shape=SHAPE_2D,
-                            roi_size=ROI_SIZE_2D,
-                            sigma=1.0,
-                            smooth_X=1.0,
-                            return_shaped_data=True,
-                            seed=0):
+def multivariate_simulation(
+    n_samples=100,
+    shape=SHAPE_2D,
+    roi_size=ROI_SIZE_2D,
+    sigma=1.0,
+    smooth_X=1.0,
+    return_shaped_data=True,
+    seed=0,
+):
     """Generate a multivariate simulation with 2D or 3D data
 
     Parameters
@@ -205,9 +216,17 @@ def multivariate_simulation(n_samples=100,
     return X, y, beta, noise
 
 
-def multivariate_temporal_simulation(n_samples=100, n_features=500, n_times=30,
-                                     support_size=10, sigma=1.0, rho_noise=0.0,
-                                     rho_data=0.0, shuffle=True, seed=0):
+def multivariate_temporal_simulation(
+    n_samples=100,
+    n_features=500,
+    n_times=30,
+    support_size=10,
+    sigma=1.0,
+    rho_noise=0.0,
+    rho_data=0.0,
+    shuffle=True,
+    seed=0,
+):
     """Generate 1D temporal data with constant design matrix
 
     Parameters
@@ -260,8 +279,7 @@ def multivariate_temporal_simulation(n_samples=100, n_features=500, n_times=30,
     X[:, 0] = rng.standard_normal(n_samples)
 
     for i in np.arange(1, n_features):
-        rand_vector = \
-            ((1 - rho_data ** 2) ** 0.5) * rng.standard_normal(n_samples)
+        rand_vector = ((1 - rho_data**2) ** 0.5) * rng.standard_normal(n_samples)
         X[:, i] = rho_data * X[:, i - 1] + rand_vector
 
     if shuffle:
@@ -274,8 +292,7 @@ def multivariate_temporal_simulation(n_samples=100, n_features=500, n_times=30,
     noise[:, 0] = rng.standard_normal(n_samples)
 
     for i in range(1, n_times):
-        rand_vector = \
-            ((1 - rho_noise ** 2) ** 0.5) * rng.standard_normal(n_samples)
+        rand_vector = ((1 - rho_noise**2) ** 0.5) * rng.standard_normal(n_samples)
         noise[:, i] = rho_noise * noise[:, i - 1] + rand_vector
 
     noise = sigma * noise
