@@ -24,12 +24,12 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Install dependencies
         run: |
-          pip install -r doc/doc-requirements.txt
+          pip install -r doc_conf/doc-requirements.txt
           pip install -e .
       - name: Sphinx build
         id: build-docs
         run: |
-          sphinx-build -b html doc doc/_build/html
+          sphinx-build -b html doc_conf doc/_build/html
       - name: Upload documentation
         if: steps.build-docs.outcome == 'success'
         uses: actions/upload-artifact@v4
@@ -52,7 +52,7 @@ jobs:
           git clone --depth 1 https://github.com/${{ github.repository_owner }}/hidimstat.git
           rm -Rf hidimstat/docs
           mkdir hidimstat/docs
-          cp -r doc/_build/html hidimstat/docs
+          cp -r doc/_build/html/* hidimstat/docs
           cd hidimstat
           touch .nojekyll
           git config --global user.email "actions@github.com"
