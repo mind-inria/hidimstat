@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HiDimStat: High-dimensional statistical inference tool for Python &#8212; hidimstat 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=284a2d1d" />
+    <link rel="stylesheet" type="text/css" href="_static/style.css?v=fbda0898" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=61a4c737" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Documentation" href="api.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="_static/js/jquery-1.12.4.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery-fix.js"></script>
+<script type="text/javascript" src="_static/bootstrap-3.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="_static/bootstrap-sphinx.js"></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">
+          hidimstat</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="auto_examples/index.html">Examples</a></li>
+                <li><a href="api.html">API</a></li>
+                <li><a href="https://github.com/Parietal-INRIA/hidimstat">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">HiDimStat: High-dimensional statistical inference tool for Python</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#documentation-examples">Documentation &amp; Examples</a></li>
+<li><a class="reference internal" href="#build-the-documentation">Build the documentation</a></li>
+<li><a class="reference internal" href="#references">References</a><ul>
+<li><a class="reference internal" href="#main-references">Main references</a></li>
+<li><a class="reference internal" href="#other-useful-references">Other useful references</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api">API</a></li>
+</ul>
+</li>
+</ul>
+
+  <li>
+    <a href="api.html" title="Next Chapter: API Documentation"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">API Documentation &raquo;</span>
+    </a>
+  </li>
+<div id="sourcelink">
+  <a href="_sources/index.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="body col-md-9 content" role="main">
+      
+  <section id="hidimstat-high-dimensional-statistical-inference-tool-for-python">
+<h1>HiDimStat: High-dimensional statistical inference tool for Python<a class="headerlink" href="#hidimstat-high-dimensional-statistical-inference-tool-for-python" title="Link to this heading">¶</a></h1>
+<p><a class="reference external" href="https://codecov.io/gh/Parietal-INRIA/hidimstat"><img alt="Build Status" src="https://travis-ci.com/Parietal-INRIA/hidimstat.svg?branch=main" /></a> <a class="reference external" href="https://codecov.io/gh/Parietal-INRIA/hidimstat"><img alt="codecov" src="https://codecov.io/gh/Parietal-INRIA/hidimstat/branch/main/graph/badge.svg" /></a></p>
+<p>The HiDimStat package provides statistical inference methods to solve the
+problem of support recovery in the context of high-dimensional and
+spatially structured data.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
+<p>HiDimStat working only with Python 3, ideally Python 3.6+. For installation,
+run the following from terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">hidimstat</span>
+</pre></div>
+</div>
+<p>Or if you want the latest version available (for example to contribute to
+the development of this project):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Parietal</span><span class="o">-</span><span class="n">INRIA</span><span class="o">/</span><span class="n">hidimstat</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">hidimstat</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading">¶</a></h2>
+<p>HiDimStat depends on the following packages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">joblib</span>
+<span class="n">numpy</span>
+<span class="n">scipy</span>
+<span class="n">scikit</span><span class="o">-</span><span class="n">learn</span>
+</pre></div>
+</div>
+<p>To run examples it is neccessary to install <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>, and to run tests it
+is also needed to install <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
+</section>
+<section id="documentation-examples">
+<h2>Documentation &amp; Examples<a class="headerlink" href="#documentation-examples" title="Link to this heading">¶</a></h2>
+<p>Documentation about the main HiDimStat functions is available
+<a class="reference external" href="api.html">here</a> and examples are available <a class="reference external" href="auto_examples/index.html">here</a>.</p>
+<p>As of now, there are three different examples (Python scripts) that
+illustrate how to use the main HiDimStat functions.
+In each example we handle a different kind of dataset:
+<code class="docutils literal notranslate"><span class="pre">plot_2D_simulation_example.py</span></code> handles a simulated dataset with a 2D
+spatial structure,
+<code class="docutils literal notranslate"><span class="pre">plot_fmri_data_example.py</span></code> solves the decoding problem on Haxby fMRI dataset,
+<code class="docutils literal notranslate"><span class="pre">plot_meg_data_example.py</span></code> tackles the source localization problem on several
+MEG/EEG datasets.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># For example run the following command in terminal</span>
+<span class="n">python</span> <span class="n">plot_2D_simulation_example</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+</section>
+<section id="build-the-documentation">
+<h2>Build the documentation<a class="headerlink" href="#build-the-documentation" title="Link to this heading">¶</a></h2>
+<p>To build the documentation you will need to run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">sphinx_gallery</span> <span class="n">sphinx_bootstrap_theme</span>
+<span class="n">cd</span> <span class="n">doc</span>
+<span class="n">make</span> <span class="n">html</span>
+</pre></div>
+</div>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<p>The algorithms developed in this package have been detailed in several
+conference/journal articles that can be downloaded at
+<a class="reference external" href="https://Parietal-INRIA.github.io/research.html">https://Parietal-INRIA.github.io/</a>.</p>
+<section id="main-references">
+<h3>Main references<a class="headerlink" href="#main-references" title="Link to this heading">¶</a></h3>
+<p>Ensemble of Clustered desparsified Lasso (ECDL):</p>
+<ul class="simple">
+<li><p>Chevalier, J. A., Salmon, J., &amp; Thirion, B. (2018). Statistical inference
+with ensemble of clustered desparsified lasso. In International Conference
+on Medical Image Computing and Computer-Assisted Intervention
+(pp. 638-646). Springer, Cham.</p></li>
+<li><p>Chevalier, J. A., Nguyen, T. B., Thirion, B., &amp; Salmon, J. (2021).
+Spatially relaxed inference on high-dimensional linear models.
+arXiv preprint arXiv:2106.02590.</p></li>
+</ul>
+<p>Aggregation of multiple Knockoffs (AKO):</p>
+<ul class="simple">
+<li><p>Nguyen T.-B., Chevalier J.-A., Thirion B., &amp; Arlot S. (2020). Aggregation
+of Multiple Knockoffs. In Proceedings of the 37th International Conference on
+Machine Learning, Vienna, Austria, PMLR 119.</p></li>
+</ul>
+<p>Application to decoding (fMRI data):</p>
+<ul class="simple">
+<li><p>Chevalier, J. A., Nguyen T.-B., Salmon, J., Varoquaux, G. &amp; Thirion, B.
+(2021). Decoding with confidence: Statistical control on decoder maps.
+In NeuroImage, 234, 117921.</p></li>
+</ul>
+<p>Application to source localization (MEG/EEG data):</p>
+<ul class="simple">
+<li><p>Chevalier, J. A., Gramfort, A., Salmon, J., &amp; Thirion, B. (2020).
+Statistical control for spatio-temporal MEG/EEG source imaging with
+desparsified multi-task Lasso. In Proceedings of the 34th Conference on
+Neural Information Processing Systems (NeurIPS 2020), Vancouver, Canada.</p></li>
+</ul>
+<p>Single/Group statistically validated importance using conditional permutations:</p>
+<ul class="simple">
+<li><p>Chamma, A., Thirion, B., &amp; Engemann, D. (2024). <a href="#id2"><span class="problematic" id="id3">**</span></a>Variable importance in</p></li>
+</ul>
+<p>high-dimensional settings requires grouping**. In Proceedings of the 38th
+Conference of the Association for the Advancement of Artificial
+Intelligence(AAAI 2024), Vancouver, Canada.</p>
+<ul class="simple">
+<li><p>Chamma, A., Engemann, D., &amp; Thirion, B. (2023). <a href="#id4"><span class="problematic" id="id5">**</span></a>Statistically Valid Variable</p></li>
+</ul>
+<p>Importance Assessment through Conditional Permutations**. In Proceedings of the
+37th Conference on Neural Information Processing Systems (NeurIPS 2023), New
+Orleans, USA.</p>
+<p>If you use our packages, we would appreciate citations to the relevant
+aforementioned papers.</p>
+</section>
+<section id="other-useful-references">
+<h3>Other useful references<a class="headerlink" href="#other-useful-references" title="Link to this heading">¶</a></h3>
+<p>For de-sparsified(or de-biased) Lasso:</p>
+<ul class="simple">
+<li><p>Javanmard, A., &amp; Montanari, A. (2014). Confidence intervals and hypothesis
+testing for high-dimensional regression. The Journal of Machine Learning
+Research, 15(1), 2869-2909.</p></li>
+<li><p>Zhang, C. H., &amp; Zhang, S. S. (2014). Confidence intervals for low dimensional
+parameters in high dimensional linear models. Journal of the Royal
+Statistical Society: Series B: Statistical Methodology, 217-242.</p></li>
+<li><p>Van de Geer, S., Bühlmann, P., Ritov, Y. A., &amp; Dezeure, R. (2014). On
+asymptotically optimal confidence regions and tests for high-dimensional
+models. The Annals of Statistics, 42(3), 1166-1202.</p></li>
+</ul>
+<p>For Knockoffs Inference:</p>
+<ul class="simple">
+<li><p>Barber, R. F; Candès, E. J. (2015). Controlling the false discovery rate
+via knockoffs. Annals of Statistics. 43 , no. 5,
+2055–2085. doi:10.1214/15-AOS1337. https://projecteuclid.org/euclid.aos/1438606853</p></li>
+<li><p>Candès, E., Fan, Y., Janson, L., &amp; Lv, J. (2018). Panning for gold: Model-X
+knockoffs for high dimensional controlled variable selection. Journal of the
+Royal Statistical Society Series B, 80(3), 551-577.</p></li>
+</ul>
+</section>
+</section>
+<section id="api">
+<h2>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2024, Parietal-INRIA.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
