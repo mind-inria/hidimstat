@@ -70,8 +70,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'hidimstat'
-copyright = u'2024, Parietal-INRIA'
-author = u'Parietal-INRIA'
+copyright = u'2024, Mind-Inria'
+author = u'Mind-Inria'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -122,7 +122,7 @@ html_theme_options = {
     'navbar_links': [
         ("Examples", "auto_examples/index"),
         ("API", "api"),
-        ("GitHub", "https://github.com/Parietal-INRIA/hidimstat", True)
+        ("GitHub", "https://github.com/mind-inria/hidimstat", True)
     ],
     'bootswatch_theme': "flatly",
     'bootstrap_version': "3",
