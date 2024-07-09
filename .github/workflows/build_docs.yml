@@ -50,13 +50,11 @@ jobs:
       - name: Commit to main
         run: |
           git clone --depth 1 https://github.com/${{ github.repository_owner }}/hidimstat.git
-          rm -Rf hidimstat/doc/_build
-          mkdir hidimstat/doc/_build
-          ls -a
-          ls hidimstat
-          ls hidimstat/doc
-          cp -r doc/_build/html hidimstat/doc/_build
+          rm -Rf hidimstat/docs
+          mkdir hidimstat/docs
+          cp -r doc/_build/html hidimstat/docs
           cd hidimstat
+          touch .nojekyll
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub actions"
           git add .
