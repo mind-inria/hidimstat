@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**03:14.593** total execution time for 3 files **from auto_examples**:
+**03:24.819** total execution time for 3 files **from auto_examples**:
 
 .. container::
 
@@ -33,11 +33,11 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``plot_fmri_data_example.py``)
-     - 01:23.272
-     - 2628.8
+     - 01:25.151
+     - 2694.6
    * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
-     - 01:04.707
-     - 105.1
+     - 01:12.610
+     - 108.5
    * - :ref:`sphx_glr_auto_examples_plot_diabetesFeatures_importance_example.py` (``plot_diabetesFeatures_importance_example.py``)
-     - 00:46.614
-     - 31.1
+     - 00:47.058
+     - 29.5
