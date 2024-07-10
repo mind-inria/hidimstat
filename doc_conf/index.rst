@@ -5,7 +5,7 @@
 
 HiDimStat: High-dimensional statistical inference tool for Python
 =================================================================
-|Build Status| |codecov|
+|Build| |codecov| |codestyle|
 
 The HiDimStat package provides statistical inference methods to solve the
 problem of support recovery in the context of high-dimensional and
@@ -23,7 +23,7 @@ run the following from terminal::
 Or if you want the latest version available (for example to contribute to
 the development of this project)::
 
-  git clone https://github.com/Parietal-INRIA/hidimstat.git
+  git clone https://github.com/mind-inria/hidimstat.git
   cd hidimstat
   pip install -e .
 
@@ -81,7 +81,7 @@ References
 
 The algorithms developed in this package have been detailed in several
 conference/journal articles that can be downloaded at
-`https://Parietal-INRIA.github.io/ <https://Parietal-INRIA.github.io/research.html>`_.
+`https://mind-inria.github.io/ <https://mind-inria.github.io/research.html>`_.
 
 Main references
 ~~~~~~~~~~~~~~~
@@ -158,12 +158,14 @@ For Knockoffs Inference:
   knockoffs for high dimensional controlled variable selection. Journal of the
   Royal Statistical Society Series B, 80(3), 551-577.
 
-.. |Build Status| image:: https://travis-ci.com/Parietal-INRIA/hidimstat.svg?branch=main
-   :target: https://codecov.io/gh/Parietal-INRIA/hidimstat
+.. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml/badge.svg?branch=main
+   :target: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml)
 
-.. |codecov| image:: https://codecov.io/gh/Parietal-INRIA/hidimstat/branch/main/graph/badge.svg
-   :target: https://codecov.io/gh/Parietal-INRIA/hidimstat
+.. |codecov| image:: https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS
+   :target: https://codecov.io/github/mind-inria/hidimstat
 
+.. |codestyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
 
 API
 ---

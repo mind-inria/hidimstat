@@ -17,6 +17,7 @@ Functions
 
    ada_svr
    aggregate_quantiles
+   BlockBasedImportance
    clustered_inference
    desparsified_lasso
    ensemble_clustered_inference
