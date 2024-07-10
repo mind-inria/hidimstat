@@ -14,6 +14,7 @@ pyvistaqt
 scikit-learn
 scipy
 sphinx-bootstrap-theme
+sphinxcontrib-bibtex
 sphinx-gallery
 torch
 torchmetrics
