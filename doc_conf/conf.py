@@ -47,6 +47,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
+    "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
     "sphinx_gallery.gen_gallery",
     "numpydoc",
