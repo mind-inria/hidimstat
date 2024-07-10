@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API Documentation &#8212; hidimstat 0.1.0 documentation</title>
+    <title>API Documentation &#8212; HiDimStat 0.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=fbda0898" />
@@ -41,7 +41,7 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="index.html">
-          hidimstat</a>
+          HiDimStat</a>
         <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
       </div>
 
@@ -138,7 +138,7 @@
 <td><p>Aggregation of survival function values by adaptive quantile procedure</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.BlockBasedImportance.html#hidimstat.BlockBasedImportance" title="hidimstat.BlockBasedImportance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockBasedImportance</span></code></a>([estimator, ...])</p></td>
-<td><p>This class implements the Block Based Importance (BBI),</p></td>
+<td><p>This class implements the Block-Based Importance (BBI), consisting of a learner block (first block) and an importance block (second block). For single-level see <a href="#id3"><span class="problematic" id="id4">:footcite:t:`Chamma_NeurIPS2023`</span></a> and for group-level see <a href="#id5"><span class="problematic" id="id6">:footcite:t:`Chamma_AAAI2024`</span></a>. Parameters ---------- estimator: scikit-learn compatible estimator, default=None     The provided estimator for the prediction task (First block). The default estimator is the DNN learner. Other options are (1) RF     for Random Forest. importance_estimator: {scikit-learn compatible estimator or string},                       default=Mod_RF     The provided estimator for the importance task (Second block). Using &quot;Mod_RF&quot; will apply the modified version of the Random Forest as     the importance predictor. do_hypertuning: bool, default=True     Tuning the hyperparameters of the provided estimator. dict_hypertuning: dict, default=None     The dictionary of hyperparameters to tune. problem_type: str, default='regression'     A classification or a regression problem. bootstrap: bool, default=True     Application of bootstrap sampling for the training set. split_perc: float, default=0.8     The training/validation cut for the provided data. conditional: bool, default=True     The permutation or the conditional sampling approach. list_nominal: dict, default=None     The dictionary of binary, nominal and ordinal variables. Perm: bool, default=False     The use of permutations or random sampling with CPI-DNN. n_perm: int, default=50     The number of permutations/random sampling for each column. n_jobs: int, default=1     The number of workers for parallel processing. verbose: int, default=0     If verbose &gt; 0, the fitted iterations will be printed. groups: dict, default=None     The knowledge-driven/data-driven grouping of the variables if provided. group_stacking: bool, default=False     Apply the stacking-based method for the provided groups. prop_out_subLayers: int, default=0. If group_stacking is set to True, proportion of outputs for     the linear sub-layers per group. index_i: int, default=None     The index of the current processed iteration. random_state: int, default=2023     Fixing the seeds of the random generator. com_imp: boolean, default=True     Compute or not the importance scores. group_label: list, default=None     The list of group labels to perform GroupKFold Attributes ---------- ToDO.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clustered_inference</span></code></a>(X_init, y, ward, n_clusters)</p></td>
 <td><p>Clustered inference algorithm</p></td>

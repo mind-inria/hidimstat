@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Variable Importance on diabetes dataset &#8212; hidimstat 0.1.0 documentation</title>
+    <title>Variable Importance on diabetes dataset &#8212; HiDimStat 0.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -39,7 +39,7 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="../index.html">
-          hidimstat</a>
+          HiDimStat</a>
         <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
       </div>
 
@@ -100,7 +100,7 @@
 </ul>
 
 <div id="sourcelink">
-  <a href="../_sources/auto_examples/plot_diabetesFeatures_importance_example.rst.txt"
+  <a href="../_sources/auto_examples/plot_diabetes_variable_importance_example.rst.txt"
      rel="nofollow">Source</a>
 </div>
 <form action="../search.html" method="get">
@@ -116,11 +116,11 @@
       
   <div class="sphx-glr-download-link-note admonition note">
 <p class="admonition-title">Note</p>
-<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-diabetesfeatures-importance-example-py"><span class="std std-ref">Go to the end</span></a>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-diabetes-variable-importance-example-py"><span class="std std-ref">Go to the end</span></a>
 to download the full example code.</p>
 </div>
 <section class="sphx-glr-example-title" id="variable-importance-on-diabetes-dataset">
-<span id="sphx-glr-auto-examples-plot-diabetesfeatures-importance-example-py"></span><h1>Variable Importance on diabetes dataset<a class="headerlink" href="#variable-importance-on-diabetes-dataset" title="Link to this heading">¶</a></h1>
+<span id="sphx-glr-auto-examples-plot-diabetes-variable-importance-example-py"></span><h1>Variable Importance on diabetes dataset<a class="headerlink" href="#variable-importance-on-diabetes-dataset" title="Link to this heading">¶</a></h1>
 <p>This example compares the standard permutation approach for variable importance
 and its conditional variant on the diabetes dataset for the single-level case.</p>
 <section id="imports-needed-for-this-script">
@@ -150,11 +150,11 @@ and its conditional variant on the diabetes dataset for the single-level case.</
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bbi_perm</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html#sklearn.base.BaseEstimator" title="sklearn.base.BaseEstimator" class="sphx-glr-backref-module-sklearn-base sphx-glr-backref-type-py-class"><span class="n">BlockBasedImportance</span></a><span class="p">(</span>
     <span class="n">estimator</span><span class="o">=</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span>
     <span class="n">importance_estimator</span><span class="o">=</span><span class="s2">&quot;Mod_RF&quot;</span><span class="p">,</span>
-    <span class="n">do_hyper</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">dict_hyper</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">do_hypertuning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">dict_hypertuning</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">conditional</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">group_stacking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">prob_type</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+    <span class="n">problem_type</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
     <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k_fold</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k_fold</span></a><span class="p">,</span>
     <a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">list_nominal</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">list_nominal</span></a><span class="p">,</span>
     <span class="n">n_jobs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -178,11 +178,11 @@ Computing the importance scores with standard permutation
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bbi_cond</span> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html#sklearn.base.BaseEstimator" title="sklearn.base.BaseEstimator" class="sphx-glr-backref-module-sklearn-base sphx-glr-backref-type-py-class"><span class="n">BlockBasedImportance</span></a><span class="p">(</span>
     <span class="n">estimator</span><span class="o">=</span><span class="s2">&quot;RF&quot;</span><span class="p">,</span>
     <span class="n">importance_estimator</span><span class="o">=</span><span class="s2">&quot;Mod_RF&quot;</span><span class="p">,</span>
-    <span class="n">do_hyper</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">dict_hyper</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">do_hypertuning</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">dict_hypertuning</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">conditional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">group_stacking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">prob_type</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+    <span class="n">problem_type</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
     <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k_fold</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k_fold</span></a><span class="p">,</span>
     <a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">list_nominal</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#dict" title="builtins.dict" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">list_nominal</span></a><span class="p">,</span>
     <span class="n">n_jobs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
@@ -227,14 +227,14 @@ Computing the importance scores with conditional permutation
 <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.show.html#matplotlib.pyplot.show" title="matplotlib.pyplot.show" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_diabetesFeatures_importance_example_001.png" srcset="../_images/sphx_glr_plot_diabetesFeatures_importance_example_001.png" alt="plot diabetesFeatures importance example" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 47.285 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  32 MB</p>
-<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-diabetesfeatures-importance-example-py">
+<img src="../_images/sphx_glr_plot_diabetes_variable_importance_example_001.png" srcset="../_images/sphx_glr_plot_diabetes_variable_importance_example_001.png" alt="plot diabetes variable importance example" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 46.171 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  28 MB</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-diabetes-variable-importance-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
-<p><a class="reference download internal" download="" href="../_downloads/6352d1acfa60f2083a9b7a62b5203e91/plot_diabetesFeatures_importance_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_diabetesFeatures_importance_example.ipynb</span></code></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/a70e28075a283d5e3fe675ced733c459/plot_diabetes_variable_importance_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_diabetes_variable_importance_example.ipynb</span></code></a></p>
 </div>
 <div class="sphx-glr-download sphx-glr-download-python docutils container">
-<p><a class="reference download internal" download="" href="../_downloads/205fc01252fa85326bc85c58c2e96a08/plot_diabetesFeatures_importance_example.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_diabetesFeatures_importance_example.py</span></code></a></p>
+<p><a class="reference download internal" download="" href="../_downloads/6f624092537330c9f373c01828b2b9ae/plot_diabetes_variable_importance_example.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_diabetes_variable_importance_example.py</span></code></a></p>
 </div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>

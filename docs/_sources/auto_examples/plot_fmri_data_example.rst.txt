@@ -184,7 +184,7 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
      ...done. (0 seconds, 0 min)
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    Downloaded 107290624 of 291168628 bytes (36.8%,    1.7s remaining)    Downloaded 238895104 of 291168628 bytes (82.0%,    0.4s remaining) ...done. (3 seconds, 0 min)
+    Downloaded 20447232 of 291168628 bytes (7.0%,   13.6s remaining)    Downloaded 62308352 of 291168628 bytes (21.4%,    7.6s remaining)    Downloaded 104996864 of 291168628 bytes (36.1%,    5.5s remaining)    Downloaded 147136512 of 291168628 bytes (50.5%,    4.0s remaining)    Downloaded 189079552 of 291168628 bytes (64.9%,    2.8s remaining)    Downloaded 231620608 of 291168628 bytes (79.5%,    1.6s remaining)    Downloaded 273883136 of 291168628 bytes (94.1%,    0.5s remaining) ...done. (8 seconds, 0 min)
     Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
 
 
@@ -361,7 +361,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.6s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.3s finished
 
 
 
@@ -599,9 +599,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 25.149 seconds)
+   **Total running time of the script:** (1 minutes 26.859 seconds)
 
-**Estimated memory usage:**  2772 MB
+**Estimated memory usage:**  2762 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
