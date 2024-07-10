@@ -36,6 +36,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     block).
     For single-level see :footcite:t:`Chamma_NeurIPS2023` and for group-level
     see :footcite:t:`Chamma_AAAI2024`.
+
     Parameters
     ----------
     estimator: scikit-learn compatible estimator, default=None
@@ -84,9 +85,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         Compute or not the importance scores.
     group_label: list, default=None
         The list of group labels to perform GroupKFold
+
     Attributes
     ----------
     ToDO
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     def __init__(
