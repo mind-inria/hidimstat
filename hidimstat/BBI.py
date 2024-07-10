@@ -30,9 +30,12 @@ from .utils import convert_predict_proba, create_X_y, compute_imp_std
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
-    """This class implements the Block Based Importance (BBI),
-       it consists of the learner block (first block)
-       and the importance block (second block).
+    """
+    This class implements the Block-Based Importance (BBI),
+    consisting of a learner block (first block) and an importance block (second
+    block).
+    For single-level see :footcite:t:`Chamma_NeurIPS2023` and for group-level
+    see :footcite:t:`Chamma_AAAI2024`.
     Parameters
     ----------
     estimator: scikit-learn compatible estimator, default=None
@@ -44,11 +47,11 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         The provided estimator for the importance task (Second block).
         Using "Mod_RF" will apply the modified version of the Random Forest as
         the importance predictor.
-    do_hyper: bool, default=True
+    do_hypertuning: bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hyper: dict, default=None
+    dict_hypertuning: dict, default=None
         The dictionary of hyperparameters to tune.
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem.
     bootstrap: bool, default=True
         Application of bootstrap sampling for the training set.
@@ -91,9 +94,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         estimator=None,
         importance_estimator="Mod_RF",
         coffeine_transformer=None,
-        do_hyper=True,
-        dict_hyper=None,
-        prob_type="regression",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        problem_type="regression",
         bootstrap=True,
         split_perc=0.8,
         conditional=True,
@@ -115,9 +118,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.estimator = estimator
         self.importance_estimator = importance_estimator
         self.coffeine_transformer = coffeine_transformer
-        self.do_hyper = do_hyper
-        self.dict_hyper = dict_hyper
-        self.prob_type = prob_type
+        self.do_hypertuning = do_hypertuning
+        self.dict_hypertuning = dict_hypertuning
+        self.problem_type = problem_type
         self.bootstrap = bootstrap
         self.split_perc = split_perc
         self.conditional = conditional
@@ -176,8 +179,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.rng = np.random.RandomState(self.random_state)
 
         # Switch to special binary case
-        if (self.prob_type == "classification") and (len(np.unique(y)) < 3):
-            self.prob_type = "binary"
+        if (self.problem_type == "classification") and (len(np.unique(y)) < 3):
+            self.problem_type = "binary"
         # Convert list_nominal to a dictionary if initialized
         # as an empty string
         if not isinstance(self.list_nominal, dict):
@@ -316,7 +319,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         if len(y.shape) != 2:
             y = np.array(y).reshape(-1, 1)
 
-        if self.prob_type in ("classification", "binary"):
+        if self.problem_type in ("classification", "binary"):
             self.loss = log_loss
         else:
             self.loss = mean_squared_error
@@ -396,9 +399,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # Initialize the first estimator (block learner)
         if self.estimator is None:
             self.estimator = DNN_learner(
-                prob_type=self.prob_type,
+                problem_type=self.problem_type,
                 encode=True,
-                do_hyper=False,
+                do_hypertuning=False,
                 list_cont=self.list_cont,
                 list_grps=self.list_grps,
                 group_stacking=self.group_stacking,
@@ -409,19 +412,19 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             )
             self.type = "DNN"
             # Initializing the dictionary for tuning the hyperparameters
-            if self.dict_hyper is None:
-                self.dict_hyper = {
+            if self.dict_hypertuning is None:
+                self.dict_hypertuning = {
                     "lr": [1e-4, 1e-3, 1e-2],
                     "l1_weight": [0, 1e-4, 1e-2],
                     "l2_weight": [0, 1e-4, 1e-2],
                 }
 
         elif self.estimator == "RF":
-            if self.prob_type == "regression":
+            if self.problem_type == "regression":
                 self.estimator = RandomForestRegressor(random_state=2023)
             else:
                 self.estimator = RandomForestClassifier(random_state=2023)
-            self.dict_hyper = {"max_depth": [2, 5, 10, 20]}
+            self.dict_hypertuning = {"max_depth": [2, 5, 10, 20]}
             self.type = "RF"
 
         if self.k_fold != 0:
@@ -468,7 +471,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                 # Find the list of optimal sub-models to be used in the
                 # following steps (Default estimator)
-                if self.do_hyper:
+                if self.do_hypertuning:
                     self.__tuning_hyper(X_train, y_train, ind_fold)
                 if self.type == "DNN":
                     self.estimator.fit(X_train, y_train)
@@ -491,7 +494,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                             )
 
             # Hyperparameter tuning
-            if self.do_hyper:
+            if self.do_hypertuning:
                 self.__tuning_hyper(X, y, 0)
 
             if self.type == "DNN":
@@ -519,12 +522,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 y,
                 bootstrap=self.bootstrap,
                 split_perc=self.split_perc,
-                prob_type=self.prob_type,
+                problem_type=self.problem_type,
                 list_cont=self.list_cont,
                 random_state=self.random_state,
             )
-            if self.dict_hyper is not None:
-                list_hyper = list(itertools.product(*list(self.dict_hyper.values())))
+            if self.dict_hypertuning is not None:
+                list_hyper = list(
+                    itertools.product(*list(self.dict_hypertuning.values()))
+                )
             list_loss = []
             if self.type == "DNN":
                 list_loss = self.estimator.hyper_tuning(
@@ -536,7 +541,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     random_state=self.random_state,
                 )
             else:
-                if self.dict_hyper is None:
+                if self.dict_hypertuning is None:
                     self.estimator.fit(X_scaled, y)
                     # If not a DNN learner case, need to save the scalers
                     self.scaler_x[ind_fold] = scaler_x
@@ -545,11 +550,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 else:
                     for ind_el, el in enumerate(list_hyper):
                         curr_params = dict(
-                            (k, v) for v, k in zip(el, list(self.dict_hyper.keys()))
+                            (k, v)
+                            for v, k in zip(el, list(self.dict_hypertuning.keys()))
                         )
                         list_hyper[ind_el] = curr_params
                         self.estimator.set_params(**curr_params)
-                        if self.prob_type == "regression":
+                        if self.problem_type == "regression":
                             y_train_curr = (
                                 y_train_scaled * scaler_y.scale_ + scaler_y.mean_
                             )
@@ -569,7 +575,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                         self.estimator.fit(X_train_scaled, y_train_curr)
 
-                        if self.prob_type == "classification":
+                        if self.problem_type == "classification":
                             list_loss.append(
                                 self.loss(
                                     y_valid_curr,
@@ -584,7 +590,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             ind_min = np.argmin(list_loss)
             best_hyper = list_hyper[ind_min]
             if not isinstance(best_hyper, dict):
-                best_hyper = dict(zip(self.dict_hyper.keys(), best_hyper))
+                best_hyper = dict(zip(self.dict_hypertuning.keys(), best_hyper))
 
             self.estimator.set_params(**best_hyper)
             self.estimator.fit(X_scaled, y)
@@ -765,7 +771,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 X = pd.DataFrame(X)
             self.X_nominal[0] = X.loc[:, self.list_cat_tot]
             X = [X.copy() for _ in range(max(self.k_fold, 1))]
-            if self.prob_type in ("classification", "binary"):
+            if self.problem_type in ("classification", "binary"):
                 pass
             else:
                 if len(y.shape) != 2:
@@ -773,7 +779,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             y = [y.copy() for _ in range(max(self.k_fold, 1))]
 
         # Compute original predictions
-        if self.prob_type == "regression":
+        if self.problem_type == "regression":
             output_dim = y[0].shape[1]
             self.predict(X, encoding=encoding)
         else:
@@ -795,7 +801,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         y[ind_fold], train=False
                     )[y_col]
             else:
-                if self.prob_type in ("classification", "binary"):
+                if self.problem_type in ("classification", "binary"):
                     one_hot = OneHotEncoder(handle_unknown="ignore").fit(
                         self.y_train[ind_fold].reshape(-1, 1)
                     )
@@ -814,7 +820,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     self.type,
                                     self.X_proc[ind_fold],
                                     y[ind_fold],
-                                    self.prob_type,
+                                    self.problem_type,
                                     self.org_pred[ind_fold],
                                     dict_cont=self.dict_cont,
                                     dict_nom=self.dict_nom,
@@ -851,7 +857,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     self.importance_estimator,
                                     self.X_proc[ind_fold],
                                     y[ind_fold],
-                                    self.prob_type,
+                                    self.problem_type,
                                     self.org_pred[ind_fold],
                                     seed=self.random_state,
                                     dict_cont=self.dict_cont,
@@ -875,7 +881,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     self.pred_scores[ind_fold] = np.array(self.pred_scores[ind_fold])
                 score_imp_l.append(score_cur[0])
             else:
-                if self.prob_type in ("classification", "binary"):
+                if self.problem_type in ("classification", "binary"):
                     nonzero_cols = np.where(y[ind_fold].any(axis=0))[0]
                     score = roc_auc_score(
                         y[ind_fold][:, nonzero_cols],
@@ -889,7 +895,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 score_imp_l.append(score)
 
         # Compute performance
-        if self.prob_type == "regression":
+        if self.problem_type == "regression":
             results["score_MAE"] = np.mean(np.array(score_imp_l), axis=0)[0]
             results["score_R2"] = np.mean(np.array(score_imp_l), axis=0)[1]
         else:
