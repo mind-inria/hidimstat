@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import OneHotEncoder
 
 from .RandomForestModified import (
     RandomForestClassifierModified,
@@ -24,7 +23,7 @@ def joblib_compute_conditional(
     importance_estimator,
     X_test_list,
     y_test,
-    prob_type,
+    problem_type,
     org_pred,
     seed=None,
     dict_cont={},
@@ -61,7 +60,7 @@ def joblib_compute_conditional(
         equal to the number of sub-models of the DNN learner.
     y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
         The output test samples.
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem.
     org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
         The predictions using the original samples.
@@ -414,7 +413,7 @@ def joblib_compute_conditional(
                         np.array(X_nominal[grp_ord])[:, [cur_ordinal_ind]],
                     )
 
-    if prob_type in ("classification", "binary"):
+    if problem_type in ("classification", "binary"):
         nonzero_cols = np.where(y_test.any(axis=0))[0]
         score = roc_auc_score(y_test[:, nonzero_cols], org_pred[:, nonzero_cols])
     else:
@@ -591,7 +590,7 @@ def joblib_compute_conditional(
                             )
                     X_test_comp[..., p_col_n["ordinal"]] = X_col_new["ordinal"]
 
-        if prob_type == "regression":
+        if problem_type == "regression":
             if type_predictor == "DNN":
                 pred_i = estimator.predict(current_X_test_list, scale=False)
             else:
@@ -626,7 +625,7 @@ def joblib_compute_permutation(
     type_predictor,
     X_test_list,
     y_test,
-    prob_type,
+    problem_type,
     org_pred,
     dict_cont={},
     dict_nom={},
@@ -655,7 +654,7 @@ def joblib_compute_permutation(
         equal to the number of sub-models of the DNN learner.
     y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
         The output test samples.
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem.
     org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
         The predictions using the original samples.
@@ -702,7 +701,7 @@ def joblib_compute_permutation(
     for X_test_comp in current_X_test_list:
         X_test_comp[..., p_col_new] = X_test_comp[..., p_col_new].take(indices, axis=-2)
 
-    if prob_type == "regression":
+    if problem_type == "regression":
         score = (
             mean_absolute_error(y_test, org_pred),
             r2_score(y_test, org_pred),

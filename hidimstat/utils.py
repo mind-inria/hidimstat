@@ -133,7 +133,7 @@ def create_X_y(
     y,
     bootstrap=True,
     split_perc=0.8,
-    prob_type="regression",
+    problem_type="regression",
     list_cont=None,
     random_state=None,
 ):
@@ -148,7 +148,7 @@ def create_X_y(
         Application of bootstrap sampling for the training set.
     split_perc: float, default=0.8
         The training/validation cut for the provided data.
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem.
     list_cont: list, default=[]
         The list of continuous variables.
@@ -198,7 +198,7 @@ def create_X_y(
         X_train_scaled[:, list_cont] = scaler_x.fit_transform(X_train[:, list_cont])
         X_valid_scaled[:, list_cont] = scaler_x.transform(X_valid[:, list_cont])
         X_scaled[:, list_cont] = scaler_x.transform(X[:, list_cont])
-    if prob_type == "regression":
+    if problem_type == "regression":
         y_train_scaled = scaler_y.fit_transform(y_train)
         y_valid_scaled = scaler_y.transform(y_valid)
     else:
@@ -291,7 +291,7 @@ def sample_predictions(predictions, random_state=None):
 def joblib_ensemble_dnnet(
     X,
     y,
-    prob_type="regression",
+    problem_type="regression",
     link_func=None,
     list_cont=None,
     list_grps=None,
@@ -337,7 +337,7 @@ def joblib_ensemble_dnnet(
         y,
         bootstrap=bootstrap,
         split_perc=split_perc,
-        prob_type=prob_type,
+        problem_type=problem_type,
         list_cont=list_cont,
         random_state=random_state,
     )
@@ -347,7 +347,7 @@ def joblib_ensemble_dnnet(
         y_train_scaled,
         X_valid_scaled,
         y_valid_scaled,
-        prob_type=prob_type,
+        problem_type=problem_type,
         n_epoch=n_epoch,
         batch_size=batch_size,
         beta1=beta1,
@@ -399,14 +399,14 @@ def joblib_ensemble_dnnet(
 
     pred = pred.dot(current_model[0][n_layer]) + current_model[1][n_layer]
 
-    if prob_type not in ("classification", "binary"):
-        if prob_type != "ordinal":
+    if problem_type not in ("classification", "binary"):
+        if problem_type != "ordinal":
             pred_v = pred * scaler_y.scale_ + scaler_y.mean_
         else:
-            pred_v = link_func[prob_type](pred)
+            pred_v = link_func[problem_type](pred)
         loss = np.std(y_valid) ** 2 - mean_squared_error(y_valid, pred_v[valid_ind])
     else:
-        pred_v = link_func[prob_type](pred)
+        pred_v = link_func[problem_type](pred)
         loss = log_loss(
             y_valid, np.ones(y_valid.shape) * np.mean(y_valid, axis=0)
         ) - log_loss(y_valid, pred_v[valid_ind])
@@ -436,9 +436,9 @@ def Dataset_Loader(X, y, shuffle=False, batch_size=50):
 class DNN(nn.Module):
     """Feedfoward neural network with 4 hidden layers"""
 
-    def __init__(self, input_dim, group_stacking, list_grps, out_dim, prob_type):
+    def __init__(self, input_dim, group_stacking, list_grps, out_dim, problem_type):
         super().__init__()
-        if prob_type == "classification":
+        if problem_type == "classification":
             self.accuracy = Accuracy(task="multiclass", num_classes=out_dim)
         else:
             self.accuracy = Accuracy(task="binary")
@@ -498,28 +498,28 @@ class DNN(nn.Module):
             x = torch.cat(list_stacking, dim=1)
         return self.layers(x)
 
-    def training_step(self, batch, device, prob_type):
+    def training_step(self, batch, device, problem_type):
         X, y = batch[0].to(device), batch[1].to(device)
         y_pred = self(X)  # Generate predictions
-        if prob_type == "regression":
+        if problem_type == "regression":
             loss = F.mse_loss(y_pred, y)
-        elif prob_type == "classification":
+        elif problem_type == "classification":
             loss = F.cross_entropy(y_pred, y)  # Calculate loss
         else:
             loss = F.binary_cross_entropy_with_logits(y_pred, y)
         return loss
 
-    def validation_step(self, batch, device, prob_type):
+    def validation_step(self, batch, device, problem_type):
         X, y = batch[0].to(device), batch[1].to(device)
         y_pred = self(X)  # Generate predictions
-        if prob_type == "regression":
+        if problem_type == "regression":
             loss = F.mse_loss(y_pred, y)
             return {
                 "val_mse": loss,
                 "batch_size": len(X),
             }
         else:
-            if prob_type == "classification":
+            if problem_type == "classification":
                 loss = F.cross_entropy(y_pred, y)  # Calculate loss
             else:
                 loss = F.binary_cross_entropy_with_logits(y_pred, y)
@@ -530,8 +530,8 @@ class DNN(nn.Module):
                 "batch_size": len(X),
             }
 
-    def validation_epoch_end(self, outputs, prob_type):
-        if prob_type in ("classification", "binary"):
+    def validation_epoch_end(self, outputs, problem_type):
+        if problem_type in ("classification", "binary"):
             batch_losses = []
             batch_accs = []
             batch_sizes = []
@@ -565,9 +565,9 @@ class DNN(nn.Module):
             print("Epoch [{}], val_mse: {:.4f}".format(epoch + 1, result["val_mse"]))
 
 
-def evaluate(model, loader, device, prob_type):
-    outputs = [model.validation_step(batch, device, prob_type) for batch in loader]
-    return model.validation_epoch_end(outputs, prob_type)
+def evaluate(model, loader, device, problem_type):
+    outputs = [model.validation_step(batch, device, problem_type) for batch in loader]
+    return model.validation_epoch_end(outputs, problem_type)
 
 
 def dnn_net(
@@ -575,7 +575,7 @@ def dnn_net(
     y_train,
     X_valid,
     y_valid,
-    prob_type="regression",
+    problem_type="regression",
     n_epoch=200,
     batch_size=32,
     batch_size_val=128,
@@ -604,7 +604,7 @@ def dnn_net(
     l1_weight: L1 regalurization weight
     l2_weight: L2 regularization weight
     verbose: If > 2, the metrics will be printed
-    prob_type: A classification or regression problem
+    problem_type: A classification or regression problem
     """
     # Creating DataLoaders
     train_loader = Dataset_Loader(
@@ -626,14 +626,14 @@ def dnn_net(
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device("cpu")
 
-    if prob_type in ("regression", "binary"):
+    if problem_type in ("regression", "binary"):
         out_dim = 1
     else:
         out_dim = y_train.shape[-1]
 
     # DNN model
     input_dim = inp_dim.copy() if group_stacking else X_train.shape[1]
-    model = DNN(input_dim, group_stacking, list_grps, out_dim, prob_type)
+    model = DNN(input_dim, group_stacking, list_grps, out_dim, problem_type)
     model.to(device)
     # Initializing weights/bias
     model.apply(init_weights)
@@ -648,7 +648,7 @@ def dnn_net(
         model.train()
         for batch in train_loader:
             optimizer.zero_grad()
-            loss = model.training_step(batch, device, prob_type)
+            loss = model.training_step(batch, device, problem_type)
 
             loss.backward()
             optimizer.step()
@@ -662,7 +662,7 @@ def dnn_net(
                     )
         # Validation Phase
         model.eval()
-        result = evaluate(model, validate_loader, device, prob_type)
+        result = evaluate(model, validate_loader, device, problem_type)
         if model.loss < best_loss:
             best_loss = model.loss
             dict_params = copy.deepcopy(model.state_dict())

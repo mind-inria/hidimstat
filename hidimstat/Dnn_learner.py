@@ -11,9 +11,9 @@ class DNN_learner(BaseEstimator):
     ----------
     encode: bool, default=False
         Encoding the categorical outcome.
-    do_hyper: bool, default=True
+    do_hypertuning: bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hyper: dict, default=None
+    dict_hypertuning: dict, default=None
         The dictionary of hyperparameters to tune.
     n_ensemble: int, default=10
         The number of sub-DNN models to fit to the data.
@@ -31,7 +31,7 @@ class DNN_learner(BaseEstimator):
         Application of bootstrap sampling for the training set.
     split_perc: float, default=0.8
         The training/validation cut for the provided data.
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem.
     list_cont: list, default=None
         The list of continuous variables.
@@ -66,8 +66,8 @@ class DNN_learner(BaseEstimator):
     def __init__(
         self,
         encode=False,
-        do_hyper=False,
-        dict_hyper=None,
+        do_hypertuning=False,
+        dict_hypertuning=None,
         n_ensemble=10,
         min_keep=10,
         batch_size=32,
@@ -76,7 +76,7 @@ class DNN_learner(BaseEstimator):
         verbose=0,
         bootstrap=True,
         split_perc=0.8,
-        prob_type="regression",
+        problem_type="regression",
         list_cont=None,
         list_grps=None,
         beta1=0.9,
@@ -92,8 +92,8 @@ class DNN_learner(BaseEstimator):
     ):
         self.list_estimators = []
         self.encode = encode
-        self.do_hyper = do_hyper
-        self.dict_hyper = dict_hyper
+        self.do_hypertuning = do_hypertuning
+        self.dict_hypertuning = dict_hypertuning
         self.n_ensemble = n_ensemble
         self.min_keep = min_keep
         self.batch_size = batch_size
@@ -102,7 +102,7 @@ class DNN_learner(BaseEstimator):
         self.verbose = verbose
         self.bootstrap = bootstrap
         self.split_perc = split_perc
-        self.prob_type = prob_type
+        self.problem_type = problem_type
         self.list_grps = list_grps
         self.beta1 = beta1
         self.beta2 = beta2
@@ -150,8 +150,8 @@ class DNN_learner(BaseEstimator):
         for y_col in range(y.shape[-1]):
             self.list_estimators[y_col] = DNN_learner_single(
                 encode=self.encode,
-                do_hyper=self.do_hyper,
-                dict_hyper=self.dict_hyper,
+                do_hypertuning=self.do_hypertuning,
+                dict_hypertuning=self.dict_hypertuning,
                 n_ensemble=self.n_ensemble,
                 min_keep=self.min_keep,
                 batch_size=self.batch_size,
@@ -160,7 +160,7 @@ class DNN_learner(BaseEstimator):
                 verbose=self.verbose,
                 bootstrap=self.bootstrap,
                 split_perc=self.split_perc,
-                prob_type=self.prob_type,
+                problem_type=self.problem_type,
                 list_cont=self.list_cont,
                 list_grps=self.list_grps,
                 beta1=self.beta1,
@@ -190,8 +190,8 @@ class DNN_learner(BaseEstimator):
     ):
         estimator = DNN_learner_single(
             encode=self.encode,
-            do_hyper=self.do_hyper,
-            dict_hyper=self.dict_hyper,
+            do_hypertuning=self.do_hypertuning,
+            dict_hypertuning=self.dict_hypertuning,
             n_ensemble=self.n_ensemble,
             min_keep=self.min_keep,
             batch_size=self.batch_size,
@@ -200,7 +200,7 @@ class DNN_learner(BaseEstimator):
             verbose=self.verbose,
             bootstrap=self.bootstrap,
             split_perc=self.split_perc,
-            prob_type=self.prob_type,
+            problem_type=self.problem_type,
             list_cont=self.list_cont,
             list_grps=self.list_grps,
             beta1=self.beta1,

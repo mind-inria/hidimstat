@@ -25,9 +25,9 @@ class DNN_learner_single(BaseEstimator):
     ----------
     encode: bool, default=False
         Encoding the categorical outcome.
-    do_hyper: bool, default=True
+    do_hypertuning: bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hyper: dict, default=None
+    dict_hypertuning: dict, default=None
         The dictionary of hyperparameters to tune.
     n_ensemble: int, default=10
         The number of sub-DNN models to fit to the data
@@ -45,7 +45,7 @@ class DNN_learner_single(BaseEstimator):
         Application of bootstrap sampling for the training set
     split_perc: float, default=0.8
         The training/validation cut for the provided data
-    prob_type: str, default='regression'
+    problem_type: str, default='regression'
         A classification or a regression problem
     list_grps: list of lists, default=None
         A list collecting the indices of the groups' variables
@@ -77,8 +77,8 @@ class DNN_learner_single(BaseEstimator):
     def __init__(
         self,
         encode=False,
-        do_hyper=False,
-        dict_hyper=None,
+        do_hypertuning=False,
+        dict_hypertuning=None,
         n_ensemble=10,
         min_keep=10,
         batch_size=32,
@@ -87,7 +87,7 @@ class DNN_learner_single(BaseEstimator):
         verbose=0,
         bootstrap=True,
         split_perc=0.8,
-        prob_type="regression",
+        problem_type="regression",
         list_cont=None,
         list_grps=None,
         beta1=0.9,
@@ -102,8 +102,8 @@ class DNN_learner_single(BaseEstimator):
         random_state=2023,
     ):
         self.encode = encode
-        self.do_hyper = do_hyper
-        self.dict_hyper = dict_hyper
+        self.do_hypertuning = do_hypertuning
+        self.dict_hypertuning = dict_hypertuning
         self.n_ensemble = n_ensemble
         self.min_keep = min_keep
         self.batch_size = batch_size
@@ -112,7 +112,7 @@ class DNN_learner_single(BaseEstimator):
         self.verbose = verbose
         self.bootstrap = bootstrap
         self.split_perc = split_perc
-        self.prob_type = prob_type
+        self.problem_type = problem_type
         self.list_grps = list_grps
         self.beta1 = beta1
         self.beta2 = beta2
@@ -148,7 +148,7 @@ class DNN_learner_single(BaseEstimator):
             Returns self.
         """
         # Disabling the encoding parameter with the regression case
-        if self.prob_type == "regression":
+        if self.problem_type == "regression":
             if len(y.shape) != 2:
                 y = y.reshape(-1, 1)
             self.encode = False
@@ -159,16 +159,16 @@ class DNN_learner_single(BaseEstimator):
             y = np.squeeze(y, axis=0)
 
         # Initializing the dictionary for tuning the hyperparameters
-        if self.dict_hyper is None:
-            self.dict_hyper = {
+        if self.dict_hypertuning is None:
+            self.dict_hypertuning = {
                 "lr": [1e-2, 1e-3, 1e-4],
                 "l1_weight": [0, 1e-2, 1e-4],
                 "l2_weight": [0, 1e-2, 1e-4],
             }
 
         # Switch to the special binary case
-        if (self.prob_type == "classification") and (y.shape[-1] < 3):
-            self.prob_type = "binary"
+        if (self.problem_type == "classification") and (y.shape[-1] < 3):
+            self.problem_type = "binary"
         n, p = X.shape
         self.min_keep = max(min(self.min_keep, self.n_ensemble), 1)
         rng = np.random.RandomState(self.random_state)
@@ -188,7 +188,7 @@ class DNN_learner_single(BaseEstimator):
             X = np.array(X)
 
         # Hyperparameter tuning
-        if self.do_hyper:
+        if self.do_hypertuning:
             self.__tuning_hyper(X, y)
 
         parallel = Parallel(
@@ -200,7 +200,7 @@ class DNN_learner_single(BaseEstimator):
                     delayed(joblib_ensemble_dnnet)(
                         X,
                         y,
-                        prob_type=self.prob_type,
+                        problem_type=self.problem_type,
                         link_func=self.link_func,
                         list_cont=self.list_cont,
                         list_grps=self.list_grps,
@@ -234,7 +234,7 @@ class DNN_learner_single(BaseEstimator):
         new_loss = np.empty(self.n_ensemble - 1)
         for i in range(self.n_ensemble - 1):
             current_pred = np.mean(pred_m[loss >= sorted_loss[i], :], axis=0)
-            if self.prob_type == "regression":
+            if self.problem_type == "regression":
                 new_loss[i] = mean_squared_error(y, current_pred)
             else:
                 new_loss[i] = log_loss(y, current_pred)
@@ -256,24 +256,24 @@ class DNN_learner_single(BaseEstimator):
         list_y = []
         if len(y.shape) != 2:
             y = y.reshape(-1, 1)
-        if self.prob_type == "regression":
+        if self.problem_type == "regression":
             list_y.append(y)
 
         for col in range(y.shape[1]):
             if train:
                 # Encoding the target with the classification case
-                if self.prob_type in ("classification", "binary"):
+                if self.problem_type in ("classification", "binary"):
                     self.enc_y.append(OneHotEncoder(handle_unknown="ignore"))
                     curr_y = self.enc_y[col].fit_transform(y[:, [col]]).toarray()
                     list_y.append(curr_y)
 
                 # Encoding the target with the ordinal case
-                if self.prob_type == "ordinal":
+                if self.problem_type == "ordinal":
                     y = ordinal_encode(y)
 
             else:
                 # Encoding the target with the classification case
-                if self.prob_type in ("classification", "binary"):
+                if self.problem_type in ("classification", "binary"):
                     curr_y = self.enc_y[col].transform(y[:, [col]]).toarray()
                     list_y.append(curr_y)
 
@@ -303,7 +303,7 @@ class DNN_learner_single(BaseEstimator):
                             y_train[i, ...],
                             X_valid,
                             y_valid[i, ...],
-                            prob_type=self.prob_type,
+                            problem_type=self.problem_type,
                             n_epoch=self.n_epoch,
                             batch_size=self.batch_size,
                             beta1=self.beta1,
@@ -340,11 +340,11 @@ class DNN_learner_single(BaseEstimator):
             y,
             bootstrap=self.bootstrap,
             split_perc=self.split_perc,
-            prob_type=self.prob_type,
+            problem_type=self.problem_type,
             list_cont=self.list_cont,
             random_state=self.random_state,
         )
-        list_hyper = list(itertools.product(*list(self.dict_hyper.values())))
+        list_hyper = list(itertools.product(*list(self.dict_hypertuning.values())))
         list_loss = self.hyper_tuning(
             X_train_scaled,
             y_train_scaled,
@@ -356,7 +356,7 @@ class DNN_learner_single(BaseEstimator):
         ind_min = np.argmin(list_loss)
         best_hyper = list_hyper[ind_min]
         if not isinstance(best_hyper, dict):
-            best_hyper = dict(zip(self.dict_hyper.keys(), best_hyper))
+            best_hyper = dict(zip(self.dict_hypertuning.keys(), best_hyper))
         self.set_params(**best_hyper)
 
     def predict(self, X, scale=True):
@@ -372,7 +372,7 @@ class DNN_learner_single(BaseEstimator):
         y : ndarray, shape (n_samples,)
             Returns an array of ones.
         """
-        if self.prob_type != "regression":
+        if self.problem_type != "regression":
             raise Exception("Use the predict_proba function for classification")
 
         # Prepare the test set for the prediction
@@ -407,7 +407,7 @@ class DNN_learner_single(BaseEstimator):
         y : ndarray, shape (n_samples,)
             Returns an array of ones.
         """
-        if self.prob_type == "regression":
+        if self.problem_type == "regression":
             raise Exception("Use the predict function for classification")
 
         # Prepare the test set for the prediction
@@ -420,10 +420,10 @@ class DNN_learner_single(BaseEstimator):
         res_pred = np.zeros((self.pred[0].shape))
         total_n_elements = 0
         for pred in self.pred:
-            res_pred += self.link_func[self.prob_type](pred)
+            res_pred += self.link_func[self.problem_type](pred)
             total_n_elements += 1
         res_pred = res_pred.copy() / total_n_elements
-        if self.prob_type == "binary":
+        if self.problem_type == "binary":
             res_pred = np.array(
                 [[1 - res_pred[i][0], res_pred[i][0]] for i in range(res_pred.shape[0])]
             )

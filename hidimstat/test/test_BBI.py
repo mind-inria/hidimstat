@@ -13,10 +13,10 @@ rng = np.random.RandomState(2024)
 
 
 def _generate_data(
-    n_samples=100, n_features=10, prob_type="regression", grps_exp=False, seed=2024
+    n_samples=100, n_features=10, problem_type="regression", grps_exp=False, seed=2024
 ):
 
-    if prob_type == "regression":
+    if problem_type == "regression":
         X, y = make_regression(
             n_samples=n_samples,
             noise=0.2,
@@ -60,16 +60,16 @@ def _generate_data(
 
 def test_BBI_reg():
 
-    X, y, _, list_nominal = _generate_data(prob_type="regression")
+    X, y, _, list_nominal = _generate_data(problem_type="regression")
     # DNN
     bbi_reg_dnn = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -84,11 +84,11 @@ def test_BBI_reg():
     bbi_reg_rf = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -102,16 +102,16 @@ def test_BBI_reg():
 
 def test_BBI_class():
 
-    X, y, _, list_nominal = _generate_data(prob_type="classification")
+    X, y, _, list_nominal = _generate_data(problem_type="classification")
     # DNN
     bbi_class_dnn = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
-        prob_type="classification",
+        problem_type="classification",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -126,11 +126,11 @@ def test_BBI_class():
     bbi_class_rf = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
-        prob_type="classification",
+        problem_type="classification",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -149,10 +149,10 @@ def test_BBI_condDNN():
     bbi_res = BlockBasedImportance(
         estimator=None,
         importance_estimator=None,
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -167,10 +167,10 @@ def test_BBI_condDNN():
     bbi_samp = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -188,11 +188,11 @@ def test_BBI_permDNN():
     bbi_perm = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -211,12 +211,12 @@ def test_BBI_grp():
     bbi_grp_noStack = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         groups=grps,
         group_stacking=False,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,
@@ -231,12 +231,12 @@ def test_BBI_grp():
     bbi_grp_stack = BlockBasedImportance(
         estimator="RF",
         importance_estimator="Mod_RF",
-        do_hyper=True,
-        dict_hyper=None,
+        do_hypertuning=True,
+        dict_hypertuning=None,
         conditional=False,
         groups=grps,
         group_stacking=True,
-        prob_type="regression",
+        problem_type="regression",
         k_fold=2,
         list_nominal=list_nominal,
         n_jobs=10,

@@ -18,13 +18,13 @@ Or if you want the latest version available (for example to contribute to
 the development of this project):
 
 ```
-pip install -U git+https://github.com/Parietal-INRIA/hidimstat.git
+pip install -U git+https://github.com/mind-inria/hidimstat.git
 ```
 
 or
 
 ```bash
-git clone https://github.com/Parietal-INRIA/hidimstat.git
+git clone https://github.com/mind-inria/hidimstat.git
 cd hidimstat
 pip install -e .
 ```
@@ -43,7 +43,7 @@ is also needed to install `pytest`.
 
 ## Documentation & Examples
 
-All the documentation of HiDimStat is available at https://Parietal-INRIA.github.io/hidimstat/.
+All the documentation of HiDimStat is available at https://mind-inria.github.io/hidimstat/.
 
 As of now in the `examples` folder there are three Python scripts that
 illustrate how to use the main HiDimStat functions.
@@ -64,7 +64,7 @@ python plot_2D_simulation_example.py
 
 The algorithms developed in this package have been detailed in several
 conference/journal articles that can be downloaded at
-https://Parietal-INRIA.github.io/research.html.
+https://mind-inria.github.io/research.html.
 
 #### Main references:
 
@@ -143,10 +143,3 @@ Fast Big project (ANR-17-CE23-0011) and the KARAIB AI Chair
 (ANR-20-CHIA-0025-01). This study has also been supported by the European
 Union’s Horizon 2020 research and innovation program
 (Grant Agreement No. 945539, Human Brain Project SGA3).
-
-
-[TravisCI]: https://travis-ci.com/Parietal-INRIA/hidimstat.svg?branch=main "travisCI status"
-[travis]: https://travis-ci.com/Parietal-INRIA/hidimstat
-
-[CodeCov]: https://codecov.io/gh/Parietal-INRIA/hidimstat/branch/main/graph/badge.svg "CodeCov status"
-[cov]: https://codecov.io/gh/Parietal-INRIA/hidimstat
