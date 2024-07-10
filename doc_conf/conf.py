@@ -68,8 +68,14 @@ source_suffix = ['.rst', '.md']
 # The master toctree document.
 master_doc = 'index'
 
+# sphinxcontrib-bibtex
+bibtex_bibfiles = ["./references.bib"]
+bibtex_style = "unsrt"
+bibtex_reference_style = "author_year"
+bibtex_footbibliography_header = ""
+
 # General information about the project.
-project = u'hidimstat'
+project = u'HiDimStat'
 copyright = u'2024, Mind-Inria'
 author = u'Mind-Inria'
 
@@ -87,7 +93,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
