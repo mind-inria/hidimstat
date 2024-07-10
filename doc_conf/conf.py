@@ -80,9 +80,9 @@ bibtex_reference_style = "author_year"
 bibtex_footbibliography_header = ""
 
 # General information about the project.
-project = u'HiDimStat'
-copyright = u'2024, Mind-Inria'
-author = u'Mind-Inria'
+project = "HiDimStat"
+copyright = "2024, Mind-Inria"
+author = "Mind-Inria"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
