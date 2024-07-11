@@ -44,7 +44,7 @@ bbi_perm = BlockBasedImportance(
     variables_categories=variables_categories,
     n_jobs=10,
     verbose=0,
-    n_perm=100,
+    n_permutations=100,
 )
 bbi_perm.fit(X, y)
 print("Computing the importance scores with standard permutation")
