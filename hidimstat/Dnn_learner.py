@@ -6,61 +6,61 @@ from .utils import sigmoid, softmax
 
 
 class DNN_learner(BaseEstimator):
-    """ToDo
+    """
+    This class implements the high-level of the Deep Neural Network (DNN)
+    learner.
+
     Parameters
     ----------
-    encode: bool, default=False
-        Encoding the categorical outcome.
-    do_hypertuning: bool, default=True
+    encode : bool, default=False
+        Whether to encode the categorical outcome.
+    do_hypertuning : bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hypertuning: dict, default=None
+    dict_hypertuning : dict, default=None
         The dictionary of hyperparameters to tune.
-    n_ensemble: int, default=10
+    n_ensemble : int, default=10
         The number of sub-DNN models to fit to the data.
-    min_keep: int, default=10
-        The minimal number of DNNs to be kept.
-    batch_size: int, default=32
+    min_keep : int, default=10
+        The minimal number of sub-DNNs to keep if > 10.
+    batch_size : int, default=32
         The number of samples per batch for training.
-    batch_size_val: int, default=128
+    batch_size_val : int, default=128
         The number of samples per batch for validation.
-    n_epoch: int, default=200
+    n_epoch : int, default=200
         The number of epochs for the DNN learner(s).
-    verbose: int, default=0
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
-    bootstrap: bool, default=True
+    bootstrap : bool, default=True
         Application of bootstrap sampling for the training set.
-    split_perc: float, default=0.8
+    split_perc : float, default=0.8
         The training/validation cut for the provided data.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    list_cont: list, default=None
+    list_cont : list, default=None
         The list of continuous variables.
-    list_grps: list of lists, default=None
+    list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
         while applying the stacking method.
-    beta1: float, default=0.9
+    beta1 : float, default=0.9
         The exponential decay rate for the first moment estimates.
-    beta2: float, default=0.999
+    beta2 : float, default=0.999
         The exponential decay rate for the second moment estimates.
-    lr: float, default=1e-3
+    lr : float, default=1e-3
         The learning rate.
-    epsilon: float, default=1e-8
+    epsilon : float, default=1e-8
         A small constant added to the denominator to prevent division by zero.
-    l1_weight: float, default=1e-2
+    l1_weight : float, default=1e-2
         The L1-regularization paramter for weight decay.
-    l2_weight: float, default=0
+    l2_weight : float, default=0
         The L2-regularization paramter for weight decay.
-    n_jobs: int, default=1
+    n_jobs : int, default=1
         The number of workers for parallel processing.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    inp_dim: list, default=None
+    input_dimensions : list, default=None
         The cumsum of inputs after the linear sub-layers.
-    random_state: int, default=2023
+    random_state : int, default=2023
         Fixing the seeds of the random generator.
-    Attributes
-    ----------
-    ToDO
     """
 
     def __init__(
@@ -87,7 +87,7 @@ class DNN_learner(BaseEstimator):
         l2_weight=1e-2,
         n_jobs=1,
         group_stacking=False,
-        inp_dim=None,
+        input_dimensions=None,
         random_state=2023,
     ):
         self.list_estimators = []
@@ -113,7 +113,7 @@ class DNN_learner(BaseEstimator):
         self.list_cont = list_cont
         self.n_jobs = n_jobs
         self.group_stacking = group_stacking
-        self.inp_dim = inp_dim
+        self.input_dimensions = input_dimensions
         self.random_state = random_state
         self.pred = [None] * n_ensemble
         self.enc_y = []
@@ -126,14 +126,19 @@ class DNN_learner(BaseEstimator):
         self.dim_repeat = 1
 
     def fit(self, X, y=None):
-        """Build the DNN learner with the training set (X, y)
+        """
+        Build the DNN learner with the training set (X, y)
+
         Parameters
         ----------
-        X : {pandas dataframe}, shape (n_samples, n_features)
+        X : {pandas dataframe, array-like, sparse matrix} of shape (n_samples,
+        n_features)
             The training input samples.
-        y : None
-            There is no need of a target in a transformer, yet the pipeline API
-            requires this parameter.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         self : object
@@ -171,7 +176,7 @@ class DNN_learner(BaseEstimator):
                 l2_weight=self.l2_weight,
                 n_jobs=self.n_jobs,
                 group_stacking=self.group_stacking,
-                inp_dim=self.inp_dim,
+                input_dimensions=self.input_dimensions,
                 random_state=self.random_state,
             )
 
@@ -188,6 +193,26 @@ class DNN_learner(BaseEstimator):
         list_hyper=None,
         random_state=None,
     ):
+        """
+        This function tunes the provided hyperparameters of the DNN learner.
+
+        Parameters
+        ----------
+        X_train : {array-like, sparse matrix} of shape (n_train, n_features)
+            The training input samples.
+        y_train : array-like of shape (n_train,) or (n_train, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression) for the training samples.
+        X_train : {array-like, sparse matrix} of shape (n_valid, n_features)
+            The validation input samples.
+        y_train : array-like of shape (n_valid,) or (n_valid, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression) for the validation samples.
+        list_hyper : list of tuples, default=None
+            The list of tuples for the hyperparameters values.
+        random_state : int, default=None
+            Fixing the seeds of the random generator.
+        """
         estimator = DNN_learner_single(
             encode=self.encode,
             do_hypertuning=self.do_hypertuning,
@@ -211,7 +236,7 @@ class DNN_learner(BaseEstimator):
             l2_weight=self.l2_weight,
             n_jobs=self.n_jobs,
             group_stacking=self.group_stacking,
-            inp_dim=self.inp_dim,
+            input_dimensions=self.input_dimensions,
             random_state=self.random_state,
         )
         return estimator.hyper_tuning(
@@ -219,17 +244,21 @@ class DNN_learner(BaseEstimator):
         )
 
     def predict(self, X, scale=True):
-        """Predict regression target for X.
+        """
+        This function predicts the regression target for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        scale: bool, default=True
-            The continuous features will be standard scaled or not.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            default=None
+            The input samples.
+        scale : bool, default=True
+            Whether to scale the continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        res_pred : {array-like, sparse matrix)
+            The average predictions across the sub-DNN models.
         """
         if isinstance(X, list):
             X = [self.check_X_dim(el) for el in X]
@@ -246,17 +275,21 @@ class DNN_learner(BaseEstimator):
         return np.array(list_res)
 
     def predict_proba(self, X, scale=True):
-        """Predict class probabilities for X.
+        """
+        This function predicts the class probabilities for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        scale: bool, default=True
-            The continuous features will be standard scaled or not.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            default=None
+            The input samples.
+        scale : bool, default=True
+            Whether to scale the continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        res_pred : {array-like, sparse matrix)
+            The average predictions across the sub-DNN models.
         """
         if isinstance(X, list):
             X = [self.check_X_dim(el) for el in X]
@@ -274,13 +307,18 @@ class DNN_learner(BaseEstimator):
         return np.squeeze(np.array(list_res))
 
     def set_params(self, **kwargs):
-        """Set the parameters of this estimator."""
+        """
+        This function sets the parameters for the DNN estimator
+        """
         for key, value in kwargs.items():
             setattr(self, key, value)
             for estimator in self.list_estimators:
                 setattr(estimator, key, value)
 
     def check_X_dim(self, X):
+        """
+        This function checks for the compatibility of the dimensions of X
+        """
         if (len(X.shape) != 3) or (X.shape[0] != self.dim_repeat):
             X = np.squeeze(X)
             X = np.array([X for i in range(self.dim_repeat)])
@@ -288,6 +326,16 @@ class DNN_learner(BaseEstimator):
         return X
 
     def encode_outcome(self, y, train=True):
+        """
+        This function encodes the categorical outcome
+
+        Parameters
+        ----------
+        y : ndarray
+            The categorical outcome.
+        train : bool, default=True
+            Whether to fit or not the encoder.
+        """
         for y_col in range(y.shape[-1]):
             y_enc = self.list_estimators[y_col].encode_outcome(y, train=train)
         return y_enc

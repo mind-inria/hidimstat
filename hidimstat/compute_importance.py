@@ -29,70 +29,82 @@ def joblib_compute_conditional(
     dict_cont={},
     dict_nom={},
     X_nominal=None,
-    list_nominal={},
+    variables_categories={},
     encoder={},
-    proc_col=None,
+    processed_col=None,
     index_i=None,
     sub_groups=None,
     group_stacking=False,
     list_seeds=None,
-    Perm=False,
-    output_dim=1,
+    residuals_sampling=False,
+    output_dimension=1,
     verbose=0,
 ):
-    """This function applies the conditional approach for feature importance.
+    """
+    This function applies the conditional approach for variable importance
+
     Parameters
     ----------
-    p_col: list
-        The list of single variables/groups to compute the feature importance.
-    n_sample: int
-        The number of permutations/samples to loop
-    estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the prediction task (First block)
-    type_predictor: string
+    p_col : list
+        The list of single variable/variables per group to compute the variable importance.
+    n_sample : int
+        The number of permutations/samples to loop.
+    estimator : scikit-learn compatible estimator
+        The provided estimator for the learner block.
+    type_predictor : string
         The provided predictor either the DNN learner or not.
         The DNN learner will use different inputs for the different
         sub-models especially while applying the stacking case.
-    importance_estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the importance task (Second block)
-    X_test_list: list
+    importance_estimator : scikit-learn compatible estimator
+        The provided estimator for the importance block.
+    X_test_list : list
         The list of inputs containing either one input or a number of inputs
         equal to the number of sub-models of the DNN learner.
-    y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
+    y_test : {array-like, sparse matrix} of shape (n_samples, n_outputs)
         The output test samples.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
+    org_pred : {array-like, sparse matrix} of shape (n_outputs, n_samples)
         The predictions using the original samples.
-    seed: int, default=None
+    seed : int, default=None
         Fixing the seeds of the random generator.
-    dict_cont: dict, default={}
+    dict_cont : dict, default={}
         The dictionary providing the indices of the continuous variables.
-    dict_nom: dict, default={}
+    dict_nom : dict, default={}
         The dictionary providing the indices of the categorical variables.
-    X_nominal: {array-like}, default=None
+    X_nominal : {array-like}, default=None
         The dataframe of categorical variables without encoding.
-    list_nominal: dict, default={}
+    variables_categories : dict, default={}
         The dictionary of binary, nominal and ordinal variables.
-    encoder: dict, default={}
+    encoder : dict, default={}
         The dictionary of encoders for categorical variables.
-    proc_col: int, default=None
+    processed_col : int, default=None
         The processed column to print if verbose > 0.
-    index_i: int, default=None
+    index_i : int, default=None
         The index of the current processed iteration.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    list_seeds: list, default=None
+    list_seeds : list, default=None
         The list of seeds to fix the RandomState for reproducibility.
-    Perm: bool, default=False
-        The use of permutations or random sampling with CPI-DNN.
-    output_dim:
-    verbose: int, default=0
+    residuals_sampling : bool, default=False
+        The use of permutations or random sampling for residuals with the
+        conditional sampling.
+    output_dimension : int, default=1
+        The number of provided outputs.
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
+
+    Returns
+    -------
+    res_ar : array-like
+        The array of loss score values of shape (n_sample, n_test, output_dimension)
+    score : float or tuple
+        The performance score in terms of ROC AUC in the classification case and
+        (Mean Absolute Error, R2) scores in the regression cases respectively.
     """
     rng = np.random.RandomState(seed)
 
-    res_ar = np.empty((n_sample, y_test.shape[0], output_dim))
+    res_ar = np.empty((n_sample, y_test.shape[0], output_dimension))
 
     # A list of copied items to avoid any overlapping in the process
     current_X_test_list = [
@@ -105,9 +117,9 @@ def joblib_compute_conditional(
     el_ind = None
     # Conditioning on a subset of variables
     if sub_groups[1] is not None:
-        if (proc_col + 1) in sub_groups[1].keys():
+        if (processed_col + 1) in sub_groups[1].keys():
             # Get the indices of the provided variables/groups
-            el = [i - 1 for i in sub_groups[1][proc_col + 1]]
+            el = [i - 1 for i in sub_groups[1][processed_col + 1]]
             if not group_stacking:
                 el = list(itertools.chain(*[sub_groups[0][i] for i in el]))
                 el_ind = []
@@ -133,7 +145,7 @@ def joblib_compute_conditional(
         item
         for item in p_col
         if (item in dict_nom.keys())
-        and (item in list_nominal["nominal"] + list_nominal["binary"])
+        and (item in variables_categories["nominal"] + variables_categories["binary"])
     ]
     grp_ord = [
         item for item in p_col if (item in dict_nom.keys()) and (item not in grp_nom)
@@ -426,15 +438,15 @@ def joblib_compute_conditional(
         if verbose > 0:
             if index_i is not None:
                 print(
-                    f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Sample:{sample+1}"
+                    f"Iteration/Fold:{index_i}, Processing col:{processed_col+1}, Sample:{sample+1}"
                 )
             else:
-                print(f"Processing col:{proc_col+1}")
+                print(f"Processing col:{processed_col+1}")
         # Same shuffled indices across the sub-models items
         indices = np.arange(current_X_test_list[0].shape[1])
         if importance_estimator != "Mod_RF":
             rng = np.random.RandomState(list_seeds[sample])
-            if Perm:
+            if residuals_sampling:
                 rng.shuffle(indices)
             else:
                 indices = rng.choice(indices, size=len(indices))
@@ -629,48 +641,49 @@ def joblib_compute_permutation(
     org_pred,
     dict_cont={},
     dict_nom={},
-    proc_col=None,
+    processed_col=None,
     index_i=None,
     group_stacking=False,
     random_state=None,
     verbose=0,
 ):
-    """This function applies the permutation feature importance (PFI).
+    """
+    This function applies the permutation feature importance (PFI).
 
     Parameters
     ----------
-    p_col: list
-        The list of single variables/groups to compute the feature importance.
-    perm: int
+    p_col : list
+        The list of single variable/variables per group to compute the variable importance.
+    perm : int
         The current processed permutation (also to print if verbose > 0).
-    estimator: scikit-learn compatible estimator, default=None
+    estimator : scikit-learn compatible estimator
         The provided estimator for the prediction task (First block).
-    type_predictor: string
+    type_predictor : str
         The provided predictor either the DNN learner or not.
         The DNN learner will use different inputs for the different
         sub-models especially while applying the stacking case.
-    X_test_list: list
+    X_test_list : list
         The list of inputs containing either one input or a number of inputs
         equal to the number of sub-models of the DNN learner.
-    y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
+    y_test : {array-like, sparse matrix}, shape (n_samples, n_output)
         The output test samples.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
+    org_pred : {array-like, sparse matrix}, shape (n_output, n_samples)
         The predictions using the original samples.
-    dict_cont: dict, default={}
+    dict_cont : dict, default={}
         The dictionary providing the indices of the continuous variables.
-    dict_nom: dict, default={}
+    dict_nom : dict, default={}
         The dictionary providing the indices of the categorical variables.
-    proc_col: int, default=None
+    processed_col : int, default=None
         The processed column to print if verbose > 0.
-    index_i: int, default=None
+    index_i : int, default=None
         The index of the current processed iteration.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    random_state: int, default=None
+    random_state : int, default=None
         Fixing the seeds of the random generator.
-    verbose: int, default=0
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
     """
     rng = np.random.RandomState(random_state)
@@ -678,10 +691,10 @@ def joblib_compute_permutation(
     if verbose > 0:
         if index_i is not None:
             print(
-                f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Permutation:{perm+1}"
+                f"Iteration/Fold:{index_i}, Processing col:{processed_col+1}, Permutation:{perm+1}"
             )
         else:
-            print(f"Processing col:{proc_col+1}, Permutation:{perm+1}")
+            print(f"Processing col:{processed_col+1}, Permutation:{perm+1}")
 
     # A list of copied items to avoid any overlapping in the process
     current_X_test_list = [X_test_el.copy() for X_test_el in X_test_list]

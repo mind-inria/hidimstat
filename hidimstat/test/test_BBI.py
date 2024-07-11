@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from hidimstat.BBI import BlockBasedImportance
 from sklearn.datasets import make_classification, make_regression
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
@@ -54,13 +53,13 @@ def _generate_data(
     else:
         grps = None
 
-    list_nominal = {"nominal": ["Val1", "Val2"], "ordinal": ["Val3", "Val4"]}
-    return X, y, grps, list_nominal
+    variables_categories = {"nominal": ["Val1", "Val2"], "ordinal": ["Val3", "Val4"]}
+    return X, y, grps, variables_categories
 
 
 def test_BBI_reg():
 
-    X, y, _, list_nominal = _generate_data(problem_type="regression")
+    X, y, _, variables_categories = _generate_data(problem_type="regression")
     # DNN
     bbi_reg_dnn = BlockBasedImportance(
         estimator=None,
@@ -71,7 +70,7 @@ def test_BBI_reg():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -90,7 +89,7 @@ def test_BBI_reg():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -102,7 +101,7 @@ def test_BBI_reg():
 
 def test_BBI_class():
 
-    X, y, _, list_nominal = _generate_data(problem_type="classification")
+    X, y, _, variables_categories = _generate_data(problem_type="classification")
     # DNN
     bbi_class_dnn = BlockBasedImportance(
         estimator=None,
@@ -113,7 +112,7 @@ def test_BBI_class():
         group_stacking=False,
         problem_type="classification",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -132,7 +131,7 @@ def test_BBI_class():
         group_stacking=False,
         problem_type="classification",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -144,7 +143,7 @@ def test_BBI_class():
 
 def test_BBI_condDNN():
 
-    X, y, _, list_nominal = _generate_data()
+    X, y, _, variables_categories = _generate_data()
     # Compute importance with residuals
     bbi_res = BlockBasedImportance(
         estimator=None,
@@ -154,7 +153,7 @@ def test_BBI_condDNN():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -172,7 +171,7 @@ def test_BBI_condDNN():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -184,7 +183,7 @@ def test_BBI_condDNN():
 
 def test_BBI_permDNN():
 
-    X, y, _, list_nominal = _generate_data()
+    X, y, _, variables_categories = _generate_data()
     bbi_perm = BlockBasedImportance(
         estimator=None,
         importance_estimator="Mod_RF",
@@ -194,7 +193,7 @@ def test_BBI_permDNN():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -206,7 +205,7 @@ def test_BBI_permDNN():
 
 def test_BBI_grp():
 
-    X, y, grps, list_nominal = _generate_data(grps_exp=True)
+    X, y, grps, variables_categories = _generate_data(grps_exp=True)
     # No Stacking
     bbi_grp_noStack = BlockBasedImportance(
         estimator="RF",
@@ -218,7 +217,7 @@ def test_BBI_grp():
         group_stacking=False,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,
@@ -238,7 +237,7 @@ def test_BBI_grp():
         group_stacking=True,
         problem_type="regression",
         k_fold=2,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
         n_perm=100,

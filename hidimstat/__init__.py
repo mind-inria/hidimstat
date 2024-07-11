@@ -4,6 +4,7 @@ from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .Dnn_learner_single import DNN_learner_single
 from .ensemble_clustered_inference import ensemble_clustered_inference
+from .importance_functions import compute_loco
 from .knockoffs import model_x_knockoff
 from .knockoff_aggregation import knockoff_aggregation
 from .multi_sample_split import aggregate_quantiles
@@ -19,6 +20,7 @@ __all__ = [
     "aggregate_quantiles",
     "BlockBasedImportance",
     "clustered_inference",
+    "compute_loco",
     "desparsified_lasso",
     "desparsified_group_lasso",
     "DNN_learner_single",

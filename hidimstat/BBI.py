@@ -31,64 +31,75 @@ from .utils import convert_predict_proba, create_X_y, compute_imp_std
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
     """
-    This class implements the Block-Based Importance (BBI),
-    consisting of a learner block (first block) and an importance block (second
-    block).
+    This class implements the Block-Based Importance (BBI), the framework for
+    variable importance computation with statistical guarantees.
+    It consists of two blocks of estimators: Learner block (Performing inference
+    on the data) and Importance block (Sampling the variable/group of interest).
     For single-level see :footcite:t:`Chamma_NeurIPS2023` and for group-level
     see :footcite:t:`Chamma_AAAI2024`.
 
     Parameters
     ----------
-    estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the prediction task (First block).
-        The default estimator is the DNN learner. Other options are (1) RF
-        for Random Forest.
-    importance_estimator: {scikit-learn compatible estimator or string},
-                          default=Mod_RF
-        The provided estimator for the importance task (Second block).
-        Using "Mod_RF" will apply the modified version of the Random Forest as
-        the importance predictor.
-    do_hypertuning: bool, default=True
+    estimator : {Scikit-learn compatible estimator or string}, default=None
+        The provided estimator for the learner block.
+        The default estimator is a Deep Neural Network (DNN) learner.
+        Other options include: (1) "RF" for Random Forest.
+    importance_estimator : {Scikit-learn compatible estimator or string},
+        default="Mod_RF"
+        The provided estimator for the importance block.
+        Using "Mod_RF" will apply a new sampling version of the Random Forest
+        where a sampling process is executed within each leaf of the
+        corresponding instance.
+    coffeine_transformer : tuple, default=None
+        Applying the coffeine's pipeline for filterbank models on
+        electrophysiological data.
+        The tuple cosists of (coffeine pipeline, new number of variables) or
+        (coffeine pipeline, new number of variables, list of variables to keep
+        after variable selection).
+    do_hypertuning : bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hypertuning: dict, default=None
+    dict_hypertuning : dict, default=None
         The dictionary of hyperparameters to tune.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    bootstrap: bool, default=True
+    bootstrap : bool, default=True
         Application of bootstrap sampling for the training set.
-    split_perc: float, default=0.8
+    split_perc : float, default=0.8
         The training/validation cut for the provided data.
-    conditional: bool, default=True
+    conditional : bool, default=True
         The permutation or the conditional sampling approach.
-    list_nominal: dict, default=None
+    variables_categories : dict, default=None
         The dictionary of binary, nominal and ordinal variables.
-    Perm: bool, default=False
-        The use of permutations or random sampling with CPI-DNN.
-    n_perm: int, default=50
+    residuals_sampling : bool, default=False
+        The use of permutations or random sampling for residuals with the
+        conditional sampling.
+    n_permutations : int, default=50
         The number of permutations/random sampling for each column.
-    n_jobs: int, default=1
+    n_jobs : int, default=1
         The number of workers for parallel processing.
-    verbose: int, default=0
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
-    groups: dict, default=None
+    groups : dict, default=None
         The knowledge-driven/data-driven grouping of the variables if provided.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    prop_out_subLayers: int, default=0.
-        If group_stacking is set to True, proportion of outputs for
+    sub_groups : dict, default=None
+        The list of provided variables's indices to condition on per
+        variable/group of interest (default set to all the remaining variables).
+    k_fold : int, default=2
+        The number of folds for k-fold cross fitting.
+    prop_out_subLayers : int, default=0.
+        If group_stacking is True, the proportion of outputs for
         the linear sub-layers per group.
-    index_i: int, default=None
+    index_i : int, default=None
         The index of the current processed iteration.
-    random_state: int, default=2023
+    random_state : int, default=2023
         Fixing the seeds of the random generator.
-    com_imp: boolean, default=True
-        Compute or not the importance scores.
-    group_label: list, default=None
-        The list of group labels to perform GroupKFold
-
-    Attributes
-    ----------
-    ToDO
+    compute_importance : boolean, default=True
+        Whether to Compute the Importance Scores.
+    group_fold : list, default=None
+        The list of group labels to perform GroupKFold to keep subjects within
+        the same training or test set.
 
     References
     ----------
@@ -106,9 +117,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         bootstrap=True,
         split_perc=0.8,
         conditional=True,
-        list_nominal=None,
-        Perm=False,
-        n_perm=50,
+        variables_categories=None,
+        residuals_sampling=False,
+        n_permutations=50,
         n_jobs=1,
         verbose=0,
         groups=None,
@@ -118,7 +129,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         prop_out_subLayers=0,
         index_i=None,
         random_state=2023,
-        com_imp=True,
+        compute_importance=True,
         group_fold=None,
     ):
         self.estimator = estimator
@@ -130,9 +141,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.bootstrap = bootstrap
         self.split_perc = split_perc
         self.conditional = conditional
-        self.list_nominal = list_nominal
-        self.Perm = Perm
-        self.n_perm = n_perm
+        self.variables_categories = variables_categories
+        self.residuals_sampling = residuals_sampling
+        self.n_permutations = n_permutations
         self.n_jobs = n_jobs
         self.verbose = verbose
         self.groups = groups
@@ -153,7 +164,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.X_proc = [None] * max(self.k_fold, 1)
         self.scaler_x = [None] * max(self.k_fold, 1)
         self.scaler_y = [None] * max(self.k_fold, 1)
-        self.com_imp = com_imp
+        self.compute_importance = compute_importance
         self.group_fold = group_fold
         # Check for applying the stacking approach with the RidgeCV estimator
         self.apply_ridge = False
@@ -162,14 +173,18 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.coffeine_transformers = []
 
     def fit(self, X, y=None):
-        """Build the provided estimator with the training set (X, y)
+        """
+        Build the provided estimator with the training set (X, y)
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
             The training input samples.
-        y : None
-            There is no need of a target in a transformer, yet the pipeline API
-            requires this parameter.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         self : object
@@ -179,7 +194,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # (group case)
         if self.groups is not None:
             if len(self.groups) <= 1:
-                self.com_imp = False
+                self.compute_importance = False
 
         # Fixing the random generator's seed
         self.rng = np.random.RandomState(self.random_state)
@@ -187,30 +202,30 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # Switch to special binary case
         if (self.problem_type == "classification") and (len(np.unique(y)) < 3):
             self.problem_type = "binary"
-        # Convert list_nominal to a dictionary if initialized
+        # Convert variables_categories to a dictionary if initialized
         # as an empty string
-        if not isinstance(self.list_nominal, dict):
-            self.list_nominal = {
+        if not isinstance(self.variables_categories, dict):
+            self.variables_categories = {
                 "nominal": [],
                 "ordinal": [],
                 "binary": [],
             }
 
-        if "binary" not in self.list_nominal:
-            self.list_nominal["binary"] = []
-        if "ordinal" not in self.list_nominal:
-            self.list_nominal["ordinal"] = []
-        if "nominal" not in self.list_nominal:
-            self.list_nominal["nominal"] = []
+        if "binary" not in self.variables_categories:
+            self.variables_categories["binary"] = []
+        if "ordinal" not in self.variables_categories:
+            self.variables_categories["ordinal"] = []
+        if "nominal" not in self.variables_categories:
+            self.variables_categories["nominal"] = []
 
         # Move the ordinal columns with 2 values to the binary part
-        if self.list_nominal["ordinal"] != []:
-            for ord_col in set(self.list_nominal["ordinal"]).intersection(
+        if self.variables_categories["ordinal"] != []:
+            for ord_col in set(self.variables_categories["ordinal"]).intersection(
                 list(X.columns)
             ):
                 if len(np.unique(X[ord_col])) < 3:
-                    self.list_nominal["binary"].append(ord_col)
-                    self.list_nominal["ordinal"].remove(ord_col)
+                    self.variables_categories["binary"].append(ord_col)
+                    self.variables_categories["ordinal"].remove(ord_col)
 
         # Convert X to pandas dataframe
         if not isinstance(X, pd.DataFrame):
@@ -251,19 +266,19 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Check if categorical variables exist within the columns of the design
         # matrix
-        self.list_nominal["binary"] = list(
-            set(self.list_nominal["binary"]).intersection(list(X.columns))
+        self.variables_categories["binary"] = list(
+            set(self.variables_categories["binary"]).intersection(list(X.columns))
         )
-        self.list_nominal["ordinal"] = list(
-            set(self.list_nominal["ordinal"]).intersection(list(X.columns))
+        self.variables_categories["ordinal"] = list(
+            set(self.variables_categories["ordinal"]).intersection(list(X.columns))
         )
-        self.list_nominal["nominal"] = list(
-            set(self.list_nominal["nominal"]).intersection(list(X.columns))
+        self.variables_categories["nominal"] = list(
+            set(self.variables_categories["nominal"]).intersection(list(X.columns))
         )
 
         self.list_cols = self.groups.copy()
         self.list_cat_tot = list(
-            itertools.chain.from_iterable(self.list_nominal.values())
+            itertools.chain.from_iterable(self.variables_categories.values())
         )
         X_nominal_org = X.loc[:, self.list_cat_tot]
 
@@ -272,8 +287,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.dict_nom = {}
         # A dictionary to save the encoders of the nominal variables
         self.dict_enc = {}
-        if len(self.list_nominal["nominal"]) > 0:
-            for col_encode in self.list_nominal["nominal"]:
+        if len(self.variables_categories["nominal"]) > 0:
+            for col_encode in self.variables_categories["nominal"]:
                 enc = OneHotEncoder(handle_unknown="ignore")
                 enc.fit(X[[col_encode]])
                 labeled_cols = [
@@ -511,7 +526,21 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         return self
 
     def __tuning_hyper(self, X, y, ind_fold=None):
-        """ """
+        """
+        This function tunes the hyperparameters of the provided inference
+        estimator.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression).
+        ind_fold : int, default=None
+            The indice of the corresponding fold.
+
+        """
         if not ((self.apply_ridge) and (self.group_stacking)):
             (
                 X_train_scaled,
@@ -609,15 +638,20 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             self.estimator.fit(X, y)
 
     def predict(self, X=None, encoding=True):
-        """Predict regression target for X.
+        """
+        This function predicts the regression target for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            defaut=None
             The input samples.
+        encoding : bool, default=True
+            Whether to encode the non-continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        Average predictions across all samples.
         """
         if not isinstance(X, list):
             list_X = [X.copy() for el in range(max(self.k_fold, 1))]
@@ -657,15 +691,20 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             return np.mean(np.array(self.org_pred), axis=0)
 
     def predict_proba(self, X=None, encoding=True):
-        """Predict class probabilities for X. ToDo
+        """
+        This function predicts the class probabilities for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            default=None
             The input samples.
+        encoding : bool, default=True
+            Whether to encode the non-continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        Average predictions across all samples.
         """
         if not isinstance(X, list):
             list_X = [X.copy() for el in range(max(self.k_fold, 1))]
@@ -705,12 +744,26 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             return np.mean(np.array(self.org_pred), axis=0)
 
     def __encode_input(self, X):
+        """
+        This function encodes the non-continuous variables in the design matrix
+        X.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        X : {array-like, sparse matrix}
+            The new encoded design matrix.
+        """
         # Check is fit had been called
         check_is_fitted(self, ["is_fitted"])
 
         # One-hot encoding for the test set
-        if len(self.list_nominal["nominal"]) > 0:
-            for col_encode in self.list_nominal["nominal"]:
+        if len(self.variables_categories["nominal"]) > 0:
+            for col_encode in self.variables_categories["nominal"]:
                 enc = self.dict_enc[col_encode]
                 labeled_cols = [
                     enc.feature_names_in_[0] + "_" + str(enc.categories_[0][j])
@@ -727,18 +780,24 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         return X
 
     def compute_importance(self, X=None, y=None):
-        """This function is used to compute the importance scores and
-        the statistical guarantees for the different variables/groups
+        """
+        This function computes the importance scores and the statistical
+        guarantees per variable/group of interest
+
+        Parameters
         ----------
-        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
-            The input samples.
-        y : {array-like}, shape (n_samples,)
-            The output samples.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         results : dict
             The dictionary of importance scores, p-values and the corresponding
-            score.
+            z-scores.
         """
         # Check is fit had been called
         check_is_fitted(self, ["is_fitted"])
@@ -792,11 +851,11 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             output_dim = 1
             self.predict_proba(X, encoding=encoding)
 
-        list_seeds_imp = self.rng.randint(1e5, size=self.n_perm)
+        list_seeds_imp = self.rng.randint(1e5, size=self.n_permutations)
         parallel = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)
         score_imp_l = []
         results = {}
-        # n_features x n_permutations x n_samples
+        # n_features x n_permutationsutations x n_samples
         for ind_fold, estimator in enumerate(self.list_estimators):
             if self.type == "DNN":
                 for y_col in range(y[ind_fold].shape[-1]):
@@ -814,7 +873,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     y[ind_fold] = one_hot.transform(
                         y[ind_fold].reshape(-1, 1)
                     ).toarray()
-            if self.com_imp:
+            if self.compute_importance:
                 if not self.conditional:
                     self.pred_scores[ind_fold], score_cur = list(
                         zip(
@@ -837,7 +896,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
-                                for perm in range(self.n_perm)
+                                for perm in range(self.n_permutations)
                             )
                         )
                     )
@@ -846,7 +905,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     ).reshape(
                         (
                             len(self.list_cols),
-                            self.n_perm,
+                            self.n_permutations,
                             y[ind_fold].shape[0],
                             output_dim,
                         )
@@ -857,7 +916,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                             *parallel(
                                 delayed(joblib_compute_conditional)(
                                     self.list_cols[p_col],
-                                    self.n_perm,
+                                    self.n_permutations,
                                     estimator,
                                     self.type,
                                     self.importance_estimator,
@@ -869,14 +928,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     dict_cont=self.dict_cont,
                                     dict_nom=self.dict_nom,
                                     X_nominal=self.X_nominal[ind_fold],
-                                    list_nominal=self.list_nominal,
+                                    variables_categories=self.variables_categories,
                                     encoder=self.dict_enc,
                                     proc_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
                                     sub_groups=[self.list_cols, self.sub_groups],
                                     list_seeds=list_seeds_imp,
-                                    Perm=self.Perm,
+                                    residuals_sampling=self.residuals_sampling,
                                     output_dim=output_dim,
                                     verbose=self.verbose,
                                 )
@@ -907,7 +966,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         else:
             results["score_AUC"] = np.mean(np.array(score_imp_l), axis=0)
 
-        if not self.com_imp:
+        if not self.compute_importance:
             return results
 
         # Compute Importance and P-values

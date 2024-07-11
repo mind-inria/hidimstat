@@ -21,57 +21,60 @@ from .utils import (
 
 class DNN_learner_single(BaseEstimator):
     """
+    This class implements the Deep Neural Network (DNN) default inference
+    learner for Block-Based Importance (BBI) framework.
+
     Parameters
     ----------
-    encode: bool, default=False
-        Encoding the categorical outcome.
-    do_hypertuning: bool, default=True
+    encode : bool, default=False
+        Whether to encode the categorical outcome.
+    do_hypertuning : bool, default=True
         Tuning the hyperparameters of the provided estimator.
-    dict_hypertuning: dict, default=None
+    dict_hypertuning : dict, default=None
         The dictionary of hyperparameters to tune.
-    n_ensemble: int, default=10
-        The number of sub-DNN models to fit to the data
-    min_keep: int, default=10
-        The minimal number of DNNs to be kept
-    batch_size: int, default=32
-        The number of samples per batch for training
-    batch_size_val: int, default=128
-        The number of samples per batch for validation
-    n_epoch: int, default=200
-        The number of epochs for the DNN learner(s)
-    verbose: int, default=0
-        If verbose > 0, the fitted iterations will be printed
-    bootstrap: bool, default=True
+    n_ensemble : int, default=10
+        The number of sub-DNN models to fit to the data.
+    min_keep : int, default=10
+        The minimal number of sub-DNNs to keep if > 10.
+    batch_size : int, default=32
+        The number of samples per batch for training.
+    batch_size_val : int, default=128
+        The number of samples per batch for validation.
+    n_epoch : int, default=200
+        The number of epochs for the DNN learner(s).
+    verbose : int, default=0
+        If verbose > 0, the fitted iterations will be printed.
+    bootstrap : bool, default=True
         Application of bootstrap sampling for the training set
-    split_perc: float, default=0.8
-        The training/validation cut for the provided data
-    problem_type: str, default='regression'
-        A classification or a regression problem
-    list_grps: list of lists, default=None
+    split_perc : float, default=0.8
+        The training/validation cut for the provided data.
+    problem_type : str, default='regression'
+        A classification or a regression problem.
+    list_cont : list, default=None
+        The list of continuous variables.
+    list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
         while applying the stacking method.
-    list_cont: list, default=None
-        The list of continuous variables
-    beta1: float, default=0.9
+    beta1 : float, default=0.9
         The exponential decay rate for the first moment estimates.
-    beta2: float, default=0.999
+    beta2 : float, default=0.999
         The exponential decay rate for the second moment estimates.
-    lr: float, default=1e-3
-        The learning rate
-    epsilon: float, default=1e-8
+    lr : float, default=1e-3
+        The learning rate.
+    epsilon : float, default=1e-8
         A small constant added to the denominator to prevent division by zero.
-    l1_weight: float, default=1e-2
+    l1_weight : float, default=1e-2
         The L1-regularization paramter for weight decay.
-    l2_weight: float, default=0
+    l2_weight : float, default=0
         The L2-regularization paramter for weight decay.
-    n_jobs: int, default=1
+    n_jobs : int, default=1
         The number of workers for parallel processing.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    inp_dim: list, default=None
+    input_dimensions : list, default=None
         The cumsum of inputs after the linear sub-layers.
-    random_state: int, default=2023
-        Fixing the seeds of the random generator
+    random_state : int, default=2023
+        Fixing the seeds of the random generator.
     """
 
     def __init__(
@@ -98,7 +101,7 @@ class DNN_learner_single(BaseEstimator):
         l2_weight=0,
         n_jobs=1,
         group_stacking=False,
-        inp_dim=None,
+        input_dimensions=None,
         random_state=2023,
     ):
         self.encode = encode
@@ -123,7 +126,7 @@ class DNN_learner_single(BaseEstimator):
         self.list_cont = list_cont
         self.n_jobs = n_jobs
         self.group_stacking = group_stacking
-        self.inp_dim = inp_dim
+        self.input_dimensions = input_dimensions
         self.random_state = random_state
         self.enc_y = []
         self.link_func = {
@@ -134,14 +137,19 @@ class DNN_learner_single(BaseEstimator):
         self.is_encoded = False
 
     def fit(self, X, y=None):
-        """Build the DNN learner with the training set (X, y)
+        """
+        Build the DNN learner with the training set (X, y)
+
         Parameters
         ----------
-        X : {pandas dataframe}, shape (n_samples, n_features)
+        X : {pandas dataframe, array-like, sparse matrix} of shape (n_samples,
+        n_features)
             The training input samples.
-        y : None
-            There is no need of a target in a transformer, yet the pipeline API
-            requires this parameter.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         self : object
@@ -207,7 +215,7 @@ class DNN_learner_single(BaseEstimator):
                         bootstrap=self.bootstrap,
                         split_perc=self.split_perc,
                         group_stacking=self.group_stacking,
-                        inp_dim=self.inp_dim,
+                        input_dimensions=self.input_dimensions,
                         n_epoch=self.n_epoch,
                         batch_size=self.batch_size,
                         beta1=self.beta1,
@@ -253,6 +261,16 @@ class DNN_learner_single(BaseEstimator):
         return self
 
     def encode_outcome(self, y, train=True):
+        """
+        This function encodes the categorical outcome
+
+        Parameters
+        ----------
+        y : array-like
+            The categorical outcome.
+        train : bool, default=True
+            Whether to fit or not the encoder.
+        """
         list_y = []
         if len(y.shape) != 2:
             y = y.reshape(-1, 1)
@@ -289,6 +307,26 @@ class DNN_learner_single(BaseEstimator):
         list_hyper=None,
         random_state=None,
     ):
+        """
+        This function supports the tuning of the hyperparameters.
+
+        Parameters
+        ----------
+        X_train : {array-like, sparse matrix} of shape (n_train, n_features)
+            The training input samples.
+        y_train : array-like of shape (n_train,) or (n_train, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression) for the training samples.
+        X_train : {array-like, sparse matrix} of shape (n_valid, n_features)
+            The validation input samples.
+        y_train : array-like of shape (n_valid,) or (n_valid, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression) for the validation samples.
+        list_hyper : list of tuples, default=None
+            The list of tuples for the hyperparameters values.
+        random_state : int, default=None
+            Fixing the seeds of the random generator.
+        """
         parallel = Parallel(
             n_jobs=min(self.n_jobs, self.n_ensemble), verbose=self.verbose
         )
@@ -314,7 +352,7 @@ class DNN_learner_single(BaseEstimator):
                             epsilon=self.epsilon,
                             list_grps=self.list_grps,
                             group_stacking=self.group_stacking,
-                            inp_dim=self.inp_dim,
+                            input_dimensions=self.input_dimensions,
                             random_state=random_state,
                         )
                         for el in list_hyper
@@ -325,6 +363,17 @@ class DNN_learner_single(BaseEstimator):
         ]
 
     def __tuning_hyper(self, X, y):
+        """
+        This function tunes the hyperparameters for the DNN learner.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression).
+        """
         (
             X_train_scaled,
             y_train_scaled,
@@ -360,17 +409,21 @@ class DNN_learner_single(BaseEstimator):
         self.set_params(**best_hyper)
 
     def predict(self, X, scale=True):
-        """Predict regression target for X.
+        """
+        This function predicts the regression target for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        scale: bool, default=True
-            The continuous features will be standard scaled or not.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            default=None
+            The input samples.
+        scale : bool, default=True
+            Whether to scale the continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        res_pred : {array-like, sparse matrix)
+            The average predictions across the sub-DNN models.
         """
         if self.problem_type != "regression":
             raise Exception("Use the predict_proba function for classification")
@@ -395,17 +448,21 @@ class DNN_learner_single(BaseEstimator):
         return res_pred
 
     def predict_proba(self, X, scale=True):
-        """Predict class probabilities for X.
+        """
+        This function predicts the class probabilities for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        scale: bool, default=True
-            The continuous features will be standard scaled or not.
+        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+            default=None
+            The input samples.
+        scale : bool, default=True
+            Whether to scale the continuous input variables.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        res_pred : {array-like, sparse matrix)
+            The average predictions across the sub-DNN models.
         """
         if self.problem_type == "regression":
             raise Exception("Use the predict function for classification")
@@ -431,12 +488,19 @@ class DNN_learner_single(BaseEstimator):
         return res_pred
 
     def __scale_test(self, X):
-        """This function prepares the input for the DNN estimator either in the default
-        case or after applying the stacking method
+        """
+        This function prepares the input of the DNN estimator either in the
+        default case or after applying the stacking method
+
         Parameters
         ----------
-        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse-matrix} of shape (n_samples, n_features)
             The input samples.
+
+        Returns
+        -------
+        X_test_n : {array-like, sparse-matrix}
+            The new scaled matrix of the test set.
         """
         # Check is fit had been called
         check_is_fitted(self, ["is_fitted"])
@@ -458,7 +522,7 @@ class DNN_learner_single(BaseEstimator):
                 X_test_n_curr = np.zeros(
                     (
                         X_test_scaled.shape[0],
-                        self.inp_dim[-1],
+                        self.input_dimensions[-1],
                     )
                 )
                 for grp_ind in range(len(self.list_grps)):
@@ -483,8 +547,8 @@ class DNN_learner_single(BaseEstimator):
                         :,
                         list(
                             np.arange(
-                                self.inp_dim[grp_ind],
-                                self.inp_dim[grp_ind + 1],
+                                self.input_dimensions[grp_ind],
+                                self.input_dimensions[grp_ind + 1],
                             )
                         ),
                     ] = (
@@ -497,8 +561,8 @@ class DNN_learner_single(BaseEstimator):
                     #     :,
                     #     list(
                     #         np.arange(
-                    #             self.inp_dim[grp_ind],
-                    #             self.inp_dim[grp_ind + 1],
+                    #             self.input_dimensions[grp_ind],
+                    #             self.input_dimensions[grp_ind + 1],
                     #         )
                     #         # np.arange(
                     #         #     self.n_out_subLayers * grp_ind,
@@ -519,9 +583,11 @@ class DNN_learner_single(BaseEstimator):
 
     def __pred_common(self, X):
         """
+        This function performs the prediction for the DNN learner
+
         Parameters
         ----------
-        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse-matrix} of shape (n_samples, n_features)
             The input samples.
         """
         if not self.group_stacking:
@@ -544,9 +610,14 @@ class DNN_learner_single(BaseEstimator):
             self.pred[ind_mod] = pred.dot(mod[0][0][n_layer]) + mod[0][1][n_layer]
 
     def set_params(self, **kwargs):
-        """Set the parameters of this estimator."""
+        """
+        This function sets the parameters for the DNN estimator
+        """
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def clone(self):
+        """
+        This function clones the DNN learner
+        """
         return type(self)(**self.get_params())
