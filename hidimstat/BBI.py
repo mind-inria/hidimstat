@@ -851,10 +851,10 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Compute original predictions
         if self.problem_type == "regression":
-            output_dim = y[0].shape[1]
+            output_dimension = y[0].shape[1]
             self.predict(X, encoding=encoding)
         else:
-            output_dim = 1
+            output_dimension = 1
             self.predict_proba(X, encoding=encoding)
 
         list_seeds_imp = self.rng.randint(1e5, size=self.n_permutations)
@@ -913,7 +913,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                             len(self.list_cols),
                             self.n_permutations,
                             y[ind_fold].shape[0],
-                            output_dim,
+                            output_dimension,
                         )
                     )
                 else:
@@ -942,7 +942,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     sub_groups=[self.list_cols, self.sub_groups],
                                     list_seeds=list_seeds_imp,
                                     residuals_sampling=self.residuals_sampling,
-                                    output_dim=output_dim,
+                                    output_dimension=output_dimension,
                                     verbose=self.verbose,
                                 )
                                 for p_col in range(len(self.list_cols))
