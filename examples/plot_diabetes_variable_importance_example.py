@@ -26,7 +26,7 @@ X, y = diabetes.data, diabetes.target
 # Use or not a cross-validation with the provided learner
 k_fold = 2
 # Identifying the categorical (nominal & ordinal) variables
-list_nominal = {}
+variables_categories = {}
 
 #############################################################################
 # Standard Variable Importance
@@ -41,7 +41,7 @@ bbi_perm = BlockBasedImportance(
     group_stacking=False,
     problem_type="regression",
     k_fold=k_fold,
-    list_nominal=list_nominal,
+    variables_categories=variables_categories,
     n_jobs=10,
     verbose=0,
     n_perm=100,
@@ -64,10 +64,10 @@ bbi_cond = BlockBasedImportance(
     group_stacking=False,
     problem_type="regression",
     k_fold=k_fold,
-    list_nominal=list_nominal,
+    variables_categories=variables_categories,
     n_jobs=10,
     verbose=0,
-    n_perm=100,
+    n_permutations=100,
 )
 bbi_cond.fit(X, y)
 print("Computing the importance scores with conditional permutation")
