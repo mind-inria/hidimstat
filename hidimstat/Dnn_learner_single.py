@@ -129,7 +129,7 @@ class DNN_learner_single(BaseEstimator):
         self.input_dimensions = input_dimensions
         self.random_state = random_state
         self.enc_y = []
-        self.link_func = {
+        self.activation_outcome = {
             "classification": softmax,
             "ordinal": sigmoid,
             "binary": sigmoid,
@@ -209,7 +209,7 @@ class DNN_learner_single(BaseEstimator):
                         X,
                         y,
                         problem_type=self.problem_type,
-                        link_func=self.link_func,
+                        activation_outcome=self.activation_outcome,
                         list_cont=self.list_cont,
                         list_grps=self.list_grps,
                         bootstrap=self.bootstrap,
@@ -266,7 +266,7 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        y : array-like
+        y : array-like of shaoe (n_samples,)
             The categorical outcome.
         train : bool, default=True
             Whether to fit or not the encoder.
@@ -312,14 +312,14 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X_train : {array-like, sparse matrix} of shape (n_train, n_features)
+        X_train : {array-like, sparse matrix} of shape (n_train_samples, n_features)
             The training input samples.
-        y_train : array-like of shape (n_train,) or (n_train, n_outputs)
+        y_train : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the training samples.
-        X_train : {array-like, sparse matrix} of shape (n_valid, n_features)
+        X_train : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
             The validation input samples.
-        y_train : array-like of shape (n_valid,) or (n_valid, n_outputs)
+        y_train : array-like of shape (n_valid_samples,) or (n_valid_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the validation samples.
         list_hyper : list of tuples, default=None
@@ -368,9 +368,9 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_train_samples, n_features)
             The training input samples.
-        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+        y : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression).
         """
@@ -414,7 +414,7 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
         scale : bool, default=True
@@ -453,7 +453,7 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
         scale : bool, default=True
@@ -477,7 +477,7 @@ class DNN_learner_single(BaseEstimator):
         res_pred = np.zeros((self.pred[0].shape))
         total_n_elements = 0
         for pred in self.pred:
-            res_pred += self.link_func[self.problem_type](pred)
+            res_pred += self.activation_outcome[self.problem_type](pred)
             total_n_elements += 1
         res_pred = res_pred.copy() / total_n_elements
         if self.problem_type == "binary":
@@ -494,7 +494,7 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse-matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse-matrix} of shape (n_test_samples, n_features)
             The input samples.
 
         Returns
@@ -587,7 +587,7 @@ class DNN_learner_single(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse-matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse-matrix} of shape (n_test_samples, n_features)
             The input samples.
         """
         if not self.group_stacking:

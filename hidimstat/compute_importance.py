@@ -665,11 +665,11 @@ def joblib_compute_permutation(
     X_test_list : list
         The list of inputs containing either one input or a number of inputs
         equal to the number of sub-models of the DNN learner.
-    y_test : {array-like, sparse matrix}, shape (n_samples, n_output)
+    y_test : {array-like, sparse matrix}, shape (n_test_samples, n_output)
         The output test samples.
     problem_type : str, default='regression'
         A classification or a regression problem.
-    org_pred : {array-like, sparse matrix}, shape (n_output, n_samples)
+    org_pred : {array-like, sparse matrix}, shape (n_output, n_test_samples)
         The predictions using the original samples.
     dict_cont : dict, default={}
         The dictionary providing the indices of the continuous variables.

@@ -1,4 +1,4 @@
-from Dnn_learner_single import DNN_learner_single
+from .Dnn_learner_single import DNN_learner_single
 import numpy as np
 from scipy.stats import ttest_1samp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor

@@ -137,43 +137,45 @@ def create_X_y(
     list_cont=None,
     random_state=None,
 ):
-    """Create train/valid split of input data X and target variable y.
+    """
+    Create train/valid split of input data X and target variable y
+
     Parameters
     ----------
-    X: {array-like, sparse matrix}, shape (n_samples, n_features)
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
         The input samples before the splitting process.
-    y: ndarray, shape (n_samples, )
+    y : ndarray, shape (n_samples, )
         The output samples before the splitting process.
-    bootstrap: bool, default=True
+    bootstrap : bool, default=True
         Application of bootstrap sampling for the training set.
-    split_perc: float, default=0.8
+    split_perc : float, default=0.8
         The training/validation cut for the provided data.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    list_cont: list, default=[]
+    list_cont : list, default=[]
         The list of continuous variables.
-    random_state: int, default=2023
+    random_state : int, default=2023
         Fixing the seeds of the random generator.
 
     Returns
     -------
-    X_train_scaled: {array-like, sparse matrix}, shape (n_train_samples, n_features)
+    X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
         The bootstrapped training input samples with scaled continuous variables.
-    y_train_scaled: {array-like}, shape (n_train_samples, )
+    y_train_scaled : {array-like} of shape (n_train_samples, )
         The bootstrapped training output samples scaled if continous.
-    X_valid_scaled: {array-like, sparse matrix}, shape (n_valid_samples, n_features)
+    X_valid_scaled : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
         The validation input samples with scaled continuous variables.
-    y_valid_scaled: {array-like}, shape (n_valid_samples, )
+    y_valid_scaled : {array-like} of shape (n_valid_samples, )
         The validation output samples scaled if continous.
-    X_scaled: {array-like, sparse matrix}, shape (n_samples, n_features)
+    X_scaled : {array-like, sparse matrix} of shape (n_samples, n_features)
         The original input samples with scaled continuous variables.
-    y_valid: {array-like}, shape (n_samples, )
+    y_valid : {array-like} of shape (n_samples, )
         The original output samples with validation indices.
-    scaler_x: scikit-learn StandardScaler
+    scaler_x : Scikit-learn StandardScaler
         The standard scaler encoder for the continuous variables of the input.
-    scaler_y: scikit-learn StandardScaler
+    scaler_y : Scikit-learn StandardScaler
         The standard scaler encoder for the output if continuous.
-    valid_ind: list
+    valid_ind : list
         The list of indices of the validation set.
     """
     rng = np.random.RandomState(random_state)
@@ -219,12 +221,16 @@ def create_X_y(
 
 
 def sigmoid(x):
-    """The function applies the sigmoid function element-wise to the input array x."""
+    """
+    This function applies the sigmoid function element-wise to the input array x
+    """
     return 1 / (1 + np.exp(-x))
 
 
 def softmax(x):
-    """The function applies the softmax function element-wise to the input array x."""
+    """
+    This function applies the softmax function element-wise to the input array x
+    """
     # Ensure numerical stability by subtracting the maximum value of x from each element of x
     # This prevents overflow errors when exponentiating large numbers
     x = x - np.max(x, axis=-1, keepdims=True)
@@ -233,19 +239,23 @@ def softmax(x):
 
 
 def relu(x):
-    """The function applies the relu function element-wise to the input array x."""
+    """
+    This function applies the relu function element-wise to the input array x
+    """
     return (abs(x) + x) / 2
 
 
 def relu_(x):
-    """The function applies the derivative of the relu function element-wise
-    to the input array x.
+    """
+    This function applies the derivative of the relu function element-wise
+    to the input array x
     """
     return (x > 0) * 1
 
 
 def convert_predict_proba(list_probs):
-    """If the classification is done using a one-hot encoded variable, the list of
+    """
+    If the classification is done using a one-hot encoded variable, the list of
     probabilites will be a list of lists for the probabilities of each of the categories.
     This function takes the probabilities of having each category (=1 with binary) and stack
     them into one ndarray.
@@ -256,7 +266,8 @@ def convert_predict_proba(list_probs):
 
 
 def ordinal_encode(y):
-    """This function encodes the ordinal variable with a special gradual encoding storing also
+    """
+    This function encodes the ordinal variable with a special gradual encoding storing also
     the natural order information.
     """
     list_y = []
@@ -278,8 +289,9 @@ def ordinal_encode(y):
 
 
 def sample_predictions(predictions, random_state=None):
-    """This function samples from the same leaf node of the input sample
-    in both the regression and the classification case
+    """
+    This function samples from the same leaf node of the input sample
+    in both the regression and the classification cases
     """
     rng = np.random.RandomState(random_state)
     # print(predictions[..., rng.randint(predictions.shape[2]), :])
@@ -292,13 +304,13 @@ def joblib_ensemble_dnnet(
     X,
     y,
     problem_type="regression",
-    link_func=None,
+    activation_outcome=None,
     list_cont=None,
     list_grps=None,
     bootstrap=False,
     split_perc=0.8,
     group_stacking=False,
-    inp_dim=None,
+    input_dimensions=None,
     n_epoch=200,
     batch_size=32,
     beta1=0.9,
@@ -310,14 +322,64 @@ def joblib_ensemble_dnnet(
     random_state=None,
 ):
     """
+    This function implements the ensemble learning of the sub-DNN models
+
     Parameters
     ----------
-    X : {array-like, sparse-matrix}, shape (n_samples, n_features)
+    X : {array-like, sparse matrix} of shape (n_train_samples, n_features)
         The input samples.
-    y : {array-like}, shape (n_samples,)
-        The output samples.
-    random_state: int, default=None
-        Fixing the seeds of the random generator
+    y : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
+        The target values (class labels in classification, real numbers in
+        regression).
+    problem_type : str, default='regression'
+        A classification or a regression problem.
+    activation_outcome : str, default=None
+        The activation function to apply in the outcome layer, "softmax" for
+        classification and "sigmoid" for both ordinal and binary cases.
+    list_cont : list, default=None
+        The list of continuous variables.
+    list_grps : list of lists, default=None
+        A list collecting the indices of the groups' variables
+        while applying the stacking method.
+    bootstrap : bool, default=True
+        Application of bootstrap sampling for the training set.
+    split_perc : float, default=0.8
+        The training/validation cut for the provided data.
+    group_stacking : bool, default=False
+        Apply the stacking-based method for the provided groups.
+    input_dimensions : list, default=None
+        The cumsum of inputs after the linear sub-layers.
+    n_epoch : int, default=200
+        The number of epochs for the DNN learner(s).
+    batch_size : int, default=32
+        The number of samples per batch for training.
+    beta1 : float, default=0.9
+        The exponential decay rate for the first moment estimates.
+    beta2 : float, default=0.999
+        The exponential decay rate for the second moment estimates.
+    lr : float, default=1e-3
+        The learning rate.
+    l1_weight : float, default=1e-2
+        The L1-regularization paramter for weight decay.
+    l2_weight : float, default=0
+        The L2-regularization paramter for weight decay.
+    epsilon : float, default=1e-8
+        A small constant added to the denominator to prevent division by zero.
+    random_state : int, default=2023
+        Fixing the seeds of the random generator.
+
+    Returns
+    -------
+    current_model : list
+        The parameters of the sub-DNN model
+    scaler_x : list of Scikit-learn StandardScalers
+        The scalers for the continuous input variables.
+    scaler_y : Scikit-learn StandardScaler
+        The scaler for the continuous output variable.
+    pred_v : ndarray
+        The predictions of the sub-DNN model.
+    loss : float
+        The loss score of the sub-DNN model.
     """
 
     pred_v = np.empty(X.shape[0])
@@ -358,14 +420,14 @@ def joblib_ensemble_dnnet(
         epsilon=epsilon,
         list_grps=list_grps,
         group_stacking=group_stacking,
-        inp_dim=inp_dim,
+        input_dimensions=input_dimensions,
         random_state=random_state,
     )
 
     if not group_stacking:
         X_scaled_n = X_scaled.copy()
     else:
-        X_scaled_n = np.zeros((X_scaled.shape[0], inp_dim[-1]))
+        X_scaled_n = np.zeros((X_scaled.shape[0], input_dimensions[-1]))
         for grp_ind in range(len(list_grps)):
             n_layer_stacking = len(current_model[3][grp_ind]) - 1
             curr_pred = X_scaled[:, list_grps[grp_ind]].copy()
@@ -384,7 +446,9 @@ def joblib_ensemble_dnnet(
                     )
             X_scaled_n[
                 :,
-                list(np.arange(inp_dim[grp_ind], inp_dim[grp_ind + 1])),
+                list(
+                    np.arange(input_dimensions[grp_ind], input_dimensions[grp_ind + 1])
+                ),
             ] = (
                 curr_pred.dot(current_model[3][grp_ind][n_layer_stacking])
                 + current_model[4][grp_ind][n_layer_stacking]
@@ -403,10 +467,10 @@ def joblib_ensemble_dnnet(
         if problem_type != "ordinal":
             pred_v = pred * scaler_y.scale_ + scaler_y.mean_
         else:
-            pred_v = link_func[problem_type](pred)
+            pred_v = activation_outcome[problem_type](pred)
         loss = np.std(y_valid) ** 2 - mean_squared_error(y_valid, pred_v[valid_ind])
     else:
-        pred_v = link_func[problem_type](pred)
+        pred_v = activation_outcome[problem_type](pred)
         loss = log_loss(
             y_valid, np.ones(y_valid.shape) * np.mean(y_valid, axis=0)
         ) - log_loss(y_valid, pred_v[valid_ind])
@@ -414,7 +478,7 @@ def joblib_ensemble_dnnet(
     return (current_model, scaler_x, scaler_y, pred_v, loss)
 
 
-def init_weights(layer):
+def initialize_weights(layer):
     if isinstance(layer, nn.Linear):
         layer.weight.data = (layer.weight.data.uniform_() - 0.5) * 0.2
         layer.bias.data = (layer.bias.data.uniform_() - 0.5) * 0.1
@@ -434,7 +498,9 @@ def Dataset_Loader(X, y, shuffle=False, batch_size=50):
 
 
 class DNN(nn.Module):
-    """Feedfoward neural network with 4 hidden layers"""
+    """
+    Feedfoward Neural Network with 4 hidden layers
+    """
 
     def __init__(self, input_dim, group_stacking, list_grps, out_dim, problem_type):
         super().__init__()
@@ -587,24 +653,55 @@ def dnn_net(
     epsilon=1e-8,
     list_grps=None,
     group_stacking=False,
-    inp_dim=None,
+    input_dimensions=None,
     random_state=2023,
     verbose=0,
 ):
     """
-    train_loader: DataLoader for Train data
-    val_loader: DataLoader for Validation data
-    original_loader: DataLoader for Original_data
-    p: Number of variables
-    n_epochs: The number of epochs
-    lr: learning rate
-    beta1: Beta1 parameter for Adam optimizer
-    beta2: Beta2 parameter for Adam optimizer
-    epsilon: Epsilon parameter for Adam optimizer
-    l1_weight: L1 regalurization weight
-    l2_weight: L2 regularization weight
-    verbose: If > 2, the metrics will be printed
-    problem_type: A classification or regression problem
+    This function implements the training/validation process of the sub-DNN
+    models
+
+    Parameters
+    ----------
+    X_train : {array-like, sparse matrix} of shape (n_train_samples, n_features)
+        The training input samples.
+    y_train : {array-like} of shape (n_train_samples, )
+        The training output samples.
+    X_valid : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
+        The validation input samples.
+    y_valid : {array-like} of shape (n_valid_samples, )
+        The validation output samples.
+    problem_type : str, default='regression'
+        A classification or a regression problem.
+    n_epoch : int, default=200
+        The number of epochs for the DNN learner(s).
+    batch_size : int, default=32
+        The number of samples per batch for training.
+    batch_size_val : int, default=128
+        The number of samples per batch for validation.
+    beta1 : float, default=0.9
+        The exponential decay rate for the first moment estimates.
+    beta2 : float, default=0.999
+        The exponential decay rate for the second moment estimates.
+    lr : float, default=1e-3
+        The learning rate.
+    l1_weight : float, default=1e-2
+        The L1-regularization paramter for weight decay.
+    l2_weight : float, default=0
+        The L2-regularization paramter for weight decay.
+    epsilon : float, default=1e-8
+        A small constant added to the denominator to prevent division by zero.
+    list_grps : list of lists, default=None
+        A list collecting the indices of the groups' variables
+        while applying the stacking method.
+    group_stacking : bool, default=False
+        Apply the stacking-based method for the provided groups.
+    input_dimensions : list, default=None
+        The cumsum of inputs after the linear sub-layers.
+    random_state : int, default=2023
+        Fixing the seeds of the random generator.
+    verbose : int, default=0
+        If verbose > 0, the fitted iterations will be printed.
     """
     # Creating DataLoaders
     train_loader = Dataset_Loader(
@@ -632,11 +729,11 @@ def dnn_net(
         out_dim = y_train.shape[-1]
 
     # DNN model
-    input_dim = inp_dim.copy() if group_stacking else X_train.shape[1]
+    input_dim = input_dimensions.copy() if group_stacking else X_train.shape[1]
     model = DNN(input_dim, group_stacking, list_grps, out_dim, problem_type)
     model.to(device)
     # Initializing weights/bias
-    model.apply(init_weights)
+    model.apply(initialize_weights)
     # Adam Optimizer
     optimizer = torch.optim.Adam(
         model.parameters(), lr=lr, betas=(beta1, beta2), eps=epsilon

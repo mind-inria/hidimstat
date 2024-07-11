@@ -117,11 +117,6 @@ class DNN_learner(BaseEstimator):
         self.random_state = random_state
         self.pred = [None] * n_ensemble
         self.enc_y = []
-        self.link_func = {
-            "classification": softmax,
-            "ordinal": sigmoid,
-            "binary": sigmoid,
-        }
         self.is_encoded = False
         self.dim_repeat = 1
 
@@ -198,14 +193,14 @@ class DNN_learner(BaseEstimator):
 
         Parameters
         ----------
-        X_train : {array-like, sparse matrix} of shape (n_train, n_features)
+        X_train : {array-like, sparse matrix} of shape (n_train_samples, n_features)
             The training input samples.
-        y_train : array-like of shape (n_train,) or (n_train, n_outputs)
+        y_train : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the training samples.
-        X_train : {array-like, sparse matrix} of shape (n_valid, n_features)
+        X_train : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
             The validation input samples.
-        y_train : array-like of shape (n_valid,) or (n_valid, n_outputs)
+        y_train : array-like of shape (n_valid_samples,) or (n_valid_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the validation samples.
         list_hyper : list of tuples, default=None
@@ -249,7 +244,7 @@ class DNN_learner(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
         scale : bool, default=True
@@ -280,7 +275,7 @@ class DNN_learner(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
         scale : bool, default=True

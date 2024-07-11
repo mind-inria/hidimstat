@@ -73,7 +73,7 @@ def test_BBI_reg():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_reg_dnn.fit(X, y)
     results_reg_dnn = bbi_reg_dnn.compute_importance()
@@ -92,7 +92,7 @@ def test_BBI_reg():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_reg_rf.fit(X, y)
     results_reg_rf = bbi_reg_rf.compute_importance()
@@ -115,7 +115,7 @@ def test_BBI_class():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_class_dnn.fit(X, y)
     results_class_dnn = bbi_class_dnn.compute_importance()
@@ -134,7 +134,7 @@ def test_BBI_class():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_class_rf.fit(X, y)
     results_class_rf = bbi_class_rf.compute_importance()
@@ -156,7 +156,7 @@ def test_BBI_condDNN():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_res.fit(X, y)
     results_res = bbi_res.compute_importance()
@@ -174,7 +174,7 @@ def test_BBI_condDNN():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_samp.fit(X, y)
     results_samp = bbi_samp.compute_importance()
@@ -196,7 +196,7 @@ def test_BBI_permDNN():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_perm.fit(X, y)
     results_perm = bbi_perm.compute_importance()
@@ -220,7 +220,7 @@ def test_BBI_grp():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_grp_noStack.fit(X, y)
     results_grp_noStack = bbi_grp_noStack.compute_importance()
@@ -240,7 +240,7 @@ def test_BBI_grp():
         variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_grp_stack.fit(X, y)
     results_grp_stack = bbi_grp_stack.compute_importance()

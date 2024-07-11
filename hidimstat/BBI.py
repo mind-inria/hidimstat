@@ -27,6 +27,7 @@ from .compute_importance import (
 )
 from .Dnn_learner import DNN_learner
 from .utils import convert_predict_proba, create_X_y, compute_imp_std
+from sklearn.datasets import make_classification, make_regression
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
@@ -95,7 +96,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         The index of the current processed iteration.
     random_state : int, default=2023
         Fixing the seeds of the random generator.
-    compute_importance : boolean, default=True
+    do_compute_importance : boolean, default=True
         Whether to Compute the Importance Scores.
     group_fold : list, default=None
         The list of group labels to perform GroupKFold to keep subjects within
@@ -129,7 +130,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         prop_out_subLayers=0,
         index_i=None,
         random_state=2023,
-        compute_importance=True,
+        do_compute_importance=True,
         group_fold=None,
     ):
         self.estimator = estimator
@@ -164,7 +165,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.X_proc = [None] * max(self.k_fold, 1)
         self.scaler_x = [None] * max(self.k_fold, 1)
         self.scaler_y = [None] * max(self.k_fold, 1)
-        self.compute_importance = compute_importance
+        self.do_compute_importance = do_compute_importance
         self.group_fold = group_fold
         # Check for applying the stacking approach with the RidgeCV estimator
         self.apply_ridge = False
@@ -194,7 +195,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # (group case)
         if self.groups is not None:
             if len(self.groups) <= 1:
-                self.compute_importance = False
+                self.do_compute_importance = False
 
         # Fixing the random generator's seed
         self.rng = np.random.RandomState(self.random_state)
@@ -347,7 +348,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Replace groups' variables by the indices in the design matrix
         self.list_grps = []
-        self.inp_dim = None
+        self.input_dimensions = None
         if self.group_stacking:
             for grp in self.groups:
                 current_grp = []
@@ -406,14 +407,19 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         )
                 self.apply_ridge = True
 
-            self.inp_dim = [
+            self.input_dimensions = [
                 max(1, int(self.prop_out_subLayers * len(grp)))
                 for grp in self.list_grps
             ]
-            self.inp_dim.insert(0, 0)
-            self.inp_dim = np.cumsum(self.inp_dim)
+            self.input_dimensions.insert(0, 0)
+            self.input_dimensions = np.cumsum(self.input_dimensions)
             self.list_cols = [
-                list(np.arange(self.inp_dim[grp_ind], self.inp_dim[grp_ind + 1]))
+                list(
+                    np.arange(
+                        self.input_dimensions[grp_ind],
+                        self.input_dimensions[grp_ind + 1],
+                    )
+                )
                 for grp_ind in range(len(self.list_grps))
             ]
 
@@ -427,7 +433,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 list_grps=self.list_grps,
                 group_stacking=self.group_stacking,
                 n_jobs=self.n_jobs,
-                inp_dim=self.inp_dim,
+                input_dimensions=self.input_dimensions,
                 random_state=self.random_state,
                 verbose=self.verbose,
             )
@@ -532,9 +538,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_train_samples, n_features)
             The training input samples.
-        y : array-like of shape (n_samples,) or (n_samples, n_outputs)
+        y : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression).
         ind_fold : int, default=None
@@ -643,7 +649,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             defaut=None
             The input samples.
         encoding : bool, default=True
@@ -696,7 +702,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features),
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
         encoding : bool, default=True
@@ -750,7 +756,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features)
             The input samples.
 
         Returns
@@ -786,9 +792,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features)
             The training input samples.
-        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        y : array-like of shape (n_test_samples,) or (n_test_samples, n_outputs),
         default=None
             The target values (class labels in classification, real numbers in
             regression).
@@ -855,7 +861,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         parallel = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)
         score_imp_l = []
         results = {}
-        # n_features x n_permutationsutations x n_samples
+        # n_features x n_permutations x n_samples
         for ind_fold, estimator in enumerate(self.list_estimators):
             if self.type == "DNN":
                 for y_col in range(y[ind_fold].shape[-1]):
@@ -873,7 +879,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     y[ind_fold] = one_hot.transform(
                         y[ind_fold].reshape(-1, 1)
                     ).toarray()
-            if self.compute_importance:
+            if self.do_compute_importance:
                 if not self.conditional:
                     self.pred_scores[ind_fold], score_cur = list(
                         zip(
@@ -889,7 +895,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     self.org_pred[ind_fold],
                                     dict_cont=self.dict_cont,
                                     dict_nom=self.dict_nom,
-                                    proc_col=p_col,
+                                    processed_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
                                     random_state=list_seeds_imp[perm],
@@ -930,7 +936,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     X_nominal=self.X_nominal[ind_fold],
                                     variables_categories=self.variables_categories,
                                     encoder=self.dict_enc,
-                                    proc_col=p_col,
+                                    processed_col=p_col,
                                     index_i=ind_fold + 1,
                                     group_stacking=self.group_stacking,
                                     sub_groups=[self.list_cols, self.sub_groups],
@@ -966,7 +972,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         else:
             results["score_AUC"] = np.mean(np.array(score_imp_l), axis=0)
 
-        if not self.compute_importance:
+        if not self.do_compute_importance:
             return results
 
         # Compute Importance and P-values
