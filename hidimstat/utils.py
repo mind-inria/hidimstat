@@ -502,10 +502,10 @@ class DNN(nn.Module):
     Feedfoward Neural Network with 4 hidden layers
     """
 
-    def __init__(self, input_dim, group_stacking, list_grps, out_dim, problem_type):
+    def __init__(self, input_dim, group_stacking, list_grps, output_dimension, problem_type):
         super().__init__()
         if problem_type == "classification":
-            self.accuracy = Accuracy(task="multiclass", num_classes=out_dim)
+            self.accuracy = Accuracy(task="multiclass", num_classes=output_dimension)
         else:
             self.accuracy = Accuracy(task="binary")
         self.list_grps = list_grps
@@ -552,7 +552,7 @@ class DNN(nn.Module):
             nn.Linear(30, 20),
             nn.ReLU(),
             # output layer
-            nn.Linear(20, out_dim),
+            nn.Linear(20, output_dimension),
         )
         self.loss = 0
 
@@ -724,13 +724,13 @@ def dnn_net(
     device = torch.device("cpu")
 
     if problem_type in ("regression", "binary"):
-        out_dim = 1
+        output_dimension = 1
     else:
-        out_dim = y_train.shape[-1]
+        output_dimension = y_train.shape[-1]
 
     # DNN model
     input_dim = input_dimensions.copy() if group_stacking else X_train.shape[1]
-    model = DNN(input_dim, group_stacking, list_grps, out_dim, problem_type)
+    model = DNN(input_dim, group_stacking, list_grps, output_dimension, problem_type)
     model.to(device)
     # Initializing weights/bias
     model.apply(initialize_weights)

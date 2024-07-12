@@ -1,7 +1,8 @@
-from .Dnn_learner_single import DNN_learner_single
+from hidimstat.Dnn_learner_single import DNN_learner_single
 import numpy as np
 from scipy.stats import ttest_1samp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import OneHotEncoder
 
 
@@ -34,8 +35,11 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     """
     y = np.array(y)
     dict_vals = {"importance_score": [], "p_value": []}
+    dict_encode_outcome = {"regression": False, "classification": True}
+
     if use_dnn:
         clf_rf_full = DNN_learner_single(
+            encode=dict_encode_outcome[problem_type],
             problem_type=problem_type,
             do_hypertuning=True,
             random_state=seed,
@@ -45,7 +49,11 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         if problem_type == "classification":
             clf_rf_full = RandomForestClassifier(n_estimators=ntree, random_state=seed)
         else:
-            clf_rf_full = RandomForestRegressor(n_estimators=ntree, random_state=seed)
+            clf_rf_full = GridSearchCV(
+                RandomForestRegressor(n_estimators=ntree, random_state=seed),
+                param_grid=[{"max_depth": [2, 5, 10]}],
+                cv=5,
+            )
 
     rng = np.random.RandomState(seed)
     train_ind = rng.choice(X.shape[0], int(X.shape[0] * 0.8), replace=False)
@@ -66,13 +74,14 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         )
 
         loss_full = -np.sum(
-            y_test * np.log(clf_rf_full.predict_proba(X.iloc[test_ind, :])), axis=1
+            y_test * np.log(clf_rf_full.predict_proba(X.iloc[test_ind, :]) + 1e-100), axis=1
         )
 
     # Retrain model
     for col in range(X.shape[1]):
         if use_dnn:
             clf_rf_retrain = DNN_learner_single(
+                encode=dict_encode_outcome[problem_type],
                 problem_type=problem_type,
                 do_hypertuning=True,
                 random_state=seed,
@@ -98,7 +107,7 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
             ) ** 2
         else:
             loss_retrain = np.sum(
-                y_test * np.log(clf_rf_retrain.predict_proba(X_minus_idx[test_ind, :])),
+                y_test * np.log(clf_rf_retrain.predict_proba(X_minus_idx[test_ind, :]) + 1e-100),
                 axis=1,
             )
         delta = loss_retrain - loss_full

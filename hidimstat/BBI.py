@@ -27,7 +27,6 @@ from .compute_importance import (
 )
 from .Dnn_learner import DNN_learner
 from .utils import convert_predict_proba, create_X_y, compute_imp_std
-from sklearn.datasets import make_classification, make_regression
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):

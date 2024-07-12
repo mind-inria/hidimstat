@@ -2,16 +2,16 @@
 Test the importance functions module
 """
 
+from hidimstat.importance_functions import compute_loco
 import numpy as np
 import pandas as pd
-from hidimstat.BBI import BlockBasedImportance
 from sklearn.datasets import make_classification, make_regression
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
 
 
-def _generate_data(n_samples=100, n_features=10, problem_type="regression", seed=2024):
+def _generate_data(n_samples=100, n_features=2, problem_type="regression", seed=2024):
 
     if problem_type == "regression":
         X, y = make_regression(
@@ -21,26 +21,48 @@ def _generate_data(n_samples=100, n_features=10, problem_type="regression", seed
             random_state=seed,
         )
     else:
+        n_features = max(n_features, 5)
         X, y = make_classification(
             n_samples=n_samples,
             n_classes=2,
-            n_informative=5,
             n_features=n_features,
             random_state=seed,
         )
         y = np.array([str(i) for i in y])
 
     X = pd.DataFrame(X, columns=[f"col{i+1}" for i in range(n_features)])
-    # Nominal variables
-    X["Val1"] = rng.choice(["Car", "Moto", "Velo", "Plane", "Boat"], size=n_samples)
-    X["Val2"] = rng.choice(["Car_1", "Moto_1", "Velo_1", "Plane_1"], size=n_samples)
-    # Ordinal variables
-    X["Val3"] = rng.choice(np.arange(1, 7), size=n_samples)
-    X["Val4"] = rng.choice(np.arange(10), size=n_samples)
-
-    variables_categories = {"nominal": ["Val1", "Val2"], "ordinal": ["Val3", "Val4"]}
-    return X, y, variables_categories
+    return X, y
 
 
-def test_compute_loco():
-    pass
+def test_compute_loco_reg():
+
+    X, y = _generate_data(problem_type="regression")
+
+    # DNN
+    results_reg_dnn = compute_loco(X, y, problem_type="regression", use_dnn=True)
+    assert len(results_reg_dnn) == 2
+    assert len(results_reg_dnn["importance_score"]) == X.shape[1]
+    assert len(results_reg_dnn["p_value"]) == X.shape[1]
+
+    # RF
+    results_reg_rf = compute_loco(X, y, problem_type="regression", use_dnn=False)
+    assert len(results_reg_rf) == 2
+    assert len(results_reg_rf["importance_score"]) == X.shape[1]
+    assert len(results_reg_rf["p_value"]) == X.shape[1]
+
+
+def test_compute_loco_class():
+
+    X, y = _generate_data(problem_type="classification")
+
+    # DNN
+    results_class_dnn = compute_loco(X, y, problem_type="classification", use_dnn=True)
+    assert len(results_class_dnn) == 2
+    assert len(results_class_dnn["importance_score"]) == X.shape[1]
+    assert len(results_class_dnn["p_value"]) == X.shape[1]
+
+    # RF
+    results_class_rf = compute_loco(X, y, problem_type="classification", use_dnn=False)
+    assert len(results_class_rf) == 2
+    assert len(results_class_rf["importance_score"]) == X.shape[1]
+    assert len(results_class_rf["p_value"]) == X.shape[1]

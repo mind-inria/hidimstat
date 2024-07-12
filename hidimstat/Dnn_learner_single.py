@@ -155,16 +155,18 @@ class DNN_learner_single(BaseEstimator):
         self : object
             Returns self.
         """
+        if len(y.shape) == 1:
+            y = y.reshape(-1, 1)
         # Disabling the encoding parameter with the regression case
         if self.problem_type == "regression":
-            if len(y.shape) != 2:
-                y = y.reshape(-1, 1)
             self.encode = False
 
         if self.encode:
-            y = self.encode_outcome(y)
+            y_encoded = self.encode_outcome(y)
             self.is_encoded = True
-            y = np.squeeze(y, axis=0)
+            y_encoded = np.squeeze(y_encoded, axis=0)
+        else:
+            y_encoded = y.copy()
 
         # Initializing the dictionary for tuning the hyperparameters
         if self.dict_hypertuning is None:
@@ -177,7 +179,8 @@ class DNN_learner_single(BaseEstimator):
         # Switch to the special binary case
         if (self.problem_type == "classification") and (y.shape[-1] < 3):
             self.problem_type = "binary"
-        n, p = X.shape
+
+        _, p = X.shape
         self.min_keep = max(min(self.min_keep, self.n_ensemble), 1)
         rng = np.random.RandomState(self.random_state)
         list_seeds = rng.randint(1e5, size=(self.n_ensemble))
@@ -207,7 +210,7 @@ class DNN_learner_single(BaseEstimator):
                 *parallel(
                     delayed(joblib_ensemble_dnnet)(
                         X,
-                        y,
+                        y_encoded,
                         problem_type=self.problem_type,
                         activation_outcome=self.activation_outcome,
                         list_cont=self.list_cont,
