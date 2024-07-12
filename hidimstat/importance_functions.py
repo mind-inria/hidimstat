@@ -47,7 +47,11 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         )
     else:
         if problem_type == "classification":
-            clf_rf_full = RandomForestClassifier(n_estimators=ntree, random_state=seed)
+            clf_rf_full = GridSearchCV(
+                RandomForestClassifier(n_estimators=ntree, random_state=seed),
+                param_grid=[{"max_depth": [2, 5, 10]}],
+                cv=5,
+            )
         else:
             clf_rf_full = GridSearchCV(
                 RandomForestRegressor(n_estimators=ntree, random_state=seed),
@@ -90,12 +94,16 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
             )
         else:
             if problem_type == "classification":
-                clf_rf_retrain = RandomForestClassifier(
-                    n_estimators=ntree, random_state=seed
+                clf_rf_retrain = GridSearchCV(
+                    RandomForestClassifier(n_estimators=ntree, random_state=seed),
+                    param_grid=[{"max_depth": [2, 5, 10]}],
+                    cv=5,
                 )
             else:
-                clf_rf_retrain = RandomForestRegressor(
-                    n_estimators=ntree, random_state=seed
+                clf_rf_retrain = GridSearchCV(
+                    RandomForestRegressor(n_estimators=ntree, random_state=seed),
+                    param_grid=[{"max_depth": [2, 5, 10]}],
+                    cv=5,
                 )
 
         print(f"Processing col: {col+1}")
