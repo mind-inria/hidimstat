@@ -74,7 +74,8 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         )
 
         loss_full = -np.sum(
-            y_test * np.log(clf_rf_full.predict_proba(X.iloc[test_ind, :]) + 1e-100), axis=1
+            y_test * np.log(clf_rf_full.predict_proba(X.iloc[test_ind, :]) + 1e-100),
+            axis=1,
         )
 
     # Retrain model
@@ -107,7 +108,10 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
             ) ** 2
         else:
             loss_retrain = np.sum(
-                y_test * np.log(clf_rf_retrain.predict_proba(X_minus_idx[test_ind, :]) + 1e-100),
+                y_test
+                * np.log(
+                    clf_rf_retrain.predict_proba(X_minus_idx[test_ind, :]) + 1e-100
+                ),
                 axis=1,
             )
         delta = loss_retrain - loss_full

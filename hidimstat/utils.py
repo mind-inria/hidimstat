@@ -502,7 +502,9 @@ class DNN(nn.Module):
     Feedfoward Neural Network with 4 hidden layers
     """
 
-    def __init__(self, input_dim, group_stacking, list_grps, output_dimension, problem_type):
+    def __init__(
+        self, input_dim, group_stacking, list_grps, output_dimension, problem_type
+    ):
         super().__init__()
         if problem_type == "classification":
             self.accuracy = Accuracy(task="multiclass", num_classes=output_dimension)
