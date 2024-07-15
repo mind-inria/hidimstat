@@ -233,7 +233,7 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 # infernece method that does not leverage the data structure. This method
 # was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
 # and Van de Geer, S. et al.. (2014) (full references are available at
-# https://Parietal-INRIA.github.io/hidimstat/).
+# https://mind-inria.github.io/hidimstat/).
 # and referred to as Desparsified Lasso.
 
 # compute desparsified lasso
