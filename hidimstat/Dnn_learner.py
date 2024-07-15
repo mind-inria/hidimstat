@@ -1,13 +1,11 @@
 import numpy as np
 from sklearn.base import BaseEstimator
-
-from .Dnn_learner_single import DNN_learner_single
-from .utils import sigmoid, softmax
+from .Dnn_learner_single import Dnn_learner_single
 
 
-class DNN_learner(BaseEstimator):
+class Dnn_learner(BaseEstimator):
     """
-    This class implements the high-level of the Deep Neural Network (DNN)
+    This class implements the high-level of the Multi-Layer Perceptron (MLP)
     learner.
 
     Parameters
@@ -30,13 +28,13 @@ class DNN_learner(BaseEstimator):
         The number of epochs for the DNN learner(s).
     verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
-    bootstrap : bool, default=True
-        Application of bootstrap sampling for the training set.
-    split_perc : float, default=0.8
+    sampling_with_repitition : bool, default=True
+        Application of sampling_with_repitition sampling for the training set.
+    split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     problem_type : str, default='regression'
         A classification or a regression problem.
-    list_cont : list, default=None
+    list_continuous : list, default=None
         The list of continuous variables.
     list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
@@ -74,10 +72,10 @@ class DNN_learner(BaseEstimator):
         batch_size_val=128,
         n_epoch=200,
         verbose=0,
-        bootstrap=True,
-        split_perc=0.8,
+        sampling_with_repitition=True,
+        split_percentage=0.8,
         problem_type="regression",
-        list_cont=None,
+        list_continuous=None,
         list_grps=None,
         beta1=0.9,
         beta2=0.999,
@@ -100,8 +98,8 @@ class DNN_learner(BaseEstimator):
         self.batch_size_val = batch_size_val
         self.n_epoch = n_epoch
         self.verbose = verbose
-        self.bootstrap = bootstrap
-        self.split_perc = split_perc
+        self.sampling_with_repitition = sampling_with_repitition
+        self.split_percentage = split_percentage
         self.problem_type = problem_type
         self.list_grps = list_grps
         self.beta1 = beta1
@@ -110,7 +108,7 @@ class DNN_learner(BaseEstimator):
         self.epsilon = epsilon
         self.l1_weight = l1_weight
         self.l2_weight = l2_weight
-        self.list_cont = list_cont
+        self.list_continuous = list_continuous
         self.n_jobs = n_jobs
         self.group_stacking = group_stacking
         self.input_dimensions = input_dimensions
@@ -148,7 +146,7 @@ class DNN_learner(BaseEstimator):
         self.X_test = [None] * y.shape[-1]
 
         for y_col in range(y.shape[-1]):
-            self.list_estimators[y_col] = DNN_learner_single(
+            self.list_estimators[y_col] = Dnn_learner_single(
                 encode=self.encode,
                 do_hypertuning=self.do_hypertuning,
                 dict_hypertuning=self.dict_hypertuning,
@@ -158,10 +156,10 @@ class DNN_learner(BaseEstimator):
                 batch_size_val=self.batch_size_val,
                 n_epoch=self.n_epoch,
                 verbose=self.verbose,
-                bootstrap=self.bootstrap,
-                split_perc=self.split_perc,
+                sampling_with_repitition=self.sampling_with_repitition,
+                split_percentage=self.split_percentage,
                 problem_type=self.problem_type,
-                list_cont=self.list_cont,
+                list_continuous=self.list_continuous,
                 list_grps=self.list_grps,
                 beta1=self.beta1,
                 beta2=self.beta2,
@@ -208,7 +206,7 @@ class DNN_learner(BaseEstimator):
         random_state : int, default=None
             Fixing the seeds of the random generator.
         """
-        estimator = DNN_learner_single(
+        estimator = Dnn_learner_single(
             encode=self.encode,
             do_hypertuning=self.do_hypertuning,
             dict_hypertuning=self.dict_hypertuning,
@@ -218,10 +216,10 @@ class DNN_learner(BaseEstimator):
             batch_size_val=self.batch_size_val,
             n_epoch=self.n_epoch,
             verbose=self.verbose,
-            bootstrap=self.bootstrap,
-            split_perc=self.split_perc,
+            sampling_with_repitition=self.sampling_with_repitition,
+            split_percentage=self.split_percentage,
             problem_type=self.problem_type,
-            list_cont=self.list_cont,
+            list_continuous=self.list_continuous,
             list_grps=self.list_grps,
             beta1=self.beta1,
             beta2=self.beta2,
@@ -252,7 +250,7 @@ class DNN_learner(BaseEstimator):
 
         Returns
         -------
-        res_pred : {array-like, sparse matrix)
+        predictions : {array-like, sparse matrix)
             The average predictions across the sub-DNN models.
         """
         if isinstance(X, list):
@@ -283,7 +281,7 @@ class DNN_learner(BaseEstimator):
 
         Returns
         -------
-        res_pred : {array-like, sparse matrix)
+        predictions : {array-like, sparse matrix)
             The average predictions across the sub-DNN models.
         """
         if isinstance(X, list):

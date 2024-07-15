@@ -1,4 +1,4 @@
-from hidimstat.Dnn_learner_single import DNN_learner_single
+from hidimstat.Dnn_learner_single import Dnn_learner_single
 import numpy as np
 from scipy.stats import ttest_1samp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -23,7 +23,7 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     problem_type : str, default='regression'
         A classification or a regression problem.
     use_dnn : bool, default=True
-        The Deep Neural Network or Random Forest estimator.
+        Use Multi-Layer Perceptron instead of Random Forest estimator.
     seed : int, default=2024
         Fixing the seeds of the random generator.
 
@@ -38,7 +38,7 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     dict_encode_outcome = {"regression": False, "classification": True}
 
     if use_dnn:
-        clf_rf_full = DNN_learner_single(
+        clf_rf_full = Dnn_learner_single(
             encode=dict_encode_outcome[problem_type],
             problem_type=problem_type,
             do_hypertuning=True,
@@ -85,7 +85,7 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     # Retrain model
     for col in range(X.shape[1]):
         if use_dnn:
-            clf_rf_retrain = DNN_learner_single(
+            clf_rf_retrain = Dnn_learner_single(
                 encode=dict_encode_outcome[problem_type],
                 problem_type=problem_type,
                 do_hypertuning=True,

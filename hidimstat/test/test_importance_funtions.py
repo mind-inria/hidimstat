@@ -12,7 +12,9 @@ rng = np.random.RandomState(2024)
 
 
 def _generate_data(n_samples=100, n_features=2, problem_type="regression", seed=2024):
-
+    """
+    This function generates the synthetic data used in the different tests.
+    """
     if problem_type == "regression":
         X, y = make_regression(
             n_samples=n_samples,
@@ -35,7 +37,11 @@ def _generate_data(n_samples=100, n_features=2, problem_type="regression", seed=
 
 
 def test_compute_loco_reg():
-
+    """
+    This function tests the application of the Leave-One-Covariate-Out (LOCO)
+    method with a Multi-Layer Perceptron (MLP) or Random Forest (RF) learner
+    under a regression case
+    """
     X, y = _generate_data(problem_type="regression")
 
     # DNN
@@ -52,7 +58,11 @@ def test_compute_loco_reg():
 
 
 def test_compute_loco_class():
-
+    """
+    This function tests the application of the Leave-One-Covariate-Out (LOCO)
+    method with a Multi-Layer Perceptron (MLP) or Random Forest (RF) learner
+    under a classification case
+    """
     X, y = _generate_data(problem_type="classification")
 
     # DNN

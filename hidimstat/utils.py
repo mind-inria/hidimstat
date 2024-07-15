@@ -103,7 +103,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 
     Parameters
     ----------
-    pvals : 2D ndarray (n_bootstrap, n_test)
+    pvals : 2D ndarray (n_sampling_with_repitition, n_test)
         p-value (adjusted)
 
     gamma : float
@@ -131,10 +131,10 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
 def create_X_y(
     X,
     y,
-    bootstrap=True,
-    split_perc=0.8,
+    sampling_with_repitition=True,
+    split_percentage=0.8,
     problem_type="regression",
-    list_cont=None,
+    list_continuous=None,
     random_state=None,
 ):
     """
@@ -146,13 +146,15 @@ def create_X_y(
         The input samples before the splitting process.
     y : ndarray, shape (n_samples, )
         The output samples before the splitting process.
-    bootstrap : bool, default=True
-        Application of bootstrap sampling for the training set.
-    split_perc : float, default=0.8
+    sampling_with_repitition : bool, default=True
+        Sampling with repitition the train part of the train/valid scheme under
+        the training set. The number of training samples in train is equal to
+        the number of instances in the training set.
+    split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     problem_type : str, default='regression'
         A classification or a regression problem.
-    list_cont : list, default=[]
+    list_continuous : list, default=[]
         The list of continuous variables.
     random_state : int, default=2023
         Fixing the seeds of the random generator.
@@ -160,9 +162,9 @@ def create_X_y(
     Returns
     -------
     X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
-        The bootstrapped training input samples with scaled continuous variables.
+        The sampling_with_repititionped training input samples with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
-        The bootstrapped training output samples scaled if continous.
+        The sampling_with_repititionped training output samples scaled if continous.
     X_valid_scaled : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
         The validation input samples with scaled continuous variables.
     y_valid_scaled : {array-like} of shape (n_valid_samples, )
@@ -182,10 +184,12 @@ def create_X_y(
     scaler_x, scaler_y = StandardScaler(), StandardScaler()
     n = X.shape[0]
 
-    if bootstrap:
+    if sampling_with_repitition:
         train_ind = rng.choice(n, n, replace=True)
     else:
-        train_ind = rng.choice(n, size=int(np.floor(split_perc * n)), replace=False)
+        train_ind = rng.choice(
+            n, size=int(np.floor(split_percentage * n)), replace=False
+        )
     valid_ind = np.array([ind for ind in range(n) if ind not in train_ind])
 
     X_train, X_valid = X[train_ind], X[valid_ind]
@@ -196,10 +200,14 @@ def create_X_y(
     X_valid_scaled = X_valid.copy()
     X_scaled = X.copy()
 
-    if len(list_cont) > 0:
-        X_train_scaled[:, list_cont] = scaler_x.fit_transform(X_train[:, list_cont])
-        X_valid_scaled[:, list_cont] = scaler_x.transform(X_valid[:, list_cont])
-        X_scaled[:, list_cont] = scaler_x.transform(X[:, list_cont])
+    if len(list_continuous) > 0:
+        X_train_scaled[:, list_continuous] = scaler_x.fit_transform(
+            X_train[:, list_continuous]
+        )
+        X_valid_scaled[:, list_continuous] = scaler_x.transform(
+            X_valid[:, list_continuous]
+        )
+        X_scaled[:, list_continuous] = scaler_x.transform(X[:, list_continuous])
     if problem_type == "regression":
         y_train_scaled = scaler_y.fit_transform(y_train)
         y_valid_scaled = scaler_y.transform(y_valid)
@@ -305,10 +313,10 @@ def joblib_ensemble_dnnet(
     y,
     problem_type="regression",
     activation_outcome=None,
-    list_cont=None,
+    list_continuous=None,
     list_grps=None,
-    bootstrap=False,
-    split_perc=0.8,
+    sampling_with_repitition=False,
+    split_percentage=0.8,
     group_stacking=False,
     input_dimensions=None,
     n_epoch=200,
@@ -336,14 +344,14 @@ def joblib_ensemble_dnnet(
     activation_outcome : str, default=None
         The activation function to apply in the outcome layer, "softmax" for
         classification and "sigmoid" for both ordinal and binary cases.
-    list_cont : list, default=None
+    list_continuous : list, default=None
         The list of continuous variables.
     list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
         while applying the stacking method.
-    bootstrap : bool, default=True
-        Application of bootstrap sampling for the training set.
-    split_perc : float, default=0.8
+    sampling_with_repitition : bool, default=True
+        Application of sampling_with_repitition sampling for the training set.
+    split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
@@ -397,10 +405,10 @@ def joblib_ensemble_dnnet(
     ) = create_X_y(
         X,
         y,
-        bootstrap=bootstrap,
-        split_perc=split_perc,
+        sampling_with_repitition=sampling_with_repitition,
+        split_percentage=split_percentage,
         problem_type=problem_type,
-        list_cont=list_cont,
+        list_continuous=list_continuous,
         random_state=random_state,
     )
 

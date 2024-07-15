@@ -2,7 +2,7 @@ from .adaptive_permutation_threshold import ada_svr
 from .BBI import BlockBasedImportance
 from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
-from .Dnn_learner_single import DNN_learner_single
+from .Dnn_learner_single import Dnn_learner_single
 from .ensemble_clustered_inference import ensemble_clustered_inference
 from .importance_functions import compute_loco
 from .knockoffs import model_x_knockoff
@@ -23,7 +23,7 @@ __all__ = [
     "compute_loco",
     "desparsified_lasso",
     "desparsified_group_lasso",
-    "DNN_learner_single",
+    "Dnn_learner_single",
     "ensemble_clustered_inference",
     "group_reid",
     "hd_inference",

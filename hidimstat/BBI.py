@@ -25,31 +25,43 @@ from .compute_importance import (
     joblib_compute_conditional,
     joblib_compute_permutation,
 )
-from .Dnn_learner import DNN_learner
+from .Dnn_learner import Dnn_learner
 from .utils import convert_predict_proba, create_X_y, compute_imp_std
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
     """
-    This class implements the Block-Based Importance (BBI), the framework for
+    This class implements the Block-Based Importance (BBI), a framework for
     variable importance computation with statistical guarantees.
-    It consists of two blocks of estimators: Learner block (Performing inference
-    on the data) and Importance block (Sampling the variable/group of interest).
-    For single-level see :footcite:t:`Chamma_NeurIPS2023` and for group-level
-    see :footcite:t:`Chamma_AAAI2024`.
+    It consists of two blocks of estimators: Learner block (Predicting on the
+    data) and Importance block (Resampling the variable/group of interest to
+    assess the impact on the loss). For single-level see
+    :footcite:t:`Chamma_NeurIPS2023` and for group-level see
+    :footcite:t:`Chamma_AAAI2024`.
 
     Parameters
     ----------
-    estimator : {Scikit-learn compatible estimator or string}, default=None
+    estimator : {String or sklearn.base.BaseEstimator}, default="DNN"
         The provided estimator for the learner block.
-        The default estimator is a Deep Neural Network (DNN) learner.
-        Other options include: (1) "RF" for Random Forest.
-    importance_estimator : {Scikit-learn compatible estimator or string},
-        default="Mod_RF"
+        The default estimator is a custom Multi-Layer Perceptron (MLP) learner.
+
+        - String options include:
+            - "DNN" for the Multi-Layer Perceptron
+            - "RF" for the Random Forest
+        - Other options include:
+            - sklearn.base.BaseEstimator
+    importance_estimator : {String or sklearn.base.BaseEstimator}, default="sampling_RF"
         The provided estimator for the importance block.
-        Using "Mod_RF" will apply a new sampling version of the Random Forest
-        where a sampling process is executed within each leaf of the
-        corresponding instance.
+        The default estimator includes the use of the sampling Random Forest
+        where the sampling is executed in the corresponding leaf of each
+        instance within its neighbors
+
+        - String options include:
+            - "sampling_RF" for the sampling Random Forest
+            - "residuals_RF" for the Random Forest along with the residuals path
+              for importance computation
+        - Other options include:
+            - sklearn.base.BaseEstimator
     coffeine_transformer : tuple, default=None
         Applying the coffeine's pipeline for filterbank models on
         electrophysiological data.
@@ -59,12 +71,15 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     do_hypertuning : bool, default=True
         Tuning the hyperparameters of the provided estimator.
     dict_hypertuning : dict, default=None
-        The dictionary of hyperparameters to tune.
+        The dictionary of hyperparameters to tune, depending on the provided
+        inference estimator.
     problem_type : str, default='regression'
         A classification or a regression problem.
-    bootstrap : bool, default=True
-        Application of bootstrap sampling for the training set.
-    split_perc : float, default=0.8
+    sampling_with_repitition : bool, default=True
+        Sampling with repitition the train part of the train/valid scheme under
+        the training set. The number of training samples in train is equal to
+        the number of instances in the training set.
+    split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     conditional : bool, default=True
         The permutation or the conditional sampling approach.
@@ -74,7 +89,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         The use of permutations or random sampling for residuals with the
         conditional sampling.
     n_permutations : int, default=50
-        The number of permutations/random sampling for each column.
+        The number of permutations/random samplings for each column.
     n_jobs : int, default=1
         The number of workers for parallel processing.
     verbose : int, default=0
@@ -91,7 +106,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     prop_out_subLayers : int, default=0.
         If group_stacking is True, the proportion of outputs for
         the linear sub-layers per group.
-    index_i : int, default=None
+    iteration_index : int, default=None
         The index of the current processed iteration.
     random_state : int, default=2023
         Fixing the seeds of the random generator.
@@ -108,14 +123,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         coffeine_transformer=None,
         do_hypertuning=True,
         dict_hypertuning=None,
         problem_type="regression",
-        bootstrap=True,
-        split_perc=0.8,
+        sampling_with_repitition=True,
+        split_percentage=0.8,
         conditional=True,
         variables_categories=None,
         residuals_sampling=False,
@@ -127,7 +142,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         sub_groups=None,
         k_fold=2,
         prop_out_subLayers=0,
-        index_i=None,
+        iteration_index=None,
         random_state=2023,
         do_compute_importance=True,
         group_fold=None,
@@ -138,8 +153,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.do_hypertuning = do_hypertuning
         self.dict_hypertuning = dict_hypertuning
         self.problem_type = problem_type
-        self.bootstrap = bootstrap
-        self.split_perc = split_perc
+        self.sampling_with_repitition = sampling_with_repitition
+        self.split_percentage = split_percentage
         self.conditional = conditional
         self.variables_categories = variables_categories
         self.residuals_sampling = residuals_sampling
@@ -151,7 +166,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.group_stacking = group_stacking
         self.k_fold = k_fold
         self.prop_out_subLayers = prop_out_subLayers
-        self.index_i = index_i
+        self.iteration_index = iteration_index
         self.random_state = random_state
         self.X_test = [None] * max(self.k_fold, 1)
         self.y_test = [None] * max(self.k_fold, 1)
@@ -233,7 +248,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         else:
             self.X_cols = list(X.columns)
         if (self.groups is None) or (not bool(self.groups)):
-            # Initialize the list_cols variable with each feature
+            # Initialize the list_columns variable with each feature
             # in a seperate list (default case)
             self.groups = [[col] for col in X.columns]
             self.transformer_grp = False
@@ -276,7 +291,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             set(self.variables_categories["nominal"]).intersection(list(X.columns))
         )
 
-        self.list_cols = self.groups.copy()
+        self.list_columns = self.groups.copy()
         self.list_cat_tot = list(
             itertools.chain.from_iterable(self.variables_categories.values())
         )
@@ -284,7 +299,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # One-hot encoding of nominal variables
         tmp_list = []
-        self.dict_nom = {}
+        self.dict_nominal = {}
         # A dictionary to save the encoders of the nominal variables
         self.dict_enc = {}
         if len(self.variables_categories["nominal"]) > 0:
@@ -312,25 +327,27 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 if X.columns[col].split("_")[0] == col_cat
             ]
             if len(current_list) > 0:
-                self.dict_nom[col_cat] = current_list
+                self.dict_nominal[col_cat] = current_list
                 # A list to store the labels of the categorical variables
                 tmp_list.extend(current_list)
 
         # Create a dictionary for the continuous variables that will be scaled
-        self.dict_cont = {}
+        self.dict_continuous = {}
         if self.coffeine_transformer is None:
             for ind_col, col_cont in enumerate(X.columns):
                 if ind_col not in tmp_list:
-                    self.dict_cont[col_cont] = [ind_col]
-            self.list_cont = [el[0] for el in self.dict_cont.values()]
+                    self.dict_continuous[col_cont] = [ind_col]
+            self.list_continuous = [el[0] for el in self.dict_continuous.values()]
         else:
-            self.list_cols_tmp = []
-            self.list_cont = list(np.arange(X.shape[1] * self.coffeine_transformer[1]))
+            self.list_columns_tmp = []
+            self.list_continuous = list(
+                np.arange(X.shape[1] * self.coffeine_transformer[1])
+            )
             for i in range(X.shape[1] * self.coffeine_transformer[1]):
-                self.dict_cont[i] = [i]
-                self.list_cols_tmp.append([i])
+                self.dict_continuous[i] = [i]
+                self.list_columns_tmp.append([i])
             if not self.transformer_grp:
-                self.list_cols = self.list_cols_tmp.copy()
+                self.list_columns = self.list_columns_tmp.copy()
             self.coffeine_transformers = [
                 copy(self.coffeine_transformer[0]) for _ in range(max(self.k_fold, 1))
             ]
@@ -352,10 +369,10 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             for grp in self.groups:
                 current_grp = []
                 for i in grp:
-                    if i in self.dict_nom.keys():
-                        current_grp += self.dict_nom[i]
+                    if i in self.dict_nominal.keys():
+                        current_grp += self.dict_nominal[i]
                     else:
-                        current_grp += self.dict_cont[i]
+                        current_grp += self.dict_continuous[i]
                 self.list_grps.append(current_grp)
 
             # To check
@@ -364,7 +381,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     pd.DataFrame(X, columns=self.X_cols), np.ravel(y)
                 )
 
-            if self.estimator is not None:
+            if self.estimator != "DNN":
                 # Force the output to 1 neurone per group
                 # in standard stacking case
                 self.prop_out_subLayers = 0
@@ -412,7 +429,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             ]
             self.input_dimensions.insert(0, 0)
             self.input_dimensions = np.cumsum(self.input_dimensions)
-            self.list_cols = [
+            self.list_columns = [
                 list(
                     np.arange(
                         self.input_dimensions[grp_ind],
@@ -423,12 +440,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             ]
 
         # Initialize the first estimator (block learner)
-        if self.estimator is None:
-            self.estimator = DNN_learner(
+        if self.estimator == "DNN":
+            self.estimator = Dnn_learner(
                 problem_type=self.problem_type,
                 encode=True,
                 do_hypertuning=False,
-                list_cont=self.list_cont,
+                list_continuous=self.list_continuous,
                 list_grps=self.list_grps,
                 group_stacking=self.group_stacking,
                 n_jobs=self.n_jobs,
@@ -515,7 +532,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         # coffeine transformer parameter
                         if len(self.coffeine_transformer) > 2:
                             X = X[:, self.coffeine_transformer[2]]
-                            self.list_cont = np.arange(
+                            self.list_continuous = np.arange(
                                 len(self.coffeine_transformer[2])
                             )
 
@@ -532,8 +549,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
     def __tuning_hyper(self, X, y, ind_fold=None):
         """
-        This function tunes the hyperparameters of the provided inference
-        estimator.
+        Tune the hyperparameters of the provided inference estimator.
 
         Parameters
         ----------
@@ -560,10 +576,10 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             ) = create_X_y(
                 X,
                 y,
-                bootstrap=self.bootstrap,
-                split_perc=self.split_perc,
+                sampling_with_repitition=self.sampling_with_repitition,
+                split_percentage=self.split_percentage,
                 problem_type=self.problem_type,
-                list_cont=self.list_cont,
+                list_continuous=self.list_continuous,
                 random_state=self.random_state,
             )
             if self.dict_hypertuning is not None:
@@ -676,8 +692,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 if not isinstance(curr_X, np.ndarray):
                     X_tmp = np.array(X_tmp)
                 if self.scaler_x[ind_fold] is not None:
-                    X_tmp[:, self.list_cont] = self.scaler_x[ind_fold].transform(
-                        X_tmp[:, self.list_cont]
+                    X_tmp[:, self.list_continuous] = self.scaler_x[ind_fold].transform(
+                        X_tmp[:, self.list_continuous]
                     )
                 self.X_proc[ind_fold] = [X_tmp.copy()]
 
@@ -729,8 +745,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 if not isinstance(curr_X, np.ndarray):
                     X_tmp = np.array(X_tmp)
                 if self.scaler_x[ind_fold] is not None:
-                    X_tmp[:, self.list_cont] = self.scaler_x[ind_fold].transform(
-                        X_tmp[:, self.list_cont]
+                    X_tmp[:, self.list_continuous] = self.scaler_x[ind_fold].transform(
+                        X_tmp[:, self.list_continuous]
                     )
                 self.X_proc[ind_fold] = [X_tmp.copy()]
 
@@ -794,7 +810,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         X : {array-like, sparse matrix} of shape (n_test_samples, n_features)
             The training input samples.
         y : array-like of shape (n_test_samples,) or (n_test_samples, n_outputs),
-        default=None
+            default=None
             The target values (class labels in classification, real numbers in
             regression).
 
@@ -822,7 +838,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     # coffeine transformer parameter
                     if len(self.coffeine_transformer) > 2:
                         X = X[:, self.coffeine_transformer[2]]
-                        self.list_cont = np.arange(len(self.coffeine_transformer[2]))
+                        self.list_continuous = np.arange(
+                            len(self.coffeine_transformer[2])
+                        )
             # Perform stacking if enabled
             if self.apply_ridge:
                 X_prev = X.copy()
@@ -884,24 +902,24 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         zip(
                             *parallel(
                                 delayed(joblib_compute_permutation)(
-                                    self.list_cols[p_col],
-                                    perm,
+                                    self.list_columns[variables_interest],
+                                    permutation,
                                     estimator,
                                     self.type,
                                     self.X_proc[ind_fold],
                                     y[ind_fold],
                                     self.problem_type,
                                     self.org_pred[ind_fold],
-                                    dict_cont=self.dict_cont,
-                                    dict_nom=self.dict_nom,
-                                    processed_col=p_col,
-                                    index_i=ind_fold + 1,
+                                    dict_continuous=self.dict_continuous,
+                                    dict_nominal=self.dict_nominal,
+                                    processed_column=variables_interest,
+                                    iteration_index=ind_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    random_state=list_seeds_imp[perm],
+                                    random_state=list_seeds_imp[permutation],
                                     verbose=self.verbose,
                                 )
-                                for p_col in range(len(self.list_cols))
-                                for perm in range(self.n_permutations)
+                                for variables_interest in range(len(self.list_columns))
+                                for permutation in range(self.n_permutations)
                             )
                         )
                     )
@@ -909,7 +927,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         self.pred_scores[ind_fold]
                     ).reshape(
                         (
-                            len(self.list_cols),
+                            len(self.list_columns),
                             self.n_permutations,
                             y[ind_fold].shape[0],
                             output_dimension,
@@ -920,7 +938,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         zip(
                             *parallel(
                                 delayed(joblib_compute_conditional)(
-                                    self.list_cols[p_col],
+                                    self.list_columns[variables_interest],
                                     self.n_permutations,
                                     estimator,
                                     self.type,
@@ -930,21 +948,21 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                                     self.problem_type,
                                     self.org_pred[ind_fold],
                                     seed=self.random_state,
-                                    dict_cont=self.dict_cont,
-                                    dict_nom=self.dict_nom,
+                                    dict_continuous=self.dict_continuous,
+                                    dict_nominal=self.dict_nominal,
                                     X_nominal=self.X_nominal[ind_fold],
                                     variables_categories=self.variables_categories,
                                     encoder=self.dict_enc,
-                                    processed_col=p_col,
-                                    index_i=ind_fold + 1,
+                                    processed_column=variables_interest,
+                                    iteration_index=ind_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    sub_groups=[self.list_cols, self.sub_groups],
+                                    sub_groups=[self.list_columns, self.sub_groups],
                                     list_seeds=list_seeds_imp,
                                     residuals_sampling=self.residuals_sampling,
                                     output_dimension=output_dimension,
                                     verbose=self.verbose,
                                 )
-                                for p_col in range(len(self.list_cols))
+                                for variables_interest in range(len(self.list_columns))
                             )
                         )
                     )
