@@ -44,19 +44,24 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     estimator : {String or sklearn.base.BaseEstimator}, default="DNN"
         The provided estimator for the learner block.
         The default estimator is a custom Multi-Layer Perceptron (MLP) learner.
-        String options include: (1) "DNN" for the Multi-Layer Perceptron
-                                (2) "RF" for the Random Forest
-        Other options include: sklearn.base.BaseEstimator
-    importance_estimator : {String or sklearn.base.BaseEstimator},
-        default="sampling_RF"
+
+        - String options include:
+            - "DNN" for the Multi-Layer Perceptron
+            - "RF" for the Random Forest
+        - Other options include:
+            - sklearn.base.BaseEstimator
+    importance_estimator : {String or sklearn.base.BaseEstimator}, default="sampling_RF"
         The provided estimator for the importance block.
         The default estimator includes the use of the sampling Random Forest
         where the sampling is executed in the corresponding leaf of each
         instance within its neighbors
-        String options include: (1) "sampling_RF" for the sampling Random Forest
-                                (2) "residuals_RF" for the Random Forest along
-                                    with the residuals path for importance computation
-        Other options include: sklearn.base.BaseEstimator
+
+        - String options include:
+            - "sampling_RF" for the sampling Random Forest
+            - "residuals_RF" for the Random Forest along with the residuals path
+              for importance computation
+        - Other options include:
+            - sklearn.base.BaseEstimator
     coffeine_transformer : tuple, default=None
         Applying the coffeine's pipeline for filterbank models on
         electrophysiological data.
@@ -118,7 +123,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        estimator=None,
+        estimator="DNN",
         importance_estimator="sampling_RF",
         coffeine_transformer=None,
         do_hypertuning=True,
