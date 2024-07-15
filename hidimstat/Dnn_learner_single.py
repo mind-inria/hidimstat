@@ -19,9 +19,9 @@ from .utils import (
 )
 
 
-class DNN_learner_single(BaseEstimator):
+class Dnn_learner_single(BaseEstimator):
     """
-    This class implements the Deep Neural Network (DNN) default inference
+    This class implements the Multi-Layer Perceptron (MLP) default inference
     learner for Block-Based Importance (BBI) framework.
 
     Parameters
@@ -44,13 +44,13 @@ class DNN_learner_single(BaseEstimator):
         The number of epochs for the DNN learner(s).
     verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
-    bootstrap : bool, default=True
-        Application of bootstrap sampling for the training set
-    split_perc : float, default=0.8
+    sampling_with_repitition : bool, default=True
+        Application of sampling_with_repitition sampling for the training set
+    split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     problem_type : str, default='regression'
         A classification or a regression problem.
-    list_cont : list, default=None
+    list_continuous : list, default=None
         The list of continuous variables.
     list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
@@ -88,10 +88,10 @@ class DNN_learner_single(BaseEstimator):
         batch_size_val=128,
         n_epoch=200,
         verbose=0,
-        bootstrap=True,
-        split_perc=0.8,
+        sampling_with_repitition=True,
+        split_percentage=0.8,
         problem_type="regression",
-        list_cont=None,
+        list_continuous=None,
         list_grps=None,
         beta1=0.9,
         beta2=0.999,
@@ -113,8 +113,8 @@ class DNN_learner_single(BaseEstimator):
         self.batch_size_val = batch_size_val
         self.n_epoch = n_epoch
         self.verbose = verbose
-        self.bootstrap = bootstrap
-        self.split_perc = split_perc
+        self.sampling_with_repitition = sampling_with_repitition
+        self.split_percentage = split_percentage
         self.problem_type = problem_type
         self.list_grps = list_grps
         self.beta1 = beta1
@@ -123,7 +123,7 @@ class DNN_learner_single(BaseEstimator):
         self.epsilon = epsilon
         self.l1_weight = l1_weight
         self.l2_weight = l2_weight
-        self.list_cont = list_cont
+        self.list_continuous = list_continuous
         self.n_jobs = n_jobs
         self.group_stacking = group_stacking
         self.input_dimensions = input_dimensions
@@ -186,8 +186,8 @@ class DNN_learner_single(BaseEstimator):
         list_seeds = rng.randint(1e5, size=(self.n_ensemble))
 
         # Initialize the list of continuous variables
-        if self.list_cont is None:
-            self.list_cont = list(np.arange(p))
+        if self.list_continuous is None:
+            self.list_continuous = list(np.arange(p))
 
         # Initialize the list of groups
         if self.list_grps is None:
@@ -213,10 +213,10 @@ class DNN_learner_single(BaseEstimator):
                         y_encoded,
                         problem_type=self.problem_type,
                         activation_outcome=self.activation_outcome,
-                        list_cont=self.list_cont,
+                        list_continuous=self.list_continuous,
                         list_grps=self.list_grps,
-                        bootstrap=self.bootstrap,
-                        split_perc=self.split_perc,
+                        sampling_with_repitition=self.sampling_with_repitition,
+                        split_percentage=self.split_percentage,
                         group_stacking=self.group_stacking,
                         input_dimensions=self.input_dimensions,
                         n_epoch=self.n_epoch,
@@ -390,10 +390,10 @@ class DNN_learner_single(BaseEstimator):
         ) = create_X_y(
             X,
             y,
-            bootstrap=self.bootstrap,
-            split_perc=self.split_perc,
+            sampling_with_repitition=self.sampling_with_repitition,
+            split_percentage=self.split_percentage,
             problem_type=self.problem_type,
-            list_cont=self.list_cont,
+            list_continuous=self.list_continuous,
             random_state=self.random_state,
         )
         list_hyper = list(itertools.product(*list(self.dict_hypertuning.values())))
@@ -518,10 +518,10 @@ class DNN_learner_single(BaseEstimator):
             X_test_n = [None] * len(self.optimal_list)
             for mod in range(len(self.optimal_list)):
                 X_test_scaled = X.copy()
-                if len(self.list_cont) > 0:
-                    X_test_scaled[:, self.list_cont] = self.optimal_list[mod][1][
+                if len(self.list_continuous) > 0:
+                    X_test_scaled[:, self.list_continuous] = self.optimal_list[mod][1][
                         0
-                    ].transform(X_test_scaled[:, self.list_cont])
+                    ].transform(X_test_scaled[:, self.list_continuous])
                 X_test_n_curr = np.zeros(
                     (
                         X_test_scaled.shape[0],
@@ -601,9 +601,9 @@ class DNN_learner_single(BaseEstimator):
             X_test_scaled = X[ind_mod].copy()
             for j in range(n_layer):
                 if not self.group_stacking:
-                    if len(self.list_cont) > 0:
-                        X_test_scaled[:, self.list_cont] = mod[1][0].transform(
-                            X_test_scaled[:, self.list_cont]
+                    if len(self.list_continuous) > 0:
+                        X_test_scaled[:, self.list_continuous] = mod[1][0].transform(
+                            X_test_scaled[:, self.list_continuous]
                         )
                 if j == 0:
                     pred = relu(X_test_scaled.dot(mod[0][0][j]) + mod[0][1][j])

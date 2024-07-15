@@ -14,7 +14,9 @@ rng = np.random.RandomState(2024)
 def _generate_data(
     n_samples=100, n_features=10, problem_type="regression", grps_exp=False, seed=2024
 ):
-
+    """
+    This function generates the synthetic data used in the different tests.
+    """
     if problem_type == "regression":
         X, y = make_regression(
             n_samples=n_samples,
@@ -58,12 +60,16 @@ def _generate_data(
 
 
 def test_BBI_reg():
-
+    """
+    This function tests the application of the Block-Based Importance (BBI)
+    method in the single-level with a Multi-Layer Perceptron (MLP) or Random
+    Forest (RF) learner under a regression case
+    """
     X, y, _, variables_categories = _generate_data(problem_type="regression")
     # DNN
     bbi_reg_dnn = BlockBasedImportance(
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -82,7 +88,7 @@ def test_BBI_reg():
     # RF
     bbi_reg_rf = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -100,12 +106,16 @@ def test_BBI_reg():
 
 
 def test_BBI_class():
-
+    """
+    This function tests the application of the Block-Based Importance (BBI) in
+    the single-level with a Multi-Layer Perceptron (MLP) or Random Forest (RF)
+    learner under a classification case
+    """
     X, y, _, variables_categories = _generate_data(problem_type="classification")
     # DNN
     bbi_class_dnn = BlockBasedImportance(
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -124,7 +134,7 @@ def test_BBI_class():
     # RF
     bbi_class_rf = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -141,13 +151,18 @@ def test_BBI_class():
     assert len(results_class_rf["pval"]) == X.shape[1]
 
 
-def test_BBI_condDNN():
-
+def test_BBI_cond():
+    """
+    This function tests the application of the Conditional Permutation
+    Importance (CPI) method in the single-level with a Multi-Layer Perceptron
+    (MLP) learner under a regression case. This test does include integrating
+    both the residuals and the sampling paths for importance computation.
+    """
     X, y, _, variables_categories = _generate_data()
     # Compute importance with residuals
     bbi_res = BlockBasedImportance(
-        estimator=None,
-        importance_estimator=None,
+        estimator="DNN",
+        importance_estimator="residuals_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         group_stacking=False,
@@ -164,8 +179,8 @@ def test_BBI_condDNN():
 
     # Compute importance with sampling RF
     bbi_samp = BlockBasedImportance(
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         group_stacking=False,
@@ -181,12 +196,16 @@ def test_BBI_condDNN():
     assert len(results_samp["pval"]) == X.shape[1]
 
 
-def test_BBI_permDNN():
-
+def test_BBI_perm():
+    """
+    This function tests the application of the Permutation Feature Importance
+    (PFI) method in the single-level with a Multi-Layer Perceptron (MLP) learner
+    under a regression case
+    """
     X, y, _, variables_categories = _generate_data()
     bbi_perm = BlockBasedImportance(
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -204,12 +223,16 @@ def test_BBI_permDNN():
 
 
 def test_BBI_grp():
-
+    """
+    This function tests the application of the Block-Based Importance (BBI)
+    method in the group-level with a Random Forest (RF) learner under
+    a regression case with stacking or non-stacking setting
+    """
     X, y, grps, variables_categories = _generate_data(grps_exp=True)
     # No Stacking
     bbi_grp_noStack = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
@@ -229,7 +252,7 @@ def test_BBI_grp():
     # Stacking
     bbi_grp_stack = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
