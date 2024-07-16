@@ -75,6 +75,7 @@ variables_categories = {}
 
 bbi_perm = BlockBasedImportance(
     estimator="RF",
+    importance_estimator="residuals_RF",
     do_hypertuning=True,
     dict_hypertuning=None,
     conditional=False,
@@ -101,7 +102,7 @@ pvals_perm = -np.log10(results_perm["pval"] + 1e-10)
 
 bbi_cond = BlockBasedImportance(
     estimator="RF",
-    importance_estimator=None,
+    importance_estimator="residuals_RF",
     do_hypertuning=True,
     dict_hypertuning=None,
     conditional=True,
