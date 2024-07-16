@@ -246,6 +246,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
         else:
+            if self.k_fold == 0:
+                X = X.reset_index(drop=True)
             self.X_cols = list(X.columns)
         if (self.groups is None) or (not bool(self.groups)):
             # Initialize the list_columns variable with each feature
@@ -857,6 +859,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             # Convert X to pandas dataframe
             if not isinstance(X, pd.DataFrame):
                 X = pd.DataFrame(X)
+            else:
+                X = X.reset_index(drop=True)
             self.X_nominal[0] = X.loc[:, self.list_cat_tot]
             X = [X.copy() for _ in range(max(self.k_fold, 1))]
             if self.problem_type in ("classification", "binary"):
@@ -995,7 +999,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # Compute Importance and P-values
         pred_scores_full = [
             np.mean(self.pred_scores[ind_fold], axis=1)
-            for ind_fold in range(self.k_fold)
+            for ind_fold in range(max(self.k_fold, 1))
         ]
         results["importance"] = compute_imp_std(pred_scores_full)[0]
         results["std"] = compute_imp_std(pred_scores_full)[1]

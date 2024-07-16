@@ -6,13 +6,19 @@ import numpy as np
 import pandas as pd
 from hidimstat.BBI import BlockBasedImportance
 from sklearn.datasets import make_classification, make_regression
+from sklearn.model_selection import train_test_split
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
 
 
 def _generate_data(
-    n_samples=100, n_features=10, problem_type="regression", grps_exp=False, seed=2024
+    n_samples=200,
+    n_features=10,
+    problem_type="regression",
+    grps_exp=False,
+    seed=2024,
+    add_categorical=True,
 ):
     """
     This function generates the synthetic data used in the different tests.
@@ -35,12 +41,20 @@ def _generate_data(
         y = np.array([str(i) for i in y])
 
     X = pd.DataFrame(X, columns=[f"col{i+1}" for i in range(n_features)])
-    # Nominal variables
-    X["Val1"] = rng.choice(["Car", "Moto", "Velo", "Plane", "Boat"], size=n_samples)
-    X["Val2"] = rng.choice(["Car_1", "Moto_1", "Velo_1", "Plane_1"], size=n_samples)
-    # Ordinal variables
-    X["Val3"] = rng.choice(np.arange(1, 7), size=n_samples)
-    X["Val4"] = rng.choice(np.arange(10), size=n_samples)
+
+    if add_categorical:
+        # Nominal variables
+        X["Val1"] = rng.choice(["Car", "Moto", "Velo", "Plane", "Boat"], size=n_samples)
+        X["Val2"] = rng.choice(["Car_1", "Moto_1", "Velo_1", "Plane_1"], size=n_samples)
+        # Ordinal variables
+        X["Val3"] = rng.choice(np.arange(1, 7), size=n_samples)
+        X["Val4"] = rng.choice(np.arange(10), size=n_samples)
+        variables_categories = {
+            "nominal": ["Val1", "Val2"],
+            "ordinal": ["Val3", "Val4"],
+        }
+    else:
+        variables_categories = {}
 
     if grps_exp:
         grps = {
@@ -55,8 +69,132 @@ def _generate_data(
     else:
         grps = None
 
-    variables_categories = {"nominal": ["Val1", "Val2"], "ordinal": ["Val3", "Val4"]}
     return X, y, grps, variables_categories
+
+
+def test_BBI_inference():
+    """
+    This function tests the application of the Block-Based Importance (BBI)
+    method's inference part in the single-level with a Random Forest (RF)
+    learner under a regression case
+    """
+    X, y, _, variables_categories = _generate_data(
+        problem_type="regression", add_categorical=False
+    )
+    bbi_inference = BlockBasedImportance(
+        estimator="RF",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        conditional=False,
+        problem_type="regression",
+        k_fold=2,
+        variables_categories=variables_categories,
+        do_compute_importance=False,
+    )
+    bbi_inference.fit(X, y)
+    results_inference = bbi_inference.compute_importance()
+    assert len(results_inference) == 2
+
+
+def test_BBI_splitting_scheme():
+    """
+    This function tests the application of the Block-Based Importance (BBI)
+    method in the single-level with a Random Forest (RF) learner under a
+    regression case involving sampling with replacement or a sampling with no
+    replacement for splitting the train/valid sets
+    """
+    X, y, _, variables_categories = _generate_data(
+        problem_type="regression", add_categorical=False
+    )
+
+    # Sampling with replacement
+    bbi_sampling_with_replacement = BlockBasedImportance(
+        estimator="RF",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        sampling_with_repitition=True,
+        conditional=False,
+        problem_type="regression",
+        k_fold=2,
+        variables_categories=variables_categories,
+        do_compute_importance=False,
+    )
+    bbi_sampling_with_replacement.fit(X, y)
+    results_sampling_with_replacement = (
+        bbi_sampling_with_replacement.compute_importance()
+    )
+    assert len(results_sampling_with_replacement) == 2
+
+    # Sampling without replacement
+    bbi_sampling_no_replacement = BlockBasedImportance(
+        estimator="RF",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        sampling_with_repitition=True,
+        split_percentage=0.8,
+        conditional=False,
+        problem_type="regression",
+        k_fold=2,
+        variables_categories=variables_categories,
+        do_compute_importance=False,
+    )
+    bbi_sampling_no_replacement.fit(X, y)
+    results_sampling_no_replacement = bbi_sampling_no_replacement.compute_importance()
+    assert len(results_sampling_no_replacement) == 2
+
+
+def test_BBI_internal_cross_validation():
+    """
+    This function tests the application of the Block-Based Importance (BBI)
+    method in the single-level with a Random Forest (RF) learner under a
+    regression case with and without cross validation without importance
+    computation
+    """
+    X, y, _, variables_categories = _generate_data(problem_type="regression")
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=2024
+    )
+
+    # Without cross validation
+    bbi_no_cross_validation = BlockBasedImportance(
+        estimator="RF",
+        importance_estimator="sampling_RF",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        conditional=False,
+        group_stacking=False,
+        problem_type="regression",
+        k_fold=0,
+        variables_categories=variables_categories,
+        n_jobs=10,
+        verbose=0,
+        n_permutations=100,
+    )
+    bbi_no_cross_validation.fit(X_train, y_train)
+    results_no_cross_validation = bbi_no_cross_validation.compute_importance(
+        X_test, y_test
+    )
+    assert len(results_no_cross_validation["pval"]) == X.shape[1]
+
+    # With cross validation
+    bbi_cross_validation = BlockBasedImportance(
+        estimator="RF",
+        importance_estimator="sampling_RF",
+        do_hypertuning=True,
+        dict_hypertuning=None,
+        conditional=False,
+        group_stacking=False,
+        problem_type="regression",
+        k_fold=2,
+        variables_categories=variables_categories,
+        n_jobs=10,
+        verbose=0,
+        n_permutations=100,
+    )
+    bbi_cross_validation.fit(X, y)
+    results_cross_validation = bbi_cross_validation.compute_importance()
+    assert len(results_cross_validation["pval"]) == X.shape[1]
 
 
 def test_BBI_reg():
