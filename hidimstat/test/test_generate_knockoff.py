@@ -2,10 +2,8 @@
 # Authors: Binh Nguyen <tuan-binh.nguyen@inria.fr>
 
 from hidimstat.data_simulation import simu_data
-from hidimstat.gaussian_knockoff import (
-    _estimate_distribution,
-    gaussian_knockoff_generation,
-)
+from hidimstat.gaussian_knockoff import (_estimate_distribution,
+                                         gaussian_knockoff_generation)
 
 SEED = 42
 fdr = 0.1

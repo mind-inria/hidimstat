@@ -1,8 +1,8 @@
 import numpy as np
 from joblib import Parallel, delayed
 
-from .multi_sample_split import aggregate_medians, aggregate_quantiles
 from .clustered_inference import clustered_inference
+from .multi_sample_split import aggregate_medians, aggregate_quantiles
 
 
 def _ensembling(

@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator
+
 from .Dnn_learner_single import Dnn_learner_single
 
 

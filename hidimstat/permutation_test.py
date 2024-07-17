@@ -1,11 +1,10 @@
 import numpy as np
 from joblib import Parallel, delayed
-
 from sklearn.base import clone
-from sklearn.utils import _safe_indexing
-from sklearn.svm import LinearSVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVR
+from sklearn.utils import _safe_indexing
 
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 

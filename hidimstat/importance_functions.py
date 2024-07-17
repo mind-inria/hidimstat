@@ -1,9 +1,10 @@
-from hidimstat.Dnn_learner_single import Dnn_learner_single
 import numpy as np
 from scipy.stats import ttest_1samp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import OneHotEncoder
+
+from hidimstat.Dnn_learner_single import Dnn_learner_single
 
 
 def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=2024):

@@ -3,13 +3,13 @@ Test the ensemble_clustered_inference module
 """
 
 import numpy as np
+from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
-from numpy.testing import assert_almost_equal
 
-from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.scenario import multivariate_temporal_simulation
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+from hidimstat.scenario import (multivariate_1D_simulation,
+                                multivariate_temporal_simulation)
 
 
 def test_ensemble_clustered_inference():

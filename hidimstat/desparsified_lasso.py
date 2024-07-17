@@ -1,12 +1,12 @@
 import numpy as np
+from joblib import Parallel, delayed
 from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
-from joblib import Parallel, delayed
-from sklearn.utils.validation import check_memory
 from sklearn.linear_model import Lasso
+from sklearn.utils.validation import check_memory
 
-from .noise_std import reid, group_reid
+from .noise_std import group_reid, reid
 from .stat_tools import pval_from_two_sided_pval_and_sign
 
 

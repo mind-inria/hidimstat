@@ -6,10 +6,10 @@ import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.scenario import multivariate_temporal_simulation
-from hidimstat.desparsified_lasso import desparsified_lasso
-from hidimstat.desparsified_lasso import desparsified_group_lasso
+from hidimstat.desparsified_lasso import (desparsified_group_lasso,
+                                          desparsified_lasso)
+from hidimstat.scenario import (multivariate_1D_simulation,
+                                multivariate_temporal_simulation)
 
 
 def test_desparsified_lasso():

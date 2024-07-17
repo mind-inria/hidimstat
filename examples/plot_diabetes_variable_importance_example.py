@@ -10,10 +10,11 @@ and its conditional variant on the diabetes dataset for the single-level case.
 # Imports needed for this script
 # ------------------------------
 
-import numpy as np
-from hidimstat.BBI import BlockBasedImportance
-from sklearn.datasets import load_diabetes
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_diabetes
+
+from hidimstat.BBI import BlockBasedImportance
 
 plt.rcParams.update({"font.size": 14})
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Authors: Binh Nguyen & Jerome-Alexis Chevalier & Ahmad Chamma
 import copy
+
 import numpy as np
 import torch
 import torch.nn as nn

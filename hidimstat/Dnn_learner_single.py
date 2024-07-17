@@ -8,15 +8,8 @@ from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.validation import check_is_fitted
 
-from .utils import (
-    create_X_y,
-    dnn_net,
-    joblib_ensemble_dnnet,
-    ordinal_encode,
-    relu,
-    sigmoid,
-    softmax,
-)
+from .utils import (create_X_y, dnn_net, joblib_ensemble_dnnet, ordinal_encode,
+                    relu, sigmoid, softmax)
 
 
 class Dnn_learner_single(BaseEstimator):

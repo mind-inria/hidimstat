@@ -5,9 +5,9 @@ Test the adaptive_permutation_threshold module
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+from hidimstat.adaptive_permutation_threshold import ada_svr
 from hidimstat.scenario import multivariate_1D_simulation
 from hidimstat.stat_tools import pval_from_scale
-from hidimstat.adaptive_permutation_threshold import ada_svr
 
 
 def test_ada_svr():

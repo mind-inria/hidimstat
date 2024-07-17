@@ -9,24 +9,17 @@ from scipy.stats import norm
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import (
-    log_loss,
-    mean_absolute_error,
-    mean_squared_error,
-    roc_auc_score,
-    r2_score,
-)
-from sklearn.model_selection import KFold, GroupKFold
+from sklearn.metrics import (log_loss, mean_absolute_error, mean_squared_error,
+                             r2_score, roc_auc_score)
+from sklearn.model_selection import GroupKFold, KFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
-from .compute_importance import (
-    joblib_compute_conditional,
-    joblib_compute_permutation,
-)
+from .compute_importance import (joblib_compute_conditional,
+                                 joblib_compute_permutation)
 from .Dnn_learner import Dnn_learner
-from .utils import convert_predict_proba, create_X_y, compute_imp_std
+from .utils import compute_imp_std, convert_predict_proba, create_X_y
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):

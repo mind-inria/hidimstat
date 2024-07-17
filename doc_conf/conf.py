@@ -13,12 +13,12 @@
 # serve to show the default.
 
 import os
-import sys
 import warnings
-import sphinx_gallery
-import sphinx_bootstrap_theme
 from distutils.version import LooseVersion
+
 import matplotlib
+import sphinx_bootstrap_theme
+import sphinx_gallery
 
 # Disable agg warnings in doc
 warnings.filterwarnings(
