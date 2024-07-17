@@ -24,8 +24,8 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Install dependencies
         run: |
+          python -m pip install -e .
           python -m pip install .[doc, plotting]
-          pip install -e .
       - name: Sphinx build
         id: build-docs
         run: |
