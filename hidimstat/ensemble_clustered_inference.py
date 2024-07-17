@@ -59,7 +59,7 @@ def ensemble_clustered_inference(
     n_jobs=1,
     memory=None,
     verbose=1,
-    **kwargs
+    **kwargs,
 ):
     """Ensemble clustered inference algorithm
 
@@ -171,7 +171,7 @@ def ensemble_clustered_inference(
             n_jobs=1,
             memory=memory,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         for i in np.arange(seed, seed + n_bootstraps)
     )

@@ -7,8 +7,10 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
 from sklearn.model_selection import GridSearchCV
 
-from .RandomForestModified import (RandomForestClassifierModified,
-                                   RandomForestRegressorModified)
+from .RandomForestModified import (
+    RandomForestClassifierModified,
+    RandomForestRegressorModified,
+)
 from .utils import convert_predict_proba, ordinal_encode, sample_predictions
 
 warnings.filterwarnings("ignore")

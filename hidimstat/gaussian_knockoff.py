@@ -5,8 +5,7 @@ optimization scheme following Barber et al. (2015). Requires cvxopt.
 import warnings
 
 import numpy as np
-from sklearn.covariance import (GraphicalLassoCV, empirical_covariance,
-                                ledoit_wolf)
+from sklearn.covariance import GraphicalLassoCV, empirical_covariance, ledoit_wolf
 from sklearn.utils.validation import check_memory
 
 

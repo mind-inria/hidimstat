@@ -52,6 +52,7 @@ References
 """
 
 import matplotlib.pyplot as plt
+
 #############################################################################
 # Imports needed for this script
 # ------------------------------
