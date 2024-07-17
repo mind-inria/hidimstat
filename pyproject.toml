@@ -33,10 +33,7 @@ classifiers = [
 ]
 license = {file = "LICENSE"}
 
-
 [project.optional-dependencies]
-# A combination of dependencies useful for developers
-
 # Requirements necessary for building the documentation
 doc = [
     "memory_profiler>=0.61.0",
