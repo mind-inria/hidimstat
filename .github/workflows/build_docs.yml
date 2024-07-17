@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -e .
-          python -m pip install .[doc, plotting]
+          python -m pip install .[doc,plotting]
       - name: Sphinx build
         id: build-docs
         run: |
