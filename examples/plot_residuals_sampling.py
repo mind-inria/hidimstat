@@ -19,10 +19,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import roc_auc_score
 import time
 
-n, p = (1000, 50)
+n, p = (1000, 12)
 inter_cor, intra_cor = (0, 0.85)
 n_blocks = 1
-n_signal = 20
+n_signal = 2
 problem_type = "regression"
 snr = 4
 rf = RandomForestRegressor(random_state=2023)
@@ -107,7 +107,7 @@ def compute_simulations(seed):
     # Using the residuals
     start_residuals = time.time()
     bbi_residual = BlockBasedImportance(
-        estimator="RF",
+        estimator="DNN",
         importance_estimator="residuals_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
@@ -133,7 +133,7 @@ def compute_simulations(seed):
     # Using the sampling RF
     start_sampling = time.time()
     bbi_sampling = BlockBasedImportance(
-        estimator="RF",
+        estimator="DNN",
         importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
@@ -160,9 +160,9 @@ def compute_simulations(seed):
     return df_final
 
 
-parallel = Parallel(n_jobs=10, verbose=1)
+parallel = Parallel(n_jobs=2, verbose=1)
 final_result = parallel(
-    delayed(compute_simulations)(seed=seed) for seed in np.arange(1, 101)
+    delayed(compute_simulations)(seed=seed) for seed in np.arange(1, 11)
 )
 
 #############################################################################
