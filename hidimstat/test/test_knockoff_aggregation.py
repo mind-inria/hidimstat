@@ -37,3 +37,21 @@ def test_knockoff_aggregation():
 
     assert fdp < 0.5
     assert power > 0.1
+
+    # Using e-values aggregation
+
+    selected, aggregated_pval, pvals = knockoff_aggregation(
+        X,
+        y,
+        fdr=fdr,
+        n_bootstraps=n_bootstraps,
+        method="e-values",
+        verbose=True,
+        random_state=0,
+    )
+
+    fdp, power = cal_fdp_power(selected, non_zero_index)
+
+    assert pvals.shape == (n_bootstraps, p)
+    assert fdp < 0.5
+    assert power > 0.1

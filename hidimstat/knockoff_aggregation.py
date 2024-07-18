@@ -7,7 +7,7 @@ from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
 from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
-from .stat_coef_diff import stat_coef_diff
+from .stat_coef_diff import stat_coef_diff, _coef_diff_threshold
 from .utils import fdr_threshold, quantile_aggregation
 
 
@@ -21,6 +21,7 @@ def knockoff_aggregation(
     fdr_control="bhq",
     reshaping_function=None,
     offset=1,
+    method="quantile",
     statistic="lasso_cv",
     cov_estimator="ledoit_wolf",
     joblib_verbose=0,
@@ -82,26 +83,41 @@ def knockoff_aggregation(
         for i in range(n_bootstraps)
     )
 
-    pvals = np.array(
-        [_empirical_pval(ko_stats[i], offset) for i in range(n_bootstraps)]
-    )
+    if method == "e-values":
+        evals = np.array(
+            [_empirical_eval(ko_stats[i], fdr / 2, offset) for i in range(n_bootstraps)]
+        )
 
-    aggregated_pval = quantile_aggregation(
-        pvals, gamma=gamma, gamma_min=gamma_min, adaptive=adaptive_aggregation
-    )
+        aggregated_eval = np.mean(evals, axis=0)
+        threshold = fdr_threshold(aggregated_eval, fdr=fdr, method="ebh")
+        selected = np.where(aggregated_eval >= threshold)[0]
 
-    threshold = fdr_threshold(
-        aggregated_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    selected = np.where(aggregated_pval <= threshold)[0]
+        if verbose:
+            return selected, aggregated_eval, evals
 
-    if verbose:
-        return selected, aggregated_pval, pvals
+        return selected
 
-    return selected
+    if method == "quantile":
+        pvals = np.array(
+            [_empirical_pval(ko_stats[i], offset) for i in range(n_bootstraps)]
+        )
+
+        aggregated_pval = quantile_aggregation(
+            pvals, gamma=gamma, gamma_min=gamma_min, adaptive=adaptive_aggregation
+        )
+
+        threshold = fdr_threshold(
+            aggregated_pval,
+            fdr=fdr,
+            method=fdr_control,
+            reshaping_function=reshaping_function,
+        )
+        selected = np.where(aggregated_pval <= threshold)[0]
+
+        if verbose:
+            return selected, aggregated_pval, pvals
+
+        return selected
 
 
 def _empirical_pval(test_score, offset=1):
@@ -122,3 +138,22 @@ def _empirical_pval(test_score, offset=1):
             )
 
     return np.array(pvals)
+
+
+def _empirical_eval(test_score, fdr=0.1, offset=1):
+
+    evals = []
+    n_features = test_score.size
+
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+
+    ko_thr = _coef_diff_threshold(test_score, fdr=fdr, offset=offset)
+
+    for i in range(n_features):
+        if test_score[i] < ko_thr:
+            evals.append(0)
+        else:
+            evals.append(n_features / (offset + np.sum(test_score <= -ko_thr)))
+
+    return np.array(evals)
