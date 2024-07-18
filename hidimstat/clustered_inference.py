@@ -1,10 +1,10 @@
 import numpy as np
-from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 
+from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .stat_tools import pval_from_cb
-from .desparsified_lasso import desparsified_lasso, desparsified_group_lasso
 
 
 def _subsampling(n_samples, train_size, groups=None, seed=0):

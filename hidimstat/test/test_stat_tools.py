@@ -8,14 +8,14 @@ from numpy.testing import assert_almost_equal, assert_equal
 from hidimstat.stat_tools import (
     _replace_infinity,
     pval_corr_from_pval,
-    pval_from_scale,
-    zscore_from_cb,
     pval_from_cb,
-    two_sided_pval_from_zscore,
-    two_sided_pval_from_cb,
-    zscore_from_pval,
+    pval_from_scale,
     pval_from_two_sided_pval_and_sign,
+    two_sided_pval_from_cb,
     two_sided_pval_from_pval,
+    two_sided_pval_from_zscore,
+    zscore_from_cb,
+    zscore_from_pval,
 )
 
 

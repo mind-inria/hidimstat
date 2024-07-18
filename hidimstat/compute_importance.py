@@ -1,6 +1,7 @@
+import itertools
 import warnings
 from collections import Counter
-import itertools
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
@@ -617,7 +618,10 @@ def joblib_compute_conditional(
 
         if problem_type == "regression":
             if type_predictor == "DNN":
-                pred_i = estimator.predict(current_X_test_list, scale=False)
+                tmp_prepare_test_state = estimator.preparing_test
+                estimator.preparing_test = False
+                pred_i = estimator.predict(current_X_test_list)
+                estimator.preparing_test = tmp_prepare_test_state
             else:
                 pred_i = estimator.predict(current_X_test_list[0].squeeze())
 
@@ -630,7 +634,10 @@ def joblib_compute_conditional(
             ) ** 2
         else:
             if type_predictor == "DNN":
-                pred_i = estimator.predict_proba(current_X_test_list, scale=False)
+                tmp_prepare_test_state = estimator.preparing_test
+                estimator.preparing_test = False
+                pred_i = estimator.predict_proba(current_X_test_list)
+                estimator.preparing_test = tmp_prepare_test_state
             else:
                 pred_i = convert_predict_proba(
                     estimator.predict_proba(current_X_test_list[0].squeeze())
@@ -739,7 +746,10 @@ def joblib_compute_permutation(
         )
 
         if type_predictor == "DNN":
-            pred_i = estimator.predict(current_X_test_list, scale=False)
+            tmp_prepare_test_state = estimator.preparing_test
+            estimator.preparing_test = False
+            pred_i = estimator.predict(current_X_test_list)
+            estimator.preparing_test = tmp_prepare_test_state
         else:
             pred_i = estimator.predict(current_X_test_list[0])
 
@@ -754,7 +764,10 @@ def joblib_compute_permutation(
             y_test[:, nonzero_cols], original_predictions[:, nonzero_cols]
         )
         if type_predictor == "DNN":
-            pred_i = estimator.predict_proba(current_X_test_list, scale=False)
+            tmp_prepare_test_state = estimator.preparing_test
+            estimator.preparing_test = False
+            pred_i = estimator.predict_proba(current_X_test_list)
+            estimator.preparing_test = tmp_prepare_test_state
         else:
             pred_i = convert_predict_proba(
                 estimator.predict_proba(current_X_test_list[0])
