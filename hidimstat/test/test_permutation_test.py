@@ -5,8 +5,8 @@ Test the permutation test module
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from hidimstat.scenario import multivariate_1D_simulation
 from hidimstat.permutation_test import permutation_test_cv
+from hidimstat.scenario import multivariate_1D_simulation
 
 
 def test_permutation_test():

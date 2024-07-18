@@ -45,21 +45,21 @@ References
 # ------------------------------
 import numpy as np
 import pandas as pd
-from sklearn.utils import Bunch
+from nilearn import datasets
+from nilearn.image import mean_img
+from nilearn.input_data import NiftiMasker
+from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
-from nilearn import datasets
-from nilearn.input_data import NiftiMasker
-from nilearn.image import mean_img
-from nilearn.plotting import plot_stat_map, show
+from sklearn.utils import Bunch
 
-from hidimstat.stat_tools import zscore_from_pval, pval_from_scale
-from hidimstat.standardized_svr import standardized_svr
-from hidimstat.permutation_test import permutation_test, permutation_test_cv
 from hidimstat.adaptive_permutation_threshold import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+from hidimstat.permutation_test import permutation_test, permutation_test_cv
+from hidimstat.standardized_svr import standardized_svr
+from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
 
 #############################################################################

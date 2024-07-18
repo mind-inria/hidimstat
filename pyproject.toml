@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "HiDimStat"
+version = "0.0.1"
+dependencies = [
+    "joblib>=1.4.2",
+    "numpy>=2.0.0",
+    "pandas>=2.2.2",
+    "scikit-learn>=1.5.1",
+    "scipy>=1.14.0",
+    "torch>=2.3.1",
+    "torchmetrics>=1.4.0.post0",
+]
+requires-python = ">=3.12"
+authors = [{name = "HiDimStat developers"}]
+maintainers = [
+  {name = "Bertrand Thirion", email = "bertrand.thirion@inria.fr"}
+]
+description = "High-dimensional statistical inference tools for Python"
+readme = "README.md"
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development",
+    "Topic :: Scientific/Engineering",
+]
+license = {file = "LICENSE"}
+
+[project.optional-dependencies]
+# Requirements necessary for building the documentation
+doc = [
+    "memory_profiler>=0.61.0",
+    "mne>=1.7.1",
+    "nilearn>=0.10.4",
+    "numpydoc>=1.7.0",
+    "pillow>=10.4.0",
+    "PyQt5>=5.15.10",
+    "pyvista>=0.44.0",
+    "pyvistaqt>=0.11.1",
+    "sphinx-bootstrap-theme>=0.8.1",
+    "sphinxcontrib-bibtex>=2.6.2",
+    "sphinx-gallery>=0.16.0",
+]
+plotting = [
+    "matplotlib>=3.9.1",
+]
+style = [
+    "black>=24.4.2",
+    "isort>=5.13.2",
+]
+# For running unit and docstring tests
+test = [
+    "coverage>=7.6.0",
+    "pytest>=8.2.2",
+    "pytest-cov>=5.0.0"
+]
+
+[project.urls]
+Development = "https://github.com/nilearn/nilearn"
+Homepage = "https://mind-inria.github.io/hidimstat"
+Repository = "https://github.com/mind-inria/hidimstat"

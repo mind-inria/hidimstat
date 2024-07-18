@@ -22,10 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
+        with:
+            python-version: '3.12'
       - name: Install dependencies
         run: |
-          pip install -r doc_conf/doc-requirements.txt
-          pip install -e .
+          python -m pip install -e .
+          python -m pip install .[doc,plotting]
       - name: Sphinx build
         id: build-docs
         run: |

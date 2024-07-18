@@ -13,82 +13,107 @@ from sklearn.metrics import (
     log_loss,
     mean_absolute_error,
     mean_squared_error,
-    roc_auc_score,
     r2_score,
+    roc_auc_score,
 )
-from sklearn.model_selection import KFold, GroupKFold
+from sklearn.model_selection import GroupKFold, KFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
-from .compute_importance import (
-    joblib_compute_conditional,
-    joblib_compute_permutation,
-)
-from .Dnn_learner import DNN_learner
-from .utils import convert_predict_proba, create_X_y, compute_imp_std
+from .compute_importance import joblib_compute_conditional, joblib_compute_permutation
+from .Dnn_learner import DnnLearner
+from .utils import compute_imp_std, convert_predict_proba, create_X_y
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
     """
-    This class implements the Block-Based Importance (BBI),
-    consisting of a learner block (first block) and an importance block (second
-    block).
-    For single-level see :footcite:t:`Chamma_NeurIPS2023` and for group-level
-    see :footcite:t:`Chamma_AAAI2024`.
+    This class implements the Block-Based Importance (BBI), a framework for
+    variable importance computation with statistical guarantees.
+    It consists of two blocks of estimators: Learner block (Predicting on the
+    data) and Importance block (Resampling the variable/group of interest to
+    assess the impact on the loss). For single-level see
+    :footcite:t:`Chamma_NeurIPS2023` and for group-level see
+    :footcite:t:`Chamma_AAAI2024`.
 
     Parameters
     ----------
-    estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the prediction task (First block).
-        The default estimator is the DNN learner. Other options are (1) RF
-        for Random Forest.
-    importance_estimator: {scikit-learn compatible estimator or string},
-                          default=Mod_RF
-        The provided estimator for the importance task (Second block).
-        Using "Mod_RF" will apply the modified version of the Random Forest as
-        the importance predictor.
-    do_hypertuning: bool, default=True
-        Tuning the hyperparameters of the provided estimator.
-    dict_hypertuning: dict, default=None
-        The dictionary of hyperparameters to tune.
-    problem_type: str, default='regression'
-        A classification or a regression problem.
-    bootstrap: bool, default=True
-        Application of bootstrap sampling for the training set.
-    split_perc: float, default=0.8
-        The training/validation cut for the provided data.
-    conditional: bool, default=True
-        The permutation or the conditional sampling approach.
-    list_nominal: dict, default=None
-        The dictionary of binary, nominal and ordinal variables.
-    Perm: bool, default=False
-        The use of permutations or random sampling with CPI-DNN.
-    n_perm: int, default=50
-        The number of permutations/random sampling for each column.
-    n_jobs: int, default=1
-        The number of workers for parallel processing.
-    verbose: int, default=0
-        If verbose > 0, the fitted iterations will be printed.
-    groups: dict, default=None
-        The knowledge-driven/data-driven grouping of the variables if provided.
-    group_stacking: bool, default=False
-        Apply the stacking-based method for the provided groups.
-    prop_out_subLayers: int, default=0.
-        If group_stacking is set to True, proportion of outputs for
-        the linear sub-layers per group.
-    index_i: int, default=None
-        The index of the current processed iteration.
-    random_state: int, default=2023
-        Fixing the seeds of the random generator.
-    com_imp: boolean, default=True
-        Compute or not the importance scores.
-    group_label: list, default=None
-        The list of group labels to perform GroupKFold
+    estimator : {String or sklearn.base.BaseEstimator}, default="DNN"
+        The provided estimator for the learner block.
+        The default estimator is a custom Multi-Layer Perceptron (MLP) learner.
 
-    Attributes
-    ----------
-    ToDO
+        - String options include:
+            - "DNN" for the Multi-Layer Perceptron
+            - "RF" for the Random Forest
+        - Other options include:
+            - sklearn.base.BaseEstimator
+    importance_estimator : {String or sklearn.base.BaseEstimator}, default="sampling_RF"
+        The provided estimator for the importance block.
+        The default estimator includes the use of the sampling Random Forest
+        where the sampling is executed in the corresponding leaf of each
+        instance within its neighbors
+
+        - String options include:
+            - "sampling_RF" for the sampling Random Forest
+            - "residuals_RF" for the Random Forest along with the residuals path
+              for importance computation
+        - Other options include:
+            - sklearn.base.BaseEstimator
+    coffeine_transformer : tuple, default=None
+        Applying the coffeine's pipeline for filterbank models on
+        electrophysiological data.
+        The tuple cosists of (coffeine pipeline, new number of variables) or
+        (coffeine pipeline, new number of variables, list of variables to keep
+        after variable selection).
+    do_hypertuning : bool, default=True
+        Tuning the hyperparameters of the provided estimator.
+    dict_hypertuning : dict, default=None
+        The dictionary of hyperparameters to tune, depending on the provided
+        inference estimator.
+    problem_type : str, default='regression'
+        A classification or a regression problem.
+    encoding_input : bool, default=True
+        To one-hot or ordinal encode the nominal and ordinal input variables.
+    sampling_with_repetition : bool, default=True
+        Sampling with repetition the train part of the train/valid scheme under
+        the training set. The number of training samples in train is equal to
+        the number of instances in the training set.
+    split_percentage : float, default=0.8
+        The training/validation cut for the provided data.
+    conditional : bool, default=True
+        The permutation or the conditional sampling approach.
+    variables_categories : dict, default=None
+        The dictionary of binary, nominal and ordinal variables.
+    residuals_sampling : bool, default=False
+        The use of permutations or random sampling for residuals with the
+        conditional sampling.
+    n_permutations : int, default=50
+        The number of permutations/random samplings for each column.
+    n_jobs : int, default=1
+        The number of workers for parallel processing.
+    verbose : int, default=0
+        If verbose > 0, the fitted iterations will be printed.
+    groups : dict, default=None
+        The knowledge-driven/data-driven grouping of the variables if provided.
+    group_stacking : bool, default=False
+        Apply the stacking-based method for the provided groups.
+    sub_groups : dict, default=None
+        The list of provided variables's indices to condition on per
+        variable/group of interest (default set to all the remaining variables).
+    k_fold : int, default=2
+        The number of folds for k-fold cross fitting.
+    prop_out_subLayers : int, default=0.
+        If group_stacking is True, the proportion of outputs for
+        the linear sub-layers per group.
+    iteration_index : int, default=None
+        The index of the current processed iteration.
+    random_state : int, default=2023
+        Fixing the seeds of the random generator.
+    do_compute_importance : boolean, default=True
+        Whether to compute the Importance Scores.
+    group_fold : list, default=None
+        The list of group labels to perform GroupKFold to keep subjects within
+        the same training or test set.
 
     References
     ----------
@@ -97,18 +122,19 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
     def __init__(
         self,
-        estimator=None,
-        importance_estimator="Mod_RF",
+        estimator="DNN",
+        importance_estimator="sampling_RF",
         coffeine_transformer=None,
         do_hypertuning=True,
         dict_hypertuning=None,
         problem_type="regression",
-        bootstrap=True,
-        split_perc=0.8,
+        encoding_input=True,
+        sampling_with_repetition=True,
+        split_percentage=0.8,
         conditional=True,
-        list_nominal=None,
-        Perm=False,
-        n_perm=50,
+        variables_categories=None,
+        residuals_sampling=False,
+        n_permutations=50,
         n_jobs=1,
         verbose=0,
         groups=None,
@@ -116,9 +142,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         sub_groups=None,
         k_fold=2,
         prop_out_subLayers=0,
-        index_i=None,
+        iteration_index=None,
         random_state=2023,
-        com_imp=True,
+        do_compute_importance=True,
         group_fold=None,
     ):
         self.estimator = estimator
@@ -127,12 +153,13 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.do_hypertuning = do_hypertuning
         self.dict_hypertuning = dict_hypertuning
         self.problem_type = problem_type
-        self.bootstrap = bootstrap
-        self.split_perc = split_perc
+        self.encoding_input = encoding_input
+        self.sampling_with_repetition = sampling_with_repetition
+        self.split_percentage = split_percentage
         self.conditional = conditional
-        self.list_nominal = list_nominal
-        self.Perm = Perm
-        self.n_perm = n_perm
+        self.variables_categories = variables_categories
+        self.residuals_sampling = residuals_sampling
+        self.n_permutations = n_permutations
         self.n_jobs = n_jobs
         self.verbose = verbose
         self.groups = groups
@@ -140,7 +167,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.group_stacking = group_stacking
         self.k_fold = k_fold
         self.prop_out_subLayers = prop_out_subLayers
-        self.index_i = index_i
+        self.iteration_index = iteration_index
         self.random_state = random_state
         self.X_test = [None] * max(self.k_fold, 1)
         self.y_test = [None] * max(self.k_fold, 1)
@@ -153,7 +180,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.X_proc = [None] * max(self.k_fold, 1)
         self.scaler_x = [None] * max(self.k_fold, 1)
         self.scaler_y = [None] * max(self.k_fold, 1)
-        self.com_imp = com_imp
+        self.do_compute_importance = do_compute_importance
         self.group_fold = group_fold
         # Check for applying the stacking approach with the RidgeCV estimator
         self.apply_ridge = False
@@ -162,14 +189,18 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.coffeine_transformers = []
 
     def fit(self, X, y=None):
-        """Build the provided estimator with the training set (X, y)
+        """
+        Build the provided estimator with the training set (X, y)
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_samples, n_features)
             The training input samples.
-        y : None
-            There is no need of a target in a transformer, yet the pipeline API
-            requires this parameter.
+        y : array-like of shape (n_samples,) or (n_samples, n_outputs),
+        default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         self : object
@@ -179,7 +210,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # (group case)
         if self.groups is not None:
             if len(self.groups) <= 1:
-                self.com_imp = False
+                self.do_compute_importance = False
 
         # Fixing the random generator's seed
         self.rng = np.random.RandomState(self.random_state)
@@ -187,38 +218,40 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         # Switch to special binary case
         if (self.problem_type == "classification") and (len(np.unique(y)) < 3):
             self.problem_type = "binary"
-        # Convert list_nominal to a dictionary if initialized
+        # Convert variables_categories to a dictionary if initialized
         # as an empty string
-        if not isinstance(self.list_nominal, dict):
-            self.list_nominal = {
+        if not isinstance(self.variables_categories, dict):
+            self.variables_categories = {
                 "nominal": [],
                 "ordinal": [],
                 "binary": [],
             }
 
-        if "binary" not in self.list_nominal:
-            self.list_nominal["binary"] = []
-        if "ordinal" not in self.list_nominal:
-            self.list_nominal["ordinal"] = []
-        if "nominal" not in self.list_nominal:
-            self.list_nominal["nominal"] = []
+        if "binary" not in self.variables_categories:
+            self.variables_categories["binary"] = []
+        if "ordinal" not in self.variables_categories:
+            self.variables_categories["ordinal"] = []
+        if "nominal" not in self.variables_categories:
+            self.variables_categories["nominal"] = []
 
         # Move the ordinal columns with 2 values to the binary part
-        if self.list_nominal["ordinal"] != []:
-            for ord_col in set(self.list_nominal["ordinal"]).intersection(
+        if self.variables_categories["ordinal"] != []:
+            for ord_col in set(self.variables_categories["ordinal"]).intersection(
                 list(X.columns)
             ):
                 if len(np.unique(X[ord_col])) < 3:
-                    self.list_nominal["binary"].append(ord_col)
-                    self.list_nominal["ordinal"].remove(ord_col)
+                    self.variables_categories["binary"].append(ord_col)
+                    self.variables_categories["ordinal"].remove(ord_col)
 
         # Convert X to pandas dataframe
         if not isinstance(X, pd.DataFrame):
             X = pd.DataFrame(X)
         else:
+            if self.k_fold == 0:
+                X = X.reset_index(drop=True)
             self.X_cols = list(X.columns)
         if (self.groups is None) or (not bool(self.groups)):
-            # Initialize the list_cols variable with each feature
+            # Initialize the list_columns variable with each feature
             # in a seperate list (default case)
             self.groups = [[col] for col in X.columns]
             self.transformer_grp = False
@@ -251,29 +284,29 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Check if categorical variables exist within the columns of the design
         # matrix
-        self.list_nominal["binary"] = list(
-            set(self.list_nominal["binary"]).intersection(list(X.columns))
+        self.variables_categories["binary"] = list(
+            set(self.variables_categories["binary"]).intersection(list(X.columns))
         )
-        self.list_nominal["ordinal"] = list(
-            set(self.list_nominal["ordinal"]).intersection(list(X.columns))
+        self.variables_categories["ordinal"] = list(
+            set(self.variables_categories["ordinal"]).intersection(list(X.columns))
         )
-        self.list_nominal["nominal"] = list(
-            set(self.list_nominal["nominal"]).intersection(list(X.columns))
+        self.variables_categories["nominal"] = list(
+            set(self.variables_categories["nominal"]).intersection(list(X.columns))
         )
 
-        self.list_cols = self.groups.copy()
+        self.list_columns = self.groups.copy()
         self.list_cat_tot = list(
-            itertools.chain.from_iterable(self.list_nominal.values())
+            itertools.chain.from_iterable(self.variables_categories.values())
         )
         X_nominal_org = X.loc[:, self.list_cat_tot]
 
         # One-hot encoding of nominal variables
         tmp_list = []
-        self.dict_nom = {}
+        self.dict_nominal = {}
         # A dictionary to save the encoders of the nominal variables
         self.dict_enc = {}
-        if len(self.list_nominal["nominal"]) > 0:
-            for col_encode in self.list_nominal["nominal"]:
+        if len(self.variables_categories["nominal"]) > 0:
+            for col_encode in self.variables_categories["nominal"]:
                 enc = OneHotEncoder(handle_unknown="ignore")
                 enc.fit(X[[col_encode]])
                 labeled_cols = [
@@ -297,25 +330,27 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 if X.columns[col].split("_")[0] == col_cat
             ]
             if len(current_list) > 0:
-                self.dict_nom[col_cat] = current_list
+                self.dict_nominal[col_cat] = current_list
                 # A list to store the labels of the categorical variables
                 tmp_list.extend(current_list)
 
         # Create a dictionary for the continuous variables that will be scaled
-        self.dict_cont = {}
+        self.dict_continuous = {}
         if self.coffeine_transformer is None:
             for ind_col, col_cont in enumerate(X.columns):
                 if ind_col not in tmp_list:
-                    self.dict_cont[col_cont] = [ind_col]
-            self.list_cont = [el[0] for el in self.dict_cont.values()]
+                    self.dict_continuous[col_cont] = [ind_col]
+            self.list_continuous = [el[0] for el in self.dict_continuous.values()]
         else:
-            self.list_cols_tmp = []
-            self.list_cont = list(np.arange(X.shape[1] * self.coffeine_transformer[1]))
+            self.list_columns_tmp = []
+            self.list_continuous = list(
+                np.arange(X.shape[1] * self.coffeine_transformer[1])
+            )
             for i in range(X.shape[1] * self.coffeine_transformer[1]):
-                self.dict_cont[i] = [i]
-                self.list_cols_tmp.append([i])
+                self.dict_continuous[i] = [i]
+                self.list_columns_tmp.append([i])
             if not self.transformer_grp:
-                self.list_cols = self.list_cols_tmp.copy()
+                self.list_columns = self.list_columns_tmp.copy()
             self.coffeine_transformers = [
                 copy(self.coffeine_transformer[0]) for _ in range(max(self.k_fold, 1))
             ]
@@ -332,15 +367,15 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Replace groups' variables by the indices in the design matrix
         self.list_grps = []
-        self.inp_dim = None
+        self.input_dimensions = None
         if self.group_stacking:
             for grp in self.groups:
                 current_grp = []
                 for i in grp:
-                    if i in self.dict_nom.keys():
-                        current_grp += self.dict_nom[i]
+                    if i in self.dict_nominal.keys():
+                        current_grp += self.dict_nominal[i]
                     else:
-                        current_grp += self.dict_cont[i]
+                        current_grp += self.dict_continuous[i]
                 self.list_grps.append(current_grp)
 
             # To check
@@ -349,7 +384,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     pd.DataFrame(X, columns=self.X_cols), np.ravel(y)
                 )
 
-            if self.estimator is not None:
+            if self.estimator != "DNN":
                 # Force the output to 1 neurone per group
                 # in standard stacking case
                 self.prop_out_subLayers = 0
@@ -371,48 +406,55 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                 X_prev = X.copy()
                 X = np.zeros((y.shape[0], len(self.list_grps)))
-                for ind_fold, (train, test) in enumerate(cv.split(X_prev)):
+                for index_fold, (train, test) in enumerate(cv.split(X_prev)):
                     X_train, X_test = X_prev[train], X_prev[test]
                     y_train, _ = y[train], y[test]
                     if len(self.coffeine_transformers) > 1:
-                        X_train = self.coffeine_transformers[ind_fold].fit_transform(
+                        X_train = self.coffeine_transformers[index_fold].fit_transform(
                             pd.DataFrame(X_train, columns=self.X_cols),
                             np.ravel(y_train),
                         )
-                        X_test = self.coffeine_transformers[ind_fold].transform(
+                        X_test = self.coffeine_transformers[index_fold].transform(
                             pd.DataFrame(X_test, columns=self.X_cols)
                         )
                     for grp_ind, grp in enumerate(self.list_grps):
-                        self.ridge_mods[ind_fold][grp_ind].fit(X_train[:, grp], y_train)
+                        self.ridge_mods[index_fold][grp_ind].fit(
+                            X_train[:, grp], y_train
+                        )
                         X[test, grp_ind] = (
-                            self.ridge_mods[ind_fold][grp_ind]
+                            self.ridge_mods[index_fold][grp_ind]
                             .predict(X_test[:, grp])
                             .ravel()
                         )
                 self.apply_ridge = True
 
-            self.inp_dim = [
+            self.input_dimensions = [
                 max(1, int(self.prop_out_subLayers * len(grp)))
                 for grp in self.list_grps
             ]
-            self.inp_dim.insert(0, 0)
-            self.inp_dim = np.cumsum(self.inp_dim)
-            self.list_cols = [
-                list(np.arange(self.inp_dim[grp_ind], self.inp_dim[grp_ind + 1]))
+            self.input_dimensions.insert(0, 0)
+            self.input_dimensions = np.cumsum(self.input_dimensions)
+            self.list_columns = [
+                list(
+                    np.arange(
+                        self.input_dimensions[grp_ind],
+                        self.input_dimensions[grp_ind + 1],
+                    )
+                )
                 for grp_ind in range(len(self.list_grps))
             ]
 
         # Initialize the first estimator (block learner)
-        if self.estimator is None:
-            self.estimator = DNN_learner(
+        if self.estimator == "DNN":
+            self.estimator = DnnLearner(
+                encoding_outcome=True,
                 problem_type=self.problem_type,
-                encode=True,
                 do_hypertuning=False,
-                list_cont=self.list_cont,
+                list_continuous=self.list_continuous,
                 list_grps=self.list_grps,
                 group_stacking=self.group_stacking,
                 n_jobs=self.n_jobs,
-                inp_dim=self.inp_dim,
+                input_dimensions=self.input_dimensions,
                 random_state=self.random_state,
                 verbose=self.verbose,
             )
@@ -446,12 +488,12 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 )
                 list_splits = kf.split(X)
 
-            for ind_fold, (train_index, test_index) in enumerate(list_splits):
-                print(f"Processing: {ind_fold+1}")
+            for index_fold, (train_index, test_index) in enumerate(list_splits):
+                print(f"Processing: {index_fold+1}")
                 X_fold = X.copy()
                 y_fold = y.copy()
 
-                self.X_nominal[ind_fold] = X_nominal_org.iloc[test_index, :]
+                self.X_nominal[index_fold] = X_nominal_org.iloc[test_index, :]
 
                 X_train, X_test = (
                     X_fold[train_index, :],
@@ -462,26 +504,26 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                 if not self.apply_ridge:
                     if self.coffeine_transformer is not None:
-                        X_train = self.coffeine_transformers[ind_fold].fit_transform(
+                        X_train = self.coffeine_transformers[index_fold].fit_transform(
                             pd.DataFrame(X_train, columns=self.X_cols),
                             np.ravel(y_train),
                         )
 
-                        X_test = self.coffeine_transformers[ind_fold].transform(
+                        X_test = self.coffeine_transformers[index_fold].transform(
                             pd.DataFrame(X_test, columns=self.X_cols)
                         )
 
-                self.X_test[ind_fold] = X_test.copy()
-                self.y_test[ind_fold] = y_test.copy()
-                self.y_train[ind_fold] = y_train.copy()
+                self.X_test[index_fold] = X_test.copy()
+                self.y_test[index_fold] = y_test.copy()
+                self.y_train[index_fold] = y_train.copy()
 
                 # Find the list of optimal sub-models to be used in the
                 # following steps (Default estimator)
                 if self.do_hypertuning:
-                    self.__tuning_hyper(X_train, y_train, ind_fold)
+                    self.__tuning_hyper(X_train, y_train, index_fold)
                 if self.type == "DNN":
                     self.estimator.fit(X_train, y_train)
-                self.list_estimators[ind_fold] = copy(self.estimator)
+                self.list_estimators[index_fold] = copy(self.estimator)
 
         else:
             self.y_train = y.copy()
@@ -495,7 +537,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         # coffeine transformer parameter
                         if len(self.coffeine_transformer) > 2:
                             X = X[:, self.coffeine_transformer[2]]
-                            self.list_cont = np.arange(
+                            self.list_continuous = np.arange(
                                 len(self.coffeine_transformer[2])
                             )
 
@@ -510,14 +552,27 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         self.is_fitted = True
         return self
 
-    def __tuning_hyper(self, X, y, ind_fold=None):
-        """ """
+    def __tuning_hyper(self, X, y, index_fold=None):
+        """
+        Tune the hyperparameters of the provided inference estimator.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_train_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
+            The target values (class labels in classification, real numbers in
+            regression).
+        index_fold : int, default=None
+            The index of the corresponding fold.
+
+        """
         if not ((self.apply_ridge) and (self.group_stacking)):
             (
                 X_train_scaled,
                 y_train_scaled,
-                X_valid_scaled,
-                y_valid_scaled,
+                X_validation_scaled,
+                y_validation_scaled,
                 X_scaled,
                 __,
                 scaler_x,
@@ -526,14 +581,14 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             ) = create_X_y(
                 X,
                 y,
-                bootstrap=self.bootstrap,
-                split_perc=self.split_perc,
+                sampling_with_repetition=self.sampling_with_repetition,
+                split_percentage=self.split_percentage,
                 problem_type=self.problem_type,
-                list_cont=self.list_cont,
+                list_continuous=self.list_continuous,
                 random_state=self.random_state,
             )
             if self.dict_hypertuning is not None:
-                list_hyper = list(
+                list_hypertuning = list(
                     itertools.product(*list(self.dict_hypertuning.values()))
                 )
             list_loss = []
@@ -541,32 +596,32 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                 list_loss = self.estimator.hyper_tuning(
                     X_train_scaled,
                     y_train_scaled,
-                    X_valid_scaled,
-                    y_valid_scaled,
-                    list_hyper,
+                    X_validation_scaled,
+                    y_validation_scaled,
+                    list_hypertuning,
                     random_state=self.random_state,
                 )
             else:
                 if self.dict_hypertuning is None:
                     self.estimator.fit(X_scaled, y)
                     # If not a DNN learner case, need to save the scalers
-                    self.scaler_x[ind_fold] = scaler_x
-                    self.scaler_y[ind_fold] = scaler_y
+                    self.scaler_x[index_fold] = scaler_x
+                    self.scaler_y[index_fold] = scaler_y
                     return
                 else:
-                    for ind_el, el in enumerate(list_hyper):
+                    for ind_el, el in enumerate(list_hypertuning):
                         curr_params = dict(
                             (k, v)
                             for v, k in zip(el, list(self.dict_hypertuning.keys()))
                         )
-                        list_hyper[ind_el] = curr_params
+                        list_hypertuning[ind_el] = curr_params
                         self.estimator.set_params(**curr_params)
                         if self.problem_type == "regression":
                             y_train_curr = (
                                 y_train_scaled * scaler_y.scale_ + scaler_y.mean_
                             )
-                            y_valid_curr = (
-                                y_valid_scaled * scaler_y.scale_ + scaler_y.mean_
+                            y_validation_curr = (
+                                y_validation_scaled * scaler_y.scale_ + scaler_y.mean_
                             )
 
                             def func(x):
@@ -574,7 +629,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
                         else:
                             y_train_curr = y_train_scaled.copy()
-                            y_valid_curr = y_valid_scaled.copy()
+                            y_validation_curr = y_validation_scaled.copy()
 
                             def func(x):
                                 return self.estimator.predict_proba(x)
@@ -584,17 +639,19 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                         if self.problem_type == "classification":
                             list_loss.append(
                                 self.loss(
-                                    y_valid_curr,
-                                    func(X_valid_scaled)[:, np.unique(y_valid_curr)],
+                                    y_validation_curr,
+                                    func(X_validation_scaled)[
+                                        :, np.unique(y_validation_curr)
+                                    ],
                                 )
                             )
                         else:
                             list_loss.append(
-                                self.loss(y_valid_curr, func(X_valid_scaled))
+                                self.loss(y_validation_curr, func(X_validation_scaled))
                             )
 
             ind_min = np.argmin(list_loss)
-            best_hyper = list_hyper[ind_min]
+            best_hyper = list_hypertuning[ind_min]
             if not isinstance(best_hyper, dict):
                 best_hyper = dict(zip(self.dict_hypertuning.keys(), best_hyper))
 
@@ -602,22 +659,26 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             self.estimator.fit(X_scaled, y)
 
             # If not a DNN learner case, need to save the scalers
-            self.scaler_x[ind_fold] = scaler_x
-            self.scaler_y[ind_fold] = scaler_y
+            self.scaler_x[index_fold] = scaler_x
+            self.scaler_y[index_fold] = scaler_y
 
         else:
             self.estimator.fit(X, y)
 
-    def predict(self, X=None, encoding=True):
-        """Predict regression target for X.
+    def predict(self, X=None):
+        """
+        This function predicts the regression target for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
+            defaut=None
             The input samples.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        predictions: array-like of shape (n_test_samples,)
+            The average predictions across all folds.
         """
         if not isinstance(X, list):
             list_X = [X.copy() for el in range(max(self.k_fold, 1))]
@@ -626,46 +687,50 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             list_X = X.copy()
             mean_pred = False
 
-        for ind_fold, curr_X in enumerate(list_X):
+        for index_fold, curr_X in enumerate(list_X):
             # Prepare the test set for the prediction
-            if encoding:
-                X_tmp = self.__encode_input(curr_X)
+            if self.encoding_input:
+                X_tmp = self._encode_input(curr_X)
             else:
                 X_tmp = curr_X.copy()
 
             if self.type != "DNN":
                 if not isinstance(curr_X, np.ndarray):
                     X_tmp = np.array(X_tmp)
-                if self.scaler_x[ind_fold] is not None:
-                    X_tmp[:, self.list_cont] = self.scaler_x[ind_fold].transform(
-                        X_tmp[:, self.list_cont]
-                    )
-                self.X_proc[ind_fold] = [X_tmp.copy()]
+                if self.scaler_x[index_fold] is not None:
+                    X_tmp[:, self.list_continuous] = self.scaler_x[
+                        index_fold
+                    ].transform(X_tmp[:, self.list_continuous])
+                self.X_proc[index_fold] = [X_tmp.copy()]
 
-            self.org_pred[ind_fold] = self.list_estimators[ind_fold].predict(X_tmp)
+            self.org_pred[index_fold] = self.list_estimators[index_fold].predict(X_tmp)
 
             # Convert to the (n_samples x n_outputs) format
-            if len(self.org_pred[ind_fold].shape) != 2:
-                self.org_pred[ind_fold] = self.org_pred[ind_fold].reshape(-1, 1)
+            if len(self.org_pred[index_fold].shape) != 2:
+                self.org_pred[index_fold] = self.org_pred[index_fold].reshape(-1, 1)
 
             if self.type == "DNN":
-                self.X_proc[ind_fold] = np.array(
-                    self.list_estimators[ind_fold].X_test.copy()
+                self.X_proc[index_fold] = np.array(
+                    self.list_estimators[index_fold].X_test.copy()
                 ).swapaxes(0, 1)
 
         if mean_pred:
             return np.mean(np.array(self.org_pred), axis=0)
 
-    def predict_proba(self, X=None, encoding=True):
-        """Predict class probabilities for X. ToDo
+    def predict_proba(self, X=None):
+        """
+        This function predicts the class probabilities for the input samples X.
+
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
+            default=None
             The input samples.
+
         Returns
         -------
-        y : ndarray, shape (n_samples,)
-            Returns an array of ones.
+        predictions: array-like of shape (n_test_samples,)
+            The average predictions across all folds.
         """
         if not isinstance(X, list):
             list_X = [X.copy() for el in range(max(self.k_fold, 1))]
@@ -674,43 +739,59 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             list_X = X.copy()
             mean_pred = False
 
-        for ind_fold, curr_X in enumerate(list_X):
+        for index_fold, curr_X in enumerate(list_X):
             # Prepare the test set for the prediction
-            if encoding:
-                X_tmp = self.__encode_input(curr_X)
+            if self.encoding_input:
+                X_tmp = self._encode_input(curr_X)
             else:
                 X_tmp = curr_X.copy()
 
             if self.type != "DNN":
                 if not isinstance(curr_X, np.ndarray):
                     X_tmp = np.array(X_tmp)
-                if self.scaler_x[ind_fold] is not None:
-                    X_tmp[:, self.list_cont] = self.scaler_x[ind_fold].transform(
-                        X_tmp[:, self.list_cont]
-                    )
-                self.X_proc[ind_fold] = [X_tmp.copy()]
+                if self.scaler_x[index_fold] is not None:
+                    X_tmp[:, self.list_continuous] = self.scaler_x[
+                        index_fold
+                    ].transform(X_tmp[:, self.list_continuous])
+                self.X_proc[index_fold] = [X_tmp.copy()]
 
-            self.org_pred[ind_fold] = self.list_estimators[ind_fold].predict_proba(
+            self.org_pred[index_fold] = self.list_estimators[index_fold].predict_proba(
                 X_tmp
             )
 
             if self.type == "DNN":
-                self.X_proc[ind_fold] = np.array(
-                    self.list_estimators[ind_fold].X_test.copy()
+                self.X_proc[index_fold] = np.array(
+                    self.list_estimators[index_fold].X_test.copy()
                 ).swapaxes(0, 1)
             else:
-                self.org_pred[ind_fold] = convert_predict_proba(self.org_pred[ind_fold])
+                self.org_pred[index_fold] = convert_predict_proba(
+                    self.org_pred[index_fold]
+                )
 
         if mean_pred:
             return np.mean(np.array(self.org_pred), axis=0)
 
-    def __encode_input(self, X):
+    def _encode_input(self, X):
+        """
+        This function encodes the non-continuous variables in the design matrix
+        X.
+
+        Parameters
+        ----------
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        X : {array-like, sparse matrix}
+            The new encoded design matrix.
+        """
         # Check is fit had been called
         check_is_fitted(self, ["is_fitted"])
 
         # One-hot encoding for the test set
-        if len(self.list_nominal["nominal"]) > 0:
-            for col_encode in self.list_nominal["nominal"]:
+        if len(self.variables_categories["nominal"]) > 0:
+            for col_encode in self.variables_categories["nominal"]:
                 enc = self.dict_enc[col_encode]
                 labeled_cols = [
                     enc.feature_names_in_[0] + "_" + str(enc.categories_[0][j])
@@ -727,27 +808,33 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         return X
 
     def compute_importance(self, X=None, y=None):
-        """This function is used to compute the importance scores and
-        the statistical guarantees for the different variables/groups
+        """
+        This function computes the importance scores and the statistical
+        guarantees per variable/group of interest
+
+        Parameters
         ----------
-        X : {array-like, sparse-matrix}, shape (n_samples, n_features)
-            The input samples.
-        y : {array-like}, shape (n_samples,)
-            The output samples.
+        X : {array-like, sparse matrix} of shape (n_test_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_test_samples,) or (n_test_samples, n_outputs),
+            default=None
+            The target values (class labels in classification, real numbers in
+            regression).
+
         Returns
         -------
         results : dict
             The dictionary of importance scores, p-values and the corresponding
-            score.
+            z-scores.
         """
         # Check is fit had been called
         check_is_fitted(self, ["is_fitted"])
-        encoding = True
+        self.encoding_input = True
 
         if self.k_fold != 0:
             X = self.X_test.copy()
             y = self.y_test.copy()
-            encoding = False
+            self.encoding_input = False
         else:
             if self.coffeine_transformer is not None:
                 X = self.coffeine_transformers[0].transform(
@@ -758,7 +845,9 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
                     # coffeine transformer parameter
                     if len(self.coffeine_transformer) > 2:
                         X = X[:, self.coffeine_transformer[2]]
-                        self.list_cont = np.arange(len(self.coffeine_transformer[2]))
+                        self.list_continuous = np.arange(
+                            len(self.coffeine_transformer[2])
+                        )
             # Perform stacking if enabled
             if self.apply_ridge:
                 X_prev = X.copy()
@@ -775,6 +864,8 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             # Convert X to pandas dataframe
             if not isinstance(X, pd.DataFrame):
                 X = pd.DataFrame(X)
+            else:
+                X = X.reset_index(drop=True)
             self.X_nominal[0] = X.loc[:, self.list_cat_tot]
             X = [X.copy() for _ in range(max(self.k_fold, 1))]
             if self.problem_type in ("classification", "binary"):
@@ -786,117 +877,118 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
 
         # Compute original predictions
         if self.problem_type == "regression":
-            output_dim = y[0].shape[1]
-            self.predict(X, encoding=encoding)
+            output_dimension = y[0].shape[1]
+            self.predict(X)
         else:
-            output_dim = 1
-            self.predict_proba(X, encoding=encoding)
-
-        list_seeds_imp = self.rng.randint(1e5, size=self.n_perm)
+            output_dimension = 1
+            self.predict_proba(X)
+        list_seeds_imp = self.rng.randint(1e5, size=self.n_permutations)
         parallel = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)
         score_imp_l = []
         results = {}
         # n_features x n_permutations x n_samples
-        for ind_fold, estimator in enumerate(self.list_estimators):
+        for index_fold, estimator in enumerate(self.list_estimators):
             if self.type == "DNN":
-                for y_col in range(y[ind_fold].shape[-1]):
+                for y_col in range(y[index_fold].shape[-1]):
                     _ = self.estimator.encode_outcome(
-                        self.y_train[ind_fold], train=True
+                        self.y_train[index_fold], train=True
                     )[y_col]
-                    y[ind_fold] = self.estimator.encode_outcome(
-                        y[ind_fold], train=False
+                    y[index_fold] = self.estimator.encode_outcome(
+                        y[index_fold], train=False
                     )[y_col]
             else:
                 if self.problem_type in ("classification", "binary"):
                     one_hot = OneHotEncoder(handle_unknown="ignore").fit(
-                        self.y_train[ind_fold].reshape(-1, 1)
+                        self.y_train[index_fold].reshape(-1, 1)
                     )
-                    y[ind_fold] = one_hot.transform(
-                        y[ind_fold].reshape(-1, 1)
+                    y[index_fold] = one_hot.transform(
+                        y[index_fold].reshape(-1, 1)
                     ).toarray()
-            if self.com_imp:
+            if self.do_compute_importance:
                 if not self.conditional:
-                    self.pred_scores[ind_fold], score_cur = list(
+                    self.pred_scores[index_fold], score_cur = list(
                         zip(
                             *parallel(
                                 delayed(joblib_compute_permutation)(
-                                    self.list_cols[p_col],
-                                    perm,
+                                    self.list_columns[variables_interest],
+                                    permutation,
                                     estimator,
                                     self.type,
-                                    self.X_proc[ind_fold],
-                                    y[ind_fold],
+                                    self.X_proc[index_fold],
+                                    y[index_fold],
                                     self.problem_type,
-                                    self.org_pred[ind_fold],
-                                    dict_cont=self.dict_cont,
-                                    dict_nom=self.dict_nom,
-                                    proc_col=p_col,
-                                    index_i=ind_fold + 1,
+                                    self.org_pred[index_fold],
+                                    dict_continuous=self.dict_continuous,
+                                    dict_nominal=self.dict_nominal,
+                                    processed_column=variables_interest,
+                                    iteration_index=index_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    random_state=list_seeds_imp[perm],
+                                    random_state=list_seeds_imp[permutation],
                                     verbose=self.verbose,
                                 )
-                                for p_col in range(len(self.list_cols))
-                                for perm in range(self.n_perm)
+                                for variables_interest in range(len(self.list_columns))
+                                for permutation in range(self.n_permutations)
                             )
                         )
                     )
-                    self.pred_scores[ind_fold] = np.array(
-                        self.pred_scores[ind_fold]
+                    self.pred_scores[index_fold] = np.array(
+                        self.pred_scores[index_fold]
                     ).reshape(
                         (
-                            len(self.list_cols),
-                            self.n_perm,
-                            y[ind_fold].shape[0],
-                            output_dim,
+                            len(self.list_columns),
+                            self.n_permutations,
+                            y[index_fold].shape[0],
+                            output_dimension,
                         )
                     )
                 else:
-                    self.pred_scores[ind_fold], score_cur = list(
+                    self.pred_scores[index_fold], score_cur = list(
                         zip(
                             *parallel(
                                 delayed(joblib_compute_conditional)(
-                                    self.list_cols[p_col],
-                                    self.n_perm,
+                                    self.list_columns[variables_interest],
+                                    self.n_permutations,
                                     estimator,
                                     self.type,
                                     self.importance_estimator,
-                                    self.X_proc[ind_fold],
-                                    y[ind_fold],
+                                    self.X_proc[index_fold],
+                                    y[index_fold],
                                     self.problem_type,
-                                    self.org_pred[ind_fold],
+                                    self.org_pred[index_fold],
                                     seed=self.random_state,
-                                    dict_cont=self.dict_cont,
-                                    dict_nom=self.dict_nom,
-                                    X_nominal=self.X_nominal[ind_fold],
-                                    list_nominal=self.list_nominal,
+                                    dict_continuous=self.dict_continuous,
+                                    dict_nominal=self.dict_nominal,
+                                    X_nominal=self.X_nominal[index_fold],
+                                    variables_categories=self.variables_categories,
                                     encoder=self.dict_enc,
-                                    proc_col=p_col,
-                                    index_i=ind_fold + 1,
+                                    processed_column=variables_interest,
+                                    iteration_index=index_fold + 1,
                                     group_stacking=self.group_stacking,
-                                    sub_groups=[self.list_cols, self.sub_groups],
+                                    sub_groups=[self.list_columns, self.sub_groups],
                                     list_seeds=list_seeds_imp,
-                                    Perm=self.Perm,
-                                    output_dim=output_dim,
+                                    residuals_sampling=self.residuals_sampling,
+                                    output_dimension=output_dimension,
                                     verbose=self.verbose,
                                 )
-                                for p_col in range(len(self.list_cols))
+                                for variables_interest in range(len(self.list_columns))
                             )
                         )
                     )
-                    self.pred_scores[ind_fold] = np.array(self.pred_scores[ind_fold])
+                    self.pred_scores[index_fold] = np.array(
+                        self.pred_scores[index_fold]
+                    )
                 score_imp_l.append(score_cur[0])
             else:
                 if self.problem_type in ("classification", "binary"):
-                    nonzero_cols = np.where(y[ind_fold].any(axis=0))[0]
+                    nonzero_cols = np.where(y[index_fold].any(axis=0))[0]
                     score = roc_auc_score(
-                        y[ind_fold][:, nonzero_cols],
-                        self.org_pred[ind_fold][:, nonzero_cols],
+                        y[index_fold][:, nonzero_cols],
+                        self.org_pred[index_fold][:, nonzero_cols],
                     )
                 else:
                     score = (
-                        mean_absolute_error(y[ind_fold], self.org_pred[ind_fold]),
-                        r2_score(y[ind_fold], self.org_pred[ind_fold]),
+                        mean_absolute_error(y[index_fold], self.org_pred[index_fold]),
+                        r2_score(y[index_fold], self.org_pred[index_fold]),
                     )
                 score_imp_l.append(score)
 
@@ -907,13 +999,13 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         else:
             results["score_AUC"] = np.mean(np.array(score_imp_l), axis=0)
 
-        if not self.com_imp:
+        if not self.do_compute_importance:
             return results
 
         # Compute Importance and P-values
         pred_scores_full = [
-            np.mean(self.pred_scores[ind_fold], axis=1)
-            for ind_fold in range(self.k_fold)
+            np.mean(self.pred_scores[index_fold], axis=1)
+            for index_fold in range(max(self.k_fold, 1))
         ]
         results["importance"] = compute_imp_std(pred_scores_full)[0]
         results["std"] = compute_imp_std(pred_scores_full)[1]

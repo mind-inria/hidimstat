@@ -1,6 +1,7 @@
+import itertools
 import warnings
 from collections import Counter
-import itertools
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
@@ -16,83 +17,96 @@ warnings.filterwarnings("ignore")
 
 
 def joblib_compute_conditional(
-    p_col,
-    n_sample,
+    variables_interest,
+    n_permutations,
     estimator,
     type_predictor,
     importance_estimator,
     X_test_list,
     y_test,
     problem_type,
-    org_pred,
+    original_predictions,
     seed=None,
-    dict_cont={},
-    dict_nom={},
+    dict_continuous={},
+    dict_nominal={},
     X_nominal=None,
-    list_nominal={},
+    variables_categories={},
     encoder={},
-    proc_col=None,
-    index_i=None,
+    processed_column=None,
+    iteration_index=None,
     sub_groups=None,
     group_stacking=False,
     list_seeds=None,
-    Perm=False,
-    output_dim=1,
+    residuals_sampling=False,
+    output_dimension=1,
     verbose=0,
 ):
-    """This function applies the conditional approach for feature importance.
+    """
+    This function applies the conditional approach for variable importance
+
     Parameters
     ----------
-    p_col: list
-        The list of single variables/groups to compute the feature importance.
-    n_sample: int
-        The number of permutations/samples to loop
-    estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the prediction task (First block)
-    type_predictor: string
+    variables_interest : list
+        The list of single variable/variables per group to compute the variable importance.
+    n_permutations : int
+        The number of permutations/samples to loop.
+    estimator : scikit-learn compatible estimator
+        The provided estimator for the learner block.
+    type_predictor : string
         The provided predictor either the DNN learner or not.
         The DNN learner will use different inputs for the different
         sub-models especially while applying the stacking case.
-    importance_estimator: scikit-learn compatible estimator, default=None
-        The provided estimator for the importance task (Second block)
-    X_test_list: list
+    importance_estimator : scikit-learn compatible estimator
+        The provided estimator for the importance block.
+    X_test_list : list
         The list of inputs containing either one input or a number of inputs
         equal to the number of sub-models of the DNN learner.
-    y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
+    y_test : {array-like, sparse matrix} of shape (n_test_samples, n_outputs)
         The output test samples.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
+    original_predictions : {array-like, sparse matrix} of shape (n_outputs, n_test_samples)
         The predictions using the original samples.
-    seed: int, default=None
+    seed : int, default=None
         Fixing the seeds of the random generator.
-    dict_cont: dict, default={}
+    dict_continuous : dict, default={}
         The dictionary providing the indices of the continuous variables.
-    dict_nom: dict, default={}
+    dict_nominal : dict, default={}
         The dictionary providing the indices of the categorical variables.
-    X_nominal: {array-like}, default=None
+    X_nominal : {array-like}, default=None
         The dataframe of categorical variables without encoding.
-    list_nominal: dict, default={}
+    variables_categories : dict, default={}
         The dictionary of binary, nominal and ordinal variables.
-    encoder: dict, default={}
+    encoder : dict, default={}
         The dictionary of encoders for categorical variables.
-    proc_col: int, default=None
+    processed_column : int, default=None
         The processed column to print if verbose > 0.
-    index_i: int, default=None
+    iteration_index : int, default=None
         The index of the current processed iteration.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    list_seeds: list, default=None
+    list_seeds : list, default=None
         The list of seeds to fix the RandomState for reproducibility.
-    Perm: bool, default=False
-        The use of permutations or random sampling with CPI-DNN.
-    output_dim:
-    verbose: int, default=0
+    residuals_sampling : bool, default=False
+        The use of permutations or random sampling for residuals with the
+        conditional sampling.
+    output_dimension : int, default=1
+        The number of provided outputs.
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
+
+    Returns
+    -------
+    loss_scores : array-like
+        The array of loss score values of shape (n_permutations, n_test_samples,
+        output_dimension)
+    score : float or tuple
+        The performance score in terms of ROC AUC in the classification case and
+        (Mean Absolute Error, R2) scores in the regression cases respectively.
     """
     rng = np.random.RandomState(seed)
 
-    res_ar = np.empty((n_sample, y_test.shape[0], output_dim))
+    loss_scores = np.empty((n_permutations, y_test.shape[0], output_dimension))
 
     # A list of copied items to avoid any overlapping in the process
     current_X_test_list = [
@@ -105,17 +119,17 @@ def joblib_compute_conditional(
     el_ind = None
     # Conditioning on a subset of variables
     if sub_groups[1] is not None:
-        if (proc_col + 1) in sub_groups[1].keys():
+        if (processed_column + 1) in sub_groups[1].keys():
             # Get the indices of the provided variables/groups
-            el = [i - 1 for i in sub_groups[1][proc_col + 1]]
+            el = [i - 1 for i in sub_groups[1][processed_column + 1]]
             if not group_stacking:
                 el = list(itertools.chain(*[sub_groups[0][i] for i in el]))
                 el_ind = []
                 for val in el:
-                    if val in dict_nom.keys():
-                        el_ind += dict_nom[val]
-                    if val in dict_cont.keys():
-                        el_ind += dict_cont[val]
+                    if val in dict_nominal.keys():
+                        el_ind += dict_nominal[val]
+                    if val in dict_continuous.keys():
+                        el_ind += dict_continuous[val]
                 el_ind = list(set(el_ind))
             else:
                 # Needs to be tested with multi-output neurones
@@ -131,33 +145,35 @@ def joblib_compute_conditional(
     # Group partitioning
     grp_nom = [
         item
-        for item in p_col
-        if (item in dict_nom.keys())
-        and (item in list_nominal["nominal"] + list_nominal["binary"])
+        for item in variables_interest
+        if (item in dict_nominal.keys())
+        and (item in variables_categories["nominal"] + variables_categories["binary"])
     ]
     grp_ord = [
-        item for item in p_col if (item in dict_nom.keys()) and (item not in grp_nom)
+        item
+        for item in variables_interest
+        if (item in dict_nominal.keys()) and (item not in grp_nom)
     ]
-    grp_cont = [item for item in p_col if item not in (grp_nom + grp_ord)]
+    grp_cont = [item for item in variables_interest if item not in (grp_nom + grp_ord)]
 
     # If modified Random Forest is applied
-    pred_mod_RF = {
+    pred_sampling_RF = {
         "regression": [None] * len(current_X_test_list),
         "classification": [None],
         "ordinal": [None] * len(grp_ord),
     }
 
-    p_col_n = {"regression": [], "classification": [], "ordinal": []}
+    variables_interest_n = {"regression": [], "classification": [], "ordinal": []}
     if not group_stacking:
-        for val in p_col:
+        for val in variables_interest:
             if val in grp_nom:
-                p_col_n["classification"] += dict_nom[val]
+                variables_interest_n["classification"] += dict_nominal[val]
             if val in grp_cont:
-                p_col_n["regression"] += dict_cont[val]
+                variables_interest_n["regression"] += dict_continuous[val]
             if val in grp_ord:
-                p_col_n["ordinal"] += dict_nom[val]
+                variables_interest_n["ordinal"] += dict_nominal[val]
     else:
-        p_col_n["regression"] = p_col
+        variables_interest_n["regression"] = variables_interest
 
     # Dictionary of booleans checking for the encountered type of group
     var_type = {
@@ -178,7 +194,7 @@ def joblib_compute_conditional(
         "ordinal": None,
     }
 
-    if importance_estimator is None:
+    if importance_estimator == "residuals_RF":
         importance_models["regression"] = RandomForestRegressor(
             random_state=seed, max_depth=5
         )
@@ -188,7 +204,7 @@ def joblib_compute_conditional(
         importance_models["ordinal"] = RandomForestClassifier(
             random_state=seed, max_depth=5
         )
-    elif importance_estimator == "Mod_RF":
+    elif importance_estimator == "sampling_RF":
         importance_models["regression"] = RandomForestRegressorModified(
             random_state=seed,
             min_samples_leaf=10,
@@ -212,7 +228,7 @@ def joblib_compute_conditional(
 
     # All the variables of the same group will be removed simultaneously so it can be
     # predicted conditional on the remaining variables
-    if importance_estimator != "Mod_RF":
+    if importance_estimator != "sampling_RF":
         if var_type["regression"]:
             for counter_test, X_test_comp in enumerate(current_X_test_list):
                 if el_ind is not None:
@@ -220,14 +236,16 @@ def joblib_compute_conditional(
                 else:
                     X_test_minus_idx = np.delete(
                         np.copy(X_test_comp),
-                        p_col_n["regression"]
-                        + p_col_n["classification"]
-                        + p_col_n["ordinal"],
+                        variables_interest_n["regression"]
+                        + variables_interest_n["classification"]
+                        + variables_interest_n["ordinal"],
                         -1,
                     )
 
-                # Nb of y outputs x Nb of samples x Nb of regression outputs
-                output["regression"] = X_test_comp[..., p_col_n["regression"]]
+                # Nb of y outputs x Nb of sub_DNN models x Nb of regression outputs
+                output["regression"] = X_test_comp[
+                    ..., variables_interest_n["regression"]
+                ]
                 X_col_pred["regression"][counter_test] = []
                 for cur_output_ind in range(X_test_minus_idx.shape[0]):
                     importance_models["regression"] = hypertune_predictor(
@@ -265,9 +283,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
+                    variables_interest_n["regression"]
+                    + variables_interest_n["classification"]
+                    + variables_interest_n["ordinal"],
                     -1,
                 )
             output["classification"] = np.array(X_nominal[grp_nom])
@@ -298,9 +316,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
+                    variables_interest_n["regression"]
+                    + variables_interest_n["classification"]
+                    + variables_interest_n["ordinal"],
                     -1,
                 )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
@@ -332,12 +350,14 @@ def joblib_compute_conditional(
                 else:
                     X_test_minus_idx = np.delete(
                         np.copy(X_test_comp),
-                        p_col_n["regression"]
-                        + p_col_n["classification"]
-                        + p_col_n["ordinal"],
+                        variables_interest_n["regression"]
+                        + variables_interest_n["classification"]
+                        + variables_interest_n["ordinal"],
                         -1,
                     )
-                output["regression"] = X_test_comp[..., p_col_n["regression"]]
+                output["regression"] = X_test_comp[
+                    ..., variables_interest_n["regression"]
+                ]
                 for cur_output_ind in range(X_test_minus_idx.shape[0]):
                     importance_models["regression"] = hypertune_predictor(
                         importance_models["regression"],
@@ -350,7 +370,7 @@ def joblib_compute_conditional(
                         X_test_minus_idx[cur_output_ind, ...],
                         output["regression"][cur_output_ind, ...],
                     )
-                    pred_mod_RF["regression"][counter_test] = importance_models[
+                    pred_sampling_RF["regression"][counter_test] = importance_models[
                         "regression"
                     ].sample_same_leaf(X_test_minus_idx[cur_output_ind, ...])
 
@@ -360,9 +380,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
+                    variables_interest_n["regression"]
+                    + variables_interest_n["classification"]
+                    + variables_interest_n["ordinal"],
                     -1,
                 )
             output["classification"] = np.array(X_nominal[grp_nom])
@@ -377,7 +397,7 @@ def joblib_compute_conditional(
                     X_test_minus_idx[cur_output_ind, ...],
                     output["classification"],
                 )
-                pred_mod_RF["classification"] = importance_models[
+                pred_sampling_RF["classification"] = importance_models[
                     "classification"
                 ].sample_same_leaf(X_test_minus_idx[cur_output_ind, ...])
 
@@ -387,9 +407,9 @@ def joblib_compute_conditional(
             else:
                 X_test_minus_idx = np.delete(
                     np.copy(current_X_test_list[0]),
-                    p_col_n["regression"]
-                    + p_col_n["classification"]
-                    + p_col_n["ordinal"],
+                    variables_interest_n["regression"]
+                    + variables_interest_n["classification"]
+                    + variables_interest_n["ordinal"],
                     -1,
                 )
             output["ordinal"] = ordinal_encode(np.array(X_nominal[grp_ord]))
@@ -406,7 +426,7 @@ def joblib_compute_conditional(
                     importance_models["ordinal"].fit(
                         X_test_minus_idx[cur_output_ind, ...], cur_ordinal
                     )
-                    pred_mod_RF["ordinal"][cur_ordinal_ind] = importance_models[
+                    pred_sampling_RF["ordinal"][cur_ordinal_ind] = importance_models[
                         "ordinal"
                     ].sample_same_leaf(
                         X_test_minus_idx[cur_output_ind, ...],
@@ -415,33 +435,35 @@ def joblib_compute_conditional(
 
     if problem_type in ("classification", "binary"):
         nonzero_cols = np.where(y_test.any(axis=0))[0]
-        score = roc_auc_score(y_test[:, nonzero_cols], org_pred[:, nonzero_cols])
+        score = roc_auc_score(
+            y_test[:, nonzero_cols], original_predictions[:, nonzero_cols]
+        )
     else:
         score = (
-            mean_absolute_error(y_test, org_pred),
-            r2_score(y_test, org_pred),
+            mean_absolute_error(y_test, original_predictions),
+            r2_score(y_test, original_predictions),
         )
 
-    for sample in range(n_sample):
+    for permutation in range(n_permutations):
         if verbose > 0:
-            if index_i is not None:
+            if iteration_index is not None:
                 print(
-                    f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Sample:{sample+1}"
+                    f"Iteration/Fold: {iteration_index}, Processing col: {processed_column+1}, Permutation: {permutation+1}"
                 )
             else:
-                print(f"Processing col:{proc_col+1}")
+                print(f"Processing col: {processed_column+1}")
         # Same shuffled indices across the sub-models items
         indices = np.arange(current_X_test_list[0].shape[1])
-        if importance_estimator != "Mod_RF":
-            rng = np.random.RandomState(list_seeds[sample])
-            if Perm:
+        if importance_estimator != "sampling_RF":
+            rng = np.random.RandomState(list_seeds[permutation])
+            if residuals_sampling:
                 rng.shuffle(indices)
             else:
                 indices = rng.choice(indices, size=len(indices))
 
             for counter_test, X_test_comp in enumerate(current_X_test_list):
                 if var_type["regression"]:
-                    X_test_comp[..., p_col_n["regression"]] = (
+                    X_test_comp[..., variables_interest_n["regression"]] = (
                         X_col_pred["regression"][counter_test]
                         + Res_col[counter_test][:, indices, :]
                     )
@@ -486,9 +508,9 @@ def joblib_compute_conditional(
                                     ),
                                     axis=1,
                                 )
-                    X_test_comp[..., p_col_n["classification"]] = X_col_new[
-                        "classification"
-                    ]
+                    X_test_comp[..., variables_interest_n["classification"]] = (
+                        X_col_new["classification"]
+                    )
 
                 if var_type["ordinal"]:
                     for cur_output in X_col_pred["ordinal"]:
@@ -528,21 +550,23 @@ def joblib_compute_conditional(
                                     ),
                                     axis=1,
                                 )
-                    X_test_comp[..., p_col_n["ordinal"]] = X_col_new["ordinal"]
+                    X_test_comp[..., variables_interest_n["ordinal"]] = X_col_new[
+                        "ordinal"
+                    ]
         else:
             for counter_test, X_test_comp in enumerate(current_X_test_list):
                 if var_type["regression"]:
-                    X_test_comp[..., p_col_n["regression"]] = np.mean(
+                    X_test_comp[..., variables_interest_n["regression"]] = np.mean(
                         sample_predictions(
-                            pred_mod_RF["regression"][counter_test],
-                            list_seeds[sample],
+                            pred_sampling_RF["regression"][counter_test],
+                            list_seeds[permutation],
                         ),
                         axis=1,
                     )
 
                 if var_type["classification"]:
                     predictions = sample_predictions(
-                        pred_mod_RF["classification"], list_seeds[sample]
+                        pred_sampling_RF["classification"], list_seeds[permutation]
                     )
                     max_val = lambda row: list(Counter(row).keys())[0]
                     for cat_prob_ind in range(predictions.shape[-1]):
@@ -568,16 +592,16 @@ def joblib_compute_conditional(
                                 ),
                                 axis=1,
                             )
-                    X_test_comp[..., p_col_n["classification"]] = X_col_new[
-                        "classification"
-                    ]
+                    X_test_comp[..., variables_interest_n["classification"]] = (
+                        X_col_new["classification"]
+                    )
 
                 if var_type["ordinal"]:
                     max_val = lambda row: list(Counter(row).keys())[0]
-                    for cur_output_ind in range(len(pred_mod_RF["ordinal"])):
+                    for cur_output_ind in range(len(pred_sampling_RF["ordinal"])):
                         predictions = sample_predictions(
-                            pred_mod_RF["ordinal"][cur_output_ind],
-                            list_seeds[sample],
+                            pred_sampling_RF["ordinal"][cur_output_ind],
+                            list_seeds[permutation],
                         )
                         class_ord = np.array(
                             [[max_val(row)] for row in predictions[..., 0]]
@@ -588,100 +612,112 @@ def joblib_compute_conditional(
                             X_col_new["ordinal"] = np.concatenate(
                                 (X_col_new["ordinal"], class_ord), axis=1
                             )
-                    X_test_comp[..., p_col_n["ordinal"]] = X_col_new["ordinal"]
+                    X_test_comp[..., variables_interest_n["ordinal"]] = X_col_new[
+                        "ordinal"
+                    ]
 
         if problem_type == "regression":
             if type_predictor == "DNN":
-                pred_i = estimator.predict(current_X_test_list, scale=False)
+                tmp_prepare_test_state = estimator.preparing_test
+                estimator.preparing_test = False
+                pred_i = estimator.predict(current_X_test_list)
+                estimator.preparing_test = tmp_prepare_test_state
             else:
                 pred_i = estimator.predict(current_X_test_list[0].squeeze())
 
-            # Convert to the (n_samples x n_outputs) format
+            # Convert to the (n_permutations x n_outputs) format
             if len(pred_i.shape) != 2:
                 pred_i = pred_i.reshape(-1, 1)
 
-            res_ar[sample, ::] = (y_test - pred_i) ** 2 - (y_test - org_pred) ** 2
+            loss_scores[permutation, ::] = (y_test - pred_i) ** 2 - (
+                y_test - original_predictions
+            ) ** 2
         else:
             if type_predictor == "DNN":
-                pred_i = estimator.predict_proba(current_X_test_list, scale=False)
+                tmp_prepare_test_state = estimator.preparing_test
+                estimator.preparing_test = False
+                pred_i = estimator.predict_proba(current_X_test_list)
+                estimator.preparing_test = tmp_prepare_test_state
             else:
                 pred_i = convert_predict_proba(
                     estimator.predict_proba(current_X_test_list[0].squeeze())
                 )
 
             pred_i = np.clip(pred_i, 1e-10, 1 - 1e-10)
-            org_pred = np.clip(org_pred, 1e-10, 1 - 1e-10)
-            res_ar[sample, :, 0] = -np.sum(y_test * np.log(pred_i), axis=1) + np.sum(
-                y_test * np.log(org_pred), axis=1
-            )
+            original_predictions = np.clip(original_predictions, 1e-10, 1 - 1e-10)
+            loss_scores[permutation, :, 0] = -np.sum(
+                y_test * np.log(pred_i), axis=1
+            ) + np.sum(y_test * np.log(original_predictions), axis=1)
 
-    return res_ar, score
+    return loss_scores, score
 
 
 def joblib_compute_permutation(
-    p_col,
-    perm,
+    variables_interest,
+    permutation,
     estimator,
     type_predictor,
     X_test_list,
     y_test,
     problem_type,
-    org_pred,
-    dict_cont={},
-    dict_nom={},
-    proc_col=None,
-    index_i=None,
+    original_predictions,
+    dict_continuous={},
+    dict_nominal={},
+    processed_column=None,
+    iteration_index=None,
     group_stacking=False,
     random_state=None,
     verbose=0,
 ):
-    """This function applies the permutation feature importance (PFI).
+    """
+    This function applies the permutation feature importance (PFI).
 
     Parameters
     ----------
-    p_col: list
-        The list of single variables/groups to compute the feature importance.
-    perm: int
+    variables_interest : list
+        The list of single variable/variables per group to compute the variable
+        importance.
+    permutation : int
         The current processed permutation (also to print if verbose > 0).
-    estimator: scikit-learn compatible estimator, default=None
+    estimator : scikit-learn compatible estimator
         The provided estimator for the prediction task (First block).
-    type_predictor: string
+    type_predictor : str
         The provided predictor either the DNN learner or not.
         The DNN learner will use different inputs for the different
         sub-models especially while applying the stacking case.
-    X_test_list: list
+    X_test_list : list
         The list of inputs containing either one input or a number of inputs
         equal to the number of sub-models of the DNN learner.
-    y_test: {array-like, sparse matrix}, shape (n_samples, n_output)
+    y_test : {array-like, sparse matrix}, shape (n_test_samples, n_output)
         The output test samples.
-    problem_type: str, default='regression'
+    problem_type : str, default='regression'
         A classification or a regression problem.
-    org_pred: {array-like, sparse matrix}, shape (n_output, n_samples)
+    original_predictions : {array-like, sparse matrix}, shape (n_output, n_test_samples)
         The predictions using the original samples.
-    dict_cont: dict, default={}
+    dict_continuous : dict, default={}
         The dictionary providing the indices of the continuous variables.
-    dict_nom: dict, default={}
+    dict_nominal : dict, default={}
         The dictionary providing the indices of the categorical variables.
-    proc_col: int, default=None
+    processed_column : int, default=None
         The processed column to print if verbose > 0.
-    index_i: int, default=None
+    iteration_index : int, default=None
         The index of the current processed iteration.
-    group_stacking: bool, default=False
+    group_stacking : bool, default=False
         Apply the stacking-based method for the provided groups.
-    random_state: int, default=None
+    random_state : int, default=None
         Fixing the seeds of the random generator.
-    verbose: int, default=0
+    verbose : int, default=0
         If verbose > 0, the fitted iterations will be printed.
     """
     rng = np.random.RandomState(random_state)
 
     if verbose > 0:
-        if index_i is not None:
+        if iteration_index is not None:
             print(
-                f"Iteration/Fold:{index_i}, Processing col:{proc_col+1}, Permutation:{perm+1}"
+                f"Iteration/Fold: {iteration_index}, Processing col: {processed_column+1}, Permutation: {permutation+1}"
             )
         else:
-            print(f"Processing col:{proc_col+1}, Permutation:{perm+1}")
+            print(f"Processing col: {processed_column+1}, Permutation: {permutation+1}")
 
     # A list of copied items to avoid any overlapping in the process
     current_X_test_list = [X_test_el.copy() for X_test_el in X_test_list]
@@ -689,48 +725,58 @@ def joblib_compute_permutation(
     rng.shuffle(indices)
 
     if not group_stacking:
-        p_col_new = []
-        for val in p_col:
-            if val in dict_nom.keys():
-                p_col_new += dict_nom[val]
+        variables_interest_new = []
+        for val in variables_interest:
+            if val in dict_nominal.keys():
+                variables_interest_new += dict_nominal[val]
             else:
-                p_col_new += dict_cont[val]
+                variables_interest_new += dict_continuous[val]
     else:
-        p_col_new = p_col
+        variables_interest_new = variables_interest
 
     for X_test_comp in current_X_test_list:
-        X_test_comp[..., p_col_new] = X_test_comp[..., p_col_new].take(indices, axis=-2)
+        X_test_comp[..., variables_interest_new] = X_test_comp[
+            ..., variables_interest_new
+        ].take(indices, axis=-2)
 
     if problem_type == "regression":
         score = (
-            mean_absolute_error(y_test, org_pred),
-            r2_score(y_test, org_pred),
+            mean_absolute_error(y_test, original_predictions),
+            r2_score(y_test, original_predictions),
         )
 
         if type_predictor == "DNN":
-            pred_i = estimator.predict(current_X_test_list, scale=False)
+            tmp_prepare_test_state = estimator.preparing_test
+            estimator.preparing_test = False
+            pred_i = estimator.predict(current_X_test_list)
+            estimator.preparing_test = tmp_prepare_test_state
         else:
             pred_i = estimator.predict(current_X_test_list[0])
 
-        # Convert to the (n_samples x n_outputs) format
+        # Convert to the (n_permutations x n_outputs) format
         if len(pred_i.shape) != 2:
             pred_i = pred_i.reshape(-1, 1)
 
-        res = (y_test - pred_i) ** 2 - (y_test - org_pred) ** 2
+        res = (y_test - pred_i) ** 2 - (y_test - original_predictions) ** 2
     else:
         nonzero_cols = np.where(y_test.any(axis=0))[0]
-        score = roc_auc_score(y_test[:, nonzero_cols], org_pred[:, nonzero_cols])
+        score = roc_auc_score(
+            y_test[:, nonzero_cols], original_predictions[:, nonzero_cols]
+        )
         if type_predictor == "DNN":
-            pred_i = estimator.predict_proba(current_X_test_list, scale=False)
+            tmp_prepare_test_state = estimator.preparing_test
+            estimator.preparing_test = False
+            pred_i = estimator.predict_proba(current_X_test_list)
+            estimator.preparing_test = tmp_prepare_test_state
         else:
             pred_i = convert_predict_proba(
                 estimator.predict_proba(current_X_test_list[0])
             )
 
         pred_i = np.clip(pred_i, 1e-10, 1 - 1e-10)
-        org_pred = np.clip(org_pred, 1e-10, 1 - 1e-10)
+        original_predictions = np.clip(original_predictions, 1e-10, 1 - 1e-10)
         res = -np.sum(y_test * np.log(pred_i), axis=1) + np.sum(
-            y_test * np.log(org_pred), axis=1
+            y_test * np.log(original_predictions), axis=1
         )
     return res, score
 
