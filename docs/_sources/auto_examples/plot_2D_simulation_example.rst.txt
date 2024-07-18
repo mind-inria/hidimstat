@@ -68,26 +68,38 @@ References
        Spatially relaxed inference on high-dimensional linear models.
        arXiv preprint arXiv:2106.02590.
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-57
+.. GENERATED FROM PYTHON SOURCE LINES 53-56
+
+.. code-block:: Python
+
+
+    import matplotlib.pyplot as plt
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 57-59
 
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-69
+.. GENERATED FROM PYTHON SOURCE LINES 59-69
 
 .. code-block:: Python
 
     import numpy as np
-    import matplotlib.pyplot as plt
-    from sklearn.feature_extraction import image
     from sklearn.cluster import FeatureAgglomeration
+    from sklearn.feature_extraction import image
 
-    from hidimstat.scenario import multivariate_simulation
-    from hidimstat.stat_tools import zscore_from_pval, pval_from_cb
-    from hidimstat.desparsified_lasso import desparsified_lasso
     from hidimstat.clustered_inference import clustered_inference
+    from hidimstat.desparsified_lasso import desparsified_lasso
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-
+    from hidimstat.scenario import multivariate_simulation
+    from hidimstat.stat_tools import pval_from_cb, zscore_from_pval
 
 
 
@@ -542,7 +554,7 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 3.468 seconds)
+   **Total running time of the script:** (1 minutes 6.095 seconds)
 
 **Estimated memory usage:**  101 MB
 
