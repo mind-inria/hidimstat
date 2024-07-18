@@ -23,8 +23,6 @@
       ~BlockBasedImportance.predict_proba
       ~BlockBasedImportance.set_output
       ~BlockBasedImportance.set_params
-      ~BlockBasedImportance.set_predict_proba_request
-      ~BlockBasedImportance.set_predict_request
    
    
 

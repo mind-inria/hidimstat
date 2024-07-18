@@ -29,15 +29,16 @@ and its conditional variant on the diabetes dataset for the single-level case.
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 12-31
+.. GENERATED FROM PYTHON SOURCE LINES 12-32
 
 .. code-block:: Python
 
 
-    import numpy as np
-    from hidimstat.BBI import BlockBasedImportance
-    from sklearn.datasets import load_diabetes
     import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.datasets import load_diabetes
+
+    from hidimstat.BBI import BlockBasedImportance
 
     plt.rcParams.update({"font.size": 14})
 
@@ -50,7 +51,7 @@ Imports needed for this script
     # Use or not a cross-validation with the provided learner
     k_fold = 2
     # Identifying the categorical (nominal & ordinal) variables
-    list_nominal = {}
+    variables_categories = {}
 
 
 
@@ -59,29 +60,29 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 32-34
+.. GENERATED FROM PYTHON SOURCE LINES 33-35
 
 Standard Variable Importance
 ----------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 34-54
+.. GENERATED FROM PYTHON SOURCE LINES 35-55
 
 .. code-block:: Python
 
 
     bbi_perm = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="residuals_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=False,
         group_stacking=False,
         problem_type="regression",
         k_fold=k_fold,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_perm.fit(X, y)
     print("Computing the importance scores with standard permutation")
@@ -103,29 +104,29 @@ Standard Variable Importance
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 55-57
+.. GENERATED FROM PYTHON SOURCE LINES 56-58
 
 Conditional Variable Importance
 -------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-77
+.. GENERATED FROM PYTHON SOURCE LINES 58-78
 
 .. code-block:: Python
 
 
     bbi_cond = BlockBasedImportance(
         estimator="RF",
-        importance_estimator="Mod_RF",
+        importance_estimator="residuals_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=True,
         group_stacking=False,
         problem_type="regression",
         k_fold=k_fold,
-        list_nominal=list_nominal,
+        variables_categories=variables_categories,
         n_jobs=10,
         verbose=0,
-        n_perm=100,
+        n_permutations=100,
     )
     bbi_cond.fit(X, y)
     print("Computing the importance scores with conditional permutation")
@@ -147,12 +148,12 @@ Conditional Variable Importance
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-80
+.. GENERATED FROM PYTHON SOURCE LINES 79-81
 
 Plotting the comparison
 -----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 80-103
+.. GENERATED FROM PYTHON SOURCE LINES 81-104
 
 .. code-block:: Python
 
@@ -194,9 +195,9 @@ Plotting the comparison
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 46.684 seconds)
+   **Total running time of the script:** (0 minutes 50.516 seconds)
 
-**Estimated memory usage:**  29 MB
+**Estimated memory usage:**  30 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:
