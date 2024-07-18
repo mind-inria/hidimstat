@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import OneHotEncoder
 
-from hidimstat.Dnn_learner_single import Dnn_learner_single
+from hidimstat.Dnn_learner_single import DnnLearnerSingle
 
 
 def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=2024):
@@ -39,8 +39,8 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     dict_encode_outcome = {"regression": False, "classification": True}
 
     if use_dnn:
-        clf_rf_full = Dnn_learner_single(
-            encode=dict_encode_outcome[problem_type],
+        clf_rf_full = DnnLearnerSingle(
+            encoding_outcome=dict_encode_outcome[problem_type],
             problem_type=problem_type,
             do_hypertuning=True,
             random_state=seed,
@@ -86,8 +86,8 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
     # Retrain model
     for col in range(X.shape[1]):
         if use_dnn:
-            clf_rf_retrain = Dnn_learner_single(
-                encode=dict_encode_outcome[problem_type],
+            clf_rf_retrain = DnnLearnerSingle(
+                encoding_outcome=dict_encode_outcome[problem_type],
                 problem_type=problem_type,
                 do_hypertuning=True,
                 random_state=seed,

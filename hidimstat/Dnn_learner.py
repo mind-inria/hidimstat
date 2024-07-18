@@ -1,17 +1,19 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 
-from .Dnn_learner_single import Dnn_learner_single
+from .Dnn_learner_single import DnnLearnerSingle
 
 
-class Dnn_learner(BaseEstimator):
+class DnnLearner(BaseEstimator):
     """
     This class implements the high-level of the Multi-Layer Perceptron (MLP)
-    learner.
+    learner across multi-outputs.
 
     Parameters
     ----------
-    encode : bool, default=False
+    preparing_test : bool, default=True
+        Whether to prepare the test set especially after stacking.
+    encoding_outcome : bool, default=False
         Whether to encode the categorical outcome.
     do_hypertuning : bool, default=True
         Tuning the hyperparameters of the provided estimator.
@@ -23,14 +25,12 @@ class Dnn_learner(BaseEstimator):
         The minimal number of sub-DNNs to keep if > 10.
     batch_size : int, default=32
         The number of samples per batch for training.
-    batch_size_val : int, default=128
+    batch_size_validation : int, default=128
         The number of samples per batch for validation.
     n_epoch : int, default=200
         The number of epochs for the DNN learner(s).
-    verbose : int, default=0
-        If verbose > 0, the fitted iterations will be printed.
-    sampling_with_repitition : bool, default=True
-        Application of sampling_with_repitition sampling for the training set.
+    sampling_with_repetition : bool, default=True
+        Application of sampling_with_repetition sampling for the training set.
     split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     problem_type : str, default='regression'
@@ -60,20 +60,22 @@ class Dnn_learner(BaseEstimator):
         The cumsum of inputs after the linear sub-layers.
     random_state : int, default=2023
         Fixing the seeds of the random generator.
+    verbose : int, default=0
+        If verbose > 0, the fitted iterations will be printed.
     """
 
     def __init__(
         self,
-        encode=False,
+        preparing_test=True,
+        encoding_outcome=False,
         do_hypertuning=False,
         dict_hypertuning=None,
         n_ensemble=10,
         min_keep=10,
         batch_size=32,
-        batch_size_val=128,
+        batch_size_validation=128,
         n_epoch=200,
-        verbose=0,
-        sampling_with_repitition=True,
+        sampling_with_repetition=True,
         split_percentage=0.8,
         problem_type="regression",
         list_continuous=None,
@@ -88,18 +90,19 @@ class Dnn_learner(BaseEstimator):
         group_stacking=False,
         input_dimensions=None,
         random_state=2023,
+        verbose=0,
     ):
         self.list_estimators = []
-        self.encode = encode
+        self.preparing_test = preparing_test
+        self.encoding_outcome = encoding_outcome
         self.do_hypertuning = do_hypertuning
         self.dict_hypertuning = dict_hypertuning
         self.n_ensemble = n_ensemble
         self.min_keep = min_keep
         self.batch_size = batch_size
-        self.batch_size_val = batch_size_val
+        self.batch_size_validation = batch_size_validation
         self.n_epoch = n_epoch
-        self.verbose = verbose
-        self.sampling_with_repitition = sampling_with_repitition
+        self.sampling_with_repetition = sampling_with_repetition
         self.split_percentage = split_percentage
         self.problem_type = problem_type
         self.list_grps = list_grps
@@ -114,10 +117,9 @@ class Dnn_learner(BaseEstimator):
         self.group_stacking = group_stacking
         self.input_dimensions = input_dimensions
         self.random_state = random_state
+        self.verbose = verbose
         self.pred = [None] * n_ensemble
-        self.enc_y = []
-        self.is_encoded = False
-        self.dim_repeat = 1
+        self.dimension_repeat = 1
 
     def fit(self, X, y=None):
         """
@@ -141,23 +143,24 @@ class Dnn_learner(BaseEstimator):
         if (len(X.shape) != 3) or (X.shape[0] != y.shape[-1]):
             X = np.squeeze(X)
             X = np.array([X for i in range(y.shape[-1])])
-            self.dim_repeat = y.shape[-1]
+            self.dimension_repeat = y.shape[-1]
 
         self.list_estimators = [None] * y.shape[-1]
         self.X_test = [None] * y.shape[-1]
 
         for y_col in range(y.shape[-1]):
-            self.list_estimators[y_col] = Dnn_learner_single(
-                encode=self.encode,
+            self.list_estimators[y_col] = DnnLearnerSingle(
+                preparing_test=self.preparing_test,
+                encoding_outcome=self.encoding_outcome,
                 do_hypertuning=self.do_hypertuning,
                 dict_hypertuning=self.dict_hypertuning,
                 n_ensemble=self.n_ensemble,
                 min_keep=self.min_keep,
                 batch_size=self.batch_size,
-                batch_size_val=self.batch_size_val,
+                batch_size_validation=self.batch_size_validation,
                 n_epoch=self.n_epoch,
                 verbose=self.verbose,
-                sampling_with_repitition=self.sampling_with_repitition,
+                sampling_with_repetition=self.sampling_with_repetition,
                 split_percentage=self.split_percentage,
                 problem_type=self.problem_type,
                 list_continuous=self.list_continuous,
@@ -182,9 +185,9 @@ class Dnn_learner(BaseEstimator):
         self,
         X_train,
         y_train,
-        X_valid,
-        y_valid,
-        list_hyper=None,
+        X_validation,
+        y_validation,
+        list_hypertuning=None,
         random_state=None,
     ):
         """
@@ -197,27 +200,28 @@ class Dnn_learner(BaseEstimator):
         y_train : array-like of shape (n_train_samples,) or (n_train_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the training samples.
-        X_train : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
+        X_validation : {array-like, sparse matrix} of shape (n_validation_samples, n_features)
             The validation input samples.
-        y_train : array-like of shape (n_valid_samples,) or (n_valid_samples, n_outputs)
+        y_validation : array-like of shape (n_validation_samples,) or (n_validation_samples, n_outputs)
             The target values (class labels in classification, real numbers in
             regression) for the validation samples.
-        list_hyper : list of tuples, default=None
+        list_hypertuning : list of tuples, default=None
             The list of tuples for the hyperparameters values.
         random_state : int, default=None
             Fixing the seeds of the random generator.
         """
-        estimator = Dnn_learner_single(
-            encode=self.encode,
+        estimator = DnnLearnerSingle(
+            preparing_test=self.preparing_test,
+            encoding_outcome=self.encoding_outcome,
             do_hypertuning=self.do_hypertuning,
             dict_hypertuning=self.dict_hypertuning,
             n_ensemble=self.n_ensemble,
             min_keep=self.min_keep,
             batch_size=self.batch_size,
-            batch_size_val=self.batch_size_val,
+            batch_size_validation=self.batch_size_validation,
             n_epoch=self.n_epoch,
             verbose=self.verbose,
-            sampling_with_repitition=self.sampling_with_repitition,
+            sampling_with_repetition=self.sampling_with_repetition,
             split_percentage=self.split_percentage,
             problem_type=self.problem_type,
             list_continuous=self.list_continuous,
@@ -234,10 +238,10 @@ class Dnn_learner(BaseEstimator):
             random_state=self.random_state,
         )
         return estimator.hyper_tuning(
-            X_train, y_train, X_valid, y_valid, list_hyper, random_state
+            X_train, y_train, X_validation, y_validation, list_hypertuning, random_state
         )
 
-    def predict(self, X, scale=True):
+    def predict(self, X):
         """
         This function predicts the regression target for the input samples X.
 
@@ -246,29 +250,28 @@ class Dnn_learner(BaseEstimator):
         X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
-        scale : bool, default=True
-            Whether to scale the continuous input variables.
 
         Returns
         -------
-        predictions : {array-like, sparse matrix)
-            The average predictions across the sub-DNN models.
+        predictions : {array-like, sparse matrix) of shape (n_test_samples, n_outputs)
+            The predictions across multi-outputs.
         """
         if isinstance(X, list):
-            X = [self.check_X_dim(el) for el in X]
+            X = [self.check_X_dimension(el) for el in X]
         else:
-            X = self.check_X_dim(X)
+            X = self.check_X_dimension(X)
         list_res = []
         for estimator_ind, estimator in enumerate(self.list_estimators):
+            estimator.preparing_test = self.preparing_test
             if isinstance(X, list):
                 curr_X = [el[estimator_ind, ...] for el in X]
-                list_res.append(estimator.predict(curr_X, scale))
+                list_res.append(estimator.predict(curr_X))
             else:
-                list_res.append(estimator.predict(X[estimator_ind, ...], scale))
+                list_res.append(estimator.predict(X[estimator_ind, ...]))
                 self.X_test[estimator_ind] = estimator.X_test.copy()
         return np.array(list_res)
 
-    def predict_proba(self, X, scale=True):
+    def predict_proba(self, X):
         """
         This function predicts the class probabilities for the input samples X.
 
@@ -277,26 +280,25 @@ class Dnn_learner(BaseEstimator):
         X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
             default=None
             The input samples.
-        scale : bool, default=True
-            Whether to scale the continuous input variables.
 
         Returns
         -------
-        predictions : {array-like, sparse matrix)
-            The average predictions across the sub-DNN models.
+        predictions : {array-like, sparse matrix) of shape (n_test_samples, n_outputs)
+            The predictions across multi-outputs.
         """
         if isinstance(X, list):
-            X = [self.check_X_dim(el) for el in X]
+            X = [self.check_X_dimension(el) for el in X]
         else:
-            X = self.check_X_dim(X)
+            X = self.check_X_dimension(X)
 
         list_res = []
         for estimator_ind, estimator in enumerate(self.list_estimators):
+            estimator.preparing_test = self.preparing_test
             if isinstance(X, list):
                 curr_X = [el[estimator_ind, ...] for el in X]
-                list_res.append(estimator.predict_proba(curr_X, scale))
+                list_res.append(estimator.predict_proba(curr_X))
             else:
-                list_res.append(estimator.predict_proba(X[estimator_ind, ...], scale))
+                list_res.append(estimator.predict_proba(X[estimator_ind, ...]))
                 self.X_test[estimator_ind] = estimator.X_test.copy()
         return np.squeeze(np.array(list_res))
 
@@ -309,13 +311,13 @@ class Dnn_learner(BaseEstimator):
             for estimator in self.list_estimators:
                 setattr(estimator, key, value)
 
-    def check_X_dim(self, X):
+    def check_X_dimension(self, X):
         """
         This function checks for the compatibility of the dimensions of X
         """
-        if (len(X.shape) != 3) or (X.shape[0] != self.dim_repeat):
+        if (len(X.shape) != 3) or (X.shape[0] != self.dimension_repeat):
             X = np.squeeze(X)
-            X = np.array([X for i in range(self.dim_repeat)])
+            X = np.array([X for _ in range(self.dimension_repeat)])
 
         return X
 

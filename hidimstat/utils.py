@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# Authors: Binh Nguyen & Jerome-Alexis Chevalier & Ahmad Chamma
 import copy
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -104,7 +101,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 
     Parameters
     ----------
-    pvals : 2D ndarray (n_sampling_with_repitition, n_test)
+    pvals : 2D ndarray (n_sampling_with_repetition, n_test)
         p-value (adjusted)
 
     gamma : float
@@ -148,7 +145,7 @@ def _lambda_max(X, y, use_noise_estimate=True):
 def create_X_y(
     X,
     y,
-    sampling_with_repitition=True,
+    sampling_with_repetition=True,
     split_percentage=0.8,
     problem_type="regression",
     list_continuous=None,
@@ -163,8 +160,8 @@ def create_X_y(
         The input samples before the splitting process.
     y : ndarray, shape (n_samples, )
         The output samples before the splitting process.
-    sampling_with_repitition : bool, default=True
-        Sampling with repitition the train part of the train/valid scheme under
+    sampling_with_repetition : bool, default=True
+        Sampling with repetition the train part of the train/valid scheme under
         the training set. The number of training samples in train is equal to
         the number of instances in the training set.
     split_percentage : float, default=0.8
@@ -179,16 +176,16 @@ def create_X_y(
     Returns
     -------
     X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
-        The sampling_with_repititionped training input samples with scaled continuous variables.
+        The sampling_with_repetitionped training input samples with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
-        The sampling_with_repititionped training output samples scaled if continous.
-    X_valid_scaled : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
+        The sampling_with_repetitionped training output samples scaled if continous.
+    X_validation_scaled : {array-like, sparse matrix} of shape (n_validation_samples, n_features)
         The validation input samples with scaled continuous variables.
-    y_valid_scaled : {array-like} of shape (n_valid_samples, )
+    y_validation_scaled : {array-like} of shape (n_validation_samples, )
         The validation output samples scaled if continous.
     X_scaled : {array-like, sparse matrix} of shape (n_samples, n_features)
         The original input samples with scaled continuous variables.
-    y_valid : {array-like} of shape (n_samples, )
+    y_validation : {array-like} of shape (n_samples, )
         The original output samples with validation indices.
     scaler_x : Scikit-learn StandardScaler
         The standard scaler encoder for the continuous variables of the input.
@@ -201,7 +198,7 @@ def create_X_y(
     scaler_x, scaler_y = StandardScaler(), StandardScaler()
     n = X.shape[0]
 
-    if sampling_with_repitition:
+    if sampling_with_repetition:
         train_ind = rng.choice(n, n, replace=True)
     else:
         train_ind = rng.choice(
@@ -209,36 +206,36 @@ def create_X_y(
         )
     valid_ind = np.array([ind for ind in range(n) if ind not in train_ind])
 
-    X_train, X_valid = X[train_ind], X[valid_ind]
-    y_train, y_valid = y[train_ind], y[valid_ind]
+    X_train, X_validation = X[train_ind], X[valid_ind]
+    y_train, y_validation = y[train_ind], y[valid_ind]
 
     # Scaling X and y
     X_train_scaled = X_train.copy()
-    X_valid_scaled = X_valid.copy()
+    X_validation_scaled = X_validation.copy()
     X_scaled = X.copy()
 
     if len(list_continuous) > 0:
         X_train_scaled[:, list_continuous] = scaler_x.fit_transform(
             X_train[:, list_continuous]
         )
-        X_valid_scaled[:, list_continuous] = scaler_x.transform(
-            X_valid[:, list_continuous]
+        X_validation_scaled[:, list_continuous] = scaler_x.transform(
+            X_validation[:, list_continuous]
         )
         X_scaled[:, list_continuous] = scaler_x.transform(X[:, list_continuous])
     if problem_type == "regression":
         y_train_scaled = scaler_y.fit_transform(y_train)
-        y_valid_scaled = scaler_y.transform(y_valid)
+        y_validation_scaled = scaler_y.transform(y_validation)
     else:
         y_train_scaled = y_train.copy()
-        y_valid_scaled = y_valid.copy()
+        y_validation_scaled = y_validation.copy()
 
     return (
         X_train_scaled,
         y_train_scaled,
-        X_valid_scaled,
-        y_valid_scaled,
+        X_validation_scaled,
+        y_validation_scaled,
         X_scaled,
-        y_valid,
+        y_validation,
         scaler_x,
         scaler_y,
         valid_ind,
@@ -332,7 +329,7 @@ def joblib_ensemble_dnnet(
     activation_outcome=None,
     list_continuous=None,
     list_grps=None,
-    sampling_with_repitition=False,
+    sampling_with_repetition=False,
     split_percentage=0.8,
     group_stacking=False,
     input_dimensions=None,
@@ -366,8 +363,8 @@ def joblib_ensemble_dnnet(
     list_grps : list of lists, default=None
         A list collecting the indices of the groups' variables
         while applying the stacking method.
-    sampling_with_repitition : bool, default=True
-        Application of sampling_with_repitition sampling for the training set.
+    sampling_with_repetition : bool, default=True
+        Application of sampling_with_repetition sampling for the training set.
     split_percentage : float, default=0.8
         The training/validation cut for the provided data.
     group_stacking : bool, default=False
@@ -412,17 +409,17 @@ def joblib_ensemble_dnnet(
     (
         X_train_scaled,
         y_train_scaled,
-        X_valid_scaled,
-        y_valid_scaled,
+        X_validation_scaled,
+        y_validation_scaled,
         X_scaled,
-        y_valid,
+        y_validation,
         scaler_x,
         scaler_y,
         valid_ind,
     ) = create_X_y(
         X,
         y,
-        sampling_with_repitition=sampling_with_repitition,
+        sampling_with_repetition=sampling_with_repetition,
         split_percentage=split_percentage,
         problem_type=problem_type,
         list_continuous=list_continuous,
@@ -432,8 +429,8 @@ def joblib_ensemble_dnnet(
     current_model = dnn_net(
         X_train_scaled,
         y_train_scaled,
-        X_valid_scaled,
-        y_valid_scaled,
+        X_validation_scaled,
+        y_validation_scaled,
         problem_type=problem_type,
         n_epoch=n_epoch,
         batch_size=batch_size,
@@ -493,12 +490,14 @@ def joblib_ensemble_dnnet(
             pred_v = pred * scaler_y.scale_ + scaler_y.mean_
         else:
             pred_v = activation_outcome[problem_type](pred)
-        loss = np.std(y_valid) ** 2 - mean_squared_error(y_valid, pred_v[valid_ind])
+        loss = np.std(y_validation) ** 2 - mean_squared_error(
+            y_validation, pred_v[valid_ind]
+        )
     else:
         pred_v = activation_outcome[problem_type](pred)
         loss = log_loss(
-            y_valid, np.ones(y_valid.shape) * np.mean(y_valid, axis=0)
-        ) - log_loss(y_valid, pred_v[valid_ind])
+            y_validation, np.ones(y_validation.shape) * np.mean(y_validation, axis=0)
+        ) - log_loss(y_validation, pred_v[valid_ind])
 
     return (current_model, scaler_x, scaler_y, pred_v, loss)
 
@@ -666,12 +665,12 @@ def evaluate(model, loader, device, problem_type):
 def dnn_net(
     X_train,
     y_train,
-    X_valid,
-    y_valid,
+    X_validation,
+    y_validation,
     problem_type="regression",
     n_epoch=200,
     batch_size=32,
-    batch_size_val=128,
+    batch_size_validation=128,
     beta1=0.9,
     beta2=0.999,
     lr=1e-3,
@@ -694,9 +693,9 @@ def dnn_net(
         The training input samples.
     y_train : {array-like} of shape (n_train_samples, )
         The training output samples.
-    X_valid : {array-like, sparse matrix} of shape (n_valid_samples, n_features)
+    X_validation : {array-like, sparse matrix} of shape (n_validation_samples, n_features)
         The validation input samples.
-    y_valid : {array-like} of shape (n_valid_samples, )
+    y_validation : {array-like} of shape (n_validation_samples, )
         The validation output samples.
     problem_type : str, default='regression'
         A classification or a regression problem.
@@ -704,7 +703,7 @@ def dnn_net(
         The number of epochs for the DNN learner(s).
     batch_size : int, default=32
         The number of samples per batch for training.
-    batch_size_val : int, default=128
+    batch_size_validation : int, default=128
         The number of samples per batch for validation.
     beta1 : float, default=0.9
         The exponential decay rate for the first moment estimates.
@@ -737,7 +736,9 @@ def dnn_net(
         shuffle=True,
         batch_size=batch_size,
     )
-    validate_loader = Dataset_Loader(X_valid, y_valid, batch_size=batch_size_val)
+    validate_loader = Dataset_Loader(
+        X_validation, y_validation, batch_size=batch_size_validation
+    )
     # Set the seed for PyTorch's random number generator
     torch.manual_seed(random_state)
 
