@@ -128,62 +128,114 @@
 <h1>hidimstat.BlockBasedImportance<a class="headerlink" href="#hidimstat-blockbasedimportance" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="hidimstat.BlockBasedImportance">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">BlockBasedImportance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Mod_RF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coffeine_transformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_perc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_nominal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Perm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_perm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_stacking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_out_subLayers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_i</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com_imp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.BlockBasedImportance" title="Link to this definition">¶</a></dt>
-<dd><p>This class implements the Block-Based Importance (BBI),
-consisting of a learner block (first block) and an importance block (second
-block).
-For single-level see CHAMMA <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and for group-level
-see Chamma <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-aaai2024" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
-<dl class="field-list">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">BlockBasedImportance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DNN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampling_RF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coffeine_transformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_with_repetition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables_categories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residuals_sampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_stacking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_out_subLayers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_compute_importance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.BlockBasedImportance" title="Link to this definition">¶</a></dt>
+<dd><p>This class implements the Block-Based Importance (BBI), a framework for
+variable importance computation with statistical guarantees.
+It consists of two blocks of estimators: Learner block (Predicting on the
+data) and Importance block (Resampling the variable/group of interest to
+assess the impact on the loss). For single-level see
+CHAMMA <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and for group-level see
+Chamma <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-aaai2024" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl>
-<dt><strong>estimator: scikit-learn compatible estimator, default=None</strong></dt><dd><p>The provided estimator for the prediction task (First block).
-The default estimator is the DNN learner. Other options are (1) RF
-for Random Forest.</p>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>estimator</strong><span class="classifier">{String or sklearn.base.BaseEstimator}, default=”DNN”</span></dt><dd><p>The provided estimator for the learner block.
+The default estimator is a custom Multi-Layer Perceptron (MLP) learner.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>String options include:</dt><dd><ul>
+<li><p>“DNN” for the Multi-Layer Perceptron</p></li>
+<li><p>“RF” for the Random Forest</p></li>
+</ul>
 </dd>
-<dt><strong>importance_estimator: {scikit-learn compatible estimator or string},</strong></dt><dd><blockquote>
-<div><p>default=Mod_RF</p>
-</div></blockquote>
-<p>The provided estimator for the importance task (Second block).
-Using “Mod_RF” will apply the modified version of the Random Forest as
-the importance predictor.</p>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Other options include:</dt><dd><ul>
+<li><p>sklearn.base.BaseEstimator</p></li>
+</ul>
 </dd>
-<dt><strong>do_hypertuning: bool, default=True</strong></dt><dd><p>Tuning the hyperparameters of the provided estimator.</p>
+</dl>
+</li>
+</ul>
 </dd>
-<dt><strong>dict_hypertuning: dict, default=None</strong></dt><dd><p>The dictionary of hyperparameters to tune.</p>
+<dt><strong>importance_estimator</strong><span class="classifier">{String or sklearn.base.BaseEstimator}, default=”sampling_RF”</span></dt><dd><p>The provided estimator for the importance block.
+The default estimator includes the use of the sampling Random Forest
+where the sampling is executed in the corresponding leaf of each
+instance within its neighbors</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>String options include:</dt><dd><ul>
+<li><p>“sampling_RF” for the sampling Random Forest</p></li>
+<li><p>“residuals_RF” for the Random Forest along with the residuals path
+for importance computation</p></li>
+</ul>
 </dd>
-<dt><strong>problem_type: str, default=’regression’</strong></dt><dd><p>A classification or a regression problem.</p>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Other options include:</dt><dd><ul>
+<li><p>sklearn.base.BaseEstimator</p></li>
+</ul>
 </dd>
-<dt><strong>bootstrap: bool, default=True</strong></dt><dd><p>Application of bootstrap sampling for the training set.</p>
+</dl>
+</li>
+</ul>
 </dd>
-<dt><strong>split_perc: float, default=0.8</strong></dt><dd><p>The training/validation cut for the provided data.</p>
+<dt><strong>coffeine_transformer</strong><span class="classifier">tuple, default=None</span></dt><dd><p>Applying the coffeine’s pipeline for filterbank models on
+electrophysiological data.
+The tuple cosists of (coffeine pipeline, new number of variables) or
+(coffeine pipeline, new number of variables, list of variables to keep
+after variable selection).</p>
 </dd>
-<dt><strong>conditional: bool, default=True</strong></dt><dd><p>The permutation or the conditional sampling approach.</p>
+<dt><strong>do_hypertuning</strong><span class="classifier">bool, default=True</span></dt><dd><p>Tuning the hyperparameters of the provided estimator.</p>
 </dd>
-<dt><strong>list_nominal: dict, default=None</strong></dt><dd><p>The dictionary of binary, nominal and ordinal variables.</p>
+<dt><strong>dict_hypertuning</strong><span class="classifier">dict, default=None</span></dt><dd><p>The dictionary of hyperparameters to tune, depending on the provided
+inference estimator.</p>
 </dd>
-<dt><strong>Perm: bool, default=False</strong></dt><dd><p>The use of permutations or random sampling with CPI-DNN.</p>
+<dt><strong>problem_type</strong><span class="classifier">str, default=’regression’</span></dt><dd><p>A classification or a regression problem.</p>
 </dd>
-<dt><strong>n_perm: int, default=50</strong></dt><dd><p>The number of permutations/random sampling for each column.</p>
+<dt><strong>encoding_input</strong><span class="classifier">bool, default=True</span></dt><dd><p>To one-hot or ordinal encode the nominal and ordinal input variables.</p>
 </dd>
-<dt><strong>n_jobs: int, default=1</strong></dt><dd><p>The number of workers for parallel processing.</p>
+<dt><strong>sampling_with_repetition</strong><span class="classifier">bool, default=True</span></dt><dd><p>Sampling with repetition the train part of the train/valid scheme under
+the training set. The number of training samples in train is equal to
+the number of instances in the training set.</p>
 </dd>
-<dt><strong>verbose: int, default=0</strong></dt><dd><p>If verbose &gt; 0, the fitted iterations will be printed.</p>
+<dt><strong>split_percentage</strong><span class="classifier">float, default=0.8</span></dt><dd><p>The training/validation cut for the provided data.</p>
 </dd>
-<dt><strong>groups: dict, default=None</strong></dt><dd><p>The knowledge-driven/data-driven grouping of the variables if provided.</p>
+<dt><strong>conditional</strong><span class="classifier">bool, default=True</span></dt><dd><p>The permutation or the conditional sampling approach.</p>
 </dd>
-<dt><strong>group_stacking: bool, default=False</strong></dt><dd><p>Apply the stacking-based method for the provided groups.</p>
+<dt><strong>variables_categories</strong><span class="classifier">dict, default=None</span></dt><dd><p>The dictionary of binary, nominal and ordinal variables.</p>
 </dd>
-<dt><strong>prop_out_subLayers: int, default=0.</strong></dt><dd><p>If group_stacking is set to True, proportion of outputs for
+<dt><strong>residuals_sampling</strong><span class="classifier">bool, default=False</span></dt><dd><p>The use of permutations or random sampling for residuals with the
+conditional sampling.</p>
+</dd>
+<dt><strong>n_permutations</strong><span class="classifier">int, default=50</span></dt><dd><p>The number of permutations/random samplings for each column.</p>
+</dd>
+<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>The number of workers for parallel processing.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">int, default=0</span></dt><dd><p>If verbose &gt; 0, the fitted iterations will be printed.</p>
+</dd>
+<dt><strong>groups</strong><span class="classifier">dict, default=None</span></dt><dd><p>The knowledge-driven/data-driven grouping of the variables if provided.</p>
+</dd>
+<dt><strong>group_stacking</strong><span class="classifier">bool, default=False</span></dt><dd><p>Apply the stacking-based method for the provided groups.</p>
+</dd>
+<dt><strong>sub_groups</strong><span class="classifier">dict, default=None</span></dt><dd><p>The list of provided variables’s indices to condition on per
+variable/group of interest (default set to all the remaining variables).</p>
+</dd>
+<dt><strong>k_fold</strong><span class="classifier">int, default=2</span></dt><dd><p>The number of folds for k-fold cross fitting.</p>
+</dd>
+<dt><strong>prop_out_subLayers</strong><span class="classifier">int, default=0.</span></dt><dd><p>If group_stacking is True, the proportion of outputs for
 the linear sub-layers per group.</p>
 </dd>
-<dt><strong>index_i: int, default=None</strong></dt><dd><p>The index of the current processed iteration.</p>
+<dt><strong>iteration_index</strong><span class="classifier">int, default=None</span></dt><dd><p>The index of the current processed iteration.</p>
 </dd>
-<dt><strong>random_state: int, default=2023</strong></dt><dd><p>Fixing the seeds of the random generator.</p>
+<dt><strong>random_state</strong><span class="classifier">int, default=2023</span></dt><dd><p>Fixing the seeds of the random generator.</p>
 </dd>
-<dt><strong>com_imp: boolean, default=True</strong></dt><dd><p>Compute or not the importance scores.</p>
+<dt><strong>do_compute_importance</strong><span class="classifier">boolean, default=True</span></dt><dd><p>Whether to compute the Importance Scores.</p>
 </dd>
-<dt><strong>group_label: list, default=None</strong></dt><dd><p>The list of group labels to perform GroupKFold</p>
+<dt><strong>group_fold</strong><span class="classifier">list, default=None</span></dt><dd><p>The list of group labels to perform GroupKFold to keep subjects within
+the same training or test set.</p>
 </dd>
 </dl>
 </dd>
@@ -201,16 +253,9 @@ the linear sub-layers per group.</p>
 </aside>
 </aside>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>ToDO</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="hidimstat.BlockBasedImportance.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Mod_RF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coffeine_transformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_perc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_nominal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Perm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_perm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_stacking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_out_subLayers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_i</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com_imp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.BlockBasedImportance.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DNN'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sampling_RF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coffeine_transformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_hypertuning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_with_repetition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables_categories</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residuals_sampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_stacking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prop_out_subLayers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iteration_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2023</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_compute_importance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_fold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.BlockBasedImportance.__init__" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -220,10 +265,10 @@ the linear sub-layers per group.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_importance</span></code>([X, y])</p></td>
-<td><p>This function is used to compute the importance scores and the statistical guarantees for the different variables/groups ---------- X : {array-like, sparse-matrix}, shape (n_samples, n_features)     The input samples. y : {array-like}, shape (n_samples,)     The output samples. Returns ------- results : dict     The dictionary of importance scores, p-values and the corresponding     score.</p></td>
+<td><p>This function computes the importance scores and the statistical guarantees per variable/group of interest</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X[, y])</p></td>
-<td><p>Build the provided estimator with the training set (X, y) Parameters ---------- X : {array-like, sparse matrix}, shape (n_samples, n_features)     The training input samples. y : None     There is no need of a target in a transformer, yet the pipeline API     requires this parameter. Returns ------- self : object     Returns self.</p></td>
+<td><p>Build the provided estimator with the training set (X, y)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_transform</span></code>(X[, y])</p></td>
 <td><p>Fit to data, then transform it.</p></td>
@@ -234,23 +279,17 @@ the linear sub-layers per group.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
 <td><p>Get parameters for this estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>([X, encoding])</p></td>
-<td><p>Predict regression target for X. Parameters ---------- X : {array-like, sparse matrix}, shape (n_samples, n_features)     The input samples. Returns ------- y : ndarray, shape (n_samples,)     Returns an array of ones.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>([X])</p></td>
+<td><p>This function predicts the regression target for the input samples X.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_proba</span></code>([X, encoding])</p></td>
-<td><p>Predict class probabilities for X. ToDo Parameters ---------- X : {array-like, sparse matrix}, shape (n_samples, n_features)     The input samples. Returns ------- y : ndarray, shape (n_samples,)     Returns an array of ones.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_proba</span></code>([X])</p></td>
+<td><p>This function predicts the class probabilities for the input samples X.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_output</span></code>(*[, transform])</p></td>
 <td><p>Set output container.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_params</span></code>(**params)</p></td>
 <td><p>Set the parameters of this estimator.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_predict_proba_request</span></code>(*[, encoding])</p></td>
-<td><p>Request metadata passed to the <code class="docutils literal notranslate"><span class="pre">predict_proba</span></code> method.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_predict_request</span></code>(*[, encoding])</p></td>
-<td><p>Request metadata passed to the <code class="docutils literal notranslate"><span class="pre">predict</span></code> method.</p></td>
 </tr>
 </tbody>
 </table>
@@ -271,7 +310,7 @@ the linear sub-layers per group.</p>
     </p>
     <p>
         &copy; Copyright 2024, Mind-Inria.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.4.6.<br/>
     </p>
   </div>
 </footer>
