@@ -12,11 +12,12 @@ To reduce the script runtime it is desirable to increase n_jobs parameter.
 """
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
+from sklearn.preprocessing import StandardScaler
+
 from hidimstat.knockoffs import knockoff_aggregation, model_x_knockoff
 from hidimstat.knockoffs.data_simulation import simu_data
 from hidimstat.knockoffs.utils import cal_fdp_power
-from joblib import Parallel, delayed
-from sklearn.preprocessing import StandardScaler
 
 color_blue = "#1f77b4"
 color_teal = "#1fbecf"

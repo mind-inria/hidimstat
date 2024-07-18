@@ -2,10 +2,11 @@
 Test the importance functions module
 """
 
-from hidimstat.importance_functions import compute_loco
 import numpy as np
 import pandas as pd
 from sklearn.datasets import make_classification, make_regression
+
+from hidimstat.importance_functions import compute_loco
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)

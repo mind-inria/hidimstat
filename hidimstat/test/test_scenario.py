@@ -5,9 +5,11 @@ Test the scenario module
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.scenario import multivariate_simulation
-from hidimstat.scenario import multivariate_temporal_simulation
+from hidimstat.scenario import (
+    multivariate_1D_simulation,
+    multivariate_simulation,
+    multivariate_temporal_simulation,
+)
 
 ROI_SIZE_2D = 2
 SHAPE_2D = (12, 12)

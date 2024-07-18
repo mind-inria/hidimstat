@@ -4,9 +4,10 @@ Test the BBI module
 
 import numpy as np
 import pandas as pd
-from hidimstat.BBI import BlockBasedImportance
 from sklearn.datasets import make_classification, make_regression
 from sklearn.model_selection import train_test_split
+
+from hidimstat.BBI import BlockBasedImportance
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
@@ -112,7 +113,7 @@ def test_BBI_splitting_scheme():
         estimator="RF",
         do_hypertuning=True,
         dict_hypertuning=None,
-        sampling_with_repitition=True,
+        sampling_with_repetition=True,
         conditional=False,
         problem_type="regression",
         k_fold=2,
@@ -130,7 +131,7 @@ def test_BBI_splitting_scheme():
         estimator="RF",
         do_hypertuning=True,
         dict_hypertuning=None,
-        sampling_with_repitition=True,
+        sampling_with_repetition=True,
         split_percentage=0.8,
         conditional=False,
         problem_type="regression",

@@ -51,20 +51,20 @@ References
        arXiv preprint arXiv:2106.02590.
 """
 
+import matplotlib.pyplot as plt
+
 #############################################################################
 # Imports needed for this script
 # ------------------------------
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.feature_extraction import image
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.feature_extraction import image
 
-from hidimstat.scenario import multivariate_simulation
-from hidimstat.stat_tools import zscore_from_pval, pval_from_cb
-from hidimstat.desparsified_lasso import desparsified_lasso
 from hidimstat.clustered_inference import clustered_inference
+from hidimstat.desparsified_lasso import desparsified_lasso
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-
+from hidimstat.scenario import multivariate_simulation
+from hidimstat.stat_tools import pval_from_cb, zscore_from_pval
 
 #############################################################################
 # Specific plotting functions

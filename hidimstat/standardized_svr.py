@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
-from sklearn.svm import LinearSVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVR
 
 
 def standardized_svr(X, y, Cs=np.logspace(-7, 1, 9), n_jobs=1):
