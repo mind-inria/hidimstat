@@ -133,7 +133,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     Returns
     -------
     1D ndarray (n_tests, )
-        Vector of aggregated p-value
+        Vector of aggregated p-values
     """
     converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
 

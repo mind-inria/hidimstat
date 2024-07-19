@@ -34,7 +34,89 @@ def knockoff_aggregation(
     memory=None,
     random_state=None,
 ):
+    """
+    This function implements the aggregation of multiple knockoffs introduced by
+    :footcite:t:`pmlr-v119-nguyen20a`
 
+    Parameters
+    ----------
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The input samples.
+    y : array-like of shape (n_samples,),
+        The target values (class labels in classification, real numbers in
+        regression).
+    centered : bool, default=True
+        Whether to standardize the data before doing the inference procedure.
+    shrink : bool, default=False
+        Whether to shrink the empirical covariance matrix.
+    construct_method : str, default="equi"
+        The knockoff construction methods. The options include:
+        - "equi" for equi-correlated knockoff
+        - "sdp" for optimization scheme
+    fdr : float, default=0.1
+        The desired controlled FDR level
+    fdr_control : srt, default="bhq"
+        The control method for False Discovery Rate (FDR). The options include:
+        - "bhq" for Standard Benjamini-Hochberg procedure
+        - "bhy" for Benjamini-Hochberg-Yekutieli procedure
+        - "ebh" for e-BH procedure
+    reshaping_function : <class 'function'>, default=None
+        The reshaping function defined in :footcite:t:`bhy_2001`.
+    offset : int, 0 or 1, optional
+        The offset to calculate knockoff threshold, offset = 1 is equivalent to
+        knockoff+.
+    method : srt, default="quantile"
+        The method to compute the statistical measures. The options include:
+        - "quantile" for p-values
+        - "e-values" for e-values
+    statistic : srt, default="lasso_cv"
+        The method to calculate knockoff test score.
+    cov_estimator : srt, default="ledoitwolf"
+        The method of empirical covariance matrix estimation.
+    joblib_versobe : int, default=0
+       The verbosity level of joblib: if non zero, progress messages are
+       printed. Above 50, the output is sent to stdout. The frequency of the
+       messages increases with the verbosity level. If it more than 10, all
+       iterations are reported.
+    n_bootstraps : int, default=25
+        The number of bootstrapping iterations.
+    n_jobs : int, default=1
+        The number of workers for parallel processing.
+    adaptive_aggregation : bool, default=False
+        Whether to apply the adaptive version of the quantile aggregation method
+        as in :footcite:t:`Meinshausen_2008`.
+    gamma: float, default=0.5
+        The percentile value used for aggregation.
+    gamma_min : float, default=0.05
+        The minimum percentile value used for aggregation.
+    verbose : bool, default=False
+        Whether to return the corresponding p-values of the variables along with
+        the list of selected variables.
+    memory : str or joblib.Memory object, default=None
+        Used to cache the output of the computation of the clustering
+        and the inference. By default, no caching is done. If a string is
+        given, it is the path to the caching directory.
+    random_state : int, default=None
+        Fixing the seeds of the random generator.
+
+    Returns
+    -------
+    selected : 1D array, int
+        The vector of index of selected variables.
+    aggregated_pval: 1D array, float
+        The vector of aggregated p-values.
+    pvals: 1D array, float
+        The vector of the corresponding p-values.
+    aggregated_eval: 1D array, float
+        The vector of aggregated e-values.
+    evals: 1D array, float
+        The vector of the corresponding e-values.
+
+    References
+    ----------
+    .. footbibliography::
+
+    """
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
 
@@ -121,7 +203,9 @@ def knockoff_aggregation(
 
 
 def _empirical_pval(test_score, offset=1):
-
+    """
+    This function implements the computation of the empirical p-values
+    """
     pvals = []
     n_features = test_score.size
 
@@ -141,7 +225,9 @@ def _empirical_pval(test_score, offset=1):
 
 
 def _empirical_eval(test_score, fdr=0.1, offset=1):
-
+    """
+    This function implements the computation of the empirical e-values
+    """
     evals = []
     n_features = test_score.size
 
