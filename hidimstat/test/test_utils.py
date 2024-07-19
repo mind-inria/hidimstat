@@ -1,13 +1,8 @@
 from hidimstat.data_simulation import simu_data
-from hidimstat.gaussian_knockoff import (
-    _estimate_distribution,
-    gaussian_knockoff_generation,
-)
 from hidimstat.utils import fdr_threshold, cal_fdp_power, quantile_aggregation
-
 from numpy.testing import assert_array_almost_equal
-
 import numpy as np
+import pytest
 
 seed = 42
 
@@ -18,12 +13,18 @@ def test_fdr_threshold():
 
     e_values = 1 / p_values
 
-    bh_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
-
+    bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
+    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
-    # Test BH
-    assert len(p_values[p_values <= bh_cutoff]) == 20
+    with pytest.raises(Exception):
+        _ = fdr_threshold(e_values, fdr=0.1, method="test")
+
+    # Test BHq
+    assert len(p_values[p_values <= bhq_cutoff]) == 20
+
+    # Test BHy
+    assert len(p_values[p_values <= bhy_cutoff]) == 20
 
     # Test e-BH
     assert len(e_values[e_values >= ebh_cutoff]) == 20
@@ -31,11 +32,15 @@ def test_fdr_threshold():
     null_p_values = np.linspace(1.0e-6, 1 - 1.0e-6, 100)
     null_e_values = 1 / null_p_values
 
-    null_bh_cutoff = fdr_threshold(null_p_values, fdr=0.1, method="bhq")
+    null_bhq_cutoff = fdr_threshold(null_p_values, fdr=0.1, method="bhq")
+    null_bhy_cutoff = fdr_threshold(null_p_values, fdr=0.1, method="bhy")
     null_ebh_cutoff = fdr_threshold(null_e_values, fdr=0.1, method="ebh")
 
-    # Test BH on null data
-    assert len(null_p_values[null_p_values <= null_bh_cutoff]) <= 1
+    # Test BHq on null data
+    assert len(null_p_values[null_p_values <= null_bhq_cutoff]) <= 1
+
+    # Test BHq on null data
+    assert len(null_p_values[null_p_values <= null_bhy_cutoff]) <= 1
 
     # Test eBH on null data
     assert len(null_e_values[null_e_values >= null_ebh_cutoff]) <= 1
