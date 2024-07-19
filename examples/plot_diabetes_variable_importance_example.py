@@ -3,7 +3,7 @@ Variable Importance on diabetes dataset
 =======================================
 
 Variable Importance estimates the influence of a given input variable to the
-prediction made by a model. To perform variable importance in a prediction
+prediction made by a model. To assess variable importance in a prediction
 problem, :footcite:t:`breimanRandomForests2001` introduced the permutation
 approach where the values are shuffled for one variable/column at a time. This
 permutation breaks the relationship between the variable of interest and the
@@ -26,7 +26,7 @@ information: 1) the relationship with the remaining variables and 2) the
 relationship with the outcome. The standard permutation, while breaking the
 relationship with the outcome, is also destroying the dependency with the
 remaining variables. Therefore, instead of directly permuting the variable of
-interest, the variable of interest is predicted by the mean of the remaining
+interest, the variable of interest is predicted by the remaining
 variables and the residuals of this prediction are permuted before
 reconstructing the new version of the variable. This solution preserves the
 dependency with the remaining variables.
