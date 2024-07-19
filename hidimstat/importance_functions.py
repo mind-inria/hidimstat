@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.stats import ttest_1samp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
@@ -34,7 +35,11 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         A dictionary containing the importance scores (importance_score) and
         p-values (p_value).
     """
+    # Convert X to pandas dataframe
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
     y = np.array(y)
+
     dict_vals = {"importance_score": [], "p_value": []}
     dict_encode_outcome = {"regression": False, "classification": True}
 
@@ -133,4 +138,7 @@ def compute_loco(X, y, ntree=100, problem_type="regression", use_dnn=True, seed=
         dict_vals["importance_score"].append(np.mean(delta))
         dict_vals["p_value"].append(p_value)
 
+    # Convert lists to numpy array
+    dict_vals["importance_score"] = np.array(dict_vals["importance_score"])
+    dict_vals["p_value"] = np.array(dict_vals["p_value"])
     return dict_vals

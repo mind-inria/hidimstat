@@ -2,6 +2,25 @@
 Conditional sampling using residuals vs sampling Random Forest
 ==============================================================
 
+To deploy the Conditional Permutation Importance (CPI),
+:footcite:t:`Chamma_NeurIPS2023` described two main approaches for the
+conditional scheme: 1) Instead of directly permuting the variable of interest as
+in the Permutation Feature Importance (PFI), the residuals of the prediction of
+the variable of interest x_j based on the remaining variables is first computed
+along with a predicted version x_hat_j. These residuals are shuffled and added
+to the predicted version to recreate the variable of interest (Preserving the
+dependency between the variable of interest and the remaining variables while
+breaking the relationship with the outcome). 2) Another option is to use the
+sampling Random Forest. Using the remaining variables to predict the variable of
+interest, and instead of predicting the variable of interest as the mean of the
+instances' outcome of the targeted leaf or the class with the most occurences,
+we sample from the same leaf of the instance of interest within its neighbors,
+and we follow the standard path of the Random Forest.
+
+References
+----------
+.. footbibliography::
+
 """
 
 #############################################################################
@@ -19,7 +38,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import roc_auc_score
 import time
 
-n, p = (1000, 12)
+n, p = (100, 12)
 inter_cor, intra_cor = (0, 0.85)
 n_blocks = 1
 n_signal = 2
@@ -32,11 +51,11 @@ dict_hyper = {"max_depth": [2, 5, 10, 20]}
 # Generate the synthetic data
 # ---------------------------
 # The function below generates the correlation matrix between the variables
-# according to the provided degrees of correlation (intra + inter). (inter_cor)
+# according to the provided degrees of correlation (intra + inter). `inter_cor`
 # indicates the degree of correlation between the variables/groups whereas
-# (intra_cor) specifies the corresponding degree between the variables within
-# each group. For the single-level case, the (n_blocks) is set to 1 and the
-# (intra_cor) illustrates the correlation between the variables.
+# `intra_cor` specifies the corresponding degree between the variables within
+# each group. For the single-level case, `n_blocks` is set to 1 and the
+# `intra_cor` is the unique correlation between variables.
 #
 # Next, we generate the synthetic data by randomly drawing n_signal predictors
 # from the corresponding p variables and reordering the set of variables to put the
@@ -98,7 +117,7 @@ def _generate_data(seed):
 # Processing across multiple permutations
 # ---------------------------------------
 # In order to get statistical significance with p-values, we run the experiments
-# across 100 repetitions.
+# across 10 repetitions.
 #
 
 
@@ -107,12 +126,12 @@ def compute_simulations(seed):
     # Using the residuals
     start_residuals = time.time()
     bbi_residual = BlockBasedImportance(
-        estimator="DNN",
+        estimator="RF",
         importance_estimator="residuals_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=True,
-        n_permutations=50,
+        n_permutations=10,
         n_jobs=2,
         problem_type="regression",
         k_fold=2,
@@ -133,12 +152,12 @@ def compute_simulations(seed):
     # Using the sampling RF
     start_sampling = time.time()
     bbi_sampling = BlockBasedImportance(
-        estimator="DNN",
+        estimator="RF",
         importance_estimator="sampling_RF",
         do_hypertuning=True,
         dict_hypertuning=None,
         conditional=True,
-        n_permutations=50,
+        n_permutations=10,
         n_jobs=2,
         problem_type="regression",
         k_fold=2,
@@ -160,6 +179,7 @@ def compute_simulations(seed):
     return df_final
 
 
+# Running across 10 repetitions
 parallel = Parallel(n_jobs=2, verbose=1)
 final_result = parallel(
     delayed(compute_simulations)(seed=seed) for seed in np.arange(1, 11)
