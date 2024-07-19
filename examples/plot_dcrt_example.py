@@ -16,7 +16,8 @@ import numpy as np
 from hidimstat.dcrt import dcrt_zero
 from hidimstat.scenario import multivariate_1D_simulation
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 21})
+
+plt.rcParams.update({"font.size": 21})
 
 typeI_error = {"Lasso": [], "Forest": []}
 power = {"Lasso": [], "Forest": []}
