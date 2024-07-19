@@ -1,17 +1,29 @@
 """
+Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners
+=====================================================================================
+
 This example compares the performance of d0crt based on
 the lasso (1) and random forest (2) implementations. The number of
-repetitions is set to 100. The metrics used are the type-I error and
+repetitions is set to 10. The metrics used are the type-I error and
 the power
 """
 
+#############################################################################
+# Imports needed for this script
+# ------------------------------
+
 import numpy as np
-import matplotlib.pyplot as plt
 from hidimstat.dcrt import dcrt_zero
 from hidimstat.scenario import multivariate_1D_simulation
+import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 21})
 
 typeI_error = {"Lasso": [], "Forest": []}
 power = {"Lasso": [], "Forest": []}
+
+#############################################################################
+# Processing the computations
+# ---------------------------
 
 for sim_ind in range(10):
     print(f"Processing: {sim_ind+1}")
@@ -53,15 +65,19 @@ for sim_ind in range(10):
     )
     power["Forest"].append(sum(results_forest[1][:n_signal] < alpha) / (n_signal))
 
-fig, ax = plt.subplots()
-ax.set_title("Type-I Error")
-ax.boxplot(typeI_error.values())
-ax.set_xticklabels(typeI_error.keys())
-ax.axhline(linewidth=1, color="r")
+#############################################################################
+# Plotting the comparison
+# -----------------------
 
-fig, ax = plt.subplots()
-ax.set_title("Power")
-ax.boxplot(power.values())
-ax.set_xticklabels(power.keys())
+fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 10))
+ax[0].set_title("Type-I Error")
+ax[0].boxplot(typeI_error.values())
+ax[0].set_xticklabels(typeI_error.keys())
+ax[0].axhline(linewidth=1, color="r")
+
+ax[1].set_title("Power")
+ax[1].boxplot(power.values())
+ax[1].set_xticklabels(power.keys())
+ax[1].set_ylim(0.5, 1)
 
 plt.show()
