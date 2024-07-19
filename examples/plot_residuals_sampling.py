@@ -228,3 +228,10 @@ axs[1].violinplot(typeI_error, showmeans=False, showmedians=True, vert=False)
 axs[1].set_title("Type-I Error")
 axs[1].axvline(x=0.05, color="r", label="Nominal Rate")
 plt.show()
+
+#############################################################################
+# Analysis of the results
+# -----------------------
+# We can observe that the sampling approaches'performance is almost similar to
+# that of the residuals. Sampling accelerates the conditional importance
+# computation by simplifying the residuals steps.
