@@ -1,8 +1,3 @@
-"""Implementation of distillation Conditional Randomization Test, by Liu et
-al. (2020) <https://arxiv.org/abs/2006.03980>. Currently only d0_CRT
-is implemented.
-"""
-
 import numpy as np
 from joblib import Parallel, delayed
 from hidimstat.utils import _lambda_max, fdr_threshold
@@ -19,10 +14,11 @@ def dcrt_zero(
     fdr=0.1,
     estimated_coef=None,
     Sigma_X=None,
-    cv=5,
-    n_regus=20,
-    max_iter=1000,
     use_cv=False,
+    cv=5,
+    n_alphas=20,
+    alpha=None,
+    max_iter=1000,
     refit=False,
     loss="least_square",
     screening=True,
@@ -30,17 +26,106 @@ def dcrt_zero(
     scaled_statistics=False,
     statistic="residual",
     centered=True,
-    alpha=None,
-    solver="liblinear",
     fdr_control="bhq",
     n_jobs=1,
     verbose=False,
     joblib_verbose=0,
     ntree=100,
-    type_prob="regression",
+    problem_type="regression",
     random_state=2022,
 ):
+    """
+    This function implements the Conditional Randomization Test of
+    :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
+    process `dcrt_zero` in the work by :footcite:t:`liuFastPowerfulConditional2021`.
 
+    Parameters
+    ----------
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The input samples.
+    y : array-like of shape (n_samples,)
+        The target values (class labels in classification, real numbers in
+        regression).
+    fdr : float, default=0.1
+        The desired controlled FDR level.
+    estimated_coef : array-like of shape (n_features,)
+        The array of the corresponding coefficients for the features.
+    Sigma_X : {array-like, sparse matrix} of shape (n_features, n_features)
+        The covariance matrix of X.
+    use_cv : bool, default=False
+        Whether to apply cross-validation for the distillation with Lasso.
+    cv : int, cross-validation generator or iterable, default=None
+        Determines the cross-validation splitting strategy. Possible inputs for
+        cv are:
+        - None, to use the default 5-fold cross-validation,
+        - int, to specify the number of folds.
+        - CV splitter,
+        - An iterable yielding (train, test) splits as arrays of indices.
+    n_alphas : int, default=20
+        The number of alphas along the regularization path for
+        sklearn.linear_model.LassoCV().
+    alpha : float, default=None
+        Constant that multiplies the L1 term, controlling regularization
+        strength. alpha must be a non-negative float i.e. in [0, inf).
+    max_iter : int, default=1000
+        The maximum number of iterations.
+    refit : bool, default=False
+        If estimated_coef is not provided, whether to refit with the estimated support set to possibly find better
+        coeffcients magnitude.
+    loss : str, default="least_square"
+        The loss function used for the distillation of X.
+    screening : bool, default=True
+        Speed up the computation of score function by only running it later on
+        estimated support set.
+    screening_threshold : float, default=1e-1
+        The threshold for the estimated support set. screening_threshold must be
+        a non-negative float in (0, 100).
+    scaled_statistics : bool, default=False
+        Whether to scale the test statistics.
+    statistic : str, default='residual'
+        The estimator used to distill the outcome based on the remaining
+        variables after removing the variable of interest. The options include:
+        - "residual" for the Lasso learner
+        - "randomforest" for the Random Forest learner
+    centered : bool, default=True
+        Whether to standard scale the input features using
+        sklearn.preprocessing.StandardScaler().
+    fdr_control : srt, default="bhq"
+        The control method for False Discovery Rate (FDR). The options include:
+        - "bhq" for Standard Benjamini-Hochberg procedure
+        - "bhy" for Benjamini-Hochberg-Yekutieli procedure
+        - "ebh" for e-BH procedure
+    n_jobs : int, default=1
+        The number of workers for parallel processing.
+    verbose : bool, default=False
+        Whether to return the corresponding p-values and test statistics of the
+        variables along with the list of selected variables.
+    joblib_versobe : int, default=0
+       The verbosity level of joblib: if non zero, progress messages are
+       printed. Above 50, the output is sent to stdout. The frequency of the
+       messages increases with the verbosity level. If it more than 10, all
+       iterations are reported.
+    ntree : int, default=100
+        The number of trees for the distillation using the Random Forest
+        learner.
+    problem_type : str, default='regression'
+        A classification or a regression problem.
+    random_state : int, default=2023
+        Fixing the seeds of the random generator.
+
+    Returns
+    -------
+    selected : 1D array, int
+        The vector of index of selected variables.
+    pvals: 1D array, float
+        The vector of the corresponding p-values.
+    ts: 1D array, float
+        The vector of the corresponding test statistics.
+
+    References
+    ----------
+    .. footbibliography::
+    """
     if centered:
         X = StandardScaler().fit_transform(X)
 
@@ -51,7 +136,7 @@ def dcrt_zero(
             clf = LassoCV(
                 cv=cv,
                 n_jobs=n_jobs,
-                n_alphas=n_regus * 2,
+                n_alphas=n_alphas * 2,
                 tol=1e-6,
                 fit_intercept=False,
                 random_state=0,
@@ -73,8 +158,6 @@ def dcrt_zero(
     )[0]
     coef_X_full[non_selection] = 0.0
 
-    # Screening step -- speed up computation of score function by only running
-    # it later on estimated support set
     if screening:
         selection_set = np.setdiff1d(np.arange(n_features), non_selection)
 
@@ -85,8 +168,6 @@ def dcrt_zero(
     else:
         selection_set = np.arange(n_features)
 
-    # refit with estimated support to possibly find better coeffcients
-    # magnitude, as remarked in Ning & Liu 17
     if refit and estimated_coef is None and selection_set.size < n_features:
         clf_refit = clone(clf)
         clf_refit.fit(X[:, selection_set], y)
@@ -107,7 +188,7 @@ def dcrt_zero(
                     use_cv=use_cv,
                     alpha=alpha,
                     n_jobs=1,
-                    n_regus=5,
+                    n_alphas=5,
                 )
                 for idx in selection_set
             )
@@ -125,10 +206,10 @@ def dcrt_zero(
                     use_cv=use_cv,
                     alpha=alpha,
                     n_jobs=1,
-                    n_regus=n_regus,
+                    n_alphas=n_alphas,
                     ntree=ntree,
                     loss=loss,
-                    type_prob=type_prob,
+                    problem_type=problem_type,
                     random_state=random_state,
                 )
                 for idx in selection_set
@@ -145,8 +226,8 @@ def dcrt_zero(
 
     if statistic in ["residual", "randomforest"]:
         pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
-    elif statistic == "likelihood":
-        pvals = stats.chi2.sf(ts, 1)
+    # elif statistic == "likelihood":
+    #     pvals = stats.chi2.sf(ts, 1)
 
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
@@ -158,15 +239,18 @@ def dcrt_zero(
 
 
 def _x_distillation_lasso(
-    X, idx, Sigma_X=None, cv=3, n_regus=100, alpha=None, use_cv=False, n_jobs=1
+    X, idx, Sigma_X=None, cv=3, n_alphas=100, alpha=None, use_cv=False, n_jobs=1
 ):
-
+    """
+    This function applies the distillation of the variable of interest with the
+    remaining variables using the lasso
+    """
     n_samples = X.shape[0]
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     if Sigma_X is None:
         if use_cv:
-            clf = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_regus, random_state=0)
+            clf = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=0)
             clf.fit(X_minus_idx, X[:, idx])
             alpha = clf.alpha_
         else:
@@ -202,13 +286,14 @@ def _lasso_distillation_residual(
     coef_full,
     Sigma_X=None,
     cv=3,
-    n_regus=50,
+    n_alphas=50,
+    alpha=None,
     n_jobs=1,
     use_cv=False,
-    alpha=None,
     fit_y=False,
 ):
-    """Standard Lasso Distillation following Liu et al. (2020) section 2.4. Only
+    """
+    Standard Lasso Distillation following Liu et al. (2020) section 2.4. Only
     works for least square loss regression.
     """
     n_samples, _ = X.shape
@@ -223,13 +308,13 @@ def _lasso_distillation_residual(
         cv=cv,
         use_cv=use_cv,
         alpha=alpha,
-        n_regus=n_regus,
+        n_alphas=n_alphas,
         n_jobs=n_jobs,
     )
 
     # Distill Y - calculate residual
     if use_cv:
-        clf_null = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_regus, random_state=0)
+        clf_null = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=0)
     else:
         if alpha is None:
             alpha = 0.5 * _lambda_max(X_minus_idx, y, use_noise_estimate=False)
@@ -250,37 +335,36 @@ def _lasso_distillation_residual(
     return ts
 
 
-def _optimal_reg_param(
-    X,
-    y,
-    loss="least_square",
-    n_regus=200,
-    cv=5,
-    n_jobs=1,
-    solver="liblinear",
-    max_iter=1000,
-    tol=1e-5,
-):
-    """Which is a proportion of lambda_max. The idea is optimal_lambda is pretty
-    close to each other across X_minus_j, so we just use cross-validation to
-    find it once
+# def _optimal_reg_param(
+#     X,
+#     y,
+#     loss="least_square",
+#     n_alphas=200,
+#     cv=5,
+#     n_jobs=1,
+#     max_iter=1000,
+#     tol=1e-5,
+# ):
+#     """
+#     Which is a proportion of lambda_max. The idea is optimal_lambda is pretty
+#     close to each other across X_minus_j, so we just use cross-validation to
+#     find it once
+#     """
+#     X_minus_idx = np.delete(np.copy(X), 0, 1)
 
-    """
-    X_minus_idx = np.delete(np.copy(X), 0, 1)
+#     if loss == "least_square":
+#         clf_null = LassoCV(
+#             cv=cv,
+#             n_jobs=n_jobs,
+#             n_alphas=n_alphas,
+#             random_state=0,
+#             max_iter=max_iter,
+#             tol=tol,
+#         )
+#         clf_null.fit(X_minus_idx, y)
+#         optimal_lambda = clf_null.alpha_
 
-    if loss == "least_square":
-        clf_null = LassoCV(
-            cv=cv,
-            n_jobs=n_jobs,
-            n_alphas=n_regus,
-            random_state=0,
-            max_iter=max_iter,
-            tol=tol,
-        )
-        clf_null.fit(X_minus_idx, y)
-        optimal_lambda = clf_null.alpha_
-
-    return optimal_lambda
+#     return optimal_lambda
 
 
 def _rf_distillation(
@@ -288,32 +372,31 @@ def _rf_distillation(
     y,
     idx,
     Sigma_X=None,
-    coef_full=None,
     cv=3,
     loss="least_square",
-    n_regus=50,
+    n_alphas=50,
+    alpha=None,
     n_jobs=1,
-    type_prob="regression",
+    problem_type="regression",
     use_cv=False,
     ntree=100,
-    alpha=None,
-    random_state=2022,
+    random_state=None,
 ):
     """
-    Distillation using Random Forest
+    This function implements the distillation process using Random Forest
     """
     n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill Y
-    if type_prob == "regression":
-        clf = RandomForestRegressor(n_estimators=ntree)
+    if problem_type == "regression":
+        clf = RandomForestRegressor(n_estimators=ntree, random_state=random_state)
         clf.fit(X_minus_idx, y)
         eps_res = y - clf.predict(X_minus_idx)
         sigma2_y = np.mean(eps_res**2)
 
-    elif type_prob == "classification":
-        clf = RandomForestClassifier(n_estimators=ntree)
+    elif problem_type == "classification":
+        clf = RandomForestClassifier(n_estimators=ntree, random_state=random_state)
         clf.fit(X_minus_idx, y)
         eps_res = y - clf.predict_proba(X_minus_idx)[:, 1]
         sigma2_y = np.mean(eps_res**2)
@@ -327,7 +410,7 @@ def _rf_distillation(
             cv=cv,
             use_cv=use_cv,
             alpha=alpha,
-            n_regus=n_regus,
+            n_alphas=n_alphas,
             n_jobs=n_jobs,
         )
 

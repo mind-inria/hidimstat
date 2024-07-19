@@ -35,7 +35,7 @@ for sim_ind in range(10):
     )
 
     # Applying a reLu function on the outcome y to get non-linear relationships
-    y = np.array([max(0.0, i) for i in y])
+    y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
     results_lasso = dcrt_zero(X, y, screening=False, verbose=True)
