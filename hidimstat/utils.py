@@ -9,6 +9,9 @@ from torchmetrics import Accuracy
 
 
 def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
+    """
+    This function implements the quantile aggregation method for p-values.
+    """
     # if pvalues are one-dimensional, do nothing
     if pvals.shape[0] == 1:
         return pvals[0]
