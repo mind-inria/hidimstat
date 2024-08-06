@@ -335,38 +335,6 @@ def _lasso_distillation_residual(
     return ts
 
 
-# def _optimal_reg_param(
-#     X,
-#     y,
-#     loss="least_square",
-#     n_alphas=200,
-#     cv=5,
-#     n_jobs=1,
-#     max_iter=1000,
-#     tol=1e-5,
-# ):
-#     """
-#     Which is a proportion of lambda_max. The idea is optimal_lambda is pretty
-#     close to each other across X_minus_j, so we just use cross-validation to
-#     find it once
-#     """
-#     X_minus_idx = np.delete(np.copy(X), 0, 1)
-
-#     if loss == "least_square":
-#         clf_null = LassoCV(
-#             cv=cv,
-#             n_jobs=n_jobs,
-#             n_alphas=n_alphas,
-#             random_state=0,
-#             max_iter=max_iter,
-#             tol=tol,
-#         )
-#         clf_null.fit(X_minus_idx, y)
-#         optimal_lambda = clf_null.alpha_
-
-#     return optimal_lambda
-
-
 def _rf_distillation(
     X,
     y,
