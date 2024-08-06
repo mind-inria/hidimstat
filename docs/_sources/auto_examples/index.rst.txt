@@ -19,7 +19,7 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example compares the standard permutation approach for variable importance and its conditi...">
+    <div class="sphx-glr-thumbcontainer" tooltip="Variable Importance estimates the influence of a given input variable to the prediction made by a model. To assess variable importance in a prediction problem, :footcitebreimanRandomForests2001 introduced the permutation approach where the values are shuffled for one variable/column at a time. This permutation breaks the relationship between the variable of interest and the outcome. Following, the loss score is checked before and after this substitution for any significant drop in the performance which reflects the significance of this variable to predict the outcome. This ease-to-use solution is demonstrated, in the work by :footcitestroblConditionalVariableImportance2008, to be affected by the degree of correlation between the variables, thus biased towards truly non-significant variables highly correlated with the significant ones and creating fake significant variables. They introduced a solution for the Random Forest estimator based on conditional sampling by performing sub-groups permutation when bisecting the space using the conditioning variables of the buiding process. However, this solution is exclusive to the Random Forest and is costly with high-dimensional settings. :footciteChamma_NeurIPS2023 introduced a new model-agnostic solution to bypass the limitations of the permutation approach under the use of the conditional schemes. The variable of interest does contain two types of information: 1) the relationship with the remaining variables and 2) the relationship with the outcome. The standard permutation, while breaking the relationship with the outcome, is also destroying the dependency with the remaining variables. Therefore, instead of directly permuting the variable of interest, the variable of interest is predicted by the remaining variables and the residuals of this prediction are permuted before reconstructing the new version of the variable. This solution preserves the dependency with the remaining variables.">
 
 .. only:: html
 
@@ -36,7 +36,24 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensi...">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we show an example of variable selection using model-X Knockoffs introduced by :footciteCandes_2018. A notable drawback of this procedure is the randomness associated with the knockoff generation process. This can result in unstable inference.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_knockoff_aggregation_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Knockoff aggregation on simulated data</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_.">
 
 .. only:: html
 
@@ -53,7 +70,7 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guar...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions.">
 
 .. only:: html
 
@@ -68,6 +85,23 @@ Examples Gallery
     </div>
 
 
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="To deploy the Conditional Permutation Importance (CPI), :footciteChamma_NeurIPS2023 described two main approaches for the conditional scheme: 1) Instead of directly permuting the variable of interest as in the Permutation Feature Importance (PFI), the residuals of the prediction of the variable of interest x_j based on the remaining variables is first computed along with a predicted version x_hat_j. These residuals are shuffled and added to the predicted version to recreate the variable of interest (Preserving the dependency between the variable of interest and the remaining variables while breaking the relationship with the outcome). 2) Another option is to use the sampling Random Forest. Using the remaining variables to predict the variable of interest, and instead of predicting the variable of interest as the mean of the instances&#x27; outcome of the targeted leaf or the class with the most occurences, we sample from the same leaf of the instance of interest within its neighbors, and we follow the standard path of the Random Forest.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_residuals_sampling_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_residuals_sampling.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Conditional sampling using residuals vs sampling Random Forest</div>
+    </div>
+
+
 .. thumbnail-parent-div-close
 
 .. raw:: html
@@ -79,8 +113,10 @@ Examples Gallery
    :hidden:
 
    /auto_examples/plot_diabetes_variable_importance_example
+   /auto_examples/plot_knockoff_aggregation
    /auto_examples/plot_2D_simulation_example
    /auto_examples/plot_fmri_data_example
+   /auto_examples/plot_residuals_sampling
 
 
 .. only:: html

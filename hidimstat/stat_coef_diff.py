@@ -80,15 +80,20 @@ def stat_coef_diff(
             alphas=lambdas,
             n_jobs=n_jobs,
             verbose=joblib_verbose,
-            max_iter=n_iter,
+            max_iter=int(1e4),
             cv=cv,
         ),
         "logistic_l1": LogisticRegressionCV(
-            penalty="l1", max_iter=n_iter, solver=solver, cv=cv, n_jobs=n_jobs, tol=1e-8
+            penalty="l1",
+            max_iter=int(1e4),
+            solver=solver,
+            cv=cv,
+            n_jobs=n_jobs,
+            tol=1e-8,
         ),
         "logistic_l2": LogisticRegressionCV(
             penalty="l2",
-            max_iter=n_iter,
+            max_iter=int(1e4),
             n_jobs=n_jobs,
             verbose=joblib_verbose,
             cv=cv,
