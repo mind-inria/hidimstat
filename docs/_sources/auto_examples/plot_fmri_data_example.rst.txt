@@ -180,11 +180,11 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     Dataset created in /home/runner/nilearn_data/haxby2001
 
     Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-     ...done. (1 seconds, 0 min)
+     ...done. (0 seconds, 0 min)
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
      ...done. (0 seconds, 0 min)
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    Downloaded 81551360 of 291168628 bytes (28.0%,    2.6s remaining)    Downloaded 183705600 of 291168628 bytes (63.1%,    1.2s remaining)    Downloaded 286687232 of 291168628 bytes (98.5%,    0.0s remaining) ...done. (3 seconds, 0 min)
+    Downloaded 23183360 of 291168628 bytes (8.0%,   11.6s remaining)    Downloaded 142155776 of 291168628 bytes (48.8%,    2.1s remaining)    Downloaded 251600896 of 291168628 bytes (86.4%,    0.5s remaining) ...done. (4 seconds, 0 min)
     Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
 
 
@@ -281,8 +281,8 @@ Now, we compute p-values thanks to permutation tests applied to
 
  .. code-block:: none
 
-    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.4s
+    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.5s
+    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.2s
 
 
 
@@ -361,7 +361,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.8s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   33.6s finished
 
 
 
@@ -599,9 +599,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 22.123 seconds)
+   **Total running time of the script:** (1 minutes 26.310 seconds)
 
-**Estimated memory usage:**  2622 MB
+**Estimated memory usage:**  3292 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
@@ -617,6 +617,10 @@ spurious discoveries.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_fmri_data_example.py <plot_fmri_data_example.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_fmri_data_example.zip <plot_fmri_data_example.zip>`
 
 
 .. only:: html

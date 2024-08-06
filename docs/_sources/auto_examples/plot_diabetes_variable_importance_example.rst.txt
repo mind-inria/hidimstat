@@ -294,9 +294,9 @@ prediction problem.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 52.978 seconds)
+   **Total running time of the script:** (0 minutes 53.234 seconds)
 
-**Estimated memory usage:**  30 MB
+**Estimated memory usage:**  629 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:
@@ -312,6 +312,10 @@ prediction problem.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_diabetes_variable_importance_example.py <plot_diabetes_variable_importance_example.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_diabetes_variable_importance_example.zip <plot_diabetes_variable_importance_example.zip>`
 
 
 .. only:: html

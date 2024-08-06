@@ -243,7 +243,7 @@ across 10 repetitions.
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done  10 out of  10 | elapsed:  4.4min finished
+    [Parallel(n_jobs=2)]: Done  10 out of  10 | elapsed:  4.3min finished
 
 
 
@@ -321,9 +321,9 @@ computation by simplifying the residuals steps.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (4 minutes 25.118 seconds)
+   **Total running time of the script:** (4 minutes 20.463 seconds)
 
-**Estimated memory usage:**  10 MB
+**Estimated memory usage:**  609 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_residuals_sampling.py:
@@ -339,6 +339,10 @@ computation by simplifying the residuals steps.
     .. container:: sphx-glr-download sphx-glr-download-python
 
       :download:`Download Python source code: plot_residuals_sampling.py <plot_residuals_sampling.py>`
+
+    .. container:: sphx-glr-download sphx-glr-download-zip
+
+      :download:`Download zipped: plot_residuals_sampling.zip <plot_residuals_sampling.zip>`
 
 
 .. only:: html
