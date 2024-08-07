@@ -21,6 +21,7 @@ __all__ = [
     "BlockBasedImportance",
     "clustered_inference",
     "compute_loco",
+    "dcrt_zero",
     "desparsified_lasso",
     "desparsified_group_lasso",
     "DnnLearnerSingle",

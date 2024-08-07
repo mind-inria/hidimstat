@@ -36,7 +36,7 @@ def ada_svr(X, y, rcond=1e-3):
     X = np.asarray(X)
     n_samples, n_features = X.shape
 
-    K = _manual_inverting(np.dot(X, X.T), rcond=rcond)
+    K = _manual_inversion(np.dot(X, X.T), rcond=rcond)
     sum_K = np.sum(K)
 
     L = -np.outer(np.sum(K, axis=0), np.sum(K, axis=1)) / sum_K
@@ -49,7 +49,7 @@ def ada_svr(X, y, rcond=1e-3):
     return beta_hat, scale
 
 
-def _manual_inverting(X, rcond=1e-3, full_rank=False):
+def _manual_inversion(X, rcond=1e-3, full_rank=False):
     "Inverting taking care of low eigenvalues to increase numerical stability"
 
     X = np.asarray(X)

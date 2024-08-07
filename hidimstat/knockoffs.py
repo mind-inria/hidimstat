@@ -30,7 +30,7 @@ def model_x_knockoff(
     seed=None,
 ):
     """Model-X Knockoff inference procedure to control False Discoveries Rate,
-    based on Candes et. al. (2016)
+    based on :footcite:t:`candesPanningGoldModelX2017`
 
     Parameters
     ----------
@@ -79,6 +79,10 @@ def model_x_knockoff(
 
     X_tilde : 2D array, (n_samples, n_features)
         knockoff design matrix
+
+    References
+    ----------
+    .. footbibliography::
     """
     memory = check_memory(memory)
 

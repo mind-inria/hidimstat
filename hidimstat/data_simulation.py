@@ -46,7 +46,7 @@ def simu_data(n, p, rho=0.25, snr=2.0, sparsity=0.06, effect=1.0, seed=None):
     # X = np.dot(np.random.normal(size=(n, p)), cholesky(Sigma))
     X = rng.multivariate_normal(mu, Sigma, size=(n))
     # Generate the response from a linear model
-    non_zero = rng.choice(p, k)
+    non_zero = rng.choice(p, k, replace=False)
     beta_true = np.zeros(p)
     beta_true[non_zero] = effect
     eps = rng.standard_normal(size=n)
