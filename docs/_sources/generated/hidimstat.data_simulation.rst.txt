@@ -1,0 +1,12 @@
+﻿hidimstat.data\_simulation
+==========================
+
+.. automodule:: hidimstat.data_simulation
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      simu_data
+   
