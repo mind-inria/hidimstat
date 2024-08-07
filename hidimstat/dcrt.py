@@ -226,8 +226,6 @@ def dcrt_zero(
 
     if statistic in ["residual", "randomforest"]:
         pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
-    # elif statistic == "likelihood":
-    #     pvals = stats.chi2.sf(ts, 1)
 
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
