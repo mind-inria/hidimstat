@@ -8,6 +8,8 @@ Importance Assessment through Conditional Permutations. In Proceedings of the
 """
 
 import numpy as np
+from joblib import Parallel
+from joblib import delayed
 from sklearn.base import BaseEstimator
 from sklearn.base import TransformerMixin
 from sklearn.base import check_is_fitted
@@ -40,8 +42,8 @@ class CPI(BaseEstimator, TransformerMixin):
         Whether to use the predict_proba method of the estimator.
     random_state: int, default=None
         Random seed for the permutation.
-    scoring: callable, default=None
-        Scoring function to evaluate the model performance.
+    n_jobs: int, default=1
+        Number of jobs to run in parallel.
     """
 
     def __init__(self,
@@ -52,6 +54,7 @@ class CPI(BaseEstimator, TransformerMixin):
                  loss: callable = mean_squared_error,
                  score_proba: bool = False,
                  random_state: int = None,
+                 n_jobs: int = 1
                  ):
 
         check_is_fitted(estimator)
@@ -66,6 +69,7 @@ class CPI(BaseEstimator, TransformerMixin):
         self.random_state = random_state
         self.loss = loss
         self.score_proba = score_proba
+        self.n_jobs = n_jobs
 
         self.rng = np.random.RandomState(random_state)
 
@@ -83,11 +87,16 @@ class CPI(BaseEstimator, TransformerMixin):
         if len(self.list_cov_estimators) == 0:
             self.list_cov_estimators = [clone(self.covariate_estimator)
                                         for _ in range(self.nb_groups)]
-        # fit the covariate estimators on each group
-        for j in range(self.nb_groups):
+
+        def joblib_fit_one_gp(estimator, X, y, j):
             X_j = X[:, self.groups[j]].copy()
             X_minus_j = np.delete(X, self.groups[j], axis=1)
-            self.list_cov_estimators[j].fit(X_minus_j, X_j)
+            estimator.fit(X_minus_j, X_j)
+            return estimator
+
+        self.list_cov_estimators = Parallel(n_jobs=self.n_jobs)(
+            delayed(joblib_fit_one_gp)(estimator, X, y, j)
+            for j, estimator in enumerate(self.list_cov_estimators))
 
         return self
 
@@ -113,12 +122,11 @@ class CPI(BaseEstimator, TransformerMixin):
         output_dict["loss_reference"] = loss_reference
         output_dict['loss_perm'] = dict()
 
-        for j in range(self.nb_groups):
+        def joblib_predict_one_gp(estimator, X, y, j):
             list_loss_perm = []
             X_j = X[:, self.groups[j]].copy()
             X_minus_j = np.delete(X, self.groups[j], axis=1)
-            X_j_hat = self.list_cov_estimators[j].predict(
-                X_minus_j).reshape(X_j.shape)
+            X_j_hat = estimator.predict(X_minus_j).reshape(X_j.shape)
             residual_j = X_j - X_j_hat
 
             group_ids = self.groups[j]
@@ -135,11 +143,18 @@ class CPI(BaseEstimator, TransformerMixin):
                 else:
                     y_pred_perm = self.estimator.predict(X_perm)
                 list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
+            return np.array(list_loss_perm)
+
+        out_list = Parallel(n_jobs=self.n_jobs)(
+            delayed(joblib_predict_one_gp)(estimator, X, y, j)
+            for j, estimator in enumerate(self.list_cov_estimators))
+
+        for j, list_loss_perm in enumerate(out_list):
             output_dict['loss_perm'][j] = list_loss_perm
 
         output_dict['importance'] = np.array([
-            np.mean(output_dict['loss_perm'][j] -
-                    output_dict['loss_reference'])
+            np.mean(
+                output_dict['loss_perm'][j] - output_dict['loss_reference'])
             for j in range(self.nb_groups)])
 
         return output_dict
