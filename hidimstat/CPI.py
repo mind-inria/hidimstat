@@ -34,7 +34,6 @@ class CPI(BaseEstimator, TransformerMixin):
     groups: dict, default=None
         Dictionary of groups for the covariates. The keys are the group names
         and the values are lists of covariate indices.
-        It is assumed that the covariates are contiguous within each group.
     loss: callable, default=mean_squared_error
         Loss function to evaluate the model performance.
     score_proba: bool, default=False
@@ -121,17 +120,15 @@ class CPI(BaseEstimator, TransformerMixin):
             X_j_hat = self.list_cov_estimators[j].predict(
                 X_minus_j).reshape(X_j.shape)
             residual_j = X_j - X_j_hat
+
+            group_ids = self.groups[j]
+            non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
+
             for _ in range(self.n_perm):
                 X_j_perm = X_j_hat + self.rng.permutation(residual_j)
-                # Currently assumes that each group is contiguous
-                start_group_idx = np.min(self.groups[j])
-
-                X_perm = np.insert(
-                    X_minus_j,
-                    [start_group_idx] * len(self.groups[j]),
-                    X_j_perm,
-                    axis=1
-                )
+                X_perm = np.empty_like(X)
+                X_perm[:, non_group_ids] = X_minus_j
+                X_perm[:, group_ids] = X_j_perm
 
                 if self.score_proba:
                     y_pred_perm = self.estimator.predict_proba(X_perm)
