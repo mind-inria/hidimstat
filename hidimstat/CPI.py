@@ -1,25 +1,16 @@
-"""
-Re-implementation of the block-based CPI algorithm separating the predictive
-model fit / predict from the model inspection.
-
-Chamma, A., Engemann, D., & Thirion, B. (2023). Statistically Valid Variable
-Importance Assessment through Conditional Permutations. In Proceedings of the
-37th Conference on Neural Information Processing Systems (NeurIPS 2023)
-"""
-
 import numpy as np
-from joblib import Parallel
-from joblib import delayed
-from sklearn.base import BaseEstimator
-from sklearn.base import TransformerMixin
-from sklearn.base import check_is_fitted
-from sklearn.base import clone
+from joblib import Parallel, delayed
+from sklearn.base import (BaseEstimator, TransformerMixin, check_is_fitted,
+                          clone)
 from sklearn.metrics import mean_squared_error
 
 
 class CPI(BaseEstimator, TransformerMixin):
     """
     Conditional Permutation Importance (CPI) algorithm.
+    :footcite:t:`Chamma_NeurIPS2023` and for group-level see
+    :footcite:t:`Chamma_AAAI2024`.
+
 
     Parameters
     ----------
@@ -44,6 +35,10 @@ class CPI(BaseEstimator, TransformerMixin):
         Random seed for the permutation.
     n_jobs: int, default=1
         Number of jobs to run in parallel.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     def __init__(self,
@@ -89,11 +84,16 @@ class CPI(BaseEstimator, TransformerMixin):
                                         for _ in range(self.nb_groups)]
 
         def joblib_fit_one_gp(estimator, X, y, j):
+            """
+            Fit a single covariate estimator to predict a single group of
+            covariates.
+            """
             X_j = X[:, self.groups[j]].copy()
             X_minus_j = np.delete(X, self.groups[j], axis=1)
             estimator.fit(X_minus_j, X_j)
             return estimator
 
+        # Parallelize the fitting of the covariate estimators
         self.list_cov_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_fit_one_gp)(estimator, X, y, j)
             for j, estimator in enumerate(self.list_cov_estimators))
@@ -107,6 +107,22 @@ class CPI(BaseEstimator, TransformerMixin):
         are then permuted and the model is re-evaluated. The importance score
         is the difference between the loss of the model with the original data
         and the loss of the model with the permuted data.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        output_dict: dict
+            A dictionary containing the following keys:
+            - 'loss_reference': the loss of the model with the original data.
+            - 'loss_perm': a dictionary containing the loss of the model with
+            the permuted data for each group.
+            - 'importance': the importance scores for each group.
         """
         if len(self.list_cov_estimators) == 0:
             raise ValueError("fit must be called before predict")
@@ -123,6 +139,9 @@ class CPI(BaseEstimator, TransformerMixin):
         output_dict['loss_perm'] = dict()
 
         def joblib_predict_one_gp(estimator, X, y, j):
+            """
+            Compute the importance score for a single group of covariates.
+            """
             list_loss_perm = []
             X_j = X[:, self.groups[j]].copy()
             X_minus_j = np.delete(X, self.groups[j], axis=1)
@@ -145,6 +164,7 @@ class CPI(BaseEstimator, TransformerMixin):
                 list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
             return np.array(list_loss_perm)
 
+        # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_predict_one_gp)(estimator, X, y, j)
             for j, estimator in enumerate(self.list_cov_estimators))
