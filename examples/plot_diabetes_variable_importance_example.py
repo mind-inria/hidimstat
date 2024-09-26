@@ -50,7 +50,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_diabetes
 
-from hidimstat.BBI import BlockBasedImportance
+from hidimstat.bbi import BlockBasedImportance
 from hidimstat import compute_loco
 
 plt.rcParams.update({"font.size": 14})
