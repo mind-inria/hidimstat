@@ -181,7 +181,7 @@ statistically-controlled solution has an impact on the results.</p>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_diabetes.html#sklearn.datasets.load_diabetes" title="sklearn.datasets.load_diabetes" class="sphx-glr-backref-module-sklearn-datasets sphx-glr-backref-type-py-function"><span class="n">load_diabetes</span></a>
 
-<span class="kn">from</span> <span class="nn">hidimstat.BBI</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html#sklearn.base.BaseEstimator" title="sklearn.base.BaseEstimator" class="sphx-glr-backref-module-sklearn-base sphx-glr-backref-type-py-class"><span class="n">BlockBasedImportance</span></a>
+<span class="kn">from</span> <span class="nn">hidimstat.bbi</span> <span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.base.BaseEstimator.html#sklearn.base.BaseEstimator" title="sklearn.base.BaseEstimator" class="sphx-glr-backref-module-sklearn-base sphx-glr-backref-type-py-class"><span class="n">BlockBasedImportance</span></a>
 <span class="kn">from</span> <span class="nn">hidimstat</span> <span class="kn">import</span> <span class="n">compute_loco</span>
 
 <a href="https://docs.python.org/3/library/stdtypes.html#dict.update" title="builtins.dict.update" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-method"><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span></a><span class="p">({</span><span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
@@ -321,8 +321,8 @@ shows an agreement for “bmi”, “bp” and “s6” but also highlights the 
 of “sex” in this prediction, thus reducing the input space to four significant
 variables. LOCO underlines the importance of one variable “bp” for this
 prediction problem.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 53.607 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  622 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 54.153 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  620 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-diabetes-variable-importance-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/a70e28075a283d5e3fe675ced733c459/plot_diabetes_variable_importance_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_diabetes_variable_importance_example.ipynb</span></code></a></p>

@@ -205,9 +205,9 @@ Imports needed for this script
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (5 minutes 26.384 seconds)
+   **Total running time of the script:** (5 minutes 30.668 seconds)
 
-**Estimated memory usage:**  745 MB
+**Estimated memory usage:**  737 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_knockoff_aggregation.py:

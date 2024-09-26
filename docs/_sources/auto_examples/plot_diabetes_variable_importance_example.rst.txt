@@ -73,7 +73,7 @@ Imports needed for this script
     import numpy as np
     from sklearn.datasets import load_diabetes
 
-    from hidimstat.BBI import BlockBasedImportance
+    from hidimstat.bbi import BlockBasedImportance
     from hidimstat import compute_loco
 
     plt.rcParams.update({"font.size": 14})
@@ -294,9 +294,9 @@ prediction problem.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 53.607 seconds)
+   **Total running time of the script:** (0 minutes 54.153 seconds)
 
-**Estimated memory usage:**  622 MB
+**Estimated memory usage:**  620 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:
