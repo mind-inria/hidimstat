@@ -1,5 +1,5 @@
 """
-Test the BBI module
+Test the bbi module
 """
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.datasets import make_classification, make_regression
 from sklearn.model_selection import train_test_split
 
-from hidimstat.BBI import BlockBasedImportance
+from hidimstat.bbi import BlockBasedImportance
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
