@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Support recovery on fMRI data &#8212; HiDimStat 0.1.0 documentation</title>
+    <title>Support recovery on fMRI data &#8212; HiDimStat 0.2.0b documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="../_static/documentation_options.js?v=01f34227"></script>
+    <script src="../_static/documentation_options.js?v=fa31bc0e"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -40,7 +40,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           HiDimStat</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.1.0</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.2.0b</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -247,13 +247,18 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 Dataset created in /home/runner/nilearn_data/haxby2001
 
 Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
- ...done. (1 seconds, 0 min)
+ ...done. (0 seconds, 0 min)
 Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
  ...done. (0 seconds, 0 min)
 Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 
-Downloaded 110632960 of 291168628 bytes (38.0%,    1.7s remaining)
-Downloaded 246267904 of 291168628 bytes (84.6%,    0.4s remaining) ...done. (3 seconds, 0 min)
+Downloaded 20578304 of 291168628 bytes (7.1%,   13.8s remaining)
+Downloaded 60334080 of 291168628 bytes (20.7%,    7.9s remaining)
+Downloaded 104456192 of 291168628 bytes (35.9%,    5.5s remaining)
+Downloaded 149889024 of 291168628 bytes (51.5%,    3.8s remaining)
+Downloaded 195772416 of 291168628 bytes (67.2%,    2.5s remaining)
+Downloaded 242360320 of 291168628 bytes (83.2%,    1.2s remaining)
+Downloaded 287531008 of 291168628 bytes (98.8%,    0.1s remaining) ...done. (7 seconds, 0 min)
 Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
 </pre></div>
 </div>
@@ -305,7 +310,7 @@ of the distribution of these weights.</p>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-[Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.5s
+[Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.6s
 </pre></div>
 </div>
 <p>Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).
@@ -339,7 +344,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   36.6s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   35.8s finished
 </pre></div>
 </div>
 </section>
@@ -458,8 +463,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 30.989 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  3161 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 33.832 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  3374 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>
