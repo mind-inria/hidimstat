@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "HiDimStat"
-version = "0.0.1"
+version = "0.2.0b"
 dependencies = [
     "joblib>=1.4.2",
     "numpy>=2.0.0",
