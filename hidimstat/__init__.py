@@ -1,10 +1,8 @@
 from .adaptive_permutation_threshold import ada_svr
-from .bbi import BlockBasedImportance
 from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .Dnn_learner_single import DnnLearnerSingle
 from .ensemble_clustered_inference import ensemble_clustered_inference
-from .importance_functions import compute_loco
 from .knockoff_aggregation import knockoff_aggregation
 from .knockoffs import model_x_knockoff
 from .multi_sample_split import aggregate_quantiles
@@ -14,13 +12,14 @@ from .scenario import multivariate_1D_simulation
 from .standardized_svr import standardized_svr
 from .stat_tools import zscore_from_pval
 from .version import __version__
+from .cpi import CPI
+from .loco import LOCO
+from .permutation_importance import PermutationImportance
 
 __all__ = [
     "ada_svr",
     "aggregate_quantiles",
-    "BlockBasedImportance",
     "clustered_inference",
-    "compute_loco",
     "dcrt_zero",
     "desparsified_lasso",
     "desparsified_group_lasso",
@@ -35,5 +34,8 @@ __all__ = [
     "reid",
     "standardized_svr",
     "zscore_from_pval",
+    "CPI",
+    "LOCO",
+    "PermutationImportance",
     "__version__",
 ]
