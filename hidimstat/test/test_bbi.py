@@ -1,5 +1,5 @@
 """
-Test the BBI module
+Test the bbi module
 """
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.datasets import make_classification, make_regression
 from sklearn.model_selection import train_test_split
 
-from hidimstat.BBI import BlockBasedImportance
+from hidimstat.bbi import BlockBasedImportance
 
 # Fixing the random seed
 rng = np.random.RandomState(2024)
@@ -73,7 +73,7 @@ def _generate_data(
     return X, y, grps, variables_categories
 
 
-def test_BBI_inference():
+def test_bbi_inference():
     """
     This function tests the application of the Block-Based Importance (BBI)
     method's inference part in the single-level with a Random Forest (RF)
@@ -97,7 +97,7 @@ def test_BBI_inference():
     assert len(results_inference) == 2
 
 
-def test_BBI_splitting_scheme():
+def test_bbi_splitting_scheme():
     """
     This function tests the application of the Block-Based Importance (BBI)
     method in the single-level with a Random Forest (RF) learner under a
@@ -144,7 +144,7 @@ def test_BBI_splitting_scheme():
     assert len(results_sampling_no_replacement) == 2
 
 
-def test_BBI_internal_cross_validation():
+def test_bbi_internal_cross_validation():
     """
     This function tests the application of the Block-Based Importance (BBI)
     method in the single-level with a Random Forest (RF) learner under a
@@ -198,7 +198,7 @@ def test_BBI_internal_cross_validation():
     assert len(results_cross_validation["pval"]) == X.shape[1]
 
 
-def test_BBI_reg():
+def test_bbi_reg():
     """
     This function tests the application of the Block-Based Importance (BBI)
     method in the single-level with a Multi-Layer Perceptron (MLP) or Random
@@ -244,7 +244,7 @@ def test_BBI_reg():
     assert len(results_reg_rf["pval"]) == X.shape[1]
 
 
-def test_BBI_class():
+def test_bbi_class():
     """
     This function tests the application of the Block-Based Importance (BBI) in
     the single-level with a Multi-Layer Perceptron (MLP) or Random Forest (RF)
@@ -290,7 +290,7 @@ def test_BBI_class():
     assert len(results_class_rf["pval"]) == X.shape[1]
 
 
-def test_BBI_cond():
+def test_bbi_cond():
     """
     This function tests the application of the Conditional Permutation
     Importance (CPI) method in the single-level with a Multi-Layer Perceptron
@@ -335,7 +335,7 @@ def test_BBI_cond():
     assert len(results_samp["pval"]) == X.shape[1]
 
 
-def test_BBI_perm():
+def test_bbi_perm():
     """
     This function tests the application of the Permutation Feature Importance
     (PFI) method in the single-level with a Multi-Layer Perceptron (MLP) learner
@@ -361,7 +361,7 @@ def test_BBI_perm():
     assert len(results_perm["pval"]) == X.shape[1]
 
 
-def test_BBI_grp():
+def test_bbi_grp():
     """
     This function tests the application of the Block-Based Importance (BBI)
     method in the group-level with a Random Forest (RF) learner under

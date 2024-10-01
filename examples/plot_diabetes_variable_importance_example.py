@@ -52,43 +52,22 @@ import seaborn as sns
 from scipy.stats import norm
 from sklearn.base import clone
 from sklearn.datasets import load_diabetes
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import KFold
 
-from hidimstat.CPI import CPI
-from hidimstat.LOCO import LOCO
-from hidimstat.PermutationImportance import PermutationImportance
+from hidimstat.bbi import BlockBasedImportance
+from hidimstat import compute_loco
 
-#############################################################################
-# Load the diabetes dataset
-# ------------------------------
+plt.rcParams.update({"font.size": 14})
+
+# Fixing the random seed
+rng = np.random.RandomState(2024)
+
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
 
-#############################################################################
-# Fit a baselien model on the diabetes dataset
-# ------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
-# diabetes dataset.
-
-n_folds = 10
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
-regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    regressor_list[i].fit(X[train_index], y[train_index])
-    score = r2_score(
-        y_true=y[test_index],
-        y_pred=regressor_list[i].predict(
-            X[test_index]))
-    mse = mean_squared_error(
-        y_true=y[test_index],
-        y_pred=regressor_list[i].predict(
-            X[test_index]))
-
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
+# Use or not a cross-validation with the provided learner
+k_fold = 2
+# Identifying the categorical (nominal, binary & ordinal) variables
+variables_categories = {}
 
 #############################################################################
 # Measure the importance of variables using the CPI method
@@ -153,73 +132,39 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 
 #############################################################################
-# Define a function to compute the p-value from importance values
-# ------------------------------
-def compute_pval(vim):
-    mean_vim = np.mean(vim, axis=0)
-    std_vim = np.std(vim, axis=0)
-    pval = norm.sf(mean_vim / std_vim)
-    return np.clip(pval, 1e-10, 1 - 1e-10)
+# Plotting the comparison
+# -----------------------
+
+list_res = {"Permutation": [], "Conditional": [], "LOCO": []}
+for index, _ in enumerate(diabetes.feature_names):
+    list_res["Permutation"].append(pvals_permutation[index][0])
+    list_res["Conditional"].append(pvals_conditional[index][0])
+    list_res["LOCO"].append(pvals_loco[index])
+
+x = np.arange(len(diabetes.feature_names))
+width = 0.25  # the width of the bars
+multiplier = 0
+fig, ax = plt.subplots(figsize=(10, 10), layout="constrained")
+
+for attribute, measurement in list_res.items():
+    offset = width * multiplier
+    rects = ax.bar(x + offset, measurement, width, label=attribute)
+    multiplier += 1
+
+ax.set_ylabel(r"$-log_{10}p_{val}$")
+ax.set_xticks(x + width / 2, diabetes.feature_names)
+ax.legend(loc="upper left", ncols=3)
+ax.set_ylim(0, 3)
+ax.axhline(y=-np.log10(0.05), color="r", linestyle="-")
+plt.show()
 
 #############################################################################
-# Analyze the results
-# ------------------------------
-
-
-cpi_vim_arr = np.array([x['importance'] for x in cpi_importance_list]) / 2 
-cpi_pval = compute_pval(cpi_vim_arr)
-
-vim = [
-    pd.DataFrame({
-        'var': np.arange(cpi_vim_arr.shape[1]),
-        'importance': x['importance'],
-        'fold': i,
-        'pval': cpi_pval,
-        'method': 'CPI',
-
-    }) for x in cpi_importance_list]
-
-loco_vim_arr = np.array([x['importance'] for x in loco_importance_list])
-loco_pval = compute_pval(loco_vim_arr)
-
-vim += [
-    pd.DataFrame({
-        'var': np.arange(loco_vim_arr.shape[1]),
-        'importance': x['importance'],
-        'fold': i,
-        'pval': loco_pval,
-        'method': 'LOCO',
-    }) for x in loco_importance_list]
-
-pi_vim_arr = np.array([x['importance'] for x in pi_importance_list])
-pi_pval = compute_pval(pi_vim_arr)
-
-vim += [
-    pd.DataFrame({
-        'var': np.arange(pi_vim_arr.shape[1]),
-        'importance': x['importance'],
-        'fold': i,
-        'pval': pi_pval,
-        'method': 'PI',
-    }) for x in pi_importance_list]
-
-fig, ax = plt.subplots()
-
-df_plot = pd.concat(vim)
-df_plot['pval'] = -np.log10(df_plot['pval'])
-im = sns.barplot(
-    data=df_plot,
-    x='var',
-    y='pval',
-    hue='method',
-    ax=ax,
-    palette='muted',
-    dodge=True,
-)
-ax.set_ylabel(r'$-\log_{10}(\text{p-value})$')
-ax.axhline(-np.log10(0.05), color='tab:red', ls='--')
-ax.set_xlabel('Variable')
-ax.set_xticklabels(diabetes.feature_names)
-
-sns.despine(ax=ax)
-plt.show()
+# Analysis of the results
+# -----------------------
+# While the standard permutation flags multiple variables to be significant for
+# this prediction, the conditional permutation (the controlled alternative)
+# shows an agreement for "bmi", "bp" and "s6" but also highlights the importance
+# of "sex" in this prediction, thus reducing the input space to four significant
+# variables. LOCO underlines the importance of one variable "bp" for this
+# prediction problem.
+#
