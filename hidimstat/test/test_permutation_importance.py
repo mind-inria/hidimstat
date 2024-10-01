@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-from hidimstat.PermutationImportance import PermutationImportance
+from hidimstat.permutation_importance import PermutationImportance
 
 
 def test_CPI(linear_scenario):
@@ -27,10 +27,12 @@ def test_CPI(linear_scenario):
     pi.fit(X_train, y_train)
     vim = pi.predict(X_test, y_test)
 
-    importance = vim['importance']
+    importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
-    assert importance[important_features].mean(
-    ) > importance[non_important_features].mean()
+    assert (
+        importance[important_features].mean()
+        > importance[non_important_features].mean()
+    )
 
     # Same with groups
     groups = {0: important_features, 1: non_important_features}
@@ -45,6 +47,5 @@ def test_CPI(linear_scenario):
     pi.fit(X_train, y_train)
     vim = pi.predict(X_test, y_test)
 
-    importance = vim['importance']
-    assert importance[0].mean(
-    ) > importance[1].mean()
+    importance = vim["importance"]
+    assert importance[0].mean() > importance[1].mean()
