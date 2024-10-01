@@ -48,7 +48,6 @@ References
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from scipy.stats import norm
 from sklearn.base import clone
 from sklearn.datasets import load_diabetes
@@ -56,9 +55,9 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import KFold
 
-from hidimstat.CPI import CPI
-from hidimstat.LOCO import LOCO
-from hidimstat.PermutationImportance import PermutationImportance
+from hidimstat.cpi import CPI
+from hidimstat.loco import LOCO
+from hidimstat.permutation_importance import PermutationImportance
 
 #############################################################################
 # Load the diabetes dataset
@@ -66,6 +65,27 @@ from hidimstat.PermutationImportance import PermutationImportance
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
 
+#############################################################################
+# Fit a baselien model on the diabetes dataset
+# ------------------------------
+# We use a Ridge regression model with a 10-fold cross-validation to fit the
+# diabetes dataset.
+
+n_folds = 10
+regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
+regressor_list = [clone(regressor) for _ in range(n_folds)]
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+for i, (train_index, test_index) in enumerate(kf.split(X)):
+    regressor_list[i].fit(X[train_index], y[train_index])
+    score = r2_score(
+        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+    )
+    mse = mean_squared_error(
+        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+    )
+
+    print(f"Fold {i}: {score}")
+    print(f"Fold {i}: {mse}")
 #############################################################################
 # Fit a baselien model on the diabetes dataset
 # ------------------------------
@@ -160,6 +180,15 @@ def compute_pval(vim):
     return np.clip(pval, 1e-10, 1 - 1e-10)
 
 
+# Define a function to compute the p-value from importance values
+# ------------------------------
+def compute_pval(vim):
+    mean_vim = np.mean(vim, axis=0)
+    std_vim = np.std(vim, axis=0)
+    pval = norm.sf(mean_vim / std_vim)
+    return np.clip(pval, 1e-10, 1 - 1e-10)
+
+
 #############################################################################
 # Analyze the results
 # ------------------------------
@@ -214,22 +243,23 @@ vim += [
 ]
 
 fig, ax = plt.subplots()
-
 df_plot = pd.concat(vim)
 df_plot["pval"] = -np.log10(df_plot["pval"])
-im = sns.barplot(
-    data=df_plot,
-    x="var",
-    y="pval",
-    hue="method",
-    ax=ax,
-    palette="muted",
-    dodge=True,
-)
+methods = df_plot["method"].unique()
+colors = plt.cm.get_cmap("tab10", 10)
+
+for i, method in enumerate(methods):
+    subset = df_plot[df_plot["method"] == method]
+    ax.bar(
+        subset["var"] + i * 0.2,
+        subset["pval"],
+        width=0.2,
+        label=method,
+        color=colors(i),
+    )
+
+ax.legend(title="Method")
 ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
 ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
 ax.set_xlabel("Variable")
 ax.set_xticklabels(diabetes.feature_names)
-
-sns.despine(ax=ax)
-plt.show()
