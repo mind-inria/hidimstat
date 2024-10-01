@@ -31,15 +31,16 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
     .. footbibliography::
     """
 
-    def __init__(self,
-                 estimator,
-                 n_perm: int = 50,
-                 groups: dict = None,
-                 loss: callable = mean_squared_error,
-                 score_proba: bool = False,
-                 random_state: int = None,
-                 n_jobs: int = 1
-                 ):
+    def __init__(
+        self,
+        estimator,
+        n_perm: int = 50,
+        groups: dict = None,
+        loss: callable = mean_squared_error,
+        score_proba: bool = False,
+        random_state: int = None,
+        n_jobs: int = 1,
+    ):
 
         check_is_fitted(estimator)
         self.estimator = estimator
@@ -88,7 +89,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
             y_pred = self.estimator.predict(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         output_dict["loss_reference"] = loss_reference
-        output_dict['loss_perm'] = dict()
+        output_dict["loss_perm"] = dict()
 
         def joblib_predict_one_gp(estimator, X, y, j):
             """
@@ -116,14 +117,19 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_predict_one_gp)(self.estimator, X, y, j)
-            for j in range(len(self.groups)))
+            for j in range(len(self.groups))
+        )
 
         for j, list_loss_perm in enumerate(out_list):
-            output_dict['loss_perm'][j] = list_loss_perm
+            output_dict["loss_perm"][j] = list_loss_perm
 
-        output_dict['importance'] = np.array([
-            np.mean(
-                output_dict['loss_perm'][j] - output_dict['loss_reference'])
-            for j in range(self.nb_groups)])
+        output_dict["importance"] = np.array(
+            [
+                np.mean(
+                    output_dict["loss_perm"][j] - output_dict["loss_reference"]
+                )
+                for j in range(self.nb_groups)
+            ]
+        )
 
         return output_dict
