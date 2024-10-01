@@ -1,7 +1,11 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import (BaseEstimator, TransformerMixin, check_is_fitted,
-                          clone)
+from sklearn.base import (
+    BaseEstimator,
+    TransformerMixin,
+    check_is_fitted,
+    clone,
+)
 from sklearn.metrics import mean_squared_error
 
 
@@ -41,16 +45,17 @@ class CPI(BaseEstimator, TransformerMixin):
     .. footbibliography::
     """
 
-    def __init__(self,
-                 estimator,
-                 covariate_estimator,
-                 n_perm: int = 50,
-                 groups: dict = None,
-                 loss: callable = mean_squared_error,
-                 score_proba: bool = False,
-                 random_state: int = None,
-                 n_jobs: int = 1
-                 ):
+    def __init__(
+        self,
+        estimator,
+        covariate_estimator,
+        n_perm: int = 50,
+        groups: dict = None,
+        loss: callable = mean_squared_error,
+        score_proba: bool = False,
+        random_state: int = None,
+        n_jobs: int = 1,
+    ):
 
         check_is_fitted(estimator)
         self.estimator = estimator
@@ -80,8 +85,9 @@ class CPI(BaseEstimator, TransformerMixin):
             self.nb_groups = len(self.groups)
         # create a list of covariate estimators for each group if not provided
         if len(self.list_cov_estimators) == 0:
-            self.list_cov_estimators = [clone(self.covariate_estimator)
-                                        for _ in range(self.nb_groups)]
+            self.list_cov_estimators = [
+                clone(self.covariate_estimator) for _ in range(self.nb_groups)
+            ]
 
         def joblib_fit_one_gp(estimator, X, y, j):
             """
@@ -96,7 +102,8 @@ class CPI(BaseEstimator, TransformerMixin):
         # Parallelize the fitting of the covariate estimators
         self.list_cov_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_fit_one_gp)(estimator, X, y, j)
-            for j, estimator in enumerate(self.list_cov_estimators))
+            for j, estimator in enumerate(self.list_cov_estimators)
+        )
 
         return self
 
@@ -136,7 +143,7 @@ class CPI(BaseEstimator, TransformerMixin):
             y_pred = self.estimator.predict(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         output_dict["loss_reference"] = loss_reference
-        output_dict['loss_perm'] = dict()
+        output_dict["loss_perm"] = dict()
 
         def joblib_predict_one_gp(estimator, X, y, j):
             """
@@ -167,14 +174,18 @@ class CPI(BaseEstimator, TransformerMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_predict_one_gp)(estimator, X, y, j)
-            for j, estimator in enumerate(self.list_cov_estimators))
+            for j, estimator in enumerate(self.list_cov_estimators)
+        )
 
         for j, list_loss_perm in enumerate(out_list):
-            output_dict['loss_perm'][j] = list_loss_perm
+            output_dict["loss_perm"][j] = list_loss_perm
 
-        output_dict['importance'] = np.array([
-            np.mean(
-                output_dict['loss_perm'][j] - output_dict['loss_reference'])
-            for j in range(self.nb_groups)])
-
+        output_dict["importance"] = np.array(
+            [
+                np.mean(
+                    output_dict["loss_perm"][j] - output_dict["loss_reference"]
+                )
+                for j in range(self.nb_groups)
+            ]
+        )
         return output_dict
