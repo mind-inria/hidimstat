@@ -14,11 +14,11 @@ def test_CPI(linear_scenario):
 
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
-    covariate_estimator = LinearRegression()
+    imputation_model = LinearRegression()
 
     cpi = CPI(
         estimator=regression_model,
-        covariate_estimator=covariate_estimator,
+        imputation_model=imputation_model,
         n_perm=20,
         groups=None,
         score_proba=False,
@@ -27,7 +27,7 @@ def test_CPI(linear_scenario):
     )
 
     cpi.fit(X_train, y_train)
-    vim = cpi.predict(X_test, y_test)
+    vim = cpi.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -40,7 +40,7 @@ def test_CPI(linear_scenario):
     groups = {0: important_features, 1: non_important_features}
     cpi = CPI(
         estimator=regression_model,
-        covariate_estimator=covariate_estimator,
+        imputation_model=imputation_model,
         n_perm=20,
         groups=groups,
         score_proba=False,
@@ -48,7 +48,7 @@ def test_CPI(linear_scenario):
         n_jobs=1,
     )
     cpi.fit(X_train, y_train)
-    vim = cpi.predict(X_test, y_test)
+    vim = cpi.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()

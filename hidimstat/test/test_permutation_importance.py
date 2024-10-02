@@ -25,7 +25,7 @@ def test_CPI(linear_scenario):
     )
 
     pi.fit(X_train, y_train)
-    vim = pi.predict(X_test, y_test)
+    vim = pi.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -45,7 +45,7 @@ def test_CPI(linear_scenario):
         n_jobs=1,
     )
     pi.fit(X_train, y_train)
-    vim = pi.predict(X_test, y_test)
+    vim = pi.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()

@@ -24,7 +24,7 @@ def test_LOCO(linear_scenario):
     )
 
     loco.fit(X_train, y_train)
-    vim = loco.predict(X_test, y_test)
+    vim = loco.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -43,7 +43,7 @@ def test_LOCO(linear_scenario):
         n_jobs=1,
     )
     loco.fit(X_train, y_train)
-    vim = loco.predict(X_test, y_test)
+    vim = loco.score(X_test, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
