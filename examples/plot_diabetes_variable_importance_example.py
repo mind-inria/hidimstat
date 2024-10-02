@@ -71,7 +71,7 @@ X, y = diabetes.data, diabetes.target
 # We use a Ridge regression model with a 10-fold cross-validation to fit the
 # diabetes dataset.
 
-n_folds = 10
+n_folds = 5
 regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
 regressor_list = [clone(regressor) for _ in range(n_folds)]
 kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
@@ -119,14 +119,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     cpi = CPI(
         estimator=regressor_list[i],
-        covariate_estimator=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
-        n_perm=100,
+        n_perm=50,
         random_state=0,
         n_jobs=4,
     )
     cpi.fit(X_train, y_train)
-    importance = cpi.predict(X_test, y_test)
+    importance = cpi.score(X_test, y_test)
     cpi_importance_list.append(importance)
 
 #############################################################################
@@ -145,7 +145,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         n_jobs=4,
     )
     loco.fit(X_train, y_train)
-    importance = loco.predict(X_test, y_test)
+    importance = loco.score(X_test, y_test)
     loco_importance_list.append(importance)
 
 
@@ -161,12 +161,12 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     pi = PermutationImportance(
         estimator=regressor_list[i],
-        n_perm=100,
+        n_perm=50,
         random_state=0,
         n_jobs=4,
     )
     pi.fit(X_train, y_train)
-    importance = pi.predict(X_test, y_test)
+    importance = pi.score(X_test, y_test)
     pi_importance_list.append(importance)
 
 
@@ -263,3 +263,4 @@ ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
 ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
 ax.set_xlabel("Variable")
 ax.set_xticklabels(diabetes.feature_names)
+plt.show()
