@@ -125,9 +125,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
 
         output_dict["importance"] = np.array(
             [
-                np.mean(
-                    output_dict["loss_perm"][j] - output_dict["loss_reference"]
-                )
+                np.mean(output_dict["loss_perm"][j] - output_dict["loss_reference"])
                 for j in range(self.nb_groups)
             ]
         )
