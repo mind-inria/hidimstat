@@ -66,9 +66,7 @@ class LOCO(BaseEstimator, TransformerMixin):
             self.nb_groups = len(self.groups)
         # create a list of covariate estimators for each group if not provided
 
-        self.list_estimators = [
-            clone(self.estimator) for _ in range(self.nb_groups)
-        ]
+        self.list_estimators = [clone(self.estimator) for _ in range(self.nb_groups)]
 
         def joblib_fit_one_gp(estimator, X, y, j):
             """
@@ -147,9 +145,7 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         output_dict["importance"] = np.array(
             [
-                np.mean(
-                    output_dict["loss_loco"][j] - output_dict["loss_reference"]
-                )
+                np.mean(output_dict["loss_loco"][j] - output_dict["loss_reference"])
                 for j in range(self.nb_groups)
             ]
         )
