@@ -20,7 +20,7 @@ class CPI(BaseEstimator, TransformerMixin):
     ----------
     estimator: scikit-learn compatible estimator
         The predictive model.
-    covariate_estimator: scikit-learn compatible estimator or list of
+    imputation_model: scikit-learn compatible estimator or list of
     estimators
         The model(s) used to estimate the covariates. If a single estimator is
         provided, it will be cloned for each covariate. Otherwise, a list of
@@ -48,7 +48,7 @@ class CPI(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator,
-        covariate_estimator,
+        imputation_model,
         n_perm: int = 50,
         groups: dict = None,
         loss: callable = mean_squared_error,
@@ -59,11 +59,11 @@ class CPI(BaseEstimator, TransformerMixin):
 
         check_is_fitted(estimator)
         self.estimator = estimator
-        self.covariate_estimator = covariate_estimator
-        if isinstance(self.covariate_estimator, list):
-            self.list_cov_estimators = self.covariate_estimator
+        self.imputation_model = imputation_model
+        if isinstance(self.imputation_model, list):
+            self.list_imputation_mod = self.imputation_model
         else:
-            self.list_cov_estimators = []
+            self.list_imputation_mod = []
         self.n_perm = n_perm
         self.groups = groups
         self.random_state = random_state
@@ -84,9 +84,9 @@ class CPI(BaseEstimator, TransformerMixin):
         else:
             self.nb_groups = len(self.groups)
         # create a list of covariate estimators for each group if not provided
-        if len(self.list_cov_estimators) == 0:
-            self.list_cov_estimators = [
-                clone(self.covariate_estimator) for _ in range(self.nb_groups)
+        if len(self.list_imputation_mod) == 0:
+            self.list_imputation_mod = [
+                clone(self.imputation_model) for _ in range(self.nb_groups)
             ]
 
         def joblib_fit_one_gp(estimator, X, y, j):
@@ -100,14 +100,14 @@ class CPI(BaseEstimator, TransformerMixin):
             return estimator
 
         # Parallelize the fitting of the covariate estimators
-        self.list_cov_estimators = Parallel(n_jobs=self.n_jobs)(
+        self.list_imputation_mod = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_fit_one_gp)(estimator, X, y, j)
-            for j, estimator in enumerate(self.list_cov_estimators)
+            for j, estimator in enumerate(self.list_imputation_mod)
         )
 
         return self
 
-    def predict(self, X, y):
+    def predict(self, X, y=None):
         """
         Compute the CPI importance scores. For each group of covariates, the
         residuals are computed using the covariate estimators. The residuals
@@ -131,28 +131,20 @@ class CPI(BaseEstimator, TransformerMixin):
             the permuted data for each group.
             - 'importance': the importance scores for each group.
         """
-        if len(self.list_cov_estimators) == 0:
+        if len(self.list_imputation_mod) == 0:
             raise ValueError("fit must be called before predict")
-        for m in self.list_cov_estimators:
+        for m in self.list_imputation_mod:
             check_is_fitted(m)
 
-        output_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
-        output_dict["loss_reference"] = loss_reference
-        output_dict["loss_perm"] = dict()
-
-        def joblib_predict_one_gp(estimator, X, y, j):
+        def joblib_predict_one_gp(imputation_model, X, j):
             """
-            Compute the importance score for a single group of covariates.
+            Compute the prediction of the model with the permuted data for a
+            single group of covariates.
             """
-            list_loss_perm = []
+            list_y_pred_perm = []
             X_j = X[:, self.groups[j]].copy()
             X_minus_j = np.delete(X, self.groups[j], axis=1)
-            X_j_hat = estimator.predict(X_minus_j).reshape(X_j.shape)
+            X_j_hat = imputation_model.predict(X_minus_j).reshape(X_j.shape)
             residual_j = X_j - X_j_hat
 
             group_ids = self.groups[j]
@@ -168,22 +160,68 @@ class CPI(BaseEstimator, TransformerMixin):
                     y_pred_perm = self.estimator.predict_proba(X_perm)
                 else:
                     y_pred_perm = self.estimator.predict(X_perm)
-                list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
-            return np.array(list_loss_perm)
+                list_y_pred_perm.append(y_pred_perm)
+
+            return np.array(list_y_pred_perm)
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_predict_one_gp)(estimator, X, y, j)
-            for j, estimator in enumerate(self.list_cov_estimators)
+            delayed(joblib_predict_one_gp)(imputation_model, X, j)
+            for j, imputation_model in enumerate(self.list_imputation_mod)
         )
 
-        for j, list_loss_perm in enumerate(out_list):
-            output_dict["loss_perm"][j] = list_loss_perm
+        return np.stack(out_list, axis=0)
 
-        output_dict["importance"] = np.array(
+    def score(self, X, y):
+        """
+        Compute the importance scores for each group of covariates.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        out_dict: dict
+            A dictionary containing the following keys:
+            - 'loss_reference': the loss of the model with the original data.
+            - 'loss_perm': a dictionary containing the loss of the model with
+            the permuted data for each group.
+            - 'importance': the importance scores for each group.
+        """
+        check_is_fitted(self.estimator)
+        if len(self.list_imputation_mod) == 0:
+            raise ValueError("fit must be called before score")
+        for m in self.list_imputation_mod:
+            check_is_fitted(m)
+
+        out_dict = dict()
+
+        if self.score_proba:
+            y_pred = self.estimator.predict_proba(X)
+        else:
+            y_pred = self.estimator.predict(X)
+
+        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        out_dict["loss_reference"] = loss_reference
+
+        y_pred_perm = self.predict(X, y)
+
+        out_dict["loss_perm"] = dict()
+        for j, y_pred_j in enumerate(y_pred_perm):
+            list_loss_perm = []
+            for y_pred_perm in y_pred_j:
+                list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
+            out_dict["loss_perm"][j] = np.array(list_loss_perm)
+
+        out_dict["importance"] = np.array(
             [
-                np.mean(output_dict["loss_perm"][j] - output_dict["loss_reference"])
+                np.mean(out_dict["loss_perm"][j]) - loss_reference
                 for j in range(self.nb_groups)
             ]
         )
-        return output_dict
+
+        return out_dict

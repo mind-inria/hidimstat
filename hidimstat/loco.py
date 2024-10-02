@@ -121,8 +121,6 @@ class LOCO(BaseEstimator, TransformerMixin):
             Compute the importance score for a single group of covariates
             removed.
             """
-            list_loss_gp = []
-
             X_minus_j = np.delete(X, self.groups[j], axis=1)
 
             if self.score_proba:
@@ -130,9 +128,7 @@ class LOCO(BaseEstimator, TransformerMixin):
             else:
                 y_pred_loco = estimator_j.predict(X_minus_j)
 
-            list_loss_gp.append(self.loss(y_true=y, y_pred=y_pred_loco))
-
-            return np.array(list_loss_gp)
+            return y_pred_loco
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
@@ -140,14 +136,48 @@ class LOCO(BaseEstimator, TransformerMixin):
             for j, estimator_j in enumerate(self.list_estimators)
         )
 
-        for j, list_loss_gp in enumerate(out_list):
-            output_dict["loss_loco"][j] = list_loss_gp
+        return np.stack(out_list, axis=0)
 
-        output_dict["importance"] = np.array(
-            [
-                np.mean(output_dict["loss_loco"][j] - output_dict["loss_reference"])
-                for j in range(self.nb_groups)
-            ]
+    def score(self, X, y):
+        """
+        Compute the importance scores for each group of covariates.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        out_dict: dict
+            A dictionary containing the following keys:
+            - 'loss_reference': the loss of the model with the original data.
+            - 'loss_perm': a dictionary containing the loss of the model with
+            the permuted data for each group.
+            - 'importance': the importance scores for each group.
+        """
+        if len(self.list_estimators) == 0:
+            raise ValueError("fit must be called before predict")
+        for m in self.list_estimators:
+            check_is_fitted(m)
+
+        out_dict = dict()
+        if self.score_proba:
+            y_pred = self.estimator.predict_proba(X)
+        else:
+            y_pred = self.estimator.predict(X)
+
+        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        out_dict["loss_reference"] = loss_reference
+
+        y_pred_loco = self.predict(X, y)
+
+        out_dict["loss_loco"] = np.array(
+            [self.loss(y_true=y, y_pred=y_pred_loco[j]) for j in range(self.nb_groups)]
         )
 
-        return output_dict
+        out_dict["importance"] = out_dict["loss_loco"] - loss_reference
+
+        return out_dict
