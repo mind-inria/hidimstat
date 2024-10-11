@@ -18,13 +18,16 @@ def test_CPI(linear_scenario):
     pi = PermutationImportance(
         estimator=regression_model,
         n_perm=20,
-        groups=None,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
 
-    pi.fit(X_train, y_train)
+    pi.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
     vim = pi.score(X_test, y_test)
 
     importance = vim["importance"]
@@ -39,12 +42,15 @@ def test_CPI(linear_scenario):
     pi = PermutationImportance(
         estimator=regression_model,
         n_perm=20,
-        groups=groups,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
-    pi.fit(X_train, y_train)
+    pi.fit(
+        X_train,
+        y_train,
+        groups=groups,
+    )
     vim = pi.score(X_test, y_test)
 
     importance = vim["importance"]

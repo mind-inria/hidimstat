@@ -17,13 +17,16 @@ def test_LOCO(linear_scenario):
 
     loco = LOCO(
         estimator=regression_model,
-        groups=None,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
 
-    loco.fit(X_train, y_train)
+    loco.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
     vim = loco.score(X_test, y_test)
 
     importance = vim["importance"]
@@ -37,12 +40,15 @@ def test_LOCO(linear_scenario):
     groups = {0: important_features, 1: non_important_features}
     loco = LOCO(
         estimator=regression_model,
-        groups=groups,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
-    loco.fit(X_train, y_train)
+    loco.fit(
+        X_train,
+        y_train,
+        groups=groups,
+    )
     vim = loco.score(X_test, y_test)
 
     importance = vim["importance"]

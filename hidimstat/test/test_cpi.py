@@ -20,13 +20,16 @@ def test_CPI(linear_scenario):
         estimator=regression_model,
         imputation_model=imputation_model,
         n_perm=20,
-        groups=None,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
 
-    cpi.fit(X_train, y_train)
+    cpi.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
     vim = cpi.score(X_test, y_test)
 
     importance = vim["importance"]
@@ -42,12 +45,15 @@ def test_CPI(linear_scenario):
         estimator=regression_model,
         imputation_model=imputation_model,
         n_perm=20,
-        groups=groups,
         score_proba=False,
         random_state=0,
         n_jobs=1,
     )
-    cpi.fit(X_train, y_train)
+    cpi.fit(
+        X_train,
+        y_train,
+        groups=groups,
+    )
     vim = cpi.score(X_test, y_test)
 
     importance = vim["importance"]
