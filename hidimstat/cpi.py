@@ -88,7 +88,7 @@ class CPI(BaseEstimator, TransformerMixin):
                 clone(self.imputation_model) for _ in range(self.n_groups)
             ]
 
-        def joblib_fit_one_gp(estimator, X, y, j):
+        def _joblib_fit_one_group(estimator, X, y, j):
             """
             Fit a single covariate estimator to predict a single group of
             covariates.
@@ -100,7 +100,7 @@ class CPI(BaseEstimator, TransformerMixin):
 
         # Parallelize the fitting of the covariate estimators
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_fit_one_gp)(estimator, X, y, j)
+            delayed(_joblib_fit_one_group)(estimator, X, y, j)
             for j, estimator in enumerate(self._list_imputation_models)
         )
 
@@ -135,7 +135,7 @@ class CPI(BaseEstimator, TransformerMixin):
         for m in self._list_imputation_models:
             check_is_fitted(m)
 
-        def joblib_predict_one_gp(imputation_model, X, j):
+        def _joblib_predict_one_group(imputation_model, X, j):
             """
             Compute the prediction of the model with the permuted data for a
             single group of covariates.
@@ -165,7 +165,7 @@ class CPI(BaseEstimator, TransformerMixin):
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_predict_one_gp)(imputation_model, X, j)
+            delayed(_joblib_predict_one_group)(imputation_model, X, j)
             for j, imputation_model in enumerate(self._list_imputation_models)
         )
 

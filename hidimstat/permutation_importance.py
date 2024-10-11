@@ -95,7 +95,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_perm"] = dict()
 
-        def joblib_predict_one_gp(X, j):
+        def _joblib_predict_one_group(X, j):
             """
             Compute the importance score for a single group of covariates.
             """
@@ -121,7 +121,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_predict_one_gp)(X, j) for j in range(len(self.groups))
+            delayed(_joblib_predict_one_group)(X, j) for j in range(len(self.groups))
         )
 
         return np.stack(out_list, axis=0)
