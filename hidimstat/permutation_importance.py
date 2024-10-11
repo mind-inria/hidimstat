@@ -51,7 +51,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         self.score_proba = score_proba
         self.n_jobs = n_jobs
         self.rng = np.random.RandomState(random_state)
-        self.nb_groups = None
+        self.n_groups = None
 
     def fit(self, X, y):
         return self
@@ -78,10 +78,10 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self.estimator)
         if self.groups is None:
-            self.nb_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self.nb_groups)}
+            self.n_groups = X.shape[1]
+            self.groups = {j: [j] for j in range(self.n_groups)}
         else:
-            self.nb_groups = len(self.groups)
+            self.n_groups = len(self.groups)
         output_dict = dict()
         if self.score_proba:
             y_pred = self.estimator.predict_proba(X)
@@ -165,7 +165,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         output_dict["importance"] = np.array(
             [
                 np.mean(output_dict["loss_perm"][j]) - output_dict["loss_reference"]
-                for j in range(self.nb_groups)
+                for j in range(self.n_groups)
             ]
         )
 
