@@ -66,7 +66,7 @@ diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
 
 #############################################################################
-# Fit a baselien model on the diabetes dataset
+# Fit a baseline model on the diabetes dataset
 # ------------------------------
 # We use a Ridge regression model with a 10-fold cross-validation to fit the
 # diabetes dataset.
