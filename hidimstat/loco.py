@@ -1,12 +1,7 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import (
-    BaseEstimator,
-    TransformerMixin,
-    check_is_fitted,
-    clone,
-)
-from sklearn.metrics import mean_squared_error
+from sklearn.base import BaseEstimator, TransformerMixin, check_is_fitted, clone
+from sklearn.metrics import root_mean_squared_error
 
 
 class LOCO(BaseEstimator, TransformerMixin):
@@ -18,10 +13,7 @@ class LOCO(BaseEstimator, TransformerMixin):
     ----------
     estimator: scikit-learn compatible estimator
         The predictive model.
-    groups: dict, default=None
-        Dictionary of groups for the covariates. The keys are the group names
-        and the values are lists of covariate indices.
-    loss: callable, default=mean_squared_error
+    loss: callable, default=root_mean_squared_error
         Loss function to evaluate the model performance.
     score_proba: bool, default=False
         Whether to use the predict_proba method of the estimator.
@@ -38,8 +30,7 @@ class LOCO(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator,
-        groups: dict = None,
-        loss: callable = mean_squared_error,
+        loss: callable = root_mean_squared_error,
         score_proba: bool = False,
         random_state: int = None,
         n_jobs: int = 1,
@@ -47,18 +38,24 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         check_is_fitted(estimator)
         self.estimator = estimator
-        self.groups = groups
         self.random_state = random_state
         self.loss = loss
         self.score_proba = score_proba
         self.n_jobs = n_jobs
         self.rng = np.random.RandomState(random_state)
-        self.list_estimators = []
+        self._list_estimators = []
 
-    def fit(self, X, y):
+    def fit(self, X, y, groups=None):
         """
         Fit the estimators on each subset of covariates.
+
+        Parameters
+        ----------
+        groups: dict, default=None
+            Dictionary of groups for the covariates. The keys are the group names
+            and the values are lists of covariate indices.
         """
+        self.groups = groups
         if self.groups is None:
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
@@ -66,7 +63,7 @@ class LOCO(BaseEstimator, TransformerMixin):
             self.n_groups = len(self.groups)
         # create a list of covariate estimators for each group if not provided
 
-        self.list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
+        self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
 
         def joblib_fit_one_gp(estimator, X, y, j):
             """
@@ -77,9 +74,9 @@ class LOCO(BaseEstimator, TransformerMixin):
             return estimator
 
         # Parallelize the fitting of the covariate estimators
-        self.list_estimators = Parallel(n_jobs=self.n_jobs)(
+        self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_fit_one_gp)(estimator, X, y, j)
-            for j, estimator in enumerate(self.list_estimators)
+            for j, estimator in enumerate(self._list_estimators)
         )
 
         return self
@@ -104,7 +101,7 @@ class LOCO(BaseEstimator, TransformerMixin):
             - 'importance': the importance scores for each group.
         """
         check_is_fitted(self.estimator)
-        for m in self.list_estimators:
+        for m in self._list_estimators:
             check_is_fitted(m)
 
         output_dict = dict()
@@ -133,7 +130,7 @@ class LOCO(BaseEstimator, TransformerMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(joblib_predict_one_gp)(estimator_j, X, y, j)
-            for j, estimator_j in enumerate(self.list_estimators)
+            for j, estimator_j in enumerate(self._list_estimators)
         )
 
         return np.stack(out_list, axis=0)
@@ -158,9 +155,9 @@ class LOCO(BaseEstimator, TransformerMixin):
             the permuted data for each group.
             - 'importance': the importance scores for each group.
         """
-        if len(self.list_estimators) == 0:
+        if len(self._list_estimators) == 0:
             raise ValueError("fit must be called before predict")
-        for m in self.list_estimators:
+        for m in self._list_estimators:
             check_is_fitted(m)
 
         out_dict = dict()

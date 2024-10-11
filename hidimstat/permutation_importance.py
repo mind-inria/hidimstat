@@ -14,9 +14,6 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         The predictive model.
     n_perm: int, default=50
         Number of permutations to perform.
-    groups: dict, default=None
-        Dictionary of groups for the covariates. The keys are the group names
-        and the values are lists of covariate indices.
     loss: callable, default=mean_squared_error
         Loss function to evaluate the model performance.
     score_proba: bool, default=False
@@ -35,7 +32,6 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         self,
         estimator,
         n_perm: int = 50,
-        groups: dict = None,
         loss: callable = mean_squared_error,
         score_proba: bool = False,
         random_state: int = None,
@@ -45,7 +41,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         check_is_fitted(estimator)
         self.estimator = estimator
         self.n_perm = n_perm
-        self.groups = groups
+
         self.random_state = random_state
         self.loss = loss
         self.score_proba = score_proba
@@ -53,7 +49,15 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         self.rng = np.random.RandomState(random_state)
         self.n_groups = None
 
-    def fit(self, X, y):
+    def fit(self, X, y, groups=None):
+        """
+        Parameters
+        ----------
+        groups: dict, default=None
+            Dictionary of groups for the covariates. The keys are the group names
+            and the values are lists of covariate indices.
+        """
+        self.groups = groups
         return self
 
     def predict(self, X, y):
