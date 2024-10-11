@@ -65,7 +65,7 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
 
-        def joblib_fit_one_gp(estimator, X, y, j):
+        def _joblib_fit_one_group(estimator, X, y, j):
             """
             Fit a single model on a subset of covariates.
             """
@@ -75,7 +75,7 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_fit_one_gp)(estimator, X, y, j)
+            delayed(_joblib_fit_one_group)(estimator, X, y, j)
             for j, estimator in enumerate(self._list_estimators)
         )
 
@@ -113,7 +113,7 @@ class LOCO(BaseEstimator, TransformerMixin):
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_loco"] = dict()
 
-        def joblib_predict_one_gp(estimator_j, X, y, j):
+        def _joblib_predict_one_group(estimator_j, X, y, j):
             """
             Compute the importance score for a single group of covariates
             removed.
@@ -129,7 +129,7 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(joblib_predict_one_gp)(estimator_j, X, y, j)
+            delayed(_joblib_predict_one_group)(estimator_j, X, y, j)
             for j, estimator_j in enumerate(self._list_estimators)
         )
 
