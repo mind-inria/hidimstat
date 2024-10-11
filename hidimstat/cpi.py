@@ -79,14 +79,14 @@ class CPI(BaseEstimator, TransformerMixin):
         the others.
         """
         if self.groups is None:
-            self.nb_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self.nb_groups)}
+            self.n_groups = X.shape[1]
+            self.groups = {j: [j] for j in range(self.n_groups)}
         else:
-            self.nb_groups = len(self.groups)
+            self.n_groups = len(self.groups)
         # create a list of covariate estimators for each group if not provided
         if len(self.list_imputation_mod) == 0:
             self.list_imputation_mod = [
-                clone(self.imputation_model) for _ in range(self.nb_groups)
+                clone(self.imputation_model) for _ in range(self.n_groups)
             ]
 
         def joblib_fit_one_gp(estimator, X, y, j):
@@ -220,7 +220,7 @@ class CPI(BaseEstimator, TransformerMixin):
         out_dict["importance"] = np.array(
             [
                 np.mean(out_dict["loss_perm"][j]) - loss_reference
-                for j in range(self.nb_groups)
+                for j in range(self.n_groups)
             ]
         )
 
