@@ -6,7 +6,8 @@ from sklearn.metrics import root_mean_squared_error
 
 class LOCO(BaseEstimator, TransformerMixin):
     """
-    Leave-One-Covariate-Out (LOCO) algorithm.
+    Leave-One-Covariate-Out (LOCO) algorithm as described in
+    :footcite:t:`Chamma_NeurIPS2023`.
 
 
     Parameters
