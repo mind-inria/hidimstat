@@ -52,7 +52,7 @@ from scipy.stats import norm
 from sklearn.base import clone
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
 from hidimstat.cpi import CPI
@@ -80,7 +80,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     score = r2_score(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
-    mse = mean_squared_error(
+    mse = root_mean_squared_error(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
@@ -121,7 +121,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         estimator=regressor_list[i],
         imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
-        n_perm=50,
+        n_permutations=50,
         random_state=0,
         n_jobs=4,
     )
@@ -161,7 +161,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     pi = PermutationImportance(
         estimator=regressor_list[i],
-        n_perm=50,
+        n_permutations=50,
         random_state=0,
         n_jobs=4,
     )
