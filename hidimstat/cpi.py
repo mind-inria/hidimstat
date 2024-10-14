@@ -21,7 +21,7 @@ class CPI(BaseEstimator, TransformerMixin):
         provided, it will be cloned for each covariate. Otherwise, a list of
         potentially different estimators can be provided, the length of the
         list must match the number of covariates.
-    n_perm: int, default=50
+    n_permutations: int, default=50
         Number of permutations to perform.
     loss: callable, default=root_mean_squared_error
         Loss function to evaluate the model performance.
@@ -41,7 +41,7 @@ class CPI(BaseEstimator, TransformerMixin):
         self,
         estimator,
         imputation_model,
-        n_perm: int = 50,
+        n_permutations: int = 50,
         loss: callable = root_mean_squared_error,
         score_proba: bool = False,
         random_state: int = None,
@@ -52,7 +52,7 @@ class CPI(BaseEstimator, TransformerMixin):
         self.estimator = estimator
         self.imputation_model = imputation_model
 
-        self.n_perm = n_perm
+        self.n_permutations = n_permutations
         self.random_state = random_state
         self.loss = loss
         self.score_proba = score_proba
@@ -123,12 +123,8 @@ class CPI(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        output_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss_perm': a dictionary containing the loss of the model with
-            the permuted data for each group.
-            - 'importance': the importance scores for each group.
+        residual_permuted_y_pred: np.ndarray of shape (n_groups, n_permutations, n_samples)
+            The predictions of the model with conditional permutation for each group
         """
         if len(self._list_imputation_models) == 0:
             raise ValueError("fit must be called before predict")
@@ -149,7 +145,7 @@ class CPI(BaseEstimator, TransformerMixin):
             group_ids = self.groups[j]
             non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
 
-            for _ in range(self.n_perm):
+            for _ in range(self.n_permutations):
                 X_j_perm = X_j_hat + self.rng.permutation(residual_j)
                 X_perm = np.empty_like(X)
                 X_perm[:, non_group_ids] = X_minus_j
@@ -169,7 +165,8 @@ class CPI(BaseEstimator, TransformerMixin):
             for j, imputation_model in enumerate(self._list_imputation_models)
         )
 
-        return np.stack(out_list, axis=0)
+        residual_permuted_y_pred = np.stack(out_list, axis=0)
+        return residual_permuted_y_pred
 
     def score(self, X, y):
         """

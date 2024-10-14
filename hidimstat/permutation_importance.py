@@ -12,7 +12,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
     ----------
     estimator: scikit-learn compatible estimator
         The predictive model.
-    n_perm: int, default=50
+    n_permutations: int, default=50
         Number of permutations to perform.
     loss: callable, default=mean_squared_error
         Loss function to evaluate the model performance.
@@ -31,7 +31,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
     def __init__(
         self,
         estimator,
-        n_perm: int = 50,
+        n_permutations: int = 50,
         loss: callable = mean_squared_error,
         score_proba: bool = False,
         random_state: int = None,
@@ -40,7 +40,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
 
         check_is_fitted(estimator)
         self.estimator = estimator
-        self.n_perm = n_perm
+        self.n_permutations = n_permutations
 
         self.random_state = random_state
         self.loss = loss
@@ -73,12 +73,9 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        output_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss_perm': a dictionary containing the loss of the model with
-            the permuted data for each group.
-            - 'importance': the importance scores for each group.
+        premuted_y_pred: np.ndarray of shape (n_groups, n_permutations, n_samples)
+            The predictions of the model with permuted data for each group
+
         """
         check_is_fitted(self.estimator)
         if self.groups is None:
@@ -86,14 +83,11 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
             self.groups = {j: [j] for j in range(self.n_groups)}
         else:
             self.n_groups = len(self.groups)
-        output_dict = dict()
         if self.score_proba:
             y_pred = self.estimator.predict_proba(X)
         else:
             y_pred = self.estimator.predict(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
-        output_dict["loss_reference"] = loss_reference
-        output_dict["loss_perm"] = dict()
 
         def _joblib_predict_one_group(X, j):
             """
@@ -105,7 +99,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
             group_ids = self.groups[j]
             non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
 
-            for _ in range(self.n_perm):
+            for _ in range(self.n_permutations):
                 X_j_perm = self.rng.permutation(X_j)
                 X_perm = np.empty_like(X)
                 X_perm[:, non_group_ids] = X_minus_j
@@ -124,7 +118,8 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
             delayed(_joblib_predict_one_group)(X, j) for j in range(len(self.groups))
         )
 
-        return np.stack(out_list, axis=0)
+        premuted_y_pred = np.stack(out_list, axis=0)
+        return premuted_y_pred
 
     def score(self, X, y):
         """

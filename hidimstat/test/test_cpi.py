@@ -19,7 +19,7 @@ def test_CPI(linear_scenario):
     cpi = CPI(
         estimator=regression_model,
         imputation_model=imputation_model,
-        n_perm=20,
+        n_permutations=20,
         score_proba=False,
         random_state=0,
         n_jobs=1,
@@ -44,7 +44,7 @@ def test_CPI(linear_scenario):
     cpi = CPI(
         estimator=regression_model,
         imputation_model=imputation_model,
-        n_perm=20,
+        n_permutations=20,
         score_proba=False,
         random_state=0,
         n_jobs=1,

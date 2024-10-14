@@ -17,7 +17,7 @@ def test_CPI(linear_scenario):
 
     pi = PermutationImportance(
         estimator=regression_model,
-        n_perm=20,
+        n_permutations=20,
         score_proba=False,
         random_state=0,
         n_jobs=1,
@@ -41,7 +41,7 @@ def test_CPI(linear_scenario):
     groups = {0: important_features, 1: non_important_features}
     pi = PermutationImportance(
         estimator=regression_model,
-        n_perm=20,
+        n_permutations=20,
         score_proba=False,
         random_state=0,
         n_jobs=1,
