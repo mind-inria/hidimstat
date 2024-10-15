@@ -10,17 +10,15 @@ class CPI(BaseEstimator, TransformerMixin):
     :footcite:t:`Chamma_NeurIPS2023` and for group-level see
     :footcite:t:`Chamma_AAAI2024`.
 
-
     Parameters
     ----------
     estimator: scikit-learn compatible estimator
         The predictive model.
-    imputation_model: scikit-learn compatible estimator or list of
-    estimators
+    imputation_model: scikit-learn compatible estimator or list of estimators
         The model(s) used to estimate the covariates. If a single estimator is
-        provided, it will be cloned for each covariate. Otherwise, a list of
+        provided, it will be cloned for each covariate group. Otherwise, a list of
         potentially different estimators can be provided, the length of the
-        list must match the number of covariates.
+        list must match the number of covariate groups.
     n_permutations: int, default=50
         Number of permutations to perform.
     loss: callable, default=root_mean_squared_error
@@ -60,13 +58,18 @@ class CPI(BaseEstimator, TransformerMixin):
 
         self.rng = np.random.RandomState(random_state)
 
-    def fit(self, X, y, groups=None):
+    def fit(self, X, y=None, groups=None):
         """
         Fit the covariate estimators to predict each group of covariates from
         the others.
 
         Parameters
         ----------
+        X: np.ndarray of shape (n_samples, n_features)
+            The input samples. If groups is provided, the columns must correspond to
+            the values of the groups dictionary.
+        y: np.ndarray of shape (n_samples,)
+            The target values. Not used in the fitting of the covariate estimators.
         groups: dict, default=None
             Dictionary of groups for the covariates. The keys are the group names
             and the values are lists of covariate indices.
@@ -108,11 +111,10 @@ class CPI(BaseEstimator, TransformerMixin):
 
     def predict(self, X, y=None):
         """
-        Compute the CPI importance scores. For each group of covariates, the
-        residuals are computed using the covariate estimators. The residuals
-        are then permuted and the model is re-evaluated. The importance score
-        is the difference between the loss of the model with the original data
-        and the loss of the model with the permuted data.
+        Compute the prediction of the model with perturbed data for each group.
+        For each group of covariates, the residuals are computed using the
+        covariate estimators. The residuals are then permuted and the model is
+        re-evaluated.
 
         Parameters
         ----------

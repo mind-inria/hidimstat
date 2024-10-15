@@ -49,10 +49,14 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         self.rng = np.random.RandomState(random_state)
         self.n_groups = None
 
-    def fit(self, X, y, groups=None):
+    def fit(self, X, y=None, groups=None):
         """
         Parameters
         ----------
+        X: np.ndarray of shape (n_samples, n_features)
+            The input samples. Not used here.
+        y: np.ndarray of shape (n_samples,)
+            The target values. Not used here.
         groups: dict, default=None
             Dictionary of groups for the covariates. The keys are the group names
             and the values are lists of covariate indices.
@@ -62,7 +66,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
 
     def predict(self, X, y):
         """
-        Compute the Permutation importance scores for each group of covariates.
+        Compute the prediction of the model with permuted data for each group.
 
         Parameters
         ----------

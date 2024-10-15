@@ -52,6 +52,11 @@ class LOCO(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
+        X: np.ndarray of shape (n_samples, n_features)
+            The input samples. If groups is provided, the columns must correspond to
+            the values of the groups dictionary.
+        y: np.ndarray of shape (n_samples,)
+            The target values used to fit the sub-models.
         groups: dict, default=None
             Dictionary of groups for the covariates. The keys are the group names
             and the values are lists of covariate indices.
@@ -84,6 +89,8 @@ class LOCO(BaseEstimator, TransformerMixin):
 
     def predict(self, X, y):
         """
+        Compute the prediction from each subset of covariates using the fitted
+        sub-models.
 
         Parameters
         ----------
