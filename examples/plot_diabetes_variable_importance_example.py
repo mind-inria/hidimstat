@@ -101,7 +101,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     score = r2_score(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
-    mse = mean_squared_error(
+    mse = root_mean_squared_error(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
