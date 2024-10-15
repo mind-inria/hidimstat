@@ -14,7 +14,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
     <script src="../_static/documentation_options.js?v=fa31bc0e"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -252,14 +252,12 @@ Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
  ...done. (0 seconds, 0 min)
 Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 
-Downloaded 20578304 of 291168628 bytes (7.1%,   13.8s remaining)
-Downloaded 60334080 of 291168628 bytes (20.7%,    7.9s remaining)
-Downloaded 104456192 of 291168628 bytes (35.9%,    5.5s remaining)
-Downloaded 149889024 of 291168628 bytes (51.5%,    3.8s remaining)
-Downloaded 195772416 of 291168628 bytes (67.2%,    2.5s remaining)
-Downloaded 242360320 of 291168628 bytes (83.2%,    1.2s remaining)
-Downloaded 287531008 of 291168628 bytes (98.8%,    0.1s remaining) ...done. (7 seconds, 0 min)
+Downloaded 77365248 of 291168628 bytes (26.6%,    2.8s remaining)
+Downloaded 176619520 of 291168628 bytes (60.7%,    1.3s remaining)
+Downloaded 274890752 of 291168628 bytes (94.4%,    0.2s remaining) ...done. (3 seconds, 0 min)
 Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
+/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:492: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+  warnings.warn(
 </pre></div>
 </div>
 </section>
@@ -310,7 +308,7 @@ of the distribution of these weights.</p>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-[Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.6s
+[Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.4s
 </pre></div>
 </div>
 <p>Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).
@@ -329,6 +327,8 @@ and high-dimensional inference (c.f. References).</p>
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
+/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:683: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+  model = cd_fast.enet_coordinate_descent_gram(
 </pre></div>
 </div>
 <p>Below, we run the ensemble clustered inference algorithm which adds a
@@ -344,7 +344,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   35.8s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.8s finished
 </pre></div>
 </div>
 </section>
@@ -445,6 +445,10 @@ called <cite>plot_map</cite> that wraps all these steps.</p>
 <li><img src="../_images/sphx_glr_plot_fmri_data_example_004.png" srcset="../_images/sphx_glr_plot_fmri_data_example_004.png" alt="plot fmri data example" class = "sphx-glr-multi-img"/></li>
 <li><img src="../_images/sphx_glr_plot_fmri_data_example_005.png" srcset="../_images/sphx_glr_plot_fmri_data_example_005.png" alt="plot fmri data example" class = "sphx-glr-multi-img"/></li>
 </ul>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:308: UserWarning: empty mask
+  ims = self._map_show(img, type=&quot;imshow&quot;, threshold=threshold, **kwargs)
+</pre></div>
+</div>
 </section>
 <section id="analysis-of-the-results">
 <h2>Analysis of the results<a class="headerlink" href="#analysis-of-the-results" title="Link to this heading">¶</a></h2>
@@ -463,8 +467,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 33.832 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  3374 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 29.048 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  3156 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>
@@ -493,7 +497,7 @@ spurious discoveries.</p>
     </p>
     <p>
         &copy; Copyright 2024, Mind-Inria.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.0.2.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.1.3.<br/>
     </p>
   </div>
 </footer>

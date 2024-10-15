@@ -184,8 +184,10 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
      ...done. (0 seconds, 0 min)
     Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    Downloaded 20578304 of 291168628 bytes (7.1%,   13.8s remaining)    Downloaded 60334080 of 291168628 bytes (20.7%,    7.9s remaining)    Downloaded 104456192 of 291168628 bytes (35.9%,    5.5s remaining)    Downloaded 149889024 of 291168628 bytes (51.5%,    3.8s remaining)    Downloaded 195772416 of 291168628 bytes (67.2%,    2.5s remaining)    Downloaded 242360320 of 291168628 bytes (83.2%,    1.2s remaining)    Downloaded 287531008 of 291168628 bytes (98.8%,    0.1s remaining) ...done. (7 seconds, 0 min)
+    Downloaded 77365248 of 291168628 bytes (26.6%,    2.8s remaining)    Downloaded 176619520 of 291168628 bytes (60.7%,    1.3s remaining)    Downloaded 274890752 of 291168628 bytes (94.4%,    0.2s remaining) ...done. (3 seconds, 0 min)
     Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
+    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:492: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+      warnings.warn(
 
 
 
@@ -282,7 +284,7 @@ Now, we compute p-values thanks to permutation tests applied to
  .. code-block:: none
 
     [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.6s
+    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.4s
 
 
 
@@ -330,6 +332,8 @@ and high-dimensional inference (c.f. References).
  .. code-block:: none
 
     Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
+    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:683: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+      model = cd_fast.enet_coordinate_descent_gram(
 
 
 
@@ -361,7 +365,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   35.8s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.8s finished
 
 
 
@@ -563,6 +567,13 @@ called `plot_map` that wraps all these steps.
          :class: sphx-glr-multi-img
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:308: UserWarning: empty mask
+      ims = self._map_show(img, type="imshow", threshold=threshold, **kwargs)
+
 
 
 
@@ -599,9 +610,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 33.832 seconds)
+   **Total running time of the script:** (1 minutes 29.048 seconds)
 
-**Estimated memory usage:**  3374 MB
+**Estimated memory usage:**  3156 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

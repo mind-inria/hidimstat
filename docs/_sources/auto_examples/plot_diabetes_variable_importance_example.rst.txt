@@ -36,8 +36,8 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and is
-costly with high-dimensional settings.
+buiding process. However, this solution is exclusive to the Random Forest and 
+is costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
 conditional schemes. The variable of interest does contain two types of
@@ -64,30 +64,43 @@ References
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-69
+.. GENERATED FROM PYTHON SOURCE LINES 48-62
 
 .. code-block:: Python
 
-
     import matplotlib.pyplot as plt
     import numpy as np
+    import pandas as pd
+    from scipy.stats import norm
+    from sklearn.base import clone
     from sklearn.datasets import load_diabetes
+    from sklearn.linear_model import RidgeCV
+    from sklearn.metrics import r2_score, root_mean_squared_error
+    from sklearn.model_selection import KFold
 
-    from hidimstat.bbi import BlockBasedImportance
-    from hidimstat import compute_loco
+    from hidimstat.cpi import CPI
+    from hidimstat.loco import LOCO
+    from hidimstat.permutation_importance import PermutationImportance
 
-    plt.rcParams.update({"font.size": 14})
 
-    # Fixing the random seed
-    rng = np.random.RandomState(2024)
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 63-65
+
+Load the diabetes dataset
+------------------------------
+
+.. GENERATED FROM PYTHON SOURCE LINES 65-68
+
+.. code-block:: Python
 
     diabetes = load_diabetes()
     X, y = diabetes.data, diabetes.target
 
-    # Use or not a cross-validation with the provided learner
-    k_fold = 2
-    # Identifying the categorical (nominal, binary & ordinal) variables
-    variables_categories = {}
 
 
 
@@ -95,122 +108,82 @@ Imports needed for this script
 
 
 
+.. GENERATED FROM PYTHON SOURCE LINES 69-73
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-77
-
-Standard Variable Importance
-----------------------------
-To apply the standard permutation, we use the implementation introduced by (Mi
-et al., Nature, 2021) where the significance is measured by the mean of
--log10(p_value). For this example, the inference estimator is set to the
-Random Forest learner.
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 77-97
-
-.. code-block:: Python
-
-
-    bbi_permutation = BlockBasedImportance(
-        estimator="RF",
-        importance_estimator="residuals_RF",
-        do_hypertuning=True,
-        dict_hypertuning=None,
-        conditional=False,
-        group_stacking=False,
-        problem_type="regression",
-        k_fold=k_fold,
-        variables_categories=variables_categories,
-        n_jobs=2,
-        verbose=0,
-        n_permutations=100,
-    )
-    bbi_permutation.fit(X, y)
-    print("Computing the importance scores with standard permutation")
-    results_permutation = bbi_permutation.compute_importance()
-    pvals_permutation = -np.log10(results_permutation["pval"] + 1e-10)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    Processing: 1
-    Processing: 2
-    Computing the importance scores with standard permutation
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 98-104
-
-Conditional Variable Importance
--------------------------------
-For the conditional permutation importance based on the two blocks (inference
-+ importance), the estimators are set to the Random Forest learner. The
-significance is measured by the mean of -log10(p_value).
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 104-124
-
-.. code-block:: Python
-
-
-    bbi_conditional = BlockBasedImportance(
-        estimator="RF",
-        importance_estimator="residuals_RF",
-        do_hypertuning=True,
-        dict_hypertuning=None,
-        conditional=True,
-        group_stacking=False,
-        problem_type="regression",
-        k_fold=k_fold,
-        variables_categories=variables_categories,
-        n_jobs=2,
-        verbose=0,
-        n_permutations=100,
-    )
-    bbi_conditional.fit(X, y)
-    print("Computing the importance scores with conditional permutation")
-    results_conditional = bbi_conditional.compute_importance()
-    pvals_conditional = -np.log10(results_conditional["pval"] + 1e-5)
-
-
-
-
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    Processing: 1
-    Processing: 2
-    Computing the importance scores with conditional permutation
-
-
-
-
-.. GENERATED FROM PYTHON SOURCE LINES 125-133
-
-Leave-One-Covariate-Out (LOCO)
+Fit a baseline model on the diabetes dataset
 ------------------------------
-We compare the previous permutation-based approaches with a removal-based
-approach LOCO (Williamson et al., Journal of the American Statistical
-Association, 2021) where the variable of interest is removed and the inference
-estimator is retrained using the new features to compare the loss for any drop in the
-performance.
+We use a Ridge regression model with a 10-fold cross-validation to fit the
+diabetes dataset.
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 133-137
+.. GENERATED FROM PYTHON SOURCE LINES 73-89
 
 .. code-block:: Python
 
 
-    results_loco = compute_loco(X, y, use_dnn=False)
-    pvals_loco = -np.log10(results_loco["p_value"] + 1e-5)
+    n_folds = 5
+    regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
+    regressor_list = [clone(regressor) for _ in range(n_folds)]
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+    for i, (train_index, test_index) in enumerate(kf.split(X)):
+        regressor_list[i].fit(X[train_index], y[train_index])
+        score = r2_score(
+            y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+        )
+        mse = root_mean_squared_error(
+            y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+        )
+
+        print(f"Fold {i}: {score}")
+        print(f"Fold {i}: {mse}")
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Fold 0: 0.33092885980301545
+    Fold 0: 58.57429457038258
+    Fold 1: 0.46114740610001137
+    Fold 1: 53.69518424561582
+    Fold 2: 0.5333394029342122
+    Fold 2: 54.666537166030764
+    Fold 3: 0.5048253747874585
+    Fold 3: 54.3633702441001
+    Fold 4: 0.5979566135054368
+    Fold 4: 52.287948367546456
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 90-94
+
+Fit a baselien model on the diabetes dataset
+------------------------------
+We use a Ridge regression model with a 10-fold cross-validation to fit the
+diabetes dataset.
+
+.. GENERATED FROM PYTHON SOURCE LINES 94-111
+
+.. code-block:: Python
+
+
+    n_folds = 10
+    regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
+    regressor_list = [clone(regressor) for _ in range(n_folds)]
+    kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+    for i, (train_index, test_index) in enumerate(kf.split(X)):
+        regressor_list[i].fit(X[train_index], y[train_index])
+        score = r2_score(
+            y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+        )
+        mse = root_mean_squared_error(
+            y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+        )
+
+        print(f"Fold {i}: {score}")
+        print(f"Fold {i}: {mse}")
 
 
 
@@ -220,53 +193,289 @@ performance.
 
  .. code-block:: none
 
-    Processing col: 1
-    Processing col: 2
-    Processing col: 3
-    Processing col: 4
-    Processing col: 5
-    Processing col: 6
-    Processing col: 7
-    Processing col: 8
-    Processing col: 9
-    Processing col: 10
+    Fold 0: 0.34873505091371093
+    Fold 0: 56.151600911163946
+    Fold 1: 0.2722061930940729
+    Fold 1: 61.35323376775815
+    Fold 2: 0.5316220308691071
+    Fold 2: 49.33374807702299
+    Fold 3: 0.36967014548640154
+    Fold 3: 59.01492149527525
+    Fold 4: 0.5858181205553151
+    Fold 4: 51.479244269131684
+    Fold 5: 0.46246416851449
+    Fold 5: 58.3119253313517
+    Fold 6: 0.5235794267120801
+    Fold 6: 51.352999936251216
+    Fold 7: 0.48683083150894546
+    Fold 7: 56.75372711094103
+    Fold 8: 0.665318862395647
+    Fold 8: 47.26090648721779
+    Fold 9: 0.5514585816057873
+    Fold 9: 55.7236176985951
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 138-140
+.. GENERATED FROM PYTHON SOURCE LINES 112-114
 
-Plotting the comparison
------------------------
+Measure the importance of variables using the CPI method
+------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 140-164
+.. GENERATED FROM PYTHON SOURCE LINES 114-132
 
 .. code-block:: Python
 
 
-    list_res = {"Permutation": [], "Conditional": [], "LOCO": []}
-    for index, _ in enumerate(diabetes.feature_names):
-        list_res["Permutation"].append(pvals_permutation[index][0])
-        list_res["Conditional"].append(pvals_conditional[index][0])
-        list_res["LOCO"].append(pvals_loco[index])
+    cpi_importance_list = []
+    for i, (train_index, test_index) in enumerate(kf.split(X)):
+        print(f"Fold {i}")
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        cpi = CPI(
+            estimator=regressor_list[i],
+            imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
+            n_permutations=50,
+            random_state=0,
+            n_jobs=4,
+        )
+        cpi.fit(X_train, y_train)
+        importance = cpi.score(X_test, y_test)
+        cpi_importance_list.append(importance)
 
-    x = np.arange(len(diabetes.feature_names))
-    width = 0.25  # the width of the bars
-    multiplier = 0
-    fig, ax = plt.subplots(figsize=(10, 10), layout="constrained")
 
-    for attribute, measurement in list_res.items():
-        offset = width * multiplier
-        rects = ax.bar(x + offset, measurement, width, label=attribute)
-        multiplier += 1
 
-    ax.set_ylabel(r"$-log_{10}p_{val}$")
-    ax.set_xticks(x + width / 2, diabetes.feature_names)
-    ax.legend(loc="upper left", ncols=3)
-    ax.set_ylim(0, 3)
-    ax.axhline(y=-np.log10(0.05), color="r", linestyle="-")
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Fold 0
+    Fold 1
+    Fold 2
+    Fold 3
+    Fold 4
+    Fold 5
+    Fold 6
+    Fold 7
+    Fold 8
+    Fold 9
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 133-135
+
+Measure the importance of variables using the LOCO method
+------------------------------
+
+.. GENERATED FROM PYTHON SOURCE LINES 135-152
+
+.. code-block:: Python
+
+
+    loco_importance_list = []
+
+    for i, (train_index, test_index) in enumerate(kf.split(X)):
+        print(f"Fold {i}")
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        loco = LOCO(
+            estimator=regressor_list[i],
+            random_state=0,
+            n_jobs=4,
+        )
+        loco.fit(X_train, y_train)
+        importance = loco.score(X_test, y_test)
+        loco_importance_list.append(importance)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Fold 0
+    Fold 1
+    Fold 2
+    Fold 3
+    Fold 4
+    Fold 5
+    Fold 6
+    Fold 7
+    Fold 8
+    Fold 9
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 153-155
+
+Measure the importance of variables using the permutation method
+------------------------------
+
+.. GENERATED FROM PYTHON SOURCE LINES 155-173
+
+.. code-block:: Python
+
+
+    pi_importance_list = []
+
+    for i, (train_index, test_index) in enumerate(kf.split(X)):
+        print(f"Fold {i}")
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
+        pi = PermutationImportance(
+            estimator=regressor_list[i],
+            n_permutations=50,
+            random_state=0,
+            n_jobs=4,
+        )
+        pi.fit(X_train, y_train)
+        importance = pi.score(X_test, y_test)
+        pi_importance_list.append(importance)
+
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    Fold 0
+    Fold 1
+    Fold 2
+    Fold 3
+    Fold 4
+    Fold 5
+    Fold 6
+    Fold 7
+    Fold 8
+    Fold 9
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 174-176
+
+Define a function to compute the p-value from importance values
+------------------------------
+
+.. GENERATED FROM PYTHON SOURCE LINES 176-192
+
+.. code-block:: Python
+
+    def compute_pval(vim):
+        mean_vim = np.mean(vim, axis=0)
+        std_vim = np.std(vim, axis=0)
+        pval = norm.sf(mean_vim / std_vim)
+        return np.clip(pval, 1e-10, 1 - 1e-10)
+
+
+    # Define a function to compute the p-value from importance values
+    # ------------------------------
+    def compute_pval(vim):
+        mean_vim = np.mean(vim, axis=0)
+        std_vim = np.std(vim, axis=0)
+        pval = norm.sf(mean_vim / std_vim)
+        return np.clip(pval, 1e-10, 1 - 1e-10)
+
+
+
+
+
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 193-195
+
+Analyze the results
+------------------------------
+
+.. GENERATED FROM PYTHON SOURCE LINES 195-267
+
+.. code-block:: Python
+
+
+
+    cpi_vim_arr = np.array([x["importance"] for x in cpi_importance_list]) / 2
+    cpi_pval = compute_pval(cpi_vim_arr)
+
+    vim = [
+        pd.DataFrame(
+            {
+                "var": np.arange(cpi_vim_arr.shape[1]),
+                "importance": x["importance"],
+                "fold": i,
+                "pval": cpi_pval,
+                "method": "CPI",
+            }
+        )
+        for x in cpi_importance_list
+    ]
+
+    loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
+    loco_pval = compute_pval(loco_vim_arr)
+
+    vim += [
+        pd.DataFrame(
+            {
+                "var": np.arange(loco_vim_arr.shape[1]),
+                "importance": x["importance"],
+                "fold": i,
+                "pval": loco_pval,
+                "method": "LOCO",
+            }
+        )
+        for x in loco_importance_list
+    ]
+
+    pi_vim_arr = np.array([x["importance"] for x in pi_importance_list])
+    pi_pval = compute_pval(pi_vim_arr)
+
+    vim += [
+        pd.DataFrame(
+            {
+                "var": np.arange(pi_vim_arr.shape[1]),
+                "importance": x["importance"],
+                "fold": i,
+                "pval": pi_pval,
+                "method": "PI",
+            }
+        )
+        for x in pi_importance_list
+    ]
+
+    fig, ax = plt.subplots()
+    df_plot = pd.concat(vim)
+    df_plot["pval"] = -np.log10(df_plot["pval"])
+    methods = df_plot["method"].unique()
+    colors = plt.cm.get_cmap("tab10", 10)
+
+    for i, method in enumerate(methods):
+        subset = df_plot[df_plot["method"] == method]
+        ax.bar(
+            subset["var"] + i * 0.2,
+            subset["pval"],
+            width=0.2,
+            label=method,
+            color=colors(i),
+        )
+
+    ax.legend(title="Method")
+    ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
+    ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
+    ax.set_xlabel("Variable")
+    ax.set_xticklabels(diabetes.feature_names)
     plt.show()
-
 
 
 
@@ -276,27 +485,24 @@ Plotting the comparison
    :class: sphx-glr-single-img
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:249: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
+      colors = plt.cm.get_cmap("tab10", 10)
+    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:265: UserWarning: set_ticklabels() should only be used with a fixed number of ticks, i.e. after set_ticks() or using a FixedLocator.
+      ax.set_xticklabels(diabetes.feature_names)
 
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 165-174
-
-Analysis of the results
------------------------
-While the standard permutation flags multiple variables to be significant for
-this prediction, the conditional permutation (the controlled alternative)
-shows an agreement for "bmi", "bp" and "s6" but also highlights the importance
-of "sex" in this prediction, thus reducing the input space to four significant
-variables. LOCO underlines the importance of one variable "bp" for this
-prediction problem.
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 54.114 seconds)
+   **Total running time of the script:** (0 minutes 8.146 seconds)
 
-**Estimated memory usage:**  621 MB
+**Estimated memory usage:**  609 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:
