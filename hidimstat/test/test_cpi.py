@@ -1,11 +1,13 @@
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from sklearn.base import clone
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
 from hidimstat.cpi import CPI
 
 
-def test_CPI(linear_scenario):
+def test_cpi(linear_scenario):
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -41,9 +43,10 @@ def test_CPI(linear_scenario):
 
     # Same with groups
     groups = {0: important_features, 1: non_important_features}
+    imputation_model_list = [clone(imputation_model) for _ in range(2)]
     cpi = CPI(
         estimator=regression_model,
-        imputation_model=imputation_model,
+        imputation_model=imputation_model_list,
         n_permutations=20,
         score_proba=False,
         random_state=0,
@@ -58,3 +61,26 @@ def test_CPI(linear_scenario):
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
+
+    # Classification scenario
+    y_clf = np.where(y > 0, 1, 0)
+
+    _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
+    logistic_model = LogisticRegression()
+    logistic_model.fit(X_train, y_train_clf)
+
+    cpi = CPI(
+        estimator=logistic_model,
+        imputation_model=imputation_model,
+        n_permutations=20,
+        random_state=0,
+        n_jobs=1,
+        score_proba=True,
+        loss=log_loss,
+    )
+    cpi.fit(
+        X_train,
+        y=None,
+        groups=None,
+    )
+    vim = cpi.score(X_test, y_test_clf)
