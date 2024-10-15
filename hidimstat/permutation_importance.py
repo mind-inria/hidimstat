@@ -1,7 +1,7 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, TransformerMixin, check_is_fitted
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 
 
 class PermutationImportance(BaseEstimator, TransformerMixin):
@@ -14,7 +14,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         The predictive model.
     n_permutations: int, default=50
         Number of permutations to perform.
-    loss: callable, default=mean_squared_error
+    loss: callable, default=root_mean_squared_error
         Loss function to evaluate the model performance.
     score_proba: bool, default=False
         Whether to use the predict_proba method of the estimator.
@@ -32,7 +32,7 @@ class PermutationImportance(BaseEstimator, TransformerMixin):
         self,
         estimator,
         n_permutations: int = 50,
-        loss: callable = mean_squared_error,
+        loss: callable = root_mean_squared_error,
         score_proba: bool = False,
         random_state: int = None,
         n_jobs: int = 1,
