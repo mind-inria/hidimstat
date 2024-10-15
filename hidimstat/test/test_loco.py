@@ -1,11 +1,13 @@
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from sklearn.base import clone
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
 from hidimstat.loco import LOCO
 
 
-def test_LOCO(linear_scenario):
+def test_loco(linear_scenario):
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -53,3 +55,26 @@ def test_LOCO(linear_scenario):
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
+
+    # Classification case
+    y_clf = np.where(y > np.median(y), 1, 0)
+    _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
+    logistic_model = LogisticRegression()
+    logistic_model.fit(X_train, y_train_clf)
+
+    loco_clf = LOCO(
+        estimator=logistic_model,
+        score_proba=True,
+        random_state=0,
+        n_jobs=1,
+        loss=log_loss,
+    )
+    loco_clf.fit(
+        X_train,
+        y_train_clf,
+        groups=None,
+    )
+    vim_clf = loco_clf.score(X_test, y_test_clf)
+
+    importance_clf = vim_clf["importance"]
+    assert importance_clf.shape == (X.shape[1],)
