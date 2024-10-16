@@ -1,0 +1,29 @@
+﻿hidimstat.CPI
+=============
+
+.. currentmodule:: hidimstat
+
+.. autoclass:: CPI
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~CPI.__init__
+      ~CPI.fit
+      ~CPI.get_metadata_routing
+      ~CPI.get_params
+      ~CPI.predict
+      ~CPI.score
+      ~CPI.set_fit_request
+      ~CPI.set_params
+   
+   
+
+   
+   
+   

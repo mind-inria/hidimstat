@@ -95,6 +95,7 @@
 <li><a class="reference internal" href="#">API Documentation</a><ul>
 <li><a class="reference internal" href="#estimators">Estimators</a></li>
 <li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
 </ul>
 </li>
 </ul>
@@ -156,10 +157,10 @@
 <td><p>Wrap-up high-dimensional inference procedures</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.knockoff_aggregation.html#hidimstat.knockoff_aggregation" title="hidimstat.knockoff_aggregation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">knockoff_aggregation</span></code></a>(X, y[, centered, ...])</p></td>
-<td><p>This function implements the aggregation of multiple knockoffs introduced by Nguyen <em>et al.</em><a href="#id6"><span class="problematic" id="id3">[#pmlr-v119-nguyen20a]_</span></a></p></td>
+<td><p>This function implements the aggregation of multiple knockoffs introduced by Nguyen <em>et al.</em><a href="#id7"><span class="problematic" id="id3">[#pmlr-v119-nguyen20a]_</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.model_x_knockoff.html#hidimstat.model_x_knockoff" title="hidimstat.model_x_knockoff"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_x_knockoff</span></code></a>(X, y[, fdr, offset, ...])</p></td>
-<td><p>Model-X Knockoff inference procedure to control False Discoveries Rate, based on Candes <em>et al.</em><a href="#id7"><span class="problematic" id="id4">[#candesPanningGoldModelX2017]_</span></a></p></td>
+<td><p>Model-X Knockoff inference procedure to control False Discoveries Rate, based on Candes <em>et al.</em><a href="#id8"><span class="problematic" id="id4">[#candesPanningGoldModelX2017]_</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.multivariate_1D_simulation.html#hidimstat.multivariate_1D_simulation" title="hidimstat.multivariate_1D_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multivariate_1D_simulation</span></code></a>([n_samples, ...])</p></td>
 <td><p>Generate 1D data with Toeplitz design matrix</p></td>
@@ -175,6 +176,22 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zscore_from_pval</span></code></a>(pval[, one_minus_pval, distrib])</p></td>
 <td><p>Computing z-scores from one-sided p-values.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.LOCO.html#hidimstat.LOCO" title="hidimstat.LOCO"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LOCO</span></code></a>(estimator, loss, score_proba, ...)</p></td>
+<td><p>Leave-One-Covariate-Out (LOCO) algorithm as described in CHAMMA <em>et al.</em><a href="#id9"><span class="problematic" id="id5">[#Chamma_NeurIPS2023]_</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.CPI.html#hidimstat.CPI" title="hidimstat.CPI"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPI</span></code></a>(estimator, imputation_model, ...)</p></td>
+<td><p>Conditional Permutation Importance (CPI) algorithm.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.PermutationImportance.html#hidimstat.PermutationImportance" title="hidimstat.PermutationImportance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PermutationImportance</span></code></a>(estimator, ...)</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
