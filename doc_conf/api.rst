@@ -17,7 +17,6 @@ Functions
 
    ada_svr
    aggregate_quantiles
-   BlockBasedImportance
    clustered_inference
    data_simulation
    desparsified_lasso
@@ -31,3 +30,13 @@ Functions
    reid
    standardized_svr
    zscore_from_pval
+
+Classes
+=======
+
+.. autosummary::
+   :toctree: generated/
+
+   LOCO
+   CPI
+   PermutationImportance
