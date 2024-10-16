@@ -1,10 +1,10 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, TransformerMixin, check_is_fitted
+from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
 
-class PermutationImportance(BaseEstimator, TransformerMixin):
+class PermutationImportance(BaseEstimator):
     """
 
 

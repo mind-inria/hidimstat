@@ -1,10 +1,10 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, TransformerMixin, check_is_fitted, clone
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
 
-class CPI(BaseEstimator, TransformerMixin):
+class CPI(BaseEstimator):
     """
     Conditional Permutation Importance (CPI) algorithm.
     :footcite:t:`Chamma_NeurIPS2023` and for group-level see
