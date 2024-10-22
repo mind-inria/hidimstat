@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.base import clone
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
@@ -41,9 +42,15 @@ def test_cpi(linear_scenario):
         > importance[non_important_features].mean()
     )
 
-    # Same with groups
-    groups = {0: important_features, 1: non_important_features}
+    # Same with groups and a pd.DataFrame
+    groups = {
+        0: [f"col_{i}" for i in important_features],
+        1: [f"col_{i}" for i in non_important_features],
+    }
+    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+    X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
     imputation_model_list = [clone(imputation_model) for _ in range(2)]
+    regression_model.fit(X_train_df, y_train)
     cpi = CPI(
         estimator=regression_model,
         imputation_model=imputation_model_list,
@@ -53,11 +60,11 @@ def test_cpi(linear_scenario):
         n_jobs=1,
     )
     cpi.fit(
-        X_train,
+        X_train_df,
         y_train,
         groups=groups,
     )
-    vim = cpi.score(X_test, y_test)
+    vim = cpi.score(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
