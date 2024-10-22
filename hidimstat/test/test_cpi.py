@@ -44,8 +44,8 @@ def test_cpi(linear_scenario):
 
     # Same with groups and a pd.DataFrame
     groups = {
-        0: [f"col_{i}" for i in important_features],
-        1: [f"col_{i}" for i in non_important_features],
+        "group_0": [f"col_{i}" for i in important_features],
+        "the_group_1": [f"col_{i}" for i in non_important_features],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
