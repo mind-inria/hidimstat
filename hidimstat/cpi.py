@@ -167,7 +167,6 @@ class CPI(BaseEstimator):
                 X_perm = np.empty_like(X)
                 X_perm[:, non_group_ids] = X_minus_j
                 X_perm[:, group_ids] = X_j_perm
-
                 if isinstance(X, pd.DataFrame):
                     X_perm = pd.DataFrame(X_perm, columns=X.columns)
 

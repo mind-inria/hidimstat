@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
@@ -75,14 +76,17 @@ class LOCO(BaseEstimator):
             """
             Fit a single model on a subset of covariates.
             """
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+            if isinstance(X, pd.DataFrame):
+                X_minus_j = X.drop(columns=self.groups[j])
+            else:
+                X_minus_j = np.delete(X, self.groups[j], axis=1)
             estimator.fit(X_minus_j, y)
             return estimator
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(_joblib_fit_one_group)(estimator, X, y, j)
-            for j, estimator in enumerate(self._list_estimators)
+            for j, estimator in zip(self.groups.keys(), self._list_estimators)
         )
 
         return self
@@ -126,7 +130,10 @@ class LOCO(BaseEstimator):
             Compute the importance score for a single group of covariates
             removed.
             """
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+            if isinstance(X, pd.DataFrame):
+                X_minus_j = X.drop(columns=self.groups[j])
+            else:
+                X_minus_j = np.delete(X, self.groups[j], axis=1)
 
             if self.score_proba:
                 y_pred_loco = estimator_j.predict_proba(X_minus_j)
@@ -138,7 +145,7 @@ class LOCO(BaseEstimator):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(_joblib_predict_one_group)(estimator_j, X, y, j)
-            for j, estimator_j in enumerate(self._list_estimators)
+            for j, estimator_j in zip(self.groups.keys(), self._list_estimators)
         )
 
         return np.stack(out_list, axis=0)

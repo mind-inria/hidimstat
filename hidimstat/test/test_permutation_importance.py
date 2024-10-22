@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
@@ -38,8 +39,14 @@ def test_permutation_importance(linear_scenario):
         > importance[non_important_features].mean()
     )
 
-    # Same with groups
-    groups = {0: important_features, 1: non_important_features}
+    # Same with groups and a pd.DataFrame
+    groups = {
+        "group_0": [f"col_{i}" for i in important_features],
+        "the_group_1": [f"col_{i}" for i in non_important_features],
+    }
+    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+    X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
+    regression_model.fit(X_train_df, y_train)
     pi = PermutationImportance(
         estimator=regression_model,
         n_permutations=20,
@@ -48,11 +55,11 @@ def test_permutation_importance(linear_scenario):
         n_jobs=1,
     )
     pi.fit(
-        X_train,
+        X_train_df,
         y_train,
         groups=groups,
     )
-    vim = pi.score(X_test, y_test)
+    vim = pi.score(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
