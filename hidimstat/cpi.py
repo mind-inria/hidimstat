@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
@@ -96,15 +97,19 @@ class CPI(BaseEstimator):
             Fit a single covariate estimator to predict a single group of
             covariates.
             """
-            X_j = X[:, self.groups[j]].copy()
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+            if isinstance(X, pd.DataFrame):
+                X_j = X[self.groups[j]].copy().values
+                X_minus_j = X.drop(columns=self.groups[j]).values
+            else:
+                X_j = X[:, self.groups[j]].copy()
+                X_minus_j = np.delete(X, self.groups[j], axis=1)
             estimator.fit(X_minus_j, X_j)
             return estimator
 
         # Parallelize the fitting of the covariate estimators
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(_joblib_fit_one_group)(estimator, X, y, j)
-            for j, estimator in enumerate(self._list_imputation_models)
+            for j, estimator in zip(self.groups.keys(), self._list_imputation_models)
         )
 
         return self
@@ -139,19 +144,31 @@ class CPI(BaseEstimator):
             single group of covariates.
             """
             list_y_pred_perm = []
-            X_j = X[:, self.groups[j]].copy()
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+            if isinstance(X, pd.DataFrame):
+                X_j = X[self.groups[j]].copy().values
+                X_minus_j = X.drop(columns=self.groups[j]).values
+                group_ids = [
+                    i for i, col in enumerate(X.columns) if col in self.groups[j]
+                ]
+                non_group_ids = [
+                    i for i, col in enumerate(X.columns) if col not in self.groups[j]
+                ]
+            else:
+                X_j = X[:, self.groups[j]].copy()
+                X_minus_j = np.delete(X, self.groups[j], axis=1)
+                group_ids = self.groups[j]
+                non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
+
             X_j_hat = imputation_model.predict(X_minus_j).reshape(X_j.shape)
             residual_j = X_j - X_j_hat
-
-            group_ids = self.groups[j]
-            non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
 
             for _ in range(self.n_permutations):
                 X_j_perm = X_j_hat + self.rng.permutation(residual_j)
                 X_perm = np.empty_like(X)
                 X_perm[:, non_group_ids] = X_minus_j
                 X_perm[:, group_ids] = X_j_perm
+                if isinstance(X, pd.DataFrame):
+                    X_perm = pd.DataFrame(X_perm, columns=X.columns)
 
                 if self.score_proba:
                     y_pred_perm = self.estimator.predict_proba(X_perm)
@@ -164,7 +181,9 @@ class CPI(BaseEstimator):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(_joblib_predict_one_group)(imputation_model, X, j)
-            for j, imputation_model in enumerate(self._list_imputation_models)
+            for j, imputation_model in zip(
+                self.groups.keys(), self._list_imputation_models
+            )
         )
 
         residual_permuted_y_pred = np.stack(out_list, axis=0)

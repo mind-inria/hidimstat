@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
@@ -87,27 +88,35 @@ class PermutationImportance(BaseEstimator):
             self.groups = {j: [j] for j in range(self.n_groups)}
         else:
             self.n_groups = len(self.groups)
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
 
         def _joblib_predict_one_group(X, j):
             """
             Compute the importance score for a single group of covariates.
             """
             list_y_pred_perm = []
-            X_j = X[:, self.groups[j]].copy()
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
-            group_ids = self.groups[j]
-            non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
+            if isinstance(X, pd.DataFrame):
+
+                X_j = X[self.groups[j]].copy().values
+                X_minus_j = X.drop(columns=self.groups[j]).values
+                group_ids = [
+                    i for i, col in enumerate(X.columns) if col in self.groups[j]
+                ]
+                non_group_ids = [
+                    i for i, col in enumerate(X.columns) if col not in self.groups[j]
+                ]
+            else:
+                X_j = X[:, self.groups[j]].copy()
+                X_minus_j = np.delete(X, self.groups[j], axis=1)
+                group_ids = self.groups[j]
+                non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
 
             for _ in range(self.n_permutations):
                 X_j_perm = self.rng.permutation(X_j)
                 X_perm = np.empty_like(X)
                 X_perm[:, non_group_ids] = X_minus_j
                 X_perm[:, group_ids] = X_j_perm
+                if isinstance(X, pd.DataFrame):
+                    X_perm = pd.DataFrame(X_perm, columns=X.columns)
 
                 if self.score_proba:
                     y_pred_perm = self.estimator.predict_proba(X_perm)
@@ -119,7 +128,7 @@ class PermutationImportance(BaseEstimator):
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(_joblib_predict_one_group)(X, j) for j in range(len(self.groups))
+            delayed(_joblib_predict_one_group)(X, j) for j in self.groups.keys()
         )
 
         premuted_y_pred = np.stack(out_list, axis=0)
