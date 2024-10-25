@@ -45,9 +45,7 @@ from hidimstat import CPI, PermutationImportance
 # The BMI can be obtained by $\text{BMI} = \frac{\text{weight}}{\text{height}^2}$.
 # And we simply mimic the weight and height variables by rescalling 2 correlated
 # features. The binary target is then generated using the formula:
-# $y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) +
-# \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) +
-# \beta_3 \cdot \text{age} + \epsilon$ where $\epsilon$ is a Gaussian noise.
+# :math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
 # The first and second term are non-linear functions of the features, corresponding to
 # deviations from the population mean while the third term is a linear function of a
 # feature.
