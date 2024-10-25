@@ -20,7 +20,7 @@ def test_permutation_importance(linear_scenario):
     pi = PermutationImportance(
         estimator=regression_model,
         n_permutations=20,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -50,7 +50,7 @@ def test_permutation_importance(linear_scenario):
     pi = PermutationImportance(
         estimator=regression_model,
         n_permutations=20,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -73,7 +73,7 @@ def test_permutation_importance(linear_scenario):
     pi_clf = PermutationImportance(
         estimator=logistic_model,
         n_permutations=20,
-        score_proba=True,
+        method="predict_proba",
         random_state=0,
         n_jobs=1,
         loss=log_loss,

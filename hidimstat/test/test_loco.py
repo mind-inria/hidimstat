@@ -20,7 +20,7 @@ def test_loco(linear_scenario):
 
     loco = LOCO(
         estimator=regression_model,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -49,7 +49,7 @@ def test_loco(linear_scenario):
     regression_model.fit(X_train_df, y_train)
     loco = LOCO(
         estimator=regression_model,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -71,7 +71,7 @@ def test_loco(linear_scenario):
 
     loco_clf = LOCO(
         estimator=logistic_model,
-        score_proba=True,
+        method="predict_proba",
         random_state=0,
         n_jobs=1,
         loss=log_loss,
