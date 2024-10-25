@@ -4,6 +4,8 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
+from hidimstat.utils import _check_vim_predict_method
+
 
 class LOCO(BaseEstimator):
     """
@@ -33,7 +35,7 @@ class LOCO(BaseEstimator):
         self,
         estimator,
         loss: callable = root_mean_squared_error,
-        score_proba: bool = False,
+        method: str = "predict",
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -42,7 +44,8 @@ class LOCO(BaseEstimator):
         self.estimator = estimator
         self.random_state = random_state
         self.loss = loss
-        self.score_proba = score_proba
+        _check_vim_predict_method(method)
+        self.method = method
         self.n_jobs = n_jobs
         self.rng = np.random.RandomState(random_state)
         self._list_estimators = []
@@ -117,10 +120,8 @@ class LOCO(BaseEstimator):
             check_is_fitted(m)
 
         output_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
+
+        y_pred = getattr(self.estimator, self.method)(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_loco"] = dict()
@@ -135,10 +136,7 @@ class LOCO(BaseEstimator):
             else:
                 X_minus_j = np.delete(X, self.groups[j], axis=1)
 
-            if self.score_proba:
-                y_pred_loco = estimator_j.predict_proba(X_minus_j)
-            else:
-                y_pred_loco = estimator_j.predict(X_minus_j)
+            y_pred_loco = getattr(estimator_j, self.method)(X_minus_j)
 
             return y_pred_loco
 
@@ -176,10 +174,7 @@ class LOCO(BaseEstimator):
             check_is_fitted(m)
 
         out_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
+        y_pred = getattr(self.estimator, self.method)(X)
 
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         out_dict["loss_reference"] = loss_reference

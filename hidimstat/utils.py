@@ -1,4 +1,5 @@
 import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -266,6 +267,19 @@ def create_X_y(
         scaler_y,
         valid_ind,
     )
+
+
+def _check_vim_predict_method(method):
+    """Check if the method is a valid method for variable importance measure
+    prediction"""
+    if method in ["predict", "predict_proba", "decision_function", "tramsform"]:
+        return method
+    else:
+        raise ValueError(
+            "The method {} is not a valid method for variable importance measure prediction".format(
+                method
+            )
+        )
 
 
 def sigmoid(x):

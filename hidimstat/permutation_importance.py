@@ -4,6 +4,8 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
+from hidimstat.utils import _check_vim_predict_method
+
 
 class PermutationImportance(BaseEstimator):
     """
@@ -34,7 +36,7 @@ class PermutationImportance(BaseEstimator):
         estimator,
         n_permutations: int = 50,
         loss: callable = root_mean_squared_error,
-        score_proba: bool = False,
+        method: str = "predict",
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -45,7 +47,8 @@ class PermutationImportance(BaseEstimator):
 
         self.random_state = random_state
         self.loss = loss
-        self.score_proba = score_proba
+        _check_vim_predict_method(method)
+        self.method = method
         self.n_jobs = n_jobs
         self.rng = np.random.RandomState(random_state)
         self.n_groups = None
@@ -118,11 +121,7 @@ class PermutationImportance(BaseEstimator):
                 if isinstance(X, pd.DataFrame):
                     X_perm = pd.DataFrame(X_perm, columns=X.columns)
 
-                if self.score_proba:
-                    y_pred_perm = self.estimator.predict_proba(X_perm)
-                else:
-                    y_pred_perm = self.estimator.predict(X_perm)
-
+                y_pred_perm = getattr(self.estimator, self.method)(X_perm)
                 list_y_pred_perm.append(y_pred_perm)
             return np.array(list_y_pred_perm)
 
@@ -157,10 +156,7 @@ class PermutationImportance(BaseEstimator):
         check_is_fitted(self.estimator)
 
         output_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
+        y_pred = getattr(self.estimator, self.method)(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_perm"] = dict()
