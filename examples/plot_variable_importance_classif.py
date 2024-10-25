@@ -9,8 +9,8 @@ illustrating the importance of model-agnostic variable importance methods, which
 opposed to linear models for instance, can capture non-linear relationships. 
 The features are generated from a multivariate normal distribution with a Toeplitz 
 correlation matrix. This second specificity of the problem is interesting to exemplify 
-the benefits of the conditional permutation importance (CPI) method :footcite:t:`Chamma_NeurIPS2023` 
-over the standard permutation importance (PI) method :footcite:t:`breimanRandomForests2001`.
+the benefits of the conditional permutation importance (CPI) method [:footcite:t:`Chamma_NeurIPS2023`] 
+over the standard permutation importance (PI) method [:footcite:t:`breimanRandomForests2001`].
 
 References
 ----------
@@ -42,7 +42,7 @@ from hidimstat import CPI, PermutationImportance
 # correlation matrix. The target variable is generated using a non-linear function
 # of the features. To make the problem more intuitive, we generate a non-linear
 # combination of the features inspired by the Body Mass Index (BMI) formula.
-# The BMI can be obtained by $\text{BMI} = \frac{\text{weight}}{\text{height}^2}$.
+# The BMI can be obtained by :math:`\text{BMI} = \frac{\text{weight}}{\text{height}^2}`.
 # And we simply mimic the weight and height variables by rescalling 2 correlated
 # features. The binary target is then generated using the formula:
 # :math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
