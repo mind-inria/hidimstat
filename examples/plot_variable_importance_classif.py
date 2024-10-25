@@ -235,7 +235,7 @@ box1 = ax.boxplot(
     importance_arr[:, 0, :],
     positions=np.arange(1, n_features + 1) - 0.25,
     widths=0.2,
-    label="Linear",
+    label="CPI Linear",
     vert=False,
 )
 for item in ["whiskers", "fliers", "medians", "caps", "boxes"]:
@@ -245,7 +245,7 @@ box1 = ax.boxplot(
     importance_arr[:, 1, :],
     positions=np.arange(1, n_features + 1),
     widths=0.2,
-    label="Poly",
+    label="CPI Poly",
     vert=False,
 )
 for item in ["whiskers", "fliers", "medians", "caps", "boxes"]:
@@ -255,7 +255,7 @@ box1 = ax.boxplot(
     importance_arr[:, 2, :],
     positions=np.arange(1, n_features + 1) + 0.25,
     widths=0.2,
-    label="Permutation",
+    label="PI Poly",
     vert=False,
 )
 for item in ["whiskers", "fliers", "medians", "caps", "boxes"]:
