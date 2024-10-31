@@ -180,15 +180,6 @@ def compute_pval(vim):
     return np.clip(pval, 1e-10, 1 - 1e-10)
 
 
-# Define a function to compute the p-value from importance values
-# ------------------------------
-def compute_pval(vim):
-    mean_vim = np.mean(vim, axis=0)
-    std_vim = np.std(vim, axis=0)
-    pval = norm.sf(mean_vim / std_vim)
-    return np.clip(pval, 1e-10, 1 - 1e-10)
-
-
 #############################################################################
 # Analyze the results
 # ------------------------------
