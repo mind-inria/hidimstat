@@ -226,7 +226,7 @@ for j in range(n_features):
 # While the linear model captures the importance of the age, it fails to capture the the
 # importance of the weight and height because of its lack of expressivity. Using a
 # polynomial kernel, the non-linear model captures the importance of the weight and height.
-# Finally, the CPI method controld for false positive discoveries contrarily to the PI method
+# Finally, the CPI method controls for false positive discoveries contrarily to the PI method
 # which identifies spurious important features simply because of the correlation structure of
 # the features.
 
