@@ -116,6 +116,8 @@ class LOCO(BaseEstimator):
             - 'importance': the importance scores for each group.
         """
         check_is_fitted(self.estimator)
+        if len(self._list_estimators) == 0:
+            raise ValueError("fit must be called before predict")
         for m in self._list_estimators:
             check_is_fitted(m)
 
@@ -168,6 +170,7 @@ class LOCO(BaseEstimator):
             the permuted data for each group.
             - 'importance': the importance scores for each group.
         """
+        check_is_fitted(self.estimator)
         if len(self._list_estimators) == 0:
             raise ValueError("fit must be called before predict")
         for m in self._list_estimators:
