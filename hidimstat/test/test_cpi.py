@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.base import clone
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
@@ -91,3 +93,47 @@ def test_cpi(linear_scenario):
         groups=None,
     )
     vim = cpi.score(X_test, y_test_clf)
+
+
+def test_raises_value_error(
+    linear_scenario,
+):
+    test_str = "unknown method"
+    with pytest.raises(ValueError):
+        CPI(
+            estimator=LinearRegression(),
+            imputation_model=LinearRegression(),
+            method=test_str,
+        )
+    X, y, beta = linear_scenario
+
+    with pytest.raises(NotFittedError):
+        cpi = CPI(
+            estimator=LinearRegression(),
+            imputation_model=LinearRegression(),
+            method="predict",
+        )
+        cpi.predict(X)
+    with pytest.raises(NotFittedError):
+        cpi = CPI(
+            estimator=LinearRegression(),
+            imputation_model=LinearRegression(),
+            method="predict",
+        )
+        cpi.score(X, y)
+    with pytest.raises(ValueError):
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model=LinearRegression(),
+            method="predict",
+        )
+        cpi.predict(X)
+    with pytest.raises(ValueError):
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model=LinearRegression(),
+            method="predict",
+        )
+        cpi.score(X, y)
