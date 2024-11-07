@@ -98,15 +98,17 @@ def test_cpi(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
+    X, y, _ = linear_scenario
+
     # Predict method not recognized
-    predict_method = "unknown method"
     with pytest.raises(ValueError):
+        fitted_model = LinearRegression().fit(X, y)
+        predict_method = "unknown method"
         CPI(
-            estimator=LinearRegression(),
+            estimator=fitted_model,
             imputation_model=LinearRegression(),
             method=predict_method,
         )
-    X, y, _ = linear_scenario
 
     # Not fitted estimator
     with pytest.raises(NotFittedError):
