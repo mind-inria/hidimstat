@@ -59,6 +59,7 @@ class CPI(BaseEstimator):
         _check_vim_predict_method(method)
         self.method = method
         self.n_jobs = n_jobs
+        self._list_imputation_models = []
 
         self.rng = np.random.RandomState(random_state)
 
