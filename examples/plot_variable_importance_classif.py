@@ -146,7 +146,6 @@ model_non_linear = RandomizedSearchCV(
     ),
     param_distributions={
         "C": np.logspace(-3, 3, 10),
-        # "gamma": np.logspace(-3, 3, 10),
     },
     n_iter=10,
     n_jobs=5,
@@ -223,7 +222,7 @@ for j in range(n_features):
 # Here we plot the variable importance and highlight the features that are considered
 # important, with a p-value lower than 0.05, using a diamond marker. We also highlight
 # the true important features, used to generate the target variable, with a star marker.
-# While the linear model captures the importance of the age, it fails to capture the the
+# While the linear model captures the importance of the age, it fails to capture the
 # importance of the weight and height because of its lack of expressivity. Using a
 # polynomial kernel, the non-linear model captures the importance of the weight and height.
 # Finally, the CPI method controls for false positive discoveries contrarily to the PI method
@@ -290,7 +289,13 @@ for j in range(n_features):
             zorder=3,
         )
 important_legend = mlines.Line2D(
-    [], [], color="grey", marker="D", linestyle="None", markersize=8, label="Important"
+    [],
+    [],
+    color="grey",
+    marker="D",
+    linestyle="None",
+    markersize=8,
+    label=f"p-value < {threshold}",
 )
 ground_truth_legend = mlines.Line2D(
     [], [], color="k", marker="*", linestyle="None", markersize=10, label="Ground Truth"
