@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.base import clone
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
@@ -20,7 +22,7 @@ def test_loco(linear_scenario):
 
     loco = LOCO(
         estimator=regression_model,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -49,7 +51,7 @@ def test_loco(linear_scenario):
     regression_model.fit(X_train_df, y_train)
     loco = LOCO(
         estimator=regression_model,
-        score_proba=False,
+        method="predict",
         random_state=0,
         n_jobs=1,
     )
@@ -71,7 +73,7 @@ def test_loco(linear_scenario):
 
     loco_clf = LOCO(
         estimator=logistic_model,
-        score_proba=True,
+        method="predict_proba",
         random_state=0,
         n_jobs=1,
         loss=log_loss,
@@ -85,3 +87,31 @@ def test_loco(linear_scenario):
 
     importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (X.shape[1],)
+
+
+def test_raises_value_error(
+    linear_scenario,
+):
+    X, y, _ = linear_scenario
+    # Not fitted estimator
+    with pytest.raises(NotFittedError):
+        loco = LOCO(
+            estimator=LinearRegression(),
+            method="predict",
+        )
+
+    # Not fitted sub-model when calling score and predict
+    with pytest.raises(ValueError):
+        fitted_model = LinearRegression().fit(X, y)
+        loco = LOCO(
+            estimator=fitted_model,
+            method="predict",
+        )
+        loco.predict(X, y)
+    with pytest.raises(ValueError):
+        fitted_model = LinearRegression().fit(X, y)
+        loco = LOCO(
+            estimator=fitted_model,
+            method="predict",
+        )
+        loco.score(X, y)

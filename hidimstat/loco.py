@@ -4,6 +4,8 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
+from hidimstat.utils import _check_vim_predict_method
+
 
 class LOCO(BaseEstimator):
     """
@@ -17,8 +19,11 @@ class LOCO(BaseEstimator):
         The predictive model.
     loss: callable, default=root_mean_squared_error
         Loss function to evaluate the model performance.
-    score_proba: bool, default=False
-        Whether to use the predict_proba method of the estimator.
+    method: str, default='predict'
+        Method to use for predicting values that will be used to compute
+        the loss and the importance scores. The method must be implemented by the
+        estimator. Supported methods are 'predict', 'predict_proba',
+        'decision_function' and 'transform'.
     random_state: int, default=None
         Random seed for the permutation.
     n_jobs: int, default=1
@@ -33,7 +38,7 @@ class LOCO(BaseEstimator):
         self,
         estimator,
         loss: callable = root_mean_squared_error,
-        score_proba: bool = False,
+        method: str = "predict",
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -42,7 +47,8 @@ class LOCO(BaseEstimator):
         self.estimator = estimator
         self.random_state = random_state
         self.loss = loss
-        self.score_proba = score_proba
+        _check_vim_predict_method(method)
+        self.method = method
         self.n_jobs = n_jobs
         self.rng = np.random.RandomState(random_state)
         self._list_estimators = []
@@ -113,14 +119,14 @@ class LOCO(BaseEstimator):
             - 'importance': the importance scores for each group.
         """
         check_is_fitted(self.estimator)
+        if len(self._list_estimators) == 0:
+            raise ValueError("fit must be called before predict")
         for m in self._list_estimators:
             check_is_fitted(m)
 
         output_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
+
+        y_pred = getattr(self.estimator, self.method)(X)
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_loco"] = dict()
@@ -135,10 +141,7 @@ class LOCO(BaseEstimator):
             else:
                 X_minus_j = np.delete(X, self.groups[j], axis=1)
 
-            if self.score_proba:
-                y_pred_loco = estimator_j.predict_proba(X_minus_j)
-            else:
-                y_pred_loco = estimator_j.predict(X_minus_j)
+            y_pred_loco = getattr(estimator_j, self.method)(X_minus_j)
 
             return y_pred_loco
 
@@ -170,16 +173,14 @@ class LOCO(BaseEstimator):
             the permuted data for each group.
             - 'importance': the importance scores for each group.
         """
+        check_is_fitted(self.estimator)
         if len(self._list_estimators) == 0:
             raise ValueError("fit must be called before predict")
         for m in self._list_estimators:
             check_is_fitted(m)
 
         out_dict = dict()
-        if self.score_proba:
-            y_pred = self.estimator.predict_proba(X)
-        else:
-            y_pred = self.estimator.predict(X)
+        y_pred = getattr(self.estimator, self.method)(X)
 
         loss_reference = self.loss(y_true=y, y_pred=y_pred)
         out_dict["loss_reference"] = loss_reference
