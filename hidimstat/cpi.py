@@ -26,8 +26,11 @@ class CPI(BaseEstimator):
         Number of permutations to perform.
     loss: callable, default=root_mean_squared_error
         Loss function to evaluate the model performance.
-    score_proba: bool, default=False
-        Whether to use the predict_proba method of the estimator.
+    method: str, default='predict'
+        Method to use for predicting values that will be used to compute
+        the loss and the importance scores. The method must be implemented by the
+        estimator. Supported methods are 'predict', 'predict_proba',
+        'decision_function' and 'transform'.
     random_state: int, default=None
         Random seed for the permutation.
     n_jobs: int, default=1

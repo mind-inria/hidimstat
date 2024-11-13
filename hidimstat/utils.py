@@ -272,7 +272,7 @@ def create_X_y(
 def _check_vim_predict_method(method):
     """Check if the method is a valid method for variable importance measure
     prediction"""
-    if method in ["predict", "predict_proba", "decision_function", "tramsform"]:
+    if method in ["predict", "predict_proba", "decision_function", "transform"]:
         return method
     else:
         raise ValueError(
