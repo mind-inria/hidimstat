@@ -15,6 +15,11 @@ from .cpi import CPI
 from .loco import LOCO
 from .permutation_importance import PermutationImportance
 
+try:
+    from ._version import __version__
+except ImportError:
+    __version__ = "0+unknown"
+
 __all__ = [
     "ada_svr",
     "aggregate_quantiles",
