@@ -49,7 +49,7 @@ def ada_svr(X, y, rcond=1e-3):
     return beta_hat, scale
 
 
-def _manual_inversion(X, rcond=1e-3, full_rank=False):
+def _manual_inversion(X, rcond=1e-3):
     "Inverting taking care of low eigenvalues to increase numerical stability"
 
     X = np.asarray(X)
@@ -62,9 +62,6 @@ def _manual_inversion(X, rcond=1e-3, full_rank=False):
     rank = np.sum(s > rcond * s.max())
     s_inv = np.zeros(np.size(s))
     s_inv[:rank] = 1 / s[:rank]
-
-    if full_rank:
-        s_inv[rank:] = 1 / (rcond * s.max())
 
     X_inv = np.linalg.multi_dot([U, np.diag(s_inv), V])
 
