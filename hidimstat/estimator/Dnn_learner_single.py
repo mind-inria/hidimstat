@@ -8,7 +8,7 @@ from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.validation import check_is_fitted
 
-from .utils import (
+from ._utils.u_Dnn_learner import (
     create_X_y,
     dnn_net,
     joblib_ensemble_dnnet,
@@ -241,6 +241,7 @@ class DnnLearnerSingle(BaseEstimator):
         loss = np.array(res_ens[4])
 
         if self.n_ensemble == 1:
+            raise Warning("The model can't be fit with n_ensemble = 1")
             return [(res_ens[0][0], (res_ens[1][0], res_ens[2][0]))]
 
         # Keeping the optimal subset of DNNs
@@ -283,6 +284,9 @@ class DnnLearnerSingle(BaseEstimator):
             y = y.reshape(-1, 1)
         if self.problem_type == "regression":
             list_y.append(y)
+        # Encoding the target with the ordinal case
+        if self.problem_type == "ordinal":
+            list_y = ordinal_encode(y)
 
         for col in range(y.shape[1]):
             if train:
@@ -291,18 +295,12 @@ class DnnLearnerSingle(BaseEstimator):
                     self.enc_y.append(OneHotEncoder(handle_unknown="ignore"))
                     curr_y = self.enc_y[col].fit_transform(y[:, [col]]).toarray()
                     list_y.append(curr_y)
-
-                # Encoding the target with the ordinal case
-                if self.problem_type == "ordinal":
-                    y = ordinal_encode(y)
-
             else:
                 # Encoding the target with the classification case
                 if self.problem_type in ("classification", "binary"):
                     curr_y = self.enc_y[col].transform(y[:, [col]]).toarray()
                     list_y.append(curr_y)
-
-                ## ToDo Add the ordinal case
+                
         return np.array(list_y)
 
     def hyper_tuning(
