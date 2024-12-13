@@ -53,8 +53,6 @@ def _manual_inversion(X, rcond=1e-3):
     "Inverting taking care of low eigenvalues to increase numerical stability"
 
     X = np.asarray(X)
-    n_samples, n_features = X.shape
-
     U, s, V = np.linalg.svd(X, full_matrices=False)
     rank = np.sum(s > rcond * s.max())
     s_inv = np.zeros(np.size(s))
