@@ -55,9 +55,6 @@ def _manual_inversion(X, rcond=1e-3):
     X = np.asarray(X)
     n_samples, n_features = X.shape
 
-    if n_samples != n_features:
-        raise ValueError("The matrix is not a square matrix")
-
     U, s, V = np.linalg.svd(X, full_matrices=False)
     rank = np.sum(s > rcond * s.max())
     s_inv = np.zeros(np.size(s))
