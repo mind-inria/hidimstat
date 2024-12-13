@@ -10,7 +10,7 @@ joblib
 *.pyc
 __pycache__
 *.egg-info
-.coverage
+.coverage*
 
 # IDE specific folders
 .vscode
