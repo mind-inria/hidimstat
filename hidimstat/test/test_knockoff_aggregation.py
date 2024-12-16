@@ -54,6 +54,21 @@ def test_knockoff_aggregation():
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
 
+    selected_ko, test_scored, thres, X_tilde = model_x_knockoff(X, y, fdr=fdr, seed=5, verbose=True)
+    #TODO add tests for the 3 other variables
+
+    np.testing.assert_array_equal(selected_no_verbose, selected_ko)
+
+    fdp_no_verbose, power_no_verbose = cal_fdp_power(
+        selected_no_verbose, non_zero_index
+    )
+    fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
+
+    assert fdp_verbose < 0.5
+    assert power_verbose > 0.1
+
+
+
     # Using e-values aggregation (verbose vs no verbose)
 
     selected_verbose, aggregated_pval, pvals = knockoff_aggregation(
@@ -89,7 +104,7 @@ def test_knockoff_aggregation():
     assert power_no_verbose > 0.1
 
     # Checking wrong type for random_state
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError, match="Wrong type for random_state"):
         _ = knockoff_aggregation(
             X,
             y,
@@ -97,20 +112,18 @@ def test_knockoff_aggregation():
         )
 
     # Checking value for offset not belonging to (0,1)
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
         _ = knockoff_aggregation(
             X,
             y,
             offset=2,
             method="quantile",
-            random_state="test",
         )
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
         _ = knockoff_aggregation(
             X,
             y,
             offset=2,
             method="e-values",
-            random_state="test",
         )

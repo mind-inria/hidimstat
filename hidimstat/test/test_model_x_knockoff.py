@@ -16,3 +16,18 @@ def test_model_x_knockoff():
 
     assert fdp <= 0.2
     assert power > 0.7
+
+
+def test_model_x_knockoff_with_verbose():
+    n = 300
+    p = 300
+    X, y, _, non_zero = simu_data(n, p, seed=seed)
+    ko_result, test_scored, thres, X_tilde = model_x_knockoff(X, y, fdr=fdr, seed=5, verbose=True)
+    #TODO add tests for the 3 other variables
+
+    fdp, power = cal_fdp_power(ko_result, non_zero)
+
+    assert fdp <= 0.2
+    assert power > 0.7
+
+
