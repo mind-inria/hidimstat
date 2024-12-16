@@ -15,7 +15,7 @@ def test_dcrt_lasso():
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     # Checking if a loss != 'least_square'
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="test loss is not supported."):
         _ = dcrt_zero(
             X,
             y,
@@ -27,7 +27,7 @@ def test_dcrt_lasso():
         )
 
     # Checking for a different statistic
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="test statistic is not supported."):
         _ = dcrt_zero(
             X,
             y,
@@ -36,6 +36,30 @@ def test_dcrt_lasso():
             statistic="test",
             random_state=2024,
         )
+    
+    # Checking for bad selection of screening_threshold
+    result_th_screen_bad = dcrt_zero(
+            X,
+            y,
+            screening_threshold = 0,
+            screening=True,
+            verbose=False,
+        )
+    assert result_th_screen_bad.size == 0
+
+    # Checking for bad selection of screening_threshold with verbose
+    result_th_screen_bad = dcrt_zero(
+            X,
+            y,
+            screening_threshold = 0,
+            screening=True,
+            verbose=True,
+    )
+    
+    assert len(result_th_screen_bad) == 3
+    assert result_th_screen_bad[0].size == 0
+    assert np.all(result_th_screen_bad[1] == np.ones(10))
+    assert np.all(result_th_screen_bad[2] == np.zeros(10))
 
     # Checking with and without screening
     results_no_screening = dcrt_zero(
@@ -70,7 +94,8 @@ def test_dcrt_lasso():
         X,
         y,
         refit=True,
-        screening=False,
+        screening=True,
+        screening_threshold = 50,
         verbose=True,
         statistic="residual",
         random_state=2024,
