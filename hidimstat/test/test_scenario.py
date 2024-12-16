@@ -3,6 +3,7 @@ Test the scenario module
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal, assert_equal
 
 from hidimstat.scenario import (
@@ -55,6 +56,41 @@ def test_multivariate_1D_simulation():
     X, y, beta, noise = multivariate_1D_simulation()
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_hat, 0, decimal=1)
+    
+    # Test 3
+    X, y, beta, noise = multivariate_1D_simulation(n_samples=9, nb_group=2, group_size=3)
+    corr_X = np.corrcoef(X)
+    assert_almost_equal(corr_X[0, 0], 1, decimal=1)
+    assert_almost_equal(corr_X[0, 1], 1, decimal=1)
+    assert_almost_equal(corr_X[0, 2], 1, decimal=1)
+    assert_almost_equal(corr_X[1, 0], 1, decimal=1)
+    assert_almost_equal(corr_X[1, 1], 1, decimal=1)
+    assert_almost_equal(corr_X[1, 2], 1, decimal=1)
+    assert_almost_equal(corr_X[2, 0], 1, decimal=1)
+    assert_almost_equal(corr_X[2, 1], 1, decimal=1)
+    assert_almost_equal(corr_X[2, 2], 1, decimal=1)
+    assert_almost_equal(corr_X[3, 3], 1, decimal=1)
+    assert_almost_equal(corr_X[3, 4], 1, decimal=1)
+    assert_almost_equal(corr_X[3, 5], 1, decimal=1)
+    assert_almost_equal(corr_X[4, 3], 1, decimal=1)
+    assert_almost_equal(corr_X[4, 4], 1, decimal=1)
+    assert_almost_equal(corr_X[4, 5], 1, decimal=1)
+    assert_almost_equal(corr_X[5, 3], 1, decimal=1)
+    assert_almost_equal(corr_X[5, 4], 1, decimal=1)
+    assert_almost_equal(corr_X[5, 5], 1, decimal=1)
+    
+    
+
+def test_multivariate_1D_simulation_exception():
+    """
+    Test when the input paramters is not correct.
+    """
+    with pytest.raises(ValueError, match="The number of groups and their size must be positive."):
+        multivariate_1D_simulation(nb_group=-1)
+    
+    with pytest.raises(ValueError, match="The number of samples is too small compate to the number "
+            "of group and their size to gerate the data."):
+        multivariate_1D_simulation(n_samples=10, nb_group=2, group_size=6)
 
 
 def test_multivariate_simulation():
@@ -162,3 +198,5 @@ def test_multivariate_temporal_simulation():
     rho_data_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_data_hat, rho_data, decimal=1)
     assert_equal(Y, np.dot(X, beta) + noise)
+
+

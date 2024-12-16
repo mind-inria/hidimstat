@@ -148,7 +148,7 @@ def test_clustered_inference_no_temporal_groups():
         shuffle=False,
         seed=2,
         nb_group=nb_groups,
-        size_group=size,
+        group_size=size,
     )
     groups = np.concatenate([[i]*size for i in range(nb_groups+1)])
 
