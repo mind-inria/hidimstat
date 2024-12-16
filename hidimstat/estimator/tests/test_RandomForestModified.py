@@ -1,4 +1,4 @@
-from hidimstat.estimator.test._utils_test import generate_data
+from hidimstat.estimator.tests._utils_test import generate_data
 from hidimstat.estimator.RandomForestModified import RandomForestClassifierModified, RandomForestRegressorModified
 import numpy as np
 
