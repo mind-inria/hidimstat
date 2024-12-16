@@ -3,6 +3,7 @@ Test the ensemble_clustered_inference module
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
@@ -125,3 +126,63 @@ def test_ensemble_clustered_inference():
     assert_almost_equal(
         pval_corr[extended_support:], expected[extended_support:], decimal=1
     )
+
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        ensemble_clustered_inference(
+            X,
+            Y,
+            ward,
+            n_clusters,
+            n_bootstraps=n_bootstraps,
+            inference_method=inference_method,
+            ensembling_method="medians"
+        )
+    )
+
+    expected = 0.5 * np.ones(n_features)
+    expected[:support_size] = 0.0
+
+    assert_almost_equal(
+        pval_corr[:interior_support], expected[:interior_support], decimal=3
+    )
+    assert_almost_equal(
+        pval_corr[extended_support:], expected[extended_support:], decimal=1
+    )
+
+
+
+
+def test_ensemble_clustered_inference_exception():
+    """
+    Test the raise of exception
+    """
+    n_samples, n_features = 100, 2000
+    n_clusters = 10
+    X, Y, beta, epsilon = multivariate_1D_simulation(
+        n_samples=n_samples, n_features=n_features, 
+    )
+    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+    ward = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
+    
+    # Test the raise of exception
+    with pytest.raises(ValueError, match="Unknown ensembling method."):
+        ensemble_clustered_inference(
+            X,
+            Y,
+            ward,
+            n_clusters,
+            ensembling_method="wrong_method"
+        )
+    
+    
+    with pytest.raises(ValueError, match="'memory' must be None or a string corresponding "
+            + "to the path of the caching directory."):
+        ensemble_clustered_inference(
+            X,
+            Y,
+            ward,
+            n_clusters,
+            memory=[]
+        )
