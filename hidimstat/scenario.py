@@ -16,6 +16,8 @@ def multivariate_1D_simulation(
     rho=0.0,
     shuffle=True,
     seed=0,
+    nb_group=0,
+    size_group=0,
 ):
     """Generate 1D data with Toeplitz design matrix
 
@@ -41,11 +43,18 @@ def multivariate_1D_simulation(
 
     seed : int
         Seed used for generating design matrix and noise.
+    
+    nb_group : int
+        Number of groups.
+        
+    size_group : int
+        Size of each group.
 
     Returns
     -------
     X : ndarray, shape (n_samples, n_features)
         Design matrix.
+        if their is some groups, the first rows contains the groups values.
 
     y : ndarray, shape (n_samples,)
         Target.
@@ -58,16 +67,29 @@ def multivariate_1D_simulation(
     """
 
     rng = np.random.default_rng(seed)
-
-    X = np.zeros((n_samples, n_features))
-    X[:, 0] = rng.standard_normal(n_samples)
+    if nb_group < 0 or size_group < 0:
+        raise ValueError(
+            "The number of groups and their size must be positive."
+        )
+    n_generate_samples = n_samples - nb_group * size_group 
+    if n_generate_samples <= 0:
+        raise ValueError(
+            "The number of samples is too small compate to the number "
+            "of group and their size to gerate the data."
+        )
+    X = np.zeros((n_generate_samples, n_features))
+    X[:, 0] = rng.standard_normal(n_generate_samples)
 
     for i in np.arange(1, n_features):
-        rand_vector = ((1 - rho**2) ** 0.5) * rng.standard_normal(n_samples)
+        rand_vector = ((1 - rho**2) ** 0.5) * rng.standard_normal(n_generate_samples)
         X[:, i] = rho * X[:, i - 1] + rand_vector
 
     if shuffle:
         rng.shuffle(X.T)
+
+    if nb_group > 0:
+        groups = np.repeat(X[:nb_group], size_group, axis=0)
+        X = np.vstack((groups, X))
 
     beta = np.zeros(n_features)
     beta[0:support_size] = 1.0
