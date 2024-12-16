@@ -1,4 +1,4 @@
-from hidimstat.estimator.test._utils_test import generate_data
+from hidimstat.estimator.tests._utils_test import generate_data
 from hidimstat.estimator.Dnn_learner_single import DnnLearnerSingle
 import numpy as np
 
