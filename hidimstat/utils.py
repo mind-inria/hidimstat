@@ -84,19 +84,19 @@ def _bhq_threshold(pvals, fdr=0.1):
         return -1.0
 
 
-def _ebh_threshold(evals, fdr=0.1):
+def _ebh_threshold(pvals, fdr=0.1):
     """e-BH procedure for FDR control (see Wang and Ramdas 2021)"""
-    n_features = len(evals)
-    evals_sorted = -np.sort(-evals)  # sort in descending order
+    n_features = len(pvals)
+    pvals_sorted = -np.sort(-pvals)  # sort in descending order
     selected_index = 2 * n_features
     for i in range(n_features - 1, -1, -1):
-        if evals_sorted[i] >= n_features / (fdr * (i + 1)):
+        if pvals_sorted[i] >= n_features / (fdr * (i + 1)):
             selected_index = i
             break
     if selected_index <= n_features:
-        return evals_sorted[selected_index]
+        return pvals_sorted[selected_index]
     else:
-        return np.infty
+        return np.inf
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
@@ -147,7 +147,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """adaptive version of the quantile aggregation method, Meinshausen et al.
     (2008)"""
-    gammas = np.arange(gamma_min, 1.05, 0.05)
+    gammas = np.linspace(gamma_min, 1., 30)
     list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
 
     return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))
