@@ -52,13 +52,13 @@ def ada_svr(X, y, rcond=1e-3):
 def _manual_inversion(X, rcond=1e-3):
     """
     Inverting taking care of low eigenvalues to increase numerical stability
-    
+
     Parameters
     -----------
-    X : ndarray, shape (n_features, n_features) 
+    X : ndarray, shape (n_features, n_features)
         Data.
         Base on usage of X in the main function, X is squared matrix and not full_ranked (for details see PR#58)
-        
+
     """
 
     X = np.asarray(X)
