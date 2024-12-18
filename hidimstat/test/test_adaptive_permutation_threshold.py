@@ -3,7 +3,6 @@ Test the adaptive_permutation_threshold module
 """
 
 import numpy as np
-import pytest
 from numpy.testing import assert_almost_equal
 
 from hidimstat.adaptive_permutation_threshold import ada_svr
@@ -44,4 +43,3 @@ def test_ada_svr():
 
     assert_almost_equal(pval[:support_size], expected[:support_size], decimal=1)
     assert_almost_equal(pval_corr[support_size:], expected[support_size:], decimal=1)
-
