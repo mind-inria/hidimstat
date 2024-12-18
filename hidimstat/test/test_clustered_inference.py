@@ -131,7 +131,7 @@ def test_clustered_inference_no_temporal_groups():
 
     n_samples, n_features = 100, 2000
     support_size = 10
-    nb_groups = 9
+    n_groupss = 9
     size = 10
     sigma = 5.0
     rho = 0.95
@@ -148,10 +148,10 @@ def test_clustered_inference_no_temporal_groups():
         rho=rho,
         shuffle=False,
         seed=2,
-        nb_group=nb_groups,
+        n_groups=n_groupss,
         group_size=size,
     )
-    groups = np.concatenate([[i] * size for i in range(nb_groups + 1)])
+    groups = np.concatenate([[i] * size for i in range(n_groupss + 1)])
 
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)

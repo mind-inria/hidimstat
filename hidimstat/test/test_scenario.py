@@ -59,7 +59,7 @@ def test_multivariate_1D_simulation():
 
     # Test 3
     X, y, beta, noise = multivariate_1D_simulation(
-        n_samples=9, nb_group=2, group_size=3
+        n_samples=9, n_groups=2, group_size=3
     )
     corr_X = np.corrcoef(X)
     assert_almost_equal(corr_X[0, 0], 1, decimal=1)
@@ -89,14 +89,14 @@ def test_multivariate_1D_simulation_exception():
     with pytest.raises(
         ValueError, match="The number of groups and their size must be positive."
     ):
-        multivariate_1D_simulation(nb_group=-1)
+        multivariate_1D_simulation(n_groups=-1)
 
     with pytest.raises(
         ValueError,
         match="The number of samples is too small compate to the number "
         "of group and their size to gerate the data.",
     ):
-        multivariate_1D_simulation(n_samples=10, nb_group=2, group_size=6)
+        multivariate_1D_simulation(n_samples=10, n_groups=2, group_size=6)
 
 
 def test_multivariate_simulation():
