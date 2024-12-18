@@ -2,7 +2,10 @@ import numpy as np
 
 
 def ada_svr(X, y, rcond=1e-3):
-    """Statistical inference procedure presented in Gaonkar et al. [1]_.
+    """
+    ADA-SVR: Adaptive Permutation Threshold Support Vector Regression
+
+    Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
 
     Parameters
     -----------
@@ -15,6 +18,7 @@ def ada_svr(X, y, rcond=1e-3):
     rcond : float, optional (default=1e-3)
         Cutoff for small singular values. Singular values smaller
         than `rcond` * largest_singular_value are set to zero.
+        Deafult value is 1e-3.
 
     Returns
     -------
@@ -26,23 +30,22 @@ def ada_svr(X, y, rcond=1e-3):
 
     References
     ----------
-    .. [1] Gaonkar, B., & Davatzikos, C. (2012, October). Deriving statistical
-           significance maps for SVM based image classification and group
-           comparisons. In International Conference on Medical Image Computing
-           and Computer-Assisted Intervention (pp. 723-730). Springer, Berlin,
-           Heidelberg.
-    """
+    .. footbibliography::
 
+    """
     X = np.asarray(X)
 
-    K = np.linalg.pinv(np.dot(X, X.T), rcond=rcond)
-    sum_K = np.sum(K)
+    ## compute matrix C, (see eq.6 of [1])
+    # invert matrix X*X'
+    XXT_inv = np.linalg.pinv(np.dot(X, X.T), rcond=rcond)
+    # partial computation of the 2nd term of the equation
+    sum_XXT_inv = np.sum(XXT_inv)
+    L = -np.outer(np.sum(XXT_inv, axis=0), np.sum(XXT_inv, axis=1)) / sum_XXT_inv
+    C = np.dot(X.T, XXT_inv + L)
 
-    L = -np.outer(np.sum(K, axis=0), np.sum(K, axis=1)) / sum_K
-    C = np.dot(X.T, K + L)
-
+    ## compute vector W, (see eq.4 of [1])
     beta_hat = np.dot(C, y)
-
+    ## compute standard deviation of the distribution of W, (see eq.12 of [1])
     scale = np.sqrt(np.sum(C**2, axis=1))
 
     return beta_hat, scale
