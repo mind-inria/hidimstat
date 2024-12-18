@@ -1,3 +1,4 @@
+from .adaptative_permutation_threshold_SVR import ada_svr
 from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .Dnn_learner_single import DnnLearnerSingle
