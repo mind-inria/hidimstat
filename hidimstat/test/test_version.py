@@ -1,5 +1,6 @@
 import hidimstat
 
+
 def test_version():
     """Test that the version is set correctly."""
     assert isinstance(hidimstat.__version__, str)
