@@ -36,26 +36,26 @@ def test_dcrt_lasso():
             statistic="test",
             random_state=2024,
         )
-    
+
     # Checking for bad selection of screening_threshold
     result_th_screen_bad = dcrt_zero(
-            X,
-            y,
-            screening_threshold = 0,
-            screening=True,
-            verbose=False,
-        )
+        X,
+        y,
+        screening_threshold=0,
+        screening=True,
+        verbose=False,
+    )
     assert result_th_screen_bad.size == 0
 
     # Checking for bad selection of screening_threshold with verbose
     result_th_screen_bad = dcrt_zero(
-            X,
-            y,
-            screening_threshold = 0,
-            screening=True,
-            verbose=True,
+        X,
+        y,
+        screening_threshold=0,
+        screening=True,
+        verbose=True,
     )
-    
+
     assert len(result_th_screen_bad) == 3
     assert result_th_screen_bad[0].size == 0
     assert np.all(result_th_screen_bad[1] == np.ones(10))
@@ -95,7 +95,7 @@ def test_dcrt_lasso():
         y,
         refit=True,
         screening=True,
-        screening_threshold = 50,
+        screening_threshold=50,
         verbose=True,
         statistic="residual",
         random_state=2024,

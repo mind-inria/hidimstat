@@ -56,9 +56,11 @@ def test_multivariate_1D_simulation():
     X, y, beta, noise = multivariate_1D_simulation()
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_hat, 0, decimal=1)
-    
+
     # Test 3
-    X, y, beta, noise = multivariate_1D_simulation(n_samples=9, nb_group=2, group_size=3)
+    X, y, beta, noise = multivariate_1D_simulation(
+        n_samples=9, nb_group=2, group_size=3
+    )
     corr_X = np.corrcoef(X)
     assert_almost_equal(corr_X[0, 0], 1, decimal=1)
     assert_almost_equal(corr_X[0, 1], 1, decimal=1)
@@ -78,18 +80,22 @@ def test_multivariate_1D_simulation():
     assert_almost_equal(corr_X[5, 3], 1, decimal=1)
     assert_almost_equal(corr_X[5, 4], 1, decimal=1)
     assert_almost_equal(corr_X[5, 5], 1, decimal=1)
-    
-    
+
 
 def test_multivariate_1D_simulation_exception():
     """
     Test when the input paramters is not correct.
     """
-    with pytest.raises(ValueError, match="The number of groups and their size must be positive."):
+    with pytest.raises(
+        ValueError, match="The number of groups and their size must be positive."
+    ):
         multivariate_1D_simulation(nb_group=-1)
-    
-    with pytest.raises(ValueError, match="The number of samples is too small compate to the number "
-            "of group and their size to gerate the data."):
+
+    with pytest.raises(
+        ValueError,
+        match="The number of samples is too small compate to the number "
+        "of group and their size to gerate the data.",
+    ):
         multivariate_1D_simulation(n_samples=10, nb_group=2, group_size=6)
 
 
@@ -198,5 +204,3 @@ def test_multivariate_temporal_simulation():
     rho_data_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_data_hat, rho_data, decimal=1)
     assert_equal(Y, np.dot(X, beta) + noise)
-
-

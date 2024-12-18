@@ -43,10 +43,10 @@ def multivariate_1D_simulation(
 
     seed : int
         Seed used for generating design matrix and noise.
-    
+
     nb_group : int
         Number of groups.
-        
+
     group_size : int
         Size of each group.
 
@@ -68,10 +68,8 @@ def multivariate_1D_simulation(
 
     rng = np.random.default_rng(seed)
     if nb_group < 0 or group_size < 0:
-        raise ValueError(
-            "The number of groups and their size must be positive."
-        )
-    n_generate_samples = n_samples - nb_group * group_size 
+        raise ValueError("The number of groups and their size must be positive.")
+    n_generate_samples = n_samples - nb_group * group_size
     if n_generate_samples <= 0:
         raise ValueError(
             "The number of samples is too small compate to the number "

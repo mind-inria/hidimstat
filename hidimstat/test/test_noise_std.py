@@ -143,13 +143,17 @@ def test_group_reid_exception():
         n_times=n_times,
     )
     # max_iter=1 to get a better coverage
-    with pytest.raises(ValueError, match= "The requested AR order is to high with "
-                                        + "respect to the number of time steps."
-                       ):
-        group_reid(X, Y, stationary=True, method="AR", order = 100)
-    
-    with pytest.raises(ValueError, match= "Unknown method for estimating the covariance matrix"):
-        group_reid(X, Y, method="test", order = 100)
+    with pytest.raises(
+        ValueError,
+        match="The requested AR order is to high with "
+        + "respect to the number of time steps.",
+    ):
+        group_reid(X, Y, stationary=True, method="AR", order=100)
+
+    with pytest.raises(
+        ValueError, match="Unknown method for estimating the covariance matrix"
+    ):
+        group_reid(X, Y, method="test", order=100)
 
 
 def test_empirical_snr():

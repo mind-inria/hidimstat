@@ -54,8 +54,10 @@ def test_knockoff_aggregation():
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
 
-    selected_ko, test_scored, thres, X_tilde = model_x_knockoff(X, y, fdr=fdr, seed=5, verbose=True)
-    #TODO add tests for the 3 other variables
+    selected_ko, test_scored, thres, X_tilde = model_x_knockoff(
+        X, y, fdr=fdr, seed=5, verbose=True
+    )
+    # TODO add tests for the 3 other variables
 
     np.testing.assert_array_equal(selected_no_verbose, selected_ko)
 
@@ -66,8 +68,6 @@ def test_knockoff_aggregation():
 
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
-
-
 
     # Using e-values aggregation (verbose vs no verbose)
 

@@ -15,22 +15,32 @@ def test_quantile_aggregation():
     gamma_min = 0.05
 
     assert_array_almost_equal(0.1 * quantile_aggregation(p_values, 0.1), [0.01] * 10)
-    assert_array_almost_equal(0.1 * quantile_aggregation(p_values, 0.1, adaptive=True, gamma_min=gamma_min)
-                                      / (1 - np.log(gamma_min)), [0.01] * 10)
+    assert_array_almost_equal(
+        0.1
+        * quantile_aggregation(p_values, 0.1, adaptive=True, gamma_min=gamma_min)
+        / (1 - np.log(gamma_min)),
+        [0.01] * 10,
+    )
     assert_array_almost_equal(0.3 * quantile_aggregation(p_values, 0.3), [0.03] * 10)
-    assert_array_almost_equal(0.3 * quantile_aggregation(p_values, 0.3, adaptive=True, gamma_min=gamma_min)
-                                     / (1 - np.log(gamma_min)), [0.03] * 10)
+    assert_array_almost_equal(
+        0.3
+        * quantile_aggregation(p_values, 0.3, adaptive=True, gamma_min=gamma_min)
+        / (1 - np.log(gamma_min)),
+        [0.03] * 10,
+    )
     assert_array_almost_equal(0.5 * quantile_aggregation(p_values, 0.5), [0.05] * 10)
-    assert_array_almost_equal(0.5 * quantile_aggregation(p_values, 0.5, adaptive=True, gamma_min=gamma_min)
-                                     / (1 - np.log(gamma_min)), [0.05] * 10)
+    assert_array_almost_equal(
+        0.5
+        * quantile_aggregation(p_values, 0.5, adaptive=True, gamma_min=gamma_min)
+        / (1 - np.log(gamma_min)),
+        [0.05] * 10,
+    )
 
     # One p-value within the quantile aggregation method
     p_values = np.array([0.0])
 
     assert quantile_aggregation(p_values) == 0.0
     assert quantile_aggregation(p_values, adaptive=True) == 0.0
-    
-    
 
 
 def test_fdr_threshold():
@@ -84,7 +94,7 @@ def test_cal_fdp_power():
     assert power == 0
 
     # test for shift in index
-    fdp, power = cal_fdp_power(selected+1, non_zero_index, r_index=True)
-    
+    fdp, power = cal_fdp_power(selected + 1, non_zero_index, r_index=True)
+
     assert fdp == 2 / len(selected)
     assert power == 18 / len(non_zero_index)

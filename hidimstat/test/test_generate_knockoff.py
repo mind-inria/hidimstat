@@ -9,7 +9,6 @@ from hidimstat.gaussian_knockoff import (
 import pytest
 
 
-
 def test_estimate_distribution_wolf():
     SEED = 42
     n = 100
@@ -31,12 +30,15 @@ def test_estimate_distribution_lasso():
     assert mu.size == p
     assert Sigma.shape == (p, p)
 
+
 def test_gaussian_knockoff_estimate_exception():
     SEED = 42
     n = 100
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=SEED)
-    with pytest.raises(ValueError, match="test is not a valid covariance estimated method"):
+    with pytest.raises(
+        ValueError, match="test is not a valid covariance estimated method"
+    ):
         _estimate_distribution(X, shrink=True, cov_estimator="test")
 
 
@@ -59,6 +61,7 @@ def test_gaussian_knockoff_exception():
     X, y, _, non_zero = simu_data(n, p, seed=SEED)
     mu, Sigma = _estimate_distribution(X, shrink=True, cov_estimator="ledoit_wolf")
 
-    with pytest.raises(ValueError, match="test is not a valid knockoff contriction method"):
+    with pytest.raises(
+        ValueError, match="test is not a valid knockoff contriction method"
+    ):
         gaussian_knockoff_generation(X, mu, Sigma, method="test", seed=SEED * 2)
-

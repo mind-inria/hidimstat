@@ -147,7 +147,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """adaptive version of the quantile aggregation method, Meinshausen et al.
     (2008)"""
-    gammas = np.linspace(gamma_min, 1., 30)
+    gammas = np.linspace(gamma_min, 1.0, 30)
     list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
 
     return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))

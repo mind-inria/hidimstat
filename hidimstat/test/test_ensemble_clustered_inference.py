@@ -135,7 +135,7 @@ def test_ensemble_clustered_inference():
             n_clusters,
             n_bootstraps=n_bootstraps,
             inference_method=inference_method,
-            ensembling_method="medians"
+            ensembling_method="medians",
         )
     )
 
@@ -150,8 +150,6 @@ def test_ensemble_clustered_inference():
     )
 
 
-
-
 def test_ensemble_clustered_inference_exception():
     """
     Test the raise of exception
@@ -159,30 +157,23 @@ def test_ensemble_clustered_inference_exception():
     n_samples, n_features = 100, 2000
     n_clusters = 10
     X, Y, beta, epsilon = multivariate_1D_simulation(
-        n_samples=n_samples, n_features=n_features, 
+        n_samples=n_samples,
+        n_features=n_features,
     )
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
     ward = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
-    
+
     # Test the raise of exception
     with pytest.raises(ValueError, match="Unknown ensembling method."):
         ensemble_clustered_inference(
-            X,
-            Y,
-            ward,
-            n_clusters,
-            ensembling_method="wrong_method"
+            X, Y, ward, n_clusters, ensembling_method="wrong_method"
         )
-    
-    
-    with pytest.raises(ValueError, match="'memory' must be None or a string corresponding "
-            + "to the path of the caching directory."):
-        ensemble_clustered_inference(
-            X,
-            Y,
-            ward,
-            n_clusters,
-            memory=[]
-        )
+
+    with pytest.raises(
+        ValueError,
+        match="'memory' must be None or a string corresponding "
+        + "to the path of the caching directory.",
+    ):
+        ensemble_clustered_inference(X, Y, ward, n_clusters, memory=[])

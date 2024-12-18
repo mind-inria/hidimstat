@@ -1,6 +1,7 @@
 """
 Test the clustered_inference module
 """
+
 import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -18,8 +19,8 @@ from hidimstat.scenario import (
 def test_clustered_inference_no_temporal():
     """
     Testing the procedure on one simulations with a 1D data structure and
-    with n << p: no temporal dimension. The support is connected and of 
-    size 10, it must be recovered with a small spatial tolerance 
+    with n << p: no temporal dimension. The support is connected and of
+    size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
@@ -69,8 +70,8 @@ def test_clustered_inference_no_temporal():
 def test_clustered_inference_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
-    with n << p: with a temporal dimension. The support is connected and 
-    of size 10, it must be recovered with a small spatial tolerance 
+    with n << p: with a temporal dimension. The support is connected and
+    of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
@@ -120,10 +121,10 @@ def test_clustered_inference_temporal():
 def test_clustered_inference_no_temporal_groups():
     """
     Testing the procedure on one simulations with a 1D data structure and
-    with n << p: no temporal dimension. The support is connected and of 
-    size 10, it must be recovered with a small spatial tolerance 
-    parametrized by `margin_size`. 
-    We group the sample in 10 groups of size 10. 
+    with n << p: no temporal dimension. The support is connected and of
+    size 10, it must be recovered with a small spatial tolerance
+    parametrized by `margin_size`.
+    We group the sample in 10 groups of size 10.
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
     """
@@ -150,7 +151,7 @@ def test_clustered_inference_no_temporal_groups():
         nb_group=nb_groups,
         group_size=size,
     )
-    groups = np.concatenate([[i]*size for i in range(nb_groups+1)])
+    groups = np.concatenate([[i] * size for i in range(nb_groups + 1)])
 
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)
@@ -171,7 +172,6 @@ def test_clustered_inference_no_temporal_groups():
     assert_almost_equal(
         pval_corr[extended_support:200], expected[extended_support:200], decimal=1
     )
-    
 
 
 # Scenario 1: data with no temporal dimension
