@@ -5,7 +5,7 @@ def aggregate_medians(list_one_sided_pval):
     """Aggregation of survival function values taking twice the median
 
     Parameters
-    -----------
+    ----------
     list_one_sided_pval : ndarray, shape (n_iter, n_features)
         List of one-sided p-values.
 
@@ -38,7 +38,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     """Aggregation of survival function values by adaptive quantile procedure
 
     Parameters
-    -----------
+    ----------
     list_one_sided_pval : ndarray, shape (n_iter, n_features)
         List of one-sided p-values.
 

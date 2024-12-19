@@ -9,7 +9,7 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
     """Estimation of noise standard deviation using Reid procedure
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -92,7 +92,7 @@ def group_reid(
     """Estimation of the covariance matrix using group Reid procedure
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -265,7 +265,7 @@ def empirical_snr(X, y, beta, noise=None):
     """Compute the SNR for the linear model: y = X beta + noise
 
     Parameters
-    -----------
+    ----------
     X : ndarray or scipy.sparse matrix, shape (n_samples, n_features)
         Data.
 

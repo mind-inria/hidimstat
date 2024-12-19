@@ -61,13 +61,13 @@ from hidimstat.permutation_importance import PermutationImportance
 
 #############################################################################
 # Load the diabetes dataset
-# ------------------------------
+# -------------------------
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
 
 #############################################################################
 # Fit a baseline model on the diabetes dataset
-# ------------------------------
+# --------------------------------------------
 # We use a Ridge regression model with a 10-fold cross-validation to fit the
 # diabetes dataset.
 
@@ -88,7 +88,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}: {mse}")
 #############################################################################
 # Fit a baselien model on the diabetes dataset
-# ------------------------------
+# --------------------------------------------
 # We use a Ridge regression model with a 10-fold cross-validation to fit the
 # diabetes dataset.
 
@@ -110,7 +110,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 #############################################################################
 # Measure the importance of variables using the CPI method
-# ------------------------------
+# --------------------------------------------------------
 
 cpi_importance_list = []
 for i, (train_index, test_index) in enumerate(kf.split(X)):
@@ -131,7 +131,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 #############################################################################
 # Measure the importance of variables using the LOCO method
-# ------------------------------
+# ---------------------------------------------------------
 
 loco_importance_list = []
 
@@ -151,7 +151,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 #############################################################################
 # Measure the importance of variables using the permutation method
-# ------------------------------
+# ----------------------------------------------------------------
 
 pi_importance_list = []
 
@@ -172,7 +172,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 #############################################################################
 # Define a function to compute the p-value from importance values
-# ------------------------------
+# ---------------------------------------------------------------
 def compute_pval(vim):
     mean_vim = np.mean(vim, axis=0)
     std_vim = np.std(vim, axis=0)
@@ -182,7 +182,7 @@ def compute_pval(vim):
 
 #############################################################################
 # Analyze the results
-# ------------------------------
+# -------------------
 
 
 cpi_vim_arr = np.array([x["importance"] for x in cpi_importance_list]) / 2

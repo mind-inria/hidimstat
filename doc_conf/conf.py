@@ -90,7 +90,7 @@ author = "Mind-Inria"
 # built documents.
 #
 # The short X.Y version.
-from hidimstat._version import __version__  # noqa
+from hidimstat import __version__
 
 # The full version, including alpha/beta/rc tags.
 release = __version__
@@ -217,9 +217,9 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/devdocs", None),
     "scipy": ("https://scipy.github.io/devdocs", None),
-    "matplotlib": ("https://matplotlib.org", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
-    "numba": ("https://numba.pydata.org/numba-doc/latest", None),
+    "numba": ("https://numba.readthedocs.io/en/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
@@ -228,7 +228,6 @@ intersphinx_mapping = {
 
 examples_dirs = ["../examples"]
 gallery_dirs = ["auto_examples"]
-import mne
 
 scrapers = ("matplotlib",)
 try:
@@ -240,6 +239,7 @@ except Exception:
     pass
 if any(x in scrapers for x in ("pyvista")):
     from traits.api import push_exception_handler
+    import mne
 
     push_exception_handler(reraise_exceptions=True)
     report_scraper = mne.report._ReportScraper()
