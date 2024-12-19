@@ -57,7 +57,7 @@ def _compute_residuals(
 
     else:
 
-        ValueError("The only regression method available is 'lasso'")
+        raise ValueError("The only regression method available is 'lasso'")
 
     clf.fit(X_new, y)
     z = y - clf.predict(X_new)
