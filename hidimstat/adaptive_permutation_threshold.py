@@ -4,7 +4,7 @@ import numpy as np
 def ada_svr(X, y, rcond=1e-3):
     """
     Adaptative Permutation Threshold for SVR
-    
+
     Statistical inference procedure presented in Gaonkar et al. [1]_.
 
     Parameters
