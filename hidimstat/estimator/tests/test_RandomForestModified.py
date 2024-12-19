@@ -9,8 +9,6 @@ import numpy as np
 def test_RandomForestRegressorModified():
     """
     Test the RandomForestRegressorModified for regression.
-    Parameters:
-    - regression_data: A tuple containing the input features (X) and target variable (y) for regression.
     """
     X, y = generate_data(problem_type="regression")
     learner = RandomForestRegressorModified(n_jobs=10, verbose=0)

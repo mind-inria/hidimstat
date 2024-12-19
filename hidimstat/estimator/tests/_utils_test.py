@@ -29,8 +29,6 @@ def generate_data(
         Data matrix
     y : np.array
         Target vector
-    grps : np.array
-        Group vector
     """
     rng = np.random.default_rng(seed)
     if problem_type == "regression":
@@ -48,7 +46,6 @@ def generate_data(
             n_features=n_features,
             random_state=seed,
         )
-        # y = np.array([str(i) for i in y])
 
     X = pd.DataFrame(X, columns=[f"col{i+1}" for i in range(n_features)])
 
