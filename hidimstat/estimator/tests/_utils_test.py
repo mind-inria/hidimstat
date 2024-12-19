@@ -1,7 +1,6 @@
 from sklearn.datasets import make_classification, make_regression
 import numpy as np
 import pandas as pd
-import pytest
 
 
 def generate_data(
@@ -12,6 +11,8 @@ def generate_data(
 ):
     """
     This function generates the synthetic data used in the different tests.
+    
+    Parameters
     ----------
     n_samples : int, optional
         Number of samples to generate, by default 200
@@ -21,7 +22,7 @@ def generate_data(
         Type of problem to generate, by default "regression" (options: "regression", "classification")
     seed : int, optional
         Random seed, by default 2024
-    ----------
+
     Returns
     -------
     X : pd.DataFrame
