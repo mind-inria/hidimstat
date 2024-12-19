@@ -4,7 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "HiDimStat"
-version = "0.2.0b"
+# Version from setuptools_scm
+dynamic = ["version"]
 dependencies = [
     "joblib>=1.4.2",
     "numpy>=2.0.0",
@@ -66,3 +67,13 @@ test = [
 Development = "https://github.com/nilearn/nilearn"
 Homepage = "https://mind-inria.github.io/hidimstat"
 Repository = "https://github.com/mind-inria/hidimstat"
+
+
+[tool.hatch.build.hooks.vcs]
+version-file = "hidimstat/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["hidimstat"]
+
+[tool.hatch.version]
+source = "vcs"
