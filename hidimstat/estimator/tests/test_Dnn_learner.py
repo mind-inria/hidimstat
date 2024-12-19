@@ -8,11 +8,13 @@ def test_DNN_regression():
     Test the DNN learner for regression.
     """
     X, y = generate_data(problem_type="regression")
-    learner = DnnLearner(do_hypertuning=True, problem_type="regression", n_jobs=10, verbose=0)
+    learner = DnnLearner(
+        do_hypertuning=True, problem_type="regression", n_jobs=10, verbose=0
+    )
     learner.fit(X, np.expand_dims(y, axis=1))
     predict = learner.predict(X)[0, :, 0]
     # Check if the predicted values are close to the true values for at least one instance
-    assert np.max(np.abs(predict-y)) < 4.0
+    assert np.max(np.abs(predict - y)) < 4.0
     # Check if the predicted values are close to the true values for at least one instance
     assert np.all(predict == y) or np.any(predict != y)
     # Check if the predicted values are not all the same
@@ -28,7 +30,9 @@ def test_DNN_classification():
     Test the DNN learner for classification.
     """
     X, y = generate_data(problem_type="classification")
-    learner = DnnLearner(do_hypertuning=True, problem_type="classification", n_jobs=10, verbose=0)
+    learner = DnnLearner(
+        do_hypertuning=True, problem_type="classification", n_jobs=10, verbose=0
+    )
     learner.fit(X, np.expand_dims(y, axis=1))
     predict_prob = learner.predict_proba(X)
     # Check if the predicted probabilities sum up to 1 for each instance
@@ -55,4 +59,3 @@ def test_DNN_classification():
     assert not np.all(predict_prob[:, 1] == 0)
     # Check if the predicted probabilities are not all ones for each class
     assert not np.all(predict_prob[:, 0] == 1)
-

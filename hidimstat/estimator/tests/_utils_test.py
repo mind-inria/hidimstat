@@ -11,7 +11,7 @@ def generate_data(
 ):
     """
     This function generates the synthetic data used in the different tests.
-    
+
     Parameters
     ----------
     n_samples : int, optional
@@ -48,7 +48,7 @@ def generate_data(
             n_features=n_features,
             random_state=seed,
         )
-        #y = np.array([str(i) for i in y])
+        # y = np.array([str(i) for i in y])
 
     X = pd.DataFrame(X, columns=[f"col{i+1}" for i in range(n_features)])
 

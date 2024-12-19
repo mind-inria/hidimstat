@@ -1,5 +1,8 @@
 from hidimstat.estimator.tests._utils_test import generate_data
-from hidimstat.estimator.RandomForestModified import RandomForestClassifierModified, RandomForestRegressorModified
+from hidimstat.estimator.RandomForestModified import (
+    RandomForestClassifierModified,
+    RandomForestRegressorModified,
+)
 import numpy as np
 
 
@@ -14,7 +17,7 @@ def test_RandomForestRegressorModified():
     learner.fit(X, y)
     predict = learner.predict(X)
     # Check if the predicted values are close to the true values for at least one instance
-    assert np.max(np.abs(predict-y)) < 200.0
+    assert np.max(np.abs(predict - y)) < 200.0
     # Check if the predicted values are close to the true values for at least one instance
     assert np.all(predict == y) or np.any(predict != y)
     # Check if the predicted values are not all the same
@@ -39,7 +42,8 @@ def test_RandomForestRegressorModified():
     assert not np.allclose(learner.feature_importances_, 1)
 
     predictions = learner.sample_same_leaf(X)
-    #TODO: add more tests for sample_same_leaf
+    # TODO: add more tests for sample_same_leaf
+
 
 def test_RandomForestClassifierModified():
     """
@@ -99,4 +103,4 @@ def test_RandomForestClassifierModified():
     assert not np.allclose(learner.feature_importances_, 1)
 
     predictions = learner.sample_same_leaf(X)
-    #TODO: add more tests for sample_same_leaf
+    # TODO: add more tests for sample_same_leaf
