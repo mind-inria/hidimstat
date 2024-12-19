@@ -300,7 +300,7 @@ class DnnLearnerSingle(BaseEstimator):
                 if self.problem_type in ("classification", "binary"):
                     curr_y = self.enc_y[col].transform(y[:, [col]]).toarray()
                     list_y.append(curr_y)
-                
+
         return np.array(list_y)
 
     def hyper_tuning(

@@ -8,11 +8,13 @@ def test_DNN_single_regression():
     Test the DNN learner single for regression.
     """
     X, y = generate_data(problem_type="regression")
-    learner = DnnLearnerSingle(do_hypertuning=True, problem_type="regression", n_jobs=10, verbose=0)
+    learner = DnnLearnerSingle(
+        do_hypertuning=True, problem_type="regression", n_jobs=10, verbose=0
+    )
     learner.fit(X, y)
-    predict = learner.predict(X)[:,0]
+    predict = learner.predict(X)[:, 0]
     # Check if the predicted values are close to the true values for at least one instance
-    assert np.max(np.abs(predict-y)) < 4.0
+    assert np.max(np.abs(predict - y)) < 4.0
     # Check if the predicted values are close to the true values for at least one instance
     assert np.all(predict == y) or np.any(predict != y)
     # Check if the predicted values are not all the same
@@ -28,7 +30,9 @@ def test_DNN_single_classification():
     Test the DNN learner single for classification.
     """
     X, y = generate_data(problem_type="classification")
-    learner = DnnLearnerSingle(do_hypertuning=True, problem_type="classification", n_jobs=10, verbose=0)
+    learner = DnnLearnerSingle(
+        do_hypertuning=True, problem_type="classification", n_jobs=10, verbose=0
+    )
     learner.fit(X, y)
     predict_prob = learner.predict_proba(X)
     # Check if the predicted probabilities sum up to 1 for each instance
@@ -55,14 +59,16 @@ def test_DNN_single_classification():
     assert not np.all(predict_prob[:, 1] == 0)
     # Check if the predicted probabilities are not all ones for each class
     assert not np.all(predict_prob[:, 0] == 1)
-    
+
 
 def test_DNN_single_binary():
     """
     Test the DNN learner single for binary classification.
     """
     X, y = generate_data(problem_type="classification")
-    learner = DnnLearnerSingle(do_hypertuning=True, problem_type="binary", n_jobs=10, verbose=0)
+    learner = DnnLearnerSingle(
+        do_hypertuning=True, problem_type="binary", n_jobs=10, verbose=0
+    )
     learner.fit(X, y)
     predict_prob = learner.predict_proba(X)
     # Check if the predicted probabilities sum up to 1 for each instance
@@ -96,8 +102,10 @@ def test_DNN_single_ordinal():
     Test the DNN learner single for ordinal.
     """
     X, y = generate_data(problem_type="classification")
-    learner = DnnLearnerSingle(do_hypertuning=True, problem_type="ordinal", n_jobs=10, verbose=0)
+    learner = DnnLearnerSingle(
+        do_hypertuning=True, problem_type="ordinal", n_jobs=10, verbose=0
+    )
     learner.fit(X, y)
-    predict_prob = learner.predict_proba(X)[:,0]
+    predict_prob = learner.predict_proba(X)[:, 0]
     # Check if the predicted class labels match the true labels for at least one instance
-    #assert np.sum(np.abs((np.around(predict_prob)[:,0]-y))) == 0
+    # assert np.sum(np.abs((np.around(predict_prob)[:,0]-y))) == 0
