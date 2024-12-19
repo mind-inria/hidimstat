@@ -5,13 +5,13 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 class RandomForestClassifierModified(RandomForestClassifier):
     def fit(self, X, y):
         self.y_ = y
-        super().fit(X, y)
+        return super().fit(X, y)
 
     def predict(self, X):
-        super().predict(X)
+        return super().predict(X)
 
     def predict_proba(self, X):
-        super().predict_proba(X)
+        return super().predict_proba(X)
 
     def sample_same_leaf(self, X, y=None):
         if not (y is None):
@@ -42,23 +42,24 @@ class RandomForestClassifierModified(RandomForestClassifier):
                 )[0]
 
                 # Append the samples to the list
-                leaf_samples.append(
-                    y_minus_i[rng.choice(samples_in_leaf, size=random_samples)]
-                )
+                if samples_in_leaf.size > 0:
+                    leaf_samples.append(
+                        y_minus_i[rng.choice(samples_in_leaf, size=random_samples)]
+                    )
 
             predictions.append(leaf_samples)
 
         # Combine the predictions from all trees to make the final prediction
-        return np.array(predictions)
+        return np.array(predictions, dtype=object)
 
 
 class RandomForestRegressorModified(RandomForestRegressor):
     def fit(self, X, y):
         self.y_ = y
-        super().fit(X, y)
+        return super().fit(X, y)
 
     def predict(self, X):
-        super().predict(X)
+        return super().predict(X)
 
     def sample_same_leaf(self, X):
         rng = np.random.RandomState(self.get_params()["random_state"])
@@ -87,11 +88,12 @@ class RandomForestRegressorModified(RandomForestRegressor):
                 )[0]
 
                 # Append the samples to the list
-                leaf_samples.append(
-                    y_minus_i[rng.choice(samples_in_leaf, size=random_samples)]
-                )
+                if samples_in_leaf.size > 0:
+                    leaf_samples.append(
+                        y_minus_i[rng.choice(samples_in_leaf, size=random_samples)]
+                    )
 
             predictions.append(leaf_samples)
 
         # Combine the predictions from all trees to make the final prediction
-        return np.array(predictions)
+        return np.array(predictions, dtype=object)
