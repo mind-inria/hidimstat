@@ -22,7 +22,7 @@ def permutation_test_cv(
     """Cross-validated permutation test shuffling the target
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -97,7 +97,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     """Permutation test shuffling the target
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -167,7 +167,7 @@ def step_down_max_T(stat, permutation_stats):
     """Step-down maxT algorithm for computing adjusted p-values
 
     Parameters
-    -----------
+    ----------
     stat : ndarray, shape (n_features,)
         Statistic computed on the original (unpermutted) problem.
 
