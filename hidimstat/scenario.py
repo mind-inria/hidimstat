@@ -67,19 +67,19 @@ def multivariate_1D_simulation(
     """
 
     rng = np.random.default_rng(seed)
-    
+
     if n_groups < 0 or group_size < 0:
         raise ValueError("The number of groups and their size must be positive.")
-    
+
     n_individual_samples = n_samples - n_groups * group_size
     if n_individual_samples <= 0:
         raise ValueError(
             "The number of samples is too small compate to the number "
             "of group and their size to gerate the data."
         )
-    
+
     n_generate_samples = n_groups + n_individual_samples
-    
+
     # generate random data for each samples
     X = np.zeros((n_generate_samples, n_features))
     X[:, 0] = rng.standard_normal(n_generate_samples)
@@ -90,7 +90,7 @@ def multivariate_1D_simulation(
     if shuffle:
         rng.shuffle(X.T)
 
-    # generate data for the groups based on one sample 
+    # generate data for the groups based on one sample
     if n_groups > 0:
         groups = np.repeat(X[:n_groups], group_size, axis=0)
         X = np.vstack((groups, X[n_groups:]))
