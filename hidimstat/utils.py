@@ -160,6 +160,7 @@ def _lambda_max(X, y, use_noise_estimate=True):
 
     return np.max(np.abs(np.dot(X.T, y)) / (n_samples * sig_star))
 
+
 def _check_vim_predict_method(method):
     """Check if the method is a valid method for variable importance measure
     prediction"""
