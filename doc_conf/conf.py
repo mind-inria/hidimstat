@@ -90,7 +90,7 @@ author = "Mind-Inria"
 # built documents.
 #
 # The short X.Y version.
-from hidimstat import __version__
+from hidimstat import __version__ 
 
 # The full version, including alpha/beta/rc tags.
 release = __version__

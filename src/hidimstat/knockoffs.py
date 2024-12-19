@@ -29,8 +29,8 @@ def model_x_knockoff(
     n_jobs=1,
     seed=None,
 ):
-    """Model-X Knockoff
-
+    """Model-X Knockoff 
+    
     It's an inference procedure to control False Discoveries Rate,
     based on :footcite:t:`candesPanningGoldModelX2017`
 
