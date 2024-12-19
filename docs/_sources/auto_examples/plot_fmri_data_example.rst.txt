@@ -173,20 +173,26 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
 
  .. code-block:: none
 
+    [_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
+    [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
+    [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
+    [fetch_single_file]  ...done. (0 seconds, 0 min)
 
-    Added README.md to /home/runner/nilearn_data
+    [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
+    [fetch_single_file]  ...done. (0 seconds, 0 min)
 
+    [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
+    [_chunk_report_]     Downloaded 75431936 of 291168628 bytes (25.9%%,    2.9s remaining)
+    [_chunk_report_]     Downloaded 171909120 of 291168628 bytes (59.0%%,    1.4s remaining)
+    [_chunk_report_]     Downloaded 268763136 of 291168628 bytes (92.3%%,    0.3s remaining)
+    [fetch_single_file]  ...done. (3 seconds, 0 min)
 
-    Dataset created in /home/runner/nilearn_data/haxby2001
+    [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
+    [uncompress_file] .. done.
 
-    Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-     ...done. (0 seconds, 0 min)
-    Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
-     ...done. (0 seconds, 0 min)
-    Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    Downloaded 110182400 of 291168628 bytes (37.8%,    1.6s remaining)    Downloaded 249692160 of 291168628 bytes (85.8%,    0.3s remaining) ...done. (2 seconds, 0 min)
-    Extracting data from /home/runner/nilearn_data/haxby2001/def37a305edfda829916fa14c9ea08f8/subj2-2010.01.14.tar.gz..... done.
-    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:492: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+    /home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:88: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
+      bg_img = mean_img(haxby_dataset.anat)
+    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:526: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
       warnings.warn(
 
 
@@ -284,7 +290,7 @@ Now, we compute p-values thanks to permutation tests applied to
  .. code-block:: none
 
     [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.4s
+    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.5s
 
 
 
@@ -332,7 +338,7 @@ and high-dimensional inference (c.f. References).
  .. code-block:: none
 
     Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
-    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:683: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
       model = cd_fast.enet_coordinate_descent_gram(
 
 
@@ -365,7 +371,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   33.4s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.9s finished
 
 
 
@@ -571,7 +577,7 @@ called `plot_map` that wraps all these steps.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.7/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:308: UserWarning: empty mask
+    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
       ims = self._map_show(img, type="imshow", threshold=threshold, **kwargs)
 
 
@@ -610,9 +616,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 25.117 seconds)
+   **Total running time of the script:** (1 minutes 30.182 seconds)
 
-**Estimated memory usage:**  3349 MB
+**Estimated memory usage:**  3368 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
