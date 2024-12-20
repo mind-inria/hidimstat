@@ -1,4 +1,5 @@
 import numpy as np
+from hidimstat.stat_tools import pval_from_scale
 
 
 def ada_svr(X, y, rcond=1e-3):
@@ -49,3 +50,16 @@ def ada_svr(X, y, rcond=1e-3):
     scale = np.sqrt(np.sum(C**2, axis=1))
 
     return beta_hat, scale
+
+
+def get_pval(beta_hat, scale, distrib="norm", eps=1e-14):
+    """
+    Computing one-sided p-values corrrected for multiple testing
+    from simple testing one-sided p-values.
+    
+    #################
+    For details see: pval_from_scale
+    #################
+    
+    """
+    return pval_from_scale(beta_hat, scale, distrib=distrib, eps=eps)

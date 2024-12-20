@@ -259,6 +259,8 @@ sphinx_gallery_conf = {
     "abort_on_example_error": False,
     "image_scrapers": scrapers,
     "show_memory": True,
+    'filename_pattern': r'\.py',
+    'ignore_pattern': r'__init__\.py',
     # 'reference_url': {
     #     'numpy': 'http://docs.scipy.org/doc/numpy-1.9.1',
     #     'scipy': 'http://docs.scipy.org/doc/scipy-0.17.0/reference',
