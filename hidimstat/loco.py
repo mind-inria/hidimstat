@@ -9,8 +9,9 @@ from hidimstat.utils import _check_vim_predict_method
 
 class LOCO(BaseEstimator):
     """
-    Leave-One-Covariate-Out (LOCO) algorithm as described in
-    :footcite:t:`Chamma_NeurIPS2023`.
+    Leave-One-Covariate-Out (LOCO)
+
+    It's an algorithm as described in :footcite:t:`Chamma_NeurIPS2023`.
 
 
     Parameters
