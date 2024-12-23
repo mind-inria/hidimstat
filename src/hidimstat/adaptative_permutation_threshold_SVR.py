@@ -64,4 +64,3 @@ def ada_svr_pvalue(beta_hat, scale, distrib="norm", eps=1e-14):
 
     """
     return pval_from_scale(beta_hat, scale, distrib=distrib, eps=eps)
-
