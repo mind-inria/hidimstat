@@ -8,7 +8,8 @@ def ada_svr(X, y, rcond=1e-3):
     """
     ADA-SVR: Adaptive Permutation Threshold Support Vector Regression
 
-    Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
+    | Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
+    | For example of usage see :ref:`example <sphx_glr_auto_examples_methods_ada_svr.py>`.
 
     Parameters
     ----------
