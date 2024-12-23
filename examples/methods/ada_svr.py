@@ -156,7 +156,6 @@ print(
     "The maximum of difference between AdA-SVR estimation and our estimation",
     "is:{:.4f}".format(np.max(np.abs(scale - np.std(proba, axis=0)) / scale)),
 )
-plt.show()
 
 #############################################################################
 # References
