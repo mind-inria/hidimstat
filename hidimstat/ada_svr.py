@@ -6,10 +6,11 @@ def ada_svr(X, y, rcond=1e-3):
     """
     ADA-SVR: Adaptive Permutation Threshold Support Vector Regression
 
-    Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
+    | Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
+    | For example of usage see :ref:`example <sphx_glr_auto_examples_methods_ada_svr.py>`.
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -52,7 +53,7 @@ def ada_svr(X, y, rcond=1e-3):
     return beta_hat, scale
 
 
-def get_pval(beta_hat, scale, distrib="norm", eps=1e-14):
+def ada_svr_pvalue(beta_hat, scale, distrib="norm", eps=1e-14):
     """
     Computing one-sided p-values corrrected for multiple testing
     from simple testing one-sided p-values.

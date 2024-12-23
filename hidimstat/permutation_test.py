@@ -93,7 +93,7 @@ def permutation_test_cv(
     return pval_corr, one_minus_pval_corr
 
 
-def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=1):
+def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=1, proba=False):
     """Permutation test shuffling the target
 
     Parameters
@@ -140,6 +140,8 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     )
 
     permutation_stats = np.array(permutation_stats)
+    if proba:
+        return permutation_stats[:,0,:]
     two_sided_pval_corr = step_down_max_T(stat, permutation_stats)
 
     stat_sign = np.sign(stat)
