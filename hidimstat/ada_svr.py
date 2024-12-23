@@ -57,10 +57,8 @@ def ada_svr_pvalue(beta_hat, scale, distrib="norm", eps=1e-14):
     """
     Computing one-sided p-values corrrected for multiple testing
     from simple testing one-sided p-values.
-    
-    #################
-    For details see: pval_from_scale
-    #################
-    
+
+    For details see: :py:func:`hidimstat.pval_from_scale`
+
     """
     return pval_from_scale(beta_hat, scale, distrib=distrib, eps=eps)
