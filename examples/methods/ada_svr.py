@@ -45,7 +45,7 @@ plot_dataset1D(X=X, y=y, beta=beta)
 # see the API for more details about the optional parameter:
 # :py:func:`hidimstat.ada_svr`
 
-beta_hat, scale = ada_svr(X, y, rcond=1e-1)
+beta_hat, scale = ada_svr(X, y)
 
 #############################################################################
 # | **beta_hat** is the estimated variable of importance
