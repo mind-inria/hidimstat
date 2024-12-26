@@ -1,6 +1,7 @@
 import numpy as np
 from hidimstat.stat_tools import pval_from_scale
 
+__all__ = ["ada_svr", "ada_svr_pvalue"]
 
 def ada_svr(X, y, rcond=1e-3):
     """
