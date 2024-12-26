@@ -183,7 +183,7 @@ def plot_pvalue_H1(
     vmax=1.0,
 ):
     """
-    Plot for the confidence in the hipothse that the variables are not important.
+    Plot for the confidence in the hypotheses that the variables are not important.
     
     Parameters
     ----------
