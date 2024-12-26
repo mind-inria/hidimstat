@@ -158,7 +158,7 @@ print(
 )
 
 #############################################################################
-# Assumptions, Advantages and disadvantages
+# Assumptions, Advantages and Disadvantages
 # -----------------------------------------
 #
 # **Assumptions**:
