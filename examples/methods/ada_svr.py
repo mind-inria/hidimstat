@@ -13,7 +13,7 @@ from hidimstat.ada_svr import ada_svr, ada_svr_pvalue
 from hidimstat.permutation_test import permutation_test
 from sklearn.svm import SVR
 from hidimstat.scenario import multivariate_1D_simulation
-from examples._utils.plot_dataset import (
+from hidimstat.visualisation.plot_dataset import (
     plot_dataset1D,
     plot_validate_variable_importance,
     plot_pvalue_H0,
