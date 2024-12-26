@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**10:00.692** total execution time for 6 files **from all galleries**:
+**09:40.438** total execution time for 6 files **from all galleries**:
 
 .. container::
 
@@ -33,20 +33,20 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``../examples/plot_knockoff_aggregation.py``)
-     - 05:24.335
-     - 815.7
+     - 05:21.079
+     - 831.6
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``../examples/plot_fmri_data_example.py``)
-     - 01:34.634
-     - 3256.1
+     - 01:22.969
+     - 3372.0
    * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``../examples/plot_dcrt_example.py``)
-     - 01:04.554
-     - 640.6
+     - 01:03.127
+     - 640.7
    * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``../examples/plot_2D_simulation_example.py``)
-     - 01:04.051
-     - 706.7
+     - 01:01.937
+     - 762.8
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``../examples/plot_variable_importance_classif.py``)
-     - 00:44.744
-     - 621.7
+     - 00:43.292
+     - 621.6
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``../examples/plot_diabetes_variable_importance_example.py``)
-     - 00:08.375
-     - 625.7
+     - 00:08.032
+     - 625.4
