@@ -164,7 +164,6 @@ print(
 # 
 # - The method is fast because it uses the central limit theorem to estimate
 #   the standard deviation of the distribution of the coefficients of SVR.
-# - The method is a simplification of the permutation test for SVR.
 # - The method has the advantage of linear models: transparency of 
 #   the prediction, high level of collective experiance and expertise 
 #   and a guarantee of convergence. (see the book of 
