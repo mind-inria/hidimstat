@@ -158,6 +158,46 @@ print(
 )
 
 #############################################################################
+# Assumptions, Advantages and disadvantages
+# -----------------------------------------
+#
+# **Assumptions**:
+#
+# - The distribution of the coefficients of SVR is normal centred around zeros.
+# - The method is valid for large sample sizes.
+# - The method has the linear models assumptions: linearity, normality, 
+#   homoscedasticity, independence, fixed features, absence of multicollinearity
+#   (see the book of :footcite:ct:`Molnar 2012<molnar2020interpretable>`
+#   for details)
+#
+# **Advantages**:
+# 
+# - The method is fast because it uses the central limit theorem to estimate
+#   the standard deviation of the distribution of the coefficients of SVR.
+# - The method is simple to implement.
+# - The method is a simplification of the permutation test for SVR.
+# - The method has the advantage of linear models: transparency of 
+#   the prediction, high level of collective experiance and expertise 
+#   and a guarantee of convergence. (see the book of 
+#   :footcite:ct:`Molnar 2012<molnar2020interpretable>` for details)
+#
+# **Disadvantages**:
+#
+# - The method assumes that the distribution of the coefficients of SVR is normal centred around zeros.
+# - The method is not valid for small sample sizes.
+# - The method has all the disadvantages of linear models: only for linear 
+#   realtionships, not good predicting performance, unintuitive. 
+#   (see the book of 
+#   :footcite:ct:`Molnar 2012<molnar2020interpretable>` for details)
+#
+# **Conclusion**:
+#
+# The method is a good alternative to the permutation test for SVR when the
+# distribution of the coefficients of SVR is normal centred around zeros.
+# The method is a simplification of the permutation test for SVR.
+
+
+#############################################################################
 # References
 # ----------
 # .. footbibliography::
