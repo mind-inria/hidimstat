@@ -1,4 +1,5 @@
 import numpy as np
+from hidimstat.stat_tools import pval_from_scale
 
 
 def ada_svr(X, y, rcond=1e-3):
@@ -8,7 +9,7 @@ def ada_svr(X, y, rcond=1e-3):
     Statistical inference procedure presented in :footcite:t:`gaonkar_deriving_2012`.
 
     Parameters
-    -----------
+    ----------
     X : ndarray, shape (n_samples, n_features)
         Data.
 
@@ -49,3 +50,15 @@ def ada_svr(X, y, rcond=1e-3):
     scale = np.sqrt(np.sum(C**2, axis=1))
 
     return beta_hat, scale
+
+
+
+def ada_svr_pvalue(beta_hat, scale, distrib="norm", eps=1e-14):
+    """
+    Computing one-sided p-values corrrected for multiple testing
+    from simple testing one-sided p-values.
+
+    For details see: :py:func:`hidimstat.pval_from_scale`
+
+    """
+    return pval_from_scale(beta_hat, scale, distrib=distrib, eps=eps)
