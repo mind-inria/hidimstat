@@ -7,14 +7,21 @@ from scipy import stats
 def plot_dataset1D(X, y, beta, title="Toy dataset"):
     """
     Plot a 1D toy dataset with the true regression line.
-    Parameters:
-    - X: Input features (n_samples, n_features)
-    - y: Vectors of the regression  (n_samples,)
-    - beta: Coefficients of the true variable of importance (n_features,)
-    - title: Title of the plot (str)
+    
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Input features.
+    y : ndarray, shape (n_samples,)
+        Vectors of the regression
+    beta : ndarray, shape (n_features,)
+        Coefficients of the true variable of importance
+    title : str
+        Title of the plot
 
-    Returns:
-    - a figure with 3 subplots
+    Returns
+    -------
+        a figure with 3 subplots
     """
     # Create a figure and a set of subplots
     fig, ([ax11, ax12], [ax21, ax22]) = plt.subplots(
@@ -51,14 +58,21 @@ def plot_dataset1D(X, y, beta, title="Toy dataset"):
 def plot_validate_variable_importance(beta, beta_hat, vmin=0.0, vmax=1.0):
     """
     Plot for validating of the variable importance estimation.
-    Parameters:
-    - beta: Coefficients of the true variable of importance (n_features,)
-    - beta_hat: Coefficients of the estimated variable of importance (n_features,)
-    - vmin: Minimum value of the colorbar (float)
-    - vmax: Maximum value of the colorbar (float)
+    
+    Parameters
+    ----------
+    beta : ndarray, shape (n_features,)
+        Coefficients of the true variable of importance
+    beta_hat : ndarray, shape (n_features,)
+        Coefficients of the estimated variable of importance
+    vmin : float
+        Minimum value of the colorbar
+    vmax : float
+        Maximum value of the colorbar
 
-    Returns:
-    - a figure with 2 subplots
+    Returns
+    -------
+        a figure with 2 subplots
     """
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.4, 2.8))
     # plot beta
@@ -87,17 +101,27 @@ def plot_pvalue_H0(
 ):
     """
     Plot for the confidence in the hipothse that the variables are important.
-    Parameters:
-    - beta_hat: Coefficients of the estimated variable of importance (n_features,)
-    - pvalue: pvalue of each variable of importance (n_features,)
-    - pvalue_corrected: corrected pvalue of each variable of importance (n_features,)
-    - one_minus_pvalue: 1 - pvalue of each variable of importance (n_features,)
-    - one_minus_pvalue_corrected: 1 - corrected pvalue of each variable of importance (n_features,)
-    - vmin: Minimum value of the colorbar (float)
-    - vmax: Maximum value of the colorbar (float)
 
-    Returns:
-    - a figure with 3 subplots
+    Parameters
+    ----------
+    beta_hat : ndarray, shape (n_features,)
+        Coefficients of the estimated variable of importance
+    pvalue : ndarray, shape (n_features,)
+        pvalue of each variable of importance
+    pvalue_corrected : ndarray, shape (n_features,)
+        corrected pvalue of each variable of importance
+    one_minus_pvalue : ndarray, shape (n_features,)
+        1 - pvalue of each variable of importance
+    one_minus_pvalue_corrected : ndarray, shape (n_features,)
+        1 - corrected pvalue of each variable of importance
+    vmin : float
+        Minimum value of the colorbar
+    vmax : float
+        Maximum value of the colorbar
+
+    Returns
+    -------
+        a figure with 3 subplots
     """
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6.4, 4.8))
     # plot beta_hat
@@ -160,17 +184,27 @@ def plot_pvalue_H1(
 ):
     """
     Plot for the confidence in the hipothse that the variables are not important.
-    Parameters:
-    - beta_hat: Coefficients of the estimated variable of importance (n_features,)
-    - pvalue: pvalue of each variable of importance (n_features,)
-    - pvalue_corrected: corrected pvalue of each variable of importance (n_features,)
-    - one_minus_pvalue: 1 - pvalue of each variable of importance (n_features,)
-    - one_minus_pvalue_corrected: 1 - corrected pvalue of each variable of importance (n_features,)
-    - vmin: Minimum value of the colorbar (float)
-    - vmax: Maximum value of the colorbar (float)
+    
+    Parameters
+    ----------
+    beta_hat : ndarray, shape (n_features,)
+        Coefficients of the estimated variable of importance
+    pvalue : ndarray, shape (n_features,)
+        pvalue of each variable of importance
+    pvalue_corrected : ndarray, shape (n_features,)
+        corrected pvalue of each variable of importance
+    one_minus_pvalue : ndarray, shape (n_features,)
+        1 - pvalue of each variable of importance
+    one_minus_pvalue_corrected : ndarray, shape (n_features,)
+        1 - corrected pvalue of each variable of importance
+    vmin : float
+        Minimum value of the colorbar
+    vmax : float
+        Maximum value of the colorbar
 
-    Returns:
-    - a figure with 3 subplots
+    Returns
+    -------
+        a figure with 3 subplots
     """
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(6.4, 4.8))
     im_beta_hat = ax1.imshow(np.expand_dims(beta_hat, 0), vmin=vmin, vmax=vmax)
@@ -226,13 +260,19 @@ def plot_pvalue_H1(
 def plot_compare_proba_estimated(proba, beta_hat, scale):
     """
     Plot the comparison of the estimated probability with the normal distribution.
-    Parameters:
-    - proba: Probability of each coefficent (n_features, n_permutations)
-    - beta_hat: Coefficients of the estimated variable of importance (n_features,)
-    - scale: Standard deviation of the distribution of the coefficients (n_features,)
 
-    Returns:
-    - a figure with 5*5 subplots
+    Parameters
+    ----------
+    proba : ndarray, shape (n_features, n_permutations)
+        Probability of each coefficent
+    beta_hat : ndarray, shape (n_features,)
+        Coefficients of the estimated variable of importance
+    scale : ndarray, shape (n_features,)
+        Standard deviation of the distribution of the coefficients
+
+    Returns
+    -------
+        a figure with 5*5 subplots
     """
     fig, axs = plt.subplots(5, 5, figsize=(6.4, 4.8))
     for index, ax in enumerate(axs.flat):
