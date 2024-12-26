@@ -102,17 +102,7 @@ plot_pvalue_H1(
 # the SVR is assumed to be a normal distribution centred around zeros. ADA-SVR
 # uses the central limit theorem to estimate the
 # standard deviation of this normal distribution for each coefficient
-# (see the :ref:<following figure `fig:ada_svr_1`).
-#
-# .. figure:: ../../../examples/figures/ada_svr_1.jpg
-#  :width: 400
-#  :alt: Figure 1 of ::footcite:ct:`Gaonkar et al. 2012 <gaonkar_deriving_2012>`.
-#  :align: center
-#  :name: fig:ada_svr_1
-#
-#  Figure 1 of :footcite:ct:`Gaonkar et al. 2012 <gaonkar_deriving_2012>`.
-#  **Left**: Concept of support vector machines in 2-D space
-#  **Right**: Permutation testing for support vector machines
+# (for details see figure 1 of ::footcite:ct:`Gaonkar et al. 2012 <gaonkar_deriving_2012>`).
 #
 
 #############################################################################
@@ -174,7 +164,6 @@ print(
 # 
 # - The method is fast because it uses the central limit theorem to estimate
 #   the standard deviation of the distribution of the coefficients of SVR.
-# - The method is simple to implement.
 # - The method is a simplification of the permutation test for SVR.
 # - The method has the advantage of linear models: transparency of 
 #   the prediction, high level of collective experiance and expertise 
