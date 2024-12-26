@@ -186,7 +186,8 @@ print(
 # - The method assumes that the distribution of the coefficients of SVR is normal centred around zeros.
 # - The method is not valid for small sample sizes.
 # - The method has all the disadvantages of linear models: only for linear 
-#   realtionships, not good predicting performance, unintuitive. 
+#   relationships, not good predicting performance, unintuitive. 
+``` unintuitive: WDYM ?
 #   (see the book of 
 #   :footcite:ct:`Molnar 2012<molnar2020interpretable>` for details)
 #
