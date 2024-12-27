@@ -43,12 +43,12 @@ def ada_svr(
     .. footbibliography::
 
     """
-    "X must be a numpy array or a list or a pandas DataFrame"
-    assert (isinstance(X, np.ndarray) or isinstance(X, list)) \
-        or isinstance(X, pd.DataFrame)
-    "y must be a numpy array or a list or a pandas DataFrame"
-    assert (isinstance(y, np.ndarray) or isinstance(y, list)) \
-        or isinstance(y, pd.DataFrame)
+    assert (isinstance(X, np.ndarray) or isinstance(X, list)) or isinstance(
+        X, pd.DataFrame
+    ), "X must be a numpy array or a list or a pandas DataFrame"
+    assert (isinstance(y, np.ndarray) or isinstance(y, list)) or isinstance(
+        y, pd.DataFrame
+    ), "y must be a numpy array or a list or a pandas DataFrame"
     assert X.shape[0] == y.shape[0], "X and y must have the same number of samples"
     assert X.ndim == 2, "X must be a 2D array"
     assert y.ndim == 1, "y must be a 1D array"
