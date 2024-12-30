@@ -20,7 +20,7 @@ References
 
 #############################################################################
 # Imports needed
-# ------------------------------
+# --------------
 
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ from hidimstat import CPI, PermutationImportance
 
 #############################################################################
 # Generate the data
-# ------------------------------
+# -----------------
 # We generate the data using a multivariate normal distribution with a Toeplitz
 # correlation matrix. The target variable is generated using a non-linear function
 # of the features. To make the problem more intuitive, we generate a non-linear
@@ -81,7 +81,7 @@ y = y_cont > np.quantile(y_cont, 0.5)
 
 #############################################################################
 # Visualize the data
-# ------------------------------
+# ------------------
 
 fig, axes = plt.subplots(
     1,
@@ -115,7 +115,7 @@ axes[1].set_yticks(tck_ids, labels[tck_ids])
 
 #############################################################################
 # Variable importance inference
-# ------------------------------
+# -----------------------------
 # We use two different Support Vector Machine models, one with a linear kernel and
 # one with a polynomial kernel of degree 2, well specified to capture the non-linear
 # relationship between the features and the target variable. We then use the CPI and
@@ -208,7 +208,7 @@ importance_arr = np.stack(importance_list)
 
 #############################################################################
 # Compute the p-values for the variable importance
-# ------------------------------
+# ------------------------------------------------
 
 pval_arr = np.zeros((n_features, 3))
 for j in range(n_features):
@@ -218,7 +218,7 @@ for j in range(n_features):
 
 #############################################################################
 # Visualize the variable importance
-# ------------------------------
+# ---------------------------------
 # Here we plot the variable importance and highlight the features that are considered
 # important, with a p-value lower than 0.05, using a diamond marker. We also highlight
 # the true important features, used to generate the target variable, with a star marker.

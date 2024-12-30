@@ -35,6 +35,8 @@ def knockoff_aggregation(
     random_state=None,
 ):
     """
+    Aggregation of Multiple knockoffs
+
     This function implements the aggregation of multiple knockoffs introduced by
     :footcite:t:`pmlr-v119-nguyen20a`
 

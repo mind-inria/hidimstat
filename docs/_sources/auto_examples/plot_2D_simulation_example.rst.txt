@@ -554,9 +554,9 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 9.593 seconds)
+   **Total running time of the script:** (1 minutes 5.676 seconds)
 
-**Estimated memory usage:**  706 MB
+**Estimated memory usage:**  707 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_2D_simulation_example.py:
