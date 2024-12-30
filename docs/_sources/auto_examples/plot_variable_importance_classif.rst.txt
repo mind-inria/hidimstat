@@ -38,7 +38,7 @@ References
 .. GENERATED FROM PYTHON SOURCE LINES 22-24
 
 Imports needed
-------------------------------
+--------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 24-38
 
@@ -68,7 +68,7 @@ Imports needed
 .. GENERATED FROM PYTHON SOURCE LINES 39-52
 
 Generate the data
-------------------------------
+-----------------
 We generate the data using a multivariate normal distribution with a Toeplitz
 correlation matrix. The target variable is generated using a non-linear function
 of the features. To make the problem more intuitive, we generate a non-linear
@@ -125,7 +125,7 @@ feature.
 .. GENERATED FROM PYTHON SOURCE LINES 83-85
 
 Visualize the data
-------------------------------
+------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 85-116
 
@@ -176,14 +176,14 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7fdba9861d00>, <matplotlib.axis.YTick object at 0x7fdba9860b30>, <matplotlib.axis.YTick object at 0x7fdc890b9e50>, <matplotlib.axis.YTick object at 0x7fdc890ba5a0>, <matplotlib.axis.YTick object at 0x7fdc890b9fd0>, <matplotlib.axis.YTick object at 0x7fdc890bbf20>, <matplotlib.axis.YTick object at 0x7fdc890bbbf0>, <matplotlib.axis.YTick object at 0x7fdb80157a70>, <matplotlib.axis.YTick object at 0x7fdb80154980>, <matplotlib.axis.YTick object at 0x7fdc890bb680>]
+    [<matplotlib.axis.YTick object at 0x7f376c2af650>, <matplotlib.axis.YTick object at 0x7f376c2ae540>, <matplotlib.axis.YTick object at 0x7f36570eb470>, <matplotlib.axis.YTick object at 0x7f36570ea1e0>, <matplotlib.axis.YTick object at 0x7f376c2431a0>, <matplotlib.axis.YTick object at 0x7f36570e8f80>, <matplotlib.axis.YTick object at 0x7f36570e9f40>, <matplotlib.axis.YTick object at 0x7f36570ebce0>, <matplotlib.axis.YTick object at 0x7f36570103b0>, <matplotlib.axis.YTick object at 0x7f36570eb5f0>]
 
 
 
 .. GENERATED FROM PYTHON SOURCE LINES 117-124
 
 Variable importance inference
-------------------------------
+-----------------------------
 We use two different Support Vector Machine models, one with a linear kernel and
 one with a polynomial kernel of degree 2, well specified to capture the non-linear
 relationship between the features and the target variable. We then use the CPI and
@@ -296,7 +296,7 @@ estimate the importance of the features.
 .. GENERATED FROM PYTHON SOURCE LINES 210-212
 
 Compute the p-values for the variable importance
-------------------------------
+------------------------------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 212-219
 
@@ -319,7 +319,7 @@ Compute the p-values for the variable importance
 .. GENERATED FROM PYTHON SOURCE LINES 220-231
 
 Visualize the variable importance
-------------------------------
+---------------------------------
 Here we plot the variable importance and highlight the features that are considered
 important, with a p-value lower than 0.05, using a diamond marker. We also highlight
 the true important features, used to generate the target variable, with a star marker.
@@ -422,14 +422,14 @@ the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7fdc89b7e870>
+    <matplotlib.legend.Legend object at 0x7f3694a05670>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 43.833 seconds)
+   **Total running time of the script:** (0 minutes 45.548 seconds)
 
 **Estimated memory usage:**  622 MB
 
