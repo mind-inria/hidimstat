@@ -273,7 +273,7 @@ def zscore_from_pval(pval, one_minus_pval=None, distrib="norm"):
     """Computing z-scores from one-sided p-values.
 
     Parameters
-    -----------
+    ----------
     pval : ndarray, shape (n_features,)
         p-value, with numerically accurate values for
         positive effects (ie., for p-value close to zero).
@@ -361,7 +361,7 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
     """Computing two-sided p-value from one-sided p-values.
 
     Parameters
-    -----------
+    ----------
     pval : ndarray, shape (n_features,)
         p-value, with numerically accurate values for
         positive effects (ie., for p-value close to zero).
