@@ -1,6 +1,6 @@
 """
 Knockoff aggregation on simulated data
-=============================
+======================================
 
 In this example, we show an example of variable selection using
 model-X Knockoffs introduced by :footcite:t:`Candes_2018`. A notable

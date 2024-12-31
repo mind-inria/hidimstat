@@ -92,7 +92,7 @@ Imports needed for this script
 .. GENERATED FROM PYTHON SOURCE LINES 63-65
 
 Load the diabetes dataset
-------------------------------
+-------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 65-68
 
@@ -111,7 +111,7 @@ Load the diabetes dataset
 .. GENERATED FROM PYTHON SOURCE LINES 69-73
 
 Fit a baseline model on the diabetes dataset
-------------------------------
+--------------------------------------------
 We use a Ridge regression model with a 10-fold cross-validation to fit the
 diabetes dataset.
 
@@ -160,7 +160,7 @@ diabetes dataset.
 .. GENERATED FROM PYTHON SOURCE LINES 90-94
 
 Fit a baselien model on the diabetes dataset
-------------------------------
+--------------------------------------------
 We use a Ridge regression model with a 10-fold cross-validation to fit the
 diabetes dataset.
 
@@ -220,7 +220,7 @@ diabetes dataset.
 .. GENERATED FROM PYTHON SOURCE LINES 112-114
 
 Measure the importance of variables using the CPI method
-------------------------------
+--------------------------------------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 114-132
 
@@ -269,7 +269,7 @@ Measure the importance of variables using the CPI method
 .. GENERATED FROM PYTHON SOURCE LINES 133-135
 
 Measure the importance of variables using the LOCO method
-------------------------------
+---------------------------------------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 135-152
 
@@ -317,7 +317,7 @@ Measure the importance of variables using the LOCO method
 .. GENERATED FROM PYTHON SOURCE LINES 153-155
 
 Measure the importance of variables using the permutation method
-------------------------------
+----------------------------------------------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 155-173
 
@@ -366,7 +366,7 @@ Measure the importance of variables using the permutation method
 .. GENERATED FROM PYTHON SOURCE LINES 174-176
 
 Define a function to compute the p-value from importance values
-------------------------------
+---------------------------------------------------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 176-183
 
@@ -389,7 +389,7 @@ Define a function to compute the p-value from importance values
 .. GENERATED FROM PYTHON SOURCE LINES 184-186
 
 Analyze the results
-------------------------------
+-------------------
 
 .. GENERATED FROM PYTHON SOURCE LINES 186-258
 
@@ -491,9 +491,9 @@ Analyze the results
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 9.092 seconds)
+   **Total running time of the script:** (0 minutes 8.668 seconds)
 
-**Estimated memory usage:**  627 MB
+**Estimated memory usage:**  626 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:

@@ -162,9 +162,9 @@ Plotting the comparison
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 4.919 seconds)
+   **Total running time of the script:** (1 minutes 4.899 seconds)
 
-**Estimated memory usage:**  642 MB
+**Estimated memory usage:**  641 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_dcrt_example.py:

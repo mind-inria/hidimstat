@@ -70,10 +70,14 @@ Repository = "https://github.com/mind-inria/hidimstat"
 
 
 [tool.hatch.build.hooks.vcs]
-version-file = "hidimstat/_version.py"
+version-file = "src/hidimstat/_version.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["hidimstat"]
+packages = ["src/hidimstat"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 
 [tool.hatch.version]
 source = "vcs"
