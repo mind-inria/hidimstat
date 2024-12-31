@@ -3,6 +3,7 @@ from hidimstat.stat_tools import pval_from_scale
 
 __all__ = ["ada_svr", "ada_svr_pvalue"]
 
+
 def ada_svr(X, y, rcond=1e-3):
     """
     ADA-SVR: Adaptive Permutation Threshold Support Vector Regression
@@ -51,7 +52,6 @@ def ada_svr(X, y, rcond=1e-3):
     scale = np.sqrt(np.sum(C**2, axis=1))
 
     return beta_hat, scale
-
 
 
 def ada_svr_pvalue(beta_hat, scale, distrib="norm", eps=1e-14):
