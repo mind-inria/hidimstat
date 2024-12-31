@@ -100,7 +100,7 @@ def plot_pvalue_H0(
     vmax=1.0,
 ):
     """
-    Plot for the confidence in the hipothse that the variables are important.
+    Plot for the confidence in the hypothesis that the variables are important.
 
     Parameters
     ----------
