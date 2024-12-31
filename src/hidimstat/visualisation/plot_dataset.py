@@ -7,7 +7,7 @@ from scipy import stats
 def plot_dataset1D(X, y, beta, title="Toy dataset"):
     """
     Plot a 1D toy dataset with the true regression line.
-    
+
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
@@ -58,7 +58,7 @@ def plot_dataset1D(X, y, beta, title="Toy dataset"):
 def plot_validate_variable_importance(beta, beta_hat, vmin=0.0, vmax=1.0):
     """
     Plot for validating of the variable importance estimation.
-    
+
     Parameters
     ----------
     beta : ndarray, shape (n_features,)
@@ -184,7 +184,7 @@ def plot_pvalue_H1(
 ):
     """
     Plot for the confidence in the hypotheses that the variables are not important.
-    
+
     Parameters
     ----------
     beta_hat : ndarray, shape (n_features,)
