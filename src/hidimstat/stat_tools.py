@@ -426,7 +426,8 @@ def step_down_max_t(stat, permutation_stats):
     # Step 1: Order features by absolute value of test statistics
     # Keep track of original positions
     index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.arange(n_features)[index_ordered]
+    stat_ranked = np.ones(n_features, dtype=int)
+    stat_ranked[index_ordered] = np.arange(n_features)
     # Sorted absolute statistics
     stat_sorted = np.copy(np.abs(stat)[index_ordered])
     # Order permutation stats similarly
@@ -450,7 +451,7 @@ def step_down_max_t(stat, permutation_stats):
     # Step 4: Enforce monotonicity
     # Ensure that p-values are monotonically decreasing
     # by taking maximum of current and next p-value
-    for i in reversed(range(n_features - 1)):
+    for i in range(n_features - 1)[::-1]:
         two_sided_pval_corr[i] = np.maximum(
             two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
         )
