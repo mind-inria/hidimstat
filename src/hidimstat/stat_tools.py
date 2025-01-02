@@ -395,7 +395,7 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
 def step_down_max_t(stat, permutation_stats):
     """
     Step-down maxT multiple testing procedure
-    
+
     | This algorithm for computing adjusted p-values :footcite:t:`westfall1993resampling`.
     | It assumes that the test statistics is centered around zero.
     | This algorithm controls the family-wise error rate (FWER) by:
@@ -424,18 +424,21 @@ def step_down_max_t(stat, permutation_stats):
     n_permutations, n_features = np.shape(permutation_stats)
 
     # Step 1: Order features by absolute value of test statistics
+    # Keep track of original positions
     index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.arange(n_features)[index_ordered]  # Keep track of original positions
-    stat_sorted = np.copy(np.abs(stat)[index_ordered])  # Sorted absolute statistics
+    stat_ranked = np.arange(n_features)[index_ordered]
+    # Sorted absolute statistics
+    stat_sorted = np.copy(np.abs(stat)[index_ordered])
+    # Order permutation stats similarly
     permutation_stats_ordered = np.copy(
-        np.abs(permutation_stats)[:, index_ordered])    # Order permutation stats similarly
+        np.abs(permutation_stats)[:, index_ordered])
 
     # Step 2: Update null distribution
     # For each column i, take the maximum between current and previous column
     # This creates successively larger null distributions
     for i in range(1, n_features):
         permutation_stats_ordered[:, i] = np.maximum(
-            permutation_stats_ordered[:, i -1],
+            permutation_stats_ordered[:, i - 1],
             permutation_stats_ordered[:, i]
         )
 
