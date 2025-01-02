@@ -19,11 +19,12 @@ def desparsified_lasso(
     tol=1e-3,
     alpha_max_fraction=0.01,
     n_jobs=1,
-    memory=None,
     verbose=0,
 ):
     """
     Desparsified Lasso with confidence intervals
+    
+    Algorithm based Alog 1 of d-Lasso in [6]
 
     Parameters
     ----------
@@ -51,20 +52,12 @@ def desparsified_lasso(
         updates are smaller than `tol`, the optimization code checks the
         dual gap for optimality and continues until it is smaller than `tol`.
 
-    residual_method : str, optional (default='lasso')
-        Currently the only method available is 'lasso'.
-
     alpha_max_fraction : float, optional (default=0.01)
         Only used if method='lasso'.
         Then alpha = alpha_max_fraction * alpha_max.
 
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during the Nodewise Lasso.
-
-    memory : str or joblib.Memory object, optional (default=None)
-        Used to cache the output of the computation of the Nodewise Lasso.
-        By default, no caching is done. If a string is given, it is the path
-        to the caching directory.
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
@@ -113,25 +106,37 @@ def desparsified_lasso(
     .. [5] Celentano, M., Montanari, A., & Wei, Y. (2020). The Lasso with
            general Gaussian designs with applications to hypothesis testing.
            arXiv preprint arXiv:2007.13716.
+    .. [6] Chevalier, Jérôme-Alexis. “Statistical Control of Sparse Models in High Dimension.” 
+        Phdthesis, Université Paris-Saclay, 2020. https://theses.hal.science/tel-03147200.
+
     """
 
-    X = np.asarray(X)
+    X_ = np.asarray(X)
 
-    n_samples, n_features = X.shape
+    n_samples, n_features = X_.shape
 
-    memory = check_memory(memory)
+    # centering the data and the target variable
+    y_ = y - np.mean(y)
+    X_ = X_ - np.mean(X_, axis=0)
 
-    y = y - np.mean(y)
-    X = X - np.mean(X, axis=0)
-    gram = np.dot(X.T, X)
-    gram_nodiag = gram - np.diag(np.diag(gram))
+    # define the quantile for the confidence intervals
+    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
+    
+    # Lasso regression and noise standard deviation estimation
+    sigma_hat, beta_lasso = reid(X_, y_, n_jobs=n_jobs)
 
+    # compute the Gram matrix
+    gram = np.dot(X_.T, X_)
+    gram_nodiag = np.copy(gram)
+    np.fill_diagonal(gram_nodiag, 0)
+
+    # define the alphas for the Nodewise Lasso
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=["n_jobs"])(
-        X,
+    Z, omega_diag = _compute_all_residuals(
+        X_,
         alphas,
         gram,
         max_iter=max_iter,
@@ -139,9 +144,6 @@ def desparsified_lasso(
         n_jobs=n_jobs,
         verbose=verbose,
     )
-
-    # Lasso regression
-    sigma_hat, beta_lasso = reid(X, y, n_jobs=n_jobs)
 
     # Computing the degrees of freedom adjustement
     if dof_ajdustement:
@@ -153,22 +155,20 @@ def desparsified_lasso(
         dof_factor = 1
 
     # Computing Desparsified Lasso estimator and confidence intervals
-    beta_bias = dof_factor * np.dot(y.T, Z) / np.sum(X * Z, axis=0)
+    beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
 
-    P = ((Z.T.dot(X)).T / np.sum(X * Z, axis=0)).T
+    # beta hat
+    P = ((Z.T.dot(X_)).T / np.sum(X_ * Z, axis=0)).T
     P_nodiag = P - np.diag(np.diag(P))
     Id = np.identity(n_features)
     P_nodiag = dof_factor * P_nodiag + (dof_factor - 1) * Id
-
     beta_hat = beta_bias - P_nodiag.dot(beta_lasso)
 
-    omega_diag = omega_diag * dof_factor**2
+    # confidence intervals
+    omega_diag = omega_diag * dof_factor ** 2
     omega_invsqrt_diag = omega_diag ** (-0.5)
-
-    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag)
+        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag) # why the double inverse of omega_diag?
     )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
