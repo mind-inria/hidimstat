@@ -19,6 +19,9 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     y : ndarray, shape (n_samples,)
         Target.
+        
+    estimator : object LinearModel
+        The linear model used to fit the data.
 
     n_permutations : int, optional (default=1000)
         Number of permutations used to compute the survival function
@@ -48,7 +51,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     rng = np.random.default_rng(seed)
 
     # Get the weights of the original model
-    if estimator.coef_ is None:
+    if not hasattr(estimator, 'coef_'):
         weights = _fit_and_weights(estimator, X, y)
     else:
         weights = estimator.coef_
@@ -140,4 +143,5 @@ def _shuffle(y, rng):
         Shuffled target.
     """
     y_copy = np.copy(y)
-    return rng.suffle(y_copy)
+    rng.shuffle(y_copy)
+    return y_copy

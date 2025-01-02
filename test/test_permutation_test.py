@@ -4,8 +4,9 @@ Test the permutation test module
 
 import numpy as np
 from numpy.testing import assert_almost_equal
+from sklearn.svm import LinearSVR
 
-from hidimstat.permutation_test import permutation_test_cv
+from hidimstat.permutation_test import permutation_test, permutation_test_pval
 from hidimstat.scenario import multivariate_1D_simulation
 
 
@@ -32,7 +33,12 @@ def test_permutation_test():
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)
 
-    pval_corr, one_minus_pval_corr = permutation_test_cv(X_init, y, n_permutations=100)
+    estimator = LinearSVR(C=1.0)
+
+    weight, weight_distribution = permutation_test(
+        X_init, y, estimator=estimator, n_permutations=100)
+
+    pval_corr, _ = permutation_test_pval(weight, weight_distribution)
 
     expected = 0.5 * np.ones(n_features)
     expected[:support_size] = 0.0
