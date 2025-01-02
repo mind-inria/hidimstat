@@ -2,7 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_T
+from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
 
 def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=0):
@@ -90,7 +90,7 @@ def permutation_test_pval(weights, weights_distribution):
         One minus the corrected p-value, with numerically accurate
         values for negative effects (ie., for p-value close to one).
     """
-    two_sided_pval_corr = step_down_max_T(weights, weights_distribution)
+    two_sided_pval_corr = step_down_max_t(weights, weights_distribution)
 
     stat_sign = np.sign(weights)
 
