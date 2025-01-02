@@ -6,65 +6,8 @@ from scipy.linalg import inv
 from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
-from .noise_std import group_reid, reid
-from .stat_tools import pval_from_two_sided_pval_and_sign
-
-
-def _compute_all_residuals(
-    X, alphas, gram, max_iter=5000, tol=1e-3, method="lasso", n_jobs=1, verbose=0
-):
-    """Nodewise Lasso. Compute all the residuals: regressing each column of the
-    design matrix against the other columns"""
-
-    n_samples, n_features = X.shape
-
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(_compute_residuals)(
-            X=X,
-            column_index=i,
-            alpha=alphas[i],
-            gram=gram,
-            max_iter=max_iter,
-            tol=tol,
-            method=method,
-        )
-        for i in range(n_features)
-    )
-
-    results = np.asarray(results, dtype=object)
-    Z = np.stack(results[:, 0], axis=1)
-    omega_diag = np.stack(results[:, 1])
-
-    return Z, omega_diag
-
-
-def _compute_residuals(
-    X, column_index, alpha, gram, max_iter=5000, tol=1e-3, method="lasso"
-):
-    """Compute the residuals of the regression of a given column of the
-    design matrix against the other columns"""
-
-    n_samples, n_features = X.shape
-    i = column_index
-
-    X_new = np.delete(X, i, axis=1)
-    y = np.copy(X[:, i])
-
-    if method == "lasso":
-
-        gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
-        clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
-
-    else:
-
-        ValueError("The only regression method available is 'lasso'")
-
-    clf.fit(X_new, y)
-    z = y - clf.predict(X_new)
-
-    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y, z) ** 2
-
-    return z, omega_diag_i
+from hidimstat.noise_std import group_reid, reid
+from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 
 
 def desparsified_lasso(
@@ -74,13 +17,13 @@ def desparsified_lasso(
     confidence=0.95,
     max_iter=5000,
     tol=1e-3,
-    residual_method="lasso",
     alpha_max_fraction=0.01,
     n_jobs=1,
     memory=None,
     verbose=0,
 ):
-    """Desparsified Lasso with confidence intervals
+    """
+    Desparsified Lasso with confidence intervals
 
     Parameters
     ----------
@@ -109,7 +52,6 @@ def desparsified_lasso(
         dual gap for optimality and continues until it is smaller than `tol`.
 
     residual_method : str, optional (default='lasso')
-        Method used for computing the residuals of the Nodewise Lasso.
         Currently the only method available is 'lasso'.
 
     alpha_max_fraction : float, optional (default=0.01)
@@ -194,7 +136,6 @@ def desparsified_lasso(
         gram,
         max_iter=max_iter,
         tol=tol,
-        method=residual_method,
         n_jobs=n_jobs,
         verbose=verbose,
     )
@@ -420,3 +361,56 @@ def desparsified_group_lasso(
     )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
+
+
+def _compute_all_residuals(
+    X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
+):
+    """Nodewise Lasso. Compute all the residuals: regressing each column of the
+    design matrix against the other columns"""
+
+    n_samples, n_features = X.shape
+
+    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
+        delayed(_compute_residuals)(
+            X=X,
+            column_index=i,
+            alpha=alphas[i],
+            gram=gram,
+            max_iter=max_iter,
+            tol=tol,
+        )
+        for i in range(n_features)
+    )
+
+    results = np.asarray(results, dtype=object)
+    Z = np.stack(results[:, 0], axis=1)
+    omega_diag = np.stack(results[:, 1])
+
+    return Z, omega_diag
+
+
+def _compute_residuals(
+    X, column_index, alpha, gram, max_iter=5000, tol=1e-3
+):
+    """Compute the residuals of the regression of a given column of the
+    design matrix against the other columns"""
+
+    n_samples, n_features = X.shape
+    i = column_index
+
+    X_new = np.delete(X, i, axis=1)
+    y = np.copy(X[:, i])
+
+    # Method used for computing the residuals of the Nodewise Lasso.
+    # here we use the Lasso method
+    gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
+    clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
+
+    clf.fit(X_new, y)
+    z = y - clf.predict(X_new)
+
+    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y, z) ** 2
+
+    return z, omega_diag_i
+
