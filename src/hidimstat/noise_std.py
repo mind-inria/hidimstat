@@ -9,7 +9,8 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
     """
     Smoothly Clipped Absolute Deviation Penalty (SCAD) of Fan and Li (2001)
      
-    Estimation of noise standard deviation using Reid procedure
+    Estimation of noise standard deviation using the most promissing procedure
+    of Reid et al. (2016) [1] by comparison. 
 
     Parameters
     ----------
