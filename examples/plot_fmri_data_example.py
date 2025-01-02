@@ -154,11 +154,10 @@ SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
     # We computed the regularization parameter by CV (C = 0.1)
     estimator = LinearSVR(C=0.1)
-    weight_svr, weight_svr_distribution = permutation_test(
-        X, y, n_permutations=50
-    )
+    weight_svr, weight_svr_distribution = permutation_test(X, y, n_permutations=50)
     pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_pval(
-        weight_svr, weight_svr_distribution)
+        weight_svr, weight_svr_distribution
+    )
 
 # Another method is to compute the p-values by permutation test from the
 # Ridge decoder. The solution provided by this method should be very close to
@@ -166,9 +165,11 @@ if SVR_permutation_test_inference:
 
 estimator = Ridge()
 weight_ridge, weight_ridge_distribution = permutation_test(
-    X, y, estimator=estimator, n_permutations=200)
+    X, y, estimator=estimator, n_permutations=200
+)
 pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = permutation_test_pval(
-    weight_ridge, weight_ridge_distribution)
+    weight_ridge, weight_ridge_distribution
+)
 
 #############################################################################
 # Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).

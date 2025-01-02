@@ -8,7 +8,7 @@ from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_ma
 def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=0):
     """
     Permutation test
-    
+
     This function compute the distribution of the weights of a linear model 
     by shuffling the target.
 
@@ -19,7 +19,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     y : ndarray, shape (n_samples,)
         Target.
-        
+
     estimator : object LinearModel
         The linear model used to fit the data.
 
@@ -32,7 +32,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during the cross validation.
-    
+
     verbose : int, optional (default=0)
         The verbosity level of the joblib.Parallel.
 
@@ -41,7 +41,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     weights : ndarray, shape (n_features,)
         The weights of the original model.
-    
+
     weights_distribution : ndarray, shape (n_permutations, n_features)
         The distribution of the weights of the model obtained by shuffling
         the target n_permutations times. 
@@ -64,7 +64,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     # Convert the list of weights into an array
     weights_distribution = np.array(weights_distribution)
-    
+
     return weights, weights_distribution
 
 
@@ -76,7 +76,7 @@ def permutation_test_pval(weights, weights_distribution):
     ----------
     weights : ndarray, shape (n_features,)
         The weights of the original model.
-    
+
     weights_distribution : ndarray, shape (n_permutations, n_features)
         The distribution of the weights of the model obtained by shuffling
 
@@ -104,18 +104,18 @@ def permutation_test_pval(weights, weights_distribution):
 def _fit_and_weights(estimator, X, y):
     """ 
     Fit the estimator and return the weights
-    
+
     Parameters
     ----------
     estimator : object
         The estimator to fit.
-        
+
     X : ndarray, shape (n_samples, n_features)
         Data.
-        
+
     y : ndarray, shape (n_samples,)
         Target.
-        
+
     Returns
     -------
     weights : ndarray, shape (n_features,)
@@ -128,15 +128,15 @@ def _fit_and_weights(estimator, X, y):
 def _shuffle(y, rng):
     """
     Shuffle the target
-    
+
     Parameters
     ----------
     y : ndarray, shape (n_samples,)
         Target.
-        
+
     rng : numpy.random.Generator
         Random number generator.
-        
+
     Returns
     -------
     y_shuffled : ndarray, shape (n_samples,)
