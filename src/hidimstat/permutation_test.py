@@ -1,13 +1,16 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
-from sklearn.utils import _safe_indexing
 
-from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
+from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_T
 
 
-def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=1):
-    """Permutation test shuffling the target
+def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=0):
+    """
+    Permutation test
+    
+    This function compute the distribution of the weights of a linear model 
+    by shuffling the target.
 
     Parameters
     ----------
@@ -26,11 +29,53 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during the cross validation.
+    
+    verbose : int, optional (default=0)
+        The verbosity level of the joblib.Parallel.
 
-    verbose: int, optional (default=1)
-        The verbosity level: if non zero, progress messages are printed
-        when computing the permutation stats in parralel.
-        The frequency of the messages increases with the verbosity level.
+    Returns
+    -------
+
+    weights : ndarray, shape (n_features,)
+        The weights of the original model.
+    
+    weights_distribution : ndarray, shape (n_permutations, n_features)
+        The distribution of the weights of the model obtained by shuffling
+        the target n_permutations times. 
+
+    """
+
+    rng = np.random.default_rng(seed)
+
+    # Get the weights of the original model
+    if estimator.coef_ is None:
+        weights = _fit_and_weights(estimator, X, y)
+    else:
+        weights = estimator.coef_
+
+    # Get the distribution of the weights by shuffling the target
+    weights_distribution = Parallel(n_jobs=n_jobs, verbose=verbose)(
+        delayed(_fit_and_weights)(clone(estimator), X, _shuffle(y, rng))
+        for _ in range(n_permutations)
+    )
+
+    # Convert the list of weights into an array
+    weights_distribution = np.array(weights_distribution)
+    
+    return weights, weights_distribution
+
+
+def permutation_test_pval(weights, weights_distribution):
+    """
+    Compute p-value from permutation test
+
+    Parameters
+    ----------
+    weights : ndarray, shape (n_features,)
+        The weights of the original model.
+    
+    weights_distribution : ndarray, shape (n_permutations, n_features)
+        The distribution of the weights of the model obtained by shuffling
 
     Returns
     -------
@@ -42,20 +87,9 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
         One minus the corrected p-value, with numerically accurate
         values for negative effects (ie., for p-value close to one).
     """
+    two_sided_pval_corr = step_down_max_T(weights, weights_distribution)
 
-    rng = np.random.default_rng(seed)
-
-    stat = _permutation_test_stat(clone(estimator), X, y)
-
-    permutation_stats = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(_permutation_test_stat)(clone(estimator), X, _shuffle(y, rng))
-        for _ in range(n_permutations)
-    )
-
-    permutation_stats = np.array(permutation_stats)
-    two_sided_pval_corr = step_down_max_T(stat, permutation_stats)
-
-    stat_sign = np.sign(stat)
+    stat_sign = np.sign(weights)
 
     pval_corr, _, one_minus_pval_corr, _ = pval_from_two_sided_pval_and_sign(
         two_sided_pval_corr, stat_sign
@@ -64,67 +98,46 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     return pval_corr, one_minus_pval_corr
 
 
-def _permutation_test_stat(estimator, X, y):
-    """Fit estimator and get coef"""
-    stat = estimator.fit(X, y).coef_
-    return stat
+def _fit_and_weights(estimator, X, y):
+    """ 
+    Fit the estimator and return the weights
+    
+    Parameters
+    ----------
+    estimator : object
+        The estimator to fit.
+        
+    X : ndarray, shape (n_samples, n_features)
+        Data.
+        
+    y : ndarray, shape (n_samples,)
+        Target.
+        
+    Returns
+    -------
+    weights : ndarray, shape (n_features,)
+        The weights of the estimator.
+    """
+    weights = estimator.fit(X, y).coef_
+    return weights
 
 
 def _shuffle(y, rng):
-    """Shuffle vector"""
-    indices = rng.permutation(len(y))
-    return _safe_indexing(y, indices)
-
-
-def step_down_max_T(stat, permutation_stats):
-    """Step-down maxT algorithm for computing adjusted p-values
-
+    """
+    Shuffle the target
+    
     Parameters
     ----------
-    stat : ndarray, shape (n_features,)
-        Statistic computed on the original (unpermutted) problem.
-
-    permutation_stats : ndarray, shape (n_permutations, n_features)
-        Statistics computed on permutted problems.
-
+    y : ndarray, shape (n_samples,)
+        Target.
+        
+    rng : numpy.random.Generator
+        Random number generator.
+        
     Returns
     -------
-    two_sided_pval_corr : ndarray, shape (n_features,)
-        Two-sided p-values corrected for multiple testing.
-
-    References
-    ----------
-    .. [1] Westfall, P. H., & Young, S. S. (1993). Resampling-based multiple
-           testing: Examples and methods for p-value adjustment (Vol. 279).
-           John Wiley & Sons.
+    y_shuffled : ndarray, shape (n_samples,)
+        Shuffled target.
     """
-
-    n_permutations, n_features = np.shape(permutation_stats)
-
-    index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.empty(n_features)
-    stat_ranked[index_ordered] = np.arange(n_features)
-    stat_ranked = stat_ranked.astype(int)
-    stat_sorted = np.copy(np.abs(stat)[index_ordered])
-    permutation_stats_ordered = np.copy(
-        np.abs(permutation_stats)[:, index_ordered])
-
-    for i in range(1, n_features):
-        permutation_stats_ordered[:, i] = np.maximum(
-            permutation_stats_ordered[:, i -
-                                      1], permutation_stats_ordered[:, i]
-        )
-
-    two_sided_pval_corr = (
-        np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
-        / n_permutations
-    )
-
-    for i in range(n_features - 1)[::-1]:
-        two_sided_pval_corr[i] = np.maximum(
-            two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
-        )
-
-    two_sided_pval_corr = np.copy(two_sided_pval_corr[stat_ranked])
-
-    return two_sided_pval_corr
+    y_copy = np.copy(y)
+    return rng.suffle(y_copy)

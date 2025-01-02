@@ -390,3 +390,57 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
     )
 
     return two_sided_pval, two_sided_pval_corr
+
+
+def step_down_max_T(stat, permutation_stats):
+    """Step-down maxT algorithm for computing adjusted p-values
+
+    Parameters
+    ----------
+    stat : ndarray, shape (n_features,)
+        Statistic computed on the original (unpermutted) problem.
+
+    permutation_stats : ndarray, shape (n_permutations, n_features)
+        Statistics computed on permutted problems.
+
+    Returns
+    -------
+    two_sided_pval_corr : ndarray, shape (n_features,)
+        Two-sided p-values corrected for multiple testing.
+
+    References
+    ----------
+    .. [1] Westfall, P. H., & Young, S. S. (1993). Resampling-based multiple
+           testing: Examples and methods for p-value adjustment (Vol. 279).
+           John Wiley & Sons.
+    """
+
+    n_permutations, n_features = np.shape(permutation_stats)
+
+    index_ordered = np.argsort(np.abs(stat))
+    stat_ranked = np.empty(n_features)
+    stat_ranked[index_ordered] = np.arange(n_features)
+    stat_ranked = stat_ranked.astype(int)
+    stat_sorted = np.copy(np.abs(stat)[index_ordered])
+    permutation_stats_ordered = np.copy(
+        np.abs(permutation_stats)[:, index_ordered])
+
+    for i in range(1, n_features):
+        permutation_stats_ordered[:, i] = np.maximum(
+            permutation_stats_ordered[:, i -
+                                      1], permutation_stats_ordered[:, i]
+        )
+
+    two_sided_pval_corr = (
+        np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
+        / n_permutations
+    )
+
+    for i in range(n_features - 1)[::-1]:
+        two_sided_pval_corr[i] = np.maximum(
+            two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
+        )
+
+    two_sided_pval_corr = np.copy(two_sided_pval_corr[stat_ranked])
+
+    return two_sided_pval_corr
