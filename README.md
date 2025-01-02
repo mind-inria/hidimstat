@@ -32,6 +32,7 @@ pip install -e .
 ```
 joblib
 numpy
+panda
 scipy
 scikit-learn
 torch
