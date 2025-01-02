@@ -10,7 +10,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     Permutation test
 
     This function compute the distribution of the weights of a linear model
-    by shuffling the target.
+    by shuffling the target :footcite:t:`hirschhorn2005genome`.
 
     Parameters
     ----------
@@ -38,7 +38,6 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     Returns
     -------
-
     weights : ndarray, shape (n_features,)
         The weights of the original model.
 
@@ -46,6 +45,10 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
         The distribution of the weights of the model obtained by shuffling
         the target n_permutations times.
 
+    References
+    ----------
+    .. footbibliography::
+    
     """
 
     rng = np.random.default_rng(seed)
