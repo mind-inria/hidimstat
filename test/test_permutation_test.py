@@ -30,9 +30,6 @@ def test_permutation_test():
         seed=3,
     )
 
-    y = y - np.mean(y)
-    X_init = X_init - np.mean(X_init, axis=0)
-
     estimator = LinearSVR(C=1.0)
 
     weight, weight_distribution = permutation_test(
