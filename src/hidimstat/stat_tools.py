@@ -392,8 +392,16 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
     return two_sided_pval, two_sided_pval_corr
 
 
-def step_down_max_T(stat, permutation_stats):
-    """Step-down maxT algorithm for computing adjusted p-values
+def step_down_max_t(stat, permutation_stats):
+    """
+    Step-down maxT multiple testing procedure
+    
+    | This algorithm for computing adjusted p-values :footcite:t:`westfall1993resampling`.
+    | It assumes that the test statistics is centered around zero.
+    | This algorithm controls the family-wise error rate (FWER) by:
+    | 1. Ordering test statistics by absolute value
+    | 2. Computing successively larger null distributions
+    | 3. Adjusting p-values using step-down procedure
 
     Parameters
     ----------
@@ -410,37 +418,43 @@ def step_down_max_T(stat, permutation_stats):
 
     References
     ----------
-    .. [1] Westfall, P. H., & Young, S. S. (1993). Resampling-based multiple
-           testing: Examples and methods for p-value adjustment (Vol. 279).
-           John Wiley & Sons.
+    .. footbibliography::
     """
 
     n_permutations, n_features = np.shape(permutation_stats)
 
+    # Step 1: Order features by absolute value of test statistics
     index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.empty(n_features)
-    stat_ranked[index_ordered] = np.arange(n_features)
-    stat_ranked = stat_ranked.astype(int)
-    stat_sorted = np.copy(np.abs(stat)[index_ordered])
+    stat_ranked = np.arange(n_features)[index_ordered]  # Keep track of original positions
+    stat_sorted = np.copy(np.abs(stat)[index_ordered])  # Sorted absolute statistics
     permutation_stats_ordered = np.copy(
-        np.abs(permutation_stats)[:, index_ordered])
+        np.abs(permutation_stats)[:, index_ordered])    # Order permutation stats similarly
 
+    # Step 2: Update null distribution
+    # For each column i, take the maximum between current and previous column
+    # This creates successively larger null distributions
     for i in range(1, n_features):
         permutation_stats_ordered[:, i] = np.maximum(
-            permutation_stats_ordered[:, i -
-                                      1], permutation_stats_ordered[:, i]
+            permutation_stats_ordered[:, i -1],
+            permutation_stats_ordered[:, i]
         )
 
+    # Step 3: Compute raw adjusted p-values
+    # Count how many permutation statistics are >= than observed statistics
     two_sided_pval_corr = (
         np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
         / n_permutations
     )
 
-    for i in range(n_features - 1)[::-1]:
+    # Step 4: Enforce monotonicity
+    # Ensure that p-values are monotonically decreasing
+    # by taking maximum of current and next p-value
+    for i in reversed(range(n_features - 1)):
         two_sided_pval_corr[i] = np.maximum(
             two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
         )
 
+    # Step 5: Rearrange p-values back to original feature order
     two_sided_pval_corr = np.copy(two_sided_pval_corr[stat_ranked])
 
     return two_sided_pval_corr
