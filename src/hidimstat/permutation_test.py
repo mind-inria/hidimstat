@@ -48,7 +48,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     References
     ----------
     .. footbibliography::
-    
+
     """
 
     rng = np.random.default_rng(seed)
