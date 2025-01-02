@@ -36,15 +36,15 @@ def ada_svr(X, y, rcond=1e-3):
     .. footbibliography::
 
     """
-    X_input = np.asarray(X)
+    X_ = np.asarray(X)
 
     ## compute matrix C, (see eq.6 of [1])
     # invert matrix X*X'
-    XXT_inv = np.linalg.pinv(np.dot(X_input, X_input.T), rcond=rcond)
+    XXT_inv = np.linalg.pinv(np.dot(X_, X_.T), rcond=rcond)
     # partial computation of the 2nd term of the equation
     sum_XXT_inv = np.sum(XXT_inv)
     L = -np.outer(np.sum(XXT_inv, axis=0), np.sum(XXT_inv, axis=1)) / sum_XXT_inv
-    C = np.dot(X_input.T, XXT_inv + L)
+    C = np.dot(X_.T, XXT_inv + L)
 
     ## compute vector W, (see eq.4 of [1])
     beta_hat = np.dot(C, y)
