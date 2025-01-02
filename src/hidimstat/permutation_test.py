@@ -9,7 +9,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     """
     Permutation test
 
-    This function compute the distribution of the weights of a linear model 
+    This function compute the distribution of the weights of a linear model
     by shuffling the target.
 
     Parameters
@@ -44,14 +44,14 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     weights_distribution : ndarray, shape (n_permutations, n_features)
         The distribution of the weights of the model obtained by shuffling
-        the target n_permutations times. 
+        the target n_permutations times.
 
     """
 
     rng = np.random.default_rng(seed)
 
     # Get the weights of the original model
-    if not hasattr(estimator, 'coef_'):
+    if not hasattr(estimator, "coef_"):
         weights = _fit_and_weights(estimator, X, y)
     else:
         weights = estimator.coef_
@@ -102,7 +102,7 @@ def permutation_test_pval(weights, weights_distribution):
 
 
 def _fit_and_weights(estimator, X, y):
-    """ 
+    """
     Fit the estimator and return the weights
 
     Parameters

@@ -430,16 +430,14 @@ def step_down_max_t(stat, permutation_stats):
     # Sorted absolute statistics
     stat_sorted = np.copy(np.abs(stat)[index_ordered])
     # Order permutation stats similarly
-    permutation_stats_ordered = np.copy(
-        np.abs(permutation_stats)[:, index_ordered])
+    permutation_stats_ordered = np.copy(np.abs(permutation_stats)[:, index_ordered])
 
     # Step 2: Update null distribution
     # For each column i, take the maximum between current and previous column
     # This creates successively larger null distributions
     for i in range(1, n_features):
         permutation_stats_ordered[:, i] = np.maximum(
-            permutation_stats_ordered[:, i - 1],
-            permutation_stats_ordered[:, i]
+            permutation_stats_ordered[:, i - 1], permutation_stats_ordered[:, i]
         )
 
     # Step 3: Compute raw adjusted p-values

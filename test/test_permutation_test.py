@@ -33,7 +33,8 @@ def test_permutation_test():
     estimator = LinearSVR(C=1.0)
 
     weight, weight_distribution = permutation_test(
-        X_init, y, estimator=estimator, n_permutations=100)
+        X_init, y, estimator=estimator, n_permutations=100
+    )
 
     pval_corr, _ = permutation_test_pval(weight, weight_distribution)
 
