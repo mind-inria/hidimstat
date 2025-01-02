@@ -426,7 +426,7 @@ def step_down_max_t(stat, permutation_stats):
     # Step 1: Order features by absolute value of test statistics
     # Keep track of original positions
     index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.ones(n_features, dtype=int)
+    stat_ranked = np.empty(n_features, dtype=int)
     stat_ranked[index_ordered] = np.arange(n_features)
     # Sorted absolute statistics
     stat_sorted = np.copy(np.abs(stat)[index_ordered])
