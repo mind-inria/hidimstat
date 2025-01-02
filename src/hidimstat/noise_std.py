@@ -5,8 +5,11 @@ from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
 
-def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
-    """Estimation of noise standard deviation using Reid procedure
+def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
+    """
+    Smoothly Clipped Absolute Deviation Penalty (SCAD) of Fan and Li (2001)
+     
+    Estimation of noise standard deviation using Reid procedure
 
     Parameters
     ----------
@@ -27,6 +30,9 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
 
     max_iter : int, optional (default=1e4)
         The maximum number of iterations.
+    
+    n_split : int, optional (default=5)
+        Number of splits in the KFold object used to cross-validate LassoCV.
 
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during the cross validation.
@@ -47,31 +53,40 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
     ----------
     .. [1] Reid, S., Tibshirani, R., & Friedman, J. (2016). A study of error
            variance estimation in lasso regression. Statistica Sinica, 35-67.
+       [2] Fan, J., Guo, S., & Hao, N. (2012). Variance estimation using refitted 
+           cross-validation in ultrahigh dimensional regression. Journal of the Royal 
+           Statistical Society Series B: Statistical Methodology, 74(1), 37-65.
+           
     """
 
-    X = np.asarray(X)
-    n_samples, n_features = X.shape
+    X_ = np.asarray(X)
+    n_samples, n_features = X_.shape
 
-    if max_iter // 5 <= n_features:
-        max_iter = n_features * 5
+    # check if max_iter is large enough
+    if max_iter // n_split <= n_features:
+        max_iter = n_features * n_split
         print(f"'max_iter' has been increased to {max_iter}")
 
-    cv = KFold(n_splits=5, shuffle=True, random_state=seed)
-
+    # use the cross-validation for define the best alpha of Lasso
+    cv = KFold(n_splits=n_split, shuffle=True, random_state=seed)
     clf_lasso_cv = LassoCV(
         eps=eps, fit_intercept=False, cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs
     )
-
-    clf_lasso_cv.fit(X, y)
+    # fit LassoCV
+    clf_lasso_cv.fit(X_, y)
+    
+    # get coefficients and residuals
     beta_hat = clf_lasso_cv.coef_
-    residual = clf_lasso_cv.predict(X) - y
+    residual = clf_lasso_cv.predict(X_) - y
+
+    # get the number of non-zero coefficients
     coef_max = np.max(np.abs(beta_hat))
-    support = np.sum(np.abs(beta_hat) > tol * coef_max)
-
+    size_support = np.sum(np.abs(beta_hat) > tol * coef_max)
     # avoid dividing by 0
-    support = min(support, n_samples - 1)
+    size_support = min(size_support, n_samples - 1)
 
-    sigma_hat = norm(residual) / np.sqrt(n_samples - support)
+    # estimate the noise standard deviation (eq. 7 in [1])
+    sigma_hat = norm(residual) / np.sqrt(n_samples - size_support)
 
     return sigma_hat, beta_hat
 
