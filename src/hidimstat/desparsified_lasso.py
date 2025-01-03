@@ -293,7 +293,7 @@ def desparsified_group_lasso(
     #TODO: other estimation of the noise standard deviation?
     #      or add all the parameters of group reid in the function?
     cov_hat, beta_mtl = group_reid(
-        X, Y, method=noise_method, order=order, n_jobs=n_jobs
+        X_, Y_, method=noise_method, order=order, n_jobs=n_jobs
     )
     if cov is not None:
         cov_hat = cov
@@ -310,7 +310,7 @@ def desparsified_group_lasso(
 
     # Calculating precision matrix (Nodewise Lasso)
     Z, omega_diag = _compute_all_residuals(
-        X,
+        X_,
         alphas,
         gram,
         max_iter=max_iter,
@@ -324,7 +324,7 @@ def desparsified_group_lasso(
     beta_bias = Y_.T.dot(Z) / np.sum(X_ * Z, axis=0)
 
     # beta hat
-    P = (np.dot(X.T, Z) / np.sum(X * Z, axis=0)).T
+    P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
     P_nodiag = P - np.diag(np.diag(P))
     beta_hat = beta_bias.T - P_nodiag.dot(beta_mtl.T)
 
@@ -368,6 +368,8 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     """
     n_features, n_times = beta_hat.shape
     n_samples = omega_diag.shape[0]
+    
+    # Compute the two-sided p-values
     if test == "chi2":
         chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
         two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
@@ -381,10 +383,12 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     else:
         raise ValueError(f"Unknown test '{test}'")
     
+    # Compute the p-values
     sign_beta = np.sign(np.sum(beta_hat, axis=1))
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
     )
+    
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
