@@ -16,6 +16,7 @@ Functions
    :toctree: generated/
 
    ada_svr
+   ada_svr_pvalue
    aggregate_quantiles
    clustered_inference
    data_simulation
