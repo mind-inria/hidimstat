@@ -20,7 +20,6 @@ def dcrt_zero(
     alpha=None,
     max_iter=1000,
     refit=False,
-    loss="least_square",
     screening=True,
     screening_threshold=1e-1,
     scaled_statistics=False,
@@ -72,8 +71,6 @@ def dcrt_zero(
     refit : bool, default=False
         If estimated_coef is not provided, whether to refit with the estimated support set to possibly find better
         coeffcients magnitude.
-    loss : str, default="least_square"
-        The loss function used for the distillation of X.
     screening : bool, default=True
         Speed up the computation of score function by only running it later on
         estimated support set.
@@ -127,31 +124,30 @@ def dcrt_zero(
     .. footbibliography::
     """
     if centered:
-        X = StandardScaler().fit_transform(X)
+        X_ = StandardScaler().fit_transform(X)
+    else:
+        X_ = X
+    y_ = y # avoid modifying the original y
 
-    _, n_features = X.shape
+    _, n_features = X_.shape
 
     if estimated_coef is None:
-        if loss == "least_square":
-            clf = LassoCV(
-                cv=cv,
-                n_jobs=n_jobs,
-                n_alphas=n_alphas * 2,
-                tol=1e-6,
-                fit_intercept=False,
-                random_state=0,
-                max_iter=max_iter,
-            )
-        else:
-            raise ValueError(f"{loss} loss is not supported.")
-        clf.fit(X, y)
+        clf = LassoCV(
+            cv=cv,
+            n_jobs=n_jobs,
+            n_alphas=n_alphas * 2,
+            tol=1e-6,
+            fit_intercept=False,
+            random_state=0,
+            max_iter=max_iter,
+        )
+        clf.fit(X_, y_)
         coef_X_full = np.ravel(clf.coef_)
     else:
         coef_X_full = estimated_coef
         screening_threshold = 100
 
     # noisy estimated coefficients is set to 0.0
-
     non_selection = np.where(
         np.abs(coef_X_full)
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
@@ -168,54 +164,49 @@ def dcrt_zero(
     else:
         selection_set = np.arange(n_features)
 
+    # Refit the model with the estimated support set
     if refit and estimated_coef is None and selection_set.size < n_features:
         clf_refit = clone(clf)
-        clf_refit.fit(X[:, selection_set], y)
+        clf_refit.fit(X_[:, selection_set], y_)
         coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
 
     # Distillation & calculate score function
     if statistic == "residual":
-        # For distillation of X it should always be least_square loss
-        if loss == "least_square":
-            results = Parallel(n_jobs, verbose=joblib_verbose)(
-                delayed(_lasso_distillation_residual)(
-                    X,
-                    y,
-                    idx,
-                    coef_X_full,
-                    Sigma_X=Sigma_X,
-                    cv=cv,
-                    use_cv=use_cv,
-                    alpha=alpha,
-                    n_jobs=1,
-                    n_alphas=5,
-                )
-                for idx in selection_set
+        # For distillation of X use least_square loss
+        results = Parallel(n_jobs, verbose=joblib_verbose)(
+            delayed(_lasso_distillation_residual)(
+                X_,
+                y_,
+                idx,
+                coef_X_full,
+                Sigma_X=Sigma_X,
+                cv=cv,
+                use_cv=use_cv,
+                alpha=alpha,
+                n_jobs=1,
+                n_alphas=5,
             )
-        else:
-            raise ValueError(f"{loss} loss is not supported.")
+            for idx in selection_set
+        )
     elif statistic == "randomforest":
-        if loss == "least_square":
-            results = Parallel(n_jobs, verbose=joblib_verbose)(
-                delayed(_rf_distillation)(
-                    X,
-                    y,
-                    idx,
-                    Sigma_X=Sigma_X,
-                    cv=3,
-                    use_cv=use_cv,
-                    alpha=alpha,
-                    n_jobs=1,
-                    n_alphas=n_alphas,
-                    ntree=ntree,
-                    loss=loss,
-                    problem_type=problem_type,
-                    random_state=random_state,
-                )
-                for idx in selection_set
+        # For distillation of X use least_square loss
+        results = Parallel(n_jobs, verbose=joblib_verbose)(
+            delayed(_rf_distillation)(
+                X_,
+                y_,
+                idx,
+                Sigma_X=Sigma_X,
+                cv=3,
+                use_cv=use_cv,
+                alpha=alpha,
+                n_jobs=1,
+                n_alphas=n_alphas,
+                ntree=ntree,
+                problem_type=problem_type,
+                random_state=random_state,
             )
-        else:
-            raise ValueError(f"{loss} loss is not supported.")
+            for idx in selection_set
+        )
     else:
         raise ValueError(f"{statistic} statistic is not supported.")
     ts = np.zeros(n_features)
@@ -237,7 +228,7 @@ def dcrt_zero(
 
 
 def _x_distillation_lasso(
-    X, idx, Sigma_X=None, cv=3, n_alphas=100, alpha=None, use_cv=False, n_jobs=1
+    X, idx, Sigma_X=None, cv=3, n_alphas=100, alpha=None, use_cv=False, n_jobs=1, seed=0
 ):
     """
     This function applies the distillation of the variable of interest with the
@@ -248,7 +239,7 @@ def _x_distillation_lasso(
 
     if Sigma_X is None:
         if use_cv:
-            clf = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=0)
+            clf = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=seed)
             clf.fit(X_minus_idx, X[:, idx])
             alpha = clf.alpha_
         else:
@@ -289,6 +280,8 @@ def _lasso_distillation_residual(
     n_jobs=1,
     use_cv=False,
     fit_y=False,
+    seed=0,
+    alpha_max_fraction=0.5
 ):
     """
     Standard Lasso Distillation following Liu et al. (2020) section 2.4. Only
@@ -312,10 +305,10 @@ def _lasso_distillation_residual(
 
     # Distill Y - calculate residual
     if use_cv:
-        clf_null = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=0)
+        clf_null = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=seed)
     else:
         if alpha is None:
-            alpha = 0.5 * _lambda_max(X_minus_idx, y, use_noise_estimate=False)
+            alpha = alpha_max_fraction * _lambda_max(X_minus_idx, y, use_noise_estimate=False)
         clf_null = Lasso(alpha=alpha, fit_intercept=False)
 
     if fit_y:
@@ -339,7 +332,6 @@ def _rf_distillation(
     idx,
     Sigma_X=None,
     cv=3,
-    loss="least_square",
     n_alphas=50,
     alpha=None,
     n_jobs=1,
@@ -367,20 +359,19 @@ def _rf_distillation(
         eps_res = y - clf.predict_proba(X_minus_idx)[:, 1]
         sigma2_y = np.mean(eps_res**2)
 
-    # Distill X
-    if loss == "least_square":
-        X_res, sigma2_X = _x_distillation_lasso(
-            X,
-            idx,
-            Sigma_X,
-            cv=cv,
-            use_cv=use_cv,
-            alpha=alpha,
-            n_alphas=n_alphas,
-            n_jobs=n_jobs,
-        )
+    # Distill X with least square loss
+    X_res, sigma2_X = _x_distillation_lasso(
+        X,
+        idx,
+        Sigma_X,
+        cv=cv,
+        use_cv=use_cv,
+        alpha=alpha,
+        n_alphas=n_alphas,
+        n_jobs=n_jobs,
+    )
 
-        # T follows Gaussian distribution
-        ts = np.dot(eps_res, X_res) / np.sqrt(n_samples * sigma2_X * sigma2_y)
+    # T follows Gaussian distribution
+    ts = np.dot(eps_res, X_res) / np.sqrt(n_samples * sigma2_X * sigma2_y)
 
     return ts
