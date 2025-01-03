@@ -20,6 +20,9 @@ Functions
    clustered_inference
    data_simulation
    desparsified_lasso
+   desparsified_lasso_pvalue
+   desparsified_group_lasso
+   desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    group_reid
    hd_inference
