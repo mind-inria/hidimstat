@@ -134,6 +134,7 @@ def desparsified_lasso(
     np.fill_diagonal(gram_nodiag, 0)
 
     # define the alphas for the Nodewise Lasso
+    #TODO why don't use the function _lambda_max instead of this?
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
@@ -320,6 +321,7 @@ def desparsified_group_lasso(
     np.fill_diagonal(gram_nodiag, 0)
 
     # define the alphas for the Nodewise Lasso
+    #TODO why don't use the function _lambda_max instead of this?
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
