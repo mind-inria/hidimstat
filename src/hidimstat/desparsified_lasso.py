@@ -24,7 +24,7 @@ def desparsified_lasso(
     """
     Desparsified Lasso with confidence intervals
     
-    Algorithm based Alog 1 of d-Lasso in [6]
+    Algorithm based Algo 1 of d-Lasso in [6]
 
     Parameters
     ----------
@@ -123,6 +123,7 @@ def desparsified_lasso(
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     
     # Lasso regression and noise standard deviation estimation
+    #TODO: other estimation of the noise standard deviation?
     sigma_hat, beta_lasso = reid(X_, y_, n_jobs=n_jobs)
 
     # compute the Gram matrix
@@ -166,9 +167,10 @@ def desparsified_lasso(
 
     # confidence intervals
     omega_diag = omega_diag * dof_factor ** 2
+    #TODO:why the double inverse of omega_diag?
     omega_invsqrt_diag = omega_diag ** (-0.5)
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag) # why the double inverse of omega_diag?
+        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag) 
     )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
