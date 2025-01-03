@@ -107,7 +107,7 @@ def desparsified_lasso(
            general Gaussian designs with applications to hypothesis testing.
            arXiv preprint arXiv:2007.13716.
     .. [6] Chevalier, Jérôme-Alexis. “Statistical Control of Sparse Models in High Dimension.” 
-        Phdthesis, Université Paris-Saclay, 2020. https://theses.hal.science/tel-03147200.
+           Phdthesis, Université Paris-Saclay, 2020. https://theses.hal.science/tel-03147200.
 
     """
 
@@ -391,8 +391,48 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
 def _compute_all_residuals(
     X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
 ):
-    """Nodewise Lasso. Compute all the residuals: regressing each column of the
-    design matrix against the other columns"""
+    """
+    Nodewise Lasso. 
+    
+    Compute all the residuals: regressing each column of the
+    design matrix against the other columns
+    
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Data.
+    
+    alphas : ndarray, shape (n_features,)
+        Regularization parameters for the Nodewise Lasso.
+    
+    gram : ndarray, shape (n_features, n_features)
+        Gram matrix of the design matrix.
+        
+    max_iter : int, optional (default=5000)
+        The maximum number of iterations when regressing, by Lasso,
+        each column of the design matrix against the others.
+        
+    tol : float, optional (default=1e-3)
+        The tolerance for the optimization of the Lasso problems: if the
+        updates are smaller than `tol`, the optimization code checks the
+        dual gap for optimality and continues until it is smaller than `tol`.
+        
+    n_jobs : int or None, optional (default=1)
+        Number of CPUs to use during the Nodewise Lasso.
+        
+    verbose: int, optional (default=1)
+        The verbosity level: if non zero, progress messages are printed
+        when computing the Nodewise Lasso in parralel.
+        The frequency of the messages increases with the verbosity level.
+        
+    Returns
+    -------
+    Z : ndarray, shape (n_samples, n_features)
+        Residuals of the Nodewise Lasso.
+        
+    omega_diag : ndarray, shape (n_features,)
+        Diagonal of the covariance matrix
+    """
 
     n_samples, n_features = X.shape
 
@@ -408,6 +448,7 @@ def _compute_all_residuals(
         for i in range(n_features)
     )
 
+    # Unpacking the results
     results = np.asarray(results, dtype=object)
     Z = np.stack(results[:, 0], axis=1)
     omega_diag = np.stack(results[:, 1])
@@ -418,24 +459,60 @@ def _compute_all_residuals(
 def _compute_residuals(
     X, column_index, alpha, gram, max_iter=5000, tol=1e-3
 ):
-    """Compute the residuals of the regression of a given column of the
-    design matrix against the other columns"""
+    """
+    Compute the residuals of the regression of a given column of the
+    design matrix against the other columns
+    
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Data.
+        
+    column_index : int
+        Index of the column to regress against the other columns.
+        
+    alpha : float
+        Regularization parameter for the Lasso.
+        
+    gram : ndarray, shape (n_features, n_features)
+        Gram matrix of the design matrix.
+        
+    max_iter : int, optional (default=5000)
+        The maximum number of iterations when regressing, by Lasso,
+        each column of the design matrix against the others.
+        
+    tol : float, optional (default=1e-3)
+        The tolerance for the optimization of the Lasso problems: if the
+        updates are smaller than `tol`, the optimization code checks the
+        dual gap for optimality and continues until it is smaller than `tol`.
+        
+    Returns
+    -------
+    z : ndarray, shape (n_samples,)
+        Residuals of the Nodewise Lasso.
+        
+    omega_diag_i : float
+        Diagonal of the covariance matrix   
+    """
 
     n_samples, n_features = X.shape
     i = column_index
 
+    # Removing the column to regress against the others
     X_new = np.delete(X, i, axis=1)
-    y = np.copy(X[:, i])
+    y_new = np.copy(X[:, i])
 
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
     gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
     clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
 
-    clf.fit(X_new, y)
-    z = y - clf.predict(X_new)
+    # Fitting the Lasso model and computing the residuals
+    clf.fit(X_new, y_new)
+    z = y_new  - clf.predict(X_new)
 
-    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y, z) ** 2
+    # Computing the diagonal of the covariance matrix
+    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y_new, z) ** 2
 
     return z, omega_diag_i
 
