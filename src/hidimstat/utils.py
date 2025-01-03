@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from torchmetrics import Accuracy
 
 
+########################## quantile aggregation method ##########################
 def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
     """
     This function implements the quantile aggregation method for p-values.
@@ -21,20 +22,41 @@ def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
     else:
         return _fixed_quantile_aggregation(pvals, gamma)
 
+def _fixed_quantile_aggregation(pvals, gamma=0.5):
+    """Quantile aggregation function based on Meinshausen et al (2008)
 
-def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
-    if method == "bhq":
-        return _bhq_threshold(pvals, fdr=fdr)
-    elif method == "bhy":
-        return _bhy_threshold(pvals, fdr=fdr, reshaping_function=reshaping_function)
-    elif method == "ebh":
-        return _ebh_threshold(pvals, fdr=fdr)
-    else:
-        raise ValueError("{} is not support FDR control method".format(method))
+    Parameters
+    ----------
+    pvals : 2D ndarray (n_sampling_with_repetition, n_test)
+        p-value (adjusted)
 
+    gamma : float
+        Percentile value used for aggregation.
+
+    Returns
+    -------
+    1D ndarray (n_tests, )
+        Vector of aggregated p-values
+    """
+    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
+
+    return np.minimum(1, converted_score)
+
+
+def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
+    """adaptive version of the quantile aggregation method, Meinshausen et al.
+    (2008)"""
+    gammas = np.arange(gamma_min, 1.05, 0.05)
+    list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
+
+    return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))
+
+
+########################## False Discovery Proportion ##########################
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
-    """Calculate power and False Discovery Proportion
+    """
+    Calculate power and False Discovery Proportion
 
     Parameters
     ----------
@@ -68,9 +90,53 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 
     return fdp, power
 
+########################## False Discovery Rate Thresholding ##########################
+def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
+    """
+    FDR thresholding method
+    
+    Parameters
+    ----------
+    pvals : 1D ndarray
+        p-value (adjusted)
+    fdr : float, default=0.1
+        False Discovery Rate
+    method : str, default='bhq'
+        Method to control FDR. Available methods are 'bhq', 'bhy', 'ebh'
+    reshaping_function : function, default=None
+        Reshaping function for Benjamini-Hochberg-Yekutieli method
+        
+    Returns
+    -------
+    float
+        Threshold value
+    """
+    if method == "bhq":
+        return _bhq_threshold(pvals, fdr=fdr)
+    elif method == "bhy":
+        return _bhy_threshold(pvals, fdr=fdr, reshaping_function=reshaping_function)
+    elif method == "ebh":
+        return _ebh_threshold(pvals, fdr=fdr)
+    else:
+        raise ValueError("{} is not support FDR control method".format(method))
+
 
 def _bhq_threshold(pvals, fdr=0.1):
-    """Standard Benjamini-Hochberg for controlling False discovery rate"""
+    """
+    Standard Benjamini-Hochberg for controlling False discovery rate
+    
+    Parameters
+    ----------
+    pvals : 1D ndarray
+        p-value (adjusted)
+    fdr : float, default=0.1
+        False Discovery Rate
+        
+    Returns
+    -------
+    threshold : float
+        Threshold value
+    """
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
     selected_index = 2 * n_features
@@ -79,13 +145,29 @@ def _bhq_threshold(pvals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return pvals_sorted[selected_index]
+        threshold = pvals_sorted[selected_index]
     else:
-        return -1.0
+        threshold = -1.0
+    return threshold
 
 
 def _ebh_threshold(evals, fdr=0.1):
-    """e-BH procedure for FDR control (see Wang and Ramdas 2021)"""
+    """
+    e-BH procedure for FDR control (see Wang and Ramdas 2021)
+    TODO fix citation
+    
+    Parameters
+    ----------
+    evals : 1D ndarray
+        p-value (adjusted)
+    fdr : float, default=0.1
+        False Discovery Rate
+        
+    Returns
+    -------
+    threshold : float
+        Threshold value
+    """
     n_features = len(evals)
     evals_sorted = -np.sort(-evals)  # sort in descending order
     selected_index = 2 * n_features
@@ -94,14 +176,31 @@ def _ebh_threshold(evals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return evals_sorted[selected_index]
+        threshold = evals_sorted[selected_index]
     else:
-        return np.infty
+        threshold = np.infty
+    return threshold
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
-    """Benjamini-Hochberg-Yekutieli procedure for controlling FDR, with input
+    """
+    Benjamini-Hochberg-Yekutieli procedure for controlling FDR, with input
     shape function. Reference: Ramdas et al (2017)
+    TODO fix citation
+    
+    Parameters
+    ----------
+    pvals : 1D ndarray
+        p-value (adjusted)
+    reshaping_function : function, default=None
+        Reshaping function for Benjamini-Hochberg-Yekutieli method
+    fdr : float, default=0.1
+        False Discovery Rate
+        
+    Returns
+    -------
+    threshold : float
+        Threshold value
     """
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
@@ -111,48 +210,20 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     if reshaping_function is None:
         temp = np.arange(n_features)
         sum_inverse = np.sum(1 / (temp + 1))
-        return _bhq_threshold(pvals, fdr / sum_inverse)
+        threshold = _bhq_threshold(pvals, fdr / sum_inverse)
     else:
         for i in range(n_features - 1, -1, -1):
             if pvals_sorted[i] <= fdr * reshaping_function(i + 1) / n_features:
                 selected_index = i
                 break
         if selected_index <= n_features:
-            return pvals_sorted[selected_index]
+            threshold = pvals_sorted[selected_index]
         else:
-            return -1.0
+            threshold = -1.0
+    return threshold
 
 
-def _fixed_quantile_aggregation(pvals, gamma=0.5):
-    """Quantile aggregation function based on Meinshausen et al (2008)
-
-    Parameters
-    ----------
-    pvals : 2D ndarray (n_sampling_with_repetition, n_test)
-        p-value (adjusted)
-
-    gamma : float
-        Percentile value used for aggregation.
-
-    Returns
-    -------
-    1D ndarray (n_tests, )
-        Vector of aggregated p-values
-    """
-    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
-
-    return np.minimum(1, converted_score)
-
-
-def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
-    """adaptive version of the quantile aggregation method, Meinshausen et al.
-    (2008)"""
-    gammas = np.arange(gamma_min, 1.05, 0.05)
-    list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
-
-    return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))
-
-
+########################## Lambda Max Calculation ##########################
 def _lambda_max(X, y, use_noise_estimate=True):
     """
     Calculation of lambda_max, the smallest value of regularization parameter in
@@ -191,7 +262,7 @@ def _lambda_max(X, y, use_noise_estimate=True):
 
     return alpha_max
 
-
+########################## Data Preprocessing ##########################
 def create_X_y(
     X,
     y,
