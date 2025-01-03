@@ -387,6 +387,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     )
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
+
 def _compute_all_residuals(
     X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
 ):
