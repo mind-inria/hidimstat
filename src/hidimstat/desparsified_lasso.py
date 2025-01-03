@@ -7,6 +7,7 @@ from sklearn.linear_model import Lasso
 
 from hidimstat.noise_std import group_reid, reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
+from hidimstat.stat_tools import pval_from_cb
 
 
 def desparsified_lasso(
@@ -179,6 +180,20 @@ def desparsified_lasso(
 
     return beta_hat, cb_min, cb_max
 
+
+def desparsified_lasso_pvalue(cb_min, cb_max, confidence=0.95, distrib="norm", eps=1e-14):
+    """
+    Compute p-values for the desparsified Lasso estimator
+    
+    For details see: :py:func:`hidimstat.pval_from_cb`
+    """ 
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        pval_from_cb(cb_min, cb_max, confidence=confidence, 
+                     distrib=distrib, eps=eps)
+    )
+    
+    return pval, pval_corr, one_minus_pval, one_minus_pval_corr
+    
 
 def desparsified_group_lasso(
     X,

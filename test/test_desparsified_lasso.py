@@ -6,7 +6,8 @@ import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.desparsified_lasso import desparsified_group_lasso, desparsified_lasso
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
+from hidimstat.desparsified_lasso import desparsified_group_lasso, desparsified_group_lasso_pvalue
 from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
@@ -72,8 +73,9 @@ def test_desparsified_group_lasso():
         rho_noise=rho,
     )
 
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso(X, Y, cov=cov)
+    beta_hat, theta_hat, omega_diag = desparsified_group_lasso(X, Y, cov=cov)
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag)
     )
 
     expected_pval_corr = np.concatenate(
@@ -83,8 +85,9 @@ def test_desparsified_group_lasso():
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso(X, Y, test="F")
+    beta_hat, theta_hat, omega_diag = desparsified_group_lasso(X, Y)
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="F")
     )
 
     assert_almost_equal(beta_hat, beta, decimal=1)

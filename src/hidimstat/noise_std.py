@@ -201,6 +201,10 @@ def group_reid(
                 "The requested AR order is to high with "
                 + "respect to the number of time steps."
             )
+        elif not stationary:
+            raise ValueError(
+                "The AR method is not compatible with the non-stationary noise assumption."
+            )
     else:
         raise ValueError("Unknown method for estimating the covariance matrix")
 
