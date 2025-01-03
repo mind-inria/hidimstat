@@ -154,19 +154,42 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
 
 
 def _lambda_max(X, y, use_noise_estimate=True):
-    """Calculation of lambda_max, the smallest value of regularization parameter in
+    """
+    Calculation of lambda_max, the smallest value of regularization parameter in
     lasso program for non-zero coefficient
+    
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Data matrix
+    
+    y : ndarray, shape (n_samples, )
+        Target variable
+    
+    use_noise_estimate : bool, default=True
+        If True, the noise level is estimated from the data. Otherwise, the
+        noise level is not considered in the calculation of lambda_max.
+
+    Returns
+    -------
+    alpha_max : float
+        The smallest value of regularization parameter in lasso program for
+        non-zero coefficient
     """
     n_samples, _ = X.shape
 
     if not use_noise_estimate:
-        return np.max(np.dot(X.T, y)) / n_samples
+        alpha_max = np.max(np.dot(X.T, y)) / n_samples
+    else:
+        # estimate the noise level
+        norm_y = np.linalg.norm(y, ord=2)
+        sigma_0 = (norm_y / np.sqrt(n_samples)) * 1e-3 #TODO Why 1e-3?
+        #TODO sigma_0 will be always smaller than norm_y / sqrt(n_samples), why this comparison???
+        sigma_star = max(sigma_0, norm_y / np.sqrt(n_samples)) 
+        
+        alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
-    norm_y = np.linalg.norm(y, ord=2)
-    sigma_0 = (norm_y / np.sqrt(n_samples)) * 1e-3
-    sig_star = max(sigma_0, norm_y / np.sqrt(n_samples))
-
-    return np.max(np.abs(np.dot(X.T, y)) / (n_samples * sig_star))
+    return alpha_max
 
 
 def create_X_y(
