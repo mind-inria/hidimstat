@@ -4,7 +4,6 @@ from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
 from sklearn.linear_model import Lasso
-from sklearn.utils.validation import check_memory
 
 from hidimstat.noise_std import group_reid, reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
@@ -24,6 +23,7 @@ def desparsified_lasso(
     """
     Desparsified Lasso with confidence intervals
     
+    FIXME: fix citation of the algorithm
     Algorithm based Algo 1 of d-Lasso in [6]
 
     Parameters
@@ -124,6 +124,7 @@ def desparsified_lasso(
     
     # Lasso regression and noise standard deviation estimation
     #TODO: other estimation of the noise standard deviation?
+    #      or add all the parameters of reid in the function?
     sigma_hat, beta_lasso = reid(X_, y_, n_jobs=n_jobs)
 
     # compute the Gram matrix
@@ -156,6 +157,7 @@ def desparsified_lasso(
         dof_factor = 1
 
     # Computing Desparsified Lasso estimator and confidence intervals
+    # Estimating the coefficient vector
     beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
 
     # beta hat
@@ -182,10 +184,8 @@ def desparsified_group_lasso(
     X,
     Y,
     cov=None,
-    test="chi2",
     max_iter=5000,
     tol=1e-3,
-    residual_method="lasso",
     alpha_max_fraction=0.01,
     noise_method="AR",
     order=1,
@@ -193,7 +193,11 @@ def desparsified_group_lasso(
     memory=None,
     verbose=0,
 ):
-    """Desparsified Group Lasso
+    """
+    Desparsified Group Lasso
+
+    Algorithm based Algorithm 1 of d-MTLasso in [1]
+    
 
     Parameters
     ----------
@@ -207,10 +211,6 @@ def desparsified_group_lasso(
         If None, a temporal covariance matrix of the noise is estimated.
         Otherwise, `cov` is the temporal covariance matrix of the noise.
 
-    test : str, optional (default='chi2')
-        Statistical test used to compute p-values. 'chi2' corresponds
-        to a chi-squared test and 'F' corresponds to an F-test.
-
     max_iter : int, optional (default=5000)
         The maximum number of iterations when regressing, by Lasso,
         each column of the design matrix against the others.
@@ -219,10 +219,6 @@ def desparsified_group_lasso(
         The tolerance for the optimization of the Lasso problems: if the
         updates are smaller than `tol`, the optimization code checks the
         dual gap for optimality and continues until it is smaller than `tol`.
-
-    residual_method : str, optional (default='lasso')
-        Method used for computing the residuals of the Nodewise Lasso.
-        Currently the only method available is 'lasso'.
 
     alpha_max_fraction : float, optional (default=0.01)
         Only used if method='lasso'.
@@ -243,11 +239,6 @@ def desparsified_group_lasso(
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during the Nodewise Lasso.
 
-    memory : str or joblib.Memory object, optional (default=None)
-        Used to cache the output of the computation of the Nodewise Lasso.
-        By default, no caching is done. If a string is given, it is the path
-        to the caching directory.
-
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
         when computing the Nodewise Lasso in parralel.
@@ -258,19 +249,12 @@ def desparsified_group_lasso(
     beta_hat : ndarray, shape (n_features, n_times)
         Estimated parameter matrix.
 
-    pval : ndarray, shape (n_features,)
-        p-value, with numerically accurate values for
-        positive effects (ie., for p-value close to zero).
-
-    pval_corr : ndarray, shape (n_features,)
-        p-value corrected for multiple testing.
-
-    one_minus_pval : ndarray, shape (n_features,)
-        One minus the p-value, with numerically accurate values
-        for negative effects (ie., for p-value close to one).
-
-    one_minus_pval_corr : ndarray, shape (n_features,)
-        One minus the p-value corrected for multiple testing.
+    theta_hat : ndarray, shape (n_times, n_times)
+        Estimated precision matrix.
+        
+    omega_diag : ndarray, shape (n_features,)
+        Diagonal of the covariance matrix.
+        
     Notes
     -----
     The columns of `X` and the matrix `Y` are always centered, this ensures
@@ -289,12 +273,10 @@ def desparsified_group_lasso(
            Neural Information Processing Systems.
     """
 
-    X = np.asarray(X)
+    X_ = np.asarray(X)
 
-    n_samples, n_features = X.shape
+    n_samples, n_features = X_.shape
     n_times = Y.shape[1]
-
-    memory = check_memory(memory)
 
     if cov is not None and cov.shape != (n_times, n_times):
         raise ValueError(
@@ -302,68 +284,108 @@ def desparsified_group_lasso(
             + f' the shape of "cov" was ({cov.shape}) instead'
         )
 
-    Y = Y - np.mean(Y)
-    X = X - np.mean(X, axis=0)
-    gram = np.dot(X.T, X)
-    gram_nodiag = gram - np.diag(np.diag(gram))
+    # centering the data and the target variable
+    Y_ = Y - np.mean(Y)
+    X_ = X_ - np.mean(X_, axis=0)
 
+    
+    # Lasso regression and noise standard deviation estimation
+    #TODO: other estimation of the noise standard deviation?
+    #      or add all the parameters of group reid in the function?
+    cov_hat, beta_mtl = group_reid(
+        X, Y, method=noise_method, order=order, n_jobs=n_jobs
+    )
+    if cov is not None:
+        cov_hat = cov
+    theta_hat = n_samples * inv(cov_hat)
+
+    # compute the Gram matrix
+    gram = np.dot(X_.T, X_)
+    gram_nodiag = np.copy(gram)
+    np.fill_diagonal(gram_nodiag, 0)
+
+    # define the alphas for the Nodewise Lasso
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=["n_jobs"])(
+    Z, omega_diag = _compute_all_residuals(
         X,
         alphas,
         gram,
         max_iter=max_iter,
         tol=tol,
-        method=residual_method,
         n_jobs=n_jobs,
         verbose=verbose,
     )
 
-    # Group Lasso regression
-    cov_hat, beta_mtl = group_reid(
-        X, Y, method=noise_method, order=order, n_jobs=n_jobs
-    )
-
-    if cov is not None:
-        cov_hat = cov
-
-    theta_hat = n_samples * inv(cov_hat)
-
+    # Computing Desparsified Lasso estimator and confidence intervals
     # Estimating the coefficient vector
-    beta_bias = Y.T.dot(Z) / np.sum(X * Z, axis=0)
+    beta_bias = Y_.T.dot(Z) / np.sum(X_ * Z, axis=0)
 
-    beta_mtl = beta_mtl.T
-    beta_bias = beta_bias.T
-
+    # beta hat
     P = (np.dot(X.T, Z) / np.sum(X * Z, axis=0)).T
     P_nodiag = P - np.diag(np.diag(P))
+    beta_hat = beta_bias.T - P_nodiag.dot(beta_mtl.T)
 
-    beta_hat = beta_bias - P_nodiag.dot(beta_mtl)
+    return beta_hat, theta_hat, omega_diag
 
+
+def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
+    """
+    Compute p-values for the desparsified group Lasso estimator
+    
+    Parameters
+    ----------
+    beta_hat : ndarray, shape (n_features, n_times)
+        Estimated parameter matrix.
+        
+    theta_hat : ndarray, shape (n_times, n_times)
+        Estimated precision matrix.
+        
+    omega_diag : ndarray, shape (n_features,)
+        Diagonal of the covariance matrix.
+        
+    test : str, optional (default='chi2')
+        Statistical test used to compute p-values. 'chi2' corresponds
+        to a chi-squared test and 'F' corresponds to an F-test.
+        
+    Returns
+    -------
+    pval : ndarray, shape (n_features,)
+        p-value, with numerically accurate values for
+        positive effects (ie., for p-value close to zero).
+        
+    pval_corr : ndarray, shape (n_features,)
+        p-value corrected for multiple testing.
+        
+    one_minus_pval : ndarray, shape (n_features,)
+        One minus the p-value, with numerically accurate values
+        for negative effects (ie., for p-value close to one).
+        
+    one_minus_pval_corr : ndarray, shape (n_features,)
+        One minus the p-value corrected for multiple testing.
+    """
+    n_features, n_times = beta_hat.shape
+    n_samples = omega_diag.shape[0]
     if test == "chi2":
-
         chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
         two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
-
-    if test == "F":
-
+    elif test == "F":
         f_scores = (
             np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
         )
         two_sided_pval = np.minimum(
             2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
         )
-
+    else:
+        raise ValueError(f"Unknown test '{test}'")
+    
     sign_beta = np.sign(np.sum(beta_hat, axis=1))
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
     )
-
-    return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
-
+    return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 def _compute_all_residuals(
     X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
