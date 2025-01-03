@@ -299,7 +299,8 @@ def group_reid(
 
 
 def empirical_snr(X, y, beta, noise=None):
-    """Compute the SNR for the linear model: y = X beta + noise
+    """
+    Compute the SNR for the linear model: y = X beta + noise
 
     Parameters
     ----------
@@ -327,8 +328,7 @@ def empirical_snr(X, y, beta, noise=None):
     if noise is None:
         noise = y - signal
 
-    sig_signal = np.linalg.norm(signal - np.mean(signal))
-    sig_noise = np.linalg.norm(noise - np.mean(noise))
-    snr_hat = (sig_signal / sig_noise) ** 2
+    # compute signal-to-noise ratio
+    snr_hat = np.var(signal) / np.var(noise)
 
     return snr_hat
