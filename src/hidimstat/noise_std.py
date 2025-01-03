@@ -99,6 +99,7 @@ def group_reid(
     X,
     Y,
     fit_Y=True,
+    stationary=True,
     method="simple",
     order=1,
     eps=1e-2,
@@ -141,7 +142,7 @@ def group_reid(
         non-stationary, i.e. the magnitude of the noise is not constant.
 
     order : int, optional (default=1)
-        If `method=AR`, `order` gives the order of the estimated 
+        If `stationary=True` and `method=AR`, `order` gives the order of the estimated 
         autoregressive model. `order` must be smaller than the number 
         of time steps.
 
@@ -241,27 +242,29 @@ def group_reid(
     # estimate the noise standard deviation (eq. 7 in [2])
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
-    #TODO: name of the method different than the name of the "function"
-    # Median method
-    if method == "simple":
+    if stationary:
         #FIXME citation
         # consideration of stationary noise (section 2.5 of [2]) 
         sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
         # compute rho from the empirical correlation matrix (section 2.5 of [2]) 
         corr_emp = np.corrcoef(residual.T)
+    else:
+        sigma_hat = sigma_hat_raw
+        residual_rescaled = residual / sigma_hat
+        corr_emp = np.corrcoef(residual_rescaled.T)
+
+    #TODO: name of the method different than the name of the "function"
+    # Median method
+    if not stationary or method == "simple":
         rho_hat = np.median(np.diag(corr_emp, 1))
+        #FIXME citation
         # estimate M (section 2.5 of [2]) 
         corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
     #FIXME citation
     # Yule-Walker method (algorithm in section 3 of [3])
-    elif method == "AR":
-        # consideration of non-stationary noise
-        sigma_hat = sigma_hat_raw
-        residual_rescaled = residual / sigma_hat
-        corr_emp = np.corrcoef(residual_rescaled.T)
-        
+    elif stationary and method == "AR":
         # compute the autocorrelation coefficients of the AR model
         rho_ar = np.zeros(order + 1)
         rho_ar[0] = 1
