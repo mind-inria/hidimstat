@@ -176,7 +176,7 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7fc641d29f40>, <matplotlib.axis.YTick object at 0x7fc725661430>, <matplotlib.axis.YTick object at 0x7fc7255e0500>, <matplotlib.axis.YTick object at 0x7fc7255e2450>, <matplotlib.axis.YTick object at 0x7fc7255e37a0>, <matplotlib.axis.YTick object at 0x7fc7255e2840>, <matplotlib.axis.YTick object at 0x7fc7255e3a40>, <matplotlib.axis.YTick object at 0x7fc7255e0f20>, <matplotlib.axis.YTick object at 0x7fc725586360>, <matplotlib.axis.YTick object at 0x7fc7255e0ec0>]
+    [<matplotlib.axis.YTick object at 0x7fee88776120>, <matplotlib.axis.YTick object at 0x7fee887745c0>, <matplotlib.axis.YTick object at 0x7fee884de6f0>, <matplotlib.axis.YTick object at 0x7fee884dcc80>, <matplotlib.axis.YTick object at 0x7fee86056ff0>, <matplotlib.axis.YTick object at 0x7fee884dc680>, <matplotlib.axis.YTick object at 0x7fee884dd280>, <matplotlib.axis.YTick object at 0x7fee884dc4a0>, <matplotlib.axis.YTick object at 0x7fee8600fa70>, <matplotlib.axis.YTick object at 0x7fee884df770>]
 
 
 
@@ -422,16 +422,16 @@ the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7fc72571a3c0>
+    <matplotlib.legend.Legend object at 0x7fee8600ff20>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 44.851 seconds)
+   **Total running time of the script:** (0 minutes 44.780 seconds)
 
-**Estimated memory usage:**  625 MB
+**Estimated memory usage:**  621 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_variable_importance_classif.py:
