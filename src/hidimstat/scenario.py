@@ -22,7 +22,7 @@ def multivariate_1D_simulation(
     """Generate 1D data with Toeplitz design matrix
 
     Parameters
-    -----------
+    ----------
     n_samples : int
         Number of samples.
 
@@ -110,7 +110,7 @@ def generate_2D_weight(shape, roi_size):
     """Create a 2D weight map with four ROIs
 
     Parameters
-    -----------
+    ----------
     shape : tuple (n_x, n_z)
         Shape of the data in the simulation.
 
@@ -136,7 +136,7 @@ def generate_3D_weight(shape, roi_size):
     """Create a 3D weight map with five ROIs
 
     Parameters
-    -----------
+    ----------
     shape : tuple (n_x, n_y, n_z)
         Shape of the data in the simulation.
 
@@ -175,7 +175,7 @@ def multivariate_simulation(
     """Generate a multivariate simulation with 2D or 3D data
 
     Parameters
-    -----------
+    ----------
     n_samples : int
         Number of samples.
 
@@ -258,7 +258,7 @@ def multivariate_temporal_simulation(
     """Generate 1D temporal data with constant design matrix
 
     Parameters
-    -----------
+    ----------
     n_samples : int
         Number of samples.
 

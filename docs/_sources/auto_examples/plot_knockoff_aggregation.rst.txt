@@ -19,7 +19,7 @@
 
 
 Knockoff aggregation on simulated data
-=============================
+======================================
 
 In this example, we show an example of variable selection using
 model-X Knockoffs introduced by :footcite:t:`Candes_2018`. A notable
@@ -205,7 +205,7 @@ Imports needed for this script
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (5 minutes 30.587 seconds)
+   **Total running time of the script:** (5 minutes 31.729 seconds)
 
 **Estimated memory usage:**  835 MB
 
