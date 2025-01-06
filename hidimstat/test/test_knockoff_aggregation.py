@@ -4,15 +4,15 @@ from hidimstat.utils import cal_fdp_power
 import numpy as np
 import pytest
 
-n = 500
-p = 100
-snr = 5
-n_bootstraps = 25
-fdr = 0.5
-X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
-
 
 def test_knockoff_aggregation():
+    n = 500
+    p = 100
+    snr = 5
+    n_bootstraps = 25
+    fdr = 0.5
+    X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
+
     selected_verbose, aggregated_pval, pvals = knockoff_aggregation(
         X, y, fdr=fdr, n_bootstraps=n_bootstraps, verbose=True, random_state=0
     )

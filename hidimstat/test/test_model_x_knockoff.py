@@ -2,12 +2,10 @@ from hidimstat import model_x_knockoff
 from hidimstat.data_simulation import simu_data
 from hidimstat.utils import cal_fdp_power
 
-seed = 42
-fdr = 0.2
-
 
 def test_model_x_knockoff():
-
+    seed = 42
+    fdr = 0.2
     n = 300
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
@@ -19,6 +17,8 @@ def test_model_x_knockoff():
 
 
 def test_model_x_knockoff_with_verbose():
+    seed = 42
+    fdr = 0.2
     n = 300
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
