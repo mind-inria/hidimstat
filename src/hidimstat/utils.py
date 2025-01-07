@@ -84,17 +84,17 @@ def _bhq_threshold(pvals, fdr=0.1):
         return -1.0
 
 
-def _ebh_threshold(pvals, fdr=0.1):
+def _ebh_threshold(evals, fdr=0.1):
     """e-BH procedure for FDR control (see Wang and Ramdas 2021)"""
-    n_features = len(pvals)
-    pvals_sorted = -np.sort(-pvals)  # sort in descending order
+    n_features = len(evals)
+    evals_sorted = -np.sort(-evals)  # sort in descending order
     selected_index = 2 * n_features
     for i in range(n_features - 1, -1, -1):
-        if pvals_sorted[i] >= n_features / (fdr * (i + 1)):
+        if evals_sorted[i] >= n_features / (fdr * (i + 1)):
             selected_index = i
             break
     if selected_index <= n_features:
-        return pvals_sorted[selected_index]
+        return evals_sorted[selected_index]
     else:
         return np.inf
 
