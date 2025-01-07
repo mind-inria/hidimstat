@@ -49,8 +49,8 @@ def test_permutation_test():
     # test the distribution of the weights
     assert not np.all(weight_distribution == 0.0)
     assert not np.all(weight_distribution == weight)
-    for i in range(nb_permutations-1):
-        assert not np.all(weight_distribution[i, :] == weight_distribution[i+1, :])
+    for i in range(nb_permutations - 1):
+        assert not np.all(weight_distribution[i, :] == weight_distribution[i + 1, :])
 
     # compute the p-values
     pval_corr, _ = permutation_test_pval(weight, weight_distribution)
@@ -68,7 +68,7 @@ def test_permutation_test_with_fitted_estimator():
     Testing if the weight of a fitted estimator is the same that the one obtained
     from the function _fit_and_weights.
     """
-    
+
     # parameters for generating the data
     n_samples, n_features = 20, 50
     nb_permutations = 100
@@ -91,28 +91,34 @@ def test_permutation_test_with_fitted_estimator():
 
     # run the permutation test
     weight, weight_distribution = permutation_test(
-        X_init, y, estimator=estimator, n_permutations=nb_permutations,
-        seed=seed_permutation_test
+        X_init,
+        y,
+        estimator=estimator,
+        n_permutations=nb_permutations,
+        seed=seed_permutation_test,
     )
-    
+
     # run the permutation test with the fitted estimator
     weight_fitted, weight_distribution_fitted = permutation_test(
-        X_init, y, estimator=estimator_fitted, n_permutations=nb_permutations,
-        seed=seed_permutation_test
+        X_init,
+        y,
+        estimator=estimator_fitted,
+        n_permutations=nb_permutations,
+        seed=seed_permutation_test,
     )
-    
+
     # test the weights
     assert np.all(weight == weight_fitted)
     # test the distribution of the weights
     assert np.all(weight_distribution == weight_distribution_fitted)
-    
+
 
 def test_permutation_test_with_fitted_seed():
     """
     Testing if the weight of a fitted estimator is the same that the one obtained
     from the function _fit_and_weights.
     """
-    
+
     # parameters for generating the data
     n_samples, n_features = 20, 50
     nb_permutations = 100
@@ -134,18 +140,15 @@ def test_permutation_test_with_fitted_seed():
 
     # run the permutation test
     weight, weight_distribution = permutation_test(
-        X_init, y, estimator=estimator, n_permutations=nb_permutations,
-        seed=42
+        X_init, y, estimator=estimator, n_permutations=nb_permutations, seed=42
     )
-    
+
     # run the permutation test with the fitted estimator
     weight_seed_diff, weight_distribution_seed_diff = permutation_test(
-        X_init, y, estimator=estimator_clone, n_permutations=nb_permutations,
-        seed=10
+        X_init, y, estimator=estimator_clone, n_permutations=nb_permutations, seed=10
     )
-    
+
     # test the weights
     assert np.all(weight == weight_seed_diff)
     # test the distribution of the weights
     assert np.all(weight_distribution != weight_distribution_seed_diff)
-    
