@@ -63,6 +63,7 @@ def test_multivariate_1D_simulation():
     )
     corr_X = np.corrcoef(X)
     from itertools import product
+
     groups = [[0, 1, 2], [3, 4, 5]]
     for g in groups:
         for i, j in product(g, g):
@@ -80,7 +81,7 @@ def test_multivariate_1D_simulation_exception():
 
     with pytest.raises(
         ValueError,
-        match="The number of samples is too small compate to the number "
+        match="The number of samples is too small compared to the number "
         "of group and their size to gerate the data.",
     ):
         multivariate_1D_simulation(n_samples=10, n_groups=2, group_size=6)
