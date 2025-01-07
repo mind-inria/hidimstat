@@ -54,7 +54,7 @@ def multivariate_1D_simulation(
     -------
     X : ndarray, shape (n_samples, n_features)
         Design matrix.
-        if their is some groups, the first rows contains the groups values.
+        if there are some groups, the first rows contains the group index
 
     y : ndarray, shape (n_samples,)
         Target.
@@ -74,7 +74,7 @@ def multivariate_1D_simulation(
     n_individual_samples = n_samples - n_groups * group_size
     if n_individual_samples <= 0:
         raise ValueError(
-            "The number of samples is too small compate to the number "
+            "The number of samples is too small compared to the number "
             "of group and their size to gerate the data."
         )
 

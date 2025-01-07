@@ -62,24 +62,11 @@ def test_multivariate_1D_simulation():
         n_samples=9, n_groups=2, group_size=3
     )
     corr_X = np.corrcoef(X)
-    assert_almost_equal(corr_X[0, 0], 1, decimal=1)
-    assert_almost_equal(corr_X[0, 1], 1, decimal=1)
-    assert_almost_equal(corr_X[0, 2], 1, decimal=1)
-    assert_almost_equal(corr_X[1, 0], 1, decimal=1)
-    assert_almost_equal(corr_X[1, 1], 1, decimal=1)
-    assert_almost_equal(corr_X[1, 2], 1, decimal=1)
-    assert_almost_equal(corr_X[2, 0], 1, decimal=1)
-    assert_almost_equal(corr_X[2, 1], 1, decimal=1)
-    assert_almost_equal(corr_X[2, 2], 1, decimal=1)
-    assert_almost_equal(corr_X[3, 3], 1, decimal=1)
-    assert_almost_equal(corr_X[3, 4], 1, decimal=1)
-    assert_almost_equal(corr_X[3, 5], 1, decimal=1)
-    assert_almost_equal(corr_X[4, 3], 1, decimal=1)
-    assert_almost_equal(corr_X[4, 4], 1, decimal=1)
-    assert_almost_equal(corr_X[4, 5], 1, decimal=1)
-    assert_almost_equal(corr_X[5, 3], 1, decimal=1)
-    assert_almost_equal(corr_X[5, 4], 1, decimal=1)
-    assert_almost_equal(corr_X[5, 5], 1, decimal=1)
+    from itertools import product
+    groups = [[0, 1, 2], [3, 4, 5]]
+    for g in groups:
+        for i, j in product(g, g):
+            assert_almost_equal(corr_X[i, j], 1, decimal=1)
 
 
 def test_multivariate_1D_simulation_exception():
