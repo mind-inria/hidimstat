@@ -339,6 +339,8 @@ def _x_distillation_lasso(
         sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
+        #TODO the calculation in original repository of signam is different not include alpha
+        # l228
 
     else:
         # Distill X with sigma_X
@@ -467,6 +469,7 @@ def _lasso_distillation_residual(
 
     # T follows Gaussian distribution
     ts = np.dot(eps_res, X_res) / np.sqrt(n_samples * sigma2_X * sigma2_y)
+    #TODO the calculation of the t is different see ligne 247
 
     return ts
 
