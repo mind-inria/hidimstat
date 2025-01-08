@@ -35,7 +35,7 @@ def dcrt_zero(
     
     This function implements the Conditional Randomization Test of
     :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
-    process `dcrt_zero` in the work by :footcite:t:`liuFastPowerfulConditional2021`.
+    process `dcrt_zero` in the work by :footcite:t:`liu2022fast`.
 
     Parameters
     ----------
@@ -262,8 +262,39 @@ def _x_distillation_lasso(
     random_state=0,
 ):
     """
-    This function applies the distillation of the variable of interest with the
-    remaining variables using the lasso
+    Distill variable X[:, idx] using Lasso regression on remaining variables.
+    
+    This function implements the distillation process to estimate the conditional
+    distribution of X[:, idx] given the remaining variables, using either Lasso
+    regression or a known covariance matrix.
+
+    Parameters
+    ----------
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The input samples.
+    idx : int
+        Index of the variable to be distilled.
+    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
+        The covariance matrix of X. If provided, used instead of Lasso regression.
+    cv : int, cross-validation generator or iterable, default=3
+        Determines the cross-validation splitting strategy for LassoCV.
+    n_alphas : int, default=100
+        Number of alphas along the regularization path for LassoCV.
+    alpha : float, default=None
+        The regularization strength for Lasso. If None, determined automatically.
+    use_cv : bool, default=False
+        Whether to use cross-validation to select alpha.
+    n_jobs : int, default=1
+        Number of CPUs to use for cross-validation.
+    random_state : int, default=0
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    X_res : ndarray of shape (n_samples,)
+        The residuals after distillation.
+    sigma2_X : float
+        The estimated variance of the residuals.
     """
     n_samples = X.shape[0]
     X_minus_idx = np.delete(np.copy(X), idx, 1)
@@ -327,8 +358,49 @@ def _lasso_distillation_residual(
     random_state=42,
 ):
     """
-    Standard Lasso Distillation following Liu et al. (2020) section 2.4. Only
-    works for least square loss regression.
+    Standard Lasso Distillation for least squares regression.
+    
+    This function implements the distillation process following :footcite:t:`liu2022fast`
+    section 2.4. It distills both X[:, idx] and y to compute test statistics.
+    It's based on least square loss regression.
+    
+    Parameters
+    ----------
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The input samples.
+    y : array-like of shape (n_samples,)
+        The target values.
+    idx : int
+        Index of the variable to be tested.
+    coef_full : array-like of shape (n_features,), default=None
+        Pre-computed coefficients for y prediction. If None, computed via Lasso.
+    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
+        The covariance matrix of X.
+    cv : int, default=3
+        Number of folds for cross-validation.
+    n_alphas : int, default=50
+        Number of alphas along the regularization path.
+    alpha : float, default=None
+        The regularization strength. If None, determined automatically.
+    n_jobs : int, default=1
+        Number of CPUs to use.
+    use_cv : bool, default=False
+        Whether to use cross-validation for selecting alpha.
+    fit_y : bool, default=False
+        Whether to fit y using Lasso when coef_full is None.
+    alpha_max_fraction : float, default=0.5
+        Fraction of lambda_max to use when determining alpha.
+    random_state : int, default=42
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    ts : float
+        The computed test statistic.
+
+    References
+    ----------
+    .. footbibliography::
     """
     n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
@@ -402,7 +474,50 @@ def _rf_distillation(
     random_state=42,
 ):
     """
-    This function implements the distillation process using Random Forest
+    Random Forest based distillation for both regression and classification.
+    
+    This function implements the distillation process using Random Forest for y
+    and Lasso for X[:, idx]. It supports both regression and binary classification
+    problems.
+
+    Parameters
+    ----------
+    X : {array-like, sparse matrix} of shape (n_samples, n_features)
+        The input samples.
+    y : array-like of shape (n_samples,)
+        The target values (class labels or regression targets).
+    idx : int
+        Index of the variable to be tested.
+    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
+        The covariance matrix of X.
+    cv : int, default=3
+        Number of folds for cross-validation in X distillation.
+    n_alphas : int, default=50
+        Number of alphas for Lasso path in X distillation.
+    alpha : float, default=None
+        Regularization strength for X distillation.
+    n_jobs : int, default=1
+        Number of CPUs to use.
+    problem_type : {'regression', 'classification'}, default='regression'
+        The type of prediction problem.
+    use_cv : bool, default=False
+        Whether to use cross-validation for X distillation.
+    ntree : int, default=100
+        Number of trees in the Random Forest.
+    random_state : int, default=42
+        Random seed for reproducibility.
+
+
+    Returns
+    -------
+    ts : float
+        The computed test statistic.
+
+    Notes
+    -----
+    For classification, the function uses probability predictions from 
+    RandomForestClassifier and assumes binary classification (uses class 1
+    probability only).
     """
     n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)

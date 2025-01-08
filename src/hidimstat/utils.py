@@ -108,7 +108,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
         
     Returns
     -------
-    float
+    threshold : float
         Threshold value
     """
     if method == "bhq":
@@ -123,8 +123,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 
 def _bhq_threshold(pvals, fdr=0.1):
     """
-    Standard Benjamini-Hochberg for controlling False discovery rate
-    TODO add citation
+    Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001` for controlling False discovery rate
     
     Parameters
     ----------
@@ -137,6 +136,10 @@ def _bhq_threshold(pvals, fdr=0.1):
     -------
     threshold : float
         Threshold value
+
+    References
+    ----------
+    .. footbibliography::
     """
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
@@ -154,8 +157,7 @@ def _bhq_threshold(pvals, fdr=0.1):
 
 def _ebh_threshold(evals, fdr=0.1):
     """
-    e-BH procedure for FDR control (see Wang and Ramdas 2021)
-    TODO fix citation
+    e-BH procedure for FDR control :footcite:`wang2022false`
     
     Parameters
     ----------
@@ -168,6 +170,10 @@ def _ebh_threshold(evals, fdr=0.1):
     -------
     threshold : float
         Threshold value
+    
+    References
+    ----------
+    .. footbibliography::
     """
     n_features = len(evals)
     evals_sorted = -np.sort(-evals)  # sort in descending order
@@ -185,9 +191,8 @@ def _ebh_threshold(evals, fdr=0.1):
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     """
-    Benjamini-Hochberg-Yekutieli procedure for controlling FDR, with input
-    shape function. Reference: Ramdas et al (2017)
-    TODO fix citation
+    Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001` procedure for controlling FDR, with input
+    shape function :footcite:p:`ramdas2017online`.
     
     Parameters
     ----------
@@ -202,6 +207,10 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     -------
     threshold : float
         Threshold value
+
+    References
+    ----------
+    .. footbibliography::
     """
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
