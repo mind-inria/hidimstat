@@ -17,6 +17,7 @@ def dcrt_zero(
     cv=5,
     n_alphas=20,
     alpha=None,
+    tol=1e-6,
     max_iter=1000,
     refit=False,
     screening=True,
@@ -26,13 +27,14 @@ def dcrt_zero(
     centered=True,
     n_jobs=1,
     joblib_verbose=0,
+    fit_y=False,
     ntree=100,
     problem_type="regression",
     random_state=2022,
 ):
     """
     distilled conditional randomization test zero ( not considere interactions)
-    
+
     This function implements the Conditional Randomization Test of
     :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
     process `dcrt_zero` in the work by :footcite:t:`liu2022fast`.
@@ -63,7 +65,9 @@ def dcrt_zero(
     alpha : float, default=None
         Constant that multiplies the L1 term, controlling regularization
         strength. alpha must be a non-negative float i.e. in [0, inf).
-    max_iter : int, default=1000
+    tol: float, default=1e-6
+        The tolerance for the optimization solver.
+    max_iteration : int, default=1000
         The maximum number of iterations.
     refit : bool, default=False
         If estimated_coef is not provided, whether to refit with the estimated support set to possibly find better
@@ -91,6 +95,8 @@ def dcrt_zero(
        printed. Above 50, the output is sent to stdout. The frequency of the
        messages increases with the verbosity level. If it more than 10, all
        iterations are reported.
+    y_fit : bool, default=False
+        Whether to fit the response variable y using the selected features.
     ntree : int, default=100
         The number of trees for the distillation using the Random Forest
         learner.
@@ -124,8 +130,8 @@ def dcrt_zero(
         clf = LassoCV(
             cv=cv,
             n_jobs=n_jobs,
-            n_alphas=n_alphas * 2,
-            tol=1e-6,
+            n_alphas=n_alphas * 2,  # TODO: Why * 2 ?
+            tol=tol,
             fit_intercept=False,
             random_state=random_state + 1,  # avoid the same seed as the main function
             max_iter=max_iter,
@@ -173,6 +179,7 @@ def dcrt_zero(
                 alpha=alpha,
                 n_jobs=1,  # the function is already called in parallel
                 n_alphas=n_alphas,
+                fit_y=fit_y,
                 random_state=random_state,
             )
             for idx in selection_set
@@ -209,7 +216,9 @@ def dcrt_zero(
     return ts
 
 
-def dcrt_pvalue(ts, fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None):
+def dcrt_pvalue(
+    ts, fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None
+):
     """
     This function calculates the p-values of the test statistics using the
     Gaussian distribution.
@@ -241,7 +250,9 @@ def dcrt_pvalue(ts, fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_f
     # for residual and randomforest, the test statistics follows Gaussian distribution
     pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
 
-    threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control, reshaping_function=reshaping_function)
+    threshold = fdr_threshold(
+        pvals, fdr=fdr, method=fdr_control, reshaping_function=reshaping_function
+    )
     selected = np.where(pvals <= threshold)[0]
 
     if selection_only:
@@ -263,7 +274,7 @@ def _x_distillation_lasso(
 ):
     """
     Distill variable X[:, idx] using Lasso regression on remaining variables.
-    
+
     This function implements the distillation process to estimate the conditional
     distribution of X[:, idx] given the remaining variables, using either Lasso
     regression or a known covariance matrix.
@@ -312,7 +323,7 @@ def _x_distillation_lasso(
             if alpha is None:
                 alpha = 0.1 * _lambda_max(
                     X_minus_idx, X[:, idx], use_noise_estimate=False
-                )
+                )  # TODO: why 0.1 ?
             clf = Lasso(
                 alpha=alpha,
                 fit_intercept=False,
@@ -359,11 +370,11 @@ def _lasso_distillation_residual(
 ):
     """
     Standard Lasso Distillation for least squares regression.
-    
+
     This function implements the distillation process following :footcite:t:`liu2022fast`
     section 2.4. It distills both X[:, idx] and y to compute test statistics.
     It's based on least square loss regression.
-    
+
     Parameters
     ----------
     X : {array-like, sparse matrix} of shape (n_samples, n_features)
@@ -475,7 +486,7 @@ def _rf_distillation(
 ):
     """
     Random Forest based distillation for both regression and classification.
-    
+
     This function implements the distillation process using Random Forest for y
     and Lasso for X[:, idx]. It supports both regression and binary classification
     problems.
@@ -515,7 +526,7 @@ def _rf_distillation(
 
     Notes
     -----
-    For classification, the function uses probability predictions from 
+    For classification, the function uses probability predictions from
     RandomForestClassifier and assumes binary classification (uses class 1
     probability only).
     """
@@ -549,7 +560,7 @@ def _rf_distillation(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        eps_res = y - clf.predict_proba(X_minus_idx)[:, 1]
+        eps_res = y - clf.predict_proba(X_minus_idx)[:, 1] #TODO: Why considere only the second class of probability
 
     # compute the variance of the residuals
     sigma2_y = np.mean(eps_res**2)
