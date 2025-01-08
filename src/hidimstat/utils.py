@@ -264,9 +264,7 @@ def _lambda_max(X, y, use_noise_estimate=True):
     else:
         # estimate the noise level
         norm_y = np.linalg.norm(y, ord=2)
-        sigma_0 = (norm_y / np.sqrt(n_samples)) * 1e-3 #TODO Why 1e-3?
-        #TODO sigma_0 will be always smaller than norm_y / sqrt(n_samples), why this comparison???
-        sigma_star = max(sigma_0, norm_y / np.sqrt(n_samples)) 
+        sigma_star = (norm_y / np.sqrt(n_samples))
         
         alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
