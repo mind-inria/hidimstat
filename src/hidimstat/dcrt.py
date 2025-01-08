@@ -12,7 +12,7 @@ def dcrt_zero(
     X,
     y,
     estimated_coef=None,
-    Sigma_X=None,
+    sigma_X=None,
     use_cv=False,
     cv=5,
     n_alphas=20,
@@ -31,6 +31,8 @@ def dcrt_zero(
     random_state=2022,
 ):
     """
+    distilled conditional randomization test zero ( not considere interactions)
+    
     This function implements the Conditional Randomization Test of
     :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
     process `dcrt_zero` in the work by :footcite:t:`liuFastPowerfulConditional2021`.
@@ -44,7 +46,7 @@ def dcrt_zero(
         regression).
     estimated_coef : array-like of shape (n_features,)
         The array of the corresponding coefficients for the features.
-    Sigma_X : {array-like, sparse matrix} of shape (n_features, n_features)
+    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features)
         The covariance matrix of X.
     use_cv : bool, default=False
         Whether to apply cross-validation for the distillation with Lasso.
@@ -84,7 +86,7 @@ def dcrt_zero(
         sklearn.preprocessing.StandardScaler().
     n_jobs : int, default=1
         The number of workers for parallel processing.
-    joblib_versobe : int, default=0
+    joblib_verbose : int, default=0
        The verbosity level of joblib: if non zero, progress messages are
        printed. Above 50, the output is sent to stdout. The frequency of the
        messages increases with the verbosity level. If it more than 10, all
@@ -165,7 +167,7 @@ def dcrt_zero(
                 y_,
                 idx,
                 coef_X_full=coef_X_full,
-                Sigma_X=Sigma_X,
+                sigma_X=sigma_X,
                 cv=cv,
                 use_cv=use_cv,
                 alpha=alpha,
@@ -182,7 +184,7 @@ def dcrt_zero(
                 X_,
                 y_,
                 idx,
-                Sigma_X=Sigma_X,
+                sigma_X=sigma_X,
                 cv=cv,
                 use_cv=use_cv,
                 alpha=alpha,
@@ -251,7 +253,7 @@ def dcrt_pvalue(ts, fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_f
 def _x_distillation_lasso(
     X,
     idx,
-    Sigma_X=None,
+    sigma_X=None,
     cv=3,
     n_alphas=100,
     alpha=None,
@@ -266,7 +268,7 @@ def _x_distillation_lasso(
     n_samples = X.shape[0]
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
-    if Sigma_X is None:
+    if sigma_X is None:
         # Distill X with least square loss
         # configure Lasso and determine the alpha
         if use_cv:
@@ -296,14 +298,14 @@ def _x_distillation_lasso(
         )
 
     else:
-        # Distill X with Sigma_X
-        Sigma_temp = np.delete(np.copy(Sigma_X), idx, 0)
-        b = Sigma_temp[:, idx]
-        A = np.delete(np.copy(Sigma_temp), idx, 1)
+        # Distill X with sigma_X
+        sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
+        b = sigma_temp[:, idx]
+        A = np.delete(np.copy(sigma_temp), idx, 1)
         coefs_X = np.linalg.solve(A, b)
         X_res = X[:, idx] - np.dot(X_minus_idx, coefs_X)
-        sigma2_X = Sigma_X[idx, idx] - np.dot(
-            np.delete(np.copy(Sigma_X[idx, :]), idx), coefs_X
+        sigma2_X = sigma_X[idx, idx] - np.dot(
+            np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
         )
 
     return X_res, sigma2_X
@@ -314,7 +316,7 @@ def _lasso_distillation_residual(
     y,
     idx,
     coef_full=None,
-    Sigma_X=None,
+    sigma_X=None,
     cv=3,
     n_alphas=50,
     alpha=None,
@@ -335,7 +337,7 @@ def _lasso_distillation_residual(
     X_res, sigma2_X = _x_distillation_lasso(
         X,
         idx,
-        Sigma_X,
+        sigma_X,
         cv=cv,
         use_cv=use_cv,
         alpha=alpha,
@@ -389,7 +391,7 @@ def _rf_distillation(
     X,
     y,
     idx,
-    Sigma_X=None,
+    sigma_X=None,
     cv=3,
     n_alphas=50,
     alpha=None,
@@ -409,7 +411,7 @@ def _rf_distillation(
     X_res, sigma2_X = _x_distillation_lasso(
         X,
         idx,
-        Sigma_X,
+        sigma_X,
         cv=cv,
         use_cv=use_cv,
         alpha=alpha,

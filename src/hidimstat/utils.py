@@ -93,7 +93,7 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 ########################## False Discovery Rate Thresholding ##########################
 def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     """
-    FDR thresholding method
+    False Discovery Rate thresholding method
     
     Parameters
     ----------
@@ -124,6 +124,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 def _bhq_threshold(pvals, fdr=0.1):
     """
     Standard Benjamini-Hochberg for controlling False discovery rate
+    TODO add citation
     
     Parameters
     ----------
