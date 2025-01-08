@@ -39,6 +39,8 @@ def dcrt_zero(
     :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
     process `dcrt_zero` in the work by :footcite:t:`liu2022fast`.
 
+    The original implementation can be find `here <https://github.com/moleibobliu/Distillation-CRT/>`.
+
     Parameters
     ----------
     X : {array-like, sparse matrix} of shape (n_samples, n_features)
