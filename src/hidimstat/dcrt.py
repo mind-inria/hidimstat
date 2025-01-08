@@ -172,7 +172,7 @@ def dcrt_zero(
                 X_,
                 y_,
                 idx,
-                coef_X_full=coef_X_full,
+                coef_full=coef_X_full,
                 sigma_X=sigma_X,
                 cv=cv,
                 use_cv=use_cv,
@@ -327,7 +327,6 @@ def _x_distillation_lasso(
             clf = Lasso(
                 alpha=alpha,
                 fit_intercept=False,
-                n_jobs=n_jobs,
                 random_state=random_state,
             )
             clf.fit(X_minus_idx, X[:, idx])
