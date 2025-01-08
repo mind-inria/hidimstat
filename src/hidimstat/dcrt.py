@@ -559,7 +559,9 @@ def _rf_distillation(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        eps_res = y - clf.predict_proba(X_minus_idx)[:, 1] #TODO: Why considere only the second class of probability
+        eps_res = (
+            y - clf.predict_proba(X_minus_idx)[:, 1]
+        )  # TODO: Why considere only the second class of probability
 
     # compute the variance of the residuals
     sigma2_y = np.mean(eps_res**2)
