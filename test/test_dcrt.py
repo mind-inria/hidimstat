@@ -56,6 +56,8 @@ def test_dcrt_lasso():
         results_screening[3],
         selection_only=False,
     )
+    assert np.sum(results_no_screening[0]) == 10
+    assert np.sum(results_screening[0]) < 10
     assert len(vi_no_screening[0]) <= 10
     assert len(vi_no_screening[1]) == 10
     assert len(vi_no_screening[2]) == 10
