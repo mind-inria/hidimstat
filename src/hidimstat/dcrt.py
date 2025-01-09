@@ -346,8 +346,7 @@ def _x_distillation_lasso(
         sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
-        #TODO the calculation in original repository of signam is different not include alpha
-        # l228
+        #TODO the calculation in original implementation doesn't not include alpha
 
     else:
         # Distill X with sigma_X
@@ -381,7 +380,7 @@ def _lasso_distillation_residual(
     """
     Standard Lasso Distillation for least squares regression.
 
-    This function implements the distillation process following :footcite:t:`liu2022fast`
+    This function implements the distillation process following :cite:`liu2022fast`
     section 2.3. It distills both X[:, idx] and y to compute test statistics.
     It's based on least square loss regression.
 
@@ -416,8 +415,12 @@ def _lasso_distillation_residual(
 
     Returns
     -------
-    ts : float
-        The computed test statistic.
+    X_res : ndarray
+        Residuals of X after distillation
+    sigma2_X : float
+        Estimated residual variance
+    y_res : ndarray 
+        Residuals of y after distillation
 
     References
     ----------
@@ -491,9 +494,8 @@ def _rf_distillation(
     """
     Random Forest based distillation for both regression and classification.
 
-    This function implements the distillation process using Random Forest for y
-    and Lasso for X[:, idx]. It supports both regression and binary classification
-    problems.
+    This function implements the distillation process from :cite:`liu2022fast` using Random Forest for y
+    and Lasso for X[:, idx]. It supports both regression and binary classification problems.
 
     Parameters
     ----------
@@ -504,13 +506,13 @@ def _rf_distillation(
     idx : int
         Index of the variable to be tested.
     sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
-        The covariance matrix of X.
+        The covariance matrix of X. If provided, used instead of Lasso regression.
     cv : int, default=3
         Number of folds for cross-validation in X distillation.
     n_alphas : int, default=50
         Number of alphas for Lasso path in X distillation.
     alpha : float, default=None
-        Regularization strength for X distillation.
+        Regularization strength for X distillation. If None, determined automatically.
     n_jobs : int, default=1
         Number of CPUs to use.
     problem_type : {'regression', 'classification'}, default='regression'
@@ -522,17 +524,23 @@ def _rf_distillation(
     random_state : int, default=42
         Random seed for reproducibility.
 
-
     Returns
     -------
-    ts : float
-        The computed test statistic.
+    X_res : ndarray
+        Residuals of X after distillation
+    sigma2_X : float  
+        Estimated residual variance
+    y_res : ndarray
+        Residuals of y after distillation. For classification, uses probability 
+        difference from RandomForestClassifier prediction.
 
     Notes
     -----
-    For classification, the function uses probability predictions from
-    RandomForestClassifier and assumes binary classification (uses class 1
-    probability only).
+d
+
+    References
+    ----------
+    .. footbibliography::
     """
     n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
@@ -567,5 +575,6 @@ def _rf_distillation(
         y_res = (
             y - clf.predict_proba(X_minus_idx)[:, 1]
         )  #IIABDFI
+        raise Warning('Binary classification residuals are computed as (y - P(y=1|X)), assuming y in {0,1} and P(y=1|X) is probability prediction.')
 
     return X_res, sigma2_X, y_res,
