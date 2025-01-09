@@ -110,10 +110,10 @@ def dcrt_zero(
 
     _, n_features = X_.shape
 
-    ## Screening of variables for accelarate dCRT 
+    ## Screening of variables for accelarate dCRT
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
-        # is based on a cross-validated of lasso 
+        # is based on a cross-validated of lasso
         clf = LassoCV(
             cv=cv,
             n_jobs=n_jobs,
@@ -134,7 +134,9 @@ def dcrt_zero(
         np.abs(coef_X_full)
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
     )[0]
-    coef_X_full[non_selection] = 0.0 #TODO this should be after the screening process ????
+    coef_X_full[non_selection] = (
+        0.0  # TODO this should be after the screening process ????
+    )
 
     # select the variables for the screening
     if screening:
@@ -152,7 +154,7 @@ def dcrt_zero(
         clf_refit.fit(X_[:, selection_set], y_)
         coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
 
-    ## Distillation & calculate 
+    ## Distillation & calculate
     if statistic == "residual":
         # For distillation of X use least_square loss
         results = Parallel(n_jobs, verbose=joblib_verbose)(
@@ -197,15 +199,22 @@ def dcrt_zero(
     # contatenate result
     selection_features = np.ones((n_features,), dtype=bool)
     selection_features[non_selection] = 0
-    X_res = np.array([i[0] for i in results]) 
-    sigma2_X = np.array([i[1] for i in results]) 
+    X_res = np.array([i[0] for i in results])
+    sigma2_X = np.array([i[1] for i in results])
     y_res = np.array([i[2] for i in results])
-    
+
     return selection_features, X_res, sigma2_X, y_res
 
 
 def dcrt_pvalue(
-    selection_features, X_res, sigma2_X, y_res,  fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None, 
+    selection_features,
+    X_res,
+    sigma2_X,
+    y_res,
+    fdr=0.1,
+    fdr_control="bhq",
+    selection_only=True,
+    reshaping_function=None,
     scaled_statistics=False,
 ):
     """
@@ -216,23 +225,23 @@ def dcrt_pvalue(
     selection_features : array-like of shape (n_features,)
         Boolean mask indicating which features were selected for testing
     X_res : array-like
-        Residuals of X after distillation 
+        Residuals of X after distillation
     sigma2_X : array-like
         Estimated residual variances
-    y_res : array-like  
+    y_res : array-like
         Residuals of y after distillation
     fdr : float, default=0.1
         Target false discovery rate level
     fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
         Method for FDR control:
         - 'bhq': Benjamini-Hochberg procedure
-        - 'bhy': Benjamini-Hochberg-Yekutieli procedure  
+        - 'bhy': Benjamini-Hochberg-Yekutieli procedure
         - 'ebh': e-BH procedure
     selection_only : bool, default=True
         If True, return only selected variables. If False, also return p-values and statistics
     reshaping_function : callable, default=None
         Function applied in Benjamini-Hochberg-Yekutieli procedure
-    scaled_statistics : bool, default=False 
+    scaled_statistics : bool, default=False
         Whether to standardize test statistics
 
     Returns
@@ -240,23 +249,29 @@ def dcrt_pvalue(
     variables_important : ndarray
         Indices of selected variables
     pvals : ndarray, optional
-        P-values if selection_only=False  
+        P-values if selection_only=False
     ts : ndarray, optional
         Test statistics if selectionn_only=False
-    
+
     References
     ----------
     .. footbibliography::
     """
     n_features = selection_features.shape[0]
     n_samples = X_res.shape[1]
-    
+
     # compute the test statistic for selected features
     # this based on the equation for the p-value of the page 284 of `liu2022fast`
-    ts_selected_variables = [np.dot(y_res[i, :], X_res[i, :]) / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i, :]**2)) for i in range(X_res.shape[0])]
+    ts_selected_variables = [
+        np.dot(y_res[i, :], X_res[i, :])
+        / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i, :] ** 2))
+        for i in range(X_res.shape[0])
+    ]
 
     if scaled_statistics:
-        ts_selected_variables = (ts_selected_variables - np.mean(ts_selected_variables)) / np.std(ts_selected_variables)
+        ts_selected_variables = (
+            ts_selected_variables - np.mean(ts_selected_variables)
+        ) / np.std(ts_selected_variables)
 
     # define the test statistic for all features
     ts = np.zeros(n_features)
@@ -353,7 +368,7 @@ def _x_distillation_lasso(
         sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
-        #TODO the calculation in original implementation doesn't not include alpha
+        # TODO the calculation in original implementation doesn't not include alpha
 
     else:
         # Distill X with sigma_X
@@ -428,7 +443,7 @@ def _lasso_distillation_residual(
         Residuals of X after distillation
     sigma2_X : float
         Estimated residual variance
-    y_res : ndarray 
+    y_res : ndarray
         Residuals of y after distillation
 
     References
@@ -485,6 +500,7 @@ def _lasso_distillation_residual(
 
     return X_res, sigma2_X, y_res
 
+
 def _rf_distillation(
     X,
     y,
@@ -536,10 +552,10 @@ def _rf_distillation(
     -------
     X_res : ndarray
         Residuals of X after distillation
-    sigma2_X : float  
+    sigma2_X : float
         Estimated residual variance
     y_res : ndarray
-        Residuals of y after distillation. For classification, uses probability 
+        Residuals of y after distillation. For classification, uses probability
         difference from RandomForestClassifier prediction.
 
     References
@@ -575,9 +591,15 @@ def _rf_distillation(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        y_res = (
-            y - clf.predict_proba(X_minus_idx)[:, 1]
-        )  #IIABDFI
-        warnings.warn(UserWarning('Binary classification residuals are computed as (y - P(y=1|X)), assuming y in {0,1} and P(y=1|X) is probability prediction.'))
+        y_res = y - clf.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
+        warnings.warn(
+            UserWarning(
+                "Binary classification residuals are computed as (y - P(y=1|X)), assuming y in {0,1} and P(y=1|X) is probability prediction."
+            )
+        )
 
-    return X_res, sigma2_X, y_res,
+    return (
+        X_res,
+        sigma2_X,
+        y_res,
+    )
