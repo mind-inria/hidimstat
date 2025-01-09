@@ -22,7 +22,6 @@ def dcrt_zero(
     refit=False,
     screening=True,
     screening_threshold=1e-1,
-    scaled_statistics=False,
     statistic="residual",
     centered=True,
     n_jobs=1,
@@ -33,88 +32,70 @@ def dcrt_zero(
     random_state=2022,
 ):
     """
-    distilled conditional randomization test zero ( not considere interactions)
+    Implements distilled conditional randomization test (dCRT) without interactions.
 
-    This function implements the Conditional Randomization Test of
-    :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
-    process `dcrt_zero` in the work by :footcite:t:`liu2022fast`.
-
-    The original implementation can be find `here <https://github.com/moleibobliu/Distillation-CRT/>`.
+    A faster version of the Conditional Randomization Test :cite:`candes2018panning` using the distillation
+    process from :cite:`liu2022fast`. Based on original implementation at:
+    https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
     ----------
-    X : {array-like, sparse matrix} of shape (n_samples, n_features)
-        The input samples.
+    X : array-like of shape (n_samples, n_features)
+        Training data
     y : array-like of shape (n_samples,)
-        The target values (class labels in classification, real numbers in
-        regression).
-    estimated_coef : array-like of shape (n_features,)
-        The array of the corresponding coefficients for the features.
-    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features)
-        The covariance matrix of X.
+        Target values
+    estimated_coef : array-like of shape (n_features,), optional
+        Pre-computed feature coefficients
+    sigma_X : array-like of shape (n_features, n_features), optional
+        Covariance matrix of X
     use_cv : bool, default=False
-        Whether to apply cross-validation for the distillation with Lasso.
-    cv : int, cross-validation generator or iterable, default=None
-        Determines the cross-validation splitting strategy. Possible inputs for
-        cv are:
-        - None, to use the default 5-fold cross-validation,
-        - int, to specify the number of folds.
-        - CV splitter,
-        - An iterable yielding (train, test) splits as arrays of indices.
+        Whether to use cross-validation for Lasso
+    cv : int, default=5
+        Number of cross-validation folds
+    tol : float, default=1e-6
+        Solver tolerance for the cross valisation of Lasso
     n_alphas : int, default=20
-        The number of alphas along the regularization path for
-        sklearn.linear_model.LassoCV().
-    alpha : float, default=None
-        Constant that multiplies the L1 term, controlling regularization
-        strength. alpha must be a non-negative float i.e. in [0, inf).
-    tol: float, default=1e-6
-        The tolerance for the optimization solver.
-    max_iteration : int, default=1000
-        The maximum number of iterations.
+        Number of alphas for Lasso path
+    alpha : float, optional
+        L1 regularization strength
+    max_iter : int, default=1000
+        Maximum iterations
     refit : bool, default=False
-        If estimated_coef is not provided, whether to refit with the estimated support set to possibly find better
-        coeffcients magnitude.
+        Whether to refit on estimated support set
     screening : bool, default=True
-        Speed up the computation of score function by only running it later on
-        estimated support set.
-    screening_threshold : float, default=1e-1
-        The threshold for the estimated support set. screening_threshold must be
-        a non-negative float in (0, 100).
-    scaled_statistics : bool, default=False
-        Whether to scale the test statistics.
-    statistic : str, default='residual'
-        The estimator used to distill the outcome based on the remaining
-        variables after removing the variable of interest. The options include:
-        - "residual" for the Lasso learner
-        - "randomforest" for the Random Forest learner
+        Whether to screen variables
+    screening_threshold : float, default=0.1
+        Threshold for variable screening (0-100)
+    statistic : {'residual', 'randomforest'}, default='residual'
+        Learning method for outcome distillation
     centered : bool, default=True
-        Whether to standard scale the input features using
-        sklearn.preprocessing.StandardScaler().
+        Whether to standardize features
     n_jobs : int, default=1
-        The number of workers for parallel processing.
+        Number of parallel jobs
     joblib_verbose : int, default=0
-       The verbosity level of joblib: if non zero, progress messages are
-       printed. Above 50, the output is sent to stdout. The frequency of the
-       messages increases with the verbosity level. If it more than 10, all
-       iterations are reported.
-    y_fit : bool, default=False
-        Whether to fit the response variable y using the selected features.
+        The verbosity level of joblib: if non zero, progress messages are
+        printed. Above 50, the output is sent to stdout. The frequency of the
+        messages increases with the verbosity level. If it more than 10, all
+        iterations are reported.
+    fit_y : bool, default=False
+        Whether to fit y using selected features
     ntree : int, default=100
-        The number of trees for the distillation using the Random Forest
-        learner.
-    problem_type : str, default='regression'
-        A classification or a regression problem.
-    random_state : int, default=2023
-        Fixing the seeds of the random generator.
+        Number of trees for random forest
+    problem_type : {'regression', 'classification'}, default='regression'
+        Type of learning problem
+    random_state : int, default=2022
+        Random seed
 
     Returns
     -------
-    selected : 1D array, int
-        The vector of index of selected variables.
-    pvals: 1D array, float
-        The vector of the corresponding p-values.
-    ts: 1D array, float
-        The vector of the corresponding test statistics.
+    selection_features : ndarray
+        Boolean mask of selected features
+    X_res : ndarray
+        Residuals after distillation
+    sigma2_X : ndarray
+        Estimated residual variances
+    y_res : ndarray
+        Target residuals after distillation
 
     References
     ----------
@@ -128,7 +109,10 @@ def dcrt_zero(
 
     _, n_features = X_.shape
 
+    ## Screening of variables for accelarate dCRT 
     if estimated_coef is None:
+        # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
+        # is based on a cross-validated lasso 
         clf = LassoCV(
             cv=cv,
             n_jobs=n_jobs,
@@ -149,7 +133,7 @@ def dcrt_zero(
         np.abs(coef_X_full)
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
     )[0]
-    coef_X_full[non_selection] = 0.0
+    coef_X_full[non_selection] = 0.0 #TODO this should be after the screening process ????
 
     # select the variables for the screening
     if screening:
@@ -158,6 +142,7 @@ def dcrt_zero(
         if selection_set.size == 0:
             return np.array([])
     else:
+        non_selection = []
         selection_set = np.arange(n_features)
 
     # Refit the model with the estimated support set
@@ -166,7 +151,7 @@ def dcrt_zero(
         clf_refit.fit(X_[:, selection_set], y_)
         coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
 
-    # Distillation & calculate score function
+    ## Distillation & calculate 
     if statistic == "residual":
         # For distillation of X use least_square loss
         results = Parallel(n_jobs, verbose=joblib_verbose)(
@@ -208,46 +193,68 @@ def dcrt_zero(
     else:
         raise ValueError(f"{statistic} statistic is not supported.")
 
-    # get the results
-    ts = np.zeros(n_features)
-    ts[selection_set] = np.array([i for i in results])
-
-    if scaled_statistics:
-        ts = (ts - np.mean(ts)) / np.std(ts)
-
-    return ts
+    # contatenate result
+    selection_features = np.ones((n_features,), dtype=bool)
+    selection_features[non_selection] = 0
+    X_res = np.array([i[0] for i in results]) 
+    sigma2_X = np.array([i[1] for i in results]) 
+    y_res = np.array([i[2] for i in results])
+    
+    return selection_features, X_res, sigma2_X, y_res
 
 
 def dcrt_pvalue(
-    ts, fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None
+    selection_features, X_res, sigma2_X, y_res,  fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None, 
+    scaled_statistics=False,
 ):
     """
-    This function calculates the p-values of the test statistics using the
-    Gaussian distribution.
+    Computes p-values for feature importance using a Gaussian distribution.
 
     Parameters
     ----------
-    ts : 1D array, float
-        The vector of test statistics.
+    selection_features : array-like of shape (n_features,)
+        Boolean mask indicating which features were selected for testing
+    X_res : array-like
+        Residuals of X after distillation 
+    sigma2_X : array-like
+        Estimated residual variances
+    y_res : array-like  
+        Residuals of y after distillation
     fdr : float, default=0.1
-        The desired controlled FDR level.
-    fdr_control : srt, default="bhq"
-        The control method for False Discovery Rate (FDR). The options include:
-        - "bhq" for Standard Benjamini-Hochberg procedure
-        - "bhy" for Benjamini-Hochberg-Yekutieli procedure
-        - "ebh" for e-BH procedure
+        Target false discovery rate level
+    fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
+        Method for FDR control:
+        - 'bhq': Benjamini-Hochberg procedure
+        - 'bhy': Benjamini-Hochberg-Yekutieli procedure  
+        - 'ebh': e-BH procedure
     selection_only : bool, default=True
-        Whether to return only the selected variables.
-    reshaping_function : function, default=None
-        Reshaping function for Benjamini-Hochberg-Yekutieli method
+        If True, return only selected variables. If False, also return p-values and statistics
+    reshaping_function : callable, default=None
+        Function applied in Benjamini-Hochberg-Yekutieli procedure
+    scaled_statistics : bool, default=False 
+        Whether to standardize test statistics
 
     Returns
     -------
-    selected : 1D array, int
-        The vector of index of selected variables.
-    pvals: 1D array, float
-        The vector of the corresponding p-values.
+    variables_important : ndarray
+        Indices of selected variables
+    pvals : ndarray, optional
+        P-values if selection_only=False  
+    ts : ndarray, optional
+        Test statistics if selection_only=False
     """
+    n_features = selection_features.shape[0]
+    n_samples = X_res.shape[1]
+    
+    # compute the test statistic for selected variables
+    ts_selected_variables = [np.dot(y_res[i], X_res[i]) / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i]**2)) for i in range(X_res.shape[0])]
+
+    if scaled_statistics:
+        ts_selected_variables = (ts_selected_variables - np.mean(ts_selected_variables)) / np.std(ts_selected_variables)
+
+    # define the resutl for all variables
+    ts = np.zeros(n_features)
+    ts[selection_features] = ts_selected_variables
 
     # for residual and randomforest, the test statistics follows Gaussian distribution
     pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
@@ -255,12 +262,12 @@ def dcrt_pvalue(
     threshold = fdr_threshold(
         pvals, fdr=fdr, method=fdr_control, reshaping_function=reshaping_function
     )
-    selected = np.where(pvals <= threshold)[0]
+    variables_important = np.where(pvals <= threshold)[0]
 
     if selection_only:
-        return selected
+        return variables_important
     else:
-        return selected, pvals
+        return variables_important, pvals, ts
 
 
 def _x_distillation_lasso(
@@ -375,7 +382,7 @@ def _lasso_distillation_residual(
     Standard Lasso Distillation for least squares regression.
 
     This function implements the distillation process following :footcite:t:`liu2022fast`
-    section 2.4. It distills both X[:, idx] and y to compute test statistics.
+    section 2.3. It distills both X[:, idx] and y to compute test statistics.
     It's based on least square loss regression.
 
     Parameters
@@ -463,16 +470,9 @@ def _lasso_distillation_residual(
         raise ValueError("Either fit_y is true or coeff_full must be provided.")
 
     # compute the residuals
-    eps_res = y - X_minus_idx.dot(coef_minus_idx)
-    # compute the variance of the residuals
-    sigma2_y = np.mean(eps_res**2)
+    y_res = y - X_minus_idx.dot(coef_minus_idx)
 
-    # T follows Gaussian distribution
-    ts = np.dot(eps_res, X_res) / np.sqrt(n_samples * sigma2_X * sigma2_y)
-    #TODO the calculation of the t is different see ligne 247
-
-    return ts
-
+    return X_res, sigma2_X, y_res
 
 def _rf_distillation(
     X,
@@ -557,21 +557,15 @@ def _rf_distillation(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        eps_res = y - clf.predict(X_minus_idx)
+        y_res = y - clf.predict(X_minus_idx)
 
     elif problem_type == "classification":
         clf = RandomForestClassifier(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        eps_res = (
+        y_res = (
             y - clf.predict_proba(X_minus_idx)[:, 1]
-        )  # TODO: Why considere only the second class of probability
+        )  #IIABDFI
 
-    # compute the variance of the residuals
-    sigma2_y = np.mean(eps_res**2)
-
-    # T follows Gaussian distribution
-    ts = np.dot(eps_res, X_res) / np.sqrt(n_samples * sigma2_X * sigma2_y)
-
-    return ts
+    return X_res, sigma2_X, y_res,
