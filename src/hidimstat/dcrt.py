@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 from joblib import Parallel, delayed
 from hidimstat.utils import _lambda_max, fdr_threshold
@@ -112,7 +113,7 @@ def dcrt_zero(
     ## Screening of variables for accelarate dCRT 
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
-        # is based on a cross-validated lasso 
+        # is based on a cross-validated of lasso 
         clf = LassoCV(
             cv=cv,
             n_jobs=n_jobs,
@@ -208,7 +209,7 @@ def dcrt_pvalue(
     scaled_statistics=False,
 ):
     """
-    Computes p-values for feature importance using a Gaussian distribution.
+    Computes p-values for feature importance using a Gaussian distribution following the recommendation of :cite:`liu2022fast`
 
     Parameters
     ----------
@@ -241,22 +242,28 @@ def dcrt_pvalue(
     pvals : ndarray, optional
         P-values if selection_only=False  
     ts : ndarray, optional
-        Test statistics if selection_only=False
+        Test statistics if selectionn_only=False
+    
+    References
+    ----------
+    .. footbibliography::
     """
     n_features = selection_features.shape[0]
     n_samples = X_res.shape[1]
     
-    # compute the test statistic for selected variables
-    ts_selected_variables = [np.dot(y_res[i], X_res[i]) / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i]**2)) for i in range(X_res.shape[0])]
+    # compute the test statistic for selected features
+    # this based on the equation for the p-value of the page 284 of `liu2022fast`
+    ts_selected_variables = [np.dot(y_res[i, :], X_res[i, :]) / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i, :]**2)) for i in range(X_res.shape[0])]
 
     if scaled_statistics:
         ts_selected_variables = (ts_selected_variables - np.mean(ts_selected_variables)) / np.std(ts_selected_variables)
 
-    # define the resutl for all variables
+    # define the test statistic for all features
     ts = np.zeros(n_features)
     ts[selection_features] = ts_selected_variables
 
     # for residual and randomforest, the test statistics follows Gaussian distribution
+    # this based on the equation for the p-value of the page 284 of `liu2022fast`
     pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
 
     threshold = fdr_threshold(
@@ -353,7 +360,9 @@ def _x_distillation_lasso(
         sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
         b = sigma_temp[:, idx]
         A = np.delete(np.copy(sigma_temp), idx, 1)
+        # compute the coefficient of the linear estimator
         coefs_X = np.linalg.solve(A, b)
+        # compute the residual and the variance
         X_res = X[:, idx] - np.dot(X_minus_idx, coefs_X)
         sigma2_X = sigma_X[idx, idx] - np.dot(
             np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
@@ -426,7 +435,6 @@ def _lasso_distillation_residual(
     ----------
     .. footbibliography::
     """
-    n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
@@ -534,15 +542,10 @@ def _rf_distillation(
         Residuals of y after distillation. For classification, uses probability 
         difference from RandomForestClassifier prediction.
 
-    Notes
-    -----
-d
-
     References
     ----------
     .. footbibliography::
     """
-    n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
@@ -575,6 +578,6 @@ d
         y_res = (
             y - clf.predict_proba(X_minus_idx)[:, 1]
         )  #IIABDFI
-        raise Warning('Binary classification residuals are computed as (y - P(y=1|X)), assuming y in {0,1} and P(y=1|X) is probability prediction.')
+        warnings.warn(UserWarning('Binary classification residuals are computed as (y - P(y=1|X)), assuming y in {0,1} and P(y=1|X) is probability prediction.'))
 
     return X_res, sigma2_X, y_res,
