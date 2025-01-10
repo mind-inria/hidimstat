@@ -1,9 +1,8 @@
 import warnings
-
 import numpy as np
 
 
-def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
+def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=False):
     """
     Generate second-order knockoff variables using equi-correlated method.
     Reference: Candes et al. (2016), Barber et al. (2015)
@@ -53,9 +52,24 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
         )
 
     # Equation 1.4 in Barber & Candes (2015)
-    X_tilde = Mu_tilde + np.dot(U_tilde, np.linalg.cholesky(sigma_tilde))
+    sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
+    X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
 
+    if not repeat:
+        return X_tilde
+    else:
+        return X_tilde, (Mu_tilde, sigma_tilde_decompose)
+
+
+def repeat_gaussian_knockoff_generation(Mu_tilde, sigma_tilde_decompose, seed):
+    n_samples, n_features = Mu_tilde.shape/2
+    # create a uniform noise for all the data
+    rng = np.random.RandomState(seed)
+    U_tilde = rng.randn(n_samples, n_features)
+
+    X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
     return X_tilde
+     
 
 
 def _s_equi(sigma, tol=1e-14):
