@@ -8,9 +8,11 @@ High-dimensional Controlled Variable Selection"
 """
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.covariance import LedoitWolf
 
-from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
+from .gaussian_knockoff import gaussian_knockoff_generation
 from .stat_coef_diff import _coef_diff_threshold, stat_coef_diff
+
 
 
 def model_x_knockoff(
@@ -19,9 +21,8 @@ def model_x_knockoff(
     fdr=0.1,
     offset=1,
     statistics="lasso_cv",
-    shrink=False,
     centered=True,
-    cov_estimator="ledoit_wolf",
+    cov_estimator=LedoitWolf(assume_centered=True),
     verbose=False,
     n_jobs=1,
     seed=None,
@@ -57,6 +58,10 @@ def model_x_knockoff(
 
     cov_estimator : str, optional
         method of empirical covariance matrix estimation
+        example: 
+            - LedoitWolf(assume_centered=True)
+            - GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1])
+            - EmpiricalCovariance()
 
     seed : int or None, optional
         random seed used to generate Gaussian knockoff variable
@@ -83,7 +88,9 @@ def model_x_knockoff(
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    mu, sigma = _estimate_distribution(X, shrink=shrink, cov_estimator=cov_estimator)
+    # estimation of X distribution
+    mu = X.mean(axis=0)
+    sigma = cov_estimator.fit(X).covariance_
 
     X_tilde = gaussian_knockoff_generation(
         X, mu, sigma, seed=seed

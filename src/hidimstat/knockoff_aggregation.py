@@ -4,9 +4,9 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
-from sklearn.utils.validation import check_memory
+from sklearn.covariance import LedoitWolf
 
-from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
+from .gaussian_knockoff import gaussian_knockoff_generation
 from .stat_coef_diff import stat_coef_diff, _coef_diff_threshold
 from .utils import fdr_threshold, quantile_aggregation
 
@@ -15,15 +15,13 @@ def knockoff_aggregation(
     X,
     y,
     centered=True,
-    shrink=False,
-    construct_method="equi",
     fdr=0.1,
     fdr_control="bhq",
     reshaping_function=None,
     offset=1,
     method="quantile",
     statistic="lasso_cv",
-    cov_estimator="ledoit_wolf",
+    cov_estimator=LedoitWolf(assume_centered=True),
     joblib_verbose=0,
     n_bootstraps=25,
     n_jobs=1,
@@ -75,6 +73,12 @@ def knockoff_aggregation(
         The method to calculate knockoff test score.
     cov_estimator : srt, default="ledoitwolf"
         The method of empirical covariance matrix estimation.
+        example: 
+            - LedoitWolf(assume_centered=True)
+            - GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1])
+            - EmpiricalCovariance()
+
+
     joblib_versobe : int, default=0
        The verbosity level of joblib: if non zero, progress messages are
        printed. Above 50, the output is sent to stdout. The frequency of the
@@ -125,18 +129,15 @@ def knockoff_aggregation(
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    mu, Sigma = _estimate_distribution(X, shrink=shrink, cov_estimator=cov_estimator)
-
-    mem = check_memory(memory)
-    stat_coef_diff_cached = mem.cache(
-        stat_coef_diff, ignore=["n_jobs", "joblib_verbose"]
-    )
+    # estimation of X distribution
+    mu = X.mean(axis=0)
+    Sigma = cov_estimator.fit(X).covariance_
 
     if n_bootstraps == 1:
         X_tilde = gaussian_knockoff_generation(
-            X, mu, Sigma, method=construct_method, memory=memory, seed=random_state
+            X, mu, Sigma, seed=random_state
         )
-        ko_stat = stat_coef_diff_cached(X, X_tilde, y, method=statistic)
+        ko_stat = stat_coef_diff(X, X_tilde, y, method=statistic)
         pvals = _empirical_pval(ko_stat, offset)
         threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
         selected = np.where(pvals <= threshold)[0]
@@ -157,13 +158,13 @@ def knockoff_aggregation(
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     X_tildes = parallel(
         delayed(gaussian_knockoff_generation)(
-            X, mu, Sigma, method=construct_method, memory=memory, seed=seed
+            X, mu, Sigma, seed=seed
         )
         for seed in seed_list
     )
 
     ko_stats = parallel(
-        delayed(stat_coef_diff_cached)(X, X_tildes[i], y, method=statistic)
+        delayed(stat_coef_diff)(X, X_tildes[i], y, method=statistic)
         for i in range(n_bootstraps)
     )
 
