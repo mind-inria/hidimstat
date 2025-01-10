@@ -154,7 +154,7 @@ def _coef_diff_threshold(test_score, fdr=0.1, offset=1):
         raise ValueError("'offset' must be either 0 or 1")
 
     threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    threshold_mesh.append(np.inf) # if there is no solution, the threshold is inf
+    np.append(threshold_mesh, np.inf) # if there is no solution, the threshold is inf
     # find the right value of t for getting a good fdr
     for thresold in threshold_mesh:
         false_pos = np.sum(test_score <= -thresold)
