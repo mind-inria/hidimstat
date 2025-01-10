@@ -58,28 +58,6 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     return X_tilde
 
 
-def _cov_to_corr(sigma):
-    """Convert covariance matrix to correlation matrix
-
-    Parameters
-    ----------
-    sigma : 2D ndarray (n_features, n_features)
-        Covariance matrix
-
-    Returns
-    -------
-    Corr_matrix : 2D ndarray (n_features, n_features)
-        Transformed correlation matrix
-    """
-
-    features_std = np.sqrt(np.diag(sigma))
-    scale = np.outer(features_std, features_std)
-
-    corr_matrix = sigma / scale
-
-    return corr_matrix
-
-
 def _s_equi(sigma, tol=1e-14):
     """Estimate diagonal matrix of correlation between real and knockoff
     variables using equi-correlated equation
@@ -96,12 +74,16 @@ def _s_equi(sigma, tol=1e-14):
     """
     n_features = sigma.shape[0]
 
-    G = _cov_to_corr(sigma)
-    eig_value = np.linalg.eigvalsh(G)
+    # Convert covariance matrix to correlation matrix
+    features_std = np.sqrt(np.diag(sigma))
+    scale = np.outer(features_std, features_std)
+    corr_matrix = sigma / scale
+    
+    eig_value = np.linalg.eigvalsh(corr_matrix)
     lambda_min = np.min(eig_value[0])
     S = np.ones(n_features) * min(2 * lambda_min, 1)
 
-    psd = np.all(np.linalg.eigvalsh(2 * G - np.diag(S)) > tol)
+    psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S)) > tol)
     s_eps = 0
 
     while psd is False:
@@ -110,7 +92,7 @@ def _s_equi(sigma, tol=1e-14):
         else:
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
-        psd = np.all(np.linalg.eigvalsh(2 * G - np.diag(S * (1 - s_eps))) > tol)
+        psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S * (1 - s_eps))) > tol)
 
 
     S = S * (1 - s_eps)
