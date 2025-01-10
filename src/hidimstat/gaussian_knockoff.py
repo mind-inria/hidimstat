@@ -62,7 +62,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
 
 
 def repeat_gaussian_knockoff_generation(Mu_tilde, sigma_tilde_decompose, seed):
-    n_samples, n_features = Mu_tilde.shape/2
+    n_samples, n_features = Mu_tilde.shape
     # create a uniform noise for all the data
     rng = np.random.RandomState(seed)
     U_tilde = rng.randn(n_samples, n_features)
