@@ -8,7 +8,6 @@ High-dimensional Controlled Variable Selection"
 """
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_memory
 
 from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
 from .stat_coef_diff import _coef_diff_threshold, stat_coef_diff
@@ -19,13 +18,11 @@ def model_x_knockoff(
     y,
     fdr=0.1,
     offset=1,
-    method="equi",
     statistics="lasso_cv",
     shrink=False,
     centered=True,
     cov_estimator="ledoit_wolf",
     verbose=False,
-    memory=None,
     n_jobs=1,
     seed=None,
 ):
@@ -48,10 +45,6 @@ def model_x_knockoff(
     offset : int, 0 or 1, optional
         offset to calculate knockoff threshold, offset = 1 is equivalent to
         knockoff+
-
-    method : str, optional
-        knockoff construction methods, either equi for equi-correlated knockoff
-        or sdp for optimization scheme
 
     statistics : str, optional
         method to calculate knockoff test score
@@ -86,17 +79,16 @@ def model_x_knockoff(
     ----------
     .. footbibliography::
     """
-    memory = check_memory(memory)
 
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    mu, Sigma = _estimate_distribution(X, shrink=shrink, cov_estimator=cov_estimator)
+    mu, sigma = _estimate_distribution(X, shrink=shrink, cov_estimator=cov_estimator)
 
     X_tilde = gaussian_knockoff_generation(
-        X, mu, Sigma, memory=memory, method=method, seed=seed
+        X, mu, sigma, seed=seed
     )
-    test_score = memory.cache(stat_coef_diff, ignore=["n_jobs", "joblib_verbose"])(
+    test_score = stat_coef_diff(
         X, X_tilde, y, method=statistics, n_jobs=n_jobs
     )
     thres = _coef_diff_threshold(test_score, fdr=fdr, offset=offset)
