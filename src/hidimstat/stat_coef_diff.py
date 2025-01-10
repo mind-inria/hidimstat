@@ -22,6 +22,7 @@ def stat_coef_diff(
     return_coef=False,
     solver="liblinear",
     seed=0,
+    tol=1e-8
 ):
     """Calculate test statistic by doing estimation with Cross-validation on
     concatenated design matrix [X X_tilde] to find coefficients [beta
@@ -58,6 +59,9 @@ def stat_coef_diff(
 
     return_coef : bool, optional
         return regression coefficient if set to True
+    
+    tol: float, optional
+        tolerance 
 
     Returns
     -------
@@ -70,34 +74,39 @@ def stat_coef_diff(
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
-    lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
+    if method == "lasso_cv":
+        lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
+        lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
 
-    cv = KFold(n_splits=5, shuffle=True, random_state=seed)
+    # check for replacing all of this by provided BaseSearchCV of scikit-learn
+    # this can help to generalize the methods and reduce the parameters of the functions
+    # the only problems can be lambdas????
+    cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
 
     estimator = {
         "lasso_cv": LassoCV(
             alphas=lambdas,
             n_jobs=n_jobs,
             verbose=joblib_verbose,
-            max_iter=int(1e4),
+            max_iter=n_iter,
             cv=cv,
+            tol=tol
         ),
         "logistic_l1": LogisticRegressionCV(
             penalty="l1",
-            max_iter=int(1e4),
+            max_iter=n_iter,
             solver=solver,
             cv=cv,
             n_jobs=n_jobs,
-            tol=1e-8,
+            tol=tol,
         ),
         "logistic_l2": LogisticRegressionCV(
             penalty="l2",
-            max_iter=int(1e4),
+            max_iter=n_iter,
             n_jobs=n_jobs,
             verbose=joblib_verbose,
             cv=cv,
-            tol=1e-8,
+            tol=tol,
         ),
     }
 
@@ -131,24 +140,25 @@ def _coef_diff_threshold(test_score, fdr=0.1, offset=1):
         vector of test statistic
 
     fdr : float, optional
-        desired controlled FDR level
+        desired controlled FDR(false discovery rate) level
 
     offset : int, 0 or 1, optional
         offset equals 1 is the knockoff+ procedure
 
     Returns
     -------
-    thres : float or np.inf
+    threshold : float or np.inf
         threshold level
     """
     if offset not in (0, 1):
         raise ValueError("'offset' must be either 0 or 1")
 
-    t_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    for t in t_mesh:
-        false_pos = np.sum(test_score <= -t)
-        selected = np.sum(test_score >= t)
+    threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
+    threshold_mesh.append(np.inf) # if there is no solution, the threshold is inf
+    # find the right value of t for getting a good fdr
+    for thresold in threshold_mesh:
+        false_pos = np.sum(test_score <= -thresold)
+        selected = np.sum(test_score >= thresold)
         if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
-            return t
-
-    return np.inf
+            break
+    return thresold
