@@ -165,7 +165,8 @@ def model_x_knockoff(
 
     return test_score 
 
-def knockoff_aggregation(
+
+def model_x_knockoff_aggregation(
     X,
     y,
     estimator=LassoCV(n_jobs=None, verbose=0,max_iter=1000,
@@ -179,7 +180,7 @@ def knockoff_aggregation(
     n_jobs=1,
     random_state=None,
 ):
-    assert n_bootstraps <= 1, "the number of bootstraps should at least higher than 1"
+    assert n_bootstraps > 1, "the number of bootstraps should at least higher than 1"
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
@@ -213,7 +214,7 @@ def knockoff_aggregation(
     X_tildes.insert(0, X_tilde)
     
     test_scores = parallel(
-        delayed(_stat_coefficient_diff)(X, X_tilde[i], y, estimator, preconfigure_estimator)
+        delayed(_stat_coefficient_diff)(X, X_tildes[i], y, estimator, preconfigure_estimator)
         for i in range(n_bootstraps)
     )
 
@@ -274,7 +275,7 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1, se
     """
     This function implements the computation of the empirical p-values
     """
-    pvals = _empirical_pval(test_score, offset)
+    pvals = _empirical_knockoff_pval(test_score, offset)
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
 
@@ -284,10 +285,10 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1, se
         return selected, pvals
 
 
-def model_x_knockoff_bootstrap_e_value(test_score, fdr=0.1, offset=1, selection_only=True):
-        n_bootstraps = len(test_score)
+def model_x_knockoff_bootstrap_e_value(test_scores, fdr=0.1, offset=1, selection_only=True):
+        n_bootstraps = len(test_scores)
         evals = np.array(
-            [_empirical_eval(test_score[i], fdr / 2, offset) for i in range(n_bootstraps)]
+            [_empirical_knockoff_eval(test_scores[i], fdr / 2, offset) for i in range(n_bootstraps)]
         )
 
         aggregated_eval = np.mean(evals, axis=0)
@@ -300,10 +301,10 @@ def model_x_knockoff_bootstrap_e_value(test_score, fdr=0.1, offset=1, selection_
             return selected, aggregated_eval, evals
 
 
-def model_x_knockoff_bootstrap_quantile(test_score, fdr=0.1,  fdr_control="bhq", reshaping_function=None, adaptive_aggregation=False, gamma=0.5, gamma_min=0.05, offset=1, selection_only=True):
-        n_bootstraps = len(test_score)
+def model_x_knockoff_bootstrap_quantile(test_scores, fdr=0.1,  fdr_control="bhq", reshaping_function=None, adaptive_aggregation=False, gamma=0.5, gamma_min=0.05, offset=1, selection_only=True):
+        n_bootstraps = len(test_scores)
         pvals = np.array(
-            [_empirical_pval(test_score[i], offset) for i in range(n_bootstraps)]
+            [_empirical_knockoff_pval(test_scores[i], offset) for i in range(n_bootstraps)]
         )
 
         aggregated_pval = quantile_aggregation(
@@ -402,7 +403,7 @@ def _empirical_knockoff_pval(test_score, offset=1):
     return np.array(pvals)
 
 
-def _empirical_konckoff_eval(test_score, fdr=0.1, offset=1):
+def _empirical_knockoff_eval(test_score, fdr=0.1, offset=1):
     """
     This function implements the computation of the empirical e-values
     from knockoff test
