@@ -23,8 +23,12 @@ Functions
    ensemble_clustered_inference
    group_reid
    hd_inference
-   knockoff_aggregation
    model_x_knockoff
+   model_x_knockoff_aggregation
+   model_x_knockoff_filter
+   model_x_knockoff_pvalue
+   model_x_knockoff_bootstrap_quantile
+   model_x_knockoff_bootstrap_e_value
    multivariate_1D_simulation
    permutation_test_cv
    reid
