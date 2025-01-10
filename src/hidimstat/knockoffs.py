@@ -31,6 +31,10 @@ def model_x_knockoff(
 
     It's an inference procedure to control False Discoveries Rate,
     based on :footcite:t:`candesPanningGoldModelX2017`
+    
+    original implementation:
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
 
     Parameters
     ----------
@@ -59,9 +63,9 @@ def model_x_knockoff(
     cov_estimator : str, optional
         method of empirical covariance matrix estimation
         example: 
-            - LedoitWolf(assume_centered=True)
-            - GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1])
-            - EmpiricalCovariance()
+            - LedoitWolf(assume_centered=True) # shrink the matrix
+            - GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1]) # skrink the matrix
+            - EmpiricalCovariance()   better for positive defined mastrix
 
     seed : int or None, optional
         random seed used to generate Gaussian knockoff variable
@@ -103,6 +107,6 @@ def model_x_knockoff(
     selected = np.where(test_score >= thres)[0]
 
     if verbose:
-        return selected, test_score, thres, X_tilde
+        return selected, thres, test_score, X_tilde
 
     return selected

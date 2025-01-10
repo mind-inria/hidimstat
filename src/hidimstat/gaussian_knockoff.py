@@ -1,6 +1,3 @@
-"""GRequires cvxopt.
-"""
-
 import warnings
 
 import numpy as np
@@ -10,6 +7,9 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     """
     Generate second-order knockoff variables using equi-correlated method.
     Reference: Candes et al. (2016), Barber et al. (2015)
+    
+    original impelmentation:
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_gaussian.R
     
     Parameters
     ----------
@@ -43,7 +43,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     # First part on the RHS of equation 1.4 in Barber & Candes (2015)
     Mu_tilde = X - np.dot(X - mu, Sigma_inv_s)
     # To calculate the Cholesky decomposition later on
-    sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s.dot(Diag_s))
+    sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s.dot(Diag_s)) #TODO extra operation Sigma_inv_s.dot(Diag_s) ??????
     # test is the matrix is positive definite 
     while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol): 
         sigma_tilde += 1e-10 * np.eye(n_features)
@@ -61,6 +61,9 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
 def _s_equi(sigma, tol=1e-14):
     """Estimate diagonal matrix of correlation between real and knockoff
     variables using equi-correlated equation
+    
+    original implementation: 
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/solve_equi.R
 
     Parameters
     ----------
@@ -75,12 +78,18 @@ def _s_equi(sigma, tol=1e-14):
     n_features = sigma.shape[0]
 
     # Convert covariance matrix to correlation matrix
+    # as example see cov2corr from statsmodels
     features_std = np.sqrt(np.diag(sigma))
     scale = np.outer(features_std, features_std)
     corr_matrix = sigma / scale
     
+    
     eig_value = np.linalg.eigvalsh(corr_matrix)
     lambda_min = np.min(eig_value[0])
+    # check if the matrix is positive-defined
+    if lambda_min < 0:
+        raise Exception('The covariance matrix is not positive-definite.')
+    
     S = np.ones(n_features) * min(2 * lambda_min, 1)
 
     psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S)) > tol)

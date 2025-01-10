@@ -31,6 +31,9 @@ def stat_coef_diff(
                         W_j =  abs(beta_j) - abs(beta_tilda_j)
 
     with j = 1, ..., n_features
+    
+    orriginal implementation:
+        https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/stats_glmnet_cv.R
 
     Parameters
     ----------
@@ -76,6 +79,7 @@ def stat_coef_diff(
     X_ko = np.column_stack([X, X_tilde])
     if method == "lasso_cv":
         lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
+        # min is different from original implementation
         lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
 
     # check for replacing all of this by provided BaseSearchCV of scikit-learn
@@ -133,6 +137,9 @@ def stat_coef_diff(
 def _coef_diff_threshold(test_score, fdr=0.1, offset=1):
     """Calculate the knockoff threshold based on the procedure stated in the
     article.
+    
+    original code:
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
 
     Parameters
     ----------
@@ -154,11 +161,12 @@ def _coef_diff_threshold(test_score, fdr=0.1, offset=1):
         raise ValueError("'offset' must be either 0 or 1")
 
     threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    np.append(threshold_mesh, np.inf) # if there is no solution, the threshold is inf
+    np.concatenate([[0], threshold_mesh, [np.inf]]) # if there is no solution, the threshold is inf
     # find the right value of t for getting a good fdr
-    for thresold in threshold_mesh:
-        false_pos = np.sum(test_score <= -thresold)
-        selected = np.sum(test_score >= thresold)
+    threshold = 0.
+    for threshold in threshold_mesh:
+        false_pos = np.sum(test_score <= -threshold)
+        selected = np.sum(test_score >= threshold)
         if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
             break
-    return thresold
+    return threshold
