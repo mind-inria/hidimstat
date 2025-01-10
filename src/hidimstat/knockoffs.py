@@ -11,12 +11,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
+from sklearn.utils import check_random_state
+from joblib import Parallel, delayed
 
-from .gaussian_knockoff import gaussian_knockoff_generation
-from hidimstat.stat_tools import coef_diff_threshold
+from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, repeat_gaussian_knockoff_generation
+from hidimstat.utils import fdr_threshold, quantile_aggregation
 
 
-def preconfigure_estimator(estimator, X, X_tilde, y, n_lambdas=10):
+def preconfigure_estimator_LaccosCV(estimator, X, X_tilde, y, n_lambdas=10):
     """
     Configure the estimator for Model-X knockoffs.
 
@@ -68,15 +70,12 @@ def preconfigure_estimator(estimator, X, X_tilde, y, n_lambdas=10):
 def model_x_knockoff(
     X,
     y,
-    fdr=0.1,
-    offset=1,
     estimator=LassoCV(n_jobs=None, verbose=0,max_iter=1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
             tol=1e-8),
-    preconfigure_estimator = preconfigure_estimator,
+    preconfigure_estimator = preconfigure_estimator_LaccosCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
-    verbose=False,
     seed=None,
 ):
     """
@@ -94,19 +93,19 @@ def model_x_knockoff(
 
     y : 1D ndarray (n_samples, )
         The target vector.
-
-    fdr : float, optional (default=0.1)
-        The desired controlled False Discovery Rate (FDR) level.
-
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
-            
+  
     estimator : sklearn estimator instance, optional
         The estimator used for fitting the data and computing the test statistics.
         This can be any estimator with a `fit` method that accepts a 2D array and
         a 1D array, and a `coef_` attribute that returns a 1D array of coefficients.
         Examples include LassoCV, LogisticRegressionCV, and LinearRegression.
+        Configuration example:
+            LassoCV(alphas=lambdas, n_jobs=None, verbose=0, max_iter=1000,
+                cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
+            LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
+                cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None, tol=1e-8)
+            LogisticRegressionCV(penalty="l2", max_iter=1000, n_jobs=None,
+                verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8,)
 
     preconfigure_estimator : function, optional
         A function that configures the estimator for the Model-X knockoff procedure.
@@ -148,8 +147,6 @@ def model_x_knockoff(
     ----------
     .. footbibliography::
     """
-    n_samples, n_features = X.shape
-    
     if centered:
         X = StandardScaler().fit_transform(X)
 
@@ -164,9 +161,174 @@ def model_x_knockoff(
         X, mu, sigma, seed=seed
     )
     
+    test_score = _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator)
+
+    return test_score 
+
+def knockoff_aggregation(
+    X,
+    y,
+    estimator=LassoCV(n_jobs=None, verbose=0,max_iter=1000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-8),
+    preconfigure_estimator = preconfigure_estimator_LaccosCV,
+    centered=True,
+    cov_estimator=LedoitWolf(assume_centered=True),
+    joblib_verbose=0,
+    n_bootstraps=25,
+    n_jobs=1,
+    random_state=None,
+):
+    assert n_bootstraps <= 1, "the number of bootstraps should at least higher than 1"
+    # unnecessary to have n_jobs > number of bootstraps
+    n_jobs = min(n_bootstraps, n_jobs)
+    parallel = Parallel(n_jobs, verbose=joblib_verbose)
+    
+    # get the seed for the different run
+    if isinstance(random_state, (int, np.int32, np.int64)):
+        rng = check_random_state(random_state)
+    elif random_state is None:
+        rng = check_random_state(0)
+    else:
+        raise TypeError("Wrong type for random_state")
+    seed_list = rng.randint(1, np.iinfo(np.int32).max, n_bootstraps)
+    
+    if centered:
+        X = StandardScaler().fit_transform(X)
+
+    # estimation of X distribution
+    mu = X.mean(axis=0)
+    sigma = cov_estimator.fit(X).covariance_
+
+    # Create knockoff variables
+    X_tilde, (Mu_tilde, sigma_tilde_decompose)  = gaussian_knockoff_generation(
+            X, mu, sigma, seed=seed_list[0], repeat=True
+        )
+    X_tildes = parallel(
+        delayed(repeat_gaussian_knockoff_generation)(
+            Mu_tilde, sigma_tilde_decompose, seed=seed
+        )
+        for seed in seed_list[1:]
+    )
+    X_tildes.insert(0, X_tilde)
+    
+    test_scores = parallel(
+        delayed(_stat_coefficient_diff)(X, X_tilde[i], y, estimator, preconfigure_estimator)
+        for i in range(n_bootstraps)
+    )
+
+    return test_scores
+    
+
+def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
+    """
+    Calculate the p-values and return the selected variables based on the knockoff filter.
+
+    Parameters
+    ----------
+    test_score : 1D array, (n_features, )
+        A vector of test statistics.
+
+    fdr : float, optional (default=0.1)
+        The desired controlled False Discovery Rate (FDR) level.
+
+    offset : int, 0 or 1, optional (default=1)
+        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
+        knockoff+.
+
+    selection_only : bool, optional (default=True)
+        Whether to return only the selected variables or additional information.
+        If True, the function will return only the selected variables. If False,
+        the function will return the selected variables, the threshold, and the test scores.
+
+    Returns
+    -------
+    selected : 1D array, int
+        A vector of indices of the selected variables.
+
+    threshold : float
+        The knockoff threshold.
+
+    test_score : 1D array, (n_features, )
+        A vector of test statistics.
+
+    Notes
+    -----
+    This function calculates the knockoff threshold based on the test statistics and the
+    desired FDR level. It then identifies the selected variables based on the threshold.
+    """
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+    
+    # run the knockoff filter
+    threshold = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
+    selected = np.where(test_score >= threshold)[0]
+
+    if selection_only:
+        return selected
+    else:
+        return selected, threshold
+
+
+def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1, selection_only=True):
+    """
+    This function implements the computation of the empirical p-values
+    """
+    pvals = _empirical_pval(test_score, offset)
+    threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
+    selected = np.where(pvals <= threshold)[0]
+
+    if selection_only:
+        return selected
+    else:
+        return selected, pvals
+
+
+def model_x_knockoff_bootstrap_e_value(test_score, fdr=0.1, offset=1, selection_only=True):
+        n_bootstraps = len(test_score)
+        evals = np.array(
+            [_empirical_eval(test_score[i], fdr / 2, offset) for i in range(n_bootstraps)]
+        )
+
+        aggregated_eval = np.mean(evals, axis=0)
+        threshold = fdr_threshold(aggregated_eval, fdr=fdr, method="ebh")
+        selected = np.where(aggregated_eval >= threshold)[0]
+
+        if selection_only:
+            return selected
+        else:
+            return selected, aggregated_eval, evals
+
+
+def model_x_knockoff_bootstrap_quantile(test_score, fdr=0.1,  fdr_control="bhq", reshaping_function=None, adaptive_aggregation=False, gamma=0.5, gamma_min=0.05, offset=1, selection_only=True):
+        n_bootstraps = len(test_score)
+        pvals = np.array(
+            [_empirical_pval(test_score[i], offset) for i in range(n_bootstraps)]
+        )
+
+        aggregated_pval = quantile_aggregation(
+            pvals, gamma=gamma, gamma_min=gamma_min, adaptive=adaptive_aggregation
+        )
+
+        threshold = fdr_threshold(
+            aggregated_pval,
+            fdr=fdr,
+            method=fdr_control,
+            reshaping_function=reshaping_function,
+        )
+        selected = np.where(aggregated_pval <= threshold)[0]
+
+        if selection_only:
+            return selected
+        else:
+            return selected, aggregated_pval, pvals
+
+
+def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None):
     # Compute statistic base on a cross validation
     # original implementation:
     # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/stats_glmnet_cv.R
+    n_samples, n_features = X.shape
     X_ko = np.column_stack([X, X_tilde])
     if preconfigure_estimator is not None:
         preconfigure_estimator(estimator, X, X_tilde, y)
@@ -176,12 +338,87 @@ def model_x_knockoff(
     elif hasattr(estimator, 'best_estimator_') and hasattr(estimator.best_estimator_, 'coef_'):
         coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
-    
-    # run the knockoff filter 
-    threshold = coef_diff_threshold(test_score, fdr=fdr, offset=offset)
-    selected = np.where(test_score >= threshold)[0]
+    return test_score
 
-    if verbose:
-        return selected, threshold, test_score, X_tilde, estimator
-    else:
-        return selected
+
+def _knockoff_threshold(test_score, fdr=0.1, offset=1):
+    """
+    Calculate the knockoff threshold based on the procedure stated in the
+    article.
+    
+    original code:
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
+
+    Parameters
+    ----------
+    test_score : 1D ndarray, shape (n_features, )
+        vector of test statistic
+
+    fdr : float, optional
+        desired controlled FDR(false discovery rate) level
+
+    offset : int, 0 or 1, optional
+        offset equals 1 is the knockoff+ procedure
+
+    Returns
+    -------
+    threshold : float or np.inf
+        threshold level
+    """
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+
+    threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
+    np.concatenate([[0], threshold_mesh, [np.inf]]) # if there is no solution, the threshold is inf
+    # find the right value of t for getting a good fdr
+    threshold = 0.
+    for threshold in threshold_mesh:
+        false_pos = np.sum(test_score <= -threshold)
+        selected = np.sum(test_score >= threshold)
+        if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
+            break
+    return threshold
+
+def _empirical_knockoff_pval(test_score, offset=1):
+    """
+    This function implements the computation of the empirical p-values
+    from knockoff test
+    """
+    pvals = []
+    n_features = test_score.size
+
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+
+    test_score_inv = -test_score
+    for i in range(n_features):
+        if test_score[i] <= 0:
+            pvals.append(1)
+        else:
+            pvals.append(
+                (offset + np.sum(test_score_inv >= test_score[i])) / n_features
+            )
+
+    return np.array(pvals)
+
+
+def _empirical_konckoff_eval(test_score, fdr=0.1, offset=1):
+    """
+    This function implements the computation of the empirical e-values
+    from knockoff test
+    """
+    evals = []
+    n_features = test_score.size
+
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+
+    ko_thr = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
+
+    for i in range(n_features):
+        if test_score[i] < ko_thr:
+            evals.append(0)
+        else:
+            evals.append(n_features / (offset + np.sum(test_score <= -ko_thr)))
+
+    return np.array(evals)
