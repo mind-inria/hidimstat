@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-# Authors: Binh Nguyen <tuan-binh.nguyen@inria.fr>
-"""
-Implementation of Model-X knockoffs inference procedure, introduced in
-Candes et. al. (2016) " Panning for Gold: Model-X Knockoffs for
-High-dimensional Controlled Variable Selection"
-<https://arxiv.org/abs/1610.02351>
-"""
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.covariance import LedoitWolf
