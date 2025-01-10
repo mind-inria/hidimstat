@@ -390,3 +390,42 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
     )
 
     return two_sided_pval, two_sided_pval_corr
+
+
+def coef_diff_threshold(test_score, fdr=0.1, offset=1):
+    """
+    Calculate the knockoff threshold based on the procedure stated in the
+    article.
+    
+    original code:
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
+
+    Parameters
+    ----------
+    test_score : 1D ndarray, shape (n_features, )
+        vector of test statistic
+
+    fdr : float, optional
+        desired controlled FDR(false discovery rate) level
+
+    offset : int, 0 or 1, optional
+        offset equals 1 is the knockoff+ procedure
+
+    Returns
+    -------
+    threshold : float or np.inf
+        threshold level
+    """
+    if offset not in (0, 1):
+        raise ValueError("'offset' must be either 0 or 1")
+
+    threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
+    np.concatenate([[0], threshold_mesh, [np.inf]]) # if there is no solution, the threshold is inf
+    # find the right value of t for getting a good fdr
+    threshold = 0.
+    for threshold in threshold_mesh:
+        false_pos = np.sum(test_score <= -threshold)
+        selected = np.sum(test_score >= threshold)
+        if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
+            break
+    return threshold
