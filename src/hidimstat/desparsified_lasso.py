@@ -18,14 +18,17 @@ def desparsified_lasso(
     max_iter=5000,
     tol=1e-3,
     alpha_max_fraction=0.01,
+    tol_reid=1e-4,
+    eps=1e-2,
+    n_split=5,
     n_jobs=1,
+    seed=0,
     verbose=0,
 ):
     """
     Desparsified Lasso with confidence intervals
     
-    FIXME: fix citation of the algorithm
-    Algorithm based Algo 1 of d-Lasso in [6]
+    Algorithm based Algo 1 of d-Lasso in :cite:`chevalier2020statistical`
 
     Parameters
     ----------
@@ -36,9 +39,11 @@ def desparsified_lasso(
         Target.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, makes the degrees of freedom adjustement (cf. [4]_ and [5]_).
+        If True, makes the degrees of freedom adjustement (cf. 
+        :footcite:`bellec2022biasing` and :footcite:`celentano2023lasso`).
         Otherwise, the original Desparsified Lasso estimator is computed
-        (cf. [1]_ and [2]_ and [3]_).
+        (cf. :footcite:`zhang2014confidence` and :footcite:`van2014asymptotically` and
+        :footcite:`javanmard2014confidence`).
 
     confidence : float, optional (default=0.95)
         Confidence level used to compute the confidence intervals.
@@ -88,28 +93,7 @@ def desparsified_lasso(
 
     References
     ----------
-    .. [1] Zhang, C. H., & Zhang, S. S. (2014). Confidence intervals for
-           low dimensional parameters in high dimensional linear models.
-           Journal of the Royal Statistical Society: Series B: Statistical
-           Methodology, 217-242.
-
-    .. [2] Van de Geer, S., Bühlmann, P., Ritov, Y. A., & Dezeure, R. (2014).
-           On asymptotically optimal confidence regions and tests for
-           high-dimensional models. Annals of Statistics, 42(3), 1166-1202.
-
-    .. [3] Javanmard, A., & Montanari, A. (2014). Confidence intervals and
-           hypothesis testing for high-dimensional regression. The Journal
-           of Machine Learning Research, 15(1), 2869-2909.
-
-    .. [4] Bellec, P. C., & Zhang, C. H. (2019). De-biasing the lasso with
-           degrees-of-freedom adjustment. arXiv preprint arXiv:1902.08885.
-
-    .. [5] Celentano, M., Montanari, A., & Wei, Y. (2020). The Lasso with
-           general Gaussian designs with applications to hypothesis testing.
-           arXiv preprint arXiv:2007.13716.
-    .. [6] Chevalier, Jérôme-Alexis. “Statistical Control of Sparse Models in High Dimension.” 
-           Phdthesis, Université Paris-Saclay, 2020. https://theses.hal.science/tel-03147200.
-
+    .. footbibliography::
     """
 
     X_ = np.asarray(X)
@@ -124,9 +108,9 @@ def desparsified_lasso(
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     
     # Lasso regression and noise standard deviation estimation
-    #TODO: other estimation of the noise standard deviation?
-    #      or add all the parameters of reid in the function?
-    sigma_hat, beta_lasso = reid(X_, y_, n_jobs=n_jobs)
+    sigma_hat, beta_lasso = reid(X_, y_, eps=eps, tol=tol_reid,
+                                 max_iter=max_iter, n_split=n_split,
+                                 n_jobs=n_jobs, seed=seed)
 
     # compute the Gram matrix
     gram = np.dot(X_.T, X_)
@@ -205,13 +189,19 @@ def desparsified_group_lasso(
     alpha_max_fraction=0.01,
     noise_method="AR",
     order=1,
+    fit_Y=True,
+    stationary=True,
+    eps=True,
+    tol_reid=1e-4,
+    n_split=5,
+    seed=0,
     n_jobs=1,
     verbose=0,
 ):
     """
     Desparsified Group Lasso
 
-    Algorithm based Algorithm 1 of d-MTLasso in [1]
+    Algorithm based Algorithm 1 of d-MTLasso in :cite:`chevalier2020statistical`
     
 
     Parameters
@@ -282,10 +272,7 @@ def desparsified_group_lasso(
 
     References
     ----------
-    .. [1] Chevalier, J. A., Gramfort, A., Salmon, J., & Thirion, B. (2020).
-           Statistical control for spatio-temporal MEG/EEG source imaging with
-           desparsified multi-task Lasso. In NeurIPS 2020-34h Conference on
-           Neural Information Processing Systems.
+    .. footbibliography::
     """
 
     X_ = np.asarray(X)
@@ -305,10 +292,10 @@ def desparsified_group_lasso(
 
     
     # Lasso regression and noise standard deviation estimation
-    #TODO: other estimation of the noise standard deviation?
-    #      or add all the parameters of group reid in the function?
     cov_hat, beta_mtl = group_reid(
-        X_, Y_, method=noise_method, order=order, n_jobs=n_jobs
+        X_, Y_, method=noise_method, order=order, n_jobs=n_jobs,
+        fit_Y=fit_Y, stationary=stationary, eps=eps, tol=tol_reid,
+        max_iter=max_iter, n_split=n_split, seed=seed,
     )
     if cov is not None:
         cov_hat = cov
