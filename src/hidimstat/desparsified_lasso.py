@@ -206,7 +206,6 @@ def desparsified_group_lasso(
     noise_method="AR",
     order=1,
     n_jobs=1,
-    memory=None,
     verbose=0,
 ):
     """
