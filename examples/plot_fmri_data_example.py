@@ -53,12 +53,14 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import LinearSVR
 
 from hidimstat.adaptive_permutation_threshold import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.permutation_test import permutation_test, permutation_test_cv
-from hidimstat.standardized_svr import standardized_svr
+from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
 
@@ -139,7 +141,9 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 # We precomputed the regularization parameter by CV (C = 0.1) to reduce the
 # computation time of the example.
-beta_hat, scale = standardized_svr(X, y, Cs=[0.1])
+beta_hat, scale = empirical_thresholding(X, y, linear_estimator=GridSearchCV(
+        LinearSVR(), param_grid={"C": [0.1]}, n_jobs=None
+    ))
 pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 #############################################################################

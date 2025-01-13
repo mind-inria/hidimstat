@@ -1,16 +1,16 @@
 """
-Test the standardized_svr module
+Test the empirical thresholding module
 """
 
 import numpy as np
 from numpy.testing import assert_almost_equal
 
 from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.empirical_thresholding import standardized_svr
+from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.stat_tools import pval_from_scale
 
 
-def test_standardized_svr():
+def test_emperical_thresholding():
     """Testing the procedure on a simulation with no structure and a support
     of size 1. Computing one-sided p-values, we want a low p-value
     for the first feature and p-values close to 0.5 for the others."""
@@ -33,7 +33,7 @@ def test_standardized_svr():
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)
 
-    beta_hat, scale_hat = standardized_svr(X_init, y)
+    beta_hat, scale_hat = empirical_thresholding(X_init, y)
 
     pval, pval_corr, _, _ = pval_from_scale(beta_hat, scale_hat)
 

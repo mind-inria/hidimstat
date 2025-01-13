@@ -9,7 +9,7 @@ from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
 from .permutation_test import permutation_test_cv
 from .scenario import multivariate_1D_simulation
-from .empirical_thresholding import standardized_svr
+from .empirical_thresholding import empirical_thresholding
 from .stat_tools import zscore_from_pval
 from .cpi import CPI
 from .loco import LOCO
@@ -36,7 +36,7 @@ __all__ = [
     "multivariate_1D_simulation",
     "permutation_test_cv",
     "reid",
-    "standardized_svr",
+    "empirical_thresholding",
     "zscore_from_pval",
     "CPI",
     "LOCO",
