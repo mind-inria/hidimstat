@@ -55,7 +55,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
 
     Sigma_inv_s = np.linalg.solve(sigma, Diag_s)
 
-    # First part on the RHS of equation 1.4 in Barber & Candes (2015)
+    # First part on the RHS of equation 1.4 in barber2015controlling
     Mu_tilde = X - np.dot(X - mu, Sigma_inv_s)
     # To calculate the Cholesky decomposition later on
     sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s.dot(Diag_s)) #TODO extra operation Sigma_inv_s.dot(Diag_s) ??????
@@ -67,7 +67,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
             "definite. Adding minor positive value to the matrix.", UserWarning
         )
 
-    # Equation 1.4 in Barber & Candes (2015)
+    # Equation 1.4 in barber2015controlling
     sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
     X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
 

@@ -552,7 +552,7 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None
         coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
     else:
         raise ValueError("estimator should be linear")
-    # Equation 1.7 in Barber & Candes (2015) or 3.6 of Candes (2018)
+    # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
     return test_score
 
@@ -588,7 +588,7 @@ def _knockoff_threshold(test_score, fdr=0.1, offset=1):
         [[0], threshold_mesh, [np.inf]]
     )  # if there is no solution, the threshold is inf
     # find the right value of t for getting a good fdr
-    # Equation 1.8 of Barber & Candes (2015) and 3.10 in Candès 2018 
+    # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018 
     threshold = 0.0
     for threshold in threshold_mesh:
         false_pos = np.sum(test_score <= -threshold)
