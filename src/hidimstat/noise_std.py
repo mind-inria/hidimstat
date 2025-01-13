@@ -7,12 +7,10 @@ from sklearn.model_selection import KFold
 
 def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
     """
-    FIXME: citation
-    Smoothly Clipped Absolute Deviation Penalty (SCAD) of Fan and Li (2001)
+    Residual sum of squares based estimators :footcite:`fan2012variance`.
     
-    FIXME: citation
     Estimation of noise standard deviation using the most promissing procedure
-    of Reid et al. (2016) [1] by comparison. 
+    of :cite:`reid2016study` by comparison. 
 
     Parameters
     ----------
@@ -54,12 +52,7 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
 
     References
     ----------
-    .. [1] Reid, S., Tibshirani, R., & Friedman, J. (2016). A study of error
-           variance estimation in lasso regression. Statistica Sinica, 35-67.
-       [2] Fan, J., Guo, S., & Hao, N. (2012). Variance estimation using refitted 
-           cross-validation in ultrahigh dimensional regression. Journal of the Royal 
-           Statistical Society Series B: Statistical Methodology, 74(1), 37-65.
-           
+    .. footbibliography::
     """
 
     X_ = np.asarray(X)
@@ -75,21 +68,18 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
     clf_lasso_cv = LassoCV(
         eps=eps, fit_intercept=False, cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs
     )
-    # fit LassoCV
     clf_lasso_cv.fit(X_, y)
     
-    # get coefficients and residuals
+    # Estimate the support of the variable importance
     beta_hat = clf_lasso_cv.coef_
     residual = clf_lasso_cv.predict(X_) - y
-
     # get the number of non-zero coefficients
     coef_max = np.max(np.abs(beta_hat))
     size_support = np.sum(np.abs(beta_hat) > tol * coef_max)
     # avoid dividing by 0
     size_support = min(size_support, n_samples - 1)
 
-    #FIXME: citation
-    # estimate the noise standard deviation (eq. 7 in [1])
+    # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
     sigma_hat = norm(residual) / np.sqrt(n_samples - size_support)
 
     return sigma_hat, beta_hat
@@ -110,7 +100,8 @@ def group_reid(
     seed=0,
 ):
     """
-    Estimation of the covariance matrix using group Reid procedure
+    Estimation of the covariance matrix using group Reid procedure :footcite:`chevalier2020statistical`
+    This estimation is based on the promissing procedure describe in :cite:`reid2016study` and presented in :cite:`fan2012variance`.
 
     Parameters
     ----------
@@ -137,7 +128,7 @@ def group_reid(
         In this case, the noise is considered to be stationary, i.e the 
         magnitude of the noise is constant for each time step.
         If 'AR', the order of the autoregressive (AR) model is given 
-        by `order` and Yule-Walker method is used to estimate the 
+        by `order` and Yule-Walker method :footcite:`eshel2003yule` is used to estimate the 
         covariance matrix. In this case, the noise is considered to be 
         non-stationary, i.e. the magnitude of the noise is not constant.
 
@@ -178,14 +169,7 @@ def group_reid(
 
     References
     ----------
-    .. [1] Chevalier, J. A., Gramfort, A., Salmon, J., & Thirion, B. (2020).
-           Statistical control for spatio-temporal MEG/EEG source imaging with
-           desparsified multi-task Lasso. In NeurIPS 2020-34h Conference on
-           Neural Information Processing Systems.
-    .. [2] Reid, S., Tibshirani, R., & Friedman, J. (2016). A study of error
-            variance estimation in lasso regression. Statistica Sinica, 35-67.
-    .. [3] Eshel, G. (2003). The yule walker equations for the AR coefficients. 
-            Internet resource, 2, 68-73.
+    .. footbibliography::
     """
 
     X_ = np.asarray(X)
@@ -238,19 +222,21 @@ def group_reid(
         size_support = min(size_support, n_samples - 1)
 
     else:
+        # null model
+        # TODO Why?
         beta_hat = np.zeros((n_features, n_times))
         residual = np.copy(Y)
         size_support = 0
 
-    #FIXME: citation
-    # estimate the noise standard deviation (eq. 7 in [2])
+    # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
+    ## compute emperical correlation of the residual
     if stationary:
         #FIXME citation
-        # consideration of stationary noise (section 2.5 of [2]) 
+        # consideration of stationary noise (section 2.5 of `chevalier2020statistical`) 
         sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
-        # compute rho from the empirical correlation matrix (section 2.5 of [2]) 
+        # compute rho from the empirical correlation matrix (section 2.5 of `chevalier2020statistical`) 
         corr_emp = np.corrcoef(residual.T)
     else:
         sigma_hat = sigma_hat_raw
@@ -261,13 +247,11 @@ def group_reid(
     # Median method
     if not stationary or method == "simple":
         rho_hat = np.median(np.diag(corr_emp, 1))
-        #FIXME citation
-        # estimate M (section 2.5 of [2]) 
+        # estimate M (section 2.5 of `chevalier2020statistical`) 
         corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
-    #FIXME citation
-    # Yule-Walker method (algorithm in section 3 of [3])
+    # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
     elif stationary and method == "AR":
         # compute the autocorrelation coefficients of the AR model
         rho_ar = np.zeros(order + 1)
@@ -276,8 +260,7 @@ def group_reid(
         for i in range(1, order + 1):
             rho_ar[i] = np.median(np.diag(corr_emp, i))
 
-        #FIXME citation
-        # solve the Yule-Walker equations (see eq.2 in [3])
+        # solve the Yule-Walker equations (see eq.2 in `eshel2003yule`)
         R = toeplitz(rho_ar[:-1])
         coef_ar = solve(R, rho_ar[1:])
 
