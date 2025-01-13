@@ -291,15 +291,21 @@ def group_reid(
         residual_diff = residual[:, order:] - residual_estimate
         sigma_eps = np.median(norm(residual_diff, axis=0) / np.sqrt(n_samples))
 
+        # estimation of the autocorrelation matrices
         rho_ar_full = np.zeros(n_times)
         rho_ar_full[: rho_ar.size] = rho_ar
         for i in range(order + 1, n_times):
             start = i - order
             end = i
             rho_ar_full[i] = np.dot(coef_ar[::-1], rho_ar_full[start:end])
-
         corr_hat = toeplitz(rho_ar_full)
+        
+        # estimation of the variance of an AR process
+        # from wikipedia it should be  VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
+        # TODO there is a short difference in the code
         sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
+        # estimation of the covariance based on the correlation matrix and sigma
+        # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2 
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
     return cov_hat, beta_hat
@@ -307,7 +313,7 @@ def group_reid(
 
 def empirical_snr(X, y, beta, noise=None):
     """
-    Compute the SNR for the linear model: y = X beta + noise
+    Compute the signal noise ratio (SNR) for the linear model: y = X beta + noise
 
     Parameters
     ----------
