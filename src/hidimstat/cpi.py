@@ -236,7 +236,9 @@ class CPI(BaseEstimator):
 
         y_pred = getattr(self.estimator, self.method)(X)
 
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        # In sklearn API y_true is the first argument. Not specifying `y_true=...`
+        # will allows using other losses such as `hinge_loss`.
+        loss_reference = self.loss(y, y_pred)
         out_dict["loss_reference"] = loss_reference
 
         y_pred_perm = self.predict(X, y)
@@ -245,7 +247,7 @@ class CPI(BaseEstimator):
         for j, y_pred_j in enumerate(y_pred_perm):
             list_loss_perm = []
             for y_pred_perm in y_pred_j:
-                list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
+                list_loss_perm.append(self.loss(y, y_pred_perm))
             out_dict["loss_perm"][j] = np.array(list_loss_perm)
 
         out_dict["importance"] = np.array(
