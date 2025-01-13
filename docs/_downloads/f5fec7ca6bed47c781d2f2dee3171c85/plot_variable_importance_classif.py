@@ -29,7 +29,7 @@ from scipy.linalg import toeplitz
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import log_loss
+from sklearn.metrics import hinge_loss
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.svm import SVC
 
@@ -163,7 +163,7 @@ for train, test in cv.split(X, y):
         imputation_model=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
-        loss=log_loss,
+        loss=hinge_loss,
         random_state=seed,
         method="decision_function",
     )
@@ -177,7 +177,7 @@ for train, test in cv.split(X, y):
         imputation_model=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
-        loss=log_loss,
+        loss=hinge_loss,
         random_state=seed,
         method="decision_function",
     )
