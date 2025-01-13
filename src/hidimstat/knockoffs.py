@@ -6,7 +6,10 @@ from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 from joblib import Parallel, delayed
 
-from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, repeat_gaussian_knockoff_generation
+from hidimstat.gaussian_knockoff import (
+    gaussian_knockoff_generation,
+    repeat_gaussian_knockoff_generation,
+)
 from hidimstat.utils import fdr_threshold, quantile_aggregation
 
 
@@ -53,8 +56,8 @@ def preconfigure_estimator_LaccosCV(estimator, X, X_tilde, y, n_lambdas=10):
     This function is specifically designed for the Model-X knockoffs procedure,
     which combines original and knockoff variables in the design matrix.
     """
-    if type(estimator).__name__ != 'LassoCV':
-        raise TypeError('You should not use this function for configure your estimator')
+    if type(estimator).__name__ != "LassoCV":
+        raise TypeError("You should not use this function for configure your estimator")
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
@@ -66,10 +69,14 @@ def preconfigure_estimator_LaccosCV(estimator, X, X_tilde, y, n_lambdas=10):
 def model_x_knockoff(
     X,
     y,
-    estimator=LassoCV(n_jobs=None, verbose=0,max_iter=1000,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-8),
-    preconfigure_estimator = preconfigure_estimator_LaccosCV,
+    estimator=LassoCV(
+        n_jobs=None,
+        verbose=0,
+        max_iter=1000,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-8,
+    ),
+    preconfigure_estimator=preconfigure_estimator_LaccosCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     seed=None,
@@ -145,22 +152,26 @@ def model_x_knockoff(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde = gaussian_knockoff_generation(
-        X, mu, sigma, seed=seed
-    )
-    
-    test_score = _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator)
+    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed)
 
-    return test_score 
+    test_score = _stat_coefficient_diff(
+        X, X_tilde, y, estimator, preconfigure_estimator
+    )
+
+    return test_score
 
 
 def model_x_knockoff_aggregation(
     X,
     y,
-    estimator=LassoCV(n_jobs=None, verbose=0,max_iter=1000,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-8),
-    preconfigure_estimator = preconfigure_estimator_LaccosCV,
+    estimator=LassoCV(
+        n_jobs=None,
+        verbose=0,
+        max_iter=1000,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-8,
+    ),
+    preconfigure_estimator=preconfigure_estimator_LaccosCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     joblib_verbose=0,
@@ -222,7 +233,7 @@ def model_x_knockoff_aggregation(
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
-    
+
     # get the seed for the different run
     if isinstance(random_state, (int, np.int32, np.int64)):
         rng = check_random_state(random_state)
@@ -231,7 +242,7 @@ def model_x_knockoff_aggregation(
     else:
         raise TypeError("Wrong type for random_state")
     seed_list = rng.randint(1, np.iinfo(np.int32).max, n_bootstraps)
-    
+
     if centered:
         X = StandardScaler().fit_transform(X)
 
@@ -240,9 +251,9 @@ def model_x_knockoff_aggregation(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde, (Mu_tilde, sigma_tilde_decompose)  = gaussian_knockoff_generation(
-            X, mu, sigma, seed=seed_list[0], repeat=True
-        )
+    X_tilde, (Mu_tilde, sigma_tilde_decompose) = gaussian_knockoff_generation(
+        X, mu, sigma, seed=seed_list[0], repeat=True
+    )
     X_tildes = parallel(
         delayed(repeat_gaussian_knockoff_generation)(
             Mu_tilde, sigma_tilde_decompose, seed=seed
@@ -250,14 +261,16 @@ def model_x_knockoff_aggregation(
         for seed in seed_list[1:]
     )
     X_tildes.insert(0, X_tilde)
-    
+
     test_scores = parallel(
-        delayed(_stat_coefficient_diff)(X, X_tildes[i], y, estimator, preconfigure_estimator)
+        delayed(_stat_coefficient_diff)(
+            X, X_tildes[i], y, estimator, preconfigure_estimator
+        )
         for i in range(n_bootstraps)
     )
 
     return test_scores
-    
+
 
 def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
     """
@@ -295,7 +308,7 @@ def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
     """
     if offset not in (0, 1):
         raise ValueError("'offset' must be either 0 or 1")
-    
+
     # run the knockoff filter
     threshold = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
     selected = np.where(test_score >= threshold)[0]
@@ -306,7 +319,9 @@ def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
         return selected, threshold
 
 
-def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1, selection_only=True):
+def model_x_knockoff_pvalue(
+    test_score, fdr=0.1, fdr_control="bhq", offset=1, selection_only=True
+):
     """
     This function implements the computation of the empirical p-values
 
@@ -353,7 +368,9 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1, se
         return selected, pvals
 
 
-def model_x_knockoff_bootstrap_e_value(test_scores, fdr=0.1, offset=1, selection_only=True):
+def model_x_knockoff_bootstrap_e_value(
+    test_scores, fdr=0.1, offset=1, selection_only=True
+):
     """
     This function implements the computation of the empirical e-values
     from knockoff test and aggregates them using the e-BH procedure.
@@ -392,7 +409,10 @@ def model_x_knockoff_bootstrap_e_value(test_scores, fdr=0.1, offset=1, selection
     """
     n_bootstraps = len(test_scores)
     evals = np.array(
-        [_empirical_knockoff_eval(test_scores[i], fdr / 2, offset) for i in range(n_bootstraps)]
+        [
+            _empirical_knockoff_eval(test_scores[i], fdr / 2, offset)
+            for i in range(n_bootstraps)
+        ]
     )
 
     aggregated_eval = np.mean(evals, axis=0)
@@ -405,7 +425,17 @@ def model_x_knockoff_bootstrap_e_value(test_scores, fdr=0.1, offset=1, selection
         return selected, aggregated_eval, evals
 
 
-def model_x_knockoff_bootstrap_quantile(test_scores, fdr=0.1,  fdr_control="bhq", reshaping_function=None, adaptive_aggregation=False, gamma=0.5, gamma_min=0.05, offset=1, selection_only=True):
+def model_x_knockoff_bootstrap_quantile(
+    test_scores,
+    fdr=0.1,
+    fdr_control="bhq",
+    reshaping_function=None,
+    adaptive_aggregation=False,
+    gamma=0.5,
+    gamma_min=0.05,
+    offset=1,
+    selection_only=True,
+):
     """
     This function implements the computation of the empirical p-values
     from knockoff test and aggregates them using the quantile aggregation procedure.
@@ -514,10 +544,15 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None
     if preconfigure_estimator is not None:
         preconfigure_estimator(estimator, X, X_tilde, y)
     estimator.fit(X_ko, y)
-    if hasattr(estimator, 'coef_'):
+    if hasattr(estimator, "coef_"):
         coef = np.ravel(estimator.coef_)
-    elif hasattr(estimator, 'best_estimator_') and hasattr(estimator.best_estimator_, 'coef_'):
+    elif hasattr(estimator, "best_estimator_") and hasattr(
+        estimator.best_estimator_, "coef_"
+    ):
         coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
+    else:
+        raise ValueError("estimator should be linear")
+    # Equation 1.7 in Barber & Candes (2015) or 3.6 of Candes (2018)
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
     return test_score
 
@@ -549,15 +584,19 @@ def _knockoff_threshold(test_score, fdr=0.1, offset=1):
         raise ValueError("'offset' must be either 0 or 1")
 
     threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    np.concatenate([[0], threshold_mesh, [np.inf]]) # if there is no solution, the threshold is inf
+    np.concatenate(
+        [[0], threshold_mesh, [np.inf]]
+    )  # if there is no solution, the threshold is inf
     # find the right value of t for getting a good fdr
-    threshold = 0.
+    # Equation 1.8 of Barber & Candes (2015) and 3.10 in Candès 2018 
+    threshold = 0.0
     for threshold in threshold_mesh:
         false_pos = np.sum(test_score <= -threshold)
         selected = np.sum(test_score >= threshold)
         if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
             break
     return threshold
+
 
 def _empirical_knockoff_pval(test_score, offset=1):
     """

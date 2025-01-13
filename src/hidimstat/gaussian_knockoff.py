@@ -12,6 +12,9 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     the vector of empirical mean values mu, and the empirical covariance
     matrix sigma. It returns the knockoff variables X_tilde.
 
+    The original implementation can be found at 
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_gaussian.R
+
     Parameters
     ----------
     X: 2D ndarray (n_samples, n_features)
