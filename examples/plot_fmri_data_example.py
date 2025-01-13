@@ -141,9 +141,11 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 # We precomputed the regularization parameter by CV (C = 0.1) to reduce the
 # computation time of the example.
-beta_hat, scale = empirical_thresholding(X, y, linear_estimator=GridSearchCV(
-        LinearSVR(), param_grid={"C": [0.1]}, n_jobs=None
-    ))
+beta_hat, scale = empirical_thresholding(
+    X,
+    y,
+    linear_estimator=GridSearchCV(LinearSVR(), param_grid={"C": [0.1]}, n_jobs=None),
+)
 pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 #############################################################################
