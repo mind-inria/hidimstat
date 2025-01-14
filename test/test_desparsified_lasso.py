@@ -7,7 +7,10 @@ from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
 
 from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
-from hidimstat.desparsified_lasso import desparsified_group_lasso, desparsified_group_lasso_pvalue
+from hidimstat.desparsified_lasso import (
+    desparsified_group_lasso,
+    desparsified_group_lasso_pvalue,
+)
 from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
@@ -47,8 +50,10 @@ def test_desparsified_lasso():
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)
-    
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = desparsified_lasso_pvalue(cb_min, cb_max)
+
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = desparsified_lasso_pvalue(
+        cb_min, cb_max
+    )
 
     expected_pval_corr = np.concatenate(
         (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))

@@ -31,7 +31,7 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
 
     max_iter : int, optional (default=10000)
         Maximum number of iterations for the optimization algorithm.
-    
+
     n_split : int, optional (default=5)
         Number of folds for cross-validation.
 
@@ -68,7 +68,7 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
         eps=eps, fit_intercept=False, cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs
     )
     clf_lasso_cv.fit(X_, y)
-    
+
     # Estimate the support of the variable importance
     beta_hat = clf_lasso_cv.coef_
     residual = clf_lasso_cv.predict(X_) - y
@@ -135,7 +135,7 @@ def group_reid(
 
     max_iter : int, default=10000
         Maximum number of iterations.
-    
+
     n_split : int, default=5
         Number of cross-validation folds.
 
@@ -196,7 +196,7 @@ def group_reid(
         )
         # fit LassoCV
         clf_mtlcv.fit(X_, Y)
-        
+
         # get coefficients and residuals
         beta_hat = clf_mtlcv.coef_
         residual = clf_mtlcv.predict(X_) - Y
@@ -209,7 +209,7 @@ def group_reid(
 
     else:
         # null model
-        # TODO Why?
+        # TODO Why do we need a null model?
         beta_hat = np.zeros((n_features, n_times))
         residual = np.copy(Y)
         size_support = 0
@@ -219,20 +219,20 @@ def group_reid(
 
     ## compute emperical correlation of the residual
     if stationary:
-        # consideration of stationary noise (section 2.5 of `chevalier2020statistical`) 
+        # consideration of stationary noise (section 2.5 of `chevalier2020statistical`)
         sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
-        # compute rho from the empirical correlation matrix (section 2.5 of `chevalier2020statistical`) 
+        # compute rho from the empirical correlation matrix (section 2.5 of `chevalier2020statistical`)
         corr_emp = np.corrcoef(residual.T)
     else:
         sigma_hat = sigma_hat_raw
         residual_rescaled = residual / sigma_hat
         corr_emp = np.corrcoef(residual_rescaled.T)
 
-    #TODO: name of the method different than the name of the "function"
+    # TODO: Why the name of the method is different than the name of the "function"?
     # Median method
     if not stationary or method == "simple":
         rho_hat = np.median(np.diag(corr_emp, 1))
-        # estimate M (section 2.5 of `chevalier2020statistical`) 
+        # estimate M (section 2.5 of `chevalier2020statistical`)
         corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
@@ -267,13 +267,13 @@ def group_reid(
             end = i
             rho_ar_full[i] = np.dot(coef_ar[::-1], rho_ar_full[start:end])
         corr_hat = toeplitz(rho_ar_full)
-        
+
         # estimation of the variance of an AR process
         # from wikipedia it should be  VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
         # TODO there is a short difference between the code and the above formula
         sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
         # estimation of the covariance based on the correlation matrix and sigma
-        # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2 
+        # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
         cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
     return cov_hat, beta_hat

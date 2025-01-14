@@ -27,7 +27,7 @@ def desparsified_lasso(
 ):
     """
     Desparsified Lasso with confidence intervals
-    
+
     Algorithm based on Algorithm 1 of d-Lasso in :cite:`chevalier2020statistical`
 
     Parameters
@@ -60,7 +60,7 @@ def desparsified_lasso(
     tol_reid : float, optional (default=1e-4)
         Tolerance for Reid estimation.
 
-    eps : float, optional (default=1e-2) 
+    eps : float, optional (default=1e-2)
         Small constant used in noise estimation.
 
     n_split : int, optional (default=5)
@@ -111,12 +111,19 @@ def desparsified_lasso(
 
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-    
+
     # Lasso regression and noise standard deviation estimation
-    #TODO: other estimation of the noise standard deviation?
-    sigma_hat, beta_lasso = reid(X_, y_, eps=eps, tol=tol_reid,
-                                 max_iter=max_iter, n_split=n_split,
-                                 n_jobs=n_jobs, seed=seed)
+    # TODO: other estimation of the noise standard deviation?
+    sigma_hat, beta_lasso = reid(
+        X_,
+        y_,
+        eps=eps,
+        tol=tol_reid,
+        max_iter=max_iter,
+        n_split=n_split,
+        n_jobs=n_jobs,
+        seed=seed,
+    )
 
     # compute the Gram matrix
     gram = np.dot(X_.T, X_)
@@ -124,7 +131,7 @@ def desparsified_lasso(
     np.fill_diagonal(gram_nodiag, 0)
 
     # define the alphas for the Nodewise Lasso
-    #TODO why don't use the function _lambda_max instead of this?
+    # TODO why don't use the function _lambda_max instead of this?
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
@@ -160,11 +167,11 @@ def desparsified_lasso(
     beta_hat = beta_bias - P_nodiag.dot(beta_lasso)
 
     # confidence intervals
-    omega_diag = omega_diag * dof_factor ** 2
-    #TODO:why the double inverse of omega_diag?
+    omega_diag = omega_diag * dof_factor**2
+    # TODO:why the double inverse of omega_diag?
     omega_invsqrt_diag = omega_diag ** (-0.5)
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag) 
+        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag)
     )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
@@ -172,19 +179,20 @@ def desparsified_lasso(
     return beta_hat, cb_min, cb_max
 
 
-def desparsified_lasso_pvalue(cb_min, cb_max, confidence=0.95, distrib="norm", eps=1e-14):
+def desparsified_lasso_pvalue(
+    cb_min, cb_max, confidence=0.95, distrib="norm", eps=1e-14
+):
     """
     Compute p-values for the desparsified Lasso estimator
-    
+
     For details see: :py:func:`hidimstat.pval_from_cb`
-    """ 
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        pval_from_cb(cb_min, cb_max, confidence=confidence, 
-                     distrib=distrib, eps=eps)
+    """
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
+        cb_min, cb_max, confidence=confidence, distrib=distrib, eps=eps
     )
-    
+
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
-    
+
 
 def desparsified_group_lasso(
     X,
@@ -208,7 +216,7 @@ def desparsified_group_lasso(
     Desparsified Group Lasso
 
     Algorithm based Algorithm 1 of d-MTLasso in :cite:`chevalier2020statistical`
-    
+
 
     Parameters
     ----------
@@ -270,10 +278,10 @@ def desparsified_group_lasso(
 
     theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix.
-        
+
     omega_diag : ndarray, shape (n_features,)
         Diagonal of covariance matrix.
-        
+
     Notes
     -----
     The columns of `X` and the matrix `Y` are always centered, this ensures
@@ -304,12 +312,20 @@ def desparsified_group_lasso(
     Y_ = Y - np.mean(Y)
     X_ = X_ - np.mean(X_, axis=0)
 
-    
     # Lasso regression and noise standard deviation estimation
     cov_hat, beta_mtl = group_reid(
-        X_, Y_, method=noise_method, order=order, n_jobs=n_jobs,
-        fit_Y=fit_Y, stationary=stationary, eps=eps, tol=tol_reid,
-        max_iter=max_iter, n_split=n_split, seed=seed,
+        X_,
+        Y_,
+        method=noise_method,
+        order=order,
+        n_jobs=n_jobs,
+        fit_Y=fit_Y,
+        stationary=stationary,
+        eps=eps,
+        tol=tol_reid,
+        max_iter=max_iter,
+        n_split=n_split,
+        seed=seed,
     )
     if cov is not None:
         cov_hat = cov
@@ -321,7 +337,7 @@ def desparsified_group_lasso(
     np.fill_diagonal(gram_nodiag, 0)
 
     # define the alphas for the Nodewise Lasso
-    #TODO why don't use the function _lambda_max instead of this?
+    # TODO why don't use the function _lambda_max instead of this?
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
@@ -351,37 +367,37 @@ def desparsified_group_lasso(
 def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
     """
     Compute p-values for the desparsified group Lasso estimator using chi-squared or F tests
-    
+
     Parameters
     ----------
     beta_hat : ndarray, shape (n_features, n_times)
         Estimated parameter matrix from desparsified group Lasso.
-        
-    theta_hat : ndarray, shape (n_times, n_times) 
+
+    theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix (inverse covariance).
-        
+
     omega_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
-        
+
     test : {'chi2', 'F'}, optional (default='chi2')
         Statistical test for computing p-values:
         - 'chi2': Chi-squared test (recommended for large samples)
         - 'F': F-test (better for small samples)
-        
+
     Returns
     -------
     pval : ndarray, shape (n_features,)
         Raw p-values, numerically accurate for positive effects
         (p-values close to 0).
-        
+
     pval_corr : ndarray, shape (n_features,)
         P-values corrected for multiple testing using
         Benjamini-Hochberg procedure.
-        
+
     one_minus_pval : ndarray, shape (n_features,)
-        1 - p-values, numerically accurate for negative effects 
+        1 - p-values, numerically accurate for negative effects
         (p-values close to 1).
-        
+
     one_minus_pval_corr : ndarray, shape (n_features,)
         1 - corrected p-values.
 
@@ -394,7 +410,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     """
     n_features, n_times = beta_hat.shape
     n_samples = omega_diag.shape[0]
-    
+
     # Compute the two-sided p-values
     if test == "chi2":
         chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
@@ -408,13 +424,13 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
         )
     else:
         raise ValueError(f"Unknown test '{test}'")
-    
+
     # Compute the p-values
     sign_beta = np.sign(np.sum(beta_hat, axis=1))
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
     )
-    
+
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
@@ -423,49 +439,49 @@ def _compute_all_residuals(
 ):
     """
     Nodewise Lasso for computing residuals and precision matrix diagonal.
-    
+
     For each feature, fits a Lasso regression against all other features
     to estimate the precision matrix and residuals needed for the
     desparsified Lasso estimator.
-    
+
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
         Input data matrix.
-    
+
     alphas : ndarray, shape (n_features,)
         Lasso regularization parameters, one per feature.
-    
+
     gram : ndarray, shape (n_features, n_features)
         Precomputed Gram matrix X.T @ X to speed up computations.
-        
+
     max_iter : int, optional (default=5000)
         Maximum number of iterations for Lasso optimization.
-        
+
     tol : float, optional (default=1e-3)
         Convergence tolerance for Lasso optimization.
-        
+
     n_jobs : int or None, optional (default=1)
         Number of parallel jobs. None means using all processors.
-        
-    verbose : int, optional (default=0) 
+
+    verbose : int, optional (default=0)
         Controls the verbosity when fitting the models:
         0 = silent
         1 = progress bar
         >1 = more detailed output
-        
+
     Returns
     -------
     Z : ndarray, shape (n_samples, n_features)
         Matrix of residuals from nodewise regressions.
-        
+
     omega_diag : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
-    TODO check citation
+
     Notes
     -----
-    This implements the nodewise Lasso procedure from :cite:`van2014asymptotically` 
-    for estimating entries of the precision matrix needed in the 
+    This implements the nodewise Lasso procedure from :cite:`chevalier2020statistical`
+    for estimating entries of the precision matrix needed in the
     desparsified Lasso. The procedure regresses each feature against all others
     using Lasso to obtain residuals and precision matrix estimates.
 
@@ -496,50 +512,45 @@ def _compute_all_residuals(
     return Z, omega_diag
 
 
-def _compute_residuals(
-    X, column_index, alpha, gram, max_iter=5000, tol=1e-3
-):
+def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     """
-    Compute residuals and precision matrix diagonal element using nodewise Lasso regression
-    
-    For a given column of X, fits Lasso regression against all other columns to obtain 
-    residuals and precision matrix diagonal entry needed for desparsified Lasso estimation.
-    
+    Compute nodewise Lasso regression for desparsified Lasso estimation
+
+    For feature i, regresses X[:,i] against all other features to obtain residuals
+    and precision matrix diagonal entry needed for debiasing.
+
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Input data matrix, assumed to be centered.
-        
+        Centered input data matrix
+
     column_index : int
-        Index of column to regress against all others.
-        
+        Index i of feature to regress
+
     alpha : float
-        Lasso regularization parameter for this regression.
-        
+        Lasso regularization parameter
+
     gram : ndarray, shape (n_features, n_features)
-        Precomputed Gram matrix X.T @ X to speed up computations.
-        
-    max_iter : int, optional (default=5000) 
-        Maximum iterations for Lasso optimization.
-        
-    tol : float, optional (default=1e-3)
-        Convergence tolerance for optimization.
-        
+        Precomputed X.T @ X matrix
+
+    max_iter : int, default=5000
+        Maximum Lasso iterations
+
+    tol : float, default=1e-3
+        Optimization tolerance
+
     Returns
     -------
     z : ndarray, shape (n_samples,)
-        Residuals from regressing column_index against other columns.
-        Used to construct desparsified estimator.
-        
+        Residuals from regression
+
     omega_diag_i : float
-        Estimated diagonal entry of precision matrix for this feature.
-        Equal to n * ||z||^2 / <x_i, z>^2 where x_i is column_index of X.
-        
+        Diagonal entry i of precision matrix estimate,
+        computed as n * ||z||^2 / <x_i, z>^2
+
     Notes
     -----
-    Precomputes Gram matrix and uses sklearn's Lasso solver for efficiency.
-    Residuals and precision estimates are needed to construct the
-    bias-corrected estimator.
+    Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
 
     n_samples, n_features = X.shape
@@ -556,10 +567,9 @@ def _compute_residuals(
 
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_new, y_new)
-    z = y_new  - clf.predict(X_new)
+    z = y_new - clf.predict(X_new)
 
     # Computing the diagonal of the covariance matrix
     omega_diag_i = n_samples * np.sum(z**2) / np.dot(y_new, z) ** 2
 
     return z, omega_diag_i
-
