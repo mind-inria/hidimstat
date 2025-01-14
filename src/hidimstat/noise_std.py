@@ -7,48 +7,47 @@ from sklearn.model_selection import KFold
 
 def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_split=5, n_jobs=1, seed=0):
     """
-    Residual sum of squares based estimators :footcite:`fan2012variance`.
-    
-    Estimation of noise standard deviation using the most promissing procedure
-    of :cite:`reid2016study` by comparison. 
+    Residual sum of squares based estimators for noise standard deviation estimation.
+
+    This implementation follows the procedure described in :footcite:`fan2012variance` and
+    :cite:`reid2016study`. It uses Lasso with cross-validation to estimate both the
+    noise standard deviation and model coefficients.
 
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix.
 
     y : ndarray, shape (n_samples,)
-        Target.
+        Target vector.
 
-    eps: float, optional (default=1e-2)
-        Length of the cross-validation path.
-        eps=1e-2 means that alpha_min / alpha_max = 1e-2.
+    eps : float, optional (default=1e-2)
+        Length of the cross-validation path, where alpha_min / alpha_max = eps.
+        Smaller values create a finer grid.
 
     tol : float, optional (default=1e-4)
-        The tolerance for the optimization: if the updates are smaller
-        than `tol`, the optimization code checks the dual gap for optimality
-        and continues until it is smaller than `tol`.
+        Tolerance for optimization convergence. The algorithm stops when updates
+        are smaller than tol and dual gap is smaller than tol.
 
-    max_iter : int, optional (default=1e4)
-        The maximum number of iterations.
+    max_iter : int, optional (default=10000)
+        Maximum number of iterations for the optimization algorithm.
     
     n_split : int, optional (default=5)
-        Number of splits in the KFold object used to cross-validate LassoCV.
+        Number of folds for cross-validation.
 
-    n_jobs : int or None, optional (default=1)
-        Number of CPUs to use during the cross validation.
+    n_jobs : int, optional (default=1)
+        Number of parallel jobs for cross-validation. -1 means using all processors.
 
-    seed: int, optional (default=0)
-        Seed passed in the KFold object which is used to cross-validate
-        LassoCV. This seed controls the partitioning randomness.
+    seed : int, optional (default=0)
+        Random seed for reproducible cross-validation splits.
 
     Returns
     -------
     sigma_hat : float
-        Estimated noise standard deviation.
+        Estimated noise standard deviation based on residuals.
 
-    beta_hat : array, shape (n_features,)
-        Estimated parameter vector.
+    beta_hat : ndarray, shape (n_features,)
+        Estimated sparse coefficient vector from Lasso regression.
 
     References
     ----------
@@ -100,64 +99,51 @@ def group_reid(
     seed=0,
 ):
     """
-    Estimation of the covariance matrix using group Reid procedure :footcite:`chevalier2020statistical`
-    This estimation is based on the promissing procedure describe in :cite:`reid2016study` and presented in :cite:`fan2012variance`.
+    Estimate the covariance matrix using group Reid procedure.
+
+    Implements the procedure from :footcite:`chevalier2020statistical`, based on methods
+    from :cite:`reid2016study` and :cite:`fan2012variance`.
 
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix.
 
     Y : ndarray, shape (n_samples, n_times)
-        Target.
+        Target matrix.
 
-    fit_Y : bool, optional (default=True)
-        If True, Y will be regressed against X by MultiTaskLassoCV
-        and the covariance matrix is estimated on the residuals.
-        Otherwise, covariance matrix is estimated directly on Y.
+    fit_Y : bool, default=True
+        Whether to use MultiTaskLassoCV to fit Y against X.
+        If False, covariance is estimated directly from Y.
 
-    stationary : bool, optional (default=True)
-        If True, noise is considered to have the same magnitude for each
-        time step. Otherwise, magnitude of the noise is not constant.
+    stationary : bool, default=True
+        Whether noise has constant magnitude across time steps.
 
-    method : str, optional (default='simple')
-        If 'simple', the correlation matrix is estimated by taking the
-        median of the correlation between two consecutive time steps
-        and the noise standard deviation for each time step is estimated
-        by taking the median of the standard deviations for every time step.
-        In this case, the noise is considered to be stationary, i.e the 
-        magnitude of the noise is constant for each time step.
-        If 'AR', the order of the autoregressive (AR) model is given 
-        by `order` and Yule-Walker method :footcite:`eshel2003yule` is used to estimate the 
-        covariance matrix. In this case, the noise is considered to be 
-        non-stationary, i.e. the magnitude of the noise is not constant.
+    method : {'simple', 'AR'}, default='simple'
+        Covariance estimation method:
+        - 'simple': Uses median correlation between consecutive time steps
+        - 'AR': Uses Yule-Walker method with specified order
 
-    order : int, optional (default=1)
-        If `stationary=True` and `method=AR`, `order` gives the order of the estimated 
-        autoregressive model. `order` must be smaller than the number 
-        of time steps.
+    order : int, default=1
+        Order of AR model when method='AR'. Must be < n_times.
 
-    eps : float, optional (default=1e-2)
-        Length of the cross-validation path.
-        eps=1e-2 means that alpha_min / alpha_max = 1e-2.
+    eps : float, default=1e-2
+        Path length for cross-validation (alpha_min / alpha_max = eps).
 
-    tol : float, optional (default=1e-4)
-        The tolerance for the optimization: if the updates are smaller
-        than `tol`, the optimization code checks the dual gap for optimality
-        and continues until it is smaller than `tol`.
+    tol : float, default=1e-4
+        Convergence tolerance for optimization.
 
-    max_iter : int, optional (default=1e4)
-        The maximum number of iterations.
+    max_iter : int, default=10000
+        Maximum number of iterations.
     
-    n_split : int, optional (default=5)
-        Number of splits in the KFold object used to cross-validate LassoCV.
+    n_split : int, default=5
+        Number of cross-validation folds.
 
-    n_jobs : int or None, optional (default=1)
-        Number of CPUs to use during the cross validation.
+    n_jobs : int, default=1
+        Number of parallel jobs. -1 uses all processors.
 
-    seed: int, optional (default=0)
-        Seed passed in the KFold object which is used to cross-validate
-        LassoCV. This seed controls also the partitioning randomness.
+    seed : int, default=0
+        Random seed for reproducible cross-validation splits.
 
     Returns
     -------
@@ -165,7 +151,7 @@ def group_reid(
         Estimated covariance matrix.
 
     beta_hat : ndarray, shape (n_features, n_times)
-        Estimated parameter matrix.
+        Estimated coefficient matrix.
 
     References
     ----------
@@ -295,26 +281,31 @@ def group_reid(
 
 def empirical_snr(X, y, beta, noise=None):
     """
-    Compute the signal noise ratio (SNR) for the linear model: y = X beta + noise
+    Compute the empirical signal-to-noise ratio (SNR) for the linear model y = X @ beta + noise.
 
     Parameters
     ----------
-    X : ndarray or scipy.sparse matrix, shape (n_samples, n_features)
-        Data.
+    X : ndarray, shape (n_samples, n_features)
+        Design matrix.
 
     y : ndarray, shape (n_samples,)
-        Target.
+        Target vector.
 
     beta : ndarray, shape (n_features,)
-        True parameter vector.
+        Parameter vector.
 
-    noise : ndarray, shape (n_samples,), optional (default=None)
-        True error vector.
+    noise : ndarray, shape (n_samples,), optional
+        Noise vector. If None, computed as y - X @ beta.
 
     Returns
     -------
     snr_hat : float
-        Empirical signal-to-noise ratio.
+        Empirical SNR computed as var(signal) / var(noise).
+
+    Notes
+    -----
+    SNR measures the ratio of signal power to noise power, indicating model estimation quality.
+    Higher values suggest better signal recovery.
     """
     X = np.asarray(X)
 

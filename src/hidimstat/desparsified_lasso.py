@@ -33,10 +33,10 @@ def desparsified_lasso(
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix.
 
     y : ndarray, shape (n_samples,)
-        Target variable.
+        Target vector.
 
     dof_ajdustement : bool, optional (default=False)
         If True, applies degrees of freedom adjustment as described in
@@ -67,7 +67,7 @@ def desparsified_lasso(
         Number of splits for cross-validation in Reid procedure.
 
     n_jobs : int, optional (default=1)
-        Number of parallel jobs. Use None for all CPUs.
+        Number of parallel jobs. Use -1 for all CPUs.
 
     seed : int, optional (default=0)
         Random seed for reproducibility.
@@ -197,7 +197,7 @@ def desparsified_group_lasso(
     order=1,
     fit_Y=True,
     stationary=True,
-    eps=True,
+    eps=1e-2,
     tol_reid=1e-4,
     n_split=5,
     seed=0,
@@ -213,10 +213,10 @@ def desparsified_group_lasso(
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix.
 
     Y : ndarray, shape (n_samples, n_times)
-        Target.
+        Target matrix.
 
     cov : ndarray, shape (n_times, n_times), optional (default=None)
         If None, a temporal covariance matrix of the noise is estimated.
@@ -258,7 +258,7 @@ def desparsified_group_lasso(
         Random seed for reproducibility.
 
     n_jobs : int, optional (default=1)
-        Number of parallel jobs. Use None for all CPUs.
+        Number of parallel jobs. Use -1 for all CPUs.
 
     verbose : int, optional (default=0)
         Verbosity level.
@@ -461,10 +461,10 @@ def _compute_all_residuals(
         
     omega_diag : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
-        
+    TODO check citation
     Notes
     -----
-    This implements the nodewise Lasso procedure from :cite:`van2014asymptotically`
+    This implements the nodewise Lasso procedure from :cite:`van2014asymptotically` 
     for estimating entries of the precision matrix needed in the 
     desparsified Lasso. The procedure regresses each feature against all others
     using Lasso to obtain residuals and precision matrix estimates.
