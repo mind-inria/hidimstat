@@ -238,7 +238,9 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 # compute desparsified lasso
 beta_hat, cb_min, cb_max = desparsified_lasso(X_init, y, n_jobs=n_jobs)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr = desparsified_lasso_pvalue(cb_min, cb_max)
+pval, pval_corr, one_minus_pval, one_minus_pval_corr = desparsified_lasso_pvalue(
+    cb_min, cb_max
+)
 
 # compute estimated support (first method)
 zscore = zscore_from_pval(pval, one_minus_pval)
