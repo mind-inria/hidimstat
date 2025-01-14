@@ -47,6 +47,13 @@ def test_desparsified_lasso():
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)
+    
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = desparsified_lasso_pvalue(cb_min, cb_max)
+
+    expected_pval_corr = np.concatenate(
+        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
+    )
+    assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
 
 def test_desparsified_group_lasso():
