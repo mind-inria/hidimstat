@@ -233,7 +233,6 @@ def group_reid(
 
     ## compute emperical correlation of the residual
     if stationary:
-        #FIXME citation
         # consideration of stationary noise (section 2.5 of `chevalier2020statistical`) 
         sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
         # compute rho from the empirical correlation matrix (section 2.5 of `chevalier2020statistical`) 
@@ -285,7 +284,7 @@ def group_reid(
         
         # estimation of the variance of an AR process
         # from wikipedia it should be  VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
-        # TODO there is a short difference in the code
+        # TODO there is a short difference between the code and the above formula
         sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
         # estimation of the covariance based on the correlation matrix and sigma
         # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2 

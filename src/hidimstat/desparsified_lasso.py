@@ -28,7 +28,7 @@ def desparsified_lasso(
     """
     Desparsified Lasso with confidence intervals
     
-    Algorithm based Algo 1 of d-Lasso in :cite:`chevalier2020statistical`
+    Algorithm based on Algorithm 1 of d-Lasso in :cite:`chevalier2020statistical`
 
     Parameters
     ----------
@@ -36,50 +36,55 @@ def desparsified_lasso(
         Data.
 
     y : ndarray, shape (n_samples,)
-        Target.
+        Target variable.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, makes the degrees of freedom adjustement (cf. 
-        :footcite:`bellec2022biasing` and :footcite:`celentano2023lasso`).
-        Otherwise, the original Desparsified Lasso estimator is computed
-        (cf. :footcite:`zhang2014confidence` and :footcite:`van2014asymptotically` and
-        :footcite:`javanmard2014confidence`).
+        If True, applies degrees of freedom adjustment as described in
+        :footcite:`bellec2022biasing` and :footcite:`celentano2023lasso`.
+        If False, computes original Desparsified Lasso estimator following
+        :footcite:`zhang2014confidence`, :footcite:`van2014asymptotically` and
+        :footcite:`javanmard2014confidence`.
 
     confidence : float, optional (default=0.95)
-        Confidence level used to compute the confidence intervals.
-        Each value should be in the range [0, 1].
+        Confidence level for intervals, must be in [0, 1].
 
     max_iter : int, optional (default=5000)
-        The maximum number of iterations when regressing, by Lasso,
-        each column of the design matrix against the others.
+        Maximum iterations for Nodewise Lasso regressions.
 
     tol : float, optional (default=1e-3)
-        The tolerance for the optimization of the Lasso problems: if the
-        updates are smaller than `tol`, the optimization code checks the
-        dual gap for optimality and continues until it is smaller than `tol`.
+        Convergence tolerance for optimization.
 
     alpha_max_fraction : float, optional (default=0.01)
-        Only used if method='lasso'.
-        Then alpha = alpha_max_fraction * alpha_max.
+        Fraction of max lambda used for Lasso regularization.
 
-    n_jobs : int or None, optional (default=1)
-        Number of CPUs to use during the Nodewise Lasso.
+    tol_reid : float, optional (default=1e-4)
+        Tolerance for Reid estimation.
 
-    verbose: int, optional (default=1)
-        The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
-        The frequency of the messages increases with the verbosity level.
+    eps : float, optional (default=1e-2) 
+        Small constant used in noise estimation.
+
+    n_split : int, optional (default=5)
+        Number of splits for cross-validation in Reid procedure.
+
+    n_jobs : int, optional (default=1)
+        Number of parallel jobs. Use None for all CPUs.
+
+    seed : int, optional (default=0)
+        Random seed for reproducibility.
+
+    verbose : int, optional (default=0)
+        Verbosity level for logging.
 
     Returns
     -------
-    beta_hat : array, shape (n_features,)
-        Estimated parameter vector.
+    beta_hat : ndarray, shape (n_features,)
+        Desparsified Lasso coefficient estimates.
 
-    cb_min : array, shape (n_features)
-        Lower bound of the confidence intervals on the parameter vector.
+    cb_min : ndarray, shape (n_features,)
+        Lower confidence interval bounds.
 
-    cb_max : array, shape (n_features)
-        Upper bound of the confidence intervals on the parameter vector.
+    cb_max : ndarray, shape (n_features,)
+        Upper confidence interval bounds.
 
     Notes
     -----
@@ -108,6 +113,7 @@ def desparsified_lasso(
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     
     # Lasso regression and noise standard deviation estimation
+    #TODO: other estimation of the noise standard deviation?
     sigma_hat, beta_lasso = reid(X_, y_, eps=eps, tol=tol_reid,
                                  max_iter=max_iter, n_split=n_split,
                                  n_jobs=n_jobs, seed=seed)
@@ -217,48 +223,56 @@ def desparsified_group_lasso(
         Otherwise, `cov` is the temporal covariance matrix of the noise.
 
     max_iter : int, optional (default=5000)
-        The maximum number of iterations when regressing, by Lasso,
-        each column of the design matrix against the others.
+        Maximum number of iterations for nodewise Lasso regressions.
 
     tol : float, optional (default=1e-3)
-        The tolerance for the optimization of the Lasso problems: if the
-        updates are smaller than `tol`, the optimization code checks the
-        dual gap for optimality and continues until it is smaller than `tol`.
+        Convergence tolerance for optimization.
 
     alpha_max_fraction : float, optional (default=0.01)
-        Only used if method='lasso'.
-        Then alpha = alpha_max_fraction * alpha_max.
+        Fraction of max lambda used for Lasso regularization.
 
-    noise_method : str, optional (default='simple')
-        If 'simple', the correlation matrix is estimated by taking the
-        median of the correlation between two consecutive time steps
-        and the noise standard deviation for each time step is estimated
-        by taking the median of the standard deviations for every time step.
-        If 'AR', the order of the AR model is given by `order` and
-        Yule-Walker method is used to estimate the covariance matrix.
+    noise_method : {'AR', 'simple'}, optional (default='AR')
+        Method to estimate noise covariance:
+        - 'simple': Uses median correlation between consecutive timepoints
+        - 'AR': Fits autoregressive model of specified order
 
     order : int, optional (default=1)
-        If `method=AR`, `order` gives the order of the estimated autoregressive
-        model. `order` must be smaller than the number of time steps.
+        Order of AR model when noise_method='AR'. Must be < n_times.
 
-    n_jobs : int or None, optional (default=1)
-        Number of CPUs to use during the Nodewise Lasso.
+    fit_Y : bool, optional (default=True)
+        Whether to fit Y in noise estimation.
 
-    verbose: int, optional (default=1)
-        The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
-        The frequency of the messages increases with the verbosity level.
+    stationary : bool, optional (default=True)
+        Whether to assume stationary noise in estimation.
+
+    eps : float or bool, optional (default=True)
+        Small constant for regularization.
+
+    tol_reid : float, optional (default=1e-4)
+        Tolerance for Reid estimation.
+
+    n_split : int, optional (default=5)
+        Number of splits for cross-validation for Reid procedure.
+
+    seed : int, optional (default=0)
+        Random seed for reproducibility.
+
+    n_jobs : int, optional (default=1)
+        Number of parallel jobs. Use None for all CPUs.
+
+    verbose : int, optional (default=0)
+        Verbosity level.
 
     Returns
     -------
     beta_hat : ndarray, shape (n_features, n_times)
-        Estimated parameter matrix.
+        Desparsified group Lasso coefficient estimates.
 
     theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix.
         
     omega_diag : ndarray, shape (n_features,)
-        Diagonal of the covariance matrix.
+        Diagonal of covariance matrix.
         
     Notes
     -----
@@ -336,38 +350,47 @@ def desparsified_group_lasso(
 
 def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
     """
-    Compute p-values for the desparsified group Lasso estimator
+    Compute p-values for the desparsified group Lasso estimator using chi-squared or F tests
     
     Parameters
     ----------
     beta_hat : ndarray, shape (n_features, n_times)
-        Estimated parameter matrix.
+        Estimated parameter matrix from desparsified group Lasso.
         
-    theta_hat : ndarray, shape (n_times, n_times)
-        Estimated precision matrix.
+    theta_hat : ndarray, shape (n_times, n_times) 
+        Estimated precision matrix (inverse covariance).
         
     omega_diag : ndarray, shape (n_features,)
-        Diagonal of the covariance matrix.
+        Diagonal elements of the precision matrix.
         
-    test : str, optional (default='chi2')
-        Statistical test used to compute p-values. 'chi2' corresponds
-        to a chi-squared test and 'F' corresponds to an F-test.
+    test : {'chi2', 'F'}, optional (default='chi2')
+        Statistical test for computing p-values:
+        - 'chi2': Chi-squared test (recommended for large samples)
+        - 'F': F-test (better for small samples)
         
     Returns
     -------
     pval : ndarray, shape (n_features,)
-        p-value, with numerically accurate values for
-        positive effects (ie., for p-value close to zero).
+        Raw p-values, numerically accurate for positive effects
+        (p-values close to 0).
         
     pval_corr : ndarray, shape (n_features,)
-        p-value corrected for multiple testing.
+        P-values corrected for multiple testing using
+        Benjamini-Hochberg procedure.
         
     one_minus_pval : ndarray, shape (n_features,)
-        One minus the p-value, with numerically accurate values
-        for negative effects (ie., for p-value close to one).
+        1 - p-values, numerically accurate for negative effects 
+        (p-values close to 1).
         
     one_minus_pval_corr : ndarray, shape (n_features,)
-        One minus the p-value corrected for multiple testing.
+        1 - corrected p-values.
+
+    Notes
+    -----
+    The chi-squared test assumes asymptotic normality while the F-test
+    makes no such assumption and is preferable for small sample sizes.
+    P-values are computed based on score statistics from the estimated
+    coefficients and precision matrix.
     """
     n_features, n_times = beta_hat.shape
     n_samples = omega_diag.shape[0]
@@ -399,46 +422,56 @@ def _compute_all_residuals(
     X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
 ):
     """
-    Nodewise Lasso. 
+    Nodewise Lasso for computing residuals and precision matrix diagonal.
     
-    Compute all the residuals: regressing each column of the
-    design matrix against the other columns
+    For each feature, fits a Lasso regression against all other features
+    to estimate the precision matrix and residuals needed for the
+    desparsified Lasso estimator.
     
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix.
     
     alphas : ndarray, shape (n_features,)
-        Regularization parameters for the Nodewise Lasso.
+        Lasso regularization parameters, one per feature.
     
     gram : ndarray, shape (n_features, n_features)
-        Gram matrix of the design matrix.
+        Precomputed Gram matrix X.T @ X to speed up computations.
         
     max_iter : int, optional (default=5000)
-        The maximum number of iterations when regressing, by Lasso,
-        each column of the design matrix against the others.
+        Maximum number of iterations for Lasso optimization.
         
     tol : float, optional (default=1e-3)
-        The tolerance for the optimization of the Lasso problems: if the
-        updates are smaller than `tol`, the optimization code checks the
-        dual gap for optimality and continues until it is smaller than `tol`.
+        Convergence tolerance for Lasso optimization.
         
     n_jobs : int or None, optional (default=1)
-        Number of CPUs to use during the Nodewise Lasso.
+        Number of parallel jobs. None means using all processors.
         
-    verbose: int, optional (default=1)
-        The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
-        The frequency of the messages increases with the verbosity level.
+    verbose : int, optional (default=0) 
+        Controls the verbosity when fitting the models:
+        0 = silent
+        1 = progress bar
+        >1 = more detailed output
         
     Returns
     -------
     Z : ndarray, shape (n_samples, n_features)
-        Residuals of the Nodewise Lasso.
+        Matrix of residuals from nodewise regressions.
         
     omega_diag : ndarray, shape (n_features,)
-        Diagonal of the covariance matrix
+        Diagonal entries of the precision matrix estimate.
+        
+    Notes
+    -----
+    This implements the nodewise Lasso procedure from :cite:`van2014asymptotically`
+    for estimating entries of the precision matrix needed in the 
+    desparsified Lasso. The procedure regresses each feature against all others
+    using Lasso to obtain residuals and precision matrix estimates.
+
+    References
+    ----------
+    .. footbibliography::
     """
 
     n_samples, n_features = X.shape
@@ -467,39 +500,46 @@ def _compute_residuals(
     X, column_index, alpha, gram, max_iter=5000, tol=1e-3
 ):
     """
-    Compute the residuals of the regression of a given column of the
-    design matrix against the other columns
+    Compute residuals and precision matrix diagonal element using nodewise Lasso regression
+    
+    For a given column of X, fits Lasso regression against all other columns to obtain 
+    residuals and precision matrix diagonal entry needed for desparsified Lasso estimation.
     
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
-        Data.
+        Input data matrix, assumed to be centered.
         
     column_index : int
-        Index of the column to regress against the other columns.
+        Index of column to regress against all others.
         
     alpha : float
-        Regularization parameter for the Lasso.
+        Lasso regularization parameter for this regression.
         
     gram : ndarray, shape (n_features, n_features)
-        Gram matrix of the design matrix.
+        Precomputed Gram matrix X.T @ X to speed up computations.
         
-    max_iter : int, optional (default=5000)
-        The maximum number of iterations when regressing, by Lasso,
-        each column of the design matrix against the others.
+    max_iter : int, optional (default=5000) 
+        Maximum iterations for Lasso optimization.
         
     tol : float, optional (default=1e-3)
-        The tolerance for the optimization of the Lasso problems: if the
-        updates are smaller than `tol`, the optimization code checks the
-        dual gap for optimality and continues until it is smaller than `tol`.
+        Convergence tolerance for optimization.
         
     Returns
     -------
     z : ndarray, shape (n_samples,)
-        Residuals of the Nodewise Lasso.
+        Residuals from regressing column_index against other columns.
+        Used to construct desparsified estimator.
         
     omega_diag_i : float
-        Diagonal of the covariance matrix   
+        Estimated diagonal entry of precision matrix for this feature.
+        Equal to n * ||z||^2 / <x_i, z>^2 where x_i is column_index of X.
+        
+    Notes
+    -----
+    Precomputes Gram matrix and uses sklearn's Lasso solver for efficiency.
+    Residuals and precision estimates are needed to construct the
+    bias-corrected estimator.
     """
 
     n_samples, n_features = X.shape
