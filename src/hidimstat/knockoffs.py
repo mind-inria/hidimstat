@@ -80,7 +80,7 @@ def model_x_knockoff(
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     seed=None,
-    tol_gauss=1e-14
+    tol_gauss=1e-14,
 ):
     """
     Model-X Knockoff
@@ -128,7 +128,7 @@ def model_x_knockoff(
 
     seed : int or None, optional (default=None)
         The random seed used to generate the Gaussian knockoff variables.
-    
+
     tol_gauss : float, optional (default=1e-14)
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
 
@@ -156,7 +156,7 @@ def model_x_knockoff(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed,  tol=tol_gauss)
+    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed, tol=tol_gauss)
 
     test_score = _stat_coefficient_diff(
         X, X_tilde, y, estimator, preconfigure_estimator
@@ -182,7 +182,7 @@ def model_x_knockoff_aggregation(
     n_bootstraps=25,
     n_jobs=1,
     random_state=None,
-    tol_gauss=1e-14
+    tol_gauss=1e-14,
 ):
     """
     Model-X Knockoff Aggregation
@@ -222,7 +222,7 @@ def model_x_knockoff_aggregation(
 
     random_state : int or None, optional (default=None)
         The random seed used to generate the Gaussian knockoff variables.
-    
+
     tol_gauss : float, optional (default=1e-14)
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
 
@@ -260,11 +260,13 @@ def model_x_knockoff_aggregation(
 
     # Create knockoff variables
     X_tilde, (Mu_tilde, sigma_tilde_decompose) = gaussian_knockoff_generation(
-        X, mu, sigma, seed=seed_list[0], tol= tol_gauss, repeat=True
+        X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=True
     )
     X_tildes = parallel(
         delayed(repeat_gaussian_knockoff_generation)(
-            Mu_tilde, sigma_tilde_decompose, seed=seed,
+            Mu_tilde,
+            sigma_tilde_decompose,
+            seed=seed,
         )
         for seed in seed_list[1:]
     )
@@ -596,7 +598,7 @@ def _knockoff_threshold(test_score, fdr=0.1, offset=1):
         [[0], threshold_mesh, [np.inf]]
     )  # if there is no solution, the threshold is inf
     # find the right value of t for getting a good fdr
-    # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018 
+    # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018
     threshold = 0.0
     for threshold in threshold_mesh:
         false_pos = np.sum(test_score <= -threshold)

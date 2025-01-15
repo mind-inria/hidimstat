@@ -1,6 +1,11 @@
-from hidimstat.knockoffs import model_x_knockoff_aggregation, model_x_knockoff,\
-    model_x_knockoff_filter, model_x_knockoff_pvalue, model_x_knockoff_bootstrap_e_value,\
-    model_x_knockoff_bootstrap_quantile
+from hidimstat.knockoffs import (
+    model_x_knockoff_aggregation,
+    model_x_knockoff,
+    model_x_knockoff_filter,
+    model_x_knockoff_pvalue,
+    model_x_knockoff_bootstrap_e_value,
+    model_x_knockoff_bootstrap_quantile,
+)
 from hidimstat.gaussian_knockoff import gaussian_knockoff_generation
 from hidimstat.data_simulation import simu_data
 from hidimstat.utils import cal_fdp_power
@@ -9,9 +14,6 @@ import pytest
 from sklearn.covariance import LedoitWolf, GraphicalLassoCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import Lasso
-from sklearn.model_selection import KFold
-
-
 
 
 def test_knockoff_aggregation():
@@ -21,15 +23,19 @@ def test_knockoff_aggregation():
     n_bootstraps = 25
     fdr = 0.5
     X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
-    
+
     test_scores = model_x_knockoff_aggregation(
         X, y, n_bootstraps=n_bootstraps, random_state=0
     )
-    selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(test_scores, fdr=fdr, selection_only=False)
-    
+    selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
+        test_scores, fdr=fdr, selection_only=False
+    )
+
     fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
 
-    selected_no_verbose = model_x_knockoff_bootstrap_quantile(test_scores, fdr=fdr, selection_only=True)
+    selected_no_verbose = model_x_knockoff_bootstrap_quantile(
+        test_scores, fdr=fdr, selection_only=True
+    )
 
     fdp_no_verbose, power_no_verbose = cal_fdp_power(
         selected_no_verbose, non_zero_index
@@ -43,18 +49,22 @@ def test_knockoff_aggregation():
     np.testing.assert_array_equal(selected_no_verbose, selected_verbose)
 
     # Single AKO (or vanilla KO) (verbose vs no verbose)
-    test_bootstrap = model_x_knockoff_aggregation(
-        X, y, n_bootstraps=2, random_state=5
+    test_bootstrap = model_x_knockoff_aggregation(X, y, n_bootstraps=2, random_state=5)
+    test_no_bootstrap = model_x_knockoff(
+        X, y, seed=np.random.RandomState(5).randint(1, np.iinfo(np.int32).max, 2)[0]
     )
-    test_no_bootstrap = model_x_knockoff(X, y, seed=np.random.RandomState(5).randint(1, np.iinfo(np.int32).max, 2)[0])
 
     np.testing.assert_array_equal(test_bootstrap[0], test_no_bootstrap)
 
     # Using e-values aggregation (verbose vs no verbose)
 
-    selected_verbose, aggregated_eval, evals = model_x_knockoff_bootstrap_e_value(test_scores,  fdr=fdr, selection_only=False)
+    selected_verbose, aggregated_eval, evals = model_x_knockoff_bootstrap_e_value(
+        test_scores, fdr=fdr, selection_only=False
+    )
     fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
-    selected_no_verbose = model_x_knockoff_bootstrap_e_value(test_scores,  fdr=fdr, selection_only=True)
+    selected_no_verbose = model_x_knockoff_bootstrap_e_value(
+        test_scores, fdr=fdr, selection_only=True
+    )
     fdp_no_verbose, power_no_verbose = cal_fdp_power(
         selected_no_verbose, non_zero_index
     )
@@ -86,6 +96,7 @@ def test_knockoff_aggregation():
             offset=2,
         )
 
+
 def test_model_x_knockoff():
     seed = 42
     fdr = 0.2
@@ -93,11 +104,14 @@ def test_model_x_knockoff():
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
     test_score = model_x_knockoff(X, y, seed=seed + 1)
-    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    ko_result = model_x_knockoff_filter(
+        test_score,
+        fdr=fdr,
+    )
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
-    
+
     ko_result = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=True)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
@@ -110,10 +124,17 @@ def test_model_x_knockoff_estimator():
     n = 300
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
-    test_score = model_x_knockoff(X, y, estimator=GridSearchCV(
-        Lasso(), param_grid={'alpha':np.linspace(0.2, 0.3, 5)}),
-        preconfigure_estimator=None, seed=seed + 1)
-    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    test_score = model_x_knockoff(
+        X,
+        y,
+        estimator=GridSearchCV(Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}),
+        preconfigure_estimator=None,
+        seed=seed + 1,
+    )
+    ko_result = model_x_knockoff_filter(
+        test_score,
+        fdr=fdr,
+    )
     fdp, power = cal_fdp_power(ko_result, non_zero)
 
     assert fdp <= 0.2
@@ -129,15 +150,22 @@ def test_estimate_distribution():
     n = 100
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=SEED)
-    test_score = model_x_knockoff(X,y, cov_estimator=LedoitWolf(assume_centered=True))
-    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    test_score = model_x_knockoff(X, y, cov_estimator=LedoitWolf(assume_centered=True))
+    ko_result = model_x_knockoff_filter(
+        test_score,
+        fdr=fdr,
+    )
     for i in ko_result:
-        assert np.any(i == non_zero) 
-    test_score = model_x_knockoff(X,y, cov_estimator=GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1]))
-    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+        assert np.any(i == non_zero)
+    test_score = model_x_knockoff(
+        X, y, cov_estimator=GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1])
+    )
+    ko_result = model_x_knockoff_filter(
+        test_score,
+        fdr=fdr,
+    )
     for i in ko_result:
-        assert np.any(i == non_zero) 
-
+        assert np.any(i == non_zero)
 
 
 def test_gaussian_knockoff_equi():
@@ -152,4 +180,3 @@ def test_gaussian_knockoff_equi():
     X_tilde = gaussian_knockoff_generation(X, mu, Sigma, seed=SEED * 2)
 
     assert X_tilde.shape == (n, p)
-

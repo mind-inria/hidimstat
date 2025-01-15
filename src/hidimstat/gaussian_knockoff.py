@@ -12,7 +12,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     the vector of empirical mean values mu, and the empirical covariance
     matrix sigma. It returns the knockoff variables X_tilde.
 
-    The original implementation can be found at 
+    The original implementation can be found at
     https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_gaussian.R
 
     Parameters
@@ -60,11 +60,12 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     # To calculate the Cholesky decomposition later on
     sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s)
     # test is the matrix is positive definite
-    while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol): 
+    while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol):
         sigma_tilde += 1e-10 * np.eye(n_features)
         warnings.warn(
             "The conditional covariance matrix for knockoffs is not positive "
-            "definite. Adding minor positive value to the matrix.", UserWarning
+            "definite. Adding minor positive value to the matrix.",
+            UserWarning,
         )
 
     # Equation 1.4 in barber2015controlling
@@ -104,14 +105,13 @@ def repeat_gaussian_knockoff_generation(Mu_tilde, sigma_tilde_decompose, seed):
         The knockoff variables.
     """
     n_samples, n_features = Mu_tilde.shape
-    
+
     # create a uniform noise for all the data
     rng = np.random.RandomState(seed)
     U_tilde = rng.randn(n_samples, n_features)
 
     X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
     return X_tilde
-     
 
 
 def _s_equi(sigma, tol=1e-14):
@@ -120,7 +120,7 @@ def _s_equi(sigma, tol=1e-14):
 
     This function estimates the diagonal matrix of correlation between real and knockoff variables using the
     equi-correlated equation described in :cite:`barber2015controlling` and
-    :cite:`candes2018panning`. It takes as input the empirical covariance matrix sigma and a tolerance value tol, 
+    :cite:`candes2018panning`. It takes as input the empirical covariance matrix sigma and a tolerance value tol,
     and returns a vector of diagonal values of the estimated matrix diag{s}.
 
     Parameters
@@ -153,10 +153,10 @@ def _s_equi(sigma, tol=1e-14):
     lambda_min = np.min(eig_value[0])
     # check if the matrix is positive-defined
     if lambda_min < 0:
-        raise Exception('The covariance matrix is not positive-definite.')
+        raise Exception("The covariance matrix is not positive-definite.")
 
     S = np.ones(n_features) * min(2 * lambda_min, 1)
-    
+
     psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S)) > tol)
     s_eps = 0
     while psd is False:
@@ -165,9 +165,10 @@ def _s_equi(sigma, tol=1e-14):
             s_eps = np.eps
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
-        psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S * (1 - s_eps))) > tol)
+        psd = np.all(
+            np.linalg.eigvalsh(2 * corr_matrix - np.diag(S * (1 - s_eps))) > tol
+        )
 
     S = S * (1 - s_eps)
 
     return S * np.diag(sigma)
-
