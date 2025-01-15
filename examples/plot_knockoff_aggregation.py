@@ -26,12 +26,15 @@ import numpy as np
 from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
     model_x_knockoff,
+    model_x_knockoff_filter,
     model_x_knockoff_aggregation,
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_bootstrap_e_value,
 )
 from hidimstat.utils import cal_fdp_power
 from sklearn.utils import check_random_state
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({"font.size": 26})
@@ -65,13 +68,32 @@ def single_run(
     )
 
     # Use model-X Knockoffs [1]
-    mx_selection = model_x_knockoff(X, y, fdr=fdr, n_jobs=n_jobs, seed=seed)
-
+    test_scores = model_x_knockoff(
+        X,
+        y,
+        estimator=LassoCV(
+            n_jobs=n_jobs,
+            verbose=0,
+            max_iter=200000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-6,
+        ),
+        seed=seed,
+    )
+    mx_selection = model_x_knockoff_filter(test_scores, fdr=fdr)
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
+
     # Use p-values aggregation [2]
     test_scores = model_x_knockoff_aggregation(
         X,
         y,
+        estimator=LassoCV(
+            n_jobs=n_jobs,
+            verbose=0,
+            max_iter=200000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-6,
+        ),
         n_bootstraps=n_bootstraps,
         n_jobs=n_jobs,
         random_state=seed,
