@@ -42,7 +42,7 @@ def test_desparsified_lasso():
 
     beta_hat, sigma_hat, omega_diag = desparsified_lasso(X, y)
 
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = desparsified_lasso_pvalue(X.shape[0], beta_hat, sigma_hat, omega_diag, ci_confidence=0.99, pvalue_confidence=0.90)
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = desparsified_lasso_pvalue(X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99)
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)
@@ -51,7 +51,7 @@ def test_desparsified_lasso():
     beta_hat, sigma_hat, omega_diag = desparsified_lasso(
         X, y, dof_ajdustement=True
     )
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = desparsified_lasso_pvalue(X.shape[0], beta_hat, sigma_hat, omega_diag, ci_confidence=0.99, pvalue_confidence=0.90)
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = desparsified_lasso_pvalue(X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99)
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)

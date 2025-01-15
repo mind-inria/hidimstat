@@ -207,7 +207,7 @@ def desparsified_lasso(
         return beta_hat, theta_hat, omega_diag
     
 
-def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, ci_confidence=0.95, pvalue_confidence=0.95, distrib="norm", eps=1e-14, confidence_interval_only=False):
+def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, confidence=0.95, distrib="norm", eps=1e-14, confidence_interval_only=False):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
     This function computes confidence intervals for the desparsified lasso estimator beta_hat.
@@ -222,10 +222,8 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, ci_con
         Estimated noise level.
     omega_diag : array-like
         Diagonal elements of the precision matrix estimate.
-    ci_confidence : float, optional (default=0.95)
+    confidence : float, optional (default=0.95)
         Confidence level for intervals, must be in [0, 1].
-    pvalue_confidence : float, optional (default=0.95)
-        Confidence level for the pvalue, must be in [0, 1].
     distrib : str, optional (default="norm")
         Distribution to use for p-value calculation. Currently only "norm" supported.
     eps : float, optional (default=1e-14)
@@ -254,7 +252,7 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, ci_con
             Upper bounds of confidence intervals
     """
     # define the quantile for the confidence intervals
-    quantile = stats.norm.ppf(1 - (1 - ci_confidence) / 2)    
+    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)    
     # TODO:why the double inverse of omega_diag?
     omega_invsqrt_diag = omega_diag ** (-0.5)
     confint_radius = np.abs(
@@ -267,7 +265,7 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, ci_con
         return cb_min, cb_max
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        cb_min, cb_max, confidence=pvalue_confidence, distrib=distrib, eps=eps
+        cb_min, cb_max, confidence=confidence, distrib=distrib, eps=eps
     )    
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 

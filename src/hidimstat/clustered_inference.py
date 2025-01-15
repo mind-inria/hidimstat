@@ -103,7 +103,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     if not group:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max  = (
             desparsified_lasso_pvalue(X.shape[0], beta_hat, theta_hat, omega_diag,
-                                      ci_confidence=0.95, pvalue_confidence=0.95, **kwargs)
+                                      confidence=0.95, **kwargs)
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
