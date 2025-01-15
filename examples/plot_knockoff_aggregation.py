@@ -24,8 +24,12 @@ References
 
 import numpy as np
 from hidimstat.data_simulation import simu_data
-from hidimstat.knockoffs import model_x_knockoff
-from hidimstat.knockoff_aggregation import knockoff_aggregation
+from hidimstat.knockoffs import (
+    model_x_knockoff,
+    model_x_knockoff_aggregation,
+    model_x_knockoff_bootstrap_quantile,
+    model_x_knockoff_bootstrap_e_value,
+)
 from hidimstat.utils import cal_fdp_power
 from sklearn.utils import check_random_state
 import matplotlib.pyplot as plt
@@ -65,28 +69,22 @@ def single_run(
 
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
     # Use p-values aggregation [2]
-    aggregated_ko_selection = knockoff_aggregation(
+    test_scores = model_x_knockoff_aggregation(
         X,
         y,
-        fdr=fdr,
         n_bootstraps=n_bootstraps,
         n_jobs=n_jobs,
-        gamma=0.3,
         random_state=seed,
+    )
+    aggregated_ko_selection = model_x_knockoff_bootstrap_quantile(
+        test_scores, fdr=fdr, gamma=0.3, selection_only=True
     )
 
     fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
-    eval_selection = knockoff_aggregation(
-        X,
-        y,
-        fdr=fdr,
-        method="e-values",
-        n_bootstraps=n_bootstraps,
-        n_jobs=n_jobs,
-        gamma=0.3,
-        random_state=seed,
+    eval_selection = model_x_knockoff_bootstrap_e_value(
+        test_scores, fdr=fdr, selection_only=True
     )
 
     fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
