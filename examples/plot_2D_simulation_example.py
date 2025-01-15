@@ -61,7 +61,10 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 
 from hidimstat.clustered_inference import clustered_inference
-from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
+from hidimstat.desparsified_lasso import (
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
+)
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.scenario import multivariate_simulation
 from hidimstat.stat_tools import zscore_from_pval
@@ -238,8 +241,8 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 # compute desparsified lasso
 beta_hat, sigma_hat, omega_diag = desparsified_lasso(X_init, y, n_jobs=n_jobs)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = desparsified_lasso_pvalue(
-    beta_hat, sigma_hat, omega_diag
+pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
+    desparsified_lasso_pvalue(beta_hat, sigma_hat, omega_diag)
 )
 
 # compute estimated support (first method)
@@ -264,8 +267,8 @@ ward = FeatureAgglomeration(
 )
 
 # clustered desparsified lasso (CluDL)
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = clustered_inference(
-    X_init, y, ward, n_clusters
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+    clustered_inference(X_init, y, ward, n_clusters)
 )
 
 # compute estimated support (first method)
