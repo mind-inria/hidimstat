@@ -9,7 +9,7 @@ from .knockoffs import (
     model_x_knockoff_filter,
     model_x_knockoff_pvalue,
     model_x_knockoff_bootstrap_quantile,
-    model_x_knockoff_bootstrap_e_value
+    model_x_knockoff_bootstrap_e_value,
 )
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
