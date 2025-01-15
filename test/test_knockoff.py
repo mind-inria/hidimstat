@@ -7,6 +7,9 @@ from hidimstat.utils import cal_fdp_power
 import numpy as np
 import pytest
 from sklearn.covariance import LedoitWolf, GraphicalLassoCV
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
 
 
 
@@ -84,13 +87,32 @@ def test_knockoff_aggregation():
         )
 
 def test_model_x_knockoff():
-    
     seed = 42
     fdr = 0.2
     n = 300
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
     test_score = model_x_knockoff(X, y, seed=seed + 1)
+    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    fdp, power = cal_fdp_power(ko_result, non_zero)
+    assert fdp <= 0.2
+    assert power > 0.7
+    
+    ko_result = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=True)
+    fdp, power = cal_fdp_power(ko_result, non_zero)
+    assert fdp <= 0.2
+    assert power > 0.7
+
+
+def test_model_x_knockoff_estimator():
+    seed = 42
+    fdr = 0.2
+    n = 300
+    p = 300
+    X, y, _, non_zero = simu_data(n, p, seed=seed)
+    test_score = model_x_knockoff(X, y, estimator=GridSearchCV(
+        Lasso(), param_grid={'alpha':np.linspace(0.2, 0.3, 5)}),
+        preconfigure_estimator=None, seed=seed + 1)
     ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
     fdp, power = cal_fdp_power(ko_result, non_zero)
 
@@ -100,25 +122,22 @@ def test_model_x_knockoff():
 
 def test_estimate_distribution():
     """
-    TODO replace the estimate distribution by calling knockoff function with them
+    test different estimation of the covariance
     """
     SEED = 42
     fdr = 0.1
     n = 100
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=SEED)
-    mu = X.mean(axis=0)
-    Sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
-    
+    test_score = model_x_knockoff(X,y, cov_estimator=LedoitWolf(assume_centered=True))
+    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    for i in ko_result:
+        assert np.any(i == non_zero) 
+    test_score = model_x_knockoff(X,y, cov_estimator=GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1]))
+    ko_result = model_x_knockoff_filter(test_score, fdr=fdr,)
+    for i in ko_result:
+        assert np.any(i == non_zero) 
 
-    assert mu.size == p
-    assert Sigma.shape == (p, p)
-
-    mu = X.mean(axis=0)
-    Sigma = GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1]).fit(X).covariance_
-
-    assert mu.size == p
-    assert Sigma.shape == (p, p)
 
 
 def test_gaussian_knockoff_equi():
