@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.noise_std import empirical_snr, group_reid, reid
+from hidimstat.noise_std import empirical_snr, reid
 from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
@@ -84,13 +84,13 @@ def test_group_reid():
     )
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = group_reid(X, Y, tol=1e-3, max_iter=1)
+    cov_hat, _ = reid(X, Y, group=True, tol=1e-3, max_iter=1)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = group_reid(X, Y, method="AR")
+    cov_hat, _ = reid(X, Y, group=True, method="AR")
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
@@ -110,19 +110,19 @@ def test_group_reid():
         seed=1,
     )
 
-    cov_hat, _ = group_reid(X, Y)
+    cov_hat, _ = reid(X, Y, group=True)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = group_reid(X, Y, fit_Y=False, stationary=False)
+    cov_hat, _ = reid(X, Y, group=True, fit_Y=False, stationary=False)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
 
-    cov_hat, _ = group_reid(X, Y, method="AR")
+    cov_hat, _ = reid(X, Y, group=True, method="AR")
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
