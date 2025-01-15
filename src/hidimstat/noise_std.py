@@ -5,28 +5,31 @@ from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
 
-def reid(X,
-         y,
-         eps=1e-2,
-         tol=1e-4,
-         max_iter=10000,
-         n_split=5,
-         n_jobs=1,
-         seed=0,
-         group=False,
-         fit_Y=True,
-         stationary=True,
-         method="simple",
-         order=1,
-         ):
+def reid(
+    X,
+    y,
+    eps=1e-2,
+    tol=1e-4,
+    max_iter=10000,
+    n_split=5,
+    n_jobs=1,
+    seed=0,
+    group=False,
+    fit_Y=True,
+    stationary=True,
+    method="simple",
+    order=1,
+):
     """
-    Residual sum of squares based estimators for noise standard deviation estimation.
+    Residual sum of squares based estimators for noise standard deviation 
+    estimation.
 
-    This implementation follows the procedure described in :footcite:`fan2012variance` and
-    :cite:`reid2016study`. It uses Lasso with cross-validation to estimate both the
-    noise standard deviation and model coefficients.
+    This implementation follows the procedure described in 
+    :footcite:`fan2012variance` and :cite:`reid2016study`. It uses Lasso with 
+    cross-validation to estimate both the noise standard deviation and model
+    coefficients.
 
-    For group, the implementation is based on the procedure 
+    For group, the implementation is based on the procedure
     from :footcite:`chevalier2020statistical`.
 
     Parameters
@@ -42,8 +45,8 @@ def reid(X,
         Smaller values create a finer grid.
 
     tol : float, optional (default=1e-4)
-        Tolerance for optimization convergence. The algorithm stops when updates
-        are smaller than tol and dual gap is smaller than tol.
+        Tolerance for optimization convergence. The algorithm stops 
+        when updates are smaller than tol and dual gap is smaller than tol.
 
     max_iter : int, optional (default=10000)
         Maximum number of iterations for the optimization algorithm.
@@ -52,11 +55,12 @@ def reid(X,
         Number of folds for cross-validation.
 
     n_jobs : int, optional (default=1)
-        Number of parallel jobs for cross-validation. -1 means using all processors.
+        Number of parallel jobs for cross-validation.
+        -1 means using all processors.
 
     seed : int, optional (default=0)
         Random seed for reproducible cross-validation splits.
-    
+
     fit_Y : bool, (default=True)
         Whether to use MultiTaskLassoCV to fit Y against X.
         If False, covariance is estimated directly from Y.
@@ -95,23 +99,28 @@ def reid(X,
         if max_iter // n_split <= n_features:
             max_iter = n_features * n_split
             print(f"'max_iter' has been increased to {max_iter}")
-        
+
         # use the cross-validation for define the best alpha of Lasso
         cv = KFold(n_splits=n_split, shuffle=True, random_state=seed)
         Refit_CV = MultiTaskLassoCV if group else LassoCV
         clf_cv = Refit_CV(
-            eps=eps, fit_intercept=False, cv=cv, tol=tol, max_iter=max_iter, n_jobs=n_jobs
+            eps=eps,
+            fit_intercept=False,
+            cv=cv,
+            tol=tol,
+            max_iter=max_iter,
+            n_jobs=n_jobs,
         )
         clf_cv.fit(X_, y)
-        
+
         # Estimate the support of the variable importance
         beta_hat = clf_cv.coef_
         residual = clf_cv.predict(X_) - y
-        
+
         # get the number of non-zero coefficients
         coef_sum = np.sum(np.abs(beta_hat), axis=0)
         size_support = np.sum(coef_sum > tol * coef_sum.max())
-        
+
         # avoid dividing by 0
         size_support = min(size_support, n_samples - 1)
     else:
@@ -126,7 +135,7 @@ def reid(X,
 
     if not group:
         return sigma_hat_raw, beta_hat
-    
+
     ## Computation of the covariance matrix for group
     else:
         if method == "simple":
@@ -140,27 +149,35 @@ def reid(X,
                 )
             elif not stationary:
                 raise ValueError(
-                    "The AR method is not compatible with the non-stationary noise assumption."
+                    "The AR method is not compatible with the non-stationary"
+                    + " noise assumption."
                 )
         else:
-            raise ValueError("Unknown method for estimating the covariance matrix")
+            raise ValueError(
+                "Unknown method for estimating the covariance matrix"
+            )
         ## compute emperical correlation of the residual
         if stationary:
-            # consideration of stationary noise (section 2.5 of `chevalier2020statistical`)
+            # consideration of stationary noise 
+            # (section 2.5 of `chevalier2020statistical`)
             sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
-            # compute rho from the empirical correlation matrix (section 2.5 of `chevalier2020statistical`)
+            # compute rho from the empirical correlation matrix
+            # (section 2.5 of `chevalier2020statistical`)
             corr_emp = np.corrcoef(residual.T)
         else:
             sigma_hat = sigma_hat_raw
             residual_rescaled = residual / sigma_hat
             corr_emp = np.corrcoef(residual_rescaled.T)
 
-        # TODO: Why the name of the method is different than the name of the "function"?
+        # TODO: Why the name of the method is different 
+        #           than the name of the "function"?
         # Median method
         if not stationary or method == "simple":
             rho_hat = np.median(np.diag(corr_emp, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
-            corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
+            corr_hat = toeplitz(
+                np.geomspace(1, rho_hat ** (n_times - 1), n_times)
+            )
             cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
         # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
@@ -184,7 +201,9 @@ def reid(X,
                 end = -i - 1
                 residual_estimate += coef_ar[i] * residual[:, start:end]
             residual_diff = residual[:, order:] - residual_estimate
-            sigma_eps = np.median(norm(residual_diff, axis=0) / np.sqrt(n_samples))
+            sigma_eps = np.median(
+                norm(residual_diff, axis=0) / np.sqrt(n_samples)
+            )
 
             # estimation of the autocorrelation matrices
             rho_ar_full = np.zeros(n_times)
@@ -196,10 +215,15 @@ def reid(X,
             corr_hat = toeplitz(rho_ar_full)
 
             # estimation of the variance of an AR process
-            # from wikipedia it should be  VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
-            # TODO there is a short difference between the code and the above formula
-            sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
-            # estimation of the covariance based on the correlation matrix and sigma
+            # from wikipedia it should be:
+            # VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
+            # TODO there is a short difference between the code 
+            # and the above formula
+            sigma_hat[:] = sigma_eps / np.sqrt(
+                (1 - np.dot(coef_ar, rho_ar[1:]))
+            )
+            # estimation of the covariance based on the 
+            # correlation matrix and sigma
             # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
             cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
@@ -208,7 +232,8 @@ def reid(X,
 
 def empirical_snr(X, y, beta, noise=None):
     """
-    Compute the empirical signal-to-noise ratio (SNR) for the linear model y = X @ beta + noise.
+    Compute the empirical signal-to-noise ratio (SNR) for 
+    the linear model y = X @ beta + noise.
 
     Parameters
     ----------
@@ -231,7 +256,8 @@ def empirical_snr(X, y, beta, noise=None):
 
     Notes
     -----
-    SNR measures the ratio of signal power to noise power, indicating model estimation quality.
+    SNR measures the ratio of signal power to noise power, 
+    indicating model estimation quality.
     Higher values suggest better signal recovery.
     """
     X = np.asarray(X)

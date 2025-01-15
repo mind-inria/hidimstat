@@ -33,7 +33,8 @@ def desparsified_lasso(
     """
     Desparsified Lasso with confidence intervals
 
-    Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in :cite:`chevalier2020statistical`.
+    Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
+    :cite:`chevalier2020statistical`.
 
     Parameters
     ----------
@@ -41,12 +42,13 @@ def desparsified_lasso(
         Input data matrix.
 
     y : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Target vector for single response or matrix for multiple responses.
+        Target vector for single response or matrix for multiple
+        responses.
 
     dof_ajdustement : bool, optional (default=False)
         If True, applies degrees of freedom adjustment.
         If False, computes original Desparsified Lasso estimator.
-        
+
     max_iter : int, optional (default=5000)
         Maximum iterations for Nodewise Lasso regressions.
 
@@ -58,7 +60,7 @@ def desparsified_lasso(
 
     eps : float, optional (default=1e-2)
         Small constant used in noise estimation.
-    
+
     tol_reid : float, optional (default=1e-4)
         Tolerance for Reid estimation.
 
@@ -76,13 +78,15 @@ def desparsified_lasso(
 
     group : bool, optional (default=False)
         If True, use group Lasso for multiple responses.
-     
+
     cov : ndarray, shape (n_times, n_times), optional (default=None)
-        Temporal covariance matrix of the noise. If None, it is estimated.
-    
+        Temporal covariance matrix of the noise. 
+        If None, it is estimated.
+
     noise_method : {'AR', 'simple'}, optional (default='AR')
         Method to estimate noise covariance:
-        - 'simple': Uses median correlation between consecutive timepoints
+        - 'simple': Uses median correlation between consecutive 
+                    timepoints
         - 'AR': Fits autoregressive model of specified order
 
     order : int, optional (default=1)
@@ -98,9 +102,10 @@ def desparsified_lasso(
     -------
     beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
         Desparsified Lasso coefficient estimates.
-    
+
     sigma_hat/theta_hat : float or ndarray, shape (n_times, n_times)
-        Estimated noise level (single response) or precision matrix (multiple responses).
+        Estimated noise level (single response) or precision matrix 
+        (multiple responses).
 
     omega_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
@@ -142,10 +147,10 @@ def desparsified_lasso(
         y_,
         eps=eps,
         tol=tol_reid,
-        # max_iter=max_iter,
+        max_iter=max_iter,
         n_split=n_split,
         n_jobs=n_jobs,
-        # seed=seed,
+        seed=seed,
         # for group
         group=group,
         method=noise_method,
@@ -196,7 +201,7 @@ def desparsified_lasso(
     beta_hat = beta_bias.T - P_nodiag.dot(beta_reid.T)
     # confidence intervals
     omega_diag = omega_diag * dof_factor**2
-    
+
     if not group:
         return beta_hat, sigma_hat, omega_diag
     else:
@@ -205,17 +210,27 @@ def desparsified_lasso(
             cov_hat = cov
         theta_hat = n_samples * inv(cov_hat)
         return beta_hat, theta_hat, omega_diag
-    
 
-def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, confidence=0.95, distrib="norm", eps=1e-14, confidence_interval_only=False):
+
+def desparsified_lasso_pvalue(
+    n_samples,
+    beta_hat,
+    sigma_hat,
+    omega_diag,
+    confidence=0.95,
+    distrib="norm",
+    eps=1e-14,
+    confidence_interval_only=False,
+):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
-    This function computes confidence intervals for the desparsified lasso estimator beta_hat.
+    This function computes confidence intervals for the desparsified lasso
+    estimator beta_hat.
     It can also return p-values derived from these confidence intervals.
     Parameters
     ----------
     n_samples : float
-        The number of samples    
+        The number of samples
     beta_hat : array-like
         The desparsified lasso coefficient estimates.
     sigma_hat : float
@@ -225,11 +240,13 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, confid
     confidence : float, optional (default=0.95)
         Confidence level for intervals, must be in [0, 1].
     distrib : str, optional (default="norm")
-        Distribution to use for p-value calculation. Currently only "norm" supported.
+        Distribution to use for p-value calculation.
+        Currently only "norm" supported.
     eps : float, optional (default=1e-14)
         Small value to avoid numerical issues in p-value calculation.
     confidence_interval_only : bool, optional (default=False)
-        If True, return only confidence intervals. If False, also return p-values.
+        If True, return only confidence intervals.
+        If False, also return p-values.
     Returns
     -------
     If confidence_interval_only=True:
@@ -252,7 +269,7 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, confid
             Upper bounds of confidence intervals
     """
     # define the quantile for the confidence intervals
-    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)    
+    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     # TODO:why the double inverse of omega_diag?
     omega_invsqrt_diag = omega_diag ** (-0.5)
     confint_radius = np.abs(
@@ -266,13 +283,16 @@ def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, confid
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
         cb_min, cb_max, confidence=confidence, distrib=distrib, eps=eps
-    )    
+    )
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
 
-def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
+def desparsified_group_lasso_pvalue(
+    beta_hat, theta_hat, omega_diag, test="chi2"
+):
     """
-    Compute p-values for the desparsified group Lasso estimator using chi-squared or F tests
+    Compute p-values for the desparsified group Lasso estimator using
+    chi-squared or F tests
 
     Parameters
     ----------
@@ -319,11 +339,17 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
 
     # Compute the two-sided p-values
     if test == "chi2":
-        chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
-        two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
+        chi2_scores = (
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
+        )
+        two_sided_pval = np.minimum(
+            2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0
+        )
     elif test == "F":
         f_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
+            / omega_diag
+            / n_times
         )
         two_sided_pval = np.minimum(
             2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
@@ -388,8 +414,8 @@ def _compute_all_residuals(
     -----
     This implements the nodewise Lasso procedure from :cite:`chevalier2020statistical`
     for estimating entries of the precision matrix needed in the
-    desparsified Lasso. The procedure regresses each feature against all others
-    using Lasso to obtain residuals and precision matrix estimates.
+    desparsified Lasso. The procedure regresses each feature against 
+    all others using Lasso to obtain residuals and precision matrix estimates.
 
     References
     ----------
@@ -422,8 +448,8 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
-    For feature i, regresses X[:,i] against all other features to obtain residuals
-    and precision matrix diagonal entry needed for debiasing.
+    For feature i, regresses X[:,i] against all other features to 
+    obtain residuals and precision matrix diagonal entry needed for debiasing.
 
     Parameters
     ----------
