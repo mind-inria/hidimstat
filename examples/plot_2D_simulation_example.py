@@ -267,8 +267,8 @@ ward = FeatureAgglomeration(
 )
 
 # clustered desparsified lasso (CluDL)
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference(X_init, y, ward, n_clusters)
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = clustered_inference(
+    X_init, y, ward, n_clusters
 )
 
 # compute estimated support (first method)

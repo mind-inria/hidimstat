@@ -80,12 +80,12 @@ def desparsified_lasso(
         If True, use group Lasso for multiple responses.
 
     cov : ndarray, shape (n_times, n_times), optional (default=None)
-        Temporal covariance matrix of the noise. 
+        Temporal covariance matrix of the noise.
         If None, it is estimated.
 
     noise_method : {'AR', 'simple'}, optional (default='AR')
         Method to estimate noise covariance:
-        - 'simple': Uses median correlation between consecutive 
+        - 'simple': Uses median correlation between consecutive
                     timepoints
         - 'AR': Fits autoregressive model of specified order
 
@@ -104,7 +104,7 @@ def desparsified_lasso(
         Desparsified Lasso coefficient estimates.
 
     sigma_hat/theta_hat : float or ndarray, shape (n_times, n_times)
-        Estimated noise level (single response) or precision matrix 
+        Estimated noise level (single response) or precision matrix
         (multiple responses).
 
     omega_diag : ndarray, shape (n_features,)
@@ -287,9 +287,7 @@ def desparsified_lasso_pvalue(
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
 
-def desparsified_group_lasso_pvalue(
-    beta_hat, theta_hat, omega_diag, test="chi2"
-):
+def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
     """
     Compute p-values for the desparsified group Lasso estimator using
     chi-squared or F tests
@@ -339,17 +337,11 @@ def desparsified_group_lasso_pvalue(
 
     # Compute the two-sided p-values
     if test == "chi2":
-        chi2_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
-        )
-        two_sided_pval = np.minimum(
-            2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0
-        )
+        chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
+        two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
     elif test == "F":
         f_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
-            / omega_diag
-            / n_times
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
         )
         two_sided_pval = np.minimum(
             2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
@@ -414,7 +406,7 @@ def _compute_all_residuals(
     -----
     This implements the nodewise Lasso procedure from :cite:`chevalier2020statistical`
     for estimating entries of the precision matrix needed in the
-    desparsified Lasso. The procedure regresses each feature against 
+    desparsified Lasso. The procedure regresses each feature against
     all others using Lasso to obtain residuals and precision matrix estimates.
 
     References
@@ -448,7 +440,7 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
-    For feature i, regresses X[:,i] against all other features to 
+    For feature i, regresses X[:,i] against all other features to
     obtain residuals and precision matrix diagonal entry needed for debiasing.
 
     Parameters

@@ -21,11 +21,11 @@ def reid(
     order=1,
 ):
     """
-    Residual sum of squares based estimators for noise standard deviation 
+    Residual sum of squares based estimators for noise standard deviation
     estimation.
 
-    This implementation follows the procedure described in 
-    :footcite:`fan2012variance` and :cite:`reid2016study`. It uses Lasso with 
+    This implementation follows the procedure described in
+    :footcite:`fan2012variance` and :cite:`reid2016study`. It uses Lasso with
     cross-validation to estimate both the noise standard deviation and model
     coefficients.
 
@@ -45,7 +45,7 @@ def reid(
         Smaller values create a finer grid.
 
     tol : float, optional (default=1e-4)
-        Tolerance for optimization convergence. The algorithm stops 
+        Tolerance for optimization convergence. The algorithm stops
         when updates are smaller than tol and dual gap is smaller than tol.
 
     max_iter : int, optional (default=10000)
@@ -153,12 +153,10 @@ def reid(
                     + " noise assumption."
                 )
         else:
-            raise ValueError(
-                "Unknown method for estimating the covariance matrix"
-            )
+            raise ValueError("Unknown method for estimating the covariance matrix")
         ## compute emperical correlation of the residual
         if stationary:
-            # consideration of stationary noise 
+            # consideration of stationary noise
             # (section 2.5 of `chevalier2020statistical`)
             sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
             # compute rho from the empirical correlation matrix
@@ -169,15 +167,13 @@ def reid(
             residual_rescaled = residual / sigma_hat
             corr_emp = np.corrcoef(residual_rescaled.T)
 
-        # TODO: Why the name of the method is different 
+        # TODO: Why the name of the method is different
         #           than the name of the "function"?
         # Median method
         if not stationary or method == "simple":
             rho_hat = np.median(np.diag(corr_emp, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
-            corr_hat = toeplitz(
-                np.geomspace(1, rho_hat ** (n_times - 1), n_times)
-            )
+            corr_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
             cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
 
         # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
@@ -201,9 +197,7 @@ def reid(
                 end = -i - 1
                 residual_estimate += coef_ar[i] * residual[:, start:end]
             residual_diff = residual[:, order:] - residual_estimate
-            sigma_eps = np.median(
-                norm(residual_diff, axis=0) / np.sqrt(n_samples)
-            )
+            sigma_eps = np.median(norm(residual_diff, axis=0) / np.sqrt(n_samples))
 
             # estimation of the autocorrelation matrices
             rho_ar_full = np.zeros(n_times)
@@ -217,12 +211,10 @@ def reid(
             # estimation of the variance of an AR process
             # from wikipedia it should be:
             # VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
-            # TODO there is a short difference between the code 
+            # TODO there is a short difference between the code
             # and the above formula
-            sigma_hat[:] = sigma_eps / np.sqrt(
-                (1 - np.dot(coef_ar, rho_ar[1:]))
-            )
-            # estimation of the covariance based on the 
+            sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
+            # estimation of the covariance based on the
             # correlation matrix and sigma
             # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
             cov_hat = np.outer(sigma_hat, sigma_hat) * corr_hat
@@ -232,7 +224,7 @@ def reid(
 
 def empirical_snr(X, y, beta, noise=None):
     """
-    Compute the empirical signal-to-noise ratio (SNR) for 
+    Compute the empirical signal-to-noise ratio (SNR) for
     the linear model y = X @ beta + noise.
 
     Parameters
@@ -256,7 +248,7 @@ def empirical_snr(X, y, beta, noise=None):
 
     Notes
     -----
-    SNR measures the ratio of signal power to noise power, 
+    SNR measures the ratio of signal power to noise power,
     indicating model estimation quality.
     Higher values suggest better signal recovery.
     """

@@ -52,9 +52,7 @@ def test_desparsified_lasso():
     assert_equal(cb_max > beta, True)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
-    beta_hat, sigma_hat, omega_diag = desparsified_lasso(
-        X, y, dof_ajdustement=True
-    )
+    beta_hat, sigma_hat, omega_diag = desparsified_lasso(X, y, dof_ajdustement=True)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
         desparsified_lasso_pvalue(
             X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99
@@ -90,9 +88,7 @@ def test_desparsified_group_lasso():
         rho_noise=rho,
     )
 
-    beta_hat, theta_hat, omega_diag = desparsified_lasso(
-        X, Y, group=True, cov=cov
-    )
+    beta_hat, theta_hat, omega_diag = desparsified_lasso(X, Y, group=True, cov=cov)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag)
     )
@@ -106,9 +102,7 @@ def test_desparsified_group_lasso():
 
     beta_hat, theta_hat, omega_diag = desparsified_lasso(X, Y, group=True)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso_pvalue(
-            beta_hat, theta_hat, omega_diag, test="F"
-        )
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="F")
     )
 
     assert_almost_equal(beta_hat, beta, decimal=1)

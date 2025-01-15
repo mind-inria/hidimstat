@@ -113,16 +113,12 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(
-                beta_hat, theta_hat, omega_diag, **kwargs
-            )
+            desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, **kwargs)
         )
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def _degrouping(
-    ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
-):
+def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr):
     """Assigning cluster-wise stats to features contained in the corresponding
     cluster and rescaling estimated parameter"""
 
@@ -267,20 +263,18 @@ def clustered_inference(
 
     # Inference: computing reduced parameter vector and stats
     print("Clustered inference", kwargs)
-    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = (
-        hd_inference(X, y, method, n_jobs=n_jobs, **kwargs)
+    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = hd_inference(
+        X, y, method, n_jobs=n_jobs, **kwargs
     )
 
     # De-grouping
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        _degrouping(
-            ward,
-            beta_hat_,
-            pval_,
-            pval_corr_,
-            one_minus_pval_,
-            one_minus_pval_corr_,
-        )
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
+        ward,
+        beta_hat_,
+        pval_,
+        pval_corr_,
+        one_minus_pval_,
+        one_minus_pval_corr_,
     )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
