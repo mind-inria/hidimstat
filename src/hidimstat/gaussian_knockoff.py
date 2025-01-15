@@ -162,7 +162,7 @@ def _s_equi(sigma, tol=1e-14):
     while psd is False:
         if s_eps == 0:
             s_eps = np.eps  # avoid zeros
-            s_eps = np.eps
+        else:
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
         psd = np.all(
