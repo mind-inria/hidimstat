@@ -159,8 +159,12 @@ def test_estimate_distribution():
     for i in ko_result:
         assert np.any(i == non_zero)
     test_score = model_x_knockoff(
-        X, y, cov_estimator=GraphicalLassoCV(alphas=[1e-3, 1e-2, 1e-1, 1],
-                                             cv=KFold(n_splits=5, shuffle=True, random_state=0))
+        X,
+        y,
+        cov_estimator=GraphicalLassoCV(
+            alphas=[1e-3, 1e-2, 1e-1, 1],
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        ),
     )
     ko_result = model_x_knockoff_filter(
         test_score,
