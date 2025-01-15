@@ -74,7 +74,7 @@ def single_run(
         estimator=LassoCV(
             n_jobs=n_jobs,
             verbose=0,
-            max_iter=200000,
+            max_iter=1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
             tol=1e-6,
         ),
@@ -90,7 +90,7 @@ def single_run(
         estimator=LassoCV(
             n_jobs=n_jobs,
             verbose=0,
-            max_iter=200000,
+            max_iter =1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
             tol=1e-6,
         ),
