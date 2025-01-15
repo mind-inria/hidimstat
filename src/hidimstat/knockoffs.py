@@ -13,7 +13,7 @@ from hidimstat.gaussian_knockoff import (
 from hidimstat.utils import fdr_threshold, quantile_aggregation
 
 
-def preconfigure_estimator_LaccosCV(estimator, X, X_tilde, y, n_lambdas=10):
+def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_lambdas=10):
     """
     Configure the estimator for Model-X knockoffs.
 
@@ -72,11 +72,11 @@ def model_x_knockoff(
     estimator=LassoCV(
         n_jobs=None,
         verbose=0,
-        max_iter=1000,
+        max_iter=200000,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-8,
+        tol=1e-6,
     ),
-    preconfigure_estimator=preconfigure_estimator_LaccosCV,
+    preconfigure_estimator=preconfigure_estimator_LassoCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     seed=None,
@@ -167,11 +167,11 @@ def model_x_knockoff_aggregation(
     estimator=LassoCV(
         n_jobs=None,
         verbose=0,
-        max_iter=1000,
+        max_iter=200000,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-8,
+        tol=1e-6,
     ),
-    preconfigure_estimator=preconfigure_estimator_LaccosCV,
+    preconfigure_estimator=preconfigure_estimator_LassoCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     joblib_verbose=0,

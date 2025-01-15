@@ -58,7 +58,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     # First part on the RHS of equation 1.4 in barber2015controlling
     Mu_tilde = X - np.dot(X - mu, Sigma_inv_s)
     # To calculate the Cholesky decomposition later on
-    sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s.dot(Diag_s)) #TODO extra operation Sigma_inv_s.dot(Diag_s) ??????
+    sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s)
     # test is the matrix is positive definite
     while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol): 
         sigma_tilde += 1e-10 * np.eye(n_features)
