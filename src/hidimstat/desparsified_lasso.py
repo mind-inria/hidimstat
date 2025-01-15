@@ -5,7 +5,7 @@ from scipy import stats
 from scipy.linalg import inv
 from sklearn.linear_model import Lasso
 
-from hidimstat.noise_std import group_reid, reid
+from hidimstat.noise_std import reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 from hidimstat.stat_tools import pval_from_cb
 
@@ -14,40 +14,39 @@ def desparsified_lasso(
     X,
     y,
     dof_ajdustement=False,
-    confidence=0.95,
     max_iter=5000,
     tol=1e-3,
     alpha_max_fraction=0.01,
-    tol_reid=1e-4,
     eps=1e-2,
+    tol_reid=1e-4,
     n_split=5,
     n_jobs=1,
     seed=0,
     verbose=0,
+    group=False,
+    cov=None,
+    noise_method="AR",
+    order=1,
+    fit_Y=True,
+    stationary=True,
 ):
     """
     Desparsified Lasso with confidence intervals
 
-    Algorithm based on Algorithm 1 of d-Lasso in :cite:`chevalier2020statistical`
+    Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in :cite:`chevalier2020statistical`.
 
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
         Input data matrix.
 
-    y : ndarray, shape (n_samples,)
-        Target vector.
+    y : ndarray, shape (n_samples,) or (n_samples, n_times)
+        Target vector for single response or matrix for multiple responses.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, applies degrees of freedom adjustment as described in
-        :footcite:`bellec2022biasing` and :footcite:`celentano2023lasso`.
-        If False, computes original Desparsified Lasso estimator following
-        :footcite:`zhang2014confidence`, :footcite:`van2014asymptotically` and
-        :footcite:`javanmard2014confidence`.
-
-    confidence : float, optional (default=0.95)
-        Confidence level for intervals, must be in [0, 1].
-
+        If True, applies degrees of freedom adjustment.
+        If False, computes original Desparsified Lasso estimator.
+        
     max_iter : int, optional (default=5000)
         Maximum iterations for Nodewise Lasso regressions.
 
@@ -57,11 +56,11 @@ def desparsified_lasso(
     alpha_max_fraction : float, optional (default=0.01)
         Fraction of max lambda used for Lasso regularization.
 
-    tol_reid : float, optional (default=1e-4)
-        Tolerance for Reid estimation.
-
     eps : float, optional (default=1e-2)
         Small constant used in noise estimation.
+    
+    tol_reid : float, optional (default=1e-4)
+        Tolerance for Reid estimation.
 
     n_split : int, optional (default=5)
         Number of splits for cross-validation in Reid procedure.
@@ -75,16 +74,36 @@ def desparsified_lasso(
     verbose : int, optional (default=0)
         Verbosity level for logging.
 
+    group : bool, optional (default=False)
+        If True, use group Lasso for multiple responses.
+     
+    cov : ndarray, shape (n_times, n_times), optional (default=None)
+        Temporal covariance matrix of the noise. If None, it is estimated.
+    
+    noise_method : {'AR', 'simple'}, optional (default='AR')
+        Method to estimate noise covariance:
+        - 'simple': Uses median correlation between consecutive timepoints
+        - 'AR': Fits autoregressive model of specified order
+
+    order : int, optional (default=1)
+        Order of AR model when noise_method='AR'. Must be < n_times.
+
+    fit_Y : bool, optional (default=True)
+        Whether to fit Y in noise estimation.
+
+    stationary : bool, optional (default=True)
+        Whether to assume stationary noise in estimation.
+
     Returns
     -------
-    beta_hat : ndarray, shape (n_features,)
+    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
         Desparsified Lasso coefficient estimates.
+    
+    sigma_hat/theta_hat : float or ndarray, shape (n_times, n_times)
+        Estimated noise level (single response) or precision matrix (multiple responses).
 
-    cb_min : ndarray, shape (n_features,)
-        Lower confidence interval bounds.
-
-    cb_max : ndarray, shape (n_features,)
-        Upper confidence interval bounds.
+    omega_diag : ndarray, shape (n_features,)
+        Diagonal elements of the precision matrix.
 
     Notes
     -----
@@ -104,25 +123,35 @@ def desparsified_lasso(
     X_ = np.asarray(X)
 
     n_samples, n_features = X_.shape
+    if group:
+        n_times = y.shape[1]
+        if cov is not None and cov.shape != (n_times, n_times):
+            raise ValueError(
+                f'Shape of "cov" should be ({n_times}, {n_times}),'
+                + f' the shape of "cov" was ({cov.shape}) instead'
+            )
 
     # centering the data and the target variable
     y_ = y - np.mean(y)
     X_ = X_ - np.mean(X_, axis=0)
 
-    # define the quantile for the confidence intervals
-    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-
     # Lasso regression and noise standard deviation estimation
     # TODO: other estimation of the noise standard deviation?
-    sigma_hat, beta_lasso = reid(
+    sigma_hat, beta_reid = reid(
         X_,
         y_,
         eps=eps,
         tol=tol_reid,
-        max_iter=max_iter,
+        # max_iter=max_iter,
         n_split=n_split,
         n_jobs=n_jobs,
-        seed=seed,
+        # seed=seed,
+        # for group
+        group=group,
+        method=noise_method,
+        order=order,
+        fit_Y=fit_Y,
+        stationary=stationary,
     )
 
     # compute the Gram matrix
@@ -148,8 +177,8 @@ def desparsified_lasso(
 
     # Computing the degrees of freedom adjustement
     if dof_ajdustement:
-        coef_max = np.max(np.abs(beta_lasso))
-        support = np.sum(np.abs(beta_lasso) > 0.01 * coef_max)
+        coef_max = np.max(np.abs(beta_reid))
+        support = np.sum(np.abs(beta_reid) > 0.01 * coef_max)
         support = min(support, n_samples - 1)
         dof_factor = n_samples / (n_samples - support)
     else:
@@ -160,14 +189,72 @@ def desparsified_lasso(
     beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
 
     # beta hat
-    P = ((Z.T.dot(X_)).T / np.sum(X_ * Z, axis=0)).T
+    P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
     P_nodiag = P - np.diag(np.diag(P))
     Id = np.identity(n_features)
     P_nodiag = dof_factor * P_nodiag + (dof_factor - 1) * Id
-    beta_hat = beta_bias - P_nodiag.dot(beta_lasso)
-
+    beta_hat = beta_bias.T - P_nodiag.dot(beta_reid.T)
     # confidence intervals
     omega_diag = omega_diag * dof_factor**2
+    
+    if not group:
+        return beta_hat, sigma_hat, omega_diag
+    else:
+        cov_hat = sigma_hat
+        if cov is not None:
+            cov_hat = cov
+        theta_hat = n_samples * inv(cov_hat)
+        return beta_hat, theta_hat, omega_diag
+    
+
+def desparsified_lasso_pvalue(n_samples, beta_hat, sigma_hat, omega_diag, ci_confidence=0.95, pvalue_confidence=0.95, distrib="norm", eps=1e-14, confidence_interval_only=False):
+    """
+    Calculate confidence intervals and p-values for desparsified lasso estimators.
+    This function computes confidence intervals for the desparsified lasso estimator beta_hat.
+    It can also return p-values derived from these confidence intervals.
+    Parameters
+    ----------
+    n_samples : float
+        The number of samples    
+    beta_hat : array-like
+        The desparsified lasso coefficient estimates.
+    sigma_hat : float
+        Estimated noise level.
+    omega_diag : array-like
+        Diagonal elements of the precision matrix estimate.
+    ci_confidence : float, optional (default=0.95)
+        Confidence level for intervals, must be in [0, 1].
+    pvalue_confidence : float, optional (default=0.95)
+        Confidence level for the pvalue, must be in [0, 1].
+    distrib : str, optional (default="norm")
+        Distribution to use for p-value calculation. Currently only "norm" supported.
+    eps : float, optional (default=1e-14)
+        Small value to avoid numerical issues in p-value calculation.
+    confidence_interval_only : bool, optional (default=False)
+        If True, return only confidence intervals. If False, also return p-values.
+    Returns
+    -------
+    If confidence_interval_only=True:
+        cb_min : array-like
+            Lower bounds of confidence intervals
+        cb_max : array-like
+            Upper bounds of confidence intervals
+    If confidence_interval_only=False:
+        pval : array-like
+            P-values
+        pval_corr : array-like
+            Corrected p-values
+        one_minus_pval : array-like
+            1 - p-values
+        one_minus_pval_corr : array-like
+            1 - corrected p-values
+        cb_min : array-like
+            Lower bounds of confidence intervals
+        cb_max : array-like
+            Upper bounds of confidence intervals
+    """
+    # define the quantile for the confidence intervals
+    quantile = stats.norm.ppf(1 - (1 - ci_confidence) / 2)    
     # TODO:why the double inverse of omega_diag?
     omega_invsqrt_diag = omega_diag ** (-0.5)
     confint_radius = np.abs(
@@ -176,192 +263,13 @@ def desparsified_lasso(
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
 
-    return beta_hat, cb_min, cb_max
+    if confidence_interval_only:
+        return cb_min, cb_max
 
-
-def desparsified_lasso_pvalue(
-    cb_min, cb_max, confidence=0.95, distrib="norm", eps=1e-14
-):
-    """
-    Compute p-values for the desparsified Lasso estimator
-
-    For details see: :py:func:`hidimstat.pval_from_cb`
-    """
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        cb_min, cb_max, confidence=confidence, distrib=distrib, eps=eps
-    )
-
-    return pval, pval_corr, one_minus_pval, one_minus_pval_corr
-
-
-def desparsified_group_lasso(
-    X,
-    Y,
-    cov=None,
-    max_iter=5000,
-    tol=1e-3,
-    alpha_max_fraction=0.01,
-    noise_method="AR",
-    order=1,
-    fit_Y=True,
-    stationary=True,
-    eps=1e-2,
-    tol_reid=1e-4,
-    n_split=5,
-    seed=0,
-    n_jobs=1,
-    verbose=0,
-):
-    """
-    Desparsified Group Lasso
-
-    Algorithm based Algorithm 1 of d-MTLasso in :cite:`chevalier2020statistical`
-
-
-    Parameters
-    ----------
-    X : ndarray, shape (n_samples, n_features)
-        Input data matrix.
-
-    Y : ndarray, shape (n_samples, n_times)
-        Target matrix.
-
-    cov : ndarray, shape (n_times, n_times), optional (default=None)
-        If None, a temporal covariance matrix of the noise is estimated.
-        Otherwise, `cov` is the temporal covariance matrix of the noise.
-
-    max_iter : int, optional (default=5000)
-        Maximum number of iterations for nodewise Lasso regressions.
-
-    tol : float, optional (default=1e-3)
-        Convergence tolerance for optimization.
-
-    alpha_max_fraction : float, optional (default=0.01)
-        Fraction of max lambda used for Lasso regularization.
-
-    noise_method : {'AR', 'simple'}, optional (default='AR')
-        Method to estimate noise covariance:
-        - 'simple': Uses median correlation between consecutive timepoints
-        - 'AR': Fits autoregressive model of specified order
-
-    order : int, optional (default=1)
-        Order of AR model when noise_method='AR'. Must be < n_times.
-
-    fit_Y : bool, optional (default=True)
-        Whether to fit Y in noise estimation.
-
-    stationary : bool, optional (default=True)
-        Whether to assume stationary noise in estimation.
-
-    eps : float or bool, optional (default=True)
-        Small constant for regularization.
-
-    tol_reid : float, optional (default=1e-4)
-        Tolerance for Reid estimation.
-
-    n_split : int, optional (default=5)
-        Number of splits for cross-validation for Reid procedure.
-
-    seed : int, optional (default=0)
-        Random seed for reproducibility.
-
-    n_jobs : int, optional (default=1)
-        Number of parallel jobs. Use -1 for all CPUs.
-
-    verbose : int, optional (default=0)
-        Verbosity level.
-
-    Returns
-    -------
-    beta_hat : ndarray, shape (n_features, n_times)
-        Desparsified group Lasso coefficient estimates.
-
-    theta_hat : ndarray, shape (n_times, n_times)
-        Estimated precision matrix.
-
-    omega_diag : ndarray, shape (n_features,)
-        Diagonal of covariance matrix.
-
-    Notes
-    -----
-    The columns of `X` and the matrix `Y` are always centered, this ensures
-    that the intercepts of the Nodewise Lasso problems are all equal to zero
-    and the intercept of the noise model is also equal to zero. Since
-    the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
-    Also, you may consider to center and scale `X` beforehand, notably if
-    the data contained in `X` has not been prescaled from measurements.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-
-    X_ = np.asarray(X)
-
-    n_samples, n_features = X_.shape
-    n_times = Y.shape[1]
-
-    if cov is not None and cov.shape != (n_times, n_times):
-        raise ValueError(
-            f'Shape of "cov" should be ({n_times}, {n_times}),'
-            + f' the shape of "cov" was ({cov.shape}) instead'
-        )
-
-    # centering the data and the target variable
-    Y_ = Y - np.mean(Y)
-    X_ = X_ - np.mean(X_, axis=0)
-
-    # Lasso regression and noise standard deviation estimation
-    cov_hat, beta_mtl = group_reid(
-        X_,
-        Y_,
-        method=noise_method,
-        order=order,
-        n_jobs=n_jobs,
-        fit_Y=fit_Y,
-        stationary=stationary,
-        eps=eps,
-        tol=tol_reid,
-        max_iter=max_iter,
-        n_split=n_split,
-        seed=seed,
-    )
-    if cov is not None:
-        cov_hat = cov
-    theta_hat = n_samples * inv(cov_hat)
-
-    # compute the Gram matrix
-    gram = np.dot(X_.T, X_)
-    gram_nodiag = np.copy(gram)
-    np.fill_diagonal(gram_nodiag, 0)
-
-    # define the alphas for the Nodewise Lasso
-    # TODO why don't use the function _lambda_max instead of this?
-    list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
-    alphas = alpha_max_fraction * list_alpha_max
-
-    # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = _compute_all_residuals(
-        X_,
-        alphas,
-        gram,
-        max_iter=max_iter,
-        tol=tol,
-        n_jobs=n_jobs,
-        verbose=verbose,
-    )
-
-    # Computing Desparsified Lasso estimator and confidence intervals
-    # Estimating the coefficient vector
-    beta_bias = Y_.T.dot(Z) / np.sum(X_ * Z, axis=0)
-
-    # beta hat
-    P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
-    P_nodiag = P - np.diag(np.diag(P))
-    beta_hat = beta_bias.T - P_nodiag.dot(beta_mtl.T)
-
-    return beta_hat, theta_hat, omega_diag
+        cb_min, cb_max, confidence=pvalue_confidence, distrib=distrib, eps=eps
+    )    
+    return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
 
 def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):

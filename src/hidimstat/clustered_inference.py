@@ -1,11 +1,10 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
-from sklearn.utils.validation import check_memory
 
-from .desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from .desparsified_lasso import (
-    desparsified_group_lasso,
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
 
@@ -94,34 +93,22 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-
-    if method == "desparsified-lasso":
-
-        beta_hat, cb_min, cb_max = desparsified_lasso(
-            X,
-            y,
-            confidence=0.95,
-            n_jobs=n_jobs,
-            verbose=verbose,
-            **kwargs,
+    if method != "desparsified-lasso" and method != "desparsified-group-lasso":
+        raise ValueError("Unknow method")
+    group = (method == "desparsified-group-lasso")
+    print("hd_inference", group, kwargs)
+    beta_hat, theta_hat, omega_diag = desparsified_lasso(
+        X, y, group=group, n_jobs=n_jobs, verbose=verbose, **kwargs
+    )
+    if not group:
+        pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max  = (
+            desparsified_lasso_pvalue(X.shape[0], beta_hat, theta_hat, omega_diag,
+                                      ci_confidence=0.95, pvalue_confidence=0.95, **kwargs)
         )
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_lasso_pvalue(cb_min, cb_max, confidence=0.95, **kwargs)
-        )
-
-    elif method == "desparsified-group-lasso":
-
-        beta_hat, theta_hat, omega_diag = desparsified_group_lasso(
-            X, y, n_jobs=n_jobs, verbose=verbose, **kwargs
-        )
+    else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
             desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, **kwargs)
         )
-
-    else:
-
-        raise ValueError("Unknow method")
-
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
@@ -269,6 +256,7 @@ def clustered_inference(
     y = y - np.mean(y)
 
     # Inference: computing reduced parameter vector and stats
+    print("Clustered inference", kwargs)
     beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = hd_inference(
         X, y, method, n_jobs=n_jobs, **kwargs
     )
