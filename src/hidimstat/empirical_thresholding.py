@@ -12,10 +12,12 @@ def empirical_thresholding(
     ),
 ):
     """
-    Perform empirical thresholding on the input data and target using a linear estimator.
+    Perform empirical thresholding on the input data and target using a linear
+    estimator.
 
-    This function fits a linear estimator to the input data and target, and then uses the estimated coefficients to
-    perform empirical thresholding. The threshold is calculated for keeping only extreme coefficients.
+    This function fits a linear estimator to the input data and target, 
+    and then uses the estimated coefficients to perform empirical thresholding.
+    The threshold is calculated for keeping only extreme coefficients.
     For more details, see the section 6.3.2 of :cite:`chevalier_statistical_2020`
 
     Parameters
@@ -24,10 +26,12 @@ def empirical_thresholding(
         The input data.
     y : ndarray, shape (n_samples,)
         The target values.
-    linear_estimator : estimator object, optional (default=GridSearchCV(LinearSVR(), param_grid={"C": np.logspace(-7, 1, 9)}, n_jobs=None))
-        The linear estimator to use for thresholding. It should be a scikit-learn estimator object that implements the
-        `fit` method and has a `coef_` attribute or a `best_estimator_` attribute with a `coef_` attribute (e.g., a
-        `GridSearchCV` object).
+    linear_estimator : estimator object, optional (default=GridSearchCV(
+            LinearSVR(),param_grid={"C": np.logspace(-7, 1, 9)}, n_jobs=None))
+        The linear estimator to use for thresholding. It should be a scikit-learn
+        estimator object that implements the `fit` method and has a `coef_` 
+        attribute or a `best_estimator_` attribute with a `coef_` attribute 
+        (e.g., a `GridSearchCV` object).
 
     Returns
     -------
@@ -39,14 +43,15 @@ def empirical_thresholding(
     Raises
     ------
     ValueError
-        If the `linear_estimator` does not have a `coef_` attribute or a `best_estimator_` attribute with a `coef_`
-        attribute.
+        If the `linear_estimator` does not have a `coef_` attribute 
+        or a `best_estimator_` attribute with a `coef_` attribute.
 
     Notes
     -----
-    The threshold is calculated as the standard deviation of the estimated coefficients multiplied by the square root of
-    the number of features. This is based on the assumption that the coefficients follow a normal distribution with
-    mean zero.
+    The threshold is calculated as the standard deviation of the estimated 
+    coefficients multiplied by the square root of the number of features. 
+    This is based on the assumption that the coefficients follow a normal
+    distribution with mean zero.
     """
     _, n_features = X.shape
 
