@@ -146,12 +146,13 @@ def test_estimate_distribution():
     """
     test different estimation of the covariance
     """
-    SEED = 42
+    seed = 42
     fdr = 0.1
     n = 100
     p = 50
-    X, y, _, non_zero = simu_data(n, p, seed=SEED)
-    test_score = model_x_knockoff(X, y, cov_estimator=LedoitWolf(assume_centered=True))
+    X, y, _, non_zero = simu_data(n, p, seed=seed)
+    test_score = model_x_knockoff(X, y, cov_estimator=LedoitWolf(assume_centered=True),
+                                  seed=seed+1)
     ko_result = model_x_knockoff_filter(
         test_score,
         fdr=fdr,
@@ -165,6 +166,7 @@ def test_estimate_distribution():
             alphas=[1e-3, 1e-2, 1e-1, 1],
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
         ),
+        seed=seed+2
     )
     ko_result = model_x_knockoff_filter(
         test_score,
@@ -175,14 +177,13 @@ def test_estimate_distribution():
 
 
 def test_gaussian_knockoff_equi():
-    SEED = 42
-    fdr = 0.1
+    seed = 42
     n = 100
     p = 50
-    X, y, _, non_zero = simu_data(n, p, seed=SEED)
+    X, y, _, non_zero = simu_data(n, p, seed=seed)
     mu = X.mean(axis=0)
     Sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
 
-    X_tilde = gaussian_knockoff_generation(X, mu, Sigma, seed=SEED * 2)
+    X_tilde = gaussian_knockoff_generation(X, mu, Sigma, seed=seed * 2)
 
     assert X_tilde.shape == (n, p)
