@@ -29,10 +29,10 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     seed : int, optional
         A random seed for generating the uniform noise used to create the knockoff variables.
 
-    tol : float, optional
+    tol : float, default=1.e-14
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition.
 
-    repeat : bool, optional
+    repeat : bool, default=False
         If True, the function returns the values used to generate the knockoff variables (Mu_tilde and sigma_tilde_decompose),
         which can be used to generate additional knockoff variables without having to recompute them.
 
@@ -152,7 +152,7 @@ def _s_equi(sigma, tol=1e-14):
     eig_value = np.linalg.eigvalsh(corr_matrix)
     lambda_min = np.min(eig_value[0])
     # check if the matrix is positive-defined
-    if lambda_min < 0:
+    if lambda_min <= 0:
         raise Exception("The covariance matrix is not positive-definite.")
 
     S = np.ones(n_features) * min(2 * lambda_min, 1)
