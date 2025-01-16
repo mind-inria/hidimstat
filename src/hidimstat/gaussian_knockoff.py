@@ -33,7 +33,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition.
 
     repeat : bool, default=False
-        If True, the function returns the values used to generate the knockoff variables (Mu_tilde and sigma_tilde_decompose),
+        If True, the function returns the values used to generate the knockoff variables (mu_tilde and sigma_tilde_decompose),
         which can be used to generate additional knockoff variables without having to recompute them.
 
     Returns
@@ -49,16 +49,16 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
 
     # create a uniform noise for all the data
     rng = np.random.RandomState(seed)
-    U_tilde = rng.randn(n_samples, n_features)
+    u_tilde = rng.randn(n_samples, n_features)
 
-    Diag_s = np.diag(_s_equi(sigma, tol=tol))
+    diag_s = np.diag(_s_equi(sigma, tol=tol))
 
-    Sigma_inv_s = np.linalg.solve(sigma, Diag_s)
+    sigma_inv_s = np.linalg.solve(sigma, diag_s)
 
     # First part on the RHS of equation 1.4 in barber2015controlling
-    Mu_tilde = X - np.dot(X - mu, Sigma_inv_s)
+    mu_tilde = X - np.dot(X - mu, sigma_inv_s)
     # To calculate the Cholesky decomposition later on
-    sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s)
+    sigma_tilde = 2 * diag_s - diag_s.dot(sigma_inv_s)
     # test is the matrix is positive definite
     while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol):
         sigma_tilde += 1e-10 * np.eye(n_features)
@@ -70,26 +70,26 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
 
     # Equation 1.4 in barber2015controlling
     sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
-    X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
+    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
 
     if not repeat:
         return X_tilde
     else:
-        return X_tilde, (Mu_tilde, sigma_tilde_decompose)
+        return X_tilde, (mu_tilde, sigma_tilde_decompose)
 
 
-def repeat_gaussian_knockoff_generation(Mu_tilde, sigma_tilde_decompose, seed):
+def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
     """
     Generate additional knockoff variables using pre-computed values.
 
     This function generates additional knockoff variables using pre-computed values returned by the
-    gaussian_knockoff_generation function with repeat=True. It takes as input Mu_tilde and
+    gaussian_knockoff_generation function with repeat=True. It takes as input mu_tilde and
     sigma_tilde_decompose, which were returned by gaussian_knockoff_generation, and a random seed.
     It returns the new knockoff variables X_tilde.
 
     Parameters
     ----------
-    Mu_tilde : 2D ndarray (n_samples, n_features)
+    mu_tilde : 2D ndarray (n_samples, n_features)
         The matrix of means used to generate the knockoff variables, returned by gaussian_knockoff_generation.
 
     sigma_tilde_decompose : 2D ndarray (n_features, n_features)
@@ -104,13 +104,13 @@ def repeat_gaussian_knockoff_generation(Mu_tilde, sigma_tilde_decompose, seed):
     X_tilde : 2D ndarray (n_samples, n_features)
         The knockoff variables.
     """
-    n_samples, n_features = Mu_tilde.shape
+    n_samples, n_features = mu_tilde.shape
 
     # create a uniform noise for all the data
     rng = np.random.RandomState(seed)
-    U_tilde = rng.randn(n_samples, n_features)
+    u_tilde = rng.randn(n_samples, n_features)
 
-    X_tilde = Mu_tilde + np.dot(U_tilde, sigma_tilde_decompose)
+    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
     return X_tilde
 
 
@@ -155,9 +155,9 @@ def _s_equi(sigma, tol=1e-14):
     if lambda_min <= 0:
         raise Exception("The covariance matrix is not positive-definite.")
 
-    S = np.ones(n_features) * min(2 * lambda_min, 1)
+    s = np.ones(n_features) * min(2 * lambda_min, 1)
 
-    psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(S)) > tol)
+    psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(s)) > tol)
     s_eps = 0
     while psd is False:
         if s_eps == 0:
@@ -166,9 +166,9 @@ def _s_equi(sigma, tol=1e-14):
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
         psd = np.all(
-            np.linalg.eigvalsh(2 * corr_matrix - np.diag(S * (1 - s_eps))) > tol
+            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps))) > tol
         )
 
-    S = S * (1 - s_eps)
+    s = s * (1 - s_eps)
 
-    return S * np.diag(sigma)
+    return s * np.diag(sigma)
