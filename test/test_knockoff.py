@@ -6,7 +6,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_e_value,
     model_x_knockoff_bootstrap_quantile,
 )
-from hidimstat.gaussian_knockoff import gaussian_knockoff_generation
+from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
 from hidimstat.data_simulation import simu_data
 from hidimstat.utils import cal_fdp_power
 import numpy as np
@@ -187,3 +187,28 @@ def test_gaussian_knockoff_equi():
     X_tilde = gaussian_knockoff_generation(X, mu, Sigma, seed=seed * 2)
 
     assert X_tilde.shape == (n, p)
+
+
+def test_s_equi_not_define_positive():
+    """test the warning and error of s_equi function"""
+    n= 10 
+    tol = 1e-7
+    np.random.seed(42)
+
+    # random matrix
+    sigma = np.random.randn(n,n)
+    sigma -= np.min(sigma)
+    with pytest.raises(Exception, match='The covariance matrix is not positive-definite.'):
+        _s_equi(sigma)
+
+    # positive matrix
+    while not np.all(np.linalg.eigvalsh(sigma) > tol):
+        sigma += 0.1 * np.eye(n)
+        print(np.linalg.eigvalsh(sigma))
+    with pytest.warns(UserWarning, match='The equi-correlated matrix'):
+        _s_equi(sigma)
+
+    # positive definite matrix
+    sigma = sigma.T*sigma
+    sigma = (sigma + sigma.T)/2
+    _s_equi(sigma)

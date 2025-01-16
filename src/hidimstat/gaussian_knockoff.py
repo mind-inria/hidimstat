@@ -159,14 +159,19 @@ def _s_equi(sigma, tol=1e-14):
 
     psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(s)) > tol)
     s_eps = 0
-    while psd is False:
+    while not psd:
         if s_eps == 0:
-            s_eps = np.eps  # avoid zeros
+            s_eps = np.finfo(type(s[0])).eps  # avoid zeros
         else:
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
         psd = np.all(
             np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps))) > tol
+        )
+        warnings.warn(
+            "The equi-correlated matrix for knockoffs is not positive "
+            "definite. Reduce the value of distance.",
+            UserWarning,
         )
 
     s = s * (1 - s_eps)
