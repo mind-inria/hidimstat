@@ -259,12 +259,12 @@ def model_x_knockoff_aggregation(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde, (Mu_tilde, sigma_tilde_decompose) = gaussian_knockoff_generation(
+    X_tilde, (mu_tilde, sigma_tilde_decompose) = gaussian_knockoff_generation(
         X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=True
     )
     X_tildes = parallel(
         delayed(repeat_gaussian_knockoff_generation)(
-            Mu_tilde,
+            mu_tilde,
             sigma_tilde_decompose,
             seed=seed,
         )
