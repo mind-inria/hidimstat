@@ -97,9 +97,7 @@ class PermutationImportance(BaseEstimator):
             """
             Compute the importance score for a single group of covariates.
             """
-            list_y_pred_perm = []
             if isinstance(X, pd.DataFrame):
-
                 X_j = X[self.groups[j]].copy().values
                 X_minus_j = X.drop(columns=self.groups[j]).values
                 group_ids = [
@@ -174,7 +172,6 @@ class PermutationImportance(BaseEstimator):
         y_pred = getattr(self.estimator, self.method)(X)
         loss_reference = self.loss(y, y_pred)
         output_dict["loss_reference"] = loss_reference
-        output_dict["loss_perm"] = dict()
 
         y_pred_perm = self.predict(X, y)
 
