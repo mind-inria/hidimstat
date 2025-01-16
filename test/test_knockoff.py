@@ -151,8 +151,9 @@ def test_estimate_distribution():
     n = 100
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=seed)
-    test_score = model_x_knockoff(X, y, cov_estimator=LedoitWolf(assume_centered=True),
-                                  seed=seed+1)
+    test_score = model_x_knockoff(
+        X, y, cov_estimator=LedoitWolf(assume_centered=True), seed=seed + 1
+    )
     ko_result = model_x_knockoff_filter(
         test_score,
         fdr=fdr,
@@ -166,7 +167,7 @@ def test_estimate_distribution():
             alphas=[1e-3, 1e-2, 1e-1, 1],
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
         ),
-        seed=seed+2
+        seed=seed + 2,
     )
     ko_result = model_x_knockoff_filter(
         test_score,
@@ -182,33 +183,59 @@ def test_gaussian_knockoff_equi():
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=seed)
     mu = X.mean(axis=0)
-    Sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
+    sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
 
-    X_tilde = gaussian_knockoff_generation(X, mu, Sigma, seed=seed * 2)
+    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2)
+
+    assert X_tilde.shape == (n, p)
+
+
+def test_gaussian_knockoff_equi_warning():
+    "test warning in guassian knockoff"
+    seed = 42
+    n = 100
+    p = 50
+    tol = 1e-7
+    rgn = np.random.RandomState(seed)
+    X = rgn.randn(n, p)
+    mu = X.mean(axis=0)
+    # create a positive definite matrix
+    sigma = rgn.randn(p, p)
+    while not np.all(np.linalg.eigvalsh(sigma) > tol):
+        sigma += 0.1 * np.eye(p)
+    sigma = sigma.T * sigma
+    sigma *= 1e-13
+    with pytest.warns(
+        UserWarning,
+        match="The conditional covariance matrix for knockoffs is not positive",
+    ):
+        X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2, tol=1e-10)
 
     assert X_tilde.shape == (n, p)
 
 
 def test_s_equi_not_define_positive():
     """test the warning and error of s_equi function"""
-    n= 10 
+    n = 10
     tol = 1e-7
-    np.random.seed(42)
+    seed = 42
 
     # random matrix
-    sigma = np.random.randn(n,n)
+    rgn = np.random.RandomState(seed)
+    sigma = rgn.randn(n, n)
     sigma -= np.min(sigma)
-    with pytest.raises(Exception, match='The covariance matrix is not positive-definite.'):
+    with pytest.raises(
+        Exception, match="The covariance matrix is not positive-definite."
+    ):
         _s_equi(sigma)
 
     # positive matrix
     while not np.all(np.linalg.eigvalsh(sigma) > tol):
         sigma += 0.1 * np.eye(n)
-        print(np.linalg.eigvalsh(sigma))
-    with pytest.warns(UserWarning, match='The equi-correlated matrix'):
+    with pytest.warns(UserWarning, match="The equi-correlated matrix"):
         _s_equi(sigma)
 
     # positive definite matrix
-    sigma = sigma.T*sigma
-    sigma = (sigma + sigma.T)/2
+    sigma = sigma.T * sigma
+    sigma = (sigma + sigma.T) / 2
     _s_equi(sigma)
