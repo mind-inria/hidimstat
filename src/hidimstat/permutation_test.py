@@ -5,7 +5,9 @@ from sklearn.base import clone
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
 
-def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=-1, verbose=0):
+def permutation_test(
+    X, y, estimator, n_permutations=1000, seed=0, n_jobs=-1, verbose=0
+):
     """
     Permutation test
 
