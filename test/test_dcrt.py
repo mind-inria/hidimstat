@@ -2,11 +2,12 @@
 Test the dcrt module
 """
 
-from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
+import pytest
 import numpy as np
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_regression, make_classification
-import pytest
+
+from hidimstat.dcrt import dcrt_zero, dcrt_pvalue, _lasso_distillation_residual
 
 
 def test_dcrt_lasso():
@@ -169,6 +170,98 @@ def test_dcrt_lasso():
     assert len(vi_covariance[1]) == 10
 
 
+def test_dcrt_lasso_center():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    results = dcrt_zero(
+        X, y, centered=False, screening=False, statistic="residual", random_state=2024
+    )
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+        selection_only=False,
+    )
+    assert np.sum(results[0]) == 10
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+        selection_only=False,
+        scaled_statistics=True,
+    )
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
+
+
+def test_dcrt_lasso_refit():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    results = dcrt_zero(
+        X, y, refit=True, fit_y=True, statistic="residual", random_state=2024
+    )
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+        selection_only=False,
+    )
+    assert np.sum(results[0]) <= 10
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
+
+
+def test_dcrt_lasso_no_selection():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    results = dcrt_zero(
+        X, y, estimated_coef=np.ones(10) * 10, statistic="residual", random_state=2024
+    )
+    for i in results:
+        assert np.all(i == np.array([]))
+
+
+def test_dcrt_lasso_fit_with_cv():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    results = dcrt_zero(
+        X,
+        y,
+        fit_y=True,
+        use_cv=True,
+        screening=False,
+        statistic="residual",
+        random_state=2024,
+    )
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+        selection_only=False,
+    )
+    assert np.sum(results[0]) == 10
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
+
+
 def test_dcrt_RF_regression():
     """
     This function tests the dcrt function using the Random Forest learner
@@ -216,3 +309,14 @@ def test_dcrt_RF_classification():
     assert len(vi[0]) <= 10
     assert len(vi[1]) == 10
     assert len(vi[2]) == 10
+
+
+def test_exception_lasso_distillation_residual():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    with pytest.raises(
+        ValueError, match="Either fit_y is true or coeff_full must be provided."
+    ):
+        _lasso_distillation_residual(X, y, 0)

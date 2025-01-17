@@ -139,7 +139,7 @@ def dcrt_zero(
         selection_set = np.setdiff1d(np.arange(n_features), non_selection)
 
         if selection_set.size == 0:
-            return np.array([])
+            return np.array([]), np.array([]), np.array([]), np.array([])
     else:
         non_selection = []
         selection_set = np.arange(n_features)
@@ -462,7 +462,6 @@ def _lasso_distillation_residual(
             clf_null = Lasso(
                 alpha=alpha,
                 fit_intercept=False,
-                n_jobs=n_jobs,
                 random_state=random_state,
             )
 

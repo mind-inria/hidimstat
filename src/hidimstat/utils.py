@@ -189,7 +189,7 @@ def _ebh_threshold(evals, fdr=0.1):
     if selected_index <= n_features:
         threshold = evals_sorted[selected_index]
     else:
-        threshold = np.infty
+        threshold = np.inf
     return threshold
 
 
