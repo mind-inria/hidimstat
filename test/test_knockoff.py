@@ -26,9 +26,7 @@ def test_knockoff_aggregation():
     fdr = 0.5
     X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
 
-    test_scores = model_x_knockoff(
-        X, y, n_bootstraps=n_bootstraps, random_state=None
-    )
+    test_scores = model_x_knockoff(X, y, n_bootstraps=n_bootstraps, random_state=None)
     selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
         test_scores, fdr=fdr, selection_only=False
     )
@@ -173,8 +171,11 @@ def test_model_x_knockoff_exception():
         )
     with pytest.raises(TypeError, match="estimator should be linear"):
         model_x_knockoff(
-            X, y, estimator=DecisionTreeRegressor(), preconfigure_estimator=None,
-            n_bootstraps=1
+            X,
+            y,
+            estimator=DecisionTreeRegressor(),
+            preconfigure_estimator=None,
+            n_bootstraps=1,
         )
 
 
@@ -188,7 +189,11 @@ def test_estimate_distribution():
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=seed)
     test_score = model_x_knockoff(
-        X, y, cov_estimator=LedoitWolf(assume_centered=True), n_bootstraps=1, random_state=seed + 1
+        X,
+        y,
+        cov_estimator=LedoitWolf(assume_centered=True),
+        n_bootstraps=1,
+        random_state=seed + 1,
     )
     ko_result = model_x_knockoff_filter(
         test_score,
