@@ -85,7 +85,7 @@ def _bhq_threshold(pvals, fdr=0.1):
         return pvals_sorted[selected_index]
     else:
         # no threshold, all the pvalue are positif
-        return -1 
+        return -1.0
 
 
 def _ebh_threshold(evals, fdr=0.1):
@@ -126,7 +126,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
             return pvals_sorted[selected_index]
         else:
             # no threshold, all the pvalue are positif
-            return -1
+            return -1.0
 
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
