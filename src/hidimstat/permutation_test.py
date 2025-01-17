@@ -5,7 +5,7 @@ from sklearn.base import clone
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
 
-def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, verbose=0):
+def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=-1, verbose=0):
     """
     Permutation test
 
@@ -30,7 +30,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
     seed : int, optional (default=0)
         Determines the permutations used for shuffling the target
 
-    n_jobs : int or None, optional (default=1)
+    n_jobs : int or None, optional (default=-1)
         Number of CPUs to use during the cross validation.
 
     verbose : int, optional (default=0)
