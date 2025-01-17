@@ -128,7 +128,7 @@ class LOCO(BaseEstimator):
         output_dict = dict()
 
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        loss_reference = self.loss(y, y_pred)
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_loco"] = dict()
 
@@ -183,13 +183,13 @@ class LOCO(BaseEstimator):
         out_dict = dict()
         y_pred = getattr(self.estimator, self.method)(X)
 
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        loss_reference = self.loss(y, y_pred)
         out_dict["loss_reference"] = loss_reference
 
         y_pred_loco = self.predict(X, y)
 
         out_dict["loss_loco"] = np.array(
-            [self.loss(y_true=y, y_pred=y_pred_loco[j]) for j in range(self.n_groups)]
+            [self.loss(y, y_pred_loco[j]) for j in range(self.n_groups)]
         )
 
         out_dict["importance"] = out_dict["loss_loco"] - loss_reference
