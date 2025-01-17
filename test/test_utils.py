@@ -33,6 +33,25 @@ def test_fdr_threshold():
     assert len(e_values[e_values >= ebh_cutoff]) == 20
 
 
+def test_fdr_threshold_extreme_values():
+    "test the extreme cases"
+    p_values = np.ones(100)
+    e_values = 1 / p_values
+
+    bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
+    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
+    ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
+
+    # Test BHq
+    assert bhq_cutoff is None
+
+    # Test BHy
+    assert bhy_cutoff is None
+
+    # Test e-BH
+    assert ebh_cutoff is None
+
+
 def test_cal_fdp_power():
     """
     This function tests the computation of power and False Discovery Proportion

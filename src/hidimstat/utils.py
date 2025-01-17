@@ -81,7 +81,7 @@ def _bhq_threshold(pvals, fdr=0.1):
     if selected_index <= n_features:
         return pvals_sorted[selected_index]
     else:
-        return -1.0
+        return None
 
 
 def _ebh_threshold(evals, fdr=0.1):
@@ -96,7 +96,7 @@ def _ebh_threshold(evals, fdr=0.1):
     if selected_index <= n_features:
         return evals_sorted[selected_index]
     else:
-        return np.infty
+        return None
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
@@ -120,7 +120,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
         if selected_index <= n_features:
             return pvals_sorted[selected_index]
         else:
-            return -1.0
+            return None 
 
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
