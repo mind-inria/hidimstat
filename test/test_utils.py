@@ -38,12 +38,18 @@ def test_fdr_threshold_extreme_values():
     p_values = np.ones(100)
     e_values = 1 / p_values
 
-    with pytest.raises(Exception, match="Not possible to find the threshold"):
-        bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
-    with pytest.raises(Exception, match="Not possible to find the threshold"):
-        bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
-    with pytest.raises(Exception, match="Not possible to find the threshold"):
-        ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
+    bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
+    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
+    ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
+
+    # Test BHq
+    assert bhq_cutoff == -1
+
+    # Test BHy
+    assert bhy_cutoff == -1
+
+    # Test e-BH
+    assert np.isinf(ebh_cutoff)
 
 
 def test_cal_fdp_power():

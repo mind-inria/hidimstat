@@ -23,7 +23,6 @@ def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
 
 
 def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
-    threshold = None
     if method == "bhq":
         threshold = _bhq_threshold(pvals, fdr=fdr)
     elif method == "bhy":
@@ -34,10 +33,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
         threshold = _ebh_threshold(pvals, fdr=fdr)
     else:
         raise ValueError("{} is not support FDR control method".format(method))
-    if threshold is None:
-        raise Exception("Not possible to find the threshold")
-    else:
-        return threshold
+    return threshold
 
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
@@ -88,7 +84,8 @@ def _bhq_threshold(pvals, fdr=0.1):
     if selected_index <= n_features:
         return pvals_sorted[selected_index]
     else:
-        return None
+        # no threshold, all the pvalue are positif
+        return -1 
 
 
 def _ebh_threshold(evals, fdr=0.1):
@@ -103,7 +100,8 @@ def _ebh_threshold(evals, fdr=0.1):
     if selected_index <= n_features:
         return evals_sorted[selected_index]
     else:
-        return None
+        # no threshold, all the e-value are under infinity
+        return np.inf
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
@@ -127,7 +125,8 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
         if selected_index <= n_features:
             return pvals_sorted[selected_index]
         else:
-            return None
+            # no threshold, all the pvalue are positif
+            return -1
 
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
