@@ -19,7 +19,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 
 def test_knockoff_aggregation():
-    """ Test knockoff with aggregation"""
+    """Test knockoff with aggregation"""
     n = 500
     p = 100
     snr = 5
@@ -117,26 +117,26 @@ def test_model_x_knockoff():
     with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
         model_x_knockoff_filter(test_score, offset=-0.1)
     ko_result_bis, threshold = model_x_knockoff_filter(
-        test_score,
-        fdr=fdr,
-        selection_only=False
-        )
+        test_score, fdr=fdr, selection_only=False
+    )
     assert np.all(ko_result == ko_result_bis)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
 
     ko_result = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=True)
-    ko_result_bis, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=False)
+    ko_result_bis, pvals = model_x_knockoff_pvalue(
+        test_score, fdr=fdr, selection_only=False
+    )
     assert np.all(ko_result == ko_result_bis)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
-    assert np.all( 0<=pvals) or np.all(pvals<=1)
+    assert np.all(0 <= pvals) or np.all(pvals <= 1)
 
 
 def test_model_x_knockoff_estimator():
-    """ Test knockoff with a crossvalidation estimator"""
+    """Test knockoff with a crossvalidation estimator"""
     seed = 42
     fdr = 0.2
     n = 300
@@ -158,6 +158,7 @@ def test_model_x_knockoff_estimator():
     assert fdp <= 0.2
     assert power > 0.7
 
+
 def test_model_x_knockoff_exception():
     n = 50
     p = 100
@@ -173,12 +174,9 @@ def test_model_x_knockoff_exception():
         )
     with pytest.raises(TypeError, match="estimator should be linear"):
         model_x_knockoff(
-            X,
-            y,
-            estimator=DecisionTreeRegressor(),
-            preconfigure_estimator=None
+            X, y, estimator=DecisionTreeRegressor(), preconfigure_estimator=None
         )
-    
+
 
 def test_estimate_distribution():
     """
@@ -240,8 +238,8 @@ def test_gaussian_knockoff_equi_warning():
     mu = X.mean(axis=0)
     # create a positive definite matrix
     u, s, vh = np.linalg.svd(rgn.randn(p, p))
-    d = np.eye(p) * tol/10
-    sigma=u*d*u.T
+    d = np.eye(p) * tol / 10
+    sigma = u * d * u.T
     with pytest.warns(
         UserWarning,
         match="The conditional covariance matrix for knockoffs is not positive",
@@ -275,5 +273,5 @@ def test_s_equi_not_define_positive():
     # positive definite matrix
     u, s, vh = np.linalg.svd(a)
     d = np.eye(n)
-    sigma=u*d*u.T
+    sigma = u * d * u.T
     _s_equi(sigma)
