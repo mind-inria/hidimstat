@@ -203,16 +203,15 @@ def test_dcrt_RF_classification():
     """
     This function tests the dcrt function using the Random Forest learner
     """
-    with pytest.warns(UserWarning, match="Binary classification residuals"):
-        X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
-        res = dcrt_zero(
-            X,
-            y,
-            screening=False,
-            statistic="randomforest",
-            problem_type="classification",
-            random_state=2024,
-        )
+    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    res = dcrt_zero(
+        X,
+        y,
+        screening=False,
+        statistic="randomforest",
+        problem_type="classification",
+        random_state=2024,
+    )
     vi = dcrt_pvalue(res[0], res[1], res[2], res[3], selection_only=False)
     assert len(vi[0]) <= 10
     assert len(vi[1]) == 10

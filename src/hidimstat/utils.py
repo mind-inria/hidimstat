@@ -22,6 +22,7 @@ def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
     else:
         return _fixed_quantile_aggregation(pvals, gamma)
 
+
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
     """Quantile aggregation function based on Meinshausen et al (2008)
 
@@ -53,6 +54,7 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
 
 
 ########################## False Discovery Proportion ##########################
+
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
     """
@@ -90,11 +92,12 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 
     return fdp, power
 
+
 ########################## False Discovery Rate Thresholding ##########################
 def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     """
     False Discovery Rate thresholding method
-    
+
     Parameters
     ----------
     pvals : 1D ndarray
@@ -105,7 +108,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
         Method to control FDR. Available methods are 'bhq', 'bhy', 'ebh'
     reshaping_function : function, default=None
         Reshaping function for Benjamini-Hochberg-Yekutieli method
-        
+
     Returns
     -------
     threshold : float
@@ -124,14 +127,14 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 def _bhq_threshold(pvals, fdr=0.1):
     """
     Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001` for controlling False discovery rate
-    
+
     Parameters
     ----------
     pvals : 1D ndarray
         p-value (adjusted)
     fdr : float, default=0.1
         False Discovery Rate
-        
+
     Returns
     -------
     threshold : float
@@ -158,19 +161,19 @@ def _bhq_threshold(pvals, fdr=0.1):
 def _ebh_threshold(evals, fdr=0.1):
     """
     e-BH procedure for FDR control :footcite:`wang2022false`
-    
+
     Parameters
     ----------
     evals : 1D ndarray
         p-value (adjusted)
     fdr : float, default=0.1
         False Discovery Rate
-        
+
     Returns
     -------
     threshold : float
         Threshold value
-    
+
     References
     ----------
     .. footbibliography::
@@ -193,7 +196,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     """
     Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001` procedure for controlling FDR, with input
     shape function :footcite:p:`ramdas2017online`.
-    
+
     Parameters
     ----------
     pvals : 1D ndarray
@@ -202,7 +205,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
         Reshaping function for Benjamini-Hochberg-Yekutieli method
     fdr : float, default=0.1
         False Discovery Rate
-        
+
     Returns
     -------
     threshold : float
@@ -238,15 +241,15 @@ def _lambda_max(X, y, use_noise_estimate=True):
     """
     Calculation of lambda_max, the smallest value of regularization parameter in
     lasso program for non-zero coefficient
-    
+
     Parameters
     ----------
     X : ndarray, shape (n_samples, n_features)
         Data matrix
-    
+
     y : ndarray, shape (n_samples, )
         Target variable
-    
+
     use_noise_estimate : bool, default=True
         If True, the noise level is estimated from the data. Otherwise, the
         noise level is not considered in the calculation of lambda_max.
@@ -264,11 +267,12 @@ def _lambda_max(X, y, use_noise_estimate=True):
     else:
         # estimate the noise level
         norm_y = np.linalg.norm(y, ord=2)
-        sigma_star = (norm_y / np.sqrt(n_samples))
-        
+        sigma_star = norm_y / np.sqrt(n_samples)
+
         alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
     return alpha_max
+
 
 ########################## Data Preprocessing ##########################
 def create_X_y(

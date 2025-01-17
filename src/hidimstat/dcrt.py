@@ -106,10 +106,10 @@ def dcrt_zero(
 
     _, n_features = X_.shape
 
-    ## Screening of variables for accelarate dCRT 
+    ## Screening of variables for accelarate dCRT
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
-        # is based on a cross-validated lasso 
+        # is based on a cross-validated lasso
         clf = LassoCV(
             cv=cv,
             n_jobs=n_jobs,
@@ -130,7 +130,9 @@ def dcrt_zero(
         np.abs(coef_X_full)
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
     )[0]
-    coef_X_full[non_selection] = 0.0 #TODO this should be after the screening process ????
+    coef_X_full[non_selection] = (
+        0.0  # TODO this should be after the screening process ????
+    )
 
     # select the variables for the screening
     if screening:
@@ -148,7 +150,7 @@ def dcrt_zero(
         clf_refit.fit(X_[:, selection_set], y_)
         coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
 
-    ## Distillation & calculate 
+    ## Distillation & calculate
     if statistic == "residual":
         # For distillation of X use least_square loss
         results = Parallel(n_jobs, verbose=joblib_verbose)(
@@ -193,14 +195,21 @@ def dcrt_zero(
     # contatenate result
     selection_features = np.ones((n_features,), dtype=bool)
     selection_features[non_selection] = 0
-    X_res = np.array([i[0] for i in results]) 
-    sigma2_X = np.array([i[1] for i in results]) 
+    X_res = np.array([i[0] for i in results])
+    sigma2_X = np.array([i[1] for i in results])
     y_res = np.array([i[2] for i in results])
     return selection_features, X_res, sigma2_X, y_res
 
 
 def dcrt_pvalue(
-    selection_features, X_res, sigma2_X, y_res,  fdr=0.1, fdr_control="bhq", selection_only=True, reshaping_function=None, 
+    selection_features,
+    X_res,
+    sigma2_X,
+    y_res,
+    fdr=0.1,
+    fdr_control="bhq",
+    selection_only=True,
+    reshaping_function=None,
     scaled_statistics=False,
 ):
     """
@@ -234,11 +243,17 @@ def dcrt_pvalue(
     """
     n_features = selection_features.shape[0]
     n_samples = X_res.shape[1]
-    
-    ts_selected_variables = [np.dot(y_res[i], X_res[i]) / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i]**2)) for i in range(X_res.shape[0])]
+
+    ts_selected_variables = [
+        np.dot(y_res[i], X_res[i])
+        / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i] ** 2))
+        for i in range(X_res.shape[0])
+    ]
 
     if scaled_statistics:
-        ts_selected_variables = (ts_selected_variables - np.mean(ts_selected_variables)) / np.std(ts_selected_variables)
+        ts_selected_variables = (
+            ts_selected_variables - np.mean(ts_selected_variables)
+        ) / np.std(ts_selected_variables)
 
     # get the results
     ts = np.zeros(n_features)
@@ -334,7 +349,7 @@ def _x_distillation_lasso(
         sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
-        #TODO the calculation in original repository of signam is different not include alpha
+        # TODO the calculation in original repository of signam is different not include alpha
         # l228
 
     else:
@@ -462,6 +477,7 @@ def _lasso_distillation_residual(
 
     return X_res, sigma2_X, y_res
 
+
 def _rf_distillation(
     X,
     y,
@@ -552,8 +568,10 @@ def _rf_distillation(
             n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
-        y_res = (
-            y - clf.predict_proba(X_minus_idx)[:, 1]
-        )  #IIABDFI
+        y_res = y - clf.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
 
-    return X_res, sigma2_X, y_res,
+    return (
+        X_res,
+        sigma2_X,
+        y_res,
+    )
