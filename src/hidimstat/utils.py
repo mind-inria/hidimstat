@@ -37,7 +37,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     if threshold is None:
         raise Exception("Not possible to find the threshold")
     else:
-        return None
+        return threshold
 
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
