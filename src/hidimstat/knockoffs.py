@@ -316,9 +316,6 @@ def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
     This function calculates the knockoff threshold based on the test statistics and the
     desired FDR level. It then identifies the selected variables based on the threshold.
     """
-    if offset not in (0, 1):
-        raise ValueError("'offset' must be either 0 or 1")
-
     # run the knockoff filter
     threshold = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
     selected = np.where(test_score >= threshold)[0]
@@ -561,7 +558,7 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None
     ):
         coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
     else:
-        raise ValueError("estimator should be linear")
+        raise TypeError("estimator should be linear")
     # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
     return test_score

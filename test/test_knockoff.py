@@ -15,9 +15,11 @@ from sklearn.covariance import LedoitWolf, GraphicalLassoCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import KFold
+from sklearn.tree import DecisionTreeRegressor
 
 
 def test_knockoff_aggregation():
+    """ Test knockoff with aggregation"""
     n = 500
     p = 100
     snr = 5
@@ -26,7 +28,7 @@ def test_knockoff_aggregation():
     X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
 
     test_scores = model_x_knockoff_aggregation(
-        X, y, n_bootstraps=n_bootstraps, random_state=0
+        X, y, n_bootstraps=n_bootstraps, random_state=None
     )
     selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
         test_scores, fdr=fdr, selection_only=False
@@ -99,6 +101,7 @@ def test_knockoff_aggregation():
 
 
 def test_model_x_knockoff():
+    """Test the selection of vatiabel from knockoff"""
     seed = 42
     fdr = 0.2
     n = 300
@@ -109,17 +112,31 @@ def test_model_x_knockoff():
         test_score,
         fdr=fdr,
     )
+    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
+        model_x_knockoff_filter(test_score, offset=2)
+    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
+        model_x_knockoff_filter(test_score, offset=-0.1)
+    ko_result_bis, threshold = model_x_knockoff_filter(
+        test_score,
+        fdr=fdr,
+        selection_only=False
+        )
+    assert np.all(ko_result == ko_result_bis)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
 
     ko_result = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=True)
+    ko_result_bis, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=False)
+    assert np.all(ko_result == ko_result_bis)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
+    assert np.all( 0<=pvals) or np.all(pvals<=1)
 
 
 def test_model_x_knockoff_estimator():
+    """ Test knockoff with a crossvalidation estimator"""
     seed = 42
     fdr = 0.2
     n = 300
@@ -141,6 +158,27 @@ def test_model_x_knockoff_estimator():
     assert fdp <= 0.2
     assert power > 0.7
 
+def test_model_x_knockoff_exception():
+    n = 50
+    p = 100
+    seed = 45
+    rgn = np.random.RandomState(seed)
+    X = rgn.randn(n, p)
+    y = rgn.randn(n)
+    with pytest.raises(TypeError, match="You should not use this function"):
+        model_x_knockoff(
+            X,
+            y,
+            estimator=Lasso(),
+        )
+    with pytest.raises(TypeError, match="estimator should be linear"):
+        model_x_knockoff(
+            X,
+            y,
+            estimator=DecisionTreeRegressor(),
+            preconfigure_estimator=None
+        )
+    
 
 def test_estimate_distribution():
     """
@@ -178,6 +216,7 @@ def test_estimate_distribution():
 
 
 def test_gaussian_knockoff_equi():
+    """test function of gaussian knockoff"""
     seed = 42
     n = 100
     p = 50
@@ -195,21 +234,19 @@ def test_gaussian_knockoff_equi_warning():
     seed = 42
     n = 100
     p = 50
-    tol = 1e-7
+    tol = 1e-14
     rgn = np.random.RandomState(seed)
     X = rgn.randn(n, p)
     mu = X.mean(axis=0)
     # create a positive definite matrix
-    sigma = rgn.randn(p, p)
-    while not np.all(np.linalg.eigvalsh(sigma) > tol):
-        sigma += 0.1 * np.eye(p)
-    sigma = sigma.T * sigma
-    sigma *= 1e-13
+    u, s, vh = np.linalg.svd(rgn.randn(p, p))
+    d = np.eye(p) * tol/10
+    sigma=u*d*u.T
     with pytest.warns(
         UserWarning,
         match="The conditional covariance matrix for knockoffs is not positive",
     ):
-        X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2, tol=1e-10)
+        X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2, tol=tol)
 
     assert X_tilde.shape == (n, p)
 
@@ -220,22 +257,23 @@ def test_s_equi_not_define_positive():
     tol = 1e-7
     seed = 42
 
-    # random matrix
+    # random positive matrix
     rgn = np.random.RandomState(seed)
-    sigma = rgn.randn(n, n)
-    sigma -= np.min(sigma)
+    a = rgn.randn(n, n)
+    a -= np.min(a)
     with pytest.raises(
         Exception, match="The covariance matrix is not positive-definite."
     ):
-        _s_equi(sigma)
+        _s_equi(a)
 
-    # positive matrix
-    while not np.all(np.linalg.eigvalsh(sigma) > tol):
-        sigma += 0.1 * np.eye(n)
+    # matrix with positive eigenvalues, positive diagonal
+    while not np.all(np.linalg.eigvalsh(a) > tol):
+        a += 0.1 * np.eye(n)
     with pytest.warns(UserWarning, match="The equi-correlated matrix"):
-        _s_equi(sigma)
+        _s_equi(a)
 
     # positive definite matrix
-    sigma = sigma.T * sigma
-    sigma = (sigma + sigma.T) / 2
+    u, s, vh = np.linalg.svd(a)
+    d = np.eye(n)
+    sigma=u*d*u.T
     _s_equi(sigma)
