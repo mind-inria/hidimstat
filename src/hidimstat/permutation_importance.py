@@ -172,7 +172,7 @@ class PermutationImportance(BaseEstimator):
 
         output_dict = dict()
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y_true=y, y_pred=y_pred)
+        loss_reference = self.loss(y, y_pred)
         output_dict["loss_reference"] = loss_reference
         output_dict["loss_perm"] = dict()
 
@@ -182,7 +182,7 @@ class PermutationImportance(BaseEstimator):
         for j, y_pred_j in enumerate(y_pred_perm):
             list_loss_perm = []
             for y_pred_perm in y_pred_j:
-                list_loss_perm.append(self.loss(y_true=y, y_pred=y_pred_perm))
+                list_loss_perm.append(self.loss(y, y_pred_perm))
             output_dict["loss_perm"][j] = np.array(list_loss_perm)
 
         output_dict["importance"] = np.array(
