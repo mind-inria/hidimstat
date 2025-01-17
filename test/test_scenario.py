@@ -58,34 +58,6 @@ def test_multivariate_1D_simulation():
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_hat, 0, decimal=1)
 
-    # Test 3
-    X, y, beta, noise = multivariate_1D_simulation(
-        n_samples=9, n_groups=2, group_size=3
-    )
-    corr_X = np.corrcoef(X)
-
-    groups = [[0, 1, 2], [3, 4, 5]]
-    for g in groups:
-        for i, j in product(g, g):
-            assert_almost_equal(corr_X[i, j], 1, decimal=1)
-
-
-def test_multivariate_1D_simulation_exception():
-    """
-    Test when the input paramters is not correct.
-    """
-    with pytest.raises(
-        ValueError, match="The number of groups and their size must be positive."
-    ):
-        multivariate_1D_simulation(n_groups=-1)
-
-    with pytest.raises(
-        ValueError,
-        match="The number of samples is too small compared to the number "
-        "of group and their size to gerate the data.",
-    ):
-        multivariate_1D_simulation(n_samples=10, n_groups=2, group_size=6)
-
 
 def test_multivariate_simulation():
     """Test if the data has expected shape, if the input parameters

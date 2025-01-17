@@ -14,6 +14,8 @@ from hidimstat.scenario import (
     multivariate_temporal_simulation,
 )
 
+from sklearn.datasets import make_multilabel_classification
+
 
 # Scenario 1: data with no temporal dimension
 def test_clustered_inference_no_temporal():
@@ -129,10 +131,9 @@ def test_clustered_inference_no_temporal_groups():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 20, 2000
     support_size = 10
-    n_groups = 9
-    size = 10
+    n_groups = 10
     sigma = 5.0
     rho = 0.95
     n_clusters = 200
@@ -140,21 +141,27 @@ def test_clustered_inference_no_temporal_groups():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        sigma=sigma,
-        rho=rho,
-        shuffle=False,
-        seed=2,
-        n_groups=n_groups,
-        group_size=size,
-    )
-    groups = np.concatenate([[i] * size for i in range(n_groups + 1)])
+    # create n_group of samples
+    X_ = []
+    y_ = []
+    for i in range(n_groups):
+        X_init, y, beta, epsilon = multivariate_1D_simulation(
+            n_samples=n_samples,
+            n_features=n_features,
+            support_size=support_size,
+            sigma=sigma,
+            rho=rho,
+            shuffle=False,
+            seed=2 + i,
+        )
+        X_.append(X_init)
+        y_.append(y)
 
-    y = y - np.mean(y)
-    X_init = X_init - np.mean(X_init, axis=0)
+    y_ = np.concatenate(y_)
+    y_ = y_ - np.mean(y_)
+    X_ = np.concatenate(X_)
+    X_ = X_ - np.mean(X_, axis=0)
+    groups = np.repeat(np.arange(0, n_groups), n_samples)
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
     ward = FeatureAgglomeration(
@@ -162,7 +169,7 @@ def test_clustered_inference_no_temporal_groups():
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference(X_init, y, ward, n_clusters, groups=groups)
+        clustered_inference(X_, y_, ward, n_clusters, groups=groups)
     )
 
     expected = 0.5 * np.ones(n_features)
