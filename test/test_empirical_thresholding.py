@@ -1,6 +1,7 @@
 """
 Test the empirical thresholding module
 """
+
 import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -41,7 +42,7 @@ def test_emperical_thresholding():
     expected[:support_size] = 0.0
 
     assert_almost_equal(pval_corr, expected, decimal=1)
-    
+
 
 def test_emperical_thresholding_lasso():
     """Testing the procedure on a simulation with no structure and a support
@@ -63,8 +64,10 @@ def test_emperical_thresholding_lasso():
     )
 
     with pytest.raises(ValueError, match="linear estimator should be linear."):
-        beta_hat, scale_hat = empirical_thresholding(X_init, y, linear_estimator=DecisionTreeRegressor())
-        
+        beta_hat, scale_hat = empirical_thresholding(
+            X_init, y, linear_estimator=DecisionTreeRegressor()
+        )
+
     beta_hat, scale_hat = empirical_thresholding(X_init, y, linear_estimator=Lasso())
 
     pval, pval_corr, _, _ = pval_from_scale(beta_hat, scale_hat)
@@ -73,4 +76,3 @@ def test_emperical_thresholding_lasso():
     expected[:support_size] = 0.0
 
     assert_almost_equal(pval_corr, expected, decimal=1)
-    
