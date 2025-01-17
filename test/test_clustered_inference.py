@@ -14,8 +14,6 @@ from hidimstat.scenario import (
     multivariate_temporal_simulation,
 )
 
-from sklearn.datasets import make_multilabel_classification
-
 
 # Scenario 1: data with no temporal dimension
 def test_clustered_inference_no_temporal():
