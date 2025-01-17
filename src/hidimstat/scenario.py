@@ -59,7 +59,6 @@ def multivariate_1D_simulation(
 
     rng = np.random.default_rng(seed)
 
-
     # generate random data for each samples
     X = np.zeros((n_samples, n_features))
     X[:, 0] = rng.standard_normal(n_samples)
