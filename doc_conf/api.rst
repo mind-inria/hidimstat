@@ -24,7 +24,6 @@ Functions
    group_reid
    hd_inference
    model_x_knockoff
-   model_x_knockoff_aggregation
    model_x_knockoff_filter
    model_x_knockoff_pvalue
    model_x_knockoff_bootstrap_quantile

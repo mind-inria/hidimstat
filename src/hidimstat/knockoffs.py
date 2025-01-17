@@ -79,7 +79,10 @@ def model_x_knockoff(
     preconfigure_estimator=preconfigure_estimator_LassoCV,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
-    seed=None,
+    joblib_verbose=0,
+    n_bootstraps=1,
+    n_jobs=1,
+    random_state=None,
     tol_gauss=1e-14,
 ):
     """
@@ -89,7 +92,11 @@ def model_x_knockoff(
     to control the False Discovery Rate (FDR) based on :cite:`candes2018panning`. The original
     implementation can be found at
     https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
-    The noisy variable are generate with a second-order knockoff variables using equi-correlated method.
+    The noisy variables are generated with second-order knockoff variables using the equi-correlated method.
+
+    In addition, this function generates multiple sets of Gaussian knockoff variables and calculates
+    the test statistics for each set. It then aggregates the test statistics across
+    the sets to improve stability and power.
 
     Parameters
     ----------
@@ -126,95 +133,10 @@ def model_x_knockoff(
         attribute that returns a 2D array of the estimated covariance matrix.
         Examples include LedoitWolf and GraphicalLassoCV.
 
-    seed : int or None, optional (default=None)
-        The random seed used to generate the Gaussian knockoff variables.
-
-    tol_gauss : float, optional (default=1e-14)
-        A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
-
-    Returns
-    -------
-    test_score : 1D array, (n_features, )
-        A vector of test statistics.
-
-    Notes
-    -----
-    This function calculates the test statistics based on the difference in absolute
-    coefficient values between the original and knockoff variables.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-    if centered:
-        X = StandardScaler().fit_transform(X)
-
-    # estimation of X distribution
-    # original implementation:
-    # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
-    mu = X.mean(axis=0)
-    sigma = cov_estimator.fit(X).covariance_
-
-    # Create knockoff variables
-    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed, tol=tol_gauss)
-
-    test_score = _stat_coefficient_diff(
-        X, X_tilde, y, estimator, preconfigure_estimator
-    )
-
-    return test_score
-
-
-def model_x_knockoff_aggregation(
-    X,
-    y,
-    estimator=LassoCV(
-        n_jobs=None,
-        verbose=0,
-        max_iter=200000,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-6,
-    ),
-    preconfigure_estimator=preconfigure_estimator_LassoCV,
-    centered=True,
-    cov_estimator=LedoitWolf(assume_centered=True),
-    joblib_verbose=0,
-    n_bootstraps=25,
-    n_jobs=1,
-    random_state=None,
-    tol_gauss=1e-14,
-):
-    """
-    Model-X Knockoff Aggregation
-
-    This function generates multiple sets of Gaussian knockoff variables and calculates
-    the test statistics for each set. It then aggregates the test statistics across
-    the sets to improve stability and power.
-
-    Parameters
-    ----------
-    X : 2D ndarray (n_samples, n_features)
-        The design matrix.
-
-    y : 1D ndarray (n_samples, )
-        The target vector.
-
-    estimator : sklearn estimator instance or a cross validation instance, optional
-        The estimator used for fitting the data and computing the test statistics.
-
-    preconfigure_estimator : function, optional
-        A function that configures the estimator for the Model-X knockoff procedure.
-
-    centered : bool, optional (default=True)
-        Whether to standardize the data before performing the inference procedure.
-
-    cov_estimator : sklearn covariance estimator instance, optional
-        The method used to estimate the empirical covariance matrix.
-
     joblib_verbose : int, optional (default=0)
         The verbosity level of the joblib parallel processing.
 
-    n_bootstraps : int, optional (default=25)
+    n_bootstraps : int, optional (default=1)
         The number of bootstrap samples to generate for aggregation.
 
     n_jobs : int, optional (default=1)
@@ -236,8 +158,12 @@ def model_x_knockoff_aggregation(
     This function generates multiple sets of Gaussian knockoff variables and calculates
     the test statistics for each set using the `_stat_coefficient_diff` function. It
     then aggregates the test statistics across the sets to improve stability and power.
+
+    References
+    ----------
+    .. footbibliography::
     """
-    assert n_bootstraps > 1, "the number of bootstraps should at least higher than 1"
+    assert n_bootstraps > 0, "the number of bootstraps should at least higher than 1"
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
@@ -255,22 +181,30 @@ def model_x_knockoff_aggregation(
         X = StandardScaler().fit_transform(X)
 
     # estimation of X distribution
+    # original implementation:
+    # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
     mu = X.mean(axis=0)
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde, (mu_tilde, sigma_tilde_decompose) = gaussian_knockoff_generation(
-        X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=True
+    data_generated = gaussian_knockoff_generation(
+        X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=(n_bootstraps > 1)
     )
-    X_tildes = parallel(
-        delayed(repeat_gaussian_knockoff_generation)(
-            mu_tilde,
-            sigma_tilde_decompose,
-            seed=seed,
+
+    if n_bootstraps == 1:
+        X_tilde = data_generated
+        X_tildes = [X_tilde]
+    else:
+        X_tilde, (mu_tilde, sigma_tilde_decompose) = data_generated
+        X_tildes = parallel(
+            delayed(repeat_gaussian_knockoff_generation)(
+                mu_tilde,
+                sigma_tilde_decompose,
+                seed=seed,
+            )
+            for seed in seed_list[1:]
         )
-        for seed in seed_list[1:]
-    )
-    X_tildes.insert(0, X_tilde)
+        X_tildes.insert(0, X_tilde)
 
     test_scores = parallel(
         delayed(_stat_coefficient_diff)(
@@ -279,7 +213,10 @@ def model_x_knockoff_aggregation(
         for i in range(n_bootstraps)
     )
 
-    return test_scores
+    if n_bootstraps == 1:
+        return test_scores[0]
+    else:
+        return test_scores
 
 
 def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):

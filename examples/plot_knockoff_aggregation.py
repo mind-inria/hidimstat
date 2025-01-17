@@ -27,7 +27,6 @@ from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
     model_x_knockoff,
     model_x_knockoff_filter,
-    model_x_knockoff_aggregation,
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_bootstrap_e_value,
 )
@@ -78,13 +77,14 @@ def single_run(
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
             tol=1e-6,
         ),
-        seed=seed,
+        n_bootstraps=1,
+        random_state=seed,
     )
     mx_selection = model_x_knockoff_filter(test_scores, fdr=fdr)
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
 
     # Use p-values aggregation [2]
-    test_scores = model_x_knockoff_aggregation(
+    test_scores = model_x_knockoff(
         X,
         y,
         estimator=LassoCV(

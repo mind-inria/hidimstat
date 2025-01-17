@@ -1,5 +1,4 @@
 from hidimstat.knockoffs import (
-    model_x_knockoff_aggregation,
     model_x_knockoff,
     model_x_knockoff_filter,
     model_x_knockoff_pvalue,
@@ -27,7 +26,7 @@ def test_knockoff_aggregation():
     fdr = 0.5
     X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
 
-    test_scores = model_x_knockoff_aggregation(
+    test_scores = model_x_knockoff(
         X, y, n_bootstraps=n_bootstraps, random_state=None
     )
     selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
@@ -52,10 +51,8 @@ def test_knockoff_aggregation():
     np.testing.assert_array_equal(selected_no_verbose, selected_verbose)
 
     # Single AKO (or vanilla KO) (verbose vs no verbose)
-    test_bootstrap = model_x_knockoff_aggregation(X, y, n_bootstraps=2, random_state=5)
-    test_no_bootstrap = model_x_knockoff(
-        X, y, seed=np.random.RandomState(5).randint(1, np.iinfo(np.int32).max, 2)[0]
-    )
+    test_bootstrap = model_x_knockoff(X, y, n_bootstraps=2, random_state=5)
+    test_no_bootstrap = model_x_knockoff(X, y, n_bootstraps=1, random_state=5)
 
     np.testing.assert_array_equal(test_bootstrap[0], test_no_bootstrap)
 
@@ -80,7 +77,7 @@ def test_knockoff_aggregation():
 
     # Checking wrong type for random_state
     with pytest.raises(Exception):
-        _ = model_x_knockoff_aggregation(
+        _ = model_x_knockoff(
             X,
             y,
             random_state="test",
@@ -107,7 +104,7 @@ def test_model_x_knockoff():
     n = 300
     p = 300
     X, y, _, non_zero = simu_data(n, p, seed=seed)
-    test_score = model_x_knockoff(X, y, seed=seed + 1)
+    test_score = model_x_knockoff(X, y, n_bootstraps=1, random_state=seed + 1)
     ko_result = model_x_knockoff_filter(
         test_score,
         fdr=fdr,
@@ -146,8 +143,9 @@ def test_model_x_knockoff_estimator():
         X,
         y,
         estimator=GridSearchCV(Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}),
+        n_bootstraps=1,
         preconfigure_estimator=None,
-        seed=seed + 1,
+        random_state=seed + 1,
     )
     ko_result = model_x_knockoff_filter(
         test_score,
@@ -171,10 +169,12 @@ def test_model_x_knockoff_exception():
             X,
             y,
             estimator=Lasso(),
+            n_bootstraps=1,
         )
     with pytest.raises(TypeError, match="estimator should be linear"):
         model_x_knockoff(
-            X, y, estimator=DecisionTreeRegressor(), preconfigure_estimator=None
+            X, y, estimator=DecisionTreeRegressor(), preconfigure_estimator=None,
+            n_bootstraps=1
         )
 
 
@@ -188,7 +188,7 @@ def test_estimate_distribution():
     p = 50
     X, y, _, non_zero = simu_data(n, p, seed=seed)
     test_score = model_x_knockoff(
-        X, y, cov_estimator=LedoitWolf(assume_centered=True), seed=seed + 1
+        X, y, cov_estimator=LedoitWolf(assume_centered=True), n_bootstraps=1, random_state=seed + 1
     )
     ko_result = model_x_knockoff_filter(
         test_score,
@@ -203,7 +203,8 @@ def test_estimate_distribution():
             alphas=[1e-3, 1e-2, 1e-1, 1],
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
         ),
-        seed=seed + 2,
+        n_bootstraps=1,
+        random_state=seed + 2,
     )
     ko_result = model_x_knockoff_filter(
         test_score,
