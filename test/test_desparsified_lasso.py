@@ -2,6 +2,7 @@
 Test the desparsified_lasso module
 """
 
+import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
@@ -58,6 +59,16 @@ def test_desparsified_lasso():
             X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99
         )
     )
+    cb_min_bis, cb_max_bis = desparsified_lasso_pvalue(
+        X.shape[0],
+        beta_hat,
+        sigma_hat,
+        omega_diag,
+        confidence=0.99,
+        confidence_interval_only=True,
+    )
+    assert np.all(cb_min_bis == cb_min)
+    assert np.all(cb_max_bis == cb_max)
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)
@@ -113,3 +124,6 @@ def test_desparsified_group_lasso():
     np.testing.assert_raises(
         ValueError, desparsified_lasso, X=X, y=Y, group=True, cov=bad_cov
     )
+
+    with pytest.raises(ValueError, match=f"Unknown test 'r2'"):
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="r2")
