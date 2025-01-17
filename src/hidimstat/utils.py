@@ -126,7 +126,8 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 
 def _bhq_threshold(pvals, fdr=0.1):
     """
-    Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001` for controlling False discovery rate
+    Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001` 
+    for controlling False discovery rate
 
     Parameters
     ----------
@@ -194,8 +195,8 @@ def _ebh_threshold(evals, fdr=0.1):
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     """
-    Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001` procedure for controlling FDR, with input
-    shape function :footcite:p:`ramdas2017online`.
+    Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001` procedure for 
+    controlling FDR, with input shape function :footcite:p:`ramdas2017online`.
 
     Parameters
     ----------
@@ -239,8 +240,8 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
 ########################## Lambda Max Calculation ##########################
 def _lambda_max(X, y, use_noise_estimate=True):
     """
-    Calculation of lambda_max, the smallest value of regularization parameter in
-    lasso program for non-zero coefficient
+    Calculation of lambda_max, the smallest value of regularization parameter 
+    in lasso program for non-zero coefficient
 
     Parameters
     ----------
@@ -308,11 +309,14 @@ def create_X_y(
 
     Returns
     -------
-    X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
-        The sampling_with_repetitionped training input samples with scaled continuous variables.
+    X_train_scaled : {array-like, sparse matrix} of shape 
+                            (n_train_samples, n_features)
+        The sampling_with_repetitionped training input samples 
+        with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
         The sampling_with_repetitionped training output samples scaled if continous.
-    X_validation_scaled : {array-like, sparse matrix} of shape (n_validation_samples, n_features)
+    X_validation_scaled : {array-like, sparse matrix} of shape 
+                            (n_validation_samples, n_features)
         The validation input samples with scaled continuous variables.
     y_validation_scaled : {array-like} of shape (n_validation_samples, )
         The validation output samples scaled if continous.
