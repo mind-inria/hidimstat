@@ -346,11 +346,12 @@ def _x_distillation_lasso(
         # get the residuals
         X_res = X[:, idx] - clf.predict(X_minus_idx)
         # compute the variance of the residuals
+        # In the original paper and implementation, the term:
+        #  alpha * np.linalg.norm(clf.coef_, ord=1)
+        # is not present and has been added without any reference actually
         sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
-        # TODO the calculation in original repository of signam is different not include alpha
-        # l228
 
     else:
         # Distill X with sigma_X
