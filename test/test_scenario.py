@@ -1,7 +1,7 @@
 """
 Test the scenario module
 """
-
+from itertools import product
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_equal
@@ -62,7 +62,6 @@ def test_multivariate_1D_simulation():
         n_samples=9, n_groups=2, group_size=3
     )
     corr_X = np.corrcoef(X)
-    from itertools import product
 
     groups = [[0, 1, 2], [3, 4, 5]]
     for g in groups:
