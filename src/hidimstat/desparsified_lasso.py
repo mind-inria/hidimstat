@@ -218,7 +218,7 @@ def desparsified_lasso_pvalue(
     sigma_hat,
     omega_diag,
     confidence=0.95,
-    distrib="norm",
+    distribution="norm",
     eps=1e-14,
     confidence_interval_only=False,
 ):
@@ -239,7 +239,7 @@ def desparsified_lasso_pvalue(
         Diagonal elements of the precision matrix estimate.
     confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
-    distrib : str, optional (default="norm")
+    distribution : str, optional (default="norm")
         Distribution to use for p-value calculation.
         Currently only "norm" supported.
     eps : float, optional (default=1e-14)
@@ -282,7 +282,7 @@ def desparsified_lasso_pvalue(
         return cb_min, cb_max
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        cb_min, cb_max, confidence=confidence, distrib=distrib, eps=eps
+        cb_min, cb_max, confidence=confidence, distribution=distribution, eps=eps
     )
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
