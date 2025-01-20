@@ -1,4 +1,9 @@
-from hidimstat.utils import fdr_threshold, cal_fdp_power, quantile_aggregation,_lambda_max
+from hidimstat.utils import (
+    fdr_threshold,
+    cal_fdp_power,
+    quantile_aggregation,
+    _lambda_max,
+)
 from hidimstat.data_simulation import simu_data
 from numpy.testing import assert_array_almost_equal
 import numpy as np
@@ -21,7 +26,9 @@ def test_fdr_threshold():
 
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
-    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy", reshaping_function=identity)
+    bhy_cutoff = fdr_threshold(
+        p_values, fdr=0.1, method="bhy", reshaping_function=identity
+    )
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
     with pytest.raises(Exception):
@@ -43,10 +50,12 @@ def test_fdr_threshold_extreme_values():
     e_values = 1 / p_values
 
     identity = lambda i: i
-    
+
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
-    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy", reshaping_function=identity)
+    bhy_cutoff = fdr_threshold(
+        p_values, fdr=0.1, method="bhy", reshaping_function=identity
+    )
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
     # Test BHq
@@ -75,7 +84,7 @@ def test_cal_fdp_power():
 
     assert fdp == 2 / len(selected)
     assert power == 18 / len(non_zero_index)
-    
+
     # test emptt selection
     fdp, power = cal_fdp_power(np.empty(0), non_zero_index)
     assert fdp == 0.0
@@ -94,9 +103,18 @@ def test_quantile_aggregation():
     assert_array_almost_equal(0.5 * quantile_aggregation(p_values, 0.5), [0.05] * 10)
 
     # with adaptation
-    assert_array_almost_equal(quantile_aggregation(p_values, 0.1, adaptive=True)/(1 - np.log(0.1)), [0.1] * 10)
-    assert_array_almost_equal(quantile_aggregation(p_values, 0.3, adaptive=True)/(1 - np.log(0.3)), [0.1] * 10)
-    assert_array_almost_equal(quantile_aggregation(p_values, 0.5, adaptive=True)/(1 - np.log(0.5)), [0.1] * 10)
+    assert_array_almost_equal(
+        quantile_aggregation(p_values, 0.1, adaptive=True) / (1 - np.log(0.1)),
+        [0.1] * 10,
+    )
+    assert_array_almost_equal(
+        quantile_aggregation(p_values, 0.3, adaptive=True) / (1 - np.log(0.3)),
+        [0.1] * 10,
+    )
+    assert_array_almost_equal(
+        quantile_aggregation(p_values, 0.5, adaptive=True) / (1 - np.log(0.5)),
+        [0.1] * 10,
+    )
 
     # One p-value within the quantile aggregation method
     p_values = np.array([0.0])
@@ -115,10 +133,10 @@ def test_lambda_max():
     # Assert lambda_max is positive
     assert max_lambda > 0
     assert max_lambda_noise > 0
-    
+
     # Assert lambda_max with noise estimate is different (usually smaller)
     assert max_lambda_noise != max_lambda
-    
+
     # Test with zero target vector
     y_zero = np.zeros_like(y)
     lambda_zero = _lambda_max(X, y_zero)

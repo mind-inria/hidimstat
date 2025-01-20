@@ -253,9 +253,7 @@ def _x_distillation_lasso(
             alpha = clf.alpha_
         else:
             if alpha is None:
-                alpha = 0.1 * _lambda_max(
-                    X_minus_idx, X[:, idx]
-                )
+                alpha = 0.1 * _lambda_max(X_minus_idx, X[:, idx])
             clf = Lasso(alpha=alpha, fit_intercept=False)
             clf.fit(X_minus_idx, X[:, idx])
 

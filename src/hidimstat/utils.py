@@ -14,16 +14,16 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
     Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.
 
-    The function aggregates multiple p-values into a single p-value while controlling 
+    The function aggregates multiple p-values into a single p-value while controlling
     the family-wise error rate. It supports both fixed and adaptive quantile aggregation.
 
     Parameters
     ----------
     pvals : ndarray of shape (n_sampling*2, n_test)
-        Matrix of p-values to aggregate. Each row represents a sampling instance 
+        Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
         p-values should be adjusted as defined by the equation 2.2 of :cite:meinshausen2009p.
-    gamma : float, default=0.05 
+    gamma : float, default=0.05
         Quantile level for aggregation. Must be in range (0,1].
     n_grid : int, default=20
         Number of grid points to use for adaptive aggregation. Only used if adaptive=True.
@@ -70,12 +70,12 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     -------
     1D ndarray (n_tests, )
         Vector of aggregated p-values
-    
+
     References
     ----------
     .. footbibliography::
     """
-    assert gamma > 0 and gamma <= 1, 'gamma should be between O and 1' 
+    assert gamma > 0 and gamma <= 1, "gamma should be between O and 1"
     # equation 2.2 of meinshausen2009p
     converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
     return np.minimum(1, converted_score)
@@ -98,12 +98,14 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
         Vector of aggregated p-values
 
     References
-    ---------- 
+    ----------
     .. footbibliography::
     """
-    
-    gammas = np.linspace(gamma_min, 1., n_grid)
-    list_quantiles = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
+
+    gammas = np.linspace(gamma_min, 1.0, n_grid)
+    list_quantiles = np.array(
+        [_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas]
+    )
     # equation 2.3 of meinshausen2009p
     return np.minimum(1, (1 - np.log(gamma_min)) * list_quantiles.min(0))
 
@@ -173,7 +175,6 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     else:
         raise ValueError("{} is not support FDR control method".format(method))
     return threshold
-
 
 
 def _bhq_threshold(pvals, fdr=0.1):
@@ -292,7 +293,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
 ########################## Lambda Max Calculation ##########################
 def _lambda_max(X, y, use_noise_estimate=False):
     """
-    Calculate lambda_max, which is the smallest value of the regularization parameter 
+    Calculate lambda_max, which is the smallest value of the regularization parameter
     in the LASSO regression that yields non-zero coefficients.
 
     Parameters
@@ -303,15 +304,15 @@ def _lambda_max(X, y, use_noise_estimate=False):
         Target values
     use_noise_estimate : bool, default=True
         Whether to use noise estimation in the calculation
-    
+
     Returns
     -------
     float
         The maximum lambda value
-    
+
     Notes
     -----
-    For LASSO regression, any lambda value larger than lambda_max will result in 
+    For LASSO regression, any lambda value larger than lambda_max will result in
     all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
@@ -326,7 +327,7 @@ def _lambda_max(X, y, use_noise_estimate=False):
         lambda_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
     return lambda_max
- 
+
 
 ########################### Data Preprocessing ##########################
 def create_X_y(
