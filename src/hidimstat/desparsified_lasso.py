@@ -56,7 +56,7 @@ def desparsified_lasso(
         Convergence tolerance for optimization.
 
     alpha_max_fraction : float, optional (default=0.01)
-        Fraction of max lambda used for Lasso regularization.
+        Fraction of max alpha used for Lasso regularization.
 
     eps : float, optional (default=1e-2)
         Small constant used in noise estimation.
@@ -165,7 +165,7 @@ def desparsified_lasso(
     np.fill_diagonal(gram_nodiag, 0)
 
     # define the alphas for the Nodewise Lasso
-    # TODO why don't use the function _lambda_max instead of this?
+    # TODO why don't use the function _alpha_max instead of this?
     list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
     alphas = alpha_max_fraction * list_alpha_max
 
