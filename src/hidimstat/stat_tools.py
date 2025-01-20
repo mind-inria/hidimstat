@@ -187,7 +187,9 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
         One minus the p-value corrected for multiple testing.
     """
 
-    zscore = zscore_from_cb(cb_min, cb_max, confidence=confidence, distribution=distribution)
+    zscore = zscore_from_cb(
+        cb_min, cb_max, confidence=confidence, distribution=distribution
+    )
 
     if distribution == "norm":
 
@@ -260,7 +262,9 @@ def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm")
     two_sided_pval_corr : ndarray, shape (n_features,)
         Two-sided p-values corrected for multiple testing.
     """
-    zscore = zscore_from_cb(cb_min, cb_max, confidence=confidence, distribution=distribution)
+    zscore = zscore_from_cb(
+        cb_min, cb_max, confidence=confidence, distribution=distribution
+    )
 
     two_sided_pval, two_sided_pval_corr = two_sided_pval_from_zscore(
         zscore, distribution=distribution
