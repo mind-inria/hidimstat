@@ -125,7 +125,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
         if selected_index <= n_features:
             return pvals_sorted[selected_index]
         else:
-            # no threshold, all the pvalue are positif
+            # no threshold, all the p-values are positive
             return -1.0
 
 

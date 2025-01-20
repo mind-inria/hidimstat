@@ -34,7 +34,7 @@ def test_fdr_threshold():
 
 
 def test_fdr_threshold_extreme_values():
-    "test the extreme cases"
+    """test FDR computation for extreme numerical value of the p-values"""
     p_values = np.ones(100)
     e_values = 1 / p_values
 
