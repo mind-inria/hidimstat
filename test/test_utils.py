@@ -81,7 +81,13 @@ def test_quantile_aggregation():
     assert_array_almost_equal(0.3 * quantile_aggregation(p_values, 0.3), [0.03] * 10)
     assert_array_almost_equal(0.5 * quantile_aggregation(p_values, 0.5), [0.05] * 10)
 
+    # with adaptation
+    assert_array_almost_equal(quantile_aggregation(p_values, 0.1, adaptive=True)/(1 - np.log(0.1)), [0.1] * 10)
+    assert_array_almost_equal(quantile_aggregation(p_values, 0.3, adaptive=True)/(1 - np.log(0.3)), [0.1] * 10)
+    assert_array_almost_equal(quantile_aggregation(p_values, 0.5, adaptive=True)/(1 - np.log(0.5)), [0.1] * 10)
+
     # One p-value within the quantile aggregation method
     p_values = np.array([0.0])
 
     assert quantile_aggregation(p_values) == 0.0
+
