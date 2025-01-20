@@ -2,7 +2,7 @@ from hidimstat.utils import (
     fdr_threshold,
     cal_fdp_power,
     quantile_aggregation,
-    _lambda_max,
+    _alpha_max,
 )
 from hidimstat.data_simulation import simu_data
 from numpy.testing import assert_array_almost_equal
@@ -122,22 +122,22 @@ def test_quantile_aggregation():
     assert quantile_aggregation(p_values) == 0.0
 
 
-def test_lambda_max():
-    """Test lambda max function"""
+def test_alpha_max():
+    """Test alpha max function"""
     n = 500
     p = 100
     snr = 5
     X, y, beta_true, non_zero = simu_data(n, p, snr=snr, seed=0)
-    max_lambda = _lambda_max(X, y)
-    max_lambda_noise = _lambda_max(X, y, use_noise_estimate=True)
-    # Assert lambda_max is positive
-    assert max_lambda > 0
-    assert max_lambda_noise > 0
+    max_alpha = _alpha_max(X, y)
+    max_alpha_noise = _alpha_max(X, y, use_noise_estimate=True)
+    # Assert alpha_max is positive
+    assert max_alpha > 0
+    assert max_alpha_noise > 0
 
-    # Assert lambda_max with noise estimate is different (usually smaller)
-    assert max_lambda_noise != max_lambda
+    # Assert alpha_max with noise estimate is different (usually smaller)
+    assert max_alpha_noise != max_alpha
 
     # Test with zero target vector
     y_zero = np.zeros_like(y)
-    lambda_zero = _lambda_max(X, y_zero)
-    assert lambda_zero == 0
+    alpha_zero = _alpha_max(X, y_zero)
+    assert alpha_zero == 0

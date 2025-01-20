@@ -290,10 +290,10 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
             return -1.0
 
 
-########################## Lambda Max Calculation ##########################
-def _lambda_max(X, y, use_noise_estimate=False):
+########################## alpha Max Calculation ##########################
+def _alpha_max(X, y, use_noise_estimate=False):
     """
-    Calculate lambda_max, which is the smallest value of the regularization parameter
+    Calculate alpha_max, which is the smallest value of the regularization parameter
     in the LASSO regression that yields non-zero coefficients.
 
     Parameters
@@ -308,25 +308,25 @@ def _lambda_max(X, y, use_noise_estimate=False):
     Returns
     -------
     float
-        The maximum lambda value
+        The maximum alpha value
 
     Notes
     -----
-    For LASSO regression, any lambda value larger than lambda_max will result in
+    For LASSO regression, any alpha value larger than alpha_max will result in
     all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
 
     if not use_noise_estimate:
-        lambda_max = np.max(np.dot(X.T, y)) / n_samples
+        alpha_max = np.max(np.dot(X.T, y)) / n_samples
     else:
         # estimate the noise level
         norm_y = np.linalg.norm(y, ord=2)
         sigma_star = norm_y / np.sqrt(n_samples)
 
-        lambda_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
+        alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
-    return lambda_max
+    return alpha_max
 
 
 ########################### Data Preprocessing ##########################
