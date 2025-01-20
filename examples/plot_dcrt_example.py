@@ -58,9 +58,7 @@ for sim_ind in range(10):
     power["Lasso"].append(sum(results_lasso[1][:n_signal] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
-    results_forest = dcrt_zero(
-        X, y, screening=False, statistic="randomforest"
-    )
+    results_forest = dcrt_zero(X, y, screening=False, statistic="randomforest")
     typeI_error["Forest"].append(
         sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
     )
