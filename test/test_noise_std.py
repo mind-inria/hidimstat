@@ -131,7 +131,7 @@ def test_group_reid():
 
 
 def test_reid_exception():
-    "test the exceptions of reid"
+    "Test for testing the exceptions on the arguments of reid function"
     n_samples, n_features = 50, 30
     n_times = 10
     sigma = 1.0
