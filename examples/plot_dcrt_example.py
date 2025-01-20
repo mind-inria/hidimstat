@@ -13,7 +13,7 @@ the power
 # ------------------------------
 
 import numpy as np
-from hidimstat.dcrt import dcrt_zero
+from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
 from hidimstat.scenario import multivariate_1D_simulation
 import matplotlib.pyplot as plt
 
@@ -51,14 +51,16 @@ for sim_ind in range(10):
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
-    results_lasso = dcrt_zero(X, y, screening=False)
+    selection_features, X_res, sigma2_X, y_res = dcrt_zero(X, y, screening=False)
+    results_lasso = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res, selection_only=False)
     typeI_error["Lasso"].append(
         sum(results_lasso[1][n_signal:] < alpha) / (p - n_signal)
     )
     power["Lasso"].append(sum(results_lasso[1][:n_signal] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
-    results_forest = dcrt_zero(X, y, screening=False, statistic="randomforest")
+    selection_features, X_res, sigma2_X, y_res = dcrt_zero(X, y, screening=False, statistic="randomforest")
+    results_forest = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res, selection_only=False)
     typeI_error["Forest"].append(
         sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
     )
