@@ -9,7 +9,7 @@ from hidimstat.gaussian_knockoff import (
 import pytest
 
 
-def test_estimate_distribution_wolf():
+def test_estimate_distribution_ledoit_wolf():
     seed = 42
     n = 100
     p = 50
