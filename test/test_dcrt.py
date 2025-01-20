@@ -279,7 +279,7 @@ def test_dcrt_lasso_no_selection():
 
 def test_dcrt_lasso_fit_with_cv():
     """
-    This function tests the dcrt function using the Lasso learner
+    Test the dcrt function using the Lasso learner
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     results = dcrt_zero(
