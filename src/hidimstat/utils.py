@@ -96,7 +96,7 @@ def _ebh_threshold(evals, fdr=0.1):
     if selected_index <= n_features:
         return evals_sorted[selected_index]
     else:
-        return np.infty
+        return np.inf
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
