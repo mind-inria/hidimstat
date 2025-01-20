@@ -290,20 +290,42 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
 
 
 ########################## Lambda Max Calculation ##########################
-def _lambda_max(X, y, use_noise_estimate=True):
-    """Calculation of lambda_max, the smallest value of regularization parameter in
-    lasso program for non-zero coefficient
+def _lambda_max(X, y, use_noise_estimate=False):
+    """
+    Calculate lambda_max, which is the smallest value of the regularization parameter 
+    in the LASSO regression that yields non-zero coefficients.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Training data
+    y : array-like of shape (n_samples,)
+        Target values
+    use_noise_estimate : bool, default=True
+        Whether to use noise estimation in the calculation
+    
+    Returns
+    -------
+    float
+        The maximum lambda value
+    
+    Notes
+    -----
+    For LASSO regression, any lambda value larger than lambda_max will result in 
+    all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
 
     if not use_noise_estimate:
-        return np.max(np.dot(X.T, y)) / n_samples
+        lambda_max = np.max(np.dot(X.T, y)) / n_samples
+    else:
+        # estimate the noise level
+        norm_y = np.linalg.norm(y, ord=2)
+        sigma_star = norm_y / np.sqrt(n_samples)
 
-    norm_y = np.linalg.norm(y, ord=2)
-    sigma_0 = (norm_y / np.sqrt(n_samples)) * 1e-3
-    sig_star = max(sigma_0, norm_y / np.sqrt(n_samples))
+        lambda_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
-    return np.max(np.abs(np.dot(X.T, y)) / (n_samples * sig_star))
+    return lambda_max
  
 
 ########################### Data Preprocessing ##########################
@@ -341,7 +363,7 @@ def create_X_y(
     Returns
     -------
     X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
-        The sampling_with_repetitionped training input samples with scaled continuous variables.
+        The training input samples with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
         The sampling_with_repetitionped training output samples scaled if continous.
     X_validation_scaled : {array-like, sparse matrix} of shape (n_validation_samples, n_features)

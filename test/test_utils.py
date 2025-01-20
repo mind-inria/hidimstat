@@ -1,4 +1,5 @@
-from hidimstat.utils import fdr_threshold, cal_fdp_power, quantile_aggregation
+from hidimstat.utils import fdr_threshold, cal_fdp_power, quantile_aggregation,_lambda_max
+from hidimstat.data_simulation import simu_data
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 import pytest
@@ -16,8 +17,11 @@ def test_fdr_threshold():
 
     e_values = 1 / p_values
 
+    identity = lambda i: i
+
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
+    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy", reshaping_function=identity)
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
     with pytest.raises(Exception):
@@ -38,8 +42,11 @@ def test_fdr_threshold_extreme_values():
     p_values = np.ones(100)
     e_values = 1 / p_values
 
+    identity = lambda i: i
+    
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
+    bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy", reshaping_function=identity)
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
     # Test BHq
@@ -68,6 +75,11 @@ def test_cal_fdp_power():
 
     assert fdp == 2 / len(selected)
     assert power == 18 / len(non_zero_index)
+    
+    # test emptt selection
+    fdp, power = cal_fdp_power(np.empty(0), non_zero_index)
+    assert fdp == 0.0
+    assert power == 0.0
 
 
 def test_quantile_aggregation():
@@ -91,3 +103,23 @@ def test_quantile_aggregation():
 
     assert quantile_aggregation(p_values) == 0.0
 
+
+def test_lambda_max():
+    """Test lambda max function"""
+    n = 500
+    p = 100
+    snr = 5
+    X, y, beta_true, non_zero = simu_data(n, p, snr=snr, seed=0)
+    max_lambda = _lambda_max(X, y)
+    max_lambda_noise = _lambda_max(X, y, use_noise_estimate=True)
+    # Assert lambda_max is positive
+    assert max_lambda > 0
+    assert max_lambda_noise > 0
+    
+    # Assert lambda_max with noise estimate is different (usually smaller)
+    assert max_lambda_noise != max_lambda
+    
+    # Test with zero target vector
+    y_zero = np.zeros_like(y)
+    lambda_zero = _lambda_max(X, y_zero)
+    assert lambda_zero == 0

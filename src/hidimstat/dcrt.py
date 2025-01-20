@@ -254,7 +254,7 @@ def _x_distillation_lasso(
         else:
             if alpha is None:
                 alpha = 0.1 * _lambda_max(
-                    X_minus_idx, X[:, idx], use_noise_estimate=False
+                    X_minus_idx, X[:, idx]
                 )
             clf = Lasso(alpha=alpha, fit_intercept=False)
             clf.fit(X_minus_idx, X[:, idx])
@@ -315,7 +315,7 @@ def _lasso_distillation_residual(
         clf_null = LassoCV(cv=cv, n_jobs=n_jobs, n_alphas=n_alphas, random_state=0)
     else:
         if alpha is None:
-            alpha = 0.5 * _lambda_max(X_minus_idx, y, use_noise_estimate=False)
+            alpha = 0.5 * _lambda_max(X_minus_idx, y)
         clf_null = Lasso(alpha=alpha, fit_intercept=False)
 
     if fit_y:
