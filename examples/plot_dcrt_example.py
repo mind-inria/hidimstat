@@ -51,7 +51,7 @@ for sim_ind in range(10):
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
-    results_lasso = dcrt_zero(X, y, screening=False, verbose=True)
+    results_lasso = dcrt_zero(X, y, screening=False)
     typeI_error["Lasso"].append(
         sum(results_lasso[1][n_signal:] < alpha) / (p - n_signal)
     )
@@ -59,7 +59,7 @@ for sim_ind in range(10):
 
     ## dcrt Random Forest ##
     results_forest = dcrt_zero(
-        X, y, screening=False, statistic="randomforest", verbose=True
+        X, y, screening=False, statistic="randomforest"
     )
     typeI_error["Forest"].append(
         sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
