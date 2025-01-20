@@ -10,11 +10,17 @@ from sklearn.datasets import make_regression, make_classification
 from hidimstat.dcrt import dcrt_zero, dcrt_pvalue, _lasso_distillation_residual
 
 
-def test_dcrt_lasso():
+@pytest.fixture
+def generate_regation_dataset(n=100, p=10, noise=0.2, seed=2024):
+    X, y = make_regression(n_samples=n, n_features=10, noise=0.2, random_state=2024)
+    return X, y
+
+
+def test_dcrt_lasso(generate_regation_dataset):
     """
     This function tests the dcrt function using the Lasso learner
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = generate_regation_dataset
     # Checking if a loss != 'least_square'
     with pytest.raises(Exception):
         _ = dcrt_zero(
@@ -26,6 +32,12 @@ def test_dcrt_lasso():
             random_state=2024,
         )
 
+
+def test_dcrt_lasso_unknow_statistic(generate_regation_dataset):
+    """
+    Test for unknows statistic
+    """
+    X, y = generate_regation_dataset
     # Checking for a different statistic
     with pytest.raises(Exception):
         _ = dcrt_zero(
@@ -36,6 +48,12 @@ def test_dcrt_lasso():
             random_state=2024,
         )
 
+
+def test_dcrt_lasso_screening(generate_regation_dataset):
+    """
+    Test for screening parameter and pvalue function
+    """
+    X, y = generate_regation_dataset
     # Checking with and without screening
     results_no_screening = dcrt_zero(
         X, y, screening=False, statistic="residual", random_state=2024
@@ -88,8 +106,14 @@ def test_dcrt_lasso():
     assert len(vi_scaled[1]) == 10
     assert len(vi_scaled[2]) == 10
 
+
+def test_dcrt_lasso_with_estimed_coefficient(generate_regation_dataset):
+    """
+    Test the estimated coefficient parameter
+    """
+    X, y = generate_regation_dataset
     # Checking with random estimated coefficients for the features
-    rng = np.random.RandomState(2024)
+    rng = np.random.RandomState(2025)
     estimated_coefs = rng.rand(10)
 
     results = dcrt_zero(
@@ -98,7 +122,7 @@ def test_dcrt_lasso():
         estimated_coef=estimated_coefs,
         screening=False,
         statistic="residual",
-        random_state=2024,
+        random_state=2026,
     )
     vi = dcrt_pvalue(
         results[0], results[1], results[2], results[3], selection_only=False
@@ -107,6 +131,12 @@ def test_dcrt_lasso():
     assert len(vi[1]) == 10
     assert len(vi[2]) == 10
 
+
+def test_dcrt_lasso_with_refit(generate_regation_dataset):
+    """
+    Test the refit parameter
+    """
+    X, y = generate_regation_dataset
     # Checking with refit
     results_refit = dcrt_zero(
         X,
@@ -127,6 +157,12 @@ def test_dcrt_lasso():
     assert len(vi_refit[1]) == 10
     assert len(vi_refit[2]) == 10
 
+
+def test_dcrt_lasso_with_use_cv(generate_regation_dataset):
+    """
+    Test the use_cv parameter
+    """
+    X, y = generate_regation_dataset
     # Checking with use_cv
     results_use_cv = dcrt_zero(
         X,
@@ -147,6 +183,12 @@ def test_dcrt_lasso():
     assert len(vi_use_cv[1]) == 10
     assert len(vi_use_cv[1]) == 10
 
+
+def test_dcrt_lasso_with_covariance(generate_regation_dataset):
+    """
+    Test dcrt with proviede covariance matrix
+    """
+    X, y = generate_regation_dataset
     # Checking with a provided covariance matrix
     cov = LedoitWolf().fit(X)
 
