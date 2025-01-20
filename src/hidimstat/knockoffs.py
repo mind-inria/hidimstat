@@ -13,13 +13,13 @@ from hidimstat.gaussian_knockoff import (
 from hidimstat.utils import fdr_threshold, quantile_aggregation
 
 
-def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_lambdas=10):
+def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     """
     Configure the estimator for Model-X knockoffs.
 
     This function sets up the regularization path for the Lasso estimator
-    based on the input data and the number of lambdas to use. The regularization
-    path is defined by a sequence of lambda values, which control the amount
+    based on the input data and the number of alphas to use. The regularization
+    path is defined by a sequence of alpha values, which control the amount
     of shrinkage applied to the coefficient estimates.
 
     Parameters
@@ -38,8 +38,8 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_lambdas=10):
     y : 1D ndarray (n_samples, )
         The target vector.
 
-    n_lambdas : int, optional (default=10)
-        The number of lambda values to use to instantiate the cross-validation.
+    n_alphas : int, optional (default=10)
+        The number of alpha values to use to instantiate the cross-validation.
 
     Returns
     -------
@@ -61,9 +61,9 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_lambdas=10):
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
-    lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
-    estimator.alphas = lambdas
+    alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
+    alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
+    estimator.alphas = alphas
 
 
 def model_x_knockoff(
@@ -112,7 +112,7 @@ def model_x_knockoff(
         a 1D array, and a `coef_` attribute that returns a 1D array of coefficients.
         Examples include LassoCV, LogisticRegressionCV, and LinearRegression.
         Configuration example:
-            LassoCV(alphas=lambdas, n_jobs=None, verbose=0, max_iter=1000,
+            LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,
                 cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
             LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
                 cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None, tol=1e-8)
