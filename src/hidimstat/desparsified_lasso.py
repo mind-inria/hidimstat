@@ -231,18 +231,18 @@ def desparsified_lasso_pvalue(
     ----------
     n_samples : float
         The number of samples
-    beta_hat : array-like
+    beta_hat : ndarray, shape (n_features,)
         The desparsified lasso coefficient estimates.
     sigma_hat : float
         Estimated noise level.
-    omega_diag : array-like
+    omega_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix estimate.
     confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
-    distribution : str, optional (default="norm")
+    distribution : str, default="norm"
         Distribution to use for p-value calculation.
         Currently only "norm" supported.
-    eps : float, optional (default=1e-14)
+    eps : float, default=1e-14
         Small value to avoid numerical issues in p-value calculation.
     confidence_interval_only : bool, optional (default=False)
         If True, return only confidence intervals.
@@ -250,22 +250,22 @@ def desparsified_lasso_pvalue(
     Returns
     -------
     If confidence_interval_only=True:
-        cb_min : array-like
+        cb_min : ndarray, shape (n_features,)
             Lower bounds of confidence intervals
-        cb_max : array-like
+        cb_max : ndarray, shape (n_features,)
             Upper bounds of confidence intervals
     If confidence_interval_only=False:
-        pval : array-like
+        pval : ndarray, shape (n_features,)
             P-values
-        pval_corr : array-like
+        pval_corr : ndarray, shape (n_features,)
             Corrected p-values
-        one_minus_pval : array-like
+        one_minus_pval : ndarray, shape (n_features,)
             1 - p-values
-        one_minus_pval_corr : array-like
+        one_minus_pval_corr : ndarray, shape (n_features,)
             1 - corrected p-values
-        cb_min : array-like
+        cb_min : ndarray, shape (n_features,)
             Lower bounds of confidence intervals
-        cb_max : array-like
+        cb_max : ndarray, shape (n_features,)
             Upper bounds of confidence intervals
     """
     # define the quantile for the confidence intervals
