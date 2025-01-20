@@ -70,32 +70,32 @@ def desparsified_lasso(
     n_jobs : int, optional (default=1)
         Number of parallel jobs. Use -1 for all CPUs.
 
-    seed : int, optional (default=0)
+    seed : int, default=0
         Random seed for reproducibility.
 
-    verbose : int, optional (default=0)
+    verbose : int, default=0
         Verbosity level for logging.
 
-    group : bool, optional (default=False)
+    group : bool, default=False
         If True, use group Lasso for multiple responses.
 
-    cov : ndarray, shape (n_times, n_times), optional (default=None)
+    cov : ndarray, shape (n_times, n_times), default=None
         Temporal covariance matrix of the noise.
         If None, it is estimated.
 
-    noise_method : {'AR', 'simple'}, optional (default='AR')
+    noise_method : {'AR', 'simple'}, default='AR'
         Method to estimate noise covariance:
         - 'simple': Uses median correlation between consecutive
                     timepoints
         - 'AR': Fits autoregressive model of specified order
 
-    order : int, optional (default=1)
+    order : int, default=1
         Order of AR model when noise_method='AR'. Must be < n_times.
 
-    fit_Y : bool, optional (default=True)
+    fit_Y : bool, default=True
         Whether to fit Y in noise estimation.
 
-    stationary : bool, optional (default=True)
+    stationary : bool, default=True
         Whether to assume stationary noise in estimation.
 
     Returns
@@ -237,7 +237,7 @@ def desparsified_lasso_pvalue(
         Estimated noise level.
     omega_diag : array-like
         Diagonal elements of the precision matrix estimate.
-    confidence : float, optional (default=0.95)
+    confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
     distrib : str, optional (default="norm")
         Distribution to use for p-value calculation.
@@ -303,7 +303,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     omega_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
-    test : {'chi2', 'F'}, optional (default='chi2')
+    test : {'chi2', 'F'}, default='chi2'
         Statistical test for computing p-values:
         - 'chi2': Chi-squared test (recommended for large samples)
         - 'F': F-test (better for small samples)
