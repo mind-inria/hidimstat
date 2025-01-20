@@ -14,6 +14,7 @@ from .stat_tools import zscore_from_pval
 from .cpi import CPI
 from .loco import LOCO
 from .permutation_importance import PermutationImportance
+from .dcrt import dcrt_zero, dcrt_pvalue
 
 try:
     from ._version import __version__
@@ -25,6 +26,7 @@ __all__ = [
     "aggregate_quantiles",
     "clustered_inference",
     "dcrt_zero",
+    "dcrt_pvalue",
     "desparsified_lasso",
     "desparsified_group_lasso",
     "DnnLearnerSingle",
