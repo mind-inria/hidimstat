@@ -93,7 +93,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-    if method != "desparsified-lasso" and method != "desparsified-group-lasso":
+    if method not in ["desparsified-lasso", "desparsified-group-lasso"]:
         raise ValueError("Unknow method")
     group = method == "desparsified-group-lasso"
     print("hd_inference", group, kwargs)
