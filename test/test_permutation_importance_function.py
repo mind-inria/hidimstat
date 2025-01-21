@@ -51,7 +51,7 @@ def test_permutation_importance_no_fitting(linear_scenario):
     )
 
     assert importance[0].mean() > importance[1].mean()
-    
+
     # Same with groups
     groups = {
         "group_0": [i for i in important_features],
@@ -118,5 +118,3 @@ def test_with_fitting(linear_scenario):
         importance[important_features].mean()
         > importance[non_important_features].mean()
     )
-    
-
