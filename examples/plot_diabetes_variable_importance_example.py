@@ -57,7 +57,7 @@ from sklearn.model_selection import KFold
 
 from hidimstat.cpi import CPI
 from hidimstat.loco import LOCO
-from hidimstat.permutation_importance import PermutationImportance
+from hidimstat.permutation_importance import permutation_importance
 
 #############################################################################
 # Load the diabetes dataset
@@ -159,14 +159,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    pi = PermutationImportance(
+    importance, list_loss_j, loss_reference = permutation_importance(
+        X_test,
+        y_test,
         estimator=regressor_list[i],
         n_permutations=50,
         random_state=0,
         n_jobs=4,
     )
-    pi.fit(X_train, y_train)
-    importance = pi.score(X_test, y_test)
     pi_importance_list.append(importance)
 
 
