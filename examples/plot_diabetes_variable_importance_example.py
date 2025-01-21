@@ -167,7 +167,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         random_state=0,
         n_jobs=4,
     )
-    pi_importance_list.append(importance)
+    pi_importance_list.append({'importance':importance})
 
 
 #############################################################################
