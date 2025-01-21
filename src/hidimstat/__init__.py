@@ -12,7 +12,7 @@ from .empirical_thresholding import empirical_thresholding
 from .stat_tools import zscore_from_pval
 from .cpi import CPI
 from .loco import LOCO
-from .permutation_importance import PermutationImportance
+from .permutation_importance import permutation_importance
 
 try:
     from ._version import __version__
@@ -39,5 +39,5 @@ __all__ = [
     "zscore_from_pval",
     "CPI",
     "LOCO",
-    "PermutationImportance",
+    "permutation_importance",
 ]
