@@ -21,14 +21,14 @@ def permutation_importance(
 ):
     """
     # Permutation importance
-    
+
     Calculate permutation importance scores for features or feature groups in a machine learning model.
     Permutation importance is a model inspection technique that measures the increase in the model's
     prediction error after permuting a feature's values. A feature is considered "important" if shuffling
     its values increases the model error, because the model relied on the feature for the prediction.
     The implementation follows the methodology described in chapter 10 :cite:breimanRandomForests2001.
     One implementation: https://github.com/SkadiEye/deepTL/blob/master/R/4-2-permfit.R
-    
+
     Parameters
     ----------
     X : np.ndarray of shape (n_samples, n_features)
@@ -61,7 +61,7 @@ def permutation_importance(
         Dictionary specifying feature groups. Keys are group names and values are lists of feature
         indices or feature names (if X is a pandas DataFrame). If None, each feature is treated
         as its own group.
-    
+
     Returns
     -------
     importance : np.ndarray of shape (n_features,) or (n_groups,)
@@ -71,7 +71,7 @@ def permutation_importance(
         Array containing all computed loss values for each permutation of each feature/group.
     loss_reference : float
         The reference loss (baseline) computed on the original, non-permuted data.
-   
+
     Notes
     -----
     The implementation supports both individual feature importance and group feature importance.
@@ -138,14 +138,12 @@ def permutation_importance(
 
     # compute the importance
     # equation 5 of mi2021permutation
-    importance = np.mean(list_loss_j - loss_reference, axis=1) 
+    importance = np.mean(list_loss_j - loss_reference, axis=1)
 
     return importance, list_loss_j, loss_reference
 
 
-def _predict_one_group(
-    estimator, group_ids, X, y, loss, n_permutations, rng, method
-):
+def _predict_one_group(estimator, group_ids, X, y, loss, n_permutations, rng, method):
     """
     Compute prediction loss scores after permuting a single group of features.
 
@@ -157,7 +155,7 @@ def _predict_one_group(
         Indices of features in the group to permute
     X : np.ndarray
         Input data matrix
-    y : np.ndarray 
+    y : np.ndarray
         Target values
     loss : callable
         Loss function to evaluate predictions
