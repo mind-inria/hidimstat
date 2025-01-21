@@ -53,7 +53,9 @@ def test_permutation_importance_no_fitting(linear_scenario):
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
-    y_clf = np.where(y > np.median(y), 1, 0)
+    y_clf = np.zeros_like(y)
+    for i, quantile in enumerate(np.arange(0.2, 0.8, 0.2)):
+        y_clf[np.where(y > np.quantile(y, quantile))] = i
     _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
     logistic_model = LogisticRegression()
 
@@ -121,7 +123,9 @@ def test_with_fitting(linear_scenario):
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
-    y_clf = np.where(y > np.median(y), 1, 0)
+    y_clf = np.zeros_like(y)
+    for i, quantile in enumerate(np.arange(0.2, 0.8, 0.2)):
+        y_clf[np.where(y > np.quantile(y, quantile))] = i
     _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
 
     logistic_model = LogisticRegression()
