@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.permutation_importance_function import permutation_importance
+from hidimstat.permutation_importance import permutation_importance
 
 
 def test_permutation_importance_no_fitting(linear_scenario):
