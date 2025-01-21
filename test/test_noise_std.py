@@ -3,6 +3,7 @@ Test the noise_std module
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
@@ -127,6 +128,32 @@ def test_group_reid():
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
+
+
+def test_group_reid_exception():
+    """
+    Test the exception of group reid
+    """
+    n_samples = 30
+    n_features = 50
+    n_times = 10
+    X, Y, beta, noise = multivariate_temporal_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        n_times=n_times,
+    )
+    # max_iter=1 to get a better coverage
+    with pytest.raises(
+        ValueError,
+        match="The requested AR order is to high with "
+        + "respect to the number of time steps.",
+    ):
+        group_reid(X, Y, stationary=True, method="AR", order=100)
+
+    with pytest.raises(
+        ValueError, match="Unknown method for estimating the covariance matrix"
+    ):
+        group_reid(X, Y, method="test", order=100)
 
 
 def test_empirical_snr():
