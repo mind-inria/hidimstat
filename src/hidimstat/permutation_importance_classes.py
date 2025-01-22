@@ -164,7 +164,7 @@ class LOCO(BasePermutation):
     def _check_fit(self):
         check_is_fitted(self.estimator)
         if len(self._list_estimators) == 0:
-            raise ValueError("fit must be called before predict")
+            raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_estimators:
             check_is_fitted(m)
 
@@ -204,7 +204,7 @@ class CPI(BasePermutation):
 
     def _check_fit(self):
         if len(self._list_imputation_models) == 0:
-            raise ValueError("fit must be called before predict")
+            raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_imputation_models:
             check_is_fitted(m)
 
