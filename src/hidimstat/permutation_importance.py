@@ -8,7 +8,7 @@ from sklearn.base import clone
 from hidimstat.utils import _check_vim_predict_method
 
 
-def _base_permutation_importance(
+def _base_permutation(
     X,
     y,
     estimator,
@@ -233,7 +233,7 @@ def permutation_importance(
         X_perm_j = X_perm_j.reshape(-1, X_minus_j.shape[1] + X_j.shape[1])
         return X_perm_j, None
 
-    result, _ = _base_permutation_importance(
+    result, _ = _base_permutation(
         *args, **kwargs, n_permutations=n_permutations, permutation_data=permute_column
     )
     return result
@@ -261,7 +261,7 @@ def loco(
         X_perm_j = X_minus_j
         return X_perm_j, (estimator_, estimator_)
 
-    result, list_estimator = _base_permutation_importance(
+    result, list_estimator = _base_permutation(
         *args, **kwargs, n_permutations=1, permutation_data=create_new_estimator, update_estimator=True
     )
     return result
@@ -318,7 +318,7 @@ def cpi(
         
         return X_perm_j, estimator_
 
-    result, list_estimator = _base_permutation_importance(
+    result, list_estimator = _base_permutation(
         *args,
         **kwargs,
         n_permutations=n_permutations,
