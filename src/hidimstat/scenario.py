@@ -59,9 +59,9 @@ def multivariate_1D_simulation(
 
     rng = np.random.default_rng(seed)
 
+    # generate random data for each samples
     X = np.zeros((n_samples, n_features))
     X[:, 0] = rng.standard_normal(n_samples)
-
     for i in np.arange(1, n_features):
         rand_vector = ((1 - rho**2) ** 0.5) * rng.standard_normal(n_samples)
         X[:, i] = rho * X[:, i - 1] + rand_vector
@@ -69,9 +69,11 @@ def multivariate_1D_simulation(
     if shuffle:
         rng.shuffle(X.T)
 
+    # generate the vector of variable of importances
     beta = np.zeros(n_features)
     beta[0:support_size] = 1.0
 
+    # generate the simulated regression data
     noise = sigma * rng.standard_normal(n_samples)
     y = np.dot(X, beta) + noise
 
