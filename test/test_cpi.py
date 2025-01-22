@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.cpi import CPI
+from hidimstat.permutation_importance_classes import CPI
 
 
 def test_cpi(linear_scenario):
@@ -23,7 +23,6 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=regression_model,
-        imputation_model=imputation_model,
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -32,7 +31,7 @@ def test_cpi(linear_scenario):
 
     cpi.fit(
         X_train,
-        y_train,
+        imputation_model,
         groups=None,
     )
     vim = cpi.score(X_test, y_test)
@@ -55,7 +54,6 @@ def test_cpi(linear_scenario):
     regression_model.fit(X_train_df, y_train)
     cpi = CPI(
         estimator=regression_model,
-        imputation_model=imputation_model_list,
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -63,7 +61,7 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train_df,
-        y_train,
+        imputation_model_list,
         groups=groups,
     )
     vim = cpi.score(X_test_df, y_test)
@@ -80,7 +78,6 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=logistic_model,
-        imputation_model=imputation_model,
         n_permutations=20,
         random_state=0,
         n_jobs=1,
@@ -89,7 +86,7 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train,
-        y=None,
+        imputation_model,
         groups=None,
     )
     vim = cpi.score(X_test, y_test_clf)
@@ -106,7 +103,6 @@ def test_raises_value_error(
         predict_method = "unknown method"
         CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method=predict_method,
         )
 
@@ -114,24 +110,22 @@ def test_raises_value_error(
     with pytest.raises(NotFittedError):
         cpi = CPI(
             estimator=LinearRegression(),
-            imputation_model=LinearRegression(),
             method="predict",
         )
+        cpi.fit(X, LinearRegression())
 
     # Not fitted imputation model with predict and score methods
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method="predict",
         )
-        cpi.predict(X)
+        cpi.predict(X, None)
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method="predict",
         )
         cpi.score(X, y)

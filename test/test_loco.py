@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.loco import LOCO
+from hidimstat.permutation_importance_classes import LOCO
 
 
 def test_loco(linear_scenario):
@@ -22,7 +22,6 @@ def test_loco(linear_scenario):
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
 
@@ -51,7 +50,6 @@ def test_loco(linear_scenario):
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
     loco.fit(
@@ -73,7 +71,6 @@ def test_loco(linear_scenario):
     loco_clf = LOCO(
         estimator=logistic_model,
         method="predict_proba",
-        random_state=0,
         n_jobs=1,
         loss=log_loss,
     )

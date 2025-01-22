@@ -11,9 +11,8 @@ from .permutation_test import permutation_test_cv
 from .scenario import multivariate_1D_simulation
 from .standardized_svr import standardized_svr
 from .stat_tools import zscore_from_pval
-from .cpi import CPI
-from .loco import LOCO
-from .permutation_importance import permutation_importance
+from .permutation_importance import permutation_importance, cpi, loco
+from .permutation_importance_classes import PermutationImportance, CPI, LOCO
 
 try:
     from ._version import __version__
@@ -40,5 +39,8 @@ __all__ = [
     "zscore_from_pval",
     "CPI",
     "LOCO",
+    "PermutationImportance",
+    "cpi",
+    "loco",
     "permutation_importance",
 ]
