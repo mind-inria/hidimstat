@@ -8,16 +8,16 @@ from sklearn.base import clone
 from hidimstat.utils import _check_vim_predict_method
 
 
-def permutation_importance(
+def _base_permutation_importance(
     X,
     y,
     estimator,
     n_permutations: int = 50,
     loss: callable = root_mean_squared_error,
     method: str = "predict",
-    random_state: int = None,
     n_jobs: int = None,
     groups=None,
+    permutation_data=None,
 ):
     """
     # Permutation importance
@@ -85,10 +85,6 @@ def permutation_importance(
     # check parameters
     _check_vim_predict_method(method)
 
-    # define a random generator
-    check_random_state(random_state)
-    rng = np.random.RandomState(random_state)
-
     # management of the group
     if groups is None:
         n_groups = X.shape[1]
@@ -102,7 +98,7 @@ def permutation_importance(
                 for index_name in indexe_names:
                     index = np.where(index_name == X.columns)[0]
                     assert len(index) == 1
-                    groups_[key].append(index)
+                    groups_[key].append(index[0])
         else:
             groups_ = groups
 
@@ -121,29 +117,35 @@ def permutation_importance(
 
     # Parallelize the computation of the residual for each permutation
     # of each group
-    list_loss_j = Parallel(n_jobs=n_jobs)(
-        delayed(_predict_one_group)(
+    if permutation_data is None:
+        raise ValueError("Require a function")
+    list_result = Parallel(n_jobs=n_jobs)(
+        delayed(_predict_one_group_generic)(
+            j,
             estimator_,
             groups_[j],
             X_,
             y,
             loss,
             n_permutations,
-            rng,
             method,
+            permutation_data=permutation_data,
         )
         for j in groups_.keys()
     )
-    list_loss_j = np.array(list_loss_j)
+    list_loss_j = np.array([i[0] for i in list_result])
+    list_additional_output = [i[1] for i in list_result]
 
     # compute the importance
     # equation 5 of mi2021permutation
     importance = np.mean(list_loss_j - loss_reference, axis=1)
 
-    return importance, list_loss_j, loss_reference
+    return (importance, list_loss_j, loss_reference), list_additional_output
 
 
-def _predict_one_group(estimator, group_ids, X, y, loss, n_permutations, rng, method):
+def _predict_one_group_generic(
+    index_group, estimator, group_ids, X, y, loss, n_permutations, method, permutation_data=None
+):
     """
     Compute prediction loss scores after permuting a single group of features.
 
@@ -183,9 +185,12 @@ def _predict_one_group(estimator, group_ids, X, y, loss, n_permutations, rng, me
     X_perm_j = np.empty((n_permutations, X.shape[0], X.shape[1]))
     X_perm_j[:, :, non_group_ids] = X_minus_j
 
-    # Create the permuted data for the j-th group of covariates
-    group_j_permuted = np.array([rng.permutation(X_j) for _ in range(n_permutations)])
-    X_perm_j[:, :, group_ids] = group_j_permuted
+    if permutation_data is None:
+        raise ValueError("require a function")
+    else:
+        additional_output = permutation_data(index_group=index_group, 
+            X_minus_j=X_minus_j, X_j=X_j, X_perm_j=X_perm_j, group_ids=group_ids, estimator=estimator
+        )
 
     # Reshape X_perm_j to allow for remove the indexation by groups
     X_perm_batch = X_perm_j.reshape(-1, X.shape[1])
@@ -200,4 +205,114 @@ def _predict_one_group(estimator, group_ids, X, y, loss, n_permutations, rng, me
             n_permutations, X.shape[0], y_pred_perm.shape[1]
         )
     loss_i = [loss(y, y_pred_perm[i]) for i in range(n_permutations)]
-    return loss_i
+    return loss_i, additional_output
+
+
+def permutation_importance(
+    *args,
+    # additional argument
+    random_state: int = None,
+    n_permutations: int = 50,
+    **kwargs,
+):
+    # define a random generator
+    check_random_state(random_state)
+    rng = np.random.RandomState(random_state)
+
+    def permute_column(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+        # Create the permuted data for the j-th group of covariates
+        group_j_permuted = np.array(
+            [rng.permutation(X_j) for _ in range(n_permutations)]
+        )
+        X_perm_j[:, :, group_ids] = group_j_permuted
+        return None
+
+    result, _ = _base_permutation_importance(
+        *args, **kwargs, n_permutations=n_permutations, permutation_data=permute_column
+    )
+    return result
+
+
+def loco(
+    X_train,
+    y_train,
+    *args,
+    # additional argument
+    **kwargs,
+):
+    if len(args)>=3:
+        estimator = args[2]
+    else:
+        estimator = kwargs['estimator']
+    X_train_ = np.asarray(X_train)
+    save_estimator = clone(estimator)
+
+    def create_new_estimator(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+        # Modify the actual estimator for fitting without the colomn j
+        X_train_minus_j = np.delete(X_train_, group_ids, axis=1)
+        estimator = clone(save_estimator)
+        estimator.fit(X_train_minus_j, y_train)
+        return estimator
+
+    estimator = save_estimator
+    result, list_estimator = _base_permutation_importance(
+        *args, **kwargs, permutation_data=create_new_estimator
+    )
+    return result
+
+
+def cpi(
+    X_train,
+    *args,
+    # additional argument
+    imputation_model=None,
+    imputation_method: str = "predict",
+    random_state: int = None,
+    distance_residual: callable = np.subtract,
+    n_permutations: int = 50,
+    **kwargs,
+):
+    X_train_ = np.asarray(X_train)
+    if imputation_model is None:
+        raise ValueError("missing estimator for imputation")
+    n_permutations = n_permutations
+    # define a random generator
+    check_random_state(random_state)
+    rng = np.random.RandomState(random_state)
+
+    def permutation_conditional(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+        X_train_j = X_train_[:, group_ids].copy()
+        X_train_minus_j = np.delete(X_train_, group_ids, axis=1)
+        # create X from residual
+        # add one parameter: estimator_imputation
+        if type(imputation_model) is list or type(imputation_model) is dict:
+            estimator_ = imputation_model[index_group]
+        else:
+            estimator_ = clone(imputation_model)
+        estimator_.fit(X_train_minus_j, X_train_j)
+
+        # Reshape X_perm_j to allow for remove the indexation by groups
+        X_j_hat = getattr(estimator_, imputation_method)(X_minus_j)
+
+        if X_j_hat.ndim == 1 or X_j_hat.shape[1] == 1:
+            # one value per X_j_hat: regression
+            X_j_hat = X_j_hat.reshape(X_j.shape)
+        else:
+            # probability per X_j_hat: classification
+            X_j_hat = X_j_hat.reshape(X_j.shape[0], X_j_hat.shape[1])
+        residual_j = distance_residual(X_j, X_j_hat)
+
+        # Create the permuted data for the j-th group of covariates
+        residual_j_perm = np.array(
+            [rng.permutation(residual_j) for _ in range(n_permutations)]
+        )
+        X_perm_j[:, :, group_ids] = X_j_hat[np.newaxis, :, :] + residual_j_perm
+        return estimator_
+
+    result, list_estimator = _base_permutation_importance(
+        *args,
+        **kwargs,
+        n_permutations=n_permutations,
+        permutation_data=permutation_conditional,
+    )
+    return result
