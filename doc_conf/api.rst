@@ -28,7 +28,7 @@ Functions
    multivariate_1D_simulation
    permutation_test_cv
    reid
-   standardized_svr
+   empirical_thresholding
    zscore_from_pval
 
 Classes
