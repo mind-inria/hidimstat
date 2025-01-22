@@ -18,6 +18,7 @@ def _base_permutation_importance(
     n_jobs: int = None,
     groups=None,
     permutation_data=None,
+    update_estimator=False
 ):
     """
     # Permutation importance
@@ -130,6 +131,7 @@ def _base_permutation_importance(
             n_permutations,
             method,
             permutation_data=permutation_data,
+            update_estimator=update_estimator
         )
         for j in groups_.keys()
     )
@@ -144,7 +146,8 @@ def _base_permutation_importance(
 
 
 def _predict_one_group_generic(
-    index_group, estimator, group_ids, X, y, loss, n_permutations, method, permutation_data=None
+    index_group, estimator, group_ids, X, y, loss, n_permutations, method, permutation_data=None,
+    update_estimator=False
 ):
     """
     Compute prediction loss scores after permuting a single group of features.
@@ -188,13 +191,15 @@ def _predict_one_group_generic(
     if permutation_data is None:
         raise ValueError("require a function")
     else:
-        additional_output = permutation_data(index_group=index_group, 
-            X_minus_j=X_minus_j, X_j=X_j, X_perm_j=X_perm_j, group_ids=group_ids, estimator=estimator
+        X_perm_j, additional_output = permutation_data(index_group=index_group, 
+            X_minus_j=X_minus_j, X_j=X_j, X_perm_j=X_perm_j, group_ids=group_ids
         )
+    if update_estimator:
+        estimator = additional_output[0]
+        additional_output = additional_output[1]
 
     # Reshape X_perm_j to allow for remove the indexation by groups
-    X_perm_batch = X_perm_j.reshape(-1, X.shape[1])
-    y_pred_perm = getattr(estimator, method)(X_perm_batch)
+    y_pred_perm = getattr(estimator, method)(X_perm_j)
 
     if y_pred_perm.ndim == 1:
         # one value per y: regression
@@ -219,13 +224,14 @@ def permutation_importance(
     check_random_state(random_state)
     rng = np.random.RandomState(random_state)
 
-    def permute_column(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+    def permute_column(index_group, X_minus_j, X_j, X_perm_j, group_ids):
         # Create the permuted data for the j-th group of covariates
         group_j_permuted = np.array(
             [rng.permutation(X_j) for _ in range(n_permutations)]
         )
         X_perm_j[:, :, group_ids] = group_j_permuted
-        return None
+        X_perm_j = X_perm_j.reshape(-1, X_minus_j.shape[1] + X_j.shape[1])
+        return X_perm_j, None
 
     result, _ = _base_permutation_importance(
         *args, **kwargs, n_permutations=n_permutations, permutation_data=permute_column
@@ -241,22 +247,22 @@ def loco(
     **kwargs,
 ):
     if len(args)>=3:
-        estimator = args[2]
+        estimator = clone(args[2])
     else:
         estimator = kwargs['estimator']
     X_train_ = np.asarray(X_train)
-    save_estimator = clone(estimator)
+     
 
-    def create_new_estimator(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+    def create_new_estimator(index_group, X_minus_j, X_j, X_perm_j, group_ids):
         # Modify the actual estimator for fitting without the colomn j
         X_train_minus_j = np.delete(X_train_, group_ids, axis=1)
-        estimator = clone(save_estimator)
-        estimator.fit(X_train_minus_j, y_train)
-        return estimator
+        estimator_ = clone(estimator)
+        estimator_.fit(X_train_minus_j, y_train)
+        X_perm_j = X_minus_j
+        return X_perm_j, (estimator_, estimator_)
 
-    estimator = save_estimator
     result, list_estimator = _base_permutation_importance(
-        *args, **kwargs, permutation_data=create_new_estimator
+        *args, **kwargs, n_permutations=1, permutation_data=create_new_estimator, update_estimator=True
     )
     return result
 
@@ -280,7 +286,7 @@ def cpi(
     check_random_state(random_state)
     rng = np.random.RandomState(random_state)
 
-    def permutation_conditional(index_group, X_minus_j, X_j, X_perm_j, group_ids, estimator):
+    def permutation_conditional(index_group, X_minus_j, X_j, X_perm_j, group_ids):
         X_train_j = X_train_[:, group_ids].copy()
         X_train_minus_j = np.delete(X_train_, group_ids, axis=1)
         # create X from residual
@@ -307,7 +313,10 @@ def cpi(
             [rng.permutation(residual_j) for _ in range(n_permutations)]
         )
         X_perm_j[:, :, group_ids] = X_j_hat[np.newaxis, :, :] + residual_j_perm
-        return estimator_
+        
+        X_perm_j = X_perm_j.reshape(-1, X_minus_j.shape[1] + X_j.shape[1])
+        
+        return X_perm_j, estimator_
 
     result, list_estimator = _base_permutation_importance(
         *args,
