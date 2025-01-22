@@ -242,7 +242,7 @@ def _ebh_threshold(evals, fdr=0.1):
     if selected_index <= n_features:
         return evals_sorted[selected_index]
     else:
-        # no threshold, all the e-value are below infinity
+        # no threshold, no e-value is significant at the chosen level 
         return np.inf
 
 
