@@ -554,7 +554,7 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 7.171 seconds)
+   **Total running time of the script:** (1 minutes 5.235 seconds)
 
 **Estimated memory usage:**  704 MB
 
