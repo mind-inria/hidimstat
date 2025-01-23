@@ -88,7 +88,9 @@ def knockoff_aggregation(
         Whether to apply the adaptive version of the quantile aggregation method
         as in :footcite:t:`Meinshausen_2008`.
     gamma : float, default=0.5
-        The percentile value used for aggregation.
+        The quantile level (between 0 and 1) used for aggregation. For non-adaptive aggregation,
+        a single gamma value is used. For adaptive aggregation, this is the starting point
+        for the grid search over gamma values.
     n_grid_gamma : int, default=20
         Number of gamma grid points for adaptive aggregation.
     verbose : bool, default=False
