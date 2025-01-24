@@ -16,7 +16,7 @@ def stat_coef_diff(
     method="lasso_cv",
     n_splits=5,
     n_jobs=1,
-    n_lambdas=10,
+    n_alphas=10,
     n_iter=1000,
     joblib_verbose=0,
     return_coef=False,
@@ -70,14 +70,14 @@ def stat_coef_diff(
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
-    lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
+    alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
+    alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
 
     cv = KFold(n_splits=5, shuffle=True, random_state=seed)
 
     estimator = {
         "lasso_cv": LassoCV(
-            alphas=lambdas,
+            alphas=alphas,
             n_jobs=n_jobs,
             verbose=joblib_verbose,
             max_iter=int(1e4),

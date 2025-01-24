@@ -29,7 +29,7 @@ def knockoff_aggregation(
     n_jobs=1,
     adaptive_aggregation=False,
     gamma=0.5,
-    gamma_min=0.05,
+    n_grid_gamma=20,
     verbose=False,
     memory=None,
     random_state=None,
@@ -87,10 +87,12 @@ def knockoff_aggregation(
     adaptive_aggregation : bool, default=False
         Whether to apply the adaptive version of the quantile aggregation method
         as in :footcite:t:`Meinshausen_2008`.
-    gamma: float, default=0.5
-        The percentile value used for aggregation.
-    gamma_min : float, default=0.05
-        The minimum percentile value used for aggregation.
+    gamma : float, default=0.5
+        The quantile level (between 0 and 1) used for aggregation. For non-adaptive aggregation,
+        a single gamma value is used. For adaptive aggregation, this is the starting point
+        for the grid search over gamma values.
+    n_grid_gamma : int, default=20
+        Number of gamma grid points for adaptive aggregation.
     verbose : bool, default=False
         Whether to return the corresponding p-values of the variables along with
         the list of selected variables.
@@ -187,7 +189,7 @@ def knockoff_aggregation(
         )
 
         aggregated_pval = quantile_aggregation(
-            pvals, gamma=gamma, gamma_min=gamma_min, adaptive=adaptive_aggregation
+            pvals, gamma=gamma, n_grid=n_grid_gamma, adaptive=adaptive_aggregation
         )
 
         threshold = fdr_threshold(
