@@ -151,7 +151,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     fdr : float, default=0.1
         False Discovery Rate
     method : str, default='bhq'
@@ -185,7 +185,7 @@ def _bhq_threshold(pvals, fdr=0.1):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     fdr : float, default=0.1
         False Discovery Rate
 
@@ -254,7 +254,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     reshaping_function : function, default=None
         Reshaping function for Benjamini-Hochberg-Yekutieli method
     fdr : float, default=0.1

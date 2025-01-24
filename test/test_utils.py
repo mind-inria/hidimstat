@@ -85,7 +85,7 @@ def test_cal_fdp_power():
     assert fdp == 2 / len(selected)
     assert power == 18 / len(non_zero_index)
 
-    # test emptt selection
+    # test empty selection
     fdp, power = cal_fdp_power(np.empty(0), non_zero_index)
     assert fdp == 0.0
     assert power == 0.0
