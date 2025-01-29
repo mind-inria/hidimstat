@@ -182,9 +182,8 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 84115456 of 291168628 bytes (28.9%%,    2.5s remaining)
-    [_chunk_report_]     Downloaded 187072512 of 291168628 bytes (64.2%%,    1.1s remaining)
-    [fetch_single_file]  ...done. (3 seconds, 0 min)
+    [_chunk_report_]     Downloaded 133627904 of 291168628 bytes (45.9%%,    1.2s remaining)
+    [fetch_single_file]  ...done. (2 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
@@ -288,8 +287,8 @@ Now, we compute p-values thanks to permutation tests applied to
 
  .. code-block:: none
 
-    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
-    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.6s
+    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    2.1s
+    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    8.2s
 
 
 
@@ -370,7 +369,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.2s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   33.9s finished
 
 
 
@@ -615,9 +614,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 27.619 seconds)
+   **Total running time of the script:** (1 minutes 28.482 seconds)
 
-**Estimated memory usage:**  3365 MB
+**Estimated memory usage:**  3332 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
