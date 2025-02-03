@@ -62,6 +62,8 @@ from hidimstat.permutation_test import permutation_test, permutation_test_pval
 from hidimstat.standardized_svr import standardized_svr
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
+n_job = None
+
 
 #############################################################################
 # Function to fetch and preprocess Haxby dataset
@@ -152,9 +154,11 @@ pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
-    # We computed the regularization parameter by CV (C = 0.1)
-    estimator = LinearSVR(C=0.1)
-    weight_svr, weight_svr_distribution = permutation_test(X, y, n_permutations=50)
+    # We computed the regularization parameter from a cross valisation (C = 0.001)
+    estimator = LinearSVR(C=0.001)
+    weight_svr, weight_svr_distribution = permutation_test(
+        X, y, estimator, n_permutations=50
+    )
     pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_pval(
         weight_svr, weight_svr_distribution
     )
@@ -162,8 +166,8 @@ if SVR_permutation_test_inference:
 # Another method is to compute the p-values by permutation test from the
 # Ridge decoder. The solution provided by this method should be very close to
 # the previous one and the computation time is much shorter: around 20 seconds.
-
-estimator = Ridge()
+# We computed the parameter from a cross valisation (alpha = 0.0215)
+estimator = Ridge(alpha=0.0215)
 weight_ridge, weight_ridge_distribution = permutation_test(
     X, y, estimator=estimator, n_permutations=200
 )
@@ -311,4 +315,4 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-show()
+# show()
