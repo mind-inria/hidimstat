@@ -406,10 +406,10 @@ def step_down_max_t(stat, permutation_stats):
     Parameters
     ----------
     stat : ndarray, shape (n_features,)
-        Statistic computed on the original (unpermutted) problem.
+        Statistic computed on the original (unpermuted) problem.
 
     permutation_stats : ndarray, shape (n_permutations, n_features)
-        Statistics computed on permutted problems.
+        Statistics computed on permuted problems.
 
     Returns
     -------

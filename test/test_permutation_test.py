@@ -20,7 +20,7 @@ def test_permutation_test():
 
     # parameters for generating the data
     n_samples, n_features = 20, 50
-    nb_permutations = 100
+    n_permutations = 100
     support_size = 1
 
     X_init, y, beta, noise = multivariate_1D_simulation(
@@ -38,18 +38,18 @@ def test_permutation_test():
 
     # run the permutation test
     weight, weight_distribution = permutation_test(
-        X_init, y, estimator=estimator, n_permutations=nb_permutations
+        X_init, y, estimator=estimator, n_permutations=n_permutations
     )
 
     # test the shape of the output
     assert weight.shape == (n_features,)
-    assert weight_distribution.shape == (nb_permutations, n_features)
+    assert weight_distribution.shape == (n_permutations, n_features)
     # test weights
     assert not np.all(weight == 0.0)
     # test the distribution of the weights
     assert not np.all(weight_distribution == 0.0)
     assert not np.all(weight_distribution == weight)
-    for i in range(nb_permutations - 1):
+    for i in range(n_permutations - 1):
         assert not np.all(weight_distribution[i, :] == weight_distribution[i + 1, :])
 
     # compute the p-values
@@ -71,7 +71,7 @@ def test_permutation_test_with_fitted_estimator():
 
     # parameters for generating the data
     n_samples, n_features = 20, 50
-    nb_permutations = 100
+    n_permutations = 100
     support_size = 1
     seed_permutation_test = 12
 
@@ -94,7 +94,7 @@ def test_permutation_test_with_fitted_estimator():
         X_init,
         y,
         estimator=estimator,
-        n_permutations=nb_permutations,
+        n_permutations=n_permutations,
         seed=seed_permutation_test,
     )
 
@@ -103,7 +103,7 @@ def test_permutation_test_with_fitted_estimator():
         X_init,
         y,
         estimator=estimator_fitted,
-        n_permutations=nb_permutations,
+        n_permutations=n_permutations,
         seed=seed_permutation_test,
     )
 
