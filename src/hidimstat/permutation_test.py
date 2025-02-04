@@ -4,6 +4,7 @@ from sklearn.base import clone
 
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
+__all__ = ['permutation_test', 'permutation_test_pval']
 
 def permutation_test(
     X, y, estimator, n_permutations=1000, seed=0, n_jobs=None, verbose=0
@@ -63,7 +64,7 @@ def permutation_test(
 
     # Get the distribution of the weights by shuffling the target
     weights_distribution = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(_fit_and_weights)(clone(estimator), X, _shuffle(y, rng))
+        delayed(_fit_and_weights)(clone(estimator), X, _shuffle_vector(y, rng))
         for _ in range(n_permutations)
     )
 
@@ -130,7 +131,7 @@ def _fit_and_weights(estimator, X, y):
     return weights
 
 
-def _shuffle(y, rng):
+def _shuffle_vector(y, rng):
     """
     Shuffle the target
 
