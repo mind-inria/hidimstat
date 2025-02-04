@@ -4,7 +4,8 @@ from sklearn.base import clone
 
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
-__all__ = ['permutation_test', 'permutation_test_pval']
+__all__ = ["permutation_test", "permutation_test_pval"]
+
 
 def permutation_test(
     X, y, estimator, n_permutations=1000, seed=0, n_jobs=None, verbose=0
