@@ -10,7 +10,6 @@ class ConditionalSampler:
         model_regression=None,
         model_classification=None,
         random_state: int = None,
-        method_classification: str = "predict_proba",
     ):
         """
         Class use to sample from the conditional distribution $p(X^j | X^{-j})$.
@@ -32,10 +31,7 @@ class ConditionalSampler:
             conditional for binary variables.
         random_state : int, optional
             The random state to use for reproducibility.
-        method_classification : str, optional
-            Only used for binary variables. The method to use to get the predicted
-            probabilities of the classes.
-            variables.
+
         """
         self.model = model
         self.data_type = data_type
@@ -43,10 +39,14 @@ class ConditionalSampler:
         self.model_classification = model_classification
         self.random_state = random_state
         self.rng = np.random.RandomState(random_state)
-        self.method_classification = method_classification
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         if self.data_type == "auto":
+            if (self.model_classification is None) or (self.model_regression is None):
+                raise ValueError(
+                    "The `model_classification` and `model_regression` attributes must \
+                    be set if `data_type` is 'auto'."
+                )
             if len(np.unique(y)) == 2:
                 self.data_type = "binary"
                 self.model = self.model_classification
@@ -55,6 +55,7 @@ class ConditionalSampler:
                 self.model = self.model_regression
 
                 self.model = self.model_regression
+
         self.model.fit(X, y)
 
     def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:
@@ -77,6 +78,10 @@ class ConditionalSampler:
         """
 
         check_is_fitted(self, "model")
+        if (self.data_type == "binary") and (not hasattr(self.model, "predict_proba")):
+            raise AttributeError(
+                "The model must have a `predict_proba` method to be used for binary data."
+            )
 
         if self.data_type == "continuous":
             y_hat = self.model.predict(X)
@@ -88,12 +93,29 @@ class ConditionalSampler:
             return y_hat[np.newaxis, ...] + residual_permuted
 
         elif self.data_type == "binary":
-            y_pred_classes = getattr(self.model, self.method_classification)(X)
-            y_pred_cond = np.stack(
-                [
-                    self.rng.choice(self.model.classes_, p=p, size=n_samples)
-                    for p in y_pred_classes
-                ],
-                axis=1,
-            )
+            y_pred_proba = self.model.predict_proba(X)
+
+            # multioutput case (group of variables)
+            if isinstance(self.model.classes_, list):
+                y_pred_cond = np.stack(
+                    [
+                        np.stack(
+                            [
+                                self.rng.choice(classes, p=p, size=n_samples)
+                                for p in y_proba_
+                            ],
+                            axis=1,
+                        )
+                        for y_proba_, classes in zip(y_pred_proba, self.model.classes_)
+                    ],
+                    axis=-1,
+                )
+            else:
+                y_pred_cond = np.stack(
+                    [
+                        self.rng.choice(self.model.classes_, p=p, size=n_samples)
+                        for p in y_pred_proba
+                    ],
+                    axis=1,
+                )
             return y_pred_cond
