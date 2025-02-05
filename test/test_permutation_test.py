@@ -121,7 +121,7 @@ def test_permutation_test_with_fitted_seed():
 
     # parameters for generating the data
     n_samples, n_features = 20, 50
-    nb_permutations = 100
+    n_permutations = 100
     support_size = 1
 
     X_init, y, beta, noise = multivariate_1D_simulation(
@@ -140,12 +140,12 @@ def test_permutation_test_with_fitted_seed():
 
     # run the permutation test
     weight, weight_distribution = permutation_test(
-        X_init, y, estimator=estimator, n_permutations=nb_permutations, seed=42
+        X_init, y, estimator=estimator, n_permutations=n_permutations, seed=42
     )
 
     # run the permutation test with the fitted estimator
     weight_seed_diff, weight_distribution_seed_diff = permutation_test(
-        X_init, y, estimator=estimator_clone, n_permutations=nb_permutations, seed=10
+        X_init, y, estimator=estimator_clone, n_permutations=n_permutations, seed=10
     )
 
     # test the weights
