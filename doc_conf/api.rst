@@ -27,6 +27,7 @@ Functions
    model_x_knockoff
    multivariate_1D_simulation
    permutation_test_cv
+   permutation_importance
    reid
    standardized_svr
    zscore_from_pval
@@ -39,4 +40,3 @@ Classes
 
    LOCO
    CPI
-   PermutationImportance

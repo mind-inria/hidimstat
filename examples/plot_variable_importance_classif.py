@@ -33,7 +33,7 @@ from sklearn.metrics import hinge_loss
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.svm import SVC
 
-from hidimstat import CPI, PermutationImportance
+from hidimstat import CPI, permutation_importance
 
 #############################################################################
 # Generate the data
@@ -184,15 +184,15 @@ for train, test in cv.split(X, y):
     cpi_non_linear.fit(X[train], y[train])
     imp_cpi_non_linear = cpi_non_linear.score(X[test], y[test])["importance"]
 
-    pi_non_linear = PermutationImportance(
+    imp_pi_non_linear, list_loss_j, loss_reference = permutation_importance(
+        X[test],
+        y[test],
         estimator=model_non_linear_c,
         n_permutations=50,
         n_jobs=5,
         random_state=seed,
         method="decision_function",
     )
-    pi_non_linear.fit(X[train], y[train])
-    imp_pi_non_linear = pi_non_linear.score(X[test], y[test])["importance"]
 
     importance_list.append(
         np.stack(
