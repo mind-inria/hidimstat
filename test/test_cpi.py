@@ -23,6 +23,9 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=regression_model,
+        imputation_model_continuous=clone(imputation_model),
+        imputation_model_binary=LogisticRegression(),
+        var_type="auto",
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -31,7 +34,6 @@ def test_cpi(linear_scenario):
 
     cpi.fit(
         X_train,
-        imputation_model,
         groups=None,
     )
     vim = cpi.score(X_test, y_test)
@@ -50,10 +52,11 @@ def test_cpi(linear_scenario):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
-    imputation_model_list = [clone(imputation_model) for _ in range(2)]
     regression_model.fit(X_train_df, y_train)
     cpi = CPI(
         estimator=regression_model,
+        imputation_model_continuous=clone(imputation_model),
+        var_type="continuous",
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -61,7 +64,6 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train_df,
-        imputation_model_list,
         groups=groups,
     )
     vim = cpi.score(X_test_df, y_test)
@@ -78,6 +80,8 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=logistic_model,
+        imputation_model_continuous=clone(imputation_model),
+        var_type=["continuous"] * X.shape[1],
         n_permutations=20,
         random_state=0,
         n_jobs=1,
@@ -86,7 +90,6 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train,
-        imputation_model,
         groups=None,
     )
     vim = cpi.score(X_test, y_test_clf)
