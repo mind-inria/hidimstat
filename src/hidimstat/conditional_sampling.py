@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.utils.validation import check_random_state
 
 
 class ConditionalSampler:
@@ -9,7 +10,7 @@ class ConditionalSampler:
         data_type: str = "auto",
         model_regression=None,
         model_classification=None,
-        random_state: int = None,
+        random_state=None,
     ):
         """
         Class use to sample from the conditional distribution $p(X^j | X^{-j})$.
@@ -17,20 +18,20 @@ class ConditionalSampler:
         Parameters
         ----------
 
-        model : object, optional
+        model : object
             The model used to estimate the conditional distribution.
-        data_type : str, optional, default="auto"
+        data_type : str, default="auto"
             The variable type. Supported types include "auto", "continuous", "binary".
             If "auto", the type is inferred from the cardinality of the unique values
             passed to the `fit` method.
-        model_regression : object, optional
+        model_regression : object
             Only used if `data_type` is "auto". The model used to estimate the
             conditional for continuous variables.
-        model_classification : object, optional
+        model_classification : object
             Only used if `data_type` is "auto". The model used to estimate the
             conditional for binary variables.
-        random_state : int, optional
-            The random state to use for reproducibility.
+        random_state : int
+            The random state to use for sampling.
 
         """
         self.model = model
@@ -38,7 +39,7 @@ class ConditionalSampler:
         self.model_regression = model_regression
         self.model_classification = model_classification
         self.random_state = random_state
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         if self.data_type == "auto":
@@ -55,7 +56,6 @@ class ConditionalSampler:
                 self.model = self.model_regression
 
                 self.model = self.model_regression
-
         self.model.fit(X, y)
 
     def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:
@@ -77,7 +77,7 @@ class ConditionalSampler:
             An array of shape (n_samples, y.shape[1]) containing the samples.
         """
 
-        check_is_fitted(self, "model")
+        check_is_fitted(self.model)
         if (self.data_type == "binary") and (not hasattr(self.model, "predict_proba")):
             raise AttributeError(
                 "The model must have a `predict_proba` method to be used for binary data."
