@@ -4,6 +4,7 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
+from hidimstat.conditional_sampling import ConditionalSampler
 from hidimstat.utils import _check_vim_predict_method
 
 
@@ -37,8 +38,8 @@ class BasePermutation(BaseEstimator):
         self._check_fit()
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X, y, index_j, j)
-            for index_j, j in enumerate(self.groups.keys())
+            delayed(self._joblib_predict_one_group)(X, y, group_idx, group_key)
+            for group_idx, group_key in enumerate(self.groups.keys())
         )
         return np.stack(out_list, axis=0)
 
@@ -64,27 +65,37 @@ class BasePermutation(BaseEstimator):
                 np.mean(out_dict["loss"][j]) - loss_reference
                 for j in range(self.n_groups)
             ]
-            )
+        )
         return out_dict
 
     def _check_fit(self):
         pass
 
-    def _joblib_predict_one_group(self, X, y, index_j, j):
+    def _joblib_predict_one_group(self, X, y, group_idx, group_key):
         if isinstance(X, pd.DataFrame):
-            X_j = X[self.groups[j]].copy().values
-            X_minus_j = X.drop(columns=self.groups[j]).values
-            group_ids = [i for i, col in enumerate(X.columns) if col in self.groups[j]]
+            X_j = X[self.groups[group_key]].copy().values
+            X_minus_j = X.drop(columns=self.groups[group_key]).values
+            group_ids = [
+                i for i, col in enumerate(X.columns) if col in self.groups[group_key]
+            ]
             non_group_ids = [
-                i for i, col in enumerate(X.columns) if col not in self.groups[j]
+                i
+                for i, col in enumerate(X.columns)
+                if col not in self.groups[group_key]
             ]
         else:
-            X_j = X[:, self.groups[j]].copy()
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
-            group_ids = self.groups[j]
+            X_j = X[:, self.groups[group_key]].copy()
+            X_minus_j = np.delete(X, self.groups[group_key], axis=1)
+            group_ids = self.groups[group_key]
             non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
 
-        X_perm_j = self._permutation(X_minus_j, X_j, group_ids, non_group_ids, index_j)
+        X_perm_j = self._permutation(
+            X_j,
+            X_minus_j,
+            group_ids=group_ids,
+            non_group_ids=non_group_ids,
+            imputation_idx=group_idx,
+        )
         # Reshape X_perm_j to allow for batch prediction
         X_perm_batch = X_perm_j.reshape(-1, X.shape[1])
         if isinstance(X, pd.DataFrame):
@@ -102,7 +113,9 @@ class BasePermutation(BaseEstimator):
             )
         return y_pred_perm
 
-    def _permutation(self, X_minus_j, X_j, group_ids, non_group_ids):
+    def _permutation(
+        self, X_j, X_minus_j, group_ids, non_group_ids, imputation_idx=None
+    ):
         raise NotImplementedError
 
 
@@ -111,7 +124,7 @@ class PermutationImportance(BasePermutation):
         super().__init__(*arg, **kwarg)
         self.rng = np.random.RandomState(random_state)
 
-    def _permutation(self, X_minus_j, X_j, group_ids, non_group_ids, index_j):
+    def _permutation(self, X_j, X_minus_j, group_ids, non_group_ids):
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm_j = np.empty(
@@ -169,20 +182,34 @@ class LOCO(BasePermutation):
             check_is_fitted(m)
 
 
+from copy import deepcopy
+
+
 class CPI(BasePermutation):
-    def __init__(self, *arg, random_state: int = None, **kwarg):
+    def __init__(
+        self,
+        imputation_model_continuous=None,
+        imputation_model_binary=None,
+        var_type="auto",
+        *arg,
+        random_state: int = None,
+        **kwarg,
+    ):
         super().__init__(*arg, **kwarg)
         self.rng = np.random.RandomState(random_state)
         self._list_imputation_models = []
+        self.imputation_model_continuous = imputation_model_continuous
+        self.imputation_model_binary = imputation_model_binary
+        self.var_type = var_type
 
-    def fit(self, X, imputation_model, groups=None):
+    def fit(self, X, groups=None):
         super().fit(X, None, groups)
-        if isinstance(imputation_model, list):
-            self._list_imputation_models = imputation_model
-        else:
-            self._list_imputation_models = [
-                clone(imputation_model) for _ in range(self.n_groups)
-            ]
+
+        self._list_imputation_models = self._get_conditional_sampler(
+            var_type=self.var_type,
+            imputation_model_continuous=self.imputation_model_continuous,
+            imputation_model_binary=self.imputation_model_binary,
+        )
 
         # Parallelize the fitting of the covariate estimators
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
@@ -191,6 +218,71 @@ class CPI(BasePermutation):
         )
 
         return self
+
+    def _get_conditional_sampler(
+        self,
+        var_type,
+        imputation_model_continuous,
+        imputation_model_binary,
+    ):
+        """Get the ConditionalSampler objects for each group of variables. The type of
+        each variable can be prespecified or automatically inferred.
+
+        """
+        if isinstance(var_type, str):
+            # identify the type of each variable
+            if var_type == "auto":
+                _list_imputation_models = [
+                    ConditionalSampler(
+                        data_type="auto",
+                        model_regression=deepcopy(imputation_model_continuous),
+                        model_classification=deepcopy(imputation_model_binary),
+                        random_state=self.rng,
+                    )
+                    for _ in range(self.n_groups)
+                ]
+            # prespecified types
+            elif var_type == "continuous":
+                imputation_model_ = imputation_model_continuous
+                _list_imputation_models = [
+                    ConditionalSampler(
+                        data_type=var_type,
+                        model=deepcopy(imputation_model_),
+                        random_state=self.rng,
+                    )
+                    for _ in range(self.n_groups)
+                ]
+            elif var_type == "binary":
+                imputation_model_ = imputation_model_binary
+
+                _list_imputation_models = [
+                    ConditionalSampler(
+                        data_type=var_type,
+                        model=deepcopy(imputation_model_),
+                        random_state=self.rng,
+                    )
+                    for _ in range(self.n_groups)
+                ]
+        # mix of prespecified types
+        elif isinstance(var_type, list):
+            _list_imputation_models = []
+            for j in range(self.n_groups):
+                if var_type[j] == "continuous":
+                    imputation_model_ = imputation_model_continuous
+                elif var_type[j] == "binary":
+                    imputation_model_ = imputation_model_binary
+                _list_imputation_models.append(
+                    ConditionalSampler(
+                        data_type=var_type[j],
+                        model=deepcopy(imputation_model_),
+                        random_state=self.rng,
+                    )
+                )
+        else:
+            raise ValueError(
+                "var_type must be 'auto', 'continuous', 'binary' or a list"
+            )
+        return _list_imputation_models
 
     def _joblib_fit_one_group(self, estimator, X, j):
         if isinstance(X, pd.DataFrame):
@@ -206,23 +298,17 @@ class CPI(BasePermutation):
         if len(self._list_imputation_models) == 0:
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_imputation_models:
-            check_is_fitted(m)
+            check_is_fitted(m.model)
 
-    def _permutation(self, X_minus_j, X_j, group_ids, non_group_ids, index_j):
-        X_j_hat = (
-            self._list_imputation_models[index_j].predict(X_minus_j).reshape(X_j.shape)
+    def _permutation(self, X_j, X_minus_j, group_ids, non_group_ids, imputation_idx):
+
+        X_perm_j = self._list_imputation_models[imputation_idx].sample(
+            X_minus_j, X_j, n_samples=self.n_permutations
         )
-        residual_j = X_j - X_j_hat
 
-        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
-        # where the j-th group of covariates is (conditionally) permuted
-        X_perm_j = np.empty(
+        X_perm = np.empty(
             (self.n_permutations, X_minus_j.shape[0], X_minus_j.shape[1] + X_j.shape[1])
         )
-        X_perm_j[:, :, non_group_ids] = X_minus_j
-        # Create the permuted data for the j-th group of covariates
-        residual_j_perm = np.array(
-            [self.rng.permutation(residual_j) for _ in range(self.n_permutations)]
-        )
-        X_perm_j[:, :, group_ids] = X_j_hat[np.newaxis, :, :] + residual_j_perm
-        return X_perm_j
+        X_perm[:, :, non_group_ids] = X_minus_j
+        X_perm[:, :, group_ids] = X_perm_j
+        return X_perm
