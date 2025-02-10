@@ -84,6 +84,8 @@ def model_x_knockoff(
     n_jobs=1,
     random_state=None,
     tol_gauss=1e-14,
+    fdr=0.1,
+    offset=1,
 ):
     """
     Model-X Knockoff
@@ -148,6 +150,16 @@ def model_x_knockoff(
     tol_gauss : float, optional (default=1e-14)
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
 
+    fdr : float, optional (default=0.1)
+        The desired controlled False Discovery Rate (FDR) level.
+
+    offset : int, 0 or 1, optional (default=1)
+        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
+        knockoff+.
+
+    threshold : float
+        The knockoff threshold.
+
     Returns
     -------
     test_scores : 2D ndarray (n_bootstraps, n_features)
@@ -156,8 +168,10 @@ def model_x_knockoff(
     Notes
     -----
     This function generates multiple sets of Gaussian knockoff variables and calculates
-    the test statistics for each set using the `_stat_coefficient_diff` function. It
-    then aggregates the test statistics across the sets to improve stability and power.
+    the test statistics for each set using the `_stat_coefficient_diff` function. This
+    _stat_coefficient_diff calculates the knockoff threshold based on the test statistics
+    and the desired FDR level. It then identifies the selected variables based on the
+    threshold. It ehen aggregates the result across the sets to improve stability and power.
 
     References
     ----------
@@ -206,61 +220,18 @@ def model_x_knockoff(
         )
         X_tildes.insert(0, X_tilde)
 
-    test_scores = parallel(
+    results = parallel(
         delayed(_stat_coefficient_diff)(
-            X, X_tildes[i], y, estimator, preconfigure_estimator
+            X, X_tildes[i], y, estimator, fdr, offset, preconfigure_estimator
         )
         for i in range(n_bootstraps)
     )
+    test_scores, threshold, selected = zip(*results)
 
     if n_bootstraps == 1:
-        return test_scores[0]
+        return selected[0], test_scores[0], threshold[0], X_tildes[0]
     else:
-        return test_scores
-
-
-def model_x_knockoff_filter(test_score, fdr=0.1, offset=1, selection_only=True):
-    """
-    Calculate the p-values and return the selected variables based on the knockoff filter.
-
-    Parameters
-    ----------
-    test_score : 1D array, (n_features, )
-        A vector of test statistics.
-
-    fdr : float, optional (default=0.1)
-        The desired controlled False Discovery Rate (FDR) level.
-
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
-
-    selection_only : bool, optional (default=True)
-        Whether to return only the selected variables or additional information.
-        If True, the function will return only the selected variables. If False,
-        the function will return the selected variables and the threshold.
-
-    Returns
-    -------
-    selected : 1D array, int
-        A vector of indices of the selected variables.
-
-    threshold : float
-        The knockoff threshold.
-
-    Notes
-    -----
-    This function calculates the knockoff threshold based on the test statistics and the
-    desired FDR level. It then identifies the selected variables based on the threshold.
-    """
-    # run the knockoff filter
-    threshold = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
-    selected = np.where(test_score >= threshold)[0]
-
-    if selection_only:
-        return selected
-    else:
-        return selected, threshold
+        return selected, test_scores, threshold, X_tildes
 
 
 def model_x_knockoff_pvalue(
@@ -313,7 +284,7 @@ def model_x_knockoff_pvalue(
 
 
 def model_x_knockoff_bootstrap_e_value(
-    test_scores, fdr=0.1, offset=1, selection_only=True
+    test_scores, ko_threshold, fdr=0.1, offset=1, selection_only=True
 ):
     """
     This function implements the computation of the empirical e-values
@@ -323,6 +294,9 @@ def model_x_knockoff_bootstrap_e_value(
     ----------
     test_scores : 2D array, (n_bootstraps, n_features)
         A matrix of test statistics for each bootstrap sample.
+
+    ko_threshold : float
+        Threshold level.
 
     fdr : float, optional (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
@@ -354,7 +328,7 @@ def model_x_knockoff_bootstrap_e_value(
     n_bootstraps = len(test_scores)
     evals = np.array(
         [
-            _empirical_knockoff_eval(test_scores[i], fdr / 2, offset)
+            _empirical_knockoff_eval(test_scores[i], ko_threshold[i], offset)
             for i in range(n_bootstraps)
         ]
     )
@@ -454,7 +428,9 @@ def model_x_knockoff_bootstrap_quantile(
         return selected, aggregated_pval, pvals
 
 
-def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None):
+def _stat_coefficient_diff(
+    X, X_tilde, y, estimator, fdr, offset, preconfigure_estimator=None
+):
     """
     Compute statistic based on a cross-validation procedure.
 
@@ -498,7 +474,12 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, preconfigure_estimator=None
         raise TypeError("estimator should be linear")
     # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
-    return test_score
+
+    # Compute the threshold level and selecte the important variables
+    ko_thr = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
+    selected = np.where(test_score >= ko_thr)[0]
+
+    return test_score, ko_thr, selected
 
 
 def _knockoff_threshold(test_score, fdr=0.1, offset=1):
@@ -577,7 +558,7 @@ def _empirical_knockoff_pval(test_score, offset=1):
     return np.array(pvals)
 
 
-def _empirical_knockoff_eval(test_score, fdr=0.1, offset=1):
+def _empirical_knockoff_eval(test_score, ko_thr, offset=1):
     """
     Compute the empirical e-values from the knockoff test.
 
@@ -586,8 +567,8 @@ def _empirical_knockoff_eval(test_score, fdr=0.1, offset=1):
     test_score : 1D ndarray, shape (n_features, )
         Vector of test statistics.
 
-    fdr : float, optional
-        Desired controlled FDR (false discovery rate) level.
+    threshold : float
+        Threshold level.
 
     offset : int, 0 or 1, optional
         Offset equals 1 is the knockoff+ procedure.
@@ -602,8 +583,6 @@ def _empirical_knockoff_eval(test_score, fdr=0.1, offset=1):
 
     if offset not in (0, 1):
         raise ValueError("'offset' must be either 0 or 1")
-
-    ko_thr = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
 
     for i in range(n_features):
         if test_score[i] < ko_thr:

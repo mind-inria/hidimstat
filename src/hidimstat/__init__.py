@@ -5,7 +5,6 @@ from .Dnn_learner_single import DnnLearnerSingle
 from .ensemble_clustered_inference import ensemble_clustered_inference
 from .knockoffs import (
     model_x_knockoff,
-    model_x_knockoff_filter,
     model_x_knockoff_pvalue,
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_bootstrap_e_value,
@@ -37,7 +36,6 @@ __all__ = [
     "group_reid",
     "hd_inference",
     "model_x_knockoff",
-    "model_x_knockoff_filter",
     "model_x_knockoff_pvalue",
     "model_x_knockoff_bootstrap_quantile",
     "model_x_knockoff_bootstrap_e_value",
