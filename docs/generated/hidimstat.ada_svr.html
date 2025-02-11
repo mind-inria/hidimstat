@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.ada_svr &#8212; HiDimStat 0.1.dev1+geccd3d8 documentation</title>
+    <title>hidimstat.ada_svr &#8212; HiDimStat 0.1.dev1+g6d69301 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="../_static/documentation_options.js?v=ddc88f42"></script>
+    <script src="../_static/documentation_options.js?v=2ab8f8b1"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -126,8 +126,8 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.ada_svr">
 <span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">ada_svr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcond</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.ada_svr" title="Link to this definition">¶</a></dt>
-<dd><p>Adaptative Permutation Threshold for SVR</p>
-<p>Statistical inference procedure presented in Gaonkar et al. <a class="reference internal" href="#r8be6f7fc6541-1" id="id1">[1]</a>.</p>
+<dd><p>ADA-SVR: Adaptive Permutation Threshold Support Vector Regression</p>
+<p>Statistical inference procedure presented in Gaonkar and Davatzikos<a class="footnote-reference brackets" href="#footcite-gaonkar-deriving-2012" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -136,7 +136,8 @@
 <dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)</span></dt><dd><p>Target.</p>
 </dd>
 <dt><strong>rcond</strong><span class="classifier">float, optional (default=1e-3)</span></dt><dd><p>Cutoff for small singular values. Singular values smaller
-than <cite>rcond</cite> * largest_singular_value are set to zero.</p>
+than <cite>rcond</cite> * largest_singular_value are set to zero.
+Deafult value is 1e-3.</p>
 </dd>
 </dl>
 </dd>
@@ -150,15 +151,13 @@ than <cite>rcond</cite> * largest_singular_value are set to zero.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="r8be6f7fc6541-1" role="doc-biblioentry">
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-gaonkar-deriving-2012" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Gaonkar, B., &amp; Davatzikos, C. (2012, October). Deriving statistical
-significance maps for SVM based image classification and group
-comparisons. In International Conference on Medical Image Computing
-and Computer-Assisted Intervention (pp. 723-730). Springer, Berlin,
-Heidelberg.</p>
-</div>
+<p>Bilwaj Gaonkar and Christos Davatzikos. Deriving statistical significance maps for SVM based image classification and group comparisons. <em>Med Image Comput Comput Assist Interv</em>, 15(0):723–730, 2012. URL: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/</a> (visited on 2024-12-16).</p>
+</aside>
+</aside>
 </div>
 </dd></dl>
 
