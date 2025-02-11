@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV
 from sklearn.metrics import accuracy_score
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -146,3 +147,31 @@ def test_group_case():
     for i in range(n_samples):
         assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.7
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.7
+
+
+def test_multiclass():
+    n = 1000
+    X = np.random.randn(n, 5)
+    X[:, 3] = np.digitize(
+        X[:, 0], bins=np.quantile(X[:, 0], [0, 0.2, 0.4, 0.6, 0.8, 1]), right=True
+    )
+    X[:, 4] = np.digitize(
+        X[:, 1], bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]), right=True
+    )
+
+    sampler = ConditionalSampler(
+        model=MultiOutputClassifier(
+            OneVsRestClassifier(LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)))
+        ),
+        data_type="binary",
+        random_state=0,
+    )
+
+    sampler.fit(X[:, :3], X[:, 3:])
+    n_samples = 10
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    assert X_3_perm.shape == (n_samples, X.shape[0], 2)
+    for i in range(n_samples):
+        # Chance level is now 1/5
+        assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
+        assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
