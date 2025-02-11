@@ -3,7 +3,6 @@ import pytest
 from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.multioutput import MultiOutputClassifier
 
 from hidimstat.conditional_sampling import ConditionalSampler
 
@@ -133,7 +132,7 @@ def test_group_case():
     X = np.random.randn(n, 5)
     X[:, 3] = X[:, 0] + X[:, 1] + X[:, 2] + np.random.randn(X.shape[0]) * 0.3 > 0
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
-    model = MultiOutputClassifier(LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)))
+    model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
     sampler = ConditionalSampler(
         model=model,
         data_type="binary",
@@ -160,10 +159,8 @@ def test_multiclass():
     )
 
     sampler = ConditionalSampler(
-        model=MultiOutputClassifier(
-            OneVsRestClassifier(LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)))
-        ),
-        data_type="binary",
+        model=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        data_type="categorical",
         random_state=0,
     )
 
@@ -174,4 +171,21 @@ def test_multiclass():
     for i in range(n_samples):
         # Chance level is now 1/5
         assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
+        assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
+
+    # Using a provided OneVsRestClassifier
+    sampler = ConditionalSampler(
+        model=OneVsRestClassifier(LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))),
+        data_type="categorical",
+        random_state=0,
+    )
+
+    sampler.fit(X[:, :3], X[:, 3:])
+    n_samples = 10
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    assert X_3_perm.shape == (n_samples, X.shape[0], 2)
+    for i in range(n_samples):
+        # Chance level is now 1/5
+        assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
+        assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
