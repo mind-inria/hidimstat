@@ -1,5 +1,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.multioutput import MultiOutputClassifier
 from sklearn.utils.validation import check_random_state
 
 
@@ -11,6 +13,7 @@ class ConditionalSampler:
         model_regression=None,
         model_classification=None,
         random_state=None,
+        categorical_max_cardinality=10,
     ):
         """
         Class use to sample from the conditional distribution $p(X^j | X^{-j})$.
@@ -21,9 +24,10 @@ class ConditionalSampler:
         model : object
             The model used to estimate the conditional distribution.
         data_type : str, default="auto"
-            The variable type. Supported types include "auto", "continuous", "binary".
-            If "auto", the type is inferred from the cardinality of the unique values
-            passed to the `fit` method.
+            The variable type. Supported types include "auto", "continuous", "binary",
+            and "categorical". If "auto", the type is inferred from the cardinality of
+            the unique values passed to the `fit` method. For categorical variables, the
+            default strategy is to use a one-vs-rest classifier.
         model_regression : object
             Only used if `data_type` is "auto". The model used to estimate the
             conditional for continuous variables.
@@ -32,6 +36,9 @@ class ConditionalSampler:
             conditional for binary variables.
         random_state : int
             The random state to use for sampling.
+        categorical_max_cardinality : int
+            The maximum cardinality of a variable to be considered as categorical
+            when `data_type` is "auto".
 
         """
         self.model = model
@@ -40,8 +47,14 @@ class ConditionalSampler:
         self.model_classification = model_classification
         self.random_state = random_state
         self.rng = check_random_state(random_state)
+        self.categorical_max_cardinality = categorical_max_cardinality
+
+        if self.data_type == "categorical":
+            if not isinstance(self.model, OneVsRestClassifier):
+                self.model = OneVsRestClassifier(self.model)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
+
         if self.data_type == "auto":
             if (self.model_classification is None) or (self.model_regression is None):
                 raise ValueError(
@@ -51,11 +64,21 @@ class ConditionalSampler:
             if len(np.unique(y)) == 2:
                 self.data_type = "binary"
                 self.model = self.model_classification
+            elif len(np.unique(y)) <= self.categorical_max_cardinality:
+                self.data_type = "categorical"
+                self.model = OneVsRestClassifier(self.model_classification)
             else:
                 self.data_type = "continuous"
                 self.model = self.model_regression
 
-                self.model = self.model_regression
+        # Group of variables
+        if (
+            (y.ndim > 1)
+            and (y.shape[1] > 1)
+            and (self.data_type in ["binary", "categorical"])
+        ):
+            self.model = MultiOutputClassifier(self.model)
+
         self.model.fit(X, y)
 
     def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:
@@ -92,7 +115,7 @@ class ConditionalSampler:
             )
             return y_hat[np.newaxis, ...] + residual_permuted
 
-        elif self.data_type == "binary":
+        elif self.data_type in ["binary", "categorical"]:
             y_pred_proba = self.model.predict_proba(X)
 
             # multioutput case (group of variables)
