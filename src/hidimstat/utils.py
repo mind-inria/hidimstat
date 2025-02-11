@@ -1,5 +1,4 @@
 import copy
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -22,7 +21,6 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     pvals : ndarray of shape (n_sampling*2, n_test)
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
-        p-values should be adjusted as defined by the equation 2.2 of :cite:meinshausen2009p.
     gamma : float, default=0.05
         Quantile level for aggregation. Must be in range (0,1].
     n_grid : int, default=20
@@ -61,7 +59,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     Parameters
     ----------
     pvals : 2D ndarray (n_sampling*2, n_test)
-        p-value (adjusted)
+        p-value
 
     gamma : float
         Percentile value used for aggregation.
@@ -88,7 +86,7 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
     Parameters
     ----------
     pvals : 2D ndarray (n_sampling*2, n_test)
-        p-value (adjusted)
+        p-value
     gamma_min : float, default=0.05
         Minimum percentile value for adaptive aggregation
 
@@ -219,7 +217,7 @@ def _ebh_threshold(evals, fdr=0.1):
     Parameters
     ----------
     evals : 1D ndarray
-        p-value (adjusted)
+        p-value
     fdr : float, default=0.1
         False Discovery Rate
 
