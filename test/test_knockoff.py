@@ -190,6 +190,7 @@ def test_model_x_knockoff_estimator():
 
 
 def test_model_x_knockoff_exception():
+    "Test the exception raise by model_x_knockoff"
     n = 50
     p = 100
     seed = 45
