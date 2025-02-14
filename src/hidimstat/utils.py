@@ -153,7 +153,11 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     fdr : float, default=0.1
         False Discovery Rate
     method : str, default='bhq'
-        Method to control FDR. Available methods are 'bhq', 'bhy', 'ebh'
+        Method to control FDR.
+        Available methods are:
+        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
+        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
     reshaping_function : function, default=None
         Reshaping function for Benjamini-Hochberg-Yekutieli method
 
@@ -161,6 +165,10 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     -------
     threshold : float
         Threshold value
+    
+    References
+    ----------
+    .. footbibliography::
     """
     if method == "bhq":
         threshold = _bhq_threshold(pvals, fdr=fdr)
