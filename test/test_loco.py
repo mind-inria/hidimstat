@@ -103,7 +103,7 @@ def test_raises_value_error(
             estimator=fitted_model,
             method="predict",
         )
-        loco.predict(X, y)
+        loco.predict(X)
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(

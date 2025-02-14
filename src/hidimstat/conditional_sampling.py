@@ -1,17 +1,18 @@
 import numpy as np
-from sklearn.base import BaseEstimator, check_is_fitted
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.multioutput import MultiOutputClassifier
+from sklearn.base import check_is_fitted
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
 
 
 class ConditionalSampler:
     def __init__(
         self,
-        model=None,
-        data_type: str = "auto",
         model_regression=None,
-        model_classification=None,
+        model_binary=None,
+        model_categorical=None,
+        model_ordinary=None,
+        data_type: str = "auto",
+        imputation_model_multimodal= False,
         random_state=None,
         categorical_max_cardinality=10,
     ):
@@ -41,43 +42,55 @@ class ConditionalSampler:
             when `data_type` is "auto".
 
         """
-        self.model = model
         self.data_type = data_type
-        self.model_regression = model_regression
-        self.model_classification = model_classification
-        self.random_state = random_state
+        if not isinstance(imputation_model_multimodal, list):
+            imputation_model_multimodal = [imputation_model_multimodal for _ in range(4)]
+        else:
+            imputation_model_multimodal = imputation_model_multimodal
+        if data_type == "auto":
+            self.model = (model_regression, model_binary, model_categorical)
+            self.imputation_model_multimodal = imputation_model_multimodal
+        elif data_type == "continuous":
+            self.model = model_regression
+            self.imputation_model_multimodal = imputation_model_multimodal[0]
+        elif data_type == "binary":
+            self.model = model_binary
+            self.imputation_model_multimodal = imputation_model_multimodal[1]
+        elif data_type == "categorical":
+            self.model = model_categorical
+            self.imputation_model_multimodal = imputation_model_multimodal[2]
+        elif data_type == "ordinal":
+            self.model = model_ordinary
+            self.imputation_model_multimodal = imputation_model_multimodal[3]
+        else:
+            raise ValueError(f"type of data '{data_type}' unknow.")
         self.rng = check_random_state(random_state)
         self.categorical_max_cardinality = categorical_max_cardinality
 
-        if self.data_type == "categorical":
-            if not isinstance(self.model, OneVsRestClassifier):
-                self.model = OneVsRestClassifier(self.model)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
 
         if self.data_type == "auto":
-            if (self.model_classification is None) or (self.model_regression is None):
-                raise ValueError(
-                    "The `model_classification` and `model_regression` attributes must \
-                    be set if `data_type` is 'auto'."
-                )
             if len(np.unique(y)) == 2:
                 self.data_type = "binary"
-                self.model = self.model_classification
+                self.model = self.model[1]
+                self.imputation_model_multimodal = self.imputation_model_multimodal[1]
             elif len(np.unique(y)) <= self.categorical_max_cardinality:
                 self.data_type = "categorical"
-                self.model = OneVsRestClassifier(self.model_classification)
+                self.model = self.model[2]
+                self.imputation_model_multimodal = self.imputation_model_multimodal[2]
             else:
                 self.data_type = "continuous"
-                self.model = self.model_regression
+                self.model = self.model[0]
+                self.imputation_model_multimodal = self.imputation_model_multimodal[0]
 
         # Group of variables
-        if (
-            (y.ndim > 1)
-            and (y.shape[1] > 1)
-            and (self.data_type in ["binary", "categorical"])
-        ):
-            self.model = MultiOutputClassifier(self.model)
+        if ((y.ndim > 1) and (y.shape[1] > 1) and not self.imputation_model_multimodal):
+            if (self.data_type in ["binary", "categorical"]):
+                self.model = MultiOutputClassifier(self.model)
+            else:
+                self.model = MultiOutputRegressor(self.model)
+            self.imputation_model_multimodal = True
 
         self.model.fit(X, y)
 
@@ -101,12 +114,12 @@ class ConditionalSampler:
         """
 
         check_is_fitted(self.model)
-        if (self.data_type == "binary") and (not hasattr(self.model, "predict_proba")):
+        if (self.data_type in ["binary", "categorical"]) and (not hasattr(self.model, "predict_proba")):
             raise AttributeError(
-                "The model must have a `predict_proba` method to be used for binary data."
+                "The model must have a `predict_proba` method to be used for categorical or binary data."
             )
 
-        if self.data_type == "continuous":
+        if self.data_type in ["continuous", "ordinal"]:
             y_hat = self.model.predict(X)
             residual = y - y_hat
             residual_permuted = np.stack(
@@ -119,26 +132,16 @@ class ConditionalSampler:
             y_pred_proba = self.model.predict_proba(X)
 
             # multioutput case (group of variables)
-            if isinstance(self.model.classes_, list):
-                y_pred_cond = np.stack(
-                    [
-                        np.stack(
-                            [
-                                self.rng.choice(classes, p=p, size=n_samples)
-                                for p in y_proba_
-                            ],
-                            axis=1,
-                        )
-                        for y_proba_, classes in zip(y_pred_proba, self.model.classes_)
-                    ],
-                    axis=-1,
-                )
+            if not self.imputation_model_multimodal:
+                y_classes = [self.model.classes_]
+                y_pred_proba = [y_pred_proba]
             else:
-                y_pred_cond = np.stack(
-                    [
-                        self.rng.choice(self.model.classes_, p=p, size=n_samples)
-                        for p in y_pred_proba
-                    ],
-                    axis=1,
-                )
-            return y_pred_cond
+                y_classes = self.model.classes_
+
+            y_pred_cond = []
+            for index, classes in enumerate(y_classes):
+                    y_pred_cond.append(np.stack([
+                        self.rng.choice(classes, p=p, size=n_samples)
+                        for p in y_pred_proba[index]
+                    ], axis=1))
+            return np.stack(y_pred_cond,axis=-1,)
