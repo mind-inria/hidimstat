@@ -165,7 +165,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     -------
     threshold : float
         Threshold value
-    
+
     References
     ----------
     .. footbibliography::
