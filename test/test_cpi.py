@@ -25,7 +25,6 @@ def test_cpi(linear_scenario):
         estimator=regression_model,
         imputation_model_continuous=clone(imputation_model),
         imputation_model_binary=LogisticRegression(),
-        var_type="auto",
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -35,6 +34,7 @@ def test_cpi(linear_scenario):
     cpi.fit(
         X_train,
         groups=None,
+        var_type="auto",
     )
     vim = cpi.score(X_test, y_test)
 
@@ -56,7 +56,6 @@ def test_cpi(linear_scenario):
     cpi = CPI(
         estimator=regression_model,
         imputation_model_continuous=clone(imputation_model),
-        var_type="continuous",
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -65,6 +64,7 @@ def test_cpi(linear_scenario):
     cpi.fit(
         X_train_df,
         groups=groups,
+        var_type="continuous",
     )
     vim = cpi.score(X_test_df, y_test)
 
@@ -81,7 +81,6 @@ def test_cpi(linear_scenario):
     cpi = CPI(
         estimator=logistic_model,
         imputation_model_continuous=clone(imputation_model),
-        var_type=["continuous"] * X.shape[1],
         n_permutations=20,
         random_state=0,
         n_jobs=1,
@@ -91,6 +90,7 @@ def test_cpi(linear_scenario):
     cpi.fit(
         X_train,
         groups=None,
+        var_type=["continuous"] * X.shape[1],
     )
     vim = cpi.score(X_test, y_test_clf)
 
@@ -124,7 +124,7 @@ def test_raises_value_error(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.predict(X, None)
+        cpi.predict(X)
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(

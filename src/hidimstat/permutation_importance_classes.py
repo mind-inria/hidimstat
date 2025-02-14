@@ -30,16 +30,27 @@ class BasePermutation(BaseEstimator):
         if groups is None:
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
+            self._groups_ids = np.array(list(self.groups.values()), dtype=int)
         else:
             self.n_groups = len(groups)
             self.groups = groups
+            if isinstance(X, pd.DataFrame): 
+                self._groups_ids = []
+                for group_key in self.groups.keys():
+                    self._groups_ids.append([
+                        i for i, col in enumerate(X.columns) if col in self.groups[group_key]
+                    ])
+            else:
+                self._groups_ids = np.array(list(self.groups.values()), dtype=int)
 
-    def predict(self, X, y):
+    def predict(self, X):
         self._check_fit()
+        X_ = np.asarray(X)
+        
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X, y, group_idx, group_key)
-            for group_idx, group_key in enumerate(self.groups.keys())
+            delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
+            for group_id, group_key in enumerate(self.groups.keys())
         )
         return np.stack(out_list, axis=0)
 
@@ -52,7 +63,7 @@ class BasePermutation(BaseEstimator):
         loss_reference = self.loss(y, y_pred)
         out_dict["loss_reference"] = loss_reference
 
-        y_pred = self.predict(X, y)
+        y_pred = self.predict(X)
         out_dict["loss"] = dict()
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
@@ -71,37 +82,18 @@ class BasePermutation(BaseEstimator):
     def _check_fit(self):
         pass
 
-    def _joblib_predict_one_group(self, X, y, group_idx, group_key):
-        if isinstance(X, pd.DataFrame):
-            X_j = X[self.groups[group_key]].copy().values
-            X_minus_j = X.drop(columns=self.groups[group_key]).values
-            group_ids = [
-                i for i, col in enumerate(X.columns) if col in self.groups[group_key]
-            ]
-            non_group_ids = [
-                i
-                for i, col in enumerate(X.columns)
-                if col not in self.groups[group_key]
-            ]
-        else:
-            X_j = X[:, self.groups[group_key]].copy()
-            X_minus_j = np.delete(X, self.groups[group_key], axis=1)
-            group_ids = self.groups[group_key]
-            non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
-
-        X_perm_j = self._permutation(
-            X_j,
-            X_minus_j,
-            group_ids=group_ids,
-            non_group_ids=non_group_ids,
-            imputation_idx=group_idx,
+    def _joblib_predict_one_group(self, X, group_id, group_key):
+        group_ids = self._groups_ids[group_id]
+        non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
+        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
+        # where the j-th group of covariates is permuted
+        X_perm = np.empty(
+            (self.n_permutations, X.shape[0], X.shape[1])
         )
-        # Reshape X_perm_j to allow for batch prediction
-        X_perm_batch = X_perm_j.reshape(-1, X.shape[1])
-        if isinstance(X, pd.DataFrame):
-            X_perm_batch = pd.DataFrame(
-                X_perm_batch.reshape(-1, X.shape[1]), columns=X.columns
-            )
+        X_perm[:, :, non_group_ids] = np.delete(X, group_ids, axis=1)
+        X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id)
+        # Reshape X_perm to allow for batch prediction
+        X_perm_batch = X_perm.reshape(-1, X.shape[1])
         y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
 
         # In case of classification, the output is a 2D array. Reshape accordingly
@@ -113,35 +105,37 @@ class BasePermutation(BaseEstimator):
             )
         return y_pred_perm
 
-    def _permutation(
-        self, X_j, X_minus_j, group_ids, non_group_ids, imputation_idx=None
-    ):
+    def _permutation(self, X, group_id):
         raise NotImplementedError
 
 
 class PermutationImportance(BasePermutation):
-    def __init__(self, *arg, random_state: int = None, **kwarg):
-        super().__init__(*arg, **kwarg)
+    def __init__(self,  
+                 estimator,
+                 loss: callable = root_mean_squared_error,
+                 method: str = "predict",
+                 n_jobs: int = 1, 
+                 n_permutations: int = 50,
+                 random_state: int = None):
+        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations= n_permutations)
         self.rng = np.random.RandomState(random_state)
 
-    def _permutation(self, X_j, X_minus_j, group_ids, non_group_ids):
-        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
-        # where the j-th group of covariates is permuted
-        X_perm_j = np.empty(
-            (self.n_permutations, X_minus_j.shape[0], X_minus_j.shape[1] + X_j.shape[1])
-        )
-        X_perm_j[:, :, non_group_ids] = X_minus_j
+    def _permutation(self, X, group_id):
         # Create the permuted data for the j-th group of covariates
-        group_j_permuted = np.array(
-            [self.rng.permutation(X_j) for _ in range(self.n_permutations)]
+        X_perm_j = np.array(
+            [self.rng.permutation(X[:, self._groups_ids[group_id]].copy()) for _ in range(self.n_permutations)]
         )
-        X_perm_j[:, :, group_ids] = group_j_permuted
         return X_perm_j
 
 
 class LOCO(BasePermutation):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, n_permutations=1, **kwargs)
+    def __init__(self,
+                 estimator,
+                 loss: callable = root_mean_squared_error,
+                 method: str = "predict",
+                 n_jobs: int = 1
+                 ):
+        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations=1)
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
@@ -151,26 +145,23 @@ class LOCO(BasePermutation):
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_fit_one_group)(estimator, X, y, j)
-            for j, estimator in zip(self.groups.keys(), self._list_estimators)
+            delayed(self._joblib_fit_one_group)(estimator, X, y, key_groups)
+            for key_groups, estimator in zip(self.groups.keys(), self._list_estimators)
         )
         return self
 
-    def _joblib_fit_one_group(self, estimator, X, y, j):
+    def _joblib_fit_one_group(self, estimator, X, y, key_groups):
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(columns=self.groups[j])
+            X_minus_j = X.drop(columns=self.groups[key_groups])
         else:
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+            X_minus_j = np.delete(X, self.groups[key_groups], axis=1)
         estimator.fit(X_minus_j, y)
         return estimator
 
-    def _joblib_predict_one_group(self, X, y, index_j, j):
-        if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(columns=self.groups[j])
-        else:
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+    def _joblib_predict_one_group(self, X, group_id, key_groups):
+        X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
 
-        y_pred_loco = getattr(self._list_estimators[index_j], self.method)(X_minus_j)
+        y_pred_loco = getattr(self._list_estimators[group_id], self.method)(X_minus_j)
 
         return [y_pred_loco]
 
@@ -182,115 +173,71 @@ class LOCO(BasePermutation):
             check_is_fitted(m)
 
 
-from copy import deepcopy
-
-
 class CPI(BasePermutation):
     def __init__(
         self,
-        imputation_model_continuous=None,
-        imputation_model_binary=None,
-        var_type="auto",
-        *arg,
+        estimator,
+        loss: callable = root_mean_squared_error,
+        method: str = "predict",
+        n_jobs: int = 1, 
+        n_permutations: int = 50,
+        imputation_model_continuous = None,
+        imputation_model_binary= None,
+        imputation_model_classification = None,
+        imputation_model_ordinary = None,
+        imputation_model_multimodal = False,
         random_state: int = None,
-        **kwarg,
+        categorical_max_cardinality: int= 10
     ):
-        super().__init__(*arg, **kwarg)
+
+        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations= n_permutations)
         self.rng = np.random.RandomState(random_state)
         self._list_imputation_models = []
-        self.imputation_model_continuous = imputation_model_continuous
-        self.imputation_model_binary = imputation_model_binary
-        self.var_type = var_type
+        if not isinstance(imputation_model_multimodal, list):
+             self.imputation_model_multimodal = [imputation_model_multimodal for _ in range(4)]
+        else:
+            self.imputation_model_multimodal = imputation_model_multimodal
+        self.imputation_model ={
+            'continuous': imputation_model_continuous,
+            'binary': imputation_model_binary,
+            'categorical': imputation_model_classification,
+            'ordinary': imputation_model_ordinary,
+        }
+        self.categorical_max_cardinality = categorical_max_cardinality
 
-    def fit(self, X, groups=None):
-        super().fit(X, None, groups)
+    def fit(self, X, groups=None, var_type="auto"):
+        super().fit(X, None, groups=groups)
+        if isinstance(var_type, str):
+            self.var_type = [var_type for _ in range(self.n_groups)]
+        else:
+            self.var_type = var_type
 
-        self._list_imputation_models = self._get_conditional_sampler(
-            var_type=self.var_type,
-            imputation_model_continuous=self.imputation_model_continuous,
-            imputation_model_binary=self.imputation_model_binary,
-        )
-
+        self._list_imputation_models = [
+            ConditionalSampler(
+                        data_type=self.var_type[groupd_id],
+                        model_regression=None if self.imputation_model['continuous'] is None else clone(self.imputation_model['continuous']),
+                        model_binary=None if self.imputation_model['binary'] is None else clone(self.imputation_model['binary']),
+                        model_categorical=None if self.imputation_model['categorical'] is None else clone(self.imputation_model['categorical']),
+                        model_ordinary=None if self.imputation_model['ordinary'] is None else clone(self.imputation_model['ordinary']),
+                        random_state=self.rng,
+                        imputation_model_multimodal = self.imputation_model_multimodal,
+                        categorical_max_cardinality=self.categorical_max_cardinality
+                    )
+            for groupd_id in range(self.n_groups)]
+        
         # Parallelize the fitting of the covariate estimators
+        X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_fit_one_group)(estimator, X, j)
-            for j, estimator in zip(self.groups.keys(), self._list_imputation_models)
+            delayed(self._joblib_fit_one_group)(estimator, X_, groups_ids)
+            for groups_ids, estimator in zip(self._groups_ids, self._list_imputation_models)
         )
 
         return self
 
-    def _get_conditional_sampler(
-        self,
-        var_type,
-        imputation_model_continuous,
-        imputation_model_binary,
-    ):
-        """Get the ConditionalSampler objects for each group of variables. The type of
-        each variable can be prespecified or automatically inferred.
-
-        """
-        if isinstance(var_type, str):
-            # identify the type of each variable
-            if var_type == "auto":
-                _list_imputation_models = [
-                    ConditionalSampler(
-                        data_type="auto",
-                        model_regression=deepcopy(imputation_model_continuous),
-                        model_classification=deepcopy(imputation_model_binary),
-                        random_state=self.rng,
-                    )
-                    for _ in range(self.n_groups)
-                ]
-            # prespecified types
-            elif var_type == "continuous":
-                imputation_model_ = imputation_model_continuous
-                _list_imputation_models = [
-                    ConditionalSampler(
-                        data_type=var_type,
-                        model=deepcopy(imputation_model_),
-                        random_state=self.rng,
-                    )
-                    for _ in range(self.n_groups)
-                ]
-            elif var_type == "binary":
-                imputation_model_ = imputation_model_binary
-
-                _list_imputation_models = [
-                    ConditionalSampler(
-                        data_type=var_type,
-                        model=deepcopy(imputation_model_),
-                        random_state=self.rng,
-                    )
-                    for _ in range(self.n_groups)
-                ]
-        # mix of prespecified types
-        elif isinstance(var_type, list):
-            _list_imputation_models = []
-            for j in range(self.n_groups):
-                if var_type[j] == "continuous":
-                    imputation_model_ = imputation_model_continuous
-                elif var_type[j] == "binary":
-                    imputation_model_ = imputation_model_binary
-                _list_imputation_models.append(
-                    ConditionalSampler(
-                        data_type=var_type[j],
-                        model=deepcopy(imputation_model_),
-                        random_state=self.rng,
-                    )
-                )
-        else:
-            raise ValueError(
-                "var_type must be 'auto', 'continuous', 'binary' or a list"
-            )
-        return _list_imputation_models
-
-    def _joblib_fit_one_group(self, estimator, X, j):
-        if isinstance(X, pd.DataFrame):
-            X_j = X[self.groups[j]].copy().values
-            X_minus_j = X.drop(columns=self.groups[j]).values
-        else:
-            X_j = X[:, self.groups[j]].copy()
-            X_minus_j = np.delete(X, self.groups[j], axis=1)
+    def _joblib_fit_one_group(self, estimator, X, groups_ids):
+        X_ = self._remove_nan(X)
+        X_j = X_[:, groups_ids].copy()
+        X_minus_j = np.delete(X_, groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -300,15 +247,13 @@ class CPI(BasePermutation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X_j, X_minus_j, group_ids, non_group_ids, imputation_idx):
-
-        X_perm_j = self._list_imputation_models[imputation_idx].sample(
+    def _permutation(self, X, group_id):
+        X_ = self._remove_nan(X)
+        X_j = X_[:, self._groups_ids[group_id]].copy()
+        X_minus_j = np.delete(X_, self._groups_ids[group_id], axis=1)
+        return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
-
-        X_perm = np.empty(
-            (self.n_permutations, X_minus_j.shape[0], X_minus_j.shape[1] + X_j.shape[1])
-        )
-        X_perm[:, :, non_group_ids] = X_minus_j
-        X_perm[:, :, group_ids] = X_perm_j
-        return X_perm
+    
+    def _remove_nan(self, X):
+        return X
