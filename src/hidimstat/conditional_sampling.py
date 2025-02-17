@@ -2,7 +2,6 @@ from typing import Union
 
 import numpy as np
 from sklearn.base import check_is_fitted
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import (
     ElasticNet,
     ElasticNetCV,
@@ -131,10 +130,11 @@ class ConditionalSampler:
             not hasattr(self.model, "predict_proba")
         ):
             raise AttributeError(
-                "The model must have a `predict_proba` method to be used for categorical or binary data."
+                "The model must have a `predict_proba` method to be used for \
+                    categorical or binary data."
             )
 
-        if self.data_type in ["continuous", "ordinal"]:
+        if self.data_type == "continuous":
             y_hat = self.model.predict(X)
             residual = y - y_hat
             residual_permuted = np.stack(
