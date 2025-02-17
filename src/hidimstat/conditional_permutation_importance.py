@@ -138,7 +138,3 @@ class CPI(BasePerturbation):
         return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
-
-    def _remove_nan(self, X):
-        # TODO: specify the strategy to handle NaN values
-        return X
