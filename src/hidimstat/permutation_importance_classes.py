@@ -204,8 +204,6 @@ class CPI(BasePermutation):
         imputation_model_continuous=None,
         imputation_model_binary=None,
         imputation_model_classification=None,
-        imputation_model_ordinary=None,
-        imputation_model_multimodal=False,
         random_state: int = None,
         categorical_max_cardinality: int = 10,
     ):
@@ -219,17 +217,11 @@ class CPI(BasePermutation):
         )
         self.rng = np.random.RandomState(random_state)
         self._list_imputation_models = []
-        if not isinstance(imputation_model_multimodal, list):
-            self.imputation_model_multimodal = [
-                imputation_model_multimodal for _ in range(4)
-            ]
-        else:
-            self.imputation_model_multimodal = imputation_model_multimodal
+
         self.imputation_model = {
             "continuous": imputation_model_continuous,
             "binary": imputation_model_binary,
             "categorical": imputation_model_classification,
-            "ordinary": imputation_model_ordinary,
         }
         self.categorical_max_cardinality = categorical_max_cardinality
 
@@ -258,13 +250,7 @@ class CPI(BasePermutation):
                     if self.imputation_model["categorical"] is None
                     else clone(self.imputation_model["categorical"])
                 ),
-                model_ordinary=(
-                    None
-                    if self.imputation_model["ordinary"] is None
-                    else clone(self.imputation_model["ordinary"])
-                ),
                 random_state=self.rng,
-                imputation_model_multimodal=self.imputation_model_multimodal,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)
@@ -303,4 +289,5 @@ class CPI(BasePermutation):
         )
 
     def _remove_nan(self, X):
+        # TODO: specify the strategy to handle NaN values
         return X
