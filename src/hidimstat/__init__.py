@@ -10,7 +10,6 @@ from .leave_one_covariate_out import LOCO
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
 from .permutation_importance import PermutationImportance
-from .permutation_importance_func import cpi, loco, permutation_importance
 from .permutation_test import permutation_test_cv
 from .scenario import multivariate_1D_simulation
 from .standardized_svr import standardized_svr
@@ -42,7 +41,4 @@ __all__ = [
     "CPI",
     "LOCO",
     "PermutationImportance",
-    "cpi",
-    "loco",
-    "permutation_importance",
 ]
