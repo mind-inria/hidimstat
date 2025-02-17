@@ -154,7 +154,7 @@ pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
-    # It will be better to associate cross validation with the estimator 
+    # It will be better to associate cross validation with the estimator
     # but for a sake of time, this is not done.
     estimator = LinearSVR()
     weight_svr, weight_svr_distribution = permutation_test(
