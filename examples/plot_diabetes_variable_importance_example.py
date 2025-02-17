@@ -55,9 +55,7 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat.cpi import CPI
-from hidimstat.loco import LOCO
-from hidimstat.permutation_importance import permutation_importance
+from hidimstat import CPI, LOCO, permutation_importance
 
 #############################################################################
 # Load the diabetes dataset

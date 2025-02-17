@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.permutation_importance_classes import CPI
+from hidimstat import CPI
 
 
 def test_cpi(linear_scenario):
