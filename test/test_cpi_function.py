@@ -47,7 +47,10 @@ def test_cpi(linear_scenario):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
-    imputation_model_list = {"group_0":clone(imputation_model), "the_group_1":clone(imputation_model)}
+    imputation_model_list = {
+        "group_0": clone(imputation_model),
+        "the_group_1": clone(imputation_model),
+    }
     regression_model.fit(X_train_df, y_train)
     importance, list_loss_j, loss_reference = cpi(
         X_train_df,
