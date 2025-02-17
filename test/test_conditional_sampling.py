@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
@@ -76,6 +77,7 @@ def test_binary_case():
     sampler = ConditionalSampler(
         model_binary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
+        model_categorical=None,
         data_type="auto",
         random_state=0,
     )
@@ -118,8 +120,11 @@ def test_group_case():
     np.fill_diagonal(cov_matrix, 1)
     n = 1000
     X = np.random.multivariate_normal(mean=np.zeros(4), cov=cov_matrix, size=n)
+    # test with a model that DOES NOT nativly support multioutput
     sampler = ConditionalSampler(
-        model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
+        model_regression=RandomForestRegressor(
+            n_estimators=10, max_depth=10, random_state=0
+        ),
         data_type="continuous",
         random_state=0,
     )
@@ -130,6 +135,13 @@ def test_group_case():
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 0], X[:, 2]])[0, 1] < 0.9
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 1], X[:, 3]])[0, 1] < 0.9
+    # test with a model DOES nativly support multioutput
+    sampler = ConditionalSampler(
+        model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
+        data_type="continuous",
+        random_state=0,
+    )
+    sampler.fit(X[:, :2], X[:, 2:])
 
     # Binary case
     X = np.random.randn(n, 5)
@@ -162,11 +174,11 @@ def test_multiclass():
     X[:, 4] = np.digitize(
         X[:, 1], bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]), right=True
     )
-    X[:, 3:][np.where(X[:, 3:]==0)] = 1
+    X[:, 3:][np.where(X[:, 3:] == 0)] = 1
 
     sampler = ConditionalSampler(
-        model_ordinary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
-        data_type="ordinal",
+        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        data_type="categorical",
         random_state=0,
     )
 
@@ -182,8 +194,10 @@ def test_multiclass():
 
     # Using a provided OneVsRestClassifier
     sampler = ConditionalSampler(
-        model_ordinary=OneVsRestClassifier(LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))),
-        data_type="ordinal",
+        model_categorical=OneVsRestClassifier(
+            LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
+        ),
+        data_type="categorical",
         random_state=0,
     )
 
