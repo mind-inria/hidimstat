@@ -55,7 +55,7 @@ from sklearn.linear_model import RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat import CPI, LOCO, permutation_importance
+from hidimstat import CPI, LOCO, PermutationImportance
 
 #############################################################################
 # Load the diabetes dataset
@@ -157,15 +157,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    importance, list_loss_j, loss_reference = permutation_importance(
-        X_test,
-        y_test,
+    pi = PermutationImportance(
         estimator=regressor_list[i],
         n_permutations=50,
         random_state=0,
         n_jobs=4,
     )
-    pi_importance_list.append({"importance": importance})
+    importance = pi.score(X_test, y_test)
+    pi_importance_list.append(importance)
 
 
 #############################################################################
