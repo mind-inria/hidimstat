@@ -34,19 +34,23 @@ class BasePermutation(BaseEstimator):
         else:
             self.n_groups = len(groups)
             self.groups = groups
-            if isinstance(X, pd.DataFrame): 
+            if isinstance(X, pd.DataFrame):
                 self._groups_ids = []
                 for group_key in self.groups.keys():
-                    self._groups_ids.append([
-                        i for i, col in enumerate(X.columns) if col in self.groups[group_key]
-                    ])
+                    self._groups_ids.append(
+                        [
+                            i
+                            for i, col in enumerate(X.columns)
+                            if col in self.groups[group_key]
+                        ]
+                    )
             else:
                 self._groups_ids = np.array(list(self.groups.values()), dtype=int)
 
     def predict(self, X):
         self._check_fit()
         X_ = np.asarray(X)
-        
+
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
@@ -87,9 +91,7 @@ class BasePermutation(BaseEstimator):
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
-        X_perm = np.empty(
-            (self.n_permutations, X.shape[0], X.shape[1])
-        )
+        X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
         X_perm[:, :, non_group_ids] = np.delete(X, group_ids, axis=1)
         X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id)
         # Reshape X_perm to allow for batch prediction
@@ -110,32 +112,50 @@ class BasePermutation(BaseEstimator):
 
 
 class PermutationImportance(BasePermutation):
-    def __init__(self,  
-                 estimator,
-                 loss: callable = root_mean_squared_error,
-                 method: str = "predict",
-                 n_jobs: int = 1, 
-                 n_permutations: int = 50,
-                 random_state: int = None):
-        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations= n_permutations)
+    def __init__(
+        self,
+        estimator,
+        loss: callable = root_mean_squared_error,
+        method: str = "predict",
+        n_jobs: int = 1,
+        n_permutations: int = 50,
+        random_state: int = None,
+    ):
+        super().__init__(
+            estimator=estimator,
+            loss=loss,
+            method=method,
+            n_jobs=n_jobs,
+            n_permutations=n_permutations,
+        )
         self.rng = np.random.RandomState(random_state)
 
     def _permutation(self, X, group_id):
         # Create the permuted data for the j-th group of covariates
         X_perm_j = np.array(
-            [self.rng.permutation(X[:, self._groups_ids[group_id]].copy()) for _ in range(self.n_permutations)]
+            [
+                self.rng.permutation(X[:, self._groups_ids[group_id]].copy())
+                for _ in range(self.n_permutations)
+            ]
         )
         return X_perm_j
 
 
 class LOCO(BasePermutation):
-    def __init__(self,
-                 estimator,
-                 loss: callable = root_mean_squared_error,
-                 method: str = "predict",
-                 n_jobs: int = 1
-                 ):
-        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations=1)
+    def __init__(
+        self,
+        estimator,
+        loss: callable = root_mean_squared_error,
+        method: str = "predict",
+        n_jobs: int = 1,
+    ):
+        super().__init__(
+            estimator=estimator,
+            loss=loss,
+            method=method,
+            n_jobs=n_jobs,
+            n_permutations=1,
+        )
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
@@ -179,29 +199,37 @@ class CPI(BasePermutation):
         estimator,
         loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1, 
+        n_jobs: int = 1,
         n_permutations: int = 50,
-        imputation_model_continuous = None,
-        imputation_model_binary= None,
-        imputation_model_classification = None,
-        imputation_model_ordinary = None,
-        imputation_model_multimodal = False,
+        imputation_model_continuous=None,
+        imputation_model_binary=None,
+        imputation_model_classification=None,
+        imputation_model_ordinary=None,
+        imputation_model_multimodal=False,
         random_state: int = None,
-        categorical_max_cardinality: int= 10
+        categorical_max_cardinality: int = 10,
     ):
 
-        super().__init__(estimator=estimator, loss=loss, method=method, n_jobs=n_jobs, n_permutations= n_permutations)
+        super().__init__(
+            estimator=estimator,
+            loss=loss,
+            method=method,
+            n_jobs=n_jobs,
+            n_permutations=n_permutations,
+        )
         self.rng = np.random.RandomState(random_state)
         self._list_imputation_models = []
         if not isinstance(imputation_model_multimodal, list):
-             self.imputation_model_multimodal = [imputation_model_multimodal for _ in range(4)]
+            self.imputation_model_multimodal = [
+                imputation_model_multimodal for _ in range(4)
+            ]
         else:
             self.imputation_model_multimodal = imputation_model_multimodal
-        self.imputation_model ={
-            'continuous': imputation_model_continuous,
-            'binary': imputation_model_binary,
-            'categorical': imputation_model_classification,
-            'ordinary': imputation_model_ordinary,
+        self.imputation_model = {
+            "continuous": imputation_model_continuous,
+            "binary": imputation_model_binary,
+            "categorical": imputation_model_classification,
+            "ordinary": imputation_model_ordinary,
         }
         self.categorical_max_cardinality = categorical_max_cardinality
 
@@ -214,22 +242,41 @@ class CPI(BasePermutation):
 
         self._list_imputation_models = [
             ConditionalSampler(
-                        data_type=self.var_type[groupd_id],
-                        model_regression=None if self.imputation_model['continuous'] is None else clone(self.imputation_model['continuous']),
-                        model_binary=None if self.imputation_model['binary'] is None else clone(self.imputation_model['binary']),
-                        model_categorical=None if self.imputation_model['categorical'] is None else clone(self.imputation_model['categorical']),
-                        model_ordinary=None if self.imputation_model['ordinary'] is None else clone(self.imputation_model['ordinary']),
-                        random_state=self.rng,
-                        imputation_model_multimodal = self.imputation_model_multimodal,
-                        categorical_max_cardinality=self.categorical_max_cardinality
-                    )
-            for groupd_id in range(self.n_groups)]
-        
+                data_type=self.var_type[groupd_id],
+                model_regression=(
+                    None
+                    if self.imputation_model["continuous"] is None
+                    else clone(self.imputation_model["continuous"])
+                ),
+                model_binary=(
+                    None
+                    if self.imputation_model["binary"] is None
+                    else clone(self.imputation_model["binary"])
+                ),
+                model_categorical=(
+                    None
+                    if self.imputation_model["categorical"] is None
+                    else clone(self.imputation_model["categorical"])
+                ),
+                model_ordinary=(
+                    None
+                    if self.imputation_model["ordinary"] is None
+                    else clone(self.imputation_model["ordinary"])
+                ),
+                random_state=self.rng,
+                imputation_model_multimodal=self.imputation_model_multimodal,
+                categorical_max_cardinality=self.categorical_max_cardinality,
+            )
+            for groupd_id in range(self.n_groups)
+        ]
+
         # Parallelize the fitting of the covariate estimators
         X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_group)(estimator, X_, groups_ids)
-            for groups_ids, estimator in zip(self._groups_ids, self._list_imputation_models)
+            for groups_ids, estimator in zip(
+                self._groups_ids, self._list_imputation_models
+            )
         )
 
         return self
@@ -254,6 +301,6 @@ class CPI(BasePermutation):
         return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
-    
+
     def _remove_nan(self, X):
         return X
