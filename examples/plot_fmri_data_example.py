@@ -154,8 +154,9 @@ pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
-    # We computed the regularization parameter from a cross valisation (C = 0.001)
-    estimator = LinearSVR(C=0.001)
+    # It will be better to associate cross validation with the estimator 
+    # but for a sake of time, this is not done.
+    estimator = LinearSVR()
     weight_svr, weight_svr_distribution = permutation_test(
         X, y, estimator, n_permutations=50
     )
@@ -167,7 +168,8 @@ if SVR_permutation_test_inference:
 # Ridge decoder. The solution provided by this method should be very close to
 # the previous one and the computation time is much shorter: around 20 seconds.
 # We computed the parameter from a cross valisation (alpha = 0.0215)
-estimator = Ridge(alpha=0.0215)
+# It will be better to use RidgeCV but for a sake of time, this is not done.
+estimator = Ridge()
 weight_ridge, weight_ridge_distribution = permutation_test(
     X, y, estimator=estimator, n_permutations=200
 )
