@@ -123,7 +123,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=0,
-        n_jobs=1,
+        n_jobs=4,
     )
     cpi.fit(X_train, y_train)
     importance = cpi.score(X_test, y_test)
