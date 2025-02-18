@@ -54,7 +54,7 @@ from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
 from sklearn.utils import Bunch
 
-from hidimstat.adaptive_permutation_threshold import ada_svr
+from hidimstat.ada_svr import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.permutation_test import permutation_test, permutation_test_cv

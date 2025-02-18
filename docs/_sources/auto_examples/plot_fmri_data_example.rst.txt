@@ -78,7 +78,7 @@ Imports needed for this script
     from sklearn.linear_model import Ridge
     from sklearn.utils import Bunch
 
-    from hidimstat.adaptive_permutation_threshold import ada_svr
+    from hidimstat.ada_svr import ada_svr
     from hidimstat.clustered_inference import clustered_inference
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.permutation_test import permutation_test, permutation_test_cv
@@ -182,7 +182,7 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 161644544 of 291168628 bytes (55.5%%,    0.8s remaining)
+    [_chunk_report_]     Downloaded 158236672 of 291168628 bytes (54.3%%,    0.8s remaining)
     [fetch_single_file]  ...done. (2 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
@@ -190,7 +190,7 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
 
     /home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:88: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
       bg_img = mean_img(haxby_dataset.anat)
-    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
       warnings.warn(
 
 
@@ -287,8 +287,8 @@ Now, we compute p-values thanks to permutation tests applied to
 
  .. code-block:: none
 
-    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.5s
-    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.6s
+    [Parallel(n_jobs=1)]: Done  49 tasks      | elapsed:    1.6s
+    [Parallel(n_jobs=1)]: Done 199 tasks      | elapsed:    6.4s
 
 
 
@@ -336,7 +336,7 @@ and high-dimensional inference (c.f. References).
  .. code-block:: none
 
     Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
-    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
       model = cd_fast.enet_coordinate_descent_gram(
 
 
@@ -369,7 +369,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.3s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.1s finished
 
 
 
@@ -575,7 +575,7 @@ called `plot_map` that wraps all these steps.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
+    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
       ims = self._map_show(img, type="imshow", threshold=threshold, **kwargs)
 
 
@@ -614,9 +614,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 22.801 seconds)
+   **Total running time of the script:** (1 minutes 22.636 seconds)
 
-**Estimated memory usage:**  3279 MB
+**Estimated memory usage:**  3316 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

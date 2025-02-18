@@ -1,4 +1,4 @@
-from .adaptive_permutation_threshold import ada_svr
+from .ada_svr import ada_svr
 from .clustered_inference import clustered_inference, hd_inference
 from .conditional_permutation_importance import CPI
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
