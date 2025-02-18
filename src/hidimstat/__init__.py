@@ -7,7 +7,7 @@ from .knockoff_aggregation import knockoff_aggregation
 from .knockoffs import model_x_knockoff
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
-from .permutation_test import permutation_test_cv
+from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
 from .standardized_svr import standardized_svr
 from .stat_tools import zscore_from_pval
@@ -34,7 +34,8 @@ __all__ = [
     "knockoff_aggregation",
     "model_x_knockoff",
     "multivariate_1D_simulation",
-    "permutation_test_cv",
+    "permutation_test",
+    "permutation_test_pval",
     "reid",
     "standardized_svr",
     "zscore_from_pval",
