@@ -160,7 +160,7 @@ for train, test in cv.split(X, y):
     model_linear_c.fit(X[train], y[train])
     cpi_linear = CPI(
         estimator=model_linear_c,
-        imputation_model=clone(imputation_model),
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
         loss=hinge_loss,
@@ -174,7 +174,7 @@ for train, test in cv.split(X, y):
     model_non_linear_c.fit(X[train], y[train])
     cpi_non_linear = CPI(
         estimator=model_non_linear_c,
-        imputation_model=clone(imputation_model),
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
         loss=hinge_loss,
@@ -302,3 +302,5 @@ ground_truth_legend = mlines.Line2D(
 )
 handles = ax.get_legend_handles_labels()[0]
 ax.legend(handles=handles + [important_legend, ground_truth_legend], loc="upper right")
+
+# %%
