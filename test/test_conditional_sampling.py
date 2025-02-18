@@ -102,7 +102,6 @@ def test_error():
     X = np.random.randint(0, 2, size=(100, 2))
     with pytest.raises(AttributeError):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
-        sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
     sampler = ConditionalSampler(
         data_type="auto",

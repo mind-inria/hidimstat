@@ -115,7 +115,6 @@ def test_raises_value_error(
             estimator=LinearRegression(),
             method="predict",
         )
-        cpi.fit(X, LinearRegression())
 
     # Not fitted imputation model with predict and score methods
     with pytest.raises(ValueError):
