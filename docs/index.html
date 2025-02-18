@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>HiDimStat: High-dimensional statistical inference tool for Python &#8212; HiDimStat 0.1.dev1+g19e6cf7 documentation</title>
+    <title>HiDimStat: High-dimensional statistical inference tool for Python &#8212; HiDimStat 0.1.dev1+g349ade8 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="_static/documentation_options.js?v=4f73dee8"></script>
+    <script src="_static/documentation_options.js?v=107c4ed3"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -153,6 +153,9 @@ the development of this project):</p>
 <span class="n">numpy</span>
 <span class="n">scipy</span>
 <span class="n">scikit</span><span class="o">-</span><span class="n">learn</span>
+<span class="n">pandas</span>
+<span class="n">torch</span>
+<span class="n">torchmetrics</span>
 </pre></div>
 </div>
 <p>To run examples it is neccessary to install <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>, and to run tests it
@@ -178,8 +181,8 @@ MEG/EEG datasets.</p>
 <section id="build-the-documentation">
 <h2>Build the documentation<a class="headerlink" href="#build-the-documentation" title="Link to this heading">¶</a></h2>
 <p>To build the documentation you will need to run:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">sphinx_gallery</span> <span class="n">sphinx_bootstrap_theme</span>
-<span class="n">cd</span> <span class="n">doc</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="o">.</span><span class="p">[</span><span class="n">doc</span><span class="p">]</span>
+<span class="n">cd</span> <span class="n">doc_conf</span>
 <span class="n">make</span> <span class="n">html</span>
 </pre></div>
 </div>

@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>API Documentation &#8212; HiDimStat 0.1.dev1+g19e6cf7 documentation</title>
+    <title>API Documentation &#8212; HiDimStat 0.1.dev1+g349ade8 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="_static/documentation_options.js?v=4f73dee8"></script>
+    <script src="_static/documentation_options.js?v=107c4ed3"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -133,7 +133,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.ada_svr.html#hidimstat.ada_svr" title="hidimstat.ada_svr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ada_svr</span></code></a>(X, y[, rcond])</p></td>
-<td><p>Adaptative Permutation Threshold for SVR</p></td>
+<td><p>ADA-SVR: Adaptive Permutation Threshold Support Vector Regression</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.aggregate_quantiles.html#hidimstat.aggregate_quantiles" title="hidimstat.aggregate_quantiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_quantiles</span></code></a>(list_one_sided_pval[, ...])</p></td>
 <td><p>Aggregation of survival function values by adaptive quantile procedure</p></td>
@@ -165,16 +165,19 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.multivariate_1D_simulation.html#hidimstat.multivariate_1D_simulation" title="hidimstat.multivariate_1D_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">multivariate_1D_simulation</span></code></a>([n_samples, ...])</p></td>
 <td><p>Generate 1D data with Toeplitz design matrix</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.permutation_test_cv.html#hidimstat.permutation_test_cv" title="hidimstat.permutation_test_cv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">permutation_test_cv</span></code></a>(X, y[, n_permutations, ...])</p></td>
-<td><p>Cross-validated permutation test shuffling the target</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">permutation_test</span></code></a>(X, y, estimator[, ...])</p></td>
+<td><p>Permutation test</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.reid.html#hidimstat.reid" title="hidimstat.reid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reid</span></code></a>(X, y[, eps, tol, max_iter, n_jobs, seed])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.permutation_test_pval.html#hidimstat.permutation_test_pval" title="hidimstat.permutation_test_pval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">permutation_test_pval</span></code></a>(weights, ...)</p></td>
+<td><p>Compute p-value from permutation test</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.reid.html#hidimstat.reid" title="hidimstat.reid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reid</span></code></a>(X, y[, eps, tol, max_iter, n_jobs, seed])</p></td>
 <td><p>Estimation of noise standard deviation using Reid procedure</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.standardized_svr.html#hidimstat.standardized_svr" title="hidimstat.standardized_svr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standardized_svr</span></code></a>(X, y[, Cs, n_jobs])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.standardized_svr.html#hidimstat.standardized_svr" title="hidimstat.standardized_svr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standardized_svr</span></code></a>(X, y[, Cs, n_jobs])</p></td>
 <td><p>Cross-validated SVR</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zscore_from_pval</span></code></a>(pval[, one_minus_pval, distrib])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zscore_from_pval</span></code></a>(pval[, one_minus_pval, distrib])</p></td>
 <td><p>Computing z-scores from one-sided p-values.</p></td>
 </tr>
 </tbody>

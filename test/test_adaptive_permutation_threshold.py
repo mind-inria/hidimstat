@@ -5,9 +5,8 @@ Test the adaptive_permutation_threshold module
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from hidimstat.adaptive_permutation_threshold import ada_svr
+from hidimstat.ada_svr import ada_svr, ada_svr_pvalue
 from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.stat_tools import pval_from_scale
 
 
 def test_ada_svr():
@@ -34,7 +33,7 @@ def test_ada_svr():
     beta_hat, scale_hat = ada_svr(X_init, y)
 
     # Compute p-values
-    pval, pval_corr, _, _ = pval_from_scale(beta_hat, scale_hat)
+    pval, pval_corr, _, _ = ada_svr_pvalue(beta_hat, scale_hat)
 
     # Check that the p-values are close to 0.5 for the features not in the support
     # and close to 0 for the feature in the support

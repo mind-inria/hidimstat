@@ -176,7 +176,7 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7fa1fa109160>, <matplotlib.axis.YTick object at 0x7fa1fa1a36b0>, <matplotlib.axis.YTick object at 0x7fa1fb042330>, <matplotlib.axis.YTick object at 0x7fa1fb0406b0>, <matplotlib.axis.YTick object at 0x7fa1fb101820>, <matplotlib.axis.YTick object at 0x7fa1fb043e30>, <matplotlib.axis.YTick object at 0x7fa1fb0414c0>, <matplotlib.axis.YTick object at 0x7fa1f94ed1c0>, <matplotlib.axis.YTick object at 0x7fa1f94ef4a0>, <matplotlib.axis.YTick object at 0x7fa1fb0410d0>]
+    [<matplotlib.axis.YTick object at 0x7fef2ae3e660>, <matplotlib.axis.YTick object at 0x7fef2ae3eae0>, <matplotlib.axis.YTick object at 0x7fef1c38e780>, <matplotlib.axis.YTick object at 0x7fef1c38e660>, <matplotlib.axis.YTick object at 0x7fef1c38e990>, <matplotlib.axis.YTick object at 0x7fef1c38e060>, <matplotlib.axis.YTick object at 0x7fef2aee7710>, <matplotlib.axis.YTick object at 0x7fef2aee4aa0>, <matplotlib.axis.YTick object at 0x7fef2aee48c0>, <matplotlib.axis.YTick object at 0x7fef1c38c7d0>]
 
 
 
@@ -287,7 +287,7 @@ estimate the importance of the features.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.8/x64/lib/python3.12/site-packages/joblib/externals/loky/process_executor.py:752: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
+    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/joblib/externals/loky/process_executor.py:752: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
       warnings.warn(
 
 
@@ -422,16 +422,16 @@ the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7fa1f94f54c0>
+    <matplotlib.legend.Legend object at 0x7fef2ae82540>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 44.777 seconds)
+   **Total running time of the script:** (0 minutes 42.709 seconds)
 
-**Estimated memory usage:**  619 MB
+**Estimated memory usage:**  639 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_variable_importance_classif.py:
