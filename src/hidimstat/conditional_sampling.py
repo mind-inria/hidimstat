@@ -145,7 +145,7 @@ class ConditionalSampler:
             )
 
         if self.data_type == "continuous":
-            y_hat = self.model.predict(X)
+            y_hat = self.model.predict(X).reshape(y.shape)
             residual = y - y_hat
             residual_permuted = np.stack(
                 [self.rng.permutation(residual) for _ in range(n_samples)],
