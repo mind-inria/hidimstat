@@ -33,7 +33,7 @@ from sklearn.metrics import hinge_loss
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.svm import SVC
 
-from hidimstat import CPI, permutation_importance
+from hidimstat import CPI, PermutationImportance
 
 #############################################################################
 # Generate the data
@@ -43,7 +43,7 @@ from hidimstat import CPI, permutation_importance
 # of the features. To make the problem more intuitive, we generate a non-linear
 # combination of the features inspired by the Body Mass Index (BMI) formula.
 # The BMI can be obtained by :math:`\text{BMI} = \frac{\text{weight}}{\text{height}^2}`.
-# And we simply mimic the weight and height variables by rescalling 2 correlated
+# And we simply mimic the weight and height variables by rescaling 2 correlated
 # features. The binary target is then generated using the formula:
 # :math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
 # The first and second term are non-linear functions of the features, corresponding to
@@ -160,7 +160,7 @@ for train, test in cv.split(X, y):
     model_linear_c.fit(X[train], y[train])
     cpi_linear = CPI(
         estimator=model_linear_c,
-        imputation_model=clone(imputation_model),
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
         loss=hinge_loss,
@@ -174,7 +174,7 @@ for train, test in cv.split(X, y):
     model_non_linear_c.fit(X[train], y[train])
     cpi_non_linear = CPI(
         estimator=model_non_linear_c,
-        imputation_model=clone(imputation_model),
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=50,
         n_jobs=5,
         loss=hinge_loss,
@@ -184,15 +184,15 @@ for train, test in cv.split(X, y):
     cpi_non_linear.fit(X[train], y[train])
     imp_cpi_non_linear = cpi_non_linear.score(X[test], y[test])["importance"]
 
-    imp_pi_non_linear, list_loss_j, loss_reference = permutation_importance(
-        X[test],
-        y[test],
+    pi_non_linear = PermutationImportance(
         estimator=model_non_linear_c,
         n_permutations=50,
         n_jobs=5,
         random_state=seed,
         method="decision_function",
     )
+    pi_non_linear.fit(X[train], y[train])
+    imp_pi_non_linear = pi_non_linear.score(X[test], y[test])["importance"]
 
     importance_list.append(
         np.stack(
