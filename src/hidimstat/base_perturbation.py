@@ -19,26 +19,27 @@ class BasePerturbation(BaseEstimator):
         n_jobs: int = 1,
     ):
         """
-        Base class for model agnostic variable importance measures based on
+        Base class for model-agnostic variable importance measures based on
         perturbation.
 
         Parameters
         ----------
         estimator : object
-            The estimator to use for the prediction.
+            The model used for making predictions.
         loss : callable, default=root_mean_squared_error
-            The loss function to use when comparing the perturbed model to the full
-            model.
+            The function to compute the loss when comparing the perturbed model to the
+            original model.
         n_permutations : int, default=50
-            Only for PermutationImportance or CPI. The number of permutations to
-            perform.
+            This parameter is relevant only for PermutationImportance or CPI.
+            Specifies the number of times the variable group (residual for CPI) is
+            permuted. For each permutation, the perturbed model's loss is calculated and
+            averaged over all permutations.
         method : str, default="predict"
-            The method to use for the prediction. This determines the predictions passed
-            to the loss function.
+            The method used for making predictions. This determines the predictions
+            passed to the loss function.
         n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
+            The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
-
         """
         check_is_fitted(estimator)
         self.estimator = estimator
