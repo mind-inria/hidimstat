@@ -72,6 +72,15 @@ class BasePerturbation(BaseEstimator):
                 self._groups_ids = np.array(list(self.groups.values()), dtype=int)
 
     def predict(self, X):
+        """
+        Compute the predictions from the perturbed models for each group of
+        variables.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        """
         self._check_fit()
         X_ = np.asarray(X)
 
@@ -83,6 +92,25 @@ class BasePerturbation(BaseEstimator):
         return np.stack(out_list, axis=0)
 
     def score(self, X, y):
+        """
+        Compute the importance scores for each group of covariates.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        out_dict: dict
+            A dictionary containing the following keys:
+            - 'loss_reference': the loss of the model with the original data.
+            - 'loss': a dictionary containing the loss of the perturbed model
+            for each group.
+            - 'importance': the importance scores for each group.
+        """
         self._check_fit()
 
         out_dict = dict()
@@ -111,6 +139,19 @@ class BasePerturbation(BaseEstimator):
         pass
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
+        """
+        Compute the predictions from the perturbed models for a given group of
+        variables. This function is parallelized.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        group_id: int
+            The index of the group of variables.
+        group_key: str, int
+            The key of the group of variables.
+        """
         group_ids = self._groups_ids[group_id]
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
