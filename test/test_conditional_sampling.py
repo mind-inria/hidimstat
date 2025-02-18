@@ -164,7 +164,8 @@ def test_group_case():
         assert 0.96 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.7
 
 
-def test_multiclass():
+def test_sample_categorical():
+    """Test for categorical case with both single and groups of variables."""
     np.random.seed(40)
     n = 1000
     X = np.random.randn(n, 5)
@@ -188,7 +189,6 @@ def test_multiclass():
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
-        # TODO check why so good accuracy
         assert 0.991 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
         assert 0.991 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
 

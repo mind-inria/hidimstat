@@ -81,6 +81,16 @@ class ConditionalSampler:
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
+        """
+        Fit the model that estimates $\mathbb{E}[y | X]$.
+
+        Parameters
+        ----------
+        X : ndarray
+            The variables used to predict the group of variables $y$.
+        y : ndarray
+            The group of variables to predict.
+        """
 
         if self.data_type == "auto":
             if len(np.unique(y)) == 2:
