@@ -51,7 +51,7 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.base import clone
 from sklearn.datasets import load_diabetes
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
@@ -62,7 +62,8 @@ from hidimstat import CPI, LOCO, PermutationImportance
 # -------------------------
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
-
+# Encode sex as binary
+X[:, 1] = (X[:, 1] > 0.0).astype(int)
 #############################################################################
 # Fit a baseline model on the diabetes dataset
 # --------------------------------------------
@@ -117,11 +118,12 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     cpi = CPI(
         estimator=regressor_list[i],
-        imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model_binary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=0,
-        n_jobs=4,
+        n_jobs=1,
     )
     cpi.fit(X_train, y_train)
     importance = cpi.score(X_test, y_test)
@@ -139,7 +141,6 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     loco = LOCO(
         estimator=regressor_list[i],
-        random_state=0,
         n_jobs=4,
     )
     loco.fit(X_train, y_train)
@@ -163,6 +164,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         random_state=0,
         n_jobs=4,
     )
+    pi.fit(X_train, y_train)
     importance = pi.score(X_test, y_test)
     pi_importance_list.append(importance)
 

@@ -18,7 +18,7 @@ class CPI(BasePerturbation):
         n_permutations: int = 50,
         imputation_model_continuous=None,
         imputation_model_binary=None,
-        imputation_model_classification=None,
+        imputation_model_categorical=None,
         random_state: int = None,
         categorical_max_cardinality: int = 10,
     ):
@@ -49,7 +49,7 @@ class CPI(BasePerturbation):
         imputation_model_binary : object, default=None
             The model used to estimate the conditional distribution of a given
             binary variable/group of variables given the others.
-        imputation_model_classification : object, default=None
+        imputation_model_categorical : object, default=None
             The model used to estimate the conditional distribution of a given
             categorical variable/group of variables given the others.
         random_state : int, default=None
@@ -72,11 +72,11 @@ class CPI(BasePerturbation):
         self.imputation_model = {
             "continuous": imputation_model_continuous,
             "binary": imputation_model_binary,
-            "categorical": imputation_model_classification,
+            "categorical": imputation_model_categorical,
         }
         self.categorical_max_cardinality = categorical_max_cardinality
 
-    def fit(self, X, groups=None, var_type="auto"):
+    def fit(self, X, y=None, groups=None, var_type="auto"):
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
