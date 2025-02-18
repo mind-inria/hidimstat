@@ -52,14 +52,17 @@ from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
+from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
 from hidimstat.ada_svr import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-from hidimstat.permutation_test import permutation_test, permutation_test_cv
+from hidimstat.permutation_test import permutation_test, permutation_test_pval
 from hidimstat.standardized_svr import standardized_svr
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
+
+n_job = None
 
 
 #############################################################################
@@ -151,18 +154,27 @@ pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
-    # We computed the regularization parameter by CV (C = 0.1)
-    pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_cv(
-        X, y, n_permutations=50, C=0.1
+    # It will be better to associate cross validation with the estimator
+    # but for a sake of time, this is not done.
+    estimator = LinearSVR()
+    weight_svr, weight_svr_distribution = permutation_test(
+        X, y, estimator, n_permutations=50
+    )
+    pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_pval(
+        weight_svr, weight_svr_distribution
     )
 
 # Another method is to compute the p-values by permutation test from the
 # Ridge decoder. The solution provided by this method should be very close to
 # the previous one and the computation time is much shorter: around 20 seconds.
-
+# We computed the parameter from a cross valisation (alpha = 0.0215)
+# It will be better to use RidgeCV but for a sake of time, this is not done.
 estimator = Ridge()
-pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = permutation_test(
+weight_ridge, weight_ridge_distribution = permutation_test(
     X, y, estimator=estimator, n_permutations=200
+)
+pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = permutation_test_pval(
+    weight_ridge, weight_ridge_distribution
 )
 
 #############################################################################
@@ -305,4 +317,4 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-show()
+# show()
