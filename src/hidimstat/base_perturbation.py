@@ -73,7 +73,7 @@ class BasePerturbation(BaseEstimator):
 
     def predict(self, X):
         """
-        Compute the predictions from the perturbed models for each group of
+        Compute the predictions after perturbation of the data for each group of
         variables.
 
         Parameters
