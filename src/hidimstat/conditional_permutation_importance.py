@@ -119,9 +119,8 @@ class CPI(BasePerturbation):
         return self
 
     def _joblib_fit_one_group(self, estimator, X, groups_ids):
-        X_ = self._remove_nan(X)
-        X_j = X_[:, groups_ids].copy()
-        X_minus_j = np.delete(X_, groups_ids, axis=1)
+        X_j = X[:, groups_ids].copy()
+        X_minus_j = np.delete(X, groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -132,9 +131,8 @@ class CPI(BasePerturbation):
             check_is_fitted(m.model)
 
     def _permutation(self, X, group_id):
-        X_ = self._remove_nan(X)
-        X_j = X_[:, self._groups_ids[group_id]].copy()
-        X_minus_j = np.delete(X_, self._groups_ids[group_id], axis=1)
+        X_j = X[:, self._groups_ids[group_id]].copy()
+        X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
