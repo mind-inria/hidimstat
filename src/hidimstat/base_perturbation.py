@@ -1,3 +1,5 @@
+"""Base class for model agnostic variable importance measures based on perturbation."""
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
