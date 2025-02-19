@@ -1,28 +1,7 @@
-from typing import Union
-
 import numpy as np
-from sklearn.base import check_is_fitted
-from sklearn.linear_model import (
-    ElasticNet,
-    ElasticNetCV,
-    Lasso,
-    LassoCV,
-    LinearRegression,
-    Ridge,
-    RidgeCV,
-)
+from sklearn.base import MultiOutputMixin, check_is_fitted
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
-
-NATIVELY_MULTIOUTPUT = Union[
-    ElasticNet,
-    ElasticNetCV,
-    Lasso,
-    LassoCV,
-    LinearRegression,
-    Ridge,
-    RidgeCV,
-]
 
 
 class ConditionalSampler:
@@ -107,8 +86,8 @@ class ConditionalSampler:
         if (y.ndim > 1) and (y.shape[1] > 1):
             if self.data_type in ["binary", "categorical"]:
                 self.model = MultiOutputClassifier(self.model)
-            elif self.data_type == "continuous" and not isinstance(
-                self.model, NATIVELY_MULTIOUTPUT
+            elif self.data_type == "continuous" and not issubclass(
+                self.model.__class__, MultiOutputMixin
             ):
                 self.model = MultiOutputRegressor(self.model)
             self.multioutput_ = True
