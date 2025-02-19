@@ -131,27 +131,6 @@ def test_group_reid():
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
 
-<<<<<<< HEAD
-def test_group_reid_exception():
-    """
-    Test the exception of group reid
-    """
-    n_samples = 30
-    n_features = 50
-    n_times = 10
-    X, Y, beta, noise = multivariate_temporal_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_times=n_times,
-    )
-    # max_iter=1 to get a better coverage
-    with pytest.raises(
-        ValueError,
-        match="The requested AR order is to high with "
-        + "respect to the number of time steps.",
-    ):
-        group_reid(X, Y, stationary=True, method="AR", order=100)
-=======
 def test_reid_exception():
     "Test for testing the exceptions on the arguments of reid function"
     n_samples, n_features = 50, 30
@@ -171,14 +150,10 @@ def test_reid_exception():
         sigma=sigma,
         rho_noise=rho,
     )
->>>>>>> origin/PR_desparsified_lasso
 
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):
-<<<<<<< HEAD
-        group_reid(X, Y, method="test", order=100)
-=======
         _, _ = reid(X, y, method="test", group=True)
     with pytest.raises(
         ValueError, match="The AR method is not compatible with the non-stationary"
@@ -186,7 +161,6 @@ def test_reid_exception():
         _, _ = reid(X, y, method="AR", stationary=False, group=True)
     with pytest.raises(ValueError, match="The requested AR order is to high with"):
         _, _ = reid(X, y, method="AR", order=1e4, group=True)
->>>>>>> origin/PR_desparsified_lasso
 
 
 def test_empirical_snr():
