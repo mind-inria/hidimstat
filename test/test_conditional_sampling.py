@@ -4,6 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.preprocessing import StandardScaler
 
 from hidimstat.conditional_sampling import ConditionalSampler
 
@@ -92,7 +93,6 @@ def test_binary_case():
 
 def test_error():
     # Test for error when model does not have predict_proba
-
     np.random.seed(40)
     sampler = ConditionalSampler(
         model_regression=RidgeClassifier(),
@@ -102,6 +102,16 @@ def test_error():
     X = np.random.randint(0, 2, size=(100, 2))
     with pytest.raises(AttributeError):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+
+    # test for error when model does not have predict
+    sampler = ConditionalSampler(
+        model_regression=StandardScaler(),
+        data_type="continuous",
+        random_state=0,
+    )
+    with pytest.raises(AttributeError):
+        sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+        sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
     sampler = ConditionalSampler(
         data_type="auto",

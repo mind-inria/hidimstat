@@ -117,6 +117,11 @@ class ConditionalSampler:
         check_is_fitted(self.model)
 
         if self.data_type == "continuous":
+            if not hasattr(self.model, "predict"):
+                raise AttributeError(
+                    "The model must have a `predict` method to be used for \
+                        continuous data."
+                )
             y_hat = self.model.predict(X).reshape(y.shape)
             residual = y - y_hat
             residual_permuted = np.stack(
