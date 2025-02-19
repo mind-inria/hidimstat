@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 
@@ -46,7 +47,7 @@ class PermutationImportance(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
         )
-        self.rng = np.random.RandomState(random_state)
+        self.rng = check_random_state(random_state)
 
     def _permutation(self, X, group_id):
         # Create the permuted data for the j-th group of covariates
