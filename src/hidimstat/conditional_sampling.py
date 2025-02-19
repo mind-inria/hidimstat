@@ -136,13 +136,6 @@ class ConditionalSampler:
         """
 
         check_is_fitted(self.model)
-        if (self.data_type in ["binary", "categorical"]) and (
-            not hasattr(self.model, "predict_proba")
-        ):
-            raise AttributeError(
-                "The model must have a `predict_proba` method to be used for \
-                    categorical or binary data."
-            )
 
         if self.data_type == "continuous":
             y_hat = self.model.predict(X).reshape(y.shape)
@@ -154,6 +147,11 @@ class ConditionalSampler:
             return y_hat[np.newaxis, ...] + residual_permuted
 
         elif self.data_type in ["binary", "categorical"]:
+            if not hasattr(self.model, "predict_proba"):
+                raise AttributeError(
+                    "The model must have a `predict_proba` method to be used for \
+                        categorical or binary data."
+                )
             y_pred_proba = self.model.predict_proba(X)
 
             # multioutput case (group of variables)
