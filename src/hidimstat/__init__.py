@@ -1,4 +1,3 @@
-from .ada_svr import ada_svr
 from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .Dnn_learner_single import DnnLearnerSingle
@@ -21,7 +20,6 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "ada_svr",
     "aggregate_quantiles",
     "clustered_inference",
     "dcrt_zero",
