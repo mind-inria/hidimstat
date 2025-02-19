@@ -73,7 +73,7 @@ class BasePerturbation(BaseEstimator):
 
     def predict(self, X):
         """
-        Compute the predictions from the perturbed models for each group of
+        Compute the predictions after perturbation of the data for each group of
         variables.
 
         Parameters
@@ -140,7 +140,7 @@ class BasePerturbation(BaseEstimator):
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
-        Compute the predictions from the perturbed models for a given group of
+        Compute the predictions after perturbation of the data for a given group of
         variables. This function is parallelized.
 
         Parameters
