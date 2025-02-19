@@ -6,13 +6,22 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 
-from hidimstat.clustered_inference import clustered_inference
+from hidimstat.clustered_inference import (
+    clustered_inference,
+    clustered_inference_pvalue,
+)
+from hidimstat.clustered_inference import (
+    ensemble_clustered_inference,
+    ensemble_clustered_inference_pvalue,
+)
 from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )
+from hidimstat.stat_tools import aggregate_medians, aggregate_quantiles
 
 
 # Scenario 1: data with no temporal dimension
@@ -30,7 +39,7 @@ def test_clustered_inference_no_temporal():
     support_size = 10
     sigma = 5.0
     rho = 0.95
-    n_clusters = 200
+    n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -53,14 +62,14 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    # test exception
-    with pytest.raises(ValueError, match="Unknow method"):
-        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            clustered_inference(X_init, y, ward, n_clusters, method="test")
-        )
+    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+        X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+    )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference(X_init, y, ward, n_clusters)
+        clustered_inference_pvalue(
+            n_samples, None, ward_, beta_hat, theta_hat, omega_diag
+        )
     )
 
     expected = 0.5 * np.ones(n_features)
@@ -87,7 +96,7 @@ def test_clustered_inference_temporal():
     sigma = 5.0
     rho_noise = 0.9
     rho_data = 0.9
-    n_clusters = 200
+    n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -108,8 +117,14 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
+    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+        X, Y, ward, n_clusters, scaler_sampling=StandardScaler()
+    )
+
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference(X, Y, ward, n_clusters, method="desparsified-group-lasso")
+        clustered_inference_pvalue(
+            n_samples, True, ward_, beta_hat, theta_hat, omega_diag
+        )
     )
 
     expected = 0.5 * np.ones(n_features)
@@ -172,8 +187,14 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
+    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+        X_, y_, ward, n_clusters, groups=groups, scaler_sampling=StandardScaler()
+    )
+
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference(X_, y_, ward, n_clusters, groups=groups)
+        clustered_inference_pvalue(
+            n_groups * n_samples, False, ward_, beta_hat, theta_hat, omega_diag
+        )
     )
 
     expected = 0.5 * np.ones(n_features)
@@ -186,21 +207,34 @@ def test_clustered_inference_no_temporal_groups():
 
 
 # Scenario 1: data with no temporal dimension
-def test_clustered_inference_exception_methods():
-    """
-    Testing the procedure on two simulations with a 1D data structure and
-    checking that the procedure raises an exception when an unknown method is
-    provided.
-    """
+def test_ensemble_clustered_inference():
+    """Testing the procedure on a simulation with a 1D data structure
+    and with n << p: the first test has no temporal dimension, the second has a
+    temporal dimension. The support is connected and of size 10, it must be
+    recovered with a small spatial tolerance parametrized by `margin_size`.
+    Computing one sided p-values, we want low p-values for the features of
+    the support and p-values close to 0.5 for the others."""
+
+    # Scenario 1: data with no temporal dimension
+    # ###########################################
     n_samples, n_features = 100, 2000
-    n_clusters = 200
+    support_size = 10
+    sigma = 5.0
+    rho = 0.95
 
     X_init, y, beta, epsilon = multivariate_1D_simulation(
         n_samples=n_samples,
         n_features=n_features,
+        support_size=support_size,
+        sigma=sigma,
+        rho=rho,
         shuffle=False,
-        seed=2,
+        seed=0,
     )
+
+    margin_size = 5
+    n_clusters = 200
+    n_bootstraps = 3
 
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)
@@ -210,5 +244,105 @@ def test_clustered_inference_exception_methods():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    with pytest.raises(ValueError, match="Unknow method"):
-        clustered_inference(X_init, y, ward, n_clusters, method="lll")
+    list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+        ensemble_clustered_inference(
+            X_init,
+            y,
+            ward,
+            n_clusters,
+            scaler_sampling=StandardScaler(),
+            n_bootstraps=n_bootstraps,
+        )
+    )
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        ensemble_clustered_inference_pvalue(
+            n_samples, False, list_ward, list_beta_hat, list_theta_hat, list_omega_diag
+        )
+    )
+
+    expected = 0.5 * np.ones(n_features)
+    expected[:support_size] = 0.0
+
+    assert_almost_equal(
+        pval_corr[: support_size - margin_size], expected[: support_size - margin_size]
+    )
+    assert_almost_equal(
+        pval_corr[support_size + margin_size :],
+        expected[support_size + margin_size :],
+        decimal=1,
+    )
+
+def test_ensemble_clustered_inference_temporal_data():
+    # Scenario 2: temporal data
+    # #########################
+    n_samples, n_features, n_times = 200, 2000, 10
+    support_size = 10
+    sigma = 5.0
+    rho_noise = 0.9
+    rho_data = 0.9
+    n_clusters = 200
+    margin_size = 5
+    interior_support = support_size - margin_size
+    extended_support = support_size + margin_size
+    n_bootstraps = 4
+
+    X, Y, beta, noise = multivariate_temporal_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        n_times=n_times,
+        support_size=support_size,
+        sigma=sigma,
+        rho_noise=rho_noise,
+        rho_data=rho_data,
+        shuffle=False,
+    )
+
+    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+    ward = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
+
+    list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+        ensemble_clustered_inference(
+            X,
+            Y,
+            ward,
+            n_clusters,
+            scaler_sampling=StandardScaler(),
+            n_bootstraps=n_bootstraps,
+        )
+    )
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        ensemble_clustered_inference_pvalue(
+            n_samples, True, list_ward, list_beta_hat, list_theta_hat, list_omega_diag,
+            aggregate_method=aggregate_quantiles
+        )
+    )
+
+    expected = 0.5 * np.ones(n_features)
+    expected[:support_size] = 0.0
+
+    assert_almost_equal(
+        pval_corr[:interior_support], expected[:interior_support], decimal=3
+    )
+    assert_almost_equal(
+        pval_corr[extended_support:], expected[extended_support:], decimal=1
+    )
+    
+    # different aggregation method
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+        ensemble_clustered_inference_pvalue(
+            n_samples, True, list_ward, list_beta_hat, list_theta_hat, list_omega_diag,
+            aggregate_method=aggregate_medians
+        )
+    )
+
+    expected = 0.5 * np.ones(n_features)
+    expected[:support_size] = 0.0
+
+    assert_almost_equal(
+        pval_corr[:interior_support], expected[:interior_support], decimal=3
+    )
+    assert_almost_equal(
+        pval_corr[extended_support:], expected[extended_support:], decimal=1
+    )
