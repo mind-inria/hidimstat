@@ -150,7 +150,7 @@ class BasePerturbation(BaseEstimator):
         group_id: int
             The index of the group of variables.
         group_key: str, int
-            The key of the group of variables.
+            The key of the group of variables. (parameter use for debugging)
         """
         group_ids = self._groups_ids[group_id]
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
