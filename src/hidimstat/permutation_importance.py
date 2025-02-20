@@ -40,6 +40,10 @@ class PermutationImportance(BasePerturbation):
             the mean of the losses over the `n_permutations` is computed.
         random_state : int, default=None
             The random state to use for sampling.
+
+        References
+        ----------
+        .. footbibliography::
         """
         super().__init__(
             estimator=estimator,
