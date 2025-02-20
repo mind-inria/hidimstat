@@ -15,7 +15,6 @@ Functions
 .. autosummary::
    :toctree: generated/
 
-   ada_svr
    aggregate_quantiles
    clustered_inference
    data_simulation

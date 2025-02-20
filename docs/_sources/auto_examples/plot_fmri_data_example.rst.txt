@@ -79,7 +79,7 @@ Imports needed for this script
     from sklearn.svm import LinearSVR
     from sklearn.utils import Bunch
 
-    from hidimstat.ada_svr import ada_svr
+    from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
     from hidimstat.clustered_inference import clustered_inference
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.permutation_test import permutation_test, permutation_test_pval
@@ -179,15 +179,25 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
     [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
     [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-    [fetch_single_file]  ...done. (0 seconds, 0 min)
+    [fetch_single_file]  ...done. (1 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 94011392 of 291168628 bytes (32.3%%,    2.1s remaining)
-    [_chunk_report_]     Downloaded 212819968 of 291168628 bytes (73.1%%,    0.7s remaining)
-    [fetch_single_file]  ...done. (3 seconds, 0 min)
+    [_chunk_report_]     Downloaded 15261696 of 291168628 bytes (5.2%%,   18.2s remaining)
+    [_chunk_report_]     Downloaded 53190656 of 291168628 bytes (18.3%%,    9.1s remaining)
+    [_chunk_report_]     Downloaded 91701248 of 291168628 bytes (31.5%%,    6.6s remaining)
+    [_chunk_report_]     Downloaded 129933312 of 291168628 bytes (44.6%%,    5.0s remaining)
+    [_chunk_report_]     Downloaded 156491776 of 291168628 bytes (53.7%%,    4.4s remaining)
+    [_chunk_report_]     Downloaded 178135040 of 291168628 bytes (61.2%%,    3.9s remaining)
+    [_chunk_report_]     Downloaded 196550656 of 291168628 bytes (67.5%%,    3.4s remaining)
+    [_chunk_report_]     Downloaded 213925888 of 291168628 bytes (73.5%%,    2.9s remaining)
+    [_chunk_report_]     Downloaded 232153088 of 291168628 bytes (79.7%%,    2.3s remaining)
+    [_chunk_report_]     Downloaded 250953728 of 291168628 bytes (86.2%%,    1.6s remaining)
+    [_chunk_report_]     Downloaded 270131200 of 291168628 bytes (92.8%%,    0.9s remaining)
+    [_chunk_report_]     Downloaded 289538048 of 291168628 bytes (99.4%%,    0.1s remaining)
+    [fetch_single_file]  ...done. (12 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
@@ -375,7 +385,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.0s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.1s finished
 
 
 
@@ -620,9 +630,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 23.795 seconds)
+   **Total running time of the script:** (1 minutes 37.697 seconds)
 
-**Estimated memory usage:**  3287 MB
+**Estimated memory usage:**  3398 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

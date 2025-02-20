@@ -55,7 +55,7 @@ from sklearn.linear_model import Ridge
 from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
-from hidimstat.ada_svr import ada_svr
+from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
