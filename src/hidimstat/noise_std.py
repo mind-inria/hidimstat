@@ -118,8 +118,8 @@ def reid(
         residual = clf_cv.predict(X_) - y
 
         # get the number of non-zero coefficients
-        coef_sum = np.sum(np.abs(beta_hat), axis=0)
-        size_support = np.sum(coef_sum > tol * coef_sum.max())
+        coef_ = np.sum(np.abs(beta_hat), axis=0) if len(beta_hat.shape)> 1 else np.abs(beta_hat)
+        size_support = np.sum(coef_ > tol * coef_.max())
 
         # avoid dividing by 0
         size_support = min(size_support, n_samples - 1)
