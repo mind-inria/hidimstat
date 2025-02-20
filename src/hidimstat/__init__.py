@@ -11,7 +11,7 @@ from .noise_std import group_reid, reid
 from .permutation_importance import PermutationImportance
 from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
-from .standardized_svr import standardized_svr
+from .empirical_thresholding import empirical_thresholding
 from .stat_tools import zscore_from_pval
 
 try:
@@ -35,7 +35,7 @@ __all__ = [
     "permutation_test",
     "permutation_test_pval",
     "reid",
-    "standardized_svr",
+    "empirical_thresholding",
     "zscore_from_pval",
     "CPI",
     "LOCO",

@@ -28,7 +28,7 @@ Functions
    permutation_test
    permutation_test_pval
    reid
-   standardized_svr
+   empirical_thresholding
    zscore_from_pval
 
 Classes
