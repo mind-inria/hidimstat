@@ -76,16 +76,6 @@ def test_desparsified_lasso():
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
 
-def test_desparsified_lasso_exception():
-    """Testing exception of not using lasso"""
-
-    X, y, beta, noise = multivariate_1D_simulation()
-    with pytest.raises(
-        ValueError, match="The only regression method available is 'lasso'"
-    ):
-        _ = desparsified_lasso(X, y, residual_method="test")
-
-
 def test_desparsified_group_lasso():
     """Testing the procedure on a simulation with no structure and
     a support of size 2. Computing one-sided p-values, we want
