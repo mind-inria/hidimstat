@@ -79,7 +79,7 @@ def _rescale_beta(beta_hat, n_features, ward):
     # degroup beta_hat
     if len(beta_hat.shape) == 1:
         # weighting the weight of beta with the size of the cluster
-        beta_hat = ward.inverse_transform(beta_hat) / clusters_size
+        beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
     elif len(beta_hat.shape) == 2:
         n_times = beta_hat.shape[1]
         beta_hat_degrouped = np.zeros((n_features, n_times))
