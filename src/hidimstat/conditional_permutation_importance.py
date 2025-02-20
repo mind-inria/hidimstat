@@ -81,8 +81,6 @@ class CPI(BasePerturbation):
 
         Parameters
         ----------
-        Parameters
-        ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
         y: array-like of shape (n_samples,)
