@@ -1,6 +1,6 @@
 from .ada_svr import ada_svr
-from .clustered_inference import clustered_inference, clustered_inference_pvalue
-from .clustered_inference import ensemble_clustered_inference, ensemble_clustered_inference_pvalue
+from .ensemble_clustered_inference import clustered_inference, clustered_inference_pvalue
+from .ensemble_clustered_inference import ensemble_clustered_inference, ensemble_clustered_inference_pvalue
 from .desparsified_lasso import (
     desparsified_lasso,
     desparsified_lasso_pvalue,
