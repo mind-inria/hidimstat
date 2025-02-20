@@ -101,8 +101,8 @@ class ConditionalSampler:
 
         Returns
         -------
-        ndarray
-            An array of shape (n_samples, y.shape[1]) containing the samples.
+        y_conditional : ndarray
+            The samples from the conditional distribution.
         """
 
         check_is_fitted(self.model)
