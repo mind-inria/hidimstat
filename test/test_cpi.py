@@ -11,6 +11,7 @@ from hidimstat import CPI
 
 
 def test_cpi(linear_scenario):
+    """Test the Conditional Permutation Importance algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -98,6 +99,8 @@ def test_cpi(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
+    """Test for the ValueError raised by the Conditional Permutation Importance
+    algorithm."""
     X, y, _ = linear_scenario
 
     # Predict method not recognized

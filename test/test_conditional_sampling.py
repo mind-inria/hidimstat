@@ -10,6 +10,7 @@ from hidimstat.conditional_sampling import ConditionalSampler
 
 
 def test_continuous_case():
+    """Test sampling from the conditional distribution of a continuous variable."""
     n = 1000
     np.random.seed(40)
     sampler = ConditionalSampler(
@@ -47,6 +48,7 @@ def test_continuous_case():
 
 
 def test_binary_case():
+    """Test sampling from the conditional distribution of a binary variable."""
     n = 1000
     np.random.seed(40)
 
@@ -92,6 +94,7 @@ def test_binary_case():
 
 
 def test_error():
+    """Test for error when model does not have predict_proba or predict."""
     # Test for error when model does not have predict_proba
     np.random.seed(40)
     sampler = ConditionalSampler(
@@ -111,7 +114,7 @@ def test_error():
     )
     with pytest.raises(AttributeError):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
-        sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
+        sampler.sample()
 
     sampler = ConditionalSampler(
         data_type="auto",

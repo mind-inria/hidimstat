@@ -19,20 +19,20 @@ class ConditionalSampler:
 
         Parameters
         ----------
-        model_regression : object
+        model_regression : sklearn compatible estimator, optional
             The model to use for continuous data.
-        model_binary : object
+        model_binary : sklearn compatible estimator, optional
             The model to use for binary data.
-        model_categorical : object
+        model_categorical : sklearn compatible estimator, optional
             The model to use for categorical data.
         data_type : str, default="auto"
             The variable type. Supported types include "auto", "continuous", "binary",
             and "categorical". If "auto", the type is inferred from the cardinality of
             the unique values passed to the `fit` method. For categorical variables, the
             default strategy is to use a one-vs-rest classifier.
-        random_state : int
+        random_state : int, optional
             The random state to use for sampling.
-        categorical_max_cardinality : int
+        categorical_max_cardinality : int, default=10
             The maximum cardinality of a variable to be considered as categorical
             when `data_type` is "auto".
 

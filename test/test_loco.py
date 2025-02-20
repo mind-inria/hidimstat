@@ -10,6 +10,7 @@ from hidimstat import LOCO
 
 
 def test_loco(linear_scenario):
+    """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -88,6 +89,7 @@ def test_loco(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
+    """Test for error when model does not have predict_proba or predict."""
     X, y, _ = linear_scenario
     # Not fitted estimator
     with pytest.raises(NotFittedError):

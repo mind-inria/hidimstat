@@ -23,14 +23,15 @@ class PermutationImportance(BasePerturbation):
 
         Parameters
         ----------
-        estimator : object
+        estimator : sklearn compatible estimator, optionals
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
             The loss function to use when comparing the perturbed model to the full
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function.
+            to the loss function. Supported methods are "predict", "predict_proba",
+            "decision_function", "transform".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
@@ -50,7 +51,7 @@ class PermutationImportance(BasePerturbation):
         self.rng = check_random_state(random_state)
 
     def _permutation(self, X, group_id):
-        # Create the permuted data for the j-th group of covariates
+        """Create the permuted data for the j-th group of covariates"""
         X_perm_j = np.array(
             [
                 self.rng.permutation(X[:, self._groups_ids[group_id]].copy())
