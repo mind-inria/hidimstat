@@ -82,8 +82,8 @@ Imports needed for this script
     from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
     from hidimstat.clustered_inference import clustered_inference
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+    from hidimstat.empirical_thresholding import empirical_thresholding
     from hidimstat.permutation_test import permutation_test, permutation_test_pval
-    from hidimstat.standardized_svr import standardized_svr
     from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
     n_job = None
@@ -185,19 +185,13 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 15261696 of 291168628 bytes (5.2%%,   18.2s remaining)
-    [_chunk_report_]     Downloaded 53190656 of 291168628 bytes (18.3%%,    9.1s remaining)
-    [_chunk_report_]     Downloaded 91701248 of 291168628 bytes (31.5%%,    6.6s remaining)
-    [_chunk_report_]     Downloaded 129933312 of 291168628 bytes (44.6%%,    5.0s remaining)
-    [_chunk_report_]     Downloaded 156491776 of 291168628 bytes (53.7%%,    4.4s remaining)
-    [_chunk_report_]     Downloaded 178135040 of 291168628 bytes (61.2%%,    3.9s remaining)
-    [_chunk_report_]     Downloaded 196550656 of 291168628 bytes (67.5%%,    3.4s remaining)
-    [_chunk_report_]     Downloaded 213925888 of 291168628 bytes (73.5%%,    2.9s remaining)
-    [_chunk_report_]     Downloaded 232153088 of 291168628 bytes (79.7%%,    2.3s remaining)
-    [_chunk_report_]     Downloaded 250953728 of 291168628 bytes (86.2%%,    1.6s remaining)
-    [_chunk_report_]     Downloaded 270131200 of 291168628 bytes (92.8%%,    0.9s remaining)
-    [_chunk_report_]     Downloaded 289538048 of 291168628 bytes (99.4%%,    0.1s remaining)
-    [fetch_single_file]  ...done. (12 seconds, 0 min)
+    [_chunk_report_]     Downloaded 22405120 of 291168628 bytes (7.7%%,   12.1s remaining)
+    [_chunk_report_]     Downloaded 73629696 of 291168628 bytes (25.3%%,    6.1s remaining)
+    [_chunk_report_]     Downloaded 122798080 of 291168628 bytes (42.2%%,    4.2s remaining)
+    [_chunk_report_]     Downloaded 172736512 of 291168628 bytes (59.3%%,    2.8s remaining)
+    [_chunk_report_]     Downloaded 219709440 of 291168628 bytes (75.5%%,    1.7s remaining)
+    [_chunk_report_]     Downloaded 257548288 of 291168628 bytes (88.5%%,    0.8s remaining)
+    [fetch_single_file]  ...done. (7 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
@@ -247,14 +241,15 @@ First, we try to recover the discriminative partern by computing
 p-values from SVR decoder weights and a parametric approximation
 of the distribution of these weights.
 
-.. GENERATED FROM PYTHON SOURCE LINES 142-148
+.. GENERATED FROM PYTHON SOURCE LINES 142-149
 
 .. code-block:: Python
 
-
-    # We precomputed the regularization parameter by CV (C = 0.1) to reduce the
-    # computation time of the example.
-    beta_hat, scale = standardized_svr(X, y, Cs=[0.1])
+    beta_hat, scale = empirical_thresholding(
+        X,
+        y,
+        linear_estimator=LinearSVR(),
+    )
     pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 
@@ -264,12 +259,12 @@ of the distribution of these weights.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 149-151
+.. GENERATED FROM PYTHON SOURCE LINES 150-152
 
 Now, we compute p-values thanks to permutation tests applied to
 1/the weights of the SVR decoder or 2/the weights of the Ridge decoder.
 
-.. GENERATED FROM PYTHON SOURCE LINES 151-180
+.. GENERATED FROM PYTHON SOURCE LINES 152-181
 
 .. code-block:: Python
 
@@ -309,14 +304,14 @@ Now, we compute p-values thanks to permutation tests applied to
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 181-185
+.. GENERATED FROM PYTHON SOURCE LINES 182-186
 
 Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).
 Since the estimator they derive is obtained by approximating the hard margin
 SVM formulation, we referred to this method as "ada-SVR" which stands for
 "Adaptive Permutation Threshold SVR". The function is ``ada_svr``.
 
-.. GENERATED FROM PYTHON SOURCE LINES 185-188
+.. GENERATED FROM PYTHON SOURCE LINES 186-189
 
 .. code-block:: Python
 
@@ -330,12 +325,12 @@ SVM formulation, we referred to this method as "ada-SVR" which stands for
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 189-191
+.. GENERATED FROM PYTHON SOURCE LINES 190-192
 
 Now, the clustered inference algorithm which combines parcellation
 and high-dimensional inference (c.f. References).
 
-.. GENERATED FROM PYTHON SOURCE LINES 191-195
+.. GENERATED FROM PYTHON SOURCE LINES 192-196
 
 .. code-block:: Python
 
@@ -358,7 +353,7 @@ and high-dimensional inference (c.f. References).
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 196-203
+.. GENERATED FROM PYTHON SOURCE LINES 197-204
 
 Below, we run the ensemble clustered inference algorithm which adds a
 randomization step over the clustered inference algorithm (c.f. References).
@@ -368,7 +363,7 @@ then 5 statistical maps are produced and aggregated into one.
 However you might benefit from clustering randomization taking
 `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=2`.
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-207
+.. GENERATED FROM PYTHON SOURCE LINES 204-208
 
 .. code-block:: Python
 
@@ -385,12 +380,12 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.1s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.6s finished
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 208-216
+.. GENERATED FROM PYTHON SOURCE LINES 209-217
 
 Plotting the results
 --------------------
@@ -401,7 +396,7 @@ inverse survival function.
 
 First, we set theoretical FWER target at 10%.
 
-.. GENERATED FROM PYTHON SOURCE LINES 216-220
+.. GENERATED FROM PYTHON SOURCE LINES 217-221
 
 .. code-block:: Python
 
@@ -416,13 +411,13 @@ First, we set theoretical FWER target at 10%.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 221-224
+.. GENERATED FROM PYTHON SOURCE LINES 222-225
 
 We now translate the FWER target into a z-score target.
 For the permutation test methods we do not need any additional correction
 since the p-values are already adjusted for multiple testing.
 
-.. GENERATED FROM PYTHON SOURCE LINES 224-227
+.. GENERATED FROM PYTHON SOURCE LINES 225-228
 
 .. code-block:: Python
 
@@ -436,13 +431,13 @@ since the p-values are already adjusted for multiple testing.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 228-231
+.. GENERATED FROM PYTHON SOURCE LINES 229-232
 
 Other methods need to be corrected. We consider the Bonferroni correction.
 For methods that do not reduce the feature space, the correction
 consists in dividing by the number of features.
 
-.. GENERATED FROM PYTHON SOURCE LINES 231-235
+.. GENERATED FROM PYTHON SOURCE LINES 232-236
 
 .. code-block:: Python
 
@@ -457,12 +452,12 @@ consists in dividing by the number of features.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 236-238
+.. GENERATED FROM PYTHON SOURCE LINES 237-239
 
 For methods that parcelates the brain into groups of voxels, the correction
 consists in dividing by the number of parcels (or clusters).
 
-.. GENERATED FROM PYTHON SOURCE LINES 238-242
+.. GENERATED FROM PYTHON SOURCE LINES 239-243
 
 .. code-block:: Python
 
@@ -477,14 +472,14 @@ consists in dividing by the number of parcels (or clusters).
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 243-247
+.. GENERATED FROM PYTHON SOURCE LINES 244-248
 
 Now, we can plot the thresholded z-score maps by translating the
 p-value maps estimated previously into z-score maps and using the
 suitable threshold. For a better readability, we make a small function
 called `plot_map` that wraps all these steps.
 
-.. GENERATED FROM PYTHON SOURCE LINES 247-304
+.. GENERATED FROM PYTHON SOURCE LINES 248-305
 
 .. code-block:: Python
 
@@ -597,7 +592,7 @@ called `plot_map` that wraps all these steps.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 305-319
+.. GENERATED FROM PYTHON SOURCE LINES 306-320
 
 Analysis of the results
 -----------------------
@@ -614,12 +609,12 @@ Finally, the solution provided by the ensemble clustered inference algorithm
 (EnCluDL) seems realistic as we recover the visual cortex and do not make
 spurious discoveries.
 
-.. GENERATED FROM PYTHON SOURCE LINES 319-321
+.. GENERATED FROM PYTHON SOURCE LINES 320-322
 
 .. code-block:: Python
 
 
-    # show()
+    show()
 
 
 
@@ -630,9 +625,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 37.697 seconds)
+   **Total running time of the script:** (1 minutes 27.636 seconds)
 
-**Estimated memory usage:**  3398 MB
+**Estimated memory usage:**  3347 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
