@@ -15,7 +15,6 @@ Functions
 .. autosummary::
    :toctree: generated/
 
-   ada_svr
    aggregate_quantiles
    clustered_inference
    data_simulation
@@ -29,7 +28,7 @@ Functions
    permutation_test
    permutation_test_pval
    reid
-   standardized_svr
+   empirical_thresholding
    zscore_from_pval
 
 Classes

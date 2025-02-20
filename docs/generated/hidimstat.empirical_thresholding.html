@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.ada_svr &#8212; HiDimStat 0.1.dev1+g349ade8 documentation</title>
+    <title>hidimstat.empirical_thresholding &#8212; HiDimStat 0.1.dev1+g6d76835 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -13,13 +13,13 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="../_static/documentation_options.js?v=107c4ed3"></script>
+    <script src="../_static/documentation_options.js?v=c6bd79ab"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.aggregate_quantiles" href="hidimstat.aggregate_quantiles.html" />
-    <link rel="prev" title="API Documentation" href="../api.html" />
+    <link rel="next" title="hidimstat.zscore_from_pval" href="hidimstat.zscore_from_pval.html" />
+    <link rel="prev" title="hidimstat.reid" href="hidimstat.reid.html" />
 <meta charset='utf-8'>
 <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
@@ -92,22 +92,22 @@
   <div class="row">
       <div class="col-md-3">
         <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
-<li><a class="reference internal" href="#">hidimstat.ada_svr</a><ul>
-<li><a class="reference internal" href="#hidimstat.ada_svr"><code class="docutils literal notranslate"><span class="pre">ada_svr()</span></code></a></li>
+<li><a class="reference internal" href="#">hidimstat.empirical_thresholding</a><ul>
+<li><a class="reference internal" href="#hidimstat.empirical_thresholding"><code class="docutils literal notranslate"><span class="pre">empirical_thresholding()</span></code></a></li>
 </ul>
 </li>
 </ul>
 
   <li>
-    <a href="../api.html" title="Previous Chapter: API Documentation"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; API Documentation</span>
+    <a href="hidimstat.reid.html" title="Previous Chapter: hidimstat.reid"><span class="glyphicon glyphicon-chevron-left visible-sm"></span><span class="hidden-sm hidden-tablet">&laquo; hidimstat.reid</span>
     </a>
   </li>
   <li>
-    <a href="hidimstat.aggregate_quantiles.html" title="Next Chapter: hidimstat.aggregate_quantiles"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">hidimstat.agg... &raquo;</span>
+    <a href="hidimstat.zscore_from_pval.html" title="Next Chapter: hidimstat.zscore_from_pval"><span class="glyphicon glyphicon-chevron-right visible-sm"></span><span class="hidden-sm hidden-tablet">hidimstat.zsc... &raquo;</span>
     </a>
   </li>
 <div id="sourcelink">
-  <a href="../_sources/generated/hidimstat.ada_svr.rst.txt"
+  <a href="../_sources/generated/hidimstat.empirical_thresholding.rst.txt"
      rel="nofollow">Source</a>
 </div>
 <form action="../search.html" method="get">
@@ -121,44 +121,55 @@
       </div>
     <div class="body col-md-9 content" role="main">
       
-  <section id="hidimstat-ada-svr">
-<h1>hidimstat.ada_svr<a class="headerlink" href="#hidimstat-ada-svr" title="Link to this heading">¶</a></h1>
+  <section id="hidimstat-empirical-thresholding">
+<h1>hidimstat.empirical_thresholding<a class="headerlink" href="#hidimstat-empirical-thresholding" title="Link to this heading">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.ada_svr">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">ada_svr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rcond</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.ada_svr" title="Link to this definition">¶</a></dt>
-<dd><p>ADA-SVR: Adaptive Permutation Threshold Support Vector Regression</p>
-<p>Statistical inference procedure presented in Gaonkar and Davatzikos<a class="footnote-reference brackets" href="#footcite-gaonkar-deriving-2012" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
-<dl class="field-list simple">
+<dt class="sig sig-object py" id="hidimstat.empirical_thresholding">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">empirical_thresholding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">GridSearchCV(estimator=LinearSVR(),</span> <span class="pre">param_grid={'C':</span> <span class="pre">array([1.e-07,</span> <span class="pre">1.e-06,</span> <span class="pre">1.e-05,</span> <span class="pre">1.e-04,</span> <span class="pre">1.e-03,</span> <span class="pre">1.e-02,</span> <span class="pre">1.e-01,</span> <span class="pre">1.e+00,</span> <span class="pre">1.e+01])})</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.empirical_thresholding" title="Link to this definition">¶</a></dt>
+<dd><p>Perform empirical thresholding on the input data and target using a linear
+estimator.</p>
+<p>This function fits a linear estimator to the input data and target,
+and then uses the estimated coefficients to perform empirical thresholding.
+The threshold is calculated for keeping only extreme coefficients.
+For more details, see the section 6.3.2 of <span id="id1">[]</span></p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Data.</p>
+<dd class="field-odd"><dl>
+<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>The input data.</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)</span></dt><dd><p>Target.</p>
+<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)</span></dt><dd><p>The target values.</p>
 </dd>
-<dt><strong>rcond</strong><span class="classifier">float, optional (default=1e-3)</span></dt><dd><p>Cutoff for small singular values. Singular values smaller
-than <cite>rcond</cite> * largest_singular_value are set to zero.
-Deafult value is 1e-3.</p>
+<dt><strong>linear_estimator</strong><span class="classifier">estimator object, optional (default=GridSearchCV(</span></dt><dd><blockquote>
+<div><p>LinearSVR(),param_grid={“C”: np.logspace(-7, 1, 9)}, n_jobs=None))</p>
+</div></blockquote>
+<p>The linear estimator to use for thresholding. It should be a scikit-learn
+estimator object that implements the <cite>fit</cite> method and has a <cite>coef_</cite>
+attribute or a <cite>best_estimator_</cite> attribute with a <cite>coef_</cite> attribute
+(e.g., a <cite>GridSearchCV</cite> object).</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>beta_hat</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Estimated parameter vector.</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The estimated coefficients of the linear estimator.</p>
 </dd>
-<dt><strong>scale</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Value of the standard deviation of the parameters.</p>
+<dt><strong>scale</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The threshold values for each feature.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If the <cite>linear_estimator</cite> does not have a <cite>coef_</cite> attribute
+or a <cite>best_estimator_</cite> attribute with a <cite>coef_</cite> attribute.</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">References</p>
-<div class="docutils container" id="id2">
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-gaonkar-deriving-2012" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Bilwaj Gaonkar and Christos Davatzikos. Deriving statistical significance maps for SVM based image classification and group comparisons. <em>Med Image Comput Comput Assist Interv</em>, 15(0):723–730, 2012. URL: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/</a> (visited on 2024-12-16).</p>
-</aside>
-</aside>
-</div>
+<p class="rubric">Notes</p>
+<p>The threshold is calculated as the standard deviation of the estimated
+coefficients multiplied by the square root of the number of features.
+This is based on the assumption that the coefficients follow a normal
+distribution with mean zero.</p>
 </dd></dl>
 
 </section>
@@ -176,7 +187,7 @@ Deafult value is 1e-3.</p>
     </p>
     <p>
         &copy; Copyright 2024, Mind-Inria.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.1.3.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.2.0.<br/>
     </p>
   </div>
 </footer>

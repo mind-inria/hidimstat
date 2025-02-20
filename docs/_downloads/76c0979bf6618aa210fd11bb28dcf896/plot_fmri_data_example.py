@@ -55,11 +55,11 @@ from sklearn.linear_model import Ridge
 from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
-from hidimstat.ada_svr import ada_svr
+from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
-from hidimstat.standardized_svr import standardized_svr
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
 n_job = None
@@ -139,10 +139,11 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # First, we try to recover the discriminative partern by computing
 # p-values from SVR decoder weights and a parametric approximation
 # of the distribution of these weights.
-
-# We precomputed the regularization parameter by CV (C = 0.1) to reduce the
-# computation time of the example.
-beta_hat, scale = standardized_svr(X, y, Cs=[0.1])
+beta_hat, scale = empirical_thresholding(
+    X,
+    y,
+    linear_estimator=LinearSVR(),
+)
 pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 
 #############################################################################
@@ -317,4 +318,4 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-# show()
+show()
