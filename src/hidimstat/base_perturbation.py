@@ -1,5 +1,3 @@
-"""Base class for model agnostic variable importance measures based on perturbation."""
-
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -24,8 +22,8 @@ class BasePerturbation(BaseEstimator):
 
         Parameters
         ----------
-        estimator : object
-            The model used for making predictions.
+        estimator : sklearn compatible estimator, optional
+            The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
             The function to compute the loss when comparing the perturbed model to the
             original model.
@@ -52,7 +50,19 @@ class BasePerturbation(BaseEstimator):
         self.n_groups = None
 
     def fit(self, X, y, groups=None):
-        """Base fit method for perturbation-based methods. Identifies the groups."""
+        """Base fit method for perturbation-based methods. Identifies the groups.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            Not used, only present for consistency with the sklearn API.
+        groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each group. If None, the groups are
+            identified based on the columns of X.
+        """
         if groups is None:
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
@@ -138,6 +148,7 @@ class BasePerturbation(BaseEstimator):
         return out_dict
 
     def _check_fit(self):
+        """Check that the estimator has been fitted if needed."""
         pass
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
@@ -175,4 +186,5 @@ class BasePerturbation(BaseEstimator):
         return y_pred_perm
 
     def _permutation(self, X, group_id):
+        """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError

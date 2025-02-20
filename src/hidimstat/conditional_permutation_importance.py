@@ -73,7 +73,26 @@ class CPI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
-        """Fit the imputation models."""
+        """Fit the imputation models.
+
+        Parameters
+        ----------
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            Not used, only present for consistency with the sklearn API.
+        groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each group. If None, the groups are
+            identified based on the columns of X.
+        var_type: str or list, default="auto"
+            The variable type. Supported types include "auto", "continuous", and
+            "categorical". If "auto", the type is inferred from the cardinality
+            of the unique values passed to the `fit` method. For categorical variables,
+            the default strategy is to use a one-vs-rest classifier.
+        """
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
