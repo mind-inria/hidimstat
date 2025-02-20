@@ -23,14 +23,15 @@ class LOCO(BasePerturbation):
 
         Parameters
         ----------
-        estimator : object
+        estimator : sklearn compatible estimator, optional
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
             The loss function to use when comparing the perturbed model to the full
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function.
+            to the loss function. Supported methods are "predict", "predict_proba",
+            "decision_function", "transform".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
@@ -45,6 +46,7 @@ class LOCO(BasePerturbation):
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
+        """Fit a model after removing each covariate/group of covariates."""
         super().fit(X, y, groups)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
@@ -57,6 +59,7 @@ class LOCO(BasePerturbation):
         return self
 
     def _joblib_fit_one_group(self, estimator, X, y, key_groups):
+        """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
             X_minus_j = X.drop(columns=self.groups[key_groups])
         else:
@@ -65,6 +68,8 @@ class LOCO(BasePerturbation):
         return estimator
 
     def _joblib_predict_one_group(self, X, group_id, key_groups):
+        """Predict the target variable after removing a group of covariates.
+        Used in parallel."""
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
 
         y_pred_loco = getattr(self._list_estimators[group_id], self.method)(X_minus_j)
@@ -72,6 +77,8 @@ class LOCO(BasePerturbation):
         return [y_pred_loco]
 
     def _check_fit(self):
+        """Check that an estimator has been fitted after removing each group of
+        covariates."""
         check_is_fitted(self.estimator)
         if len(self._list_estimators) == 0:
             raise ValueError("The estimators require to be fit before to use them")

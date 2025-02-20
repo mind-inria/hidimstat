@@ -8,7 +8,6 @@ from hidimstat.conditional_sampling import ConditionalSampler
 
 
 class CPI(BasePerturbation):
-
     def __init__(
         self,
         estimator,
@@ -29,27 +28,28 @@ class CPI(BasePerturbation):
 
         Parameters
         ----------
-        estimator : object
+        estimator : sklearn compatible estimator, optional
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
             The loss function to use when comparing the perturbed model to the full
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function.
+            to the loss function. Supported methods are "predict", "predict_proba",
+            "decision_function", "transform".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
         n_permutations : int, default=50
             The number of permutations to perform. For each variable/group of variables,
             the mean of the losses over the `n_permutations` is computed.
-        imputation_model_continuous : object, default=None
+        imputation_model_continuous : sklearn compatible estimator, optional
             The model used to estimate the conditional distribution of a given
             continuous variable/group of variables given the others.
-        imputation_model_binary : object, default=None
+        imputation_model_binary : sklearn compatible estimator, optional
             The model used to estimate the conditional distribution of a given
             binary variable/group of variables given the others.
-        imputation_model_categorical : object, default=None
+        imputation_model_categorical : sklearn compatible estimator, optional
             The model used to estimate the conditional distribution of a given
             categorical variable/group of variables given the others.
         random_state : int, default=None
@@ -77,6 +77,7 @@ class CPI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
+        """Fit the imputation models."""
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
@@ -119,18 +120,23 @@ class CPI(BasePerturbation):
         return self
 
     def _joblib_fit_one_group(self, estimator, X, groups_ids):
+        """Fit a single imputation model, for a single group of variables. This method
+        is parallelized."""
         X_j = X[:, groups_ids].copy()
         X_minus_j = np.delete(X, groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
     def _check_fit(self):
+        """Check if the imputation models are fitted."""
         if len(self._list_imputation_models) == 0:
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
     def _permutation(self, X, group_id):
+        """Sample from the conditional distribution using a permutation of the
+        residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(

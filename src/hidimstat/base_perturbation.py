@@ -36,7 +36,8 @@ class BasePerturbation(BaseEstimator):
             averaged over all permutations.
         method : str, default="predict"
             The method used for making predictions. This determines the predictions
-            passed to the loss function.
+            passed to the loss function. Supported methods are "predict",
+            "predict_proba", "decision_function", "transform".
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
@@ -51,6 +52,7 @@ class BasePerturbation(BaseEstimator):
         self.n_groups = None
 
     def fit(self, X, y, groups=None):
+        """Base fit method for perturbation-based methods. Identifies the groups."""
         if groups is None:
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
