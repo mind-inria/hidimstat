@@ -61,6 +61,11 @@ class LOCO(BasePerturbation):
         groups : dict, default=None
             A dictionary where the keys are the group names and the values are the
             indices of the covariates in each group.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         """
         super().fit(X, y, groups)
         # create a list of covariate estimators for each group if not provided
