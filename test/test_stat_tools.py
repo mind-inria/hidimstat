@@ -17,7 +17,7 @@ from hidimstat.stat_tools import (
     zscore_from_cb,
     zscore_from_pval,
     aggregate_medians,
-    aggregate_quantiles
+    aggregate_quantiles,
 )
 
 
