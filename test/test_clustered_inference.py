@@ -15,16 +15,17 @@ from hidimstat.scenario import (
 )
 
 
-def test_clustered_inference():
-    """Testing the procedure on two simulations with a 1D data structure and
-    with n << p: the first test has no temporal dimension, the second has a
-    temporal dimension. The support is connected and of size 10, it must be
-    recovered with a small spatial tolerance parametrized by `margin_size`.
+# Scenario 1: data with no temporal dimension
+def test_clustered_inference_no_temporal():
+    """
+    Testing the procedure on one simulations with a 1D data structure and
+    with n << p: no temporal dimension. The support is connected and of
+    size 10, it must be recovered with a small spatial tolerance
+    parametrized by `margin_size`.
     Computing one sided p-values, we want low p-values for the features of
-    the support and p-values close to 0.5 for the others."""
+    the support and p-values close to 0.5 for the others.
+    """
 
-    # Scenario 1: data with no temporal dimension
-    # ###########################################
     n_samples, n_features = 100, 2000
     support_size = 10
     sigma = 5.0
@@ -70,8 +71,17 @@ def test_clustered_inference():
         pval_corr[extended_support:200], expected[extended_support:200], decimal=1
     )
 
-    # Scenario 2: temporal data
-    # #########################
+
+# Scenario 2: temporal data
+def test_clustered_inference_temporal():
+    """
+    Testing the procedure on two simulations with a 1D data structure and
+    with n << p: with a temporal dimension. The support is connected and
+    of size 10, it must be recovered with a small spatial tolerance
+    parametrized by `margin_size`.
+    Computing one sided p-values, we want low p-values for the features of
+    the support and p-values close to 0.5 for the others.
+    """
     n_samples, n_features, n_times = 200, 2000, 10
     support_size = 10
     sigma = 5.0
@@ -172,3 +182,32 @@ def test_clustered_inference_no_temporal_groups():
     assert_almost_equal(
         pval_corr[extended_support:200], expected[extended_support:200], decimal=1
     )
+
+
+# Scenario 1: data with no temporal dimension
+def test_clustered_inference_exception_methods():
+    """
+    Testing the procedure on two simulations with a 1D data structure and
+    checking that the procedure raises an exception when an unknown method is
+    provided.
+    """
+    n_samples, n_features = 100, 2000
+    n_clusters = 200
+
+    X_init, y, beta, epsilon = multivariate_1D_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        shuffle=False,
+        seed=2,
+    )
+
+    y = y - np.mean(y)
+    X_init = X_init - np.mean(X_init, axis=0)
+
+    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+    ward = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
+
+    with pytest.raises(ValueError, match="Unknow method"):
+        clustered_inference(X_init, y, ward, n_clusters, method="lll")

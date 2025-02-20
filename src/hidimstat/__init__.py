@@ -1,4 +1,3 @@
-from .adaptive_permutation_threshold import ada_svr
 from .clustered_inference import clustered_inference, hd_inference
 from .desparsified_lasso import (
     desparsified_lasso,
@@ -11,7 +10,7 @@ from .knockoff_aggregation import knockoff_aggregation
 from .knockoffs import model_x_knockoff
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import reid
-from .permutation_test import permutation_test_cv
+from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
 from .standardized_svr import standardized_svr
 from .stat_tools import zscore_from_pval
@@ -25,7 +24,6 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "ada_svr",
     "aggregate_quantiles",
     "clustered_inference",
     "dcrt_zero",
@@ -39,7 +37,8 @@ __all__ = [
     "knockoff_aggregation",
     "model_x_knockoff",
     "multivariate_1D_simulation",
-    "permutation_test_cv",
+    "permutation_test",
+    "permutation_test_pval",
     "reid",
     "standardized_svr",
     "zscore_from_pval",

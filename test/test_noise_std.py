@@ -149,7 +149,6 @@ def test_reid_exception():
         sigma=sigma,
         rho_noise=rho,
     )
-
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):
