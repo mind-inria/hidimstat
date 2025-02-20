@@ -35,6 +35,10 @@ class LOCO(BasePerturbation):
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
+
+        References
+        ----------
+        .. footbibliography::
         """
         super().__init__(
             estimator=estimator,
@@ -46,7 +50,18 @@ class LOCO(BasePerturbation):
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
-        """Fit a model after removing each covariate/group of covariates."""
+        """Fit a model after removing each covariate/group of covariates.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like of shape (n_samples,)
+            The target values.
+        groups : dict, default=None
+            A dictionary where the keys are the group names and the values are the
+            indices of the covariates in each group.
+        """
         super().fit(X, y, groups)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]

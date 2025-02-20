@@ -54,6 +54,10 @@ class CPI(BasePerturbation):
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a variable to be considered as categorical
             when the variable type is inferred (set to "auto" or not provided).
+
+        References
+        ----------
+        .. footbibliography::
         """
 
         super().__init__(
