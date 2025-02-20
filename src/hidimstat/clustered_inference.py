@@ -22,7 +22,8 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
     train_size : float
         Fraction of samples to include in the training set (between 0 and 1).
     groups : ndarray, shape (n_samples,), optional (default=None)
-        Group labels for samples. If provided, subsampling is done at group level.
+        Group labels for samples. If provided, subsampling is done
+        at group level.
     seed : int, optional (default=0)
         Random seed for reproducibility.
 
@@ -45,7 +46,8 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
 
 def _rescale_beta(beta_hat, n_features, ward):
     """
-    Rescales cluster-level beta coefficients to individual feature-level coefficients.
+    Rescales cluster-level beta coefficients to individual feature-level
+    coefficients.
 
     Parameters
     ----------
@@ -59,7 +61,7 @@ def _rescale_beta(beta_hat, n_features, ward):
     Returns
     -------
     beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_times)
-        Rescaled beta coefficients for individual features, weighted by 
+        Rescaled beta coefficients for individual features, weighted by
         inverse cluster size
 
     Notes
@@ -91,9 +93,10 @@ def _rescale_beta(beta_hat, n_features, ward):
 def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr):
     """
     Degroup and rescale cluster-level statistics to individual features.
-    This function takes cluster-level statistics and assigns them back to individual features,
-    while appropriately rescaling the parameter estimates based on cluster sizes.
-    
+    This function takes cluster-level statistics and assigns them back
+    to individual features, while appropriately rescaling the parameter
+    estimates based on cluster sizes.
+
     Parameters
     ----------
     ward : AgglomerativeClustering
@@ -122,16 +125,18 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
         1 - corrected p-values for individual features
     Notes
     -----
-    The beta_hat values are rescaled by dividing by the cluster size to maintain
-    the proper scale of the estimates when moving from cluster-level to feature-level.
-    The function handles both 1D and 2D beta_hat arrays for single and multiple time points.
+    The beta_hat values are rescaled by dividing by the cluster size
+    to maintain the proper scale of the estimates when moving from
+    cluster-level to feature-level.
+    The function handles both 1D and 2D beta_hat arrays for single and
+    multiple time points.
     """
     # degroup variable other than beta_hat
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = map(
         ward.inverse_transform,
         [pval, pval_corr, one_minus_pval, one_minus_pval_corr],
     )
-    
+
     beta_hat = _rescale_beta(beta_hat, n_features=pval.shape[0], ward=ward)
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
@@ -151,11 +156,12 @@ def clustered_inference(
     **kwargs,
 ):
     """
-    Clustered inference algorithm for statistical analysis of high-dimensional data.
+    Clustered inference algorithm for statistical analysis of
+    high-dimensional data.
 
-    This algorithm implements the method described in :cite:`chevalier2022spatially` for 
-    performing statistical inference on high-dimensional linear models using feature 
-    clustering to reduce dimensionality.
+    This algorithm implements the method described in :cite:`chevalier2022spatially` for
+    performing statistical inference on high-dimensional linear models
+    using feature clustering to reduce dimensionality.
 
     Parameters
     ----------
@@ -166,7 +172,7 @@ def clustered_inference(
         Target variable(s). Can be univariate or multivariate (temporal) data.
 
     ward : sklearn.cluster.FeatureAgglomeration
-        Hierarchical clustering object that implements Ward's method for 
+        Hierarchical clustering object that implements Ward's method for
         feature agglomeration.
 
     n_clusters : int
@@ -176,7 +182,7 @@ def clustered_inference(
         Scaler to standardize the clustered features.
 
     train_size : float, optional (default=1.0)
-        Fraction of samples to use for computing the clustering. 
+        Fraction of samples to use for computing the clustering.
         When train_size=1.0, all samples are used.
 
     groups : ndarray, shape (n_samples,), optional (default=None)
@@ -199,19 +205,19 @@ def clustered_inference(
     ward_ : FeatureAgglomeration
         Fitted clustering object.
 
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times) 
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
         Estimated coefficients at cluster level.
 
     theta_hat : ndarray
         Estimated precision matrix.
 
-    omega_diag : ndarray 
+    omega_diag : ndarray
         Diagonal of the covariance matrix.
 
     References
     ----------
     .. footbibliography::
-    
+
     Notes
     -----
     The algorithm follows these main steps:
@@ -225,7 +231,8 @@ def clustered_inference(
     if verbose > 0:
         print(
             f"Clustered inference: n_clusters = {n_clusters}, "
-            + f"inference method desparsified lasso, seed = {seed}, groups = {groups is not None} "
+            + f"inference method desparsified lasso, seed = {seed},"
+            + f"groups = {groups is not None} "
         )
 
     ## This are the 3 step in first loop of the algorithm 2 of [1]
@@ -245,7 +252,7 @@ def clustered_inference(
     beta_hat, theta_hat, omega_diag = desparsified_lasso(
         X_reduced,
         y,
-        group=len(y.shape)>1 and y.shape[1]>1, # detection of multiOutput
+        group=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
         n_jobs=n_jobs,
         verbose=verbose,
         **kwargs,
@@ -258,7 +265,8 @@ def clustered_inference_pvalue(
     n_samples, group, ward, beta_hat, theta_hat, omega_diag, **kwargs
 ):
     """
-    Compute corrected p-values at the cluster level and transform them back to feature level.
+    Compute corrected p-values at the cluster level and transform them
+    back to feature level.
 
     Parameters
     ----------
@@ -281,7 +289,7 @@ def clustered_inference_pvalue(
     -------
     beta_hat : ndarray
         Degrouped coefficients at feature level
-    pval : ndarray 
+    pval : ndarray
         P-values for each feature
     pval_corr : ndarray
         Multiple testing corrected p-values
@@ -334,12 +342,12 @@ def ensemble_clustered_inference(
     **kwargs,
 ):
     """
-    Ensemble clustered inference algorithm for high-dimensional statistical inference,
-    as described in :cite:`chevalier2022spatially`.
+    Ensemble clustered inference algorithm for high-dimensional
+    statistical inference, as described in :cite:`chevalier2022spatially`.
 
-    This algorithm combines multiple runs of clustered inference with different random
-    subsamples to provide more robust statistical estimates. It uses the desparsified 
-    lasso method for inference.
+    This algorithm combines multiple runs of clustered inference with
+    different random subsamples to provide more robust statistical estimates.
+    It uses the desparsified lasso method for inference.
 
     Parameters
     ----------
@@ -447,10 +455,12 @@ def ensemble_clustered_inference_pvalue(
     **kwargs,
 ):
     """
-    Compute and aggregate p-values across multiple bootstrap iterations using an aggregation method.
+    Compute and aggregate p-values across multiple bootstrap iterations
+    using an aggregation method.
 
-    This function performs statistical inference on each bootstrap sample and combines
-    the results using a specified aggregation method to obtain robust estimates.
+    This function performs statistical inference on each bootstrap sample
+    and combines the results using a specified aggregation method to obtain
+    robust estimates.
     The implementation follows the methodology in :footcite:`chevalier2022spatially`.
 
     Parameters
@@ -465,7 +475,7 @@ def ensemble_clustered_inference_pvalue(
         List of estimated coefficients at cluster level from each bootstrap
     list_theta_hat : list of ndarray
         List of estimated precision matrices from each bootstrap
-    list_omega_diag : list of ndarray 
+    list_omega_diag : list of ndarray
         List of diagonal elements of covariance matrices from each bootstrap
     aggregate_method : callable, default=aggregate_quantiles
         Function to aggregate results across bootstraps. Must accept a 2D array
