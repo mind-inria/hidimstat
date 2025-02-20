@@ -122,6 +122,7 @@ def test_clustered_inference_temporal():
         pval_corr[extended_support:], expected[extended_support:], decimal=1
     )
 
+
 # Scenario 3: data with no temporal dimension and with groups
 def test_clustered_inference_no_temporal_groups():
     """
