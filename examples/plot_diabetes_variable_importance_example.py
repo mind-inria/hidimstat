@@ -119,7 +119,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     cpi = CPI(
         estimator=regressor_list[i],
         imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
-        imputation_model_binary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=0,

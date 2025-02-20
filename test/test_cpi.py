@@ -25,7 +25,7 @@ def test_cpi(linear_scenario):
     cpi = CPI(
         estimator=regression_model,
         imputation_model_continuous=clone(imputation_model),
-        imputation_model_binary=LogisticRegression(),
+        imputation_model_categorical=LogisticRegression(),
         n_permutations=20,
         method="predict",
         random_state=0,

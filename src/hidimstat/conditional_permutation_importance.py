@@ -16,7 +16,6 @@ class CPI(BasePerturbation):
         n_jobs: int = 1,
         n_permutations: int = 50,
         imputation_model_continuous=None,
-        imputation_model_binary=None,
         imputation_model_categorical=None,
         random_state: int = None,
         categorical_max_cardinality: int = 10,
@@ -46,12 +45,10 @@ class CPI(BasePerturbation):
         imputation_model_continuous : sklearn compatible estimator, optional
             The model used to estimate the conditional distribution of a given
             continuous variable/group of variables given the others.
-        imputation_model_binary : sklearn compatible estimator, optional
-            The model used to estimate the conditional distribution of a given
-            binary variable/group of variables given the others.
         imputation_model_categorical : sklearn compatible estimator, optional
             The model used to estimate the conditional distribution of a given
-            categorical variable/group of variables given the others.
+            categorical variable/group of variables given the others. Binary is
+            considered as a special case of categorical.
         random_state : int, default=None
             The random state to use for sampling.
         categorical_max_cardinality : int, default=10
@@ -71,7 +68,6 @@ class CPI(BasePerturbation):
 
         self.imputation_model = {
             "continuous": imputation_model_continuous,
-            "binary": imputation_model_binary,
             "categorical": imputation_model_categorical,
         }
         self.categorical_max_cardinality = categorical_max_cardinality
@@ -91,11 +87,6 @@ class CPI(BasePerturbation):
                     None
                     if self.imputation_model["continuous"] is None
                     else clone(self.imputation_model["continuous"])
-                ),
-                model_binary=(
-                    None
-                    if self.imputation_model["binary"] is None
-                    else clone(self.imputation_model["binary"])
                 ),
                 model_categorical=(
                     None

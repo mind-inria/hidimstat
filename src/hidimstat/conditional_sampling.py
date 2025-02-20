@@ -8,7 +8,6 @@ class ConditionalSampler:
     def __init__(
         self,
         model_regression=None,
-        model_binary=None,
         model_categorical=None,
         data_type: str = "auto",
         random_state=None,
@@ -21,15 +20,14 @@ class ConditionalSampler:
         ----------
         model_regression : sklearn compatible estimator, optional
             The model to use for continuous data.
-        model_binary : sklearn compatible estimator, optional
-            The model to use for binary data.
         model_categorical : sklearn compatible estimator, optional
-            The model to use for categorical data.
+            The model to use for categorical data. Binary is considered as a special
+            case of categorical data.
         data_type : str, default="auto"
-            The variable type. Supported types include "auto", "continuous", "binary",
-            and "categorical". If "auto", the type is inferred from the cardinality of
-            the unique values passed to the `fit` method. For categorical variables, the
-            default strategy is to use a one-vs-rest classifier.
+            The variable type. Supported types include "auto", "continuous", and
+            "categorical". If "auto", the type is inferred from the cardinality
+            of the unique values passed to the `fit` method. For categorical variables,
+            the default strategy is to use a one-vs-rest classifier.
         random_state : int, optional
             The random state to use for sampling.
         categorical_max_cardinality : int, default=10
@@ -39,19 +37,15 @@ class ConditionalSampler:
         """
         self.data_type = data_type
         self.model_regression = model_regression
-        self.model_binary = model_binary
         self.model_categorical = model_categorical
 
         if data_type == "auto":
             self.model_auto = {
                 "continuous": model_regression,
-                "binary": model_binary,
                 "categorical": model_categorical,
             }
         elif data_type == "continuous":
             self.model = model_regression
-        elif data_type == "binary":
-            self.model = model_binary
         elif data_type == "categorical":
             self.model = model_categorical
         else:
@@ -72,10 +66,7 @@ class ConditionalSampler:
         """
 
         if self.data_type == "auto":
-            if len(np.unique(y)) == 2:
-                self.data_type = "binary"
-                self.model = self.model_auto["binary"]
-            elif len(np.unique(y)) <= self.categorical_max_cardinality:
+            if len(np.unique(y)) <= self.categorical_max_cardinality:
                 self.data_type = "categorical"
                 self.model = self.model_auto["categorical"]
             else:
@@ -84,7 +75,7 @@ class ConditionalSampler:
 
         # Group of variables
         if (y.ndim > 1) and (y.shape[1] > 1):
-            if self.data_type in ["binary", "categorical"]:
+            if self.data_type == "categorical":
                 self.model = MultiOutputClassifier(self.model)
             elif self.data_type == "continuous" and not issubclass(
                 self.model.__class__, MultiOutputMixin
@@ -130,7 +121,7 @@ class ConditionalSampler:
             )
             return y_hat[np.newaxis, ...] + residual_permuted
 
-        elif self.data_type in ["binary", "categorical"]:
+        elif self.data_type == "categorical":
             if not hasattr(self.model, "predict_proba"):
                 raise AttributeError(
                     "The model must have a `predict_proba` method to be used for \

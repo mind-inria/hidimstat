@@ -53,8 +53,8 @@ def test_binary_case():
     np.random.seed(40)
 
     sampler = ConditionalSampler(
-        model_binary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
-        data_type="binary",
+        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        data_type="categorical",
         random_state=0,
     )
 
@@ -78,9 +78,8 @@ def test_binary_case():
         assert accuracy_score(X_1_perm[i], X[:, 1]) < 0.6
 
     sampler = ConditionalSampler(
-        model_binary=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
-        model_categorical=None,
+        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         data_type="auto",
         random_state=0,
     )
@@ -99,7 +98,7 @@ def test_error():
     np.random.seed(40)
     sampler = ConditionalSampler(
         model_regression=RidgeClassifier(),
-        data_type="binary",
+        data_type="categorical",
         random_state=0,
     )
     X = np.random.randint(0, 2, size=(100, 2))
@@ -114,7 +113,7 @@ def test_error():
     )
     with pytest.raises(AttributeError):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
-        sampler.sample()
+        sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
     sampler = ConditionalSampler(
         data_type="auto",
@@ -161,8 +160,8 @@ def test_group_case():
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
     model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
     sampler = ConditionalSampler(
-        model_binary=model,
-        data_type="binary",
+        model_categorical=model,
+        data_type="categorical",
         random_state=0,
     )
     sampler.fit(X[:, :3], X[:, 3:])
