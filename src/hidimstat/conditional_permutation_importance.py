@@ -96,6 +96,11 @@ class CPI(BasePerturbation):
             "categorical". If "auto", the type is inferred from the cardinality
             of the unique values passed to the `fit` method. For categorical variables,
             the default strategy is to use a one-vs-rest classifier.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         """
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):

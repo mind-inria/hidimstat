@@ -92,6 +92,11 @@ class BasePerturbation(BaseEstimator):
         ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
+
+        Returns
+        -------
+        out: array-like of shape (n_groups, n_permutations, n_samples)
+            The predictions after perturbation of the data for each group of variables.
         """
         self._check_fit()
         X_ = np.asarray(X)
