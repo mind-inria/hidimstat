@@ -2,18 +2,17 @@
 Test the clustered_inference module
 """
 
-import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 
-from hidimstat.clustered_inference import (
+from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
 )
-from hidimstat.clustered_inference import (
+from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
@@ -206,7 +205,6 @@ def test_clustered_inference_no_temporal_groups():
     )
 
 
-# Scenario 1: data with no temporal dimension
 def test_ensemble_clustered_inference():
     """Testing the procedure on a simulation with a 1D data structure
     and with n << p: the first test has no temporal dimension, the second has a
@@ -273,6 +271,7 @@ def test_ensemble_clustered_inference():
     )
 
 def test_ensemble_clustered_inference_temporal_data():
+    "Test with temporal data"
     # Scenario 2: temporal data
     # #########################
     n_samples, n_features, n_times = 200, 2000, 10
