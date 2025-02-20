@@ -50,14 +50,15 @@ from nilearn.image import mean_img
 from nilearn.input_data import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
 from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
 from hidimstat.ada_svr import ada_svr
-from hidimstat.clustered_inference import clustered_inference
-from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+from hidimstat.ensemble_clustered_inference import clustered_inference, clustered_inference_pvalue
+from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference, ensemble_clustered_inference_pvalue
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
 from hidimstat.standardized_svr import standardized_svr
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
@@ -188,8 +189,13 @@ pval_ada_svr, _, one_minus_pval_ada_svr, _ = pval_from_scale(beta_hat, scale)
 #############################################################################
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference(
-    X, y, ward, n_clusters
+ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+    X, y, ward, n_clusters, scaler_sampling=StandardScaler()
+)
+beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = (
+    clustered_inference_pvalue(
+        X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
+    )
 )
 
 #############################################################################
@@ -200,8 +206,22 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference(
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=2`.
-beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = ensemble_clustered_inference(
-    X, y, ward, n_clusters, groups=groups, n_bootstraps=5, n_jobs=2
+list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+    ensemble_clustered_inference(
+        X,
+        y,
+        ward,
+        n_clusters,
+        groups=groups,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=5,
+        n_jobs=2
+    )
+)
+beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = (
+    ensemble_clustered_inference_pvalue(
+        X.shape[0], False, list_ward, list_beta_hat, list_theta_hat, list_omega_diag,
+    )
 )
 
 #############################################################################
@@ -317,4 +337,4 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-# show()
+show()
