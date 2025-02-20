@@ -57,8 +57,14 @@ from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
 from hidimstat.ada_svr import ada_svr
-from hidimstat.ensemble_clustered_inference import clustered_inference, clustered_inference_pvalue
-from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference, ensemble_clustered_inference_pvalue
+from hidimstat.ensemble_clustered_inference import (
+    clustered_inference,
+    clustered_inference_pvalue,
+)
+from hidimstat.ensemble_clustered_inference import (
+    ensemble_clustered_inference,
+    ensemble_clustered_inference_pvalue,
+)
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
 from hidimstat.standardized_svr import standardized_svr
 from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
@@ -192,10 +198,8 @@ pval_ada_svr, _, one_minus_pval_ada_svr, _ = pval_from_scale(beta_hat, scale)
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
     X, y, ward, n_clusters, scaler_sampling=StandardScaler()
 )
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = (
-    clustered_inference_pvalue(
-        X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
-    )
+beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
+    X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
 )
 
 #############################################################################
@@ -215,13 +219,16 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         groups=groups,
         scaler_sampling=StandardScaler(),
         n_bootstraps=5,
-        n_jobs=2
+        n_jobs=2,
     )
 )
-beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = (
-    ensemble_clustered_inference_pvalue(
-        X.shape[0], False, list_ward, list_beta_hat, list_theta_hat, list_omega_diag,
-    )
+beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = ensemble_clustered_inference_pvalue(
+    X.shape[0],
+    False,
+    list_ward,
+    list_beta_hat,
+    list_theta_hat,
+    list_omega_diag,
 )
 
 #############################################################################
