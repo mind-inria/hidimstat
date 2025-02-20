@@ -176,7 +176,7 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7fef2ae3e660>, <matplotlib.axis.YTick object at 0x7fef2ae3eae0>, <matplotlib.axis.YTick object at 0x7fef1c38e780>, <matplotlib.axis.YTick object at 0x7fef1c38e660>, <matplotlib.axis.YTick object at 0x7fef1c38e990>, <matplotlib.axis.YTick object at 0x7fef1c38e060>, <matplotlib.axis.YTick object at 0x7fef2aee7710>, <matplotlib.axis.YTick object at 0x7fef2aee4aa0>, <matplotlib.axis.YTick object at 0x7fef2aee48c0>, <matplotlib.axis.YTick object at 0x7fef1c38c7d0>]
+    [<matplotlib.axis.YTick object at 0x7f5052d70ad0>, <matplotlib.axis.YTick object at 0x7f514c368b00>, <matplotlib.axis.YTick object at 0x7f514c2b5b50>, <matplotlib.axis.YTick object at 0x7f514c2b5bb0>, <matplotlib.axis.YTick object at 0x7f514c36a5d0>, <matplotlib.axis.YTick object at 0x7f5067066810>, <matplotlib.axis.YTick object at 0x7f5067067500>, <matplotlib.axis.YTick object at 0x7f5067065760>, <matplotlib.axis.YTick object at 0x7f5064899970>, <matplotlib.axis.YTick object at 0x7f5067065d60>]
 
 
 
@@ -282,13 +282,6 @@ estimate the importance of the features.
 
 
 
-
-.. rst-class:: sphx-glr-script-out
-
- .. code-block:: none
-
-    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/joblib/externals/loky/process_executor.py:752: UserWarning: A worker stopped while some jobs were given to the executor. This can be caused by a too short worker timeout or by a memory leak.
-      warnings.warn(
 
 
 
@@ -422,16 +415,16 @@ the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7fef2ae82540>
+    <matplotlib.legend.Legend object at 0x7f505c767590>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 42.709 seconds)
+   **Total running time of the script:** (0 minutes 33.797 seconds)
 
-**Estimated memory usage:**  639 MB
+**Estimated memory usage:**  640 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_variable_importance_classif.py:
