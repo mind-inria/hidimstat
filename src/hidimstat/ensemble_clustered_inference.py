@@ -111,6 +111,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
         1 - p-values at cluster level
     one_minus_pval_corr : ndarray, shape (n_clusters,)
         1 - corrected p-values at cluster level
+
     Returns
     -------
     beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
@@ -123,6 +124,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
         1 - p-values for individual features
     one_minus_pval_corr : ndarray, shape (n_features,)
         1 - corrected p-values for individual features
+        
     Notes
     -----
     The beta_hat values are rescaled by dividing by the cluster size
@@ -502,7 +504,7 @@ def ensemble_clustered_inference_pvalue(
 
     References
     ----------
-    [1] footbibliography::
+    .. footbibliography::
     """
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
         delayed(clustered_inference_pvalue)(
