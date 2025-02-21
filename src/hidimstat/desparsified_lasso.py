@@ -287,7 +287,7 @@ def desparsified_lasso_pvalue(
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
 
-def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
+def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="chi2"):
     """
     Compute p-values for the desparsified group Lasso estimator using
     chi-squared or F tests
@@ -300,7 +300,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix (inverse covariance).
 
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
     test : {'chi2', 'F'}, default='chi2'
@@ -333,15 +333,19 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     coefficients and precision matrix.
     """
     n_features, n_times = beta_hat.shape
-    n_samples = omega_diag.shape[0]
+    n_samples = precision_diag.shape[0]
 
     # Compute the two-sided p-values
     if test == "chi2":
-        chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
+        chi2_scores = (
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / precision_diag
+        )
         two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
     elif test == "F":
         f_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
+            / precision_diag
+            / n_times
         )
         two_sided_pval = np.minimum(
             2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
@@ -399,7 +403,7 @@ def _compute_all_residuals(
     Z : ndarray, shape (n_samples, n_features)
         Matrix of residuals from nodewise regressions.
 
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
 
     Notes
@@ -431,9 +435,9 @@ def _compute_all_residuals(
     # Unpacking the results
     results = np.asarray(results, dtype=object)
     Z = np.stack(results[:, 0], axis=1)
-    omega_diag = np.stack(results[:, 1])
+    precision_diag = np.stack(results[:, 1])
 
-    return Z, omega_diag
+    return Z, precision_diag
 
 
 def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
