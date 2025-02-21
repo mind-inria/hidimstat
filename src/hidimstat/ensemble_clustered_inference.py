@@ -124,7 +124,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
         1 - p-values for individual features
     one_minus_pval_corr : ndarray, shape (n_features,)
         1 - corrected p-values for individual features
-        
+
     Notes
     -----
     The beta_hat values are rescaled by dividing by the cluster size
