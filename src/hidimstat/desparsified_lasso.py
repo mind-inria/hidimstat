@@ -27,7 +27,6 @@ def desparsified_lasso(
     cov=None,
     noise_method="AR",
     order=1,
-    fit_Y=True,
     stationary=True,
 ):
     """
@@ -92,9 +91,6 @@ def desparsified_lasso(
     order : int, default=1
         Order of AR model when noise_method='AR'. Must be < n_times.
 
-    fit_Y : bool, default=True
-        Whether to fit Y in noise estimation.
-
     stationary : bool, default=True
         Whether to assume stationary noise in estimation.
 
@@ -155,7 +151,6 @@ def desparsified_lasso(
         group=group,
         method=noise_method,
         order=order,
-        fit_Y=fit_Y,
         stationary=stationary,
     )
 

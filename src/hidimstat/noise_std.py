@@ -15,7 +15,6 @@ def reid(
     n_jobs=1,
     seed=0,
     group=False,
-    fit_Y=True,
     stationary=True,
     method="simple",
     order=1,
@@ -61,10 +60,6 @@ def reid(
     seed : int, optional (default=0)
         Random seed for reproducible cross-validation splits.
 
-    fit_Y : bool, (default=True)
-        Whether to use MultiTaskLassoCV to fit Y against X.
-        If False, covariance is estimated directly from Y.
-
     stationary : bool, (default=True)
         Whether noise has constant magnitude across time steps.
 
@@ -94,45 +89,39 @@ def reid(
     n_samples, n_features = X_.shape
     if group:
         n_times = y.shape[1]
-    if fit_Y:
-        # check if max_iter is large enough
-        if max_iter // n_split <= n_features:
-            max_iter = n_features * n_split
-            print(f"'max_iter' has been increased to {max_iter}")
 
-        # use the cross-validation for define the best alpha of Lasso
-        cv = KFold(n_splits=n_split, shuffle=True, random_state=seed)
-        Refit_CV = MultiTaskLassoCV if group else LassoCV
-        clf_cv = Refit_CV(
-            eps=eps,
-            fit_intercept=False,
-            cv=cv,
-            tol=tol,
-            max_iter=max_iter,
-            n_jobs=n_jobs,
-        )
-        clf_cv.fit(X_, y)
+    # check if max_iter is large enough
+    if max_iter // n_split <= n_features:
+        max_iter = n_features * n_split
+        print(f"'max_iter' has been increased to {max_iter}")
 
-        # Estimate the support of the variable importance
-        beta_hat = clf_cv.coef_
-        residual = clf_cv.predict(X_) - y
+    # use the cross-validation for define the best alpha of Lasso
+    cv = KFold(n_splits=n_split, shuffle=True, random_state=seed)
+    Refit_CV = MultiTaskLassoCV if group else LassoCV
+    clf_cv = Refit_CV(
+        eps=eps,
+        fit_intercept=False,
+        cv=cv,
+        tol=tol,
+        max_iter=max_iter,
+        n_jobs=n_jobs,
+    )
+    clf_cv.fit(X_, y)
 
-        # get the number of non-zero coefficients
-        coef_ = (
-            np.sum(np.abs(beta_hat), axis=0)
-            if len(beta_hat.shape) > 1
-            else np.abs(beta_hat)
-        )
-        size_support = np.sum(coef_ > tol * coef_.max())
+    # Estimate the support of the variable importance
+    beta_hat = clf_cv.coef_
+    residual = clf_cv.predict(X_) - y
 
-        # avoid dividing by 0
-        size_support = min(size_support, n_samples - 1)
-    else:
-        # null model
-        # TODO Why do we need a null model?
-        beta_hat = np.zeros((n_features, n_times))
-        residual = np.copy(y)
-        size_support = 0
+    # get the number of non-zero coefficients
+    coef_ = (
+        np.sum(np.abs(beta_hat), axis=0)
+        if len(beta_hat.shape) > 1
+        else np.abs(beta_hat)
+    )
+    size_support = np.sum(coef_ > tol * coef_.max())
+
+    # avoid dividing by 0
+    size_support = min(size_support, n_samples - 1)
 
     # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)

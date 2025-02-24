@@ -117,12 +117,6 @@ def test_group_reid():
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = reid(X, Y, group=True, fit_Y=False, stationary=False)
-    error_ratio = cov_hat / cov
-
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
-
     cov_hat, _ = reid(X, Y, group=True, method="AR")
     error_ratio = cov_hat / cov
 
