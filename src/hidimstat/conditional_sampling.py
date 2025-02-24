@@ -4,6 +4,41 @@ from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
 
 
+def _check_data_type(
+    data_type: str, y: np.ndarray, categorical_max_cardinality: int
+) -> str:
+    """
+    Check the data type and return the corresponding type. If `data_type` is "auto",
+    the type is inferred from the cardinality and the type of the variable.
+
+    Parameters
+    ----------
+    data_type : str
+        The variable type. Supported types include "auto", "continuous", and
+        "categorical".
+    y : ndarray
+        The group of variables to predict.
+    categorical_max_cardinality : int
+        The maximum cardinality of a numerical variable to be considered as categorical.
+
+    Returns
+    -------
+    data_type : str
+        The variable type.
+    """
+    if data_type in ["continuous", "categorical"]:
+        return data_type
+    elif data_type == "auto":
+        if len(np.unique(y)) <= categorical_max_cardinality or (
+            y.dtype.type is np.str_
+        ):
+            return "categorical"
+        else:
+            return "continuous"
+    else:
+        raise ValueError(f"type of data '{data_type}' unknow.")
+
+
 class ConditionalSampler:
     def __init__(
         self,
@@ -38,18 +73,6 @@ class ConditionalSampler:
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
-
-        if data_type == "auto":
-            self.model_auto = {
-                "continuous": model_regression,
-                "categorical": model_categorical,
-            }
-        elif data_type == "continuous":
-            self.model = model_regression
-        elif data_type == "categorical":
-            self.model = model_categorical
-        else:
-            raise ValueError(f"type of data '{data_type}' unknow.")
         self.rng = check_random_state(random_state)
         self.categorical_max_cardinality = categorical_max_cardinality
 
@@ -65,13 +88,22 @@ class ConditionalSampler:
             The group of variables to predict.
         """
 
-        if self.data_type == "auto":
-            if len(np.unique(y)) <= self.categorical_max_cardinality:
-                self.data_type = "categorical"
-                self.model = self.model_auto["categorical"]
-            else:
-                self.data_type = "continuous"
-                self.model = self.model_auto["continuous"]
+        # if self.data_type == "auto":
+        #     if len(np.unique(y)) <= self.categorical_max_cardinality:
+        #         self.data_type = "categorical"
+        #         self.model = self.model_auto["categorical"]
+        #     else:
+        #         self.data_type = "continuous"
+        #         self.model = self.model_auto["continuous"]
+
+        self.data_type = _check_data_type(
+            self.data_type, y, self.categorical_max_cardinality
+        )
+        self.model = (
+            self.model_categorical
+            if self.data_type == "categorical"
+            else self.model_regression
+        )
 
         # Group of variables
         if (y.ndim > 1) and (y.shape[1] > 1):
