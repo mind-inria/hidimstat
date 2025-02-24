@@ -162,7 +162,7 @@ def desparsified_lasso(
     Z, omega_diag = _compute_all_residuals(
         X_,
         alphas,
-        np.dot(X_.T, X_), # Gram matrix
+        np.dot(X_.T, X_),  # Gram matrix
         max_iter=max_iter,
         tol=tol,
         n_jobs=n_jobs,

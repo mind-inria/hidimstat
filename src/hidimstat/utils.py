@@ -322,12 +322,12 @@ def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
-    
+
     # compute the Gram matrix
     gram = np.dot(X.T, y)
     if fill_diagonal:
         np.fill_diagonal(gram, 0)
-    
+
     alpha_max = np.max(gram, axis=axis) / n_samples
 
     if use_noise_estimate:
