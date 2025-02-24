@@ -297,7 +297,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
 
 
 ########################## alpha Max Calculation ##########################
-def _alpha_max(X, y, use_noise_estimate=False):
+def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     """
     Calculate alpha_max, which is the smallest value of the regularization parameter
     in the LASSO regression that yields non-zero coefficients.
@@ -322,15 +322,20 @@ def _alpha_max(X, y, use_noise_estimate=False):
     all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
+    
+    # compute the Gram matrix
+    gram = np.dot(X.T, y)
+    if fill_diagonal:
+        np.fill_diagonal(gram, 0)
+    
+    alpha_max = np.max(gram, axis=axis) / n_samples
 
-    if not use_noise_estimate:
-        alpha_max = np.max(np.dot(X.T, y)) / n_samples
-    else:
+    if use_noise_estimate:
         # estimate the noise level
         norm_y = np.linalg.norm(y, ord=2)
         sigma_star = norm_y / np.sqrt(n_samples)
-
-        alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
+        # rectified by the noise
+        alpha_max = np.abs(alpha_max) / sigma_star
 
     return alpha_max
 

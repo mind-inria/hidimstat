@@ -202,10 +202,6 @@ def reid(
             corr_hat = toeplitz(rho_ar_full)
 
             # estimation of the variance of an AR process
-            # from wikipedia it should be:
-            # VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
-            # TODO there is a short difference between the code
-            # and the above formula
             sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
             # estimation of the covariance based on the
             # correlation matrix and sigma

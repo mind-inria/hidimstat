@@ -8,6 +8,7 @@ from sklearn.linear_model import Lasso
 from hidimstat.noise_std import reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 from hidimstat.stat_tools import pval_from_cb
+from hidimstat.utils import _alpha_max
 
 
 def desparsified_lasso(
@@ -137,7 +138,6 @@ def desparsified_lasso(
     X_ = X_ - np.mean(X_, axis=0)
 
     # Lasso regression and noise standard deviation estimation
-    # TODO: other estimation of the noise standard deviation?
     sigma_hat, beta_reid = reid(
         X_,
         y_,
@@ -154,21 +154,15 @@ def desparsified_lasso(
         stationary=stationary,
     )
 
-    # compute the Gram matrix
-    gram = np.dot(X_.T, X_)
-    gram_nodiag = np.copy(gram)
-    np.fill_diagonal(gram_nodiag, 0)
-
     # define the alphas for the Nodewise Lasso
-    # TODO why don't use the function _alpha_max instead of this?
-    list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
+    list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
     Z, omega_diag = _compute_all_residuals(
         X_,
         alphas,
-        gram,
+        np.dot(X_.T, X_), # Gram matrix
         max_iter=max_iter,
         tol=tol,
         n_jobs=n_jobs,
