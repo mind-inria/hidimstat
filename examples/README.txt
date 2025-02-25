@@ -5,4 +5,4 @@ Examples Gallery
 
 .. contents:: Contents
    :local:
-   :depth: 0
+   :depth: 3
