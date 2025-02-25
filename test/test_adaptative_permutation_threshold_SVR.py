@@ -8,7 +8,7 @@ from sklearn.svm import SVR
 
 from hidimstat.adaptative_permutation_threshold_SVR import ada_svr, ada_svr_pvalue
 from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.permutation_test import permutation_test
+from hidimstat.permutation_test import permutation_test, permutation_test_pval
 
 
 def test_ada_svr():
@@ -90,8 +90,8 @@ def test_ada_svr_vs_permutation():
     # compare that the coefficiants are the same that the one of SVR
     assert np.max(np.abs(beta_hat - beta_hat_svr.T[:, 0])) < 2e-4
 
-    proba = permutation_test(
-        X, y, estimator=estimator, n_permutations=10000, n_jobs=8, seed=42, proba=True
+    weights, weights_distribution = permutation_test(
+        X, y, estimator=estimator, n_permutations=10000, n_jobs=8, seed=42
     )
-    assert np.max(np.abs(np.mean(proba, axis=0))) < 1e-3
-    assert np.max(np.abs(scale - np.std(proba, axis=0)) / scale) < 1e-1
+    assert np.max(np.abs(np.mean(weights_distribution, axis=0))) < 1e-3
+    assert np.max(np.abs(scale - np.std(weights_distribution, axis=0)) / scale) < 1e-1
