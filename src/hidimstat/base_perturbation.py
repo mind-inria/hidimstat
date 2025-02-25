@@ -49,7 +49,7 @@ class BasePerturbation(BaseEstimator):
         self.n_permutations = n_permutations
         self.n_groups = None
 
-    def fit(self, X, y, groups=None):
+    def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
 
         Parameters
