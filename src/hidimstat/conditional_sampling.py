@@ -61,8 +61,7 @@ class ConditionalSampler:
         data_type : str, default="auto"
             The variable type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
-            of the unique values passed to the `fit` method. For categorical variables,
-            the default strategy is to use a one-vs-rest classifier.
+            of the unique values passed to the `fit` method.
         random_state : int, optional
             The random state to use for sampling.
         categorical_max_cardinality : int, default=10

@@ -92,9 +92,7 @@ class CPI(BasePerturbation):
         var_type: str or list, default="auto"
             The variable type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
-            of the unique values passed to the `fit` method. For categorical variables,
-            the default strategy is to use a one-vs-rest classifier.
-
+            of the unique values passed to the `fit` method.
         Returns
         -------
         self : object
