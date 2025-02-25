@@ -4,10 +4,11 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.permutation_importance import PermutationImportance
+from hidimstat import PermutationImportance
 
 
 def test_permutation_importance(linear_scenario):
+    """Test the Permutation Importance algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
