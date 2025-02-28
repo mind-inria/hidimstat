@@ -7,10 +7,11 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.cpi import CPI
+from hidimstat import CPI
 
 
 def test_cpi(linear_scenario):
+    """Test the Conditional Permutation Importance algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -23,7 +24,8 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=regression_model,
-        imputation_model=imputation_model,
+        imputation_model_continuous=clone(imputation_model),
+        imputation_model_categorical=LogisticRegression(),
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -32,8 +34,8 @@ def test_cpi(linear_scenario):
 
     cpi.fit(
         X_train,
-        y_train,
         groups=None,
+        var_type="auto",
     )
     vim = cpi.score(X_test, y_test)
 
@@ -51,11 +53,10 @@ def test_cpi(linear_scenario):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
-    imputation_model_list = [clone(imputation_model) for _ in range(2)]
     regression_model.fit(X_train_df, y_train)
     cpi = CPI(
         estimator=regression_model,
-        imputation_model=imputation_model_list,
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=20,
         method="predict",
         random_state=0,
@@ -63,8 +64,8 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train_df,
-        y_train,
         groups=groups,
+        var_type="continuous",
     )
     vim = cpi.score(X_test_df, y_test)
 
@@ -80,7 +81,7 @@ def test_cpi(linear_scenario):
 
     cpi = CPI(
         estimator=logistic_model,
-        imputation_model=imputation_model,
+        imputation_model_continuous=clone(imputation_model),
         n_permutations=20,
         random_state=0,
         n_jobs=1,
@@ -89,8 +90,8 @@ def test_cpi(linear_scenario):
     )
     cpi.fit(
         X_train,
-        y=None,
         groups=None,
+        var_type=["continuous"] * X.shape[1],
     )
     vim = cpi.score(X_test, y_test_clf)
 
@@ -98,6 +99,8 @@ def test_cpi(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
+    """Test for the ValueError raised by the Conditional Permutation Importance
+    algorithm."""
     X, y, _ = linear_scenario
 
     # Predict method not recognized
@@ -106,7 +109,6 @@ def test_raises_value_error(
         predict_method = "unknown method"
         CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method=predict_method,
         )
 
@@ -114,7 +116,6 @@ def test_raises_value_error(
     with pytest.raises(NotFittedError):
         cpi = CPI(
             estimator=LinearRegression(),
-            imputation_model=LinearRegression(),
             method="predict",
         )
 
@@ -123,7 +124,6 @@ def test_raises_value_error(
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method="predict",
         )
         cpi.predict(X)
@@ -131,7 +131,6 @@ def test_raises_value_error(
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
-            imputation_model=LinearRegression(),
             method="predict",
         )
         cpi.score(X, y)
