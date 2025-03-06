@@ -2,15 +2,16 @@
 Measuring variable importance in classification
 ===============================================
 
-In this example, we illustrate how to measure variable importance in a classification 
-context. The problem under consideration is a binary classification where the target 
-variable is generated using a non-linear function of the features. Therefore 
-illustrating the importance of model-agnostic variable importance methods, which, as 
-opposed to linear models for instance, can capture non-linear relationships. 
-The features are generated from a multivariate normal distribution with a Toeplitz 
-correlation matrix. This second specificity of the problem is interesting to exemplify 
-the benefits of the conditional permutation importance (CPI) method [:footcite:t:`Chamma_NeurIPS2023`] 
-over the standard permutation importance (PI) method [:footcite:t:`breimanRandomForests2001`].
+In this example, we illustrate how to measure variable importance in a classification
+context. The problem under consideration is a binary classification where the target
+variable is generated using a non-linear function of the features. Therefore
+illustrating the importance of model-agnostic variable importance methods, which, as
+opposed to linear models for instance, can capture non-linear relationships. The
+features are generated from a multivariate normal distribution with a Toeplitz
+correlation matrix. This second specificity of the problem is interesting to exemplify
+the benefits of the conditional permutation importance (CPI) method
+[:footcite:t:`Chamma_NeurIPS2023`] over the standard permutation importance (PI) method
+[:footcite:t:`breimanRandomForests2001`].
 
 References
 ----------
@@ -45,7 +46,10 @@ from hidimstat import CPI, PermutationImportance
 # The BMI can be obtained by :math:`\text{BMI} = \frac{\text{weight}}{\text{height}^2}`.
 # And we simply mimic the weight and height variables by rescaling 2 correlated
 # features. The binary target is then generated using the formula:
-# :math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
+# :math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}
+# \right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} -
+# \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot
+# \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
 # The first and second term are non-linear functions of the features, corresponding to
 # deviations from the population mean while the third term is a linear function of a
 # feature.
@@ -224,10 +228,10 @@ for j in range(n_features):
 # the true important features, used to generate the target variable, with a star marker.
 # While the linear model captures the importance of the age, it fails to capture the
 # importance of the weight and height because of its lack of expressivity. Using a
-# polynomial kernel, the non-linear model captures the importance of the weight and height.
-# Finally, the CPI method controls for false positive discoveries contrarily to the PI method
-# which identifies spurious important features simply because of the correlation structure of
-# the features.
+# polynomial kernel, the non-linear model captures the importance of the weight and
+# height. Finally, the CPI method controls for false positive discoveries contrarily
+# to the PI method which identifies spurious important features simply because of the
+# correlation structure of the features.
 
 fig, ax = plt.subplots()
 box1 = ax.boxplot(
