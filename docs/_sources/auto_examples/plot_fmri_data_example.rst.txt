@@ -81,8 +81,8 @@ Imports needed for this script
 
     from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
     from hidimstat.clustered_inference import clustered_inference
-    from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.empirical_thresholding import empirical_thresholding
+    from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.permutation_test import permutation_test, permutation_test_pval
     from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
@@ -185,8 +185,8 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 121634816 of 291168628 bytes (41.8%%,    1.4s remaining)
-    [_chunk_report_]     Downloaded 270655488 of 291168628 bytes (93.0%%,    0.2s remaining)
+    [_chunk_report_]     Downloaded 108199936 of 291168628 bytes (37.2%%,    1.7s remaining)
+    [_chunk_report_]     Downloaded 258564096 of 291168628 bytes (88.8%%,    0.3s remaining)
     [fetch_single_file]  ...done. (2 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
@@ -376,7 +376,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.8s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.9s finished
 
 
 
@@ -621,9 +621,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 17.260 seconds)
+   **Total running time of the script:** (1 minutes 18.975 seconds)
 
-**Estimated memory usage:**  3225 MB
+**Estimated memory usage:**  3279 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
