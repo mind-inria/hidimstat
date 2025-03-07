@@ -127,7 +127,6 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
-    # "navbar_links": [("API", "api/index")],  # Ensure the right path
 }
 
 
