@@ -21,26 +21,27 @@
 Measuring variable importance in classification
 ===============================================
 
-In this example, we illustrate how to measure variable importance in a classification 
-context. The problem under consideration is a binary classification where the target 
-variable is generated using a non-linear function of the features. Therefore 
-illustrating the importance of model-agnostic variable importance methods, which, as 
-opposed to linear models for instance, can capture non-linear relationships. 
-The features are generated from a multivariate normal distribution with a Toeplitz 
-correlation matrix. This second specificity of the problem is interesting to exemplify 
-the benefits of the conditional permutation importance (CPI) method [:footcite:t:`Chamma_NeurIPS2023`] 
-over the standard permutation importance (PI) method [:footcite:t:`breimanRandomForests2001`].
+In this example, we illustrate how to measure variable importance in a classification
+context. The problem under consideration is a binary classification where the target
+variable is generated using a non-linear function of the features. Therefore
+illustrating the importance of model-agnostic variable importance methods, which, as
+opposed to linear models for instance, can capture non-linear relationships. The
+features are generated from a multivariate normal distribution with a Toeplitz
+correlation matrix. This second specificity of the problem is interesting to exemplify
+the benefits of the conditional permutation importance (CPI) method
+[:footcite:t:`Chamma_NeurIPS2023`] over the standard permutation importance (PI) method
+[:footcite:t:`breimanRandomForests2001`].
 
 References
 ----------
 .. footbibliography::
 
-.. GENERATED FROM PYTHON SOURCE LINES 22-24
+.. GENERATED FROM PYTHON SOURCE LINES 23-25
 
 Imports needed
 --------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-38
+.. GENERATED FROM PYTHON SOURCE LINES 25-39
 
 .. code-block:: Python
 
@@ -65,7 +66,7 @@ Imports needed
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 39-52
+.. GENERATED FROM PYTHON SOURCE LINES 40-56
 
 Generate the data
 -----------------
@@ -74,14 +75,17 @@ correlation matrix. The target variable is generated using a non-linear function
 of the features. To make the problem more intuitive, we generate a non-linear
 combination of the features inspired by the Body Mass Index (BMI) formula.
 The BMI can be obtained by :math:`\text{BMI} = \frac{\text{weight}}{\text{height}^2}`.
-And we simply mimic the weight and height variables by rescalling 2 correlated
+And we simply mimic the weight and height variables by rescaling 2 correlated
 features. The binary target is then generated using the formula:
-:math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} - \text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot \text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
+:math:`y = \beta_1 \exp\left(\frac{|\text{bmi} - \text{mean(bmi)}|}{\text{std(bmi)}}
+\right) + \beta_2 \exp\left(|\text{weight}| \times 1\left[|\text{weight} -
+\text{mean(weight)}| > \text{quantile(weight, 0.80)}\right] \right) + \beta_3 \cdot
+\text{age} + \epsilon` where :math:`\epsilon`` is a Gaussian noise.
 The first and second term are non-linear functions of the features, corresponding to
 deviations from the population mean while the third term is a linear function of a
 feature.
 
-.. GENERATED FROM PYTHON SOURCE LINES 52-82
+.. GENERATED FROM PYTHON SOURCE LINES 56-86
 
 .. code-block:: Python
 
@@ -122,12 +126,12 @@ feature.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 83-85
+.. GENERATED FROM PYTHON SOURCE LINES 87-89
 
 Visualize the data
 ------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-116
+.. GENERATED FROM PYTHON SOURCE LINES 89-120
 
 .. code-block:: Python
 
@@ -176,11 +180,11 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7f0fe25f0e00>, <matplotlib.axis.YTick object at 0x7f0fe25f2630>, <matplotlib.axis.YTick object at 0x7f0fe3d736b0>, <matplotlib.axis.YTick object at 0x7f0fe3d70e00>, <matplotlib.axis.YTick object at 0x7f0fe3d484d0>, <matplotlib.axis.YTick object at 0x7f0fe3d71580>, <matplotlib.axis.YTick object at 0x7f0fe3d705c0>, <matplotlib.axis.YTick object at 0x7f0fe3d73ce0>, <matplotlib.axis.YTick object at 0x7f0fe331e840>, <matplotlib.axis.YTick object at 0x7f0fe3d72240>]
+    [<matplotlib.axis.YTick object at 0x7f411972a7e0>, <matplotlib.axis.YTick object at 0x7f411972aae0>, <matplotlib.axis.YTick object at 0x7f4119e84b90>, <matplotlib.axis.YTick object at 0x7f4119e84560>, <matplotlib.axis.YTick object at 0x7f4119e85bb0>, <matplotlib.axis.YTick object at 0x7f4119e87e90>, <matplotlib.axis.YTick object at 0x7f4119e85040>, <matplotlib.axis.YTick object at 0x7f4119e3e240>, <matplotlib.axis.YTick object at 0x7f4119e3dfd0>, <matplotlib.axis.YTick object at 0x7f41199bf7d0>]
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 117-124
+.. GENERATED FROM PYTHON SOURCE LINES 121-128
 
 Variable importance inference
 -----------------------------
@@ -190,7 +194,7 @@ relationship between the features and the target variable. We then use the CPI a
 PI methods to compute the variable importance. We use a 5-fold cross-validation to
 estimate the importance of the features.
 
-.. GENERATED FROM PYTHON SOURCE LINES 124-209
+.. GENERATED FROM PYTHON SOURCE LINES 128-213
 
 .. code-block:: Python
 
@@ -233,7 +237,7 @@ estimate the importance of the features.
         model_linear_c.fit(X[train], y[train])
         cpi_linear = CPI(
             estimator=model_linear_c,
-            imputation_model=clone(imputation_model),
+            imputation_model_continuous=clone(imputation_model),
             n_permutations=50,
             n_jobs=5,
             loss=hinge_loss,
@@ -247,7 +251,7 @@ estimate the importance of the features.
         model_non_linear_c.fit(X[train], y[train])
         cpi_non_linear = CPI(
             estimator=model_non_linear_c,
-            imputation_model=clone(imputation_model),
+            imputation_model_continuous=clone(imputation_model),
             n_permutations=50,
             n_jobs=5,
             loss=hinge_loss,
@@ -293,12 +297,12 @@ estimate the importance of the features.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 210-212
+.. GENERATED FROM PYTHON SOURCE LINES 214-216
 
 Compute the p-values for the variable importance
 ------------------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 212-219
+.. GENERATED FROM PYTHON SOURCE LINES 216-223
 
 .. code-block:: Python
 
@@ -316,7 +320,7 @@ Compute the p-values for the variable importance
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 220-231
+.. GENERATED FROM PYTHON SOURCE LINES 224-235
 
 Visualize the variable importance
 ---------------------------------
@@ -325,12 +329,12 @@ important, with a p-value lower than 0.05, using a diamond marker. We also highl
 the true important features, used to generate the target variable, with a star marker.
 While the linear model captures the importance of the age, it fails to capture the
 importance of the weight and height because of its lack of expressivity. Using a
-polynomial kernel, the non-linear model captures the importance of the weight and height.
-Finally, the CPI method controls for false positive discoveries contrarily to the PI method
-which identifies spurious important features simply because of the correlation structure of
-the features.
+polynomial kernel, the non-linear model captures the importance of the weight and
+height. Finally, the CPI method controls for false positive discoveries contrarily
+to the PI method which identifies spurious important features simply because of the
+correlation structure of the features.
 
-.. GENERATED FROM PYTHON SOURCE LINES 231-305
+.. GENERATED FROM PYTHON SOURCE LINES 235-309
 
 .. code-block:: Python
 
@@ -422,14 +426,14 @@ the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7f0fe1ee86b0>
+    <matplotlib.legend.Legend object at 0x7f4119936c60>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 44.197 seconds)
+   **Total running time of the script:** (0 minutes 43.515 seconds)
 
 **Estimated memory usage:**  639 MB
 

@@ -17,7 +17,7 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and 
+buiding process. However, this solution is exclusive to the Random Forest and
 is costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
@@ -51,20 +51,19 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.base import clone
 from sklearn.datasets import load_diabetes
-from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat.cpi import CPI
-from hidimstat.loco import LOCO
-from hidimstat.permutation_importance import PermutationImportance
+from hidimstat import CPI, LOCO, PermutationImportance
 
 #############################################################################
 # Load the diabetes dataset
 # -------------------------
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
-
+# Encode sex as binary
+X[:, 1] = (X[:, 1] > 0.0).astype(int)
 #############################################################################
 # Fit a baseline model on the diabetes dataset
 # --------------------------------------------
@@ -119,7 +118,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     cpi = CPI(
         estimator=regressor_list[i],
-        imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=0,
@@ -141,7 +141,6 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     loco = LOCO(
         estimator=regressor_list[i],
-        random_state=0,
         n_jobs=4,
     )
     loco.fit(X_train, y_train)
