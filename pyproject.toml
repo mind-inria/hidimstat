@@ -82,4 +82,4 @@ source = "vcs"
 
 #pyproject.toml
 [tool.pytest.ini_options]
-addopts = "--ignore=src"   # ignore src directory
+testpaths = "tests"
