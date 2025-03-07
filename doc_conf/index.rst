@@ -170,14 +170,15 @@ For Knockoffs Inference:
 .. |codestyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-API
----
-
-.. toctree::
-    :maxdepth: 1
-
-    api
 
 References
 ----------
 .. bibliography:: references.bib
+
+  
+.. toctree::
+  :hidden:
+  :maxdepth: 1
+
+  api
+  auto_examples/index
