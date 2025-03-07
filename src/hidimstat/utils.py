@@ -326,3 +326,34 @@ def _alpha_max(X, y, use_noise_estimate=False):
         alpha_max = np.max(np.abs(np.dot(X.T, y)) / (n_samples * sigma_star))
 
     return alpha_max
+
+
+########################## function for using Sklearn ##########################
+def _check_vim_predict_method(method):
+    """
+    Validates that the method is a valid scikit-learn prediction method for variable importance measures.
+
+    Parameters
+    ----------
+    method : str
+        The scikit-learn prediction method to validate.
+
+    Returns
+    -------
+    str
+        The validated method if valid.
+
+    Raises
+    ------
+    ValueError
+        If the method is not one of the standard scikit-learn prediction methods:
+        'predict', 'predict_proba', 'decision_function', or 'transform'.
+    """
+    if method in ["predict", "predict_proba", "decision_function", "transform"]:
+        return method
+    else:
+        raise ValueError(
+            "The method {} is not a valid method for variable importance measure prediction".format(
+                method
+            )
+        )
