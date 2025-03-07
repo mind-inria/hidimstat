@@ -1,7 +1,7 @@
 .. _api_documentation:
 
 =================
-API Documentation
+API
 =================
 
 Estimators
@@ -14,17 +14,16 @@ Functions
 
 .. autosummary::
    :toctree: generated/
+   :template: function.rst
 
    aggregate_quantiles
    clustered_inference
-   data_simulation
    desparsified_lasso
    ensemble_clustered_inference
    group_reid
    hd_inference
    knockoff_aggregation
    model_x_knockoff
-   multivariate_1D_simulation
    permutation_test
    permutation_test_pval
    reid
@@ -36,7 +35,9 @@ Classes
 
 .. autosummary::
    :toctree: generated/
-
+   :template: class.rst
+   
+   BasePerturbation
    LOCO
    CPI
    PermutationImportance

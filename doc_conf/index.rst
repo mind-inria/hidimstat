@@ -50,7 +50,7 @@ Documentation & Examples
 ------------------------
 
 Documentation about the main HiDimStat functions is available
-`here <api.html>`_ and examples are available `here <auto_examples/index.html>`_.
+`here <api.html>`_ and examples are available `there <auto_examples/index.html>`_.
 
 As of now, there are three different examples (Python scripts) that
 illustrate how to use the main HiDimStat functions.
@@ -121,15 +121,15 @@ Application to source localization (MEG/EEG data):
 
 Single/Group statistically validated importance using conditional permutations:
 
-* Chamma, A., Thirion, B., & Engemann, D. (2024). **Variable importance in
-high-dimensional settings requires grouping**. In Proceedings of the 38th
-Conference of the Association for the Advancement of Artificial
-Intelligence(AAAI 2024), Vancouver, Canada.
+* Chamma, A., Engemann, D., & Thirion, B. (2023). Statistically Valid Variable
+  Importance Assessment through Conditional Permutations. In Proceedings of the
+  37th Conference on Neural Information Processing Systems (NeurIPS 2023), New
+  Orleans, USA.
 
-* Chamma, A., Engemann, D., & Thirion, B. (2023). **Statistically Valid Variable
-Importance Assessment through Conditional Permutations**. In Proceedings of the
-37th Conference on Neural Information Processing Systems (NeurIPS 2023), New
-Orleans, USA.
+* Chamma, A., Thirion, B., & Engemann, D. (2024). Variable importance in
+  high-dimensional settings requires grouping. In Proceedings of the 38th
+  Conference of the Association for the Advancement of Artificial
+  Intelligence(AAAI 2024), Vancouver, Canada.
 
 If you use our packages, we would appreciate citations to the relevant
 aforementioned papers.
@@ -176,4 +176,8 @@ API
 .. toctree::
     :maxdepth: 1
 
-    api.rst
+    api
+
+References
+----------
+.. bibliography:: references.bib
