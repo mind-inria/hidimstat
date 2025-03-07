@@ -1,5 +1,5 @@
-from .Dnn_learner_single import DnnLearnerSingle
+from .RandomForestModified import RandomForestClassifierModified, RandomForestRegressorModified
 
 __all__ = [
-    "DnnLearnerSingle",
+    "RandomForestClassifierModified", "RandomForestRegressorModified"
 ]

@@ -1,5 +1,5 @@
-from hidimstat.estimator.tests._utils_test import generate_data
-from hidimstat.estimator.RandomForestModified import (
+from ._utils_test import generate_data
+from hidimstat.estimator import (
     RandomForestClassifierModified,
     RandomForestRegressorModified,
 )
