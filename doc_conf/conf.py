@@ -127,7 +127,6 @@ sphinx_gallery_conf = {
     "abort_on_example_error": False,
     "image_scrapers": scrapers,
     "show_memory": True,
-    "filename_pattern": r"test_plot*",
 }
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
