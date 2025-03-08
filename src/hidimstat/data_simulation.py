@@ -32,7 +32,6 @@ def simu_data(n, p, rho=0.25, snr=2.0, sparsity=0.06, effect=1.0, seed=None):
         Vector of true coefficient value
     non_zero : ndarray, shape (n, )
         Vector of non zero coefficients index
-
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)

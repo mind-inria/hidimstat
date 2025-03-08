@@ -18,7 +18,7 @@ def empirical_thresholding(
     This function fits a linear estimator to the input data and target,
     and then uses the estimated coefficients to perform empirical thresholding.
     The threshold is calculated for keeping only extreme coefficients.
-    For more details, see the section 6.3.2 of :cite:`chevalier_statistical_2020`
+    For more details, see section 6.3.2 of :footcite:t:`chevalier_statistical_2020`.
 
     Parameters
     ----------
@@ -26,8 +26,8 @@ def empirical_thresholding(
         The input data.
     y : ndarray, shape (n_samples,)
         The target values.
-    linear_estimator : estimator object, optional (default=GridSearchCV(
-            LinearSVR(),param_grid={"C": np.logspace(-7, 1, 9)}, n_jobs=None))
+    linear_estimator : estimator object, optional (default=GridSearchCV(\
+        LinearSVR(), param_grid={'C': np.logspace(-7, 1, 9)}, n_jobs=None))
         The linear estimator to use for thresholding. It should be a scikit-learn
         estimator object that implements the `fit` method and has a `coef_`
         attribute or a `best_estimator_` attribute with a `coef_` attribute
@@ -52,7 +52,12 @@ def empirical_thresholding(
     coefficients multiplied by the square root of the number of features.
     This is based on the assumption that the coefficients follow a normal
     distribution with mean zero.
+
+    References
+    ----------
+    .. footbibliography::
     """
+
     _, n_features = X.shape
 
     linear_estimator.fit(X, y)
