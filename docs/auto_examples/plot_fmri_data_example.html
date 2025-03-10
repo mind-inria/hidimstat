@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Support recovery on fMRI data &#8212; HiDimStat 0.1.dev1+g52d640d documentation</title>
+    <title>Support recovery on fMRI data &#8212; HiDimStat 0.1.dev1+gfff131f documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="../_static/documentation_options.js?v=dc065f63"></script>
+    <script src="../_static/documentation_options.js?v=5d4cef12"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -182,8 +182,8 @@ control on decoder maps. NeuroImage, 234, 117921.</p>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.adaptative_permutation_threshold_SVR</span><span class="w"> </span><span class="kn">import</span> <span class="n">ada_svr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.clustered_inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">clustered_inference</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensemble_clustered_inference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.empirical_thresholding</span><span class="w"> </span><span class="kn">import</span> <span class="n">empirical_thresholding</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">ensemble_clustered_inference</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.permutation_test</span><span class="w"> </span><span class="kn">import</span> <span class="n">permutation_test</span><span class="p">,</span> <span class="n">permutation_test_pval</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pval_from_scale</span><span class="p">,</span> <span class="n">zscore_from_pval</span>
 
@@ -254,7 +254,7 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 141983744 of 291168628 bytes (48.8%%,    1.1s remaining)
+Downloaded 144826368 of 291168628 bytes (49.7%%,    1.0s remaining)
 [fetch_single_file]  ...done. (2 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
@@ -357,7 +357,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   34.2s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.8s finished
 </pre></div>
 </div>
 </section>
@@ -480,8 +480,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 21.342 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  3181 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 16.434 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  3419 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>
@@ -510,7 +510,7 @@ spurious discoveries.</p>
     </p>
     <p>
         &copy; Copyright 2024, Mind-Inria.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.2.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.2.3.<br/>
     </p>
   </div>
 </footer>

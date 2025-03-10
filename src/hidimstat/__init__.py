@@ -4,19 +4,19 @@ from .desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
+from .conditional_permutation_importance import CPI
 from .Dnn_learner_single import DnnLearnerSingle
+from .empirical_thresholding import empirical_thresholding
 from .ensemble_clustered_inference import ensemble_clustered_inference
 from .knockoff_aggregation import knockoff_aggregation
 from .knockoffs import model_x_knockoff
+from .leave_one_covariate_out import LOCO
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import reid
+from .permutation_importance import PermutationImportance
 from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
-from .empirical_thresholding import empirical_thresholding
 from .stat_tools import zscore_from_pval
-from .cpi import CPI
-from .loco import LOCO
-from .permutation_importance import PermutationImportance
 
 try:
     from ._version import __version__

@@ -40,18 +40,19 @@ References
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 24-158
+.. GENERATED FROM PYTHON SOURCE LINES 24-159
 
 .. code-block:: Python
 
 
-    import numpy as np
-    from hidimstat.data_simulation import simu_data
-    from hidimstat.knockoffs import model_x_knockoff
-    from hidimstat.knockoff_aggregation import knockoff_aggregation
-    from hidimstat.utils import cal_fdp_power
-    from sklearn.utils import check_random_state
     import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.utils import check_random_state
+
+    from hidimstat.data_simulation import simu_data
+    from hidimstat.knockoff_aggregation import knockoff_aggregation
+    from hidimstat.knockoffs import model_x_knockoff
+    from hidimstat.utils import cal_fdp_power
 
     plt.rcParams.update({"font.size": 26})
 
@@ -205,9 +206,9 @@ Imports needed for this script
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (5 minutes 37.576 seconds)
+   **Total running time of the script:** (5 minutes 40.888 seconds)
 
-**Estimated memory usage:**  809 MB
+**Estimated memory usage:**  804 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_knockoff_aggregation.py:
