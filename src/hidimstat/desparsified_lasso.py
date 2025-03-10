@@ -46,7 +46,7 @@ def desparsified_lasso(
         responses.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, applies degrees of freedom adjustment.
+        If True, applies degrees of freedom adjustment from :footcite:t:`bellec2022biasing`.
         If False, computes original Desparsified Lasso estimator.
 
     max_iter : int, optional (default=5000)
