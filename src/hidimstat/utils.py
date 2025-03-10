@@ -306,7 +306,7 @@ def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     ----------
     X : array-like of shape (n_samples, n_features)
         Training data
-    y : array-like of shape (n_samples,)
+    y : array-like of shape (n_samples,) or (n_samples, n_features)
         Target values
     use_noise_estimate : bool, default=True
         Whether to use noise estimation in the calculation
@@ -323,12 +323,11 @@ def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     """
     n_samples, _ = X.shape
 
-    # compute the Gram matrix
-    gram = np.dot(X.T, y)
+    Xt_y = np.dot(X.T, y)
     if fill_diagonal:
-        np.fill_diagonal(gram, 0)
+        np.fill_diagonal(Xt_y, 0)
 
-    alpha_max = np.max(gram, axis=axis) / n_samples
+    alpha_max = np.max(Xt_y, axis=axis) / n_samples
 
     if use_noise_estimate:
         # estimate the noise level

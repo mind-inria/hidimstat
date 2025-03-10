@@ -412,7 +412,7 @@ def _compute_all_residuals(
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
         delayed(_compute_residuals)(
             X=X,
-            column_index=i,
+            id_column=i,
             alpha=alphas[i],
             gram=gram,
             max_iter=max_iter,
@@ -429,7 +429,7 @@ def _compute_all_residuals(
     return Z, precision_diag
 
 
-def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
+def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -441,7 +441,7 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     X : ndarray, shape (n_samples, n_features)
         Centered input data matrix
 
-    column_index : int
+    id_column : int
         Index i of feature to regress
 
     alpha : float
@@ -471,22 +471,22 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     """
 
     n_samples, n_features = X.shape
-    i = column_index
 
     # Removing the column to regress against the others
-    X_new = np.delete(X, i, axis=1)
-    y_new = np.copy(X[:, i])
+    X_minus_i = np.delete(X, id_column, axis=1)
+    y_new = np.copy(X[:, id_column])
 
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
-    gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
+    gram_ = np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
     clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
 
     # Fitting the Lasso model and computing the residuals
-    clf.fit(X_new, y_new)
-    z = y_new - clf.predict(X_new)
+    clf.fit(X_minus_i, y_new)
+    z = y_new - clf.predict(X_minus_i)
 
-    # Computing the diagonal of the covariance matrix
+    # Computing the diagonal of the covariance matrix,
+    # which is used as an estimation of the noise covariance.
     omega_diag_i = n_samples * np.sum(z**2) / np.dot(y_new, z) ** 2
 
     return z, omega_diag_i
