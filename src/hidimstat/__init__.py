@@ -10,6 +10,7 @@ from .leave_one_covariate_out import LOCO
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
 from .permutation_importance import PermutationImportance
+from .dcrt import dcrt_zero, dcrt_pvalue
 from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
 from .stat_tools import zscore_from_pval
@@ -23,6 +24,7 @@ __all__ = [
     "aggregate_quantiles",
     "clustered_inference",
     "dcrt_zero",
+    "dcrt_pvalue",
     "desparsified_lasso",
     "desparsified_group_lasso",
     "DnnLearnerSingle",
