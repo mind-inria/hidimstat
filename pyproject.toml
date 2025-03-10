@@ -81,3 +81,7 @@ where = ["src"]
 
 [tool.hatch.version]
 source = "vcs"
+
+#pyproject.toml
+[tool.pytest.ini_options]
+testpaths = "tests"

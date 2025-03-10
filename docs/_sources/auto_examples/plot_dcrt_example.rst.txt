@@ -31,15 +31,16 @@ the power
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-25
+.. GENERATED FROM PYTHON SOURCE LINES 14-26
 
 .. code-block:: Python
 
 
+    import matplotlib.pyplot as plt
     import numpy as np
+
     from hidimstat.dcrt import dcrt_zero
     from hidimstat.scenario import multivariate_1D_simulation
-    import matplotlib.pyplot as plt
 
     plt.rcParams.update({"font.size": 21})
 
@@ -53,12 +54,12 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 26-28
+.. GENERATED FROM PYTHON SOURCE LINES 27-29
 
 Processing the computations
 ---------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 28-69
+.. GENERATED FROM PYTHON SOURCE LINES 29-70
 
 .. code-block:: Python
 
@@ -125,12 +126,12 @@ Processing the computations
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-72
+.. GENERATED FROM PYTHON SOURCE LINES 71-73
 
 Plotting the comparison
 -----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 72-85
+.. GENERATED FROM PYTHON SOURCE LINES 73-86
 
 .. code-block:: Python
 
@@ -162,9 +163,9 @@ Plotting the comparison
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 2.810 seconds)
+   **Total running time of the script:** (1 minutes 2.721 seconds)
 
-**Estimated memory usage:**  638 MB
+**Estimated memory usage:**  658 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_dcrt_example.py:

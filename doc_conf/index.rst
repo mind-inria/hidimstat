@@ -37,6 +37,9 @@ HiDimStat depends on the following packages::
   numpy
   scipy
   scikit-learn
+  pandas
+  torch
+  torchmetrics
 
 
 To run examples it is neccessary to install ``matplotlib``, and to run tests it
@@ -71,8 +74,8 @@ To build the documentation you will need to run:
 
 .. code-block::
 
-    pip install -U sphinx_gallery sphinx_bootstrap_theme
-    cd doc
+    pip install -U .[doc]
+    cd doc_conf
     make html
 
 

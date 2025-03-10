@@ -22,7 +22,7 @@ def test_dcrt_lasso(generate_regation_dataset):
     """
     X, y = generate_regation_dataset
     # Checking if a loss != 'least_square'
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="test loss is not supported."):
         _ = dcrt_zero(
             X,
             y,
@@ -39,7 +39,7 @@ def test_dcrt_lasso_unknow_statistic(generate_regation_dataset):
     """
     X, y = generate_regation_dataset
     # Checking for a different statistic
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match="test statistic is not supported."):
         _ = dcrt_zero(
             X,
             y,

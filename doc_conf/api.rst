@@ -15,7 +15,6 @@ Functions
 .. autosummary::
    :toctree: generated/
 
-   ada_svr
    aggregate_quantiles
    clustered_inference
    dcrt_zero
@@ -28,9 +27,10 @@ Functions
    knockoff_aggregation
    model_x_knockoff
    multivariate_1D_simulation
-   permutation_test_cv
+   permutation_test
+   permutation_test_pval
    reid
-   standardized_svr
+   empirical_thresholding
    zscore_from_pval
 
 Classes

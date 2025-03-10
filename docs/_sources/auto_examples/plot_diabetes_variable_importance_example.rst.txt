@@ -36,7 +36,7 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and 
+buiding process. However, this solution is exclusive to the Random Forest and
 is costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
@@ -64,7 +64,7 @@ References
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 48-62
+.. GENERATED FROM PYTHON SOURCE LINES 48-60
 
 .. code-block:: Python
 
@@ -74,13 +74,11 @@ Imports needed for this script
     from scipy.stats import norm
     from sklearn.base import clone
     from sklearn.datasets import load_diabetes
-    from sklearn.linear_model import RidgeCV
+    from sklearn.linear_model import LogisticRegressionCV, RidgeCV
     from sklearn.metrics import r2_score, root_mean_squared_error
     from sklearn.model_selection import KFold
 
-    from hidimstat.cpi import CPI
-    from hidimstat.loco import LOCO
-    from hidimstat.permutation_importance import PermutationImportance
+    from hidimstat import CPI, LOCO, PermutationImportance
 
 
 
@@ -89,17 +87,19 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 63-65
+.. GENERATED FROM PYTHON SOURCE LINES 61-63
 
 Load the diabetes dataset
 -------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 65-68
+.. GENERATED FROM PYTHON SOURCE LINES 63-67
 
 .. code-block:: Python
 
     diabetes = load_diabetes()
     X, y = diabetes.data, diabetes.target
+    # Encode sex as binary
+    X[:, 1] = (X[:, 1] > 0.0).astype(int)
 
 
 
@@ -107,15 +107,14 @@ Load the diabetes dataset
 
 
 
-
-.. GENERATED FROM PYTHON SOURCE LINES 69-73
+.. GENERATED FROM PYTHON SOURCE LINES 68-72
 
 Fit a baseline model on the diabetes dataset
 --------------------------------------------
 We use a Ridge regression model with a 10-fold cross-validation to fit the
 diabetes dataset.
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-89
+.. GENERATED FROM PYTHON SOURCE LINES 72-88
 
 .. code-block:: Python
 
@@ -143,28 +142,28 @@ diabetes dataset.
 
  .. code-block:: none
 
-    Fold 0: 0.33092885980301545
-    Fold 0: 58.57429457038258
-    Fold 1: 0.46114740610001137
-    Fold 1: 53.69518424561582
-    Fold 2: 0.5333394029342122
-    Fold 2: 54.666537166030764
-    Fold 3: 0.5048253747874585
-    Fold 3: 54.3633702441001
-    Fold 4: 0.5979566135054368
-    Fold 4: 52.287948367546456
+    Fold 0: 0.3308347338292018
+    Fold 0: 58.578414587143264
+    Fold 1: 0.46121055962206037
+    Fold 1: 53.69203761571753
+    Fold 2: 0.532580377477482
+    Fold 2: 54.7109767813034
+    Fold 3: 0.5064809104496388
+    Fold 3: 54.27241662381731
+    Fold 4: 0.5979653259032667
+    Fold 4: 52.28738181690639
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 90-94
+.. GENERATED FROM PYTHON SOURCE LINES 89-93
 
 Fit a baselien model on the diabetes dataset
 --------------------------------------------
 We use a Ridge regression model with a 10-fold cross-validation to fit the
 diabetes dataset.
 
-.. GENERATED FROM PYTHON SOURCE LINES 94-111
+.. GENERATED FROM PYTHON SOURCE LINES 93-110
 
 .. code-block:: Python
 
@@ -193,36 +192,36 @@ diabetes dataset.
 
  .. code-block:: none
 
-    Fold 0: 0.34873505091371093
-    Fold 0: 56.151600911163946
-    Fold 1: 0.2722061930940729
-    Fold 1: 61.35323376775815
-    Fold 2: 0.5316220308691071
-    Fold 2: 49.33374807702299
-    Fold 3: 0.36967014548640154
-    Fold 3: 59.01492149527525
-    Fold 4: 0.5858181205553151
-    Fold 4: 51.479244269131684
-    Fold 5: 0.46246416851449
-    Fold 5: 58.3119253313517
-    Fold 6: 0.5235794267120801
-    Fold 6: 51.352999936251216
-    Fold 7: 0.48683083150894546
-    Fold 7: 56.75372711094103
-    Fold 8: 0.665318862395647
-    Fold 8: 47.26090648721779
-    Fold 9: 0.5514585816057873
-    Fold 9: 55.7236176985951
+    Fold 0: 0.34890711975297883
+    Fold 0: 56.14418259464154
+    Fold 1: 0.2721892039082885
+    Fold 1: 61.353949860279265
+    Fold 2: 0.5366616548610812
+    Fold 2: 49.06762118785067
+    Fold 3: 0.369613881109925
+    Fold 3: 59.01755532551764
+    Fold 4: 0.5855653971685906
+    Fold 4: 51.49494754541356
+    Fold 5: 0.4624358145573261
+    Fold 5: 58.313463230719215
+    Fold 6: 0.5237829173242109
+    Fold 6: 51.342031718187556
+    Fold 7: 0.48524399114935435
+    Fold 7: 56.84140735040936
+    Fold 8: 0.6653054560599736
+    Fold 8: 47.26185304374659
+    Fold 9: 0.5514651857121984
+    Fold 9: 55.7232074733178
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 112-114
+.. GENERATED FROM PYTHON SOURCE LINES 111-113
 
 Measure the importance of variables using the CPI method
 --------------------------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-132
+.. GENERATED FROM PYTHON SOURCE LINES 113-132
 
 .. code-block:: Python
 
@@ -234,7 +233,8 @@ Measure the importance of variables using the CPI method
         y_train, y_test = y[train_index], y[test_index]
         cpi = CPI(
             estimator=regressor_list[i],
-            imputation_model=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
             # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
             n_permutations=50,
             random_state=0,
@@ -271,7 +271,7 @@ Measure the importance of variables using the CPI method
 Measure the importance of variables using the LOCO method
 ---------------------------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 135-152
+.. GENERATED FROM PYTHON SOURCE LINES 135-151
 
 .. code-block:: Python
 
@@ -284,7 +284,6 @@ Measure the importance of variables using the LOCO method
         y_train, y_test = y[train_index], y[test_index]
         loco = LOCO(
             estimator=regressor_list[i],
-            random_state=0,
             n_jobs=4,
         )
         loco.fit(X_train, y_train)
@@ -314,12 +313,12 @@ Measure the importance of variables using the LOCO method
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 153-155
+.. GENERATED FROM PYTHON SOURCE LINES 152-154
 
 Measure the importance of variables using the permutation method
 ----------------------------------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 155-173
+.. GENERATED FROM PYTHON SOURCE LINES 154-172
 
 .. code-block:: Python
 
@@ -363,12 +362,12 @@ Measure the importance of variables using the permutation method
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 174-176
+.. GENERATED FROM PYTHON SOURCE LINES 173-175
 
 Define a function to compute the p-value from importance values
 ---------------------------------------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 176-183
+.. GENERATED FROM PYTHON SOURCE LINES 175-182
 
 .. code-block:: Python
 
@@ -386,12 +385,12 @@ Define a function to compute the p-value from importance values
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 184-186
+.. GENERATED FROM PYTHON SOURCE LINES 183-185
 
 Analyze the results
 -------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 186-258
+.. GENERATED FROM PYTHON SOURCE LINES 185-257
 
 .. code-block:: Python
 
@@ -480,9 +479,9 @@ Analyze the results
 
  .. code-block:: none
 
-    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:240: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
+    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:239: MatplotlibDeprecationWarning: The get_cmap function was deprecated in Matplotlib 3.7 and will be removed in 3.11. Use ``matplotlib.colormaps[name]`` or ``matplotlib.colormaps.get_cmap()`` or ``pyplot.get_cmap()`` instead.
       colors = plt.cm.get_cmap("tab10", 10)
-    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:256: UserWarning: set_ticklabels() should only be used with a fixed number of ticks, i.e. after set_ticks() or using a FixedLocator.
+    /home/runner/work/hidimstat/hidimstat/examples/plot_diabetes_variable_importance_example.py:255: UserWarning: set_ticklabels() should only be used with a fixed number of ticks, i.e. after set_ticks() or using a FixedLocator.
       ax.set_xticklabels(diabetes.feature_names)
 
 
@@ -491,9 +490,9 @@ Analyze the results
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 8.765 seconds)
+   **Total running time of the script:** (0 minutes 8.062 seconds)
 
-**Estimated memory usage:**  623 MB
+**Estimated memory usage:**  643 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_diabetes_variable_importance_example.py:

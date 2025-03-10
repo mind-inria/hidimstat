@@ -1,5 +1,4 @@
 import copy
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,26 +9,57 @@ from torchmetrics import Accuracy
 
 
 ########################## quantile aggregation method ##########################
-def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
+def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
-    This function implements the quantile aggregation method for p-values.
+    Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.
+
+    The function aggregates multiple p-values into a single p-value while controlling
+    the family-wise error rate. It supports both fixed and adaptive quantile aggregation.
+
+    Parameters
+    ----------
+    pvals : ndarray of shape (n_sampling*2, n_test)
+        Matrix of p-values to aggregate. Each row represents a sampling instance
+        and each column a hypothesis test.
+    gamma : float, default=0.05
+        Quantile level for aggregation. Must be in range (0,1].
+    n_grid : int, default=20
+        Number of grid points to use for adaptive aggregation. Only used if adaptive=True.
+    adaptive : bool, default=False
+        If True, uses adaptive quantile aggregation which optimizes over multiple gamma values.
+        If False, uses fixed quantile aggregation with the provided gamma value.
+
+    Returns
+    -------
+    ndarray of shape (n_test,)
+        Vector of aggregated p-values, one for each hypothesis test.
+
+    References
+    ----------
+    .. footbibliography::
+
+    Notes
+    -----
+    The aggregated p-values are guaranteed to be valid p-values in [0,1].
+    When adaptive=True, gamma is treated as the minimum gamma value to consider.
     """
     # if pvalues are one-dimensional, do nothing
     if pvals.shape[0] == 1:
         return pvals[0]
     if adaptive:
-        return _adaptive_quantile_aggregation(pvals, gamma_min)
+        return _adaptive_quantile_aggregation(pvals, gamma, n_grid=n_grid)
     else:
         return _fixed_quantile_aggregation(pvals, gamma)
 
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
-    """Quantile aggregation function based on Meinshausen et al (2008)
+    """
+    Quantile aggregation function based on :cite:meinshausen2009p
 
     Parameters
     ----------
-    pvals : 2D ndarray (n_sampling_with_repetition, n_test)
-        p-value (adjusted)
+    pvals : 2D ndarray (n_sampling*2, n_test)
+        p-value
 
     gamma : float
         Percentile value used for aggregation.
@@ -38,25 +68,48 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     -------
     1D ndarray (n_tests, )
         Vector of aggregated p-values
-    """
-    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
 
+    References
+    ----------
+    .. footbibliography::
+    """
+    assert gamma > 0 and gamma <= 1, "gamma should be between O and 1"
+    # equation 2.2 of meinshausen2009p
+    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
     return np.minimum(1, converted_score)
 
 
-def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
-    """adaptive version of the quantile aggregation method, Meinshausen et al.
-    (2008)"""
-    gammas = np.arange(gamma_min, 1.05, 0.05)
-    list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
+def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
+    """
+    Adaptive version of quantile aggregation method based on :cite:meinshausen2009p
 
-    return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))
+    Parameters
+    ----------
+    pvals : 2D ndarray (n_sampling*2, n_test)
+        p-value
+    gamma_min : float, default=0.05
+        Minimum percentile value for adaptive aggregation
+
+    Returns
+    -------
+    1D ndarray (n_tests, )
+        Vector of aggregated p-values
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
+    gammas = np.linspace(gamma_min, 1.0, n_grid)
+    list_quantiles = np.array(
+        [_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas]
+    )
+    # equation 2.3 of meinshausen2009p
+    return np.minimum(1, (1 - np.log(gamma_min)) * list_quantiles.min(0))
 
 
 ########################## False Discovery Proportion ##########################
-
-
-def cal_fdp_power(selected, non_zero_index, r_index=False):
+def cal_fdp_power(selected, non_zero_index):
     """
     Calculate power and False Discovery Proportion
 
@@ -64,7 +117,6 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
     ----------
     selected: list index (in R format) of selected non-null variables
     non_zero_index: true index of non-null variables
-    r_index : True if the index is taken from rpy2 inference
 
     Returns
     -------
@@ -81,9 +133,6 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 
     n_positives = len(non_zero_index)
 
-    if r_index:
-        selected = selected - 1
-
     true_positive = np.intersect1d(selected, non_zero_index)
     false_positive = np.setdiff1d(selected, true_positive)
 
@@ -93,7 +142,6 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
     return fdp, power
 
 
-########################## False Discovery Rate Thresholding ##########################
 def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     """
     False Discovery Rate thresholding method
@@ -101,11 +149,15 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     fdr : float, default=0.1
         False Discovery Rate
     method : str, default='bhq'
-        Method to control FDR. Available methods are 'bhq', 'bhy', 'ebh'
+        Method to control FDR.
+        Available methods are:
+        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
+        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
     reshaping_function : function, default=None
         Reshaping function for Benjamini-Hochberg-Yekutieli method
 
@@ -113,15 +165,22 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     -------
     threshold : float
         Threshold value
+
+    References
+    ----------
+    .. footbibliography::
     """
     if method == "bhq":
-        return _bhq_threshold(pvals, fdr=fdr)
+        threshold = _bhq_threshold(pvals, fdr=fdr)
     elif method == "bhy":
-        return _bhy_threshold(pvals, fdr=fdr, reshaping_function=reshaping_function)
+        threshold = _bhy_threshold(
+            pvals, fdr=fdr, reshaping_function=reshaping_function
+        )
     elif method == "ebh":
-        return _ebh_threshold(pvals, fdr=fdr)
+        threshold = _ebh_threshold(pvals, fdr=fdr)
     else:
         raise ValueError("{} is not support FDR control method".format(method))
+    return threshold
 
 
 def _bhq_threshold(pvals, fdr=0.1):
@@ -132,7 +191,7 @@ def _bhq_threshold(pvals, fdr=0.1):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     fdr : float, default=0.1
         False Discovery Rate
 
@@ -166,7 +225,7 @@ def _ebh_threshold(evals, fdr=0.1):
     Parameters
     ----------
     evals : 1D ndarray
-        p-value (adjusted)
+        p-value
     fdr : float, default=0.1
         False Discovery Rate
 
@@ -201,7 +260,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     Parameters
     ----------
     pvals : 1D ndarray
-        p-value (adjusted)
+        set of p-values
     reshaping_function : function, default=None
         Reshaping function for Benjamini-Hochberg-Yekutieli method
     fdr : float, default=0.1
@@ -237,29 +296,30 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     return threshold
 
 
-########################## Lambda Max Calculation ##########################
-def _lambda_max(X, y, use_noise_estimate=True):
+########################## alpha Max Calculation ##########################
+def _alpha_max(X, y, use_noise_estimate=False):
     """
-    Calculation of lambda_max, the smallest value of regularization parameter
-    in lasso program for non-zero coefficient
+    Calculate alpha_max, which is the smallest value of the regularization parameter
+    in the LASSO regression that yields non-zero coefficients.
 
     Parameters
     ----------
-    X : ndarray, shape (n_samples, n_features)
-        Data matrix
-
-    y : ndarray, shape (n_samples, )
-        Target variable
-
+    X : array-like of shape (n_samples, n_features)
+        Training data
+    y : array-like of shape (n_samples,)
+        Target values
     use_noise_estimate : bool, default=True
-        If True, the noise level is estimated from the data. Otherwise, the
-        noise level is not considered in the calculation of lambda_max.
+        Whether to use noise estimation in the calculation
 
     Returns
     -------
-    alpha_max : float
-        The smallest value of regularization parameter in lasso program for
-        non-zero coefficient
+    float
+        The maximum alpha value
+
+    Notes
+    -----
+    For LASSO regression, any alpha value larger than alpha_max will result in
+    all zero coefficients. This provides an upper bound for the regularization path.
     """
     n_samples, _ = X.shape
 
@@ -275,7 +335,7 @@ def _lambda_max(X, y, use_noise_estimate=True):
     return alpha_max
 
 
-########################## Data Preprocessing ##########################
+########################### Data Preprocessing ##########################
 def create_X_y(
     X,
     y,
@@ -309,10 +369,8 @@ def create_X_y(
 
     Returns
     -------
-    X_train_scaled : {array-like, sparse matrix} of shape
-                            (n_train_samples, n_features)
-        The sampling_with_repetitionped training input samples
-        with scaled continuous variables.
+    X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
+        The training input samples with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
         The sampling_with_repetitionped training output samples scaled if continous.
     X_validation_scaled : {array-like, sparse matrix} of shape

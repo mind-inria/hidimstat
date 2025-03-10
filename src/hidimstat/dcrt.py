@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _lambda_max, fdr_threshold
+from hidimstat.utils import _alpha_max, fdr_threshold
 from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -333,9 +333,7 @@ def _x_distillation_lasso(
             alpha = clf.alpha_
         else:
             if alpha is None:
-                alpha = 0.1 * _lambda_max(
-                    X_minus_idx, X[:, idx], use_noise_estimate=False
-                )  # TODO: why 0.1 ?
+                alpha = 0.1 * _alpha_max(X_minus_idx, X[:, idx])  # TODO: why 0.1 ?
             clf = Lasso(
                 alpha=alpha,
                 fit_intercept=False,
@@ -456,7 +454,7 @@ def _lasso_distillation_residual(
             )
         else:
             if alpha is None:
-                alpha = alpha_max_fraction * _lambda_max(
+                alpha = alpha_max_fraction * _alpha_max(
                     X_minus_idx, y, use_noise_estimate=False
                 )
             clf_null = Lasso(
