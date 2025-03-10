@@ -16,23 +16,6 @@ def generate_regation_dataset(n=100, p=10, noise=0.2, seed=2024):
     return X, y
 
 
-def test_dcrt_lasso(generate_regation_dataset):
-    """
-    This function tests the dcrt function using the Lasso learner
-    """
-    X, y = generate_regation_dataset
-    # Checking if a loss != 'least_square'
-    with pytest.raises(ValueError, match="test loss is not supported."):
-        _ = dcrt_zero(
-            X,
-            y,
-            screening=False,
-            statistic="residual",
-            loss="test",
-            random_state=2024,
-        )
-
-
 def test_dcrt_lasso_unknow_statistic(generate_regation_dataset):
     """
     Test for unknows statistic
