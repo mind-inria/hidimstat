@@ -11,7 +11,6 @@ from .multi_sample_split import aggregate_quantiles
 from .noise_std import group_reid, reid
 from .permutation_importance import PermutationImportance
 from .permutation_test import permutation_test, permutation_test_pval
-from .scenario import multivariate_1D_simulation
 from .stat_tools import zscore_from_pval
 
 try:

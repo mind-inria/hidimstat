@@ -9,7 +9,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 
 from hidimstat.clustered_inference import clustered_inference
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )

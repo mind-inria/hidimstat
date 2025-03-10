@@ -8,7 +8,7 @@ from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.utils.validation import check_is_fitted
 
-from .utils import (
+from hidimstat._utils.utils import (
     create_X_y,
     dnn_net,
     joblib_ensemble_dnnet,

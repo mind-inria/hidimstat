@@ -1,10 +1,10 @@
-from hidimstat.utils import (
+from hidimstat._utils.utils import (
     fdr_threshold,
     cal_fdp_power,
     quantile_aggregation,
     _alpha_max,
 )
-from hidimstat.data_simulation import simu_data
+from hidimstat._utils.data_simulation import simu_data
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 import pytest
