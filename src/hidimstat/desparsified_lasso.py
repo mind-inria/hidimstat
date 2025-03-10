@@ -31,7 +31,7 @@ def desparsified_lasso(
     stationary=True,
 ):
     """
-    Desparsified Lasso with confidence intervals
+    Desparsified Lasso
 
     Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
     :cite:`chevalier2020statistical`.
