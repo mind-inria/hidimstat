@@ -474,7 +474,7 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
 
     # Removing the column to regress against the others
     X_minus_i = np.delete(X, id_column, axis=1)
-    y_new = np.copy(X[:, id_column])
+    X_i = np.copy(X[:, id_column])
 
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
@@ -482,11 +482,11 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
 
     # Fitting the Lasso model and computing the residuals
-    clf.fit(X_minus_i, y_new)
-    z = y_new - clf.predict(X_minus_i)
+    clf.fit(X_minus_i, X_i)
+    z = X_i - clf.predict(X_minus_i)
 
     # Computing the diagonal of the covariance matrix,
     # which is used as an estimation of the noise covariance.
-    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y_new, z) ** 2
+    omega_diag_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
     return z, omega_diag_i
