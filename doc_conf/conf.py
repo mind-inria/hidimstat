@@ -113,7 +113,6 @@ html_theme_options = {
 matplotlib.use("agg")
 sphinx_gallery_conf = {
     "doc_module": "groupmne",
-    "reference_url": dict(groupmne=None),
     "examples_dirs": ["../examples"],
     "gallery_dirs": ["auto_examples"],
     "plot_gallery": "True",
@@ -125,6 +124,12 @@ sphinx_gallery_conf = {
     "show_memory": True,
     "doc_module": "hidimstat",
     "backreferences_dir": "generated",
+    "reference_url": {
+        # The module we locally document (so, hidimstat) uses None
+        "hidimstat": None,
+        # We don't specify the other modules as we use the intershpinx ext.
+        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation  # noqa
+    },
 }
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
