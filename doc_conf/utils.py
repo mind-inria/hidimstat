@@ -4,6 +4,7 @@ import sys
 
 
 def linkcode_resolve(domain, info):
+    """Determine the URL corresponding lines of code in the GitHub repository."""
     if domain != "py":
         return None
     if not info["module"]:
