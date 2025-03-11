@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 
-from .Dnn_learner_single import DnnLearnerSingle
+from hidimstat.Dnn_learner_single import DnnLearnerSingle
 
 
 class DnnLearner(BaseEstimator):

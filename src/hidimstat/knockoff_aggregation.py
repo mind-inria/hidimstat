@@ -6,8 +6,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
-from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
-from .stat_coef_diff import stat_coef_diff, _coef_diff_threshold
+from hidimstat.gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
+from hidimstat.stat_coef_diff import stat_coef_diff, _coef_diff_threshold
 from hidimstat._utils.utils import fdr_threshold, quantile_aggregation
 
 
