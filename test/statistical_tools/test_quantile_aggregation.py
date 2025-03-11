@@ -2,6 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 from hidimstat.statistical_tools.quantile_aggregation import quantile_aggregation
 
+
 def test_quantile_aggregation():
     """
     This function tests the application of the quantile aggregation method

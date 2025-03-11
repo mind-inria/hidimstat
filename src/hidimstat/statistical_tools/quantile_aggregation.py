@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
     Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.
