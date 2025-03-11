@@ -9,6 +9,7 @@ from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_simulation,
     multivariate_temporal_simulation,
+    multivariate_1D_simulation_AR,
 )
 
 ROI_SIZE_2D = 2
@@ -162,3 +163,17 @@ def test_multivariate_temporal_simulation():
     rho_data_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_data_hat, rho_data, decimal=1)
     assert_equal(Y, np.dot(X, beta) + noise)
+
+
+def test_simu_data():
+    """Test multivariate 1D simulation AR"""
+    X, y, _, _ = multivariate_1D_simulation_AR(n_samples=100, n_features=200, seed=42)
+
+    assert X.shape == (100, 200)
+    assert y.size == 100
+
+
+def test_non_zero_index():
+    """Test to make sure non-null variable indices are sampled without replacement"""
+    X, y, _, non_zero = multivariate_1D_simulation_AR(10, 10, sparsity=1.0, seed=0)
+    assert non_zero.size == np.unique(non_zero).size
