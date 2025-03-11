@@ -97,9 +97,6 @@ autodoc_default_options = {
     "member-order": "bysource",
     "show-inheritance": True,
 }
-autodoc_mock_imports = [
-    "sklearn",
-]
 
 html_theme_options = {
     "icon_links": [
@@ -127,6 +124,8 @@ sphinx_gallery_conf = {
     "abort_on_example_error": False,
     "image_scrapers": scrapers,
     "show_memory": True,
+    "doc_module": "hidimstat",
+    "backreferences_dir": "generated",
 }
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
