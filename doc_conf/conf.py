@@ -10,7 +10,6 @@ from utils import linkcode_resolve
 from hidimstat import __version__
 
 # The full version, including alpha/beta/rc tags.
-release = __version__
 
 
 # Configuration file for the Sphinx documentation builder.
@@ -24,7 +23,7 @@ release = __version__
 project = "HiDimStat"
 copyright = "2025, The hidimstat developers"
 author = "The hidimstat developers"
-release = "0.2.0b"
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -89,6 +88,7 @@ examples_dirs = ["../examples"]
 gallery_dirs = ["auto_examples"]
 scrapers = ("matplotlib",)
 
+#
 autosummary_generate = True
 numpydoc_show_class_members = False
 
@@ -110,7 +110,6 @@ html_theme_options = {
     "header_links_before_dropdown": 4,
 }
 
-# -- Intersphinx configuration -----------------------------------------------
 
 sphinx_gallery_conf = {
     "doc_module": "groupmne",
@@ -135,6 +134,7 @@ html_context = {
     "github_repo": "hidimstat",
 }
 
+# -- Intersphinx configuration -----------------------------------------------
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/devdocs", None),
