@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath("."))
 sys.path.insert(0, os.path.abspath("../src"))
 
 import matplotlib
+from sklearn.base import BaseEstimator
 from utils import linkcode_resolve
 
 from hidimstat import __version__
@@ -80,16 +81,13 @@ bibtex_style = "unsrt"
 bibtex_reference_style = "author_year"
 bibtex_footbibliography_header = ""
 
-# Generate the plots for the gallery
-matplotlib.use("agg")
 
-plot_gallery = "True"
-examples_dirs = ["../examples"]
-gallery_dirs = ["auto_examples"]
-scrapers = ("matplotlib",)
-
-#
+# -- Options for autodoc / autosummary ----------------------------------------
+# generate autosummary even if no references
 autosummary_generate = True
+
+# -- Options for Numpydoc ----------------------------------------------------
+# https://numpydoc.readthedocs.io/en/latest/install.html
 numpydoc_show_class_members = False
 
 autodoc_default_options = {
@@ -111,17 +109,19 @@ html_theme_options = {
 }
 
 
+# Generate the plots for the gallery
+matplotlib.use("agg")
 sphinx_gallery_conf = {
     "doc_module": "groupmne",
     "reference_url": dict(groupmne=None),
-    "examples_dirs": examples_dirs,
-    "gallery_dirs": gallery_dirs,
+    "examples_dirs": ["../examples"],
+    "gallery_dirs": ["auto_examples"],
     "plot_gallery": "True",
     "thumbnail_size": (160, 112),
     "min_reported_time": 1.0,
     "backreferences_dir": os.path.join("generated"),
     "abort_on_example_error": False,
-    "image_scrapers": scrapers,
+    "image_scrapers": ("matplotlib",),
     "show_memory": True,
     "doc_module": "hidimstat",
     "backreferences_dir": "generated",
