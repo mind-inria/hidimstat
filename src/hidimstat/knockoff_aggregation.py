@@ -8,7 +8,8 @@ from sklearn.utils.validation import check_memory
 
 from hidimstat.gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
 from hidimstat.stat_coef_diff import stat_coef_diff, _coef_diff_threshold
-from hidimstat.statistical_tools.quantile_aggregation import fdr_threshold, quantile_aggregation
+from hidimstat._utils.utils import fdr_threshold
+from hidimstat.statistical_tools.quantile_aggregation import quantile_aggregation
 
 
 def knockoff_aggregation(
