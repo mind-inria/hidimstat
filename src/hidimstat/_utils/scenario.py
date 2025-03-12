@@ -355,7 +355,6 @@ def multivariate_1D_simulation_AR(
     # Generate the variables from a multivariate normal distribution
     mu = np.zeros(n_features)
     Sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
-    # X = np.dot(np.random.normal(size=(n, p)), cholesky(Sigma))
     X = rng.multivariate_normal(mu, Sigma, size=(n_samples))
 
     # Generate the response from a linear model
