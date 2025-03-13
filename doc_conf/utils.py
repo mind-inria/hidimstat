@@ -2,6 +2,8 @@ import inspect
 import os
 import sys
 
+sys.path.insert(0, os.path.abspath("../src"))
+
 
 def linkcode_resolve(domain, info):
     """Determine the URL corresponding lines of code in the GitHub repository."""
