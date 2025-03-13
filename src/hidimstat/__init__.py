@@ -16,6 +16,7 @@ from .empirical_thresholding import empirical_thresholding
 from .knockoff_aggregation import knockoff_aggregation
 from .knockoffs import model_x_knockoff
 from .leave_one_covariate_out import LOCO
+from .noise_std import reid
 from .permutation_importance import PermutationImportance
 from .permutation_test import permutation_test, permutation_test_pval
 

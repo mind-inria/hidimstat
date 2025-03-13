@@ -4,9 +4,11 @@ from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
 from sklearn.linear_model import Lasso
+
 from hidimstat.noise_std import reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 from hidimstat.stat_tools import pval_from_cb
+from hidimstat.utils import _alpha_max
 
 
 def desparsified_lasso(
@@ -26,11 +28,10 @@ def desparsified_lasso(
     cov=None,
     noise_method="AR",
     order=1,
-    fit_Y=True,
     stationary=True,
 ):
     """
-    Desparsified Lasso with confidence intervals
+    Desparsified Lasso
 
     Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
     :cite:`chevalier2020statistical`.
@@ -45,7 +46,7 @@ def desparsified_lasso(
         responses.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, applies degrees of freedom adjustment.
+        If True, applies degrees of freedom adjustment from :footcite:t:`bellec2022biasing`.
         If False, computes original Desparsified Lasso estimator.
 
     max_iter : int, optional (default=5000)
@@ -90,9 +91,6 @@ def desparsified_lasso(
 
     order : int, default=1
         Order of AR model when noise_method='AR'. Must be < n_times.
-
-    fit_Y : bool, default=True
-        Whether to fit Y in noise estimation.
 
     stationary : bool, default=True
         Whether to assume stationary noise in estimation.
@@ -140,7 +138,6 @@ def desparsified_lasso(
     X_ = X_ - np.mean(X_, axis=0)
 
     # Lasso regression and noise standard deviation estimation
-    # TODO: other estimation of the noise standard deviation?
     sigma_hat, beta_reid = reid(
         X_,
         y_,
@@ -154,25 +151,18 @@ def desparsified_lasso(
         group=group,
         method=noise_method,
         order=order,
-        fit_Y=fit_Y,
         stationary=stationary,
     )
 
-    # compute the Gram matrix
-    gram = np.dot(X_.T, X_)
-    gram_nodiag = np.copy(gram)
-    np.fill_diagonal(gram_nodiag, 0)
-
     # define the alphas for the Nodewise Lasso
-    # TODO why don't use the function _alpha_max instead of this?
-    list_alpha_max = np.max(np.abs(gram_nodiag), axis=0) / n_samples
+    list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
     Z, omega_diag = _compute_all_residuals(
         X_,
         alphas,
-        gram,
+        np.dot(X_.T, X_),  # Gram matrix
         max_iter=max_iter,
         tol=tol,
         n_jobs=n_jobs,
@@ -286,7 +276,7 @@ def desparsified_lasso_pvalue(
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
 
 
-def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"):
+def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="chi2"):
     """
     Compute p-values for the desparsified group Lasso estimator using
     chi-squared or F tests
@@ -299,7 +289,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix (inverse covariance).
 
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
     test : {'chi2', 'F'}, default='chi2'
@@ -332,15 +322,19 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="chi2"
     coefficients and precision matrix.
     """
     n_features, n_times = beta_hat.shape
-    n_samples = omega_diag.shape[0]
+    n_samples = precision_diag.shape[0]
 
     # Compute the two-sided p-values
     if test == "chi2":
-        chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
+        chi2_scores = (
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / precision_diag
+        )
         two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
     elif test == "F":
         f_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
+            / precision_diag
+            / n_times
         )
         two_sided_pval = np.minimum(
             2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
@@ -398,7 +392,7 @@ def _compute_all_residuals(
     Z : ndarray, shape (n_samples, n_features)
         Matrix of residuals from nodewise regressions.
 
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
 
     Notes
@@ -418,7 +412,7 @@ def _compute_all_residuals(
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
         delayed(_compute_residuals)(
             X=X,
-            column_index=i,
+            id_column=i,
             alpha=alphas[i],
             gram=gram,
             max_iter=max_iter,
@@ -430,12 +424,12 @@ def _compute_all_residuals(
     # Unpacking the results
     results = np.asarray(results, dtype=object)
     Z = np.stack(results[:, 0], axis=1)
-    omega_diag = np.stack(results[:, 1])
+    precision_diag = np.stack(results[:, 1])
 
-    return Z, omega_diag
+    return Z, precision_diag
 
 
-def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
+def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -447,7 +441,7 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     X : ndarray, shape (n_samples, n_features)
         Centered input data matrix
 
-    column_index : int
+    id_column : int
         Index i of feature to regress
 
     alpha : float
@@ -477,22 +471,22 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000, tol=1e-3):
     """
 
     n_samples, n_features = X.shape
-    i = column_index
 
     # Removing the column to regress against the others
-    X_new = np.delete(X, i, axis=1)
-    y_new = np.copy(X[:, i])
+    X_minus_i = np.delete(X, id_column, axis=1)
+    X_i = np.copy(X[:, id_column])
 
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
-    gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
+    gram_ = np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
     clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
 
     # Fitting the Lasso model and computing the residuals
-    clf.fit(X_new, y_new)
-    z = y_new - clf.predict(X_new)
+    clf.fit(X_minus_i, X_i)
+    z = X_i - clf.predict(X_minus_i)
 
-    # Computing the diagonal of the covariance matrix
-    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y_new, z) ** 2
+    # Computing the diagonal of the covariance matrix,
+    # which is used as an estimation of the noise covariance.
+    omega_diag_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
     return z, omega_diag_i

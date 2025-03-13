@@ -84,16 +84,17 @@ def reid(
     ----------
     .. footbibliography::
     """
+
     X_ = np.asarray(X)
     n_samples, n_features = X_.shape
     if group:
         n_times = y.shape[1]
-    
+
     # check if max_iter is large enough
     if max_iter // n_split <= n_features:
         max_iter = n_features * n_split
         print(f"'max_iter' has been increased to {max_iter}")
-    
+
     # use the cross-validation for define the best alpha of Lasso
     cv = KFold(n_splits=n_split, shuffle=True, random_state=seed)
     Refit_CV = MultiTaskLassoCV if group else LassoCV
@@ -106,7 +107,7 @@ def reid(
         n_jobs=n_jobs,
     )
     clf_cv.fit(X_, y)
-    
+
     # Estimate the support of the variable importance
     beta_hat = clf_cv.coef_
     residual = clf_cv.predict(X_) - y
@@ -201,10 +202,6 @@ def reid(
             corr_hat = toeplitz(rho_ar_full)
 
             # estimation of the variance of an AR process
-            # from wikipedia it should be:
-            # VAR(X_t)=\frac{\sigma_\epsilon^2}{1-\phi^2}
-            # TODO there is a short difference between the code
-            # and the above formula
             sigma_hat[:] = sigma_eps / np.sqrt((1 - np.dot(coef_ar, rho_ar[1:])))
             # estimation of the covariance based on the
             # correlation matrix and sigma
