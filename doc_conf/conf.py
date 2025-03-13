@@ -39,7 +39,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx_gallery.gen_gallery",
     "numpydoc",
-    "sphinx.ext.linkcode",
+    "sphinx.ext.linkcode", # use the function linkcode_resolve for the definition of the link
 ]
 
 # Add any paths that contain templates here, relative to this directory.
