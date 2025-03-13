@@ -307,8 +307,8 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
 
     Notes
     -----
-    Both tests assume asymptotic normality of the estimators. 
-    The F-test is a rescaled version of the chi-squared test that may 
+    Both tests assume asymptotic normality of the estimators.
+    The F-test is a rescaled version of the chi-squared test that may
     perform better in some finite sample settings.
     P-values are computed based on score statistics from the estimated
     coefficients and precision matrix.
