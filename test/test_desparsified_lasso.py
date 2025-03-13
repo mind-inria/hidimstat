@@ -8,7 +8,7 @@ from scipy.linalg import toeplitz
 import pytest
 
 from hidimstat.desparsified_lasso import desparsified_group_lasso, desparsified_lasso
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )

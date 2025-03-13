@@ -10,8 +10,11 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
-from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
-from .stat_coef_diff import _coef_diff_threshold, stat_coef_diff
+from hidimstat.gaussian_knockoff import (
+    _estimate_distribution,
+    gaussian_knockoff_generation,
+)
+from hidimstat.stat_coef_diff import _coef_diff_threshold, stat_coef_diff
 
 
 def model_x_knockoff(

@@ -5,7 +5,10 @@ Test the multi_sample_split module
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from hidimstat.multi_sample_split import aggregate_medians, aggregate_quantiles
+from hidimstat.statistical_tools.multi_sample_split import (
+    aggregate_medians,
+    aggregate_quantiles,
+)
 
 
 def test_aggregate_medians():

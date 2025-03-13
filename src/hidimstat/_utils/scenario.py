@@ -1,11 +1,6 @@
 import numpy as np
 from scipy import ndimage
-
-ROI_SIZE_2D = 2
-SHAPE_2D = (12, 12)
-
-ROI_SIZE_3D = 2
-SHAPE_3D = (12, 12, 12)
+from scipy.linalg import toeplitz
 
 
 def multivariate_1D_simulation(
@@ -17,7 +12,8 @@ def multivariate_1D_simulation(
     shuffle=True,
     seed=0,
 ):
-    """Generate 1D data with Toeplitz design matrix
+    """
+    Generate 1D data with Toeplitz design matrix
 
     Parameters
     ----------
@@ -56,7 +52,7 @@ def multivariate_1D_simulation(
     noise : ndarray, shape (n_samples,)
         Additive white Gaussian noise.
     """
-
+    # Setup seed generator
     rng = np.random.default_rng(seed)
 
     # generate random data for each samples
@@ -80,8 +76,9 @@ def multivariate_1D_simulation(
     return X, y, beta, noise
 
 
-def generate_2D_weight(shape, roi_size):
-    """Create a 2D weight map with four ROIs
+def _generate_2D_weight(shape, roi_size):
+    """
+    Create a 2D weight map with four ROIs
 
     Parameters
     ----------
@@ -106,8 +103,9 @@ def generate_2D_weight(shape, roi_size):
     return w
 
 
-def generate_3D_weight(shape, roi_size):
-    """Create a 3D weight map with five ROIs
+def _generate_3D_weight(shape, roi_size):
+    """
+    Create a 3D weight map with five ROIs
 
     Parameters
     ----------
@@ -139,14 +137,15 @@ def generate_3D_weight(shape, roi_size):
 
 def multivariate_simulation(
     n_samples=100,
-    shape=SHAPE_2D,
-    roi_size=ROI_SIZE_2D,
+    shape=(12, 12),
+    roi_size=2,
     sigma=1.0,
     smooth_X=1.0,
     return_shaped_data=True,
     seed=0,
 ):
-    """Generate a multivariate simulation with 2D or 3D data
+    """
+    Generate a multivariate simulation with 2D or 3D data
 
     Parameters
     ----------
@@ -190,18 +189,18 @@ def multivariate_simulation(
     w : ndarray, shape (n_x, n_y) or (n_x, n_y, n_z)
         2D or 3D weight map.
     """
-
+    # Setup seed generator
     rng = np.random.default_rng(seed)
 
+    # generate the support of the data
     if len(shape) == 2:
-        w = generate_2D_weight(shape, roi_size)
+        w = _generate_2D_weight(shape, roi_size)
     elif len(shape) == 3:
-        w = generate_3D_weight(shape, roi_size)
+        w = _generate_3D_weight(shape, roi_size)
 
     beta = w.sum(-1).ravel()
     X_ = rng.standard_normal((n_samples,) + shape)
     X = []
-
     for i in np.arange(n_samples):
         Xi = ndimage.gaussian_filter(X_[i], smooth_X)
         X.append(Xi.ravel())
@@ -302,3 +301,69 @@ def multivariate_temporal_simulation(
     Y = np.dot(X, beta) + noise
 
     return X, Y, beta, noise
+
+
+def multivariate_1D_simulation_AR(
+    n_samples, n_features, rho=0.25, snr=2.0, sparsity=0.06, sigma=1.0, seed=None
+):
+    """
+    Function to simulate data follow an autoregressive structure with Toeplitz
+    covariance matrix
+
+    Parameters
+    ----------
+    n_samples : int
+        number of observations
+
+    n_features : int
+        number of variables
+
+    sparsity : float, optional
+        ratio of number of variables with non-zero coefficients over total
+        coefficients
+
+    rho : float, optional
+        Level of correlation between neighboring features (if not `shuffle`).
+
+    effect : float, optional
+        signal magnitude, value of non-null coefficients
+
+    seed : None or Int, optional
+        random seed for generator
+
+    Returns
+    -------
+    X : ndarray, shape (n_samples, n_features)
+        Design matrix resulted from simulation
+
+    y : ndarray, shape (n_samples, )
+        Response vector resulted from simulation
+
+    beta_true : ndarray, shape (n_samples, )
+        Vector of true coefficient value
+
+    non_zero : ndarray, shape (n_samples, )
+        Vector of non zero coefficients index
+
+    """
+    # Setup seed generator
+    rng = np.random.default_rng(seed)
+
+    # Number of non-null
+    k = int(sparsity * n_features)
+
+    # Generate the variables from a multivariate normal distribution
+    mu = np.zeros(n_features)
+    Sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
+    X = rng.multivariate_normal(mu, Sigma, size=(n_samples))
+
+    # Generate the response from a linear model
+    non_zero = rng.choice(n_features, k, replace=False)
+    beta_true = np.zeros(n_features)
+    beta_true[non_zero] = sigma
+    eps = rng.standard_normal(size=n_samples)
+    prod_temp = np.dot(X, beta_true)
+    noise_mag = np.linalg.norm(prod_temp) / (snr * np.linalg.norm(eps))
+    y = prod_temp + noise_mag * eps
+
+    return X, y, beta_true, non_zero

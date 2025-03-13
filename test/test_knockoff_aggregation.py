@@ -1,6 +1,6 @@
 from hidimstat import knockoff_aggregation, model_x_knockoff
-from hidimstat.data_simulation import simu_data
-from hidimstat.utils import cal_fdp_power
+from hidimstat._utils.scenario import multivariate_1D_simulation_AR
+from hidimstat._utils.utils import cal_fdp_power
 import numpy as np
 import pytest
 
@@ -11,7 +11,7 @@ def test_knockoff_aggregation():
     snr = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, _, non_zero_index = simu_data(n, p, snr=snr, seed=0)
+    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
 
     selected_verbose, aggregated_pval, pvals = knockoff_aggregation(
         X, y, fdr=fdr, n_bootstraps=n_bootstraps, verbose=True, random_state=0
