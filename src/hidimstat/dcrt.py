@@ -233,7 +233,7 @@ def dcrt_pvalue(
     fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
         Method for FDR control:
         - 'bhq': Benjamini-Hochberg procedure
-        - 'bhy': Benjamini-Hochberg-Yekutieli procedure  
+        - 'bhy': Benjamini-Hochberg-Yekutieli procedure
         - 'ebh': e-BH procedure
     reshaping_function : callable, optional
         Reshaping function for the 'bhy' method
