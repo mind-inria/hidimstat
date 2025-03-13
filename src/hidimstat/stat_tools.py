@@ -466,8 +466,10 @@ def step_down_max_t(stat, permutation_stats):
     return two_sided_pval_corr
 
 
-def aggregate_medians(list_one_sided_pval):
-    """Aggregation of survival function values taking twice the median
+def aggregate_quantiles(list_one_sided_pval, quantile=0.5):
+    """
+    Aggregation of survival function values returning an asymptotically correct p-value,
+    adjusted for the multiplicity :footcite:`Meinshausen_2008`.
 
     Parameters
     ----------
@@ -481,23 +483,17 @@ def aggregate_medians(list_one_sided_pval):
 
     References
     ----------
-    .. [1] Meinshausen, N., Meier, L., & Bühlmann, P. (2009). P-values for
-           high-dimensional regression. Journal of the American Statistical
-           Association, 104(488), 1671-1681.
+    .. footbibliography::
     """
-
-    one_sided_pval = np.median(list_one_sided_pval, axis=0)
-    one_sided_pval[one_sided_pval > 0.5] = np.maximum(
-        0.5, 1 - (1 - one_sided_pval[one_sided_pval > 0.5]) * 2
-    )
-    one_sided_pval[one_sided_pval < 0.5] = np.minimum(
-        0.5, one_sided_pval[one_sided_pval < 0.5] * 2
-    )
+    # From the equation 2.2 of `Meinshausen_2008`
+    one_sided_pval = np.median(list_one_sided_pval, axis=0) / quantile
+    one_sided_pval[np.where(one_sided_pval > 1)] = 1
     return one_sided_pval
 
 
-def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
-    """Aggregation of survival function values by adaptive quantile procedure
+def aggregate_adaptive_quantiles(list_one_sided_pval, gamma_min=0.2):
+    """
+    Aggregation of survival function values by adaptive quantile procedure
 
     Parameters
     ----------
@@ -506,7 +502,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     gamma_min : float, optional (default=0.2)
         Lowest gamma-quantile being considered to compute the adaptive
-        quantile aggregation formula (cf. [1]_).
+        quantile aggregation formula (cf. :footcite:`Meinshausen_2008`).
 
     Returns
     -------
@@ -515,9 +511,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     References
     ----------
-    .. [1] Meinshausen, N., Meier, L., & Bühlmann, P. (2009). P-values for
-           high-dimensional regression. Journal of the American Statistical
-           Association, 104(488), 1671-1681.
+    .. footbibliography::
     """
 
     n_iter, n_features = list_one_sided_pval.shape
@@ -532,12 +526,17 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     rev_ordered_pval = ordered_pval[::-1]
 
     for i in np.arange(n_features):
+        # calculation of the pvalue / quantile
         adjusted_ordered_pval = min([ordered_pval[j, i] * m / (j + 1) for j in seq])
+        # TODO: why comparions with 0.5 and not 1 ????
         adjusted_ordered_pval = min(0.5, adjusted_ordered_pval)
+        # TODO: do the same result but with the other size of the distribution???
         adjusted_rev_ordered_pval = max(
             [1 - (1 - rev_ordered_pval[j, i]) * m / (j + 1) for j in seq]
         )
         adjusted_rev_ordered_pval = max(0.5, adjusted_rev_ordered_pval)
+
+        # TODO why use 0.5 and not 1 as in the paper???
         if (1 - adjusted_rev_ordered_pval) < adjusted_ordered_pval:
             one_sided_pval[i] = np.maximum(0.5, 1 - (1 - adjusted_rev_ordered_pval) * r)
         else:
