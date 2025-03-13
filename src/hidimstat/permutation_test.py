@@ -2,7 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from hidimstat.statistical_tools.pvalues import (
+from hidimstat.statistical_tools.utils import (
     pval_from_two_sided_pval_and_sign,
     step_down_max_t,
 )

@@ -37,7 +37,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-from hidimstat.statistical_tools.pvalues import zscore_from_pval
+from hidimstat.statistical_tools.utils import zscore_from_pval
 
 ##############################################################################
 # Specific preprocessing functions

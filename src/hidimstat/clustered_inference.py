@@ -4,7 +4,7 @@ from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 
 from hidimstat.desparsified_lasso import desparsified_group_lasso, desparsified_lasso
-from hidimstat.statistical_tools.pvalues import pval_from_cb
+from hidimstat.statistical_tools.utils import pval_from_cb
 
 
 def _subsampling(n_samples, train_size, groups=None, seed=0):
