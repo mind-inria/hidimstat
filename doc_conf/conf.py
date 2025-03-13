@@ -8,8 +8,6 @@ from utils import linkcode_resolve
 
 from hidimstat import __version__
 
-
-
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -115,7 +113,6 @@ sphinx_gallery_conf = {
     "plot_gallery": "True",
     "thumbnail_size": (160, 112),
     "min_reported_time": 1.0,
-    "backreferences_dir": os.path.join("generated"),
     "abort_on_example_error": False,
     "image_scrapers": ("matplotlib",),
     "show_memory": True,
