@@ -139,7 +139,7 @@ git_root_url = "https://github.com/mind-inria/hidimstat"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/devdocs", None),
-    "scipy": ("https://scipy.github.io/devdocs", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
     "numba": ("https://numba.readthedocs.io/en/stable/", None),
