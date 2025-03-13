@@ -37,7 +37,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx_gallery.gen_gallery",
     "numpydoc",
-    "sphinx.ext.linkcode", # use the function linkcode_resolve for the definition of the link
+    "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -58,11 +58,13 @@ language = "en"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_static_path = ["_static"]
-
-
 html_logo = "_static/logo.png"
 html_theme = "pydata_sphinx_theme"
 html_title = "HiDimStat"
+html_context = {
+    "display_github": True,  # Integrate GitHub
+    "github_repo": "hidimstat",
+}
 
 plot_formats = []
 
@@ -132,10 +134,6 @@ sphinx_gallery_conf = {
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
-html_context = {
-    "display_github": True,  # Integrate GitHub
-    "github_repo": "hidimstat",
-}
 
 # -- Intersphinx configuration -----------------------------------------------
 intersphinx_mapping = {
