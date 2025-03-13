@@ -17,7 +17,6 @@ from hidimstat.statistical_tools.utils import (
     zscore_from_cb,
     zscore_from_pval,
 )
-from hidimstat.statistical_tools.quantile_aggregation import quantile_aggregation
 
 
 def test__replace_infinity():
