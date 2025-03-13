@@ -75,9 +75,6 @@ html_context = {
 # You can specify multiple suffix as a list of string:
 source_suffix = [".rst", ".md"]
 
-# The master toctree document.
-master_doc = "index"
-
 # sphinxcontrib-bibtex
 bibtex_bibfiles = ["./references.bib"]
 bibtex_style = "unsrt"
