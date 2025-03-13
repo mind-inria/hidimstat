@@ -141,7 +141,6 @@ def multivariate_simulation(
     roi_size=2,
     sigma=1.0,
     smooth_X=1.0,
-    return_shaped_data=True,
     seed=0,
 ):
     """
@@ -163,9 +162,6 @@ def multivariate_simulation(
 
     smooth_X : float
         Level of (data) smoothing using a Gaussian filter.
-
-    return_shaped_data : bool
-        If true, the function returns shaped data and weight map.
 
     seed : int
         Seed used for generating design matrix and noise.
@@ -211,10 +207,7 @@ def multivariate_simulation(
     noise = sigma * rng.standard_normal(n_samples)
     y = np.dot(X, beta) + noise
 
-    if return_shaped_data:
-        return X, y, beta, noise, X_, w
-
-    return X, y, beta, noise
+    return X, y, beta, noise, X_, w
 
 
 def multivariate_temporal_simulation(

@@ -72,7 +72,6 @@ def test_multivariate_simulation():
     sigma = 1.0
     smooth_X = 1.0
     rho_expected = 0.8
-    return_shaped_data = True
 
     X, y, beta, noise, X_, w = multivariate_simulation(
         n_samples=n_samples,
@@ -80,7 +79,6 @@ def test_multivariate_simulation():
         roi_size=roi_size,
         sigma=sigma,
         smooth_X=smooth_X,
-        return_shaped_data=return_shaped_data,
         seed=0,
     )
 
@@ -97,13 +95,11 @@ def test_multivariate_simulation():
     # Test 2
     shape = SHAPE_3D
     roi_size = ROI_SIZE_3D
-    return_shaped_data = False
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, noise, _, _ = multivariate_simulation(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        return_shaped_data=return_shaped_data,
         seed=0,
     )
 
