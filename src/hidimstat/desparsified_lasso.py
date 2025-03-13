@@ -209,7 +209,6 @@ def desparsified_lasso_pvalue(
     confidence=0.95,
     distribution="norm",
     eps=1e-14,
-    confidence_interval_only=False,
 ):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
@@ -233,29 +232,24 @@ def desparsified_lasso_pvalue(
         Currently only "norm" supported.
     eps : float, default=1e-14
         Small value to avoid numerical issues in p-value calculation.
-    confidence_interval_only : bool, optional (default=False)
-        If True, return only confidence intervals.
-        If False, also return p-values.
     Returns
     -------
-    If confidence_interval_only=True:
-        cb_min : ndarray, shape (n_features,)
-            Lower bounds of confidence intervals
-        cb_max : ndarray, shape (n_features,)
-            Upper bounds of confidence intervals
-    If confidence_interval_only=False:
-        pval : ndarray, shape (n_features,)
-            P-values
-        pval_corr : ndarray, shape (n_features,)
-            Corrected p-values
-        one_minus_pval : ndarray, shape (n_features,)
-            1 - p-values
-        one_minus_pval_corr : ndarray, shape (n_features,)
-            1 - corrected p-values
-        cb_min : ndarray, shape (n_features,)
-            Lower bounds of confidence intervals
-        cb_max : ndarray, shape (n_features,)
-            Upper bounds of confidence intervals
+    cb_min : ndarray, shape (n_features,)
+        Lower bounds of confidence intervals
+    cb_max : ndarray, shape (n_features,)
+        Upper bounds of confidence intervals
+    pval : ndarray, shape (n_features,)
+        P-values
+    pval_corr : ndarray, shape (n_features,)
+        Corrected p-values
+    one_minus_pval : ndarray, shape (n_features,)
+        1 - p-values
+    one_minus_pval_corr : ndarray, shape (n_features,)
+        1 - corrected p-values
+    cb_min : ndarray, shape (n_features,)
+        Lower bounds of confidence intervals
+    cb_max : ndarray, shape (n_features,)
+        Upper bounds of confidence intervals
     """
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
@@ -266,9 +260,6 @@ def desparsified_lasso_pvalue(
     )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
-
-    if confidence_interval_only:
-        return cb_min, cb_max
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
         cb_min, cb_max, confidence=confidence, distribution=distribution, eps=eps
@@ -295,7 +286,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
     test : {'chi2', 'F'}, default='chi2'
         Statistical test for computing p-values:
         - 'chi2': Chi-squared test (recommended for large samples)
-        - 'F': F-test (better for small samples)
+        - 'F': F-test
 
     Returns
     -------
@@ -316,8 +307,9 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
 
     Notes
     -----
-    The chi-squared test assumes asymptotic normality while the F-test
-    makes no such assumption and is preferable for small sample sizes.
+    Both tests assume asymptotic normality of the estimators. 
+    The F-test is a rescaled version of the chi-squared test that may 
+    perform better in some finite sample settings.
     P-values are computed based on score statistics from the estimated
     coefficients and precision matrix.
     """
