@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 
 import matplotlib
-from sklearn.base import BaseEstimator
 from utils import linkcode_resolve
 
 from hidimstat import __version__
