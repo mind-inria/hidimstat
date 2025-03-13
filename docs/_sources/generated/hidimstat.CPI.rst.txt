@@ -4,26 +4,14 @@
 .. currentmodule:: hidimstat
 
 .. autoclass:: CPI
+   :inherited-members:
 
    
    .. automethod:: __init__
-
-   
-   .. rubric:: Methods
-
-   .. autosummary::
-   
-      ~CPI.__init__
-      ~CPI.fit
-      ~CPI.get_metadata_routing
-      ~CPI.get_params
-      ~CPI.predict
-      ~CPI.score
-      ~CPI.set_fit_request
-      ~CPI.set_params
-   
    
 
-   
-   
-   
+.. include:: hidimstat.CPI.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

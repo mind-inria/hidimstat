@@ -1,6 +1,8 @@
-﻿hidimstat.hd\_inference
-=======================
+﻿hidimstat.hd_inference
+======================
 
 .. currentmodule:: hidimstat
 
 .. autofunction:: hd_inference
+
+.. include:: hidimstat.hd_inference.examples
