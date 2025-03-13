@@ -52,9 +52,7 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     selection_features, X_res, sigma2_X, y_res = dcrt_zero(X, y, screening=False)
-    results_lasso = dcrt_pvalue(
-        selection_features, X_res, sigma2_X, y_res, selection_only=False
-    )
+    results_lasso = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
     typeI_error["Lasso"].append(
         sum(results_lasso[1][n_signal:] < alpha) / (p - n_signal)
     )
@@ -64,9 +62,7 @@ for sim_ind in range(10):
     selection_features, X_res, sigma2_X, y_res = dcrt_zero(
         X, y, screening=False, statistic="randomforest"
     )
-    results_forest = dcrt_pvalue(
-        selection_features, X_res, sigma2_X, y_res, selection_only=False
-    )
+    results_forest = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
     typeI_error["Forest"].append(
         sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
     )

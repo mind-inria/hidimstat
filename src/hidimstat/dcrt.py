@@ -208,38 +208,52 @@ def dcrt_pvalue(
     y_res,
     fdr=0.1,
     fdr_control="bhq",
-    selection_only=True,
     reshaping_function=None,
     scaled_statistics=False,
 ):
     """
-    This function calculates the p-values of the test statistics using the
-    Gaussian distribution.
+    Calculate p-values and identify significant features using the dCRT test statistics.
+
+    This function processes the results from dCRT to identify statistically significant
+    features while controlling for false discoveries. It assumes test statistics follow
+    a Gaussian distribution.
 
     Parameters
     ----------
-    ts : 1D array, float
-        The vector of test statistics.
+    selection_features : ndarray of shape (n_features,)
+        Boolean mask indicating which features were selected for testing
+    X_res : ndarray of shape (n_selected, n_samples)
+        Residuals from feature distillation
+    sigma2_X : ndarray of shape (n_selected,)
+        Estimated residual variances for each tested feature
+    y_res : ndarray of shape (n_selected, n_samples)
+        Response residuals for each tested feature
     fdr : float, default=0.1
-        The desired controlled FDR level.
-    fdr_control : srt, default="bhq"
-        The control method for False Discovery Rate (FDR). The options include:
-        - "bhq" for Standard Benjamini-Hochberg procedure
-        - "bhy" for Benjamini-Hochberg-Yekutieli procedure
-        - "ebh" for e-BH procedure
-    selection_only : bool, default=True
-        Whether to return only the selected variables.
-    reshaping_function : function, default=None
-        Reshaping function for Benjamini-Hochberg-Yekutieli method
+        Target false discovery rate level (0 < fdr < 1)
+    fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
+        Method for FDR control:
+        - 'bhq': Benjamini-Hochberg procedure
+        - 'bhy': Benjamini-Hochberg-Yekutieli procedure  
+        - 'ebh': e-BH procedure
+    reshaping_function : callable, optional
+        Reshaping function for the 'bhy' method
     scaled_statistics : bool, default=False
-        Whether to scale the test statistics.
+        Whether to standardize test statistics before computing p-values
 
     Returns
     -------
-    selected : 1D array, int
-        The vector of index of selected variables.
-    pvals: 1D array, float
-        The vector of the corresponding p-values.
+    variables_important : ndarray
+        Indices of features deemed significant
+    pvals : ndarray of shape (n_features,)
+        P-values for all features (including unselected ones)
+    ts : ndarray of shape (n_features,)
+        Test statistics for all features
+
+    Notes
+    -----
+    The function computes test statistics as correlations between residuals,
+    optionally scales them, and converts to p-values using a Gaussian null.
+    Multiple testing correction is applied to control FDR at the specified level.
     """
     n_features = selection_features.shape[0]
     n_samples = X_res.shape[1]
@@ -267,10 +281,7 @@ def dcrt_pvalue(
     )
     variables_important = np.where(pvals <= threshold)[0]
 
-    if selection_only:
-        return variables_important
-    else:
-        return variables_important, pvals, ts
+    return variables_important, pvals, ts
 
 
 def _x_distillation_lasso(

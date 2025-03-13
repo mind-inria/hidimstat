@@ -46,7 +46,6 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
         results_no_screening[1],
         results_no_screening[2],
         results_no_screening[3],
-        selection_only=False,
     )
     results_screening = dcrt_zero(
         X, y, screening=True, statistic="residual", random_state=2024
@@ -56,7 +55,6 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
         results_screening[1],
         results_screening[2],
         results_screening[3],
-        selection_only=False,
     )
     assert np.sum(results_no_screening[0]) == 10
     assert np.sum(results_screening[0]) < 10
@@ -67,23 +65,12 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
     assert len(vi_screening[1]) == 10
     assert len(vi_screening[2]) == 10
 
-    # Checking with selection of variables (returns only selected indices)
-    vi_no_verbose = dcrt_pvalue(
-        results_screening[0],
-        results_screening[1],
-        results_screening[2],
-        results_screening[3],
-        selection_only=True,
-    )
-    assert len(vi_no_verbose) <= 10
-
     # Checking with scaled statistics
     vi_scaled = dcrt_pvalue(
         results_no_screening[0],
         results_no_screening[1],
         results_no_screening[2],
         results_no_screening[3],
-        selection_only=False,
     )
     assert len(vi_scaled[0]) <= 10
     assert len(vi_scaled[1]) == 10
@@ -107,9 +94,7 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_regation_dataset):
         statistic="residual",
         random_state=2026,
     )
-    vi = dcrt_pvalue(
-        results[0], results[1], results[2], results[3], selection_only=False
-    )
+    vi = dcrt_pvalue(results[0], results[1], results[2], results[3])
     assert len(vi[0]) <= 10
     assert len(vi[1]) == 10
     assert len(vi[2]) == 10
@@ -134,7 +119,6 @@ def test_dcrt_lasso_with_refit(generate_regation_dataset):
         results_refit[1],
         results_refit[2],
         results_refit[3],
-        selection_only=False,
     )
     assert len(vi_refit[0]) <= 10
     assert len(vi_refit[1]) == 10
@@ -160,7 +144,6 @@ def test_dcrt_lasso_with_use_cv(generate_regation_dataset):
         results_use_cv[1],
         results_use_cv[2],
         results_use_cv[3],
-        selection_only=False,
     )
     assert len(vi_use_cv[0]) <= 10
     assert len(vi_use_cv[1]) == 10
@@ -188,7 +171,6 @@ def test_dcrt_lasso_with_covariance(generate_regation_dataset):
         results_covariance[1],
         results_covariance[2],
         results_covariance[3],
-        selection_only=False,
     )
     assert len(vi_covariance[0]) <= 10
     assert len(vi_covariance[1]) == 10
@@ -208,7 +190,6 @@ def test_dcrt_lasso_center():
         results[1],
         results[2],
         results[3],
-        selection_only=False,
     )
     assert np.sum(results[0]) == 10
     assert len(vi[0]) <= 10
@@ -219,7 +200,6 @@ def test_dcrt_lasso_center():
         results[1],
         results[2],
         results[3],
-        selection_only=False,
         scaled_statistics=True,
     )
     assert len(vi[0]) <= 10
@@ -240,7 +220,6 @@ def test_dcrt_lasso_refit():
         results[1],
         results[2],
         results[3],
-        selection_only=False,
     )
     assert np.sum(results[0]) <= 10
     assert len(vi[0]) <= 10
@@ -279,7 +258,6 @@ def test_dcrt_lasso_fit_with_cv():
         results[1],
         results[2],
         results[3],
-        selection_only=False,
     )
     assert np.sum(results[0]) == 10
     assert len(vi[0]) <= 10
@@ -311,7 +289,7 @@ def test_dcrt_RF_regression():
         problem_type="regression",
         random_state=2024,
     )
-    vi = dcrt_pvalue(res[0], res[1], res[2], res[3], selection_only=False)
+    vi = dcrt_pvalue(res[0], res[1], res[2], res[3])
     assert len(vi[0]) <= 10
     assert len(vi[1]) == 10
     assert len(vi[2]) == 10
@@ -330,7 +308,7 @@ def test_dcrt_RF_classification():
         problem_type="classification",
         random_state=2024,
     )
-    vi = dcrt_pvalue(res[0], res[1], res[2], res[3], selection_only=False)
+    vi = dcrt_pvalue(res[0], res[1], res[2], res[3])
     assert len(vi[0]) <= 10
     assert len(vi[1]) == 10
     assert len(vi[2]) == 10
