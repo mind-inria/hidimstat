@@ -97,6 +97,9 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
 html_theme_options = {
     "icon_links": [
         {
