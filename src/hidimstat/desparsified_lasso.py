@@ -62,7 +62,7 @@ def desparsified_lasso(
         Small constant used in noise estimation.
 
     tol_reid : float, optional (default=1e-4)
-        Tolerance for Reid estimation.
+        Tolerance for variance estimation with the Reid method.
 
     n_split : int, optional (default=5)
         Number of splits for cross-validation in Reid procedure.
