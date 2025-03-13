@@ -110,6 +110,7 @@ html_theme_options = {
 }
 
 
+# -- Options for gallery ----------------------------------------------------
 # Generate the plots for the gallery
 matplotlib.use("agg")
 sphinx_gallery_conf = {
