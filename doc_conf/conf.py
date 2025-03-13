@@ -20,6 +20,7 @@ project = "HiDimStat"
 copyright = "2025, The hidimstat developers"
 author = "The hidimstat developers"
 release = __version__
+git_root_url = "https://github.com/mind-inria/hidimstat"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
