@@ -70,11 +70,10 @@ html_theme = "pydata_sphinx_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-Hide resolved
     "icon_links": [
         {
             "name": "GitHub",
-            "url":git_root_url,
+            "url": git_root_url,
             "icon": "fa-brands fa-github",
         },
     ],
@@ -113,21 +112,6 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-html_theme_options = {
-    "icon_links": [
-        {
-            "name": "GitHub",
-            "url": "https://github.com/mind-inria/hidimstat/",
-            "icon": "fa-brands fa-github",
-        },
-    ],
-    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
-    "header_links_before_dropdown": 4,
-}
-
 
 # -- Options for gallery ----------------------------------------------------
 # Generate the plots for the gallery
@@ -150,8 +134,6 @@ sphinx_gallery_conf = {
         # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation  # noqa
     },
 }
-
-git_root_url = "https://github.com/mind-inria/hidimstat"
 
 
 # -- Intersphinx configuration -----------------------------------------------
