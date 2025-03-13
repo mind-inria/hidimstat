@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.PermutationImportance &#8212; HiDimStat 0.1.dev1+g6d76835 documentation</title>
+    <title>hidimstat.PermutationImportance &#8212; HiDimStat 0.1.dev1+gd2bc080 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css?v=284a2d1d" />
     <link rel="stylesheet" type="text/css" href="../_static/style.css?v=fbda0898" />
@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
     <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
-    <script src="../_static/documentation_options.js?v=c6bd79ab"></script>
+    <script src="../_static/documentation_options.js?v=8fd819cf"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -123,42 +123,57 @@
 <h1>hidimstat.PermutationImportance<a class="headerlink" href="#hidimstat-permutationimportance" title="Link to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="hidimstat.PermutationImportance">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">PermutationImportance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss:</span> <span class="pre">callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">root_mean_squared_error&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'predict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.PermutationImportance" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">PermutationImportance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss:</span> <span class="pre">callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">root_mean_squared_error&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'predict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.PermutationImportance" title="Link to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="hidimstat.PermutationImportance.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss:</span> <span class="pre">callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">root_mean_squared_error&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'predict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.PermutationImportance.__init__" title="Link to this definition">¶</a></dt>
+<dd><p>Permutation Importance algorithm as presented in
+Breiman<a class="footnote-reference brackets" href="#footcite-breimanrandomforests2001" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. For each variable/group of variables,
+the importance is computed as the difference between the loss of the initial
+model and the loss of the model with the variable/group permuted.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>estimator: scikit-learn compatible estimator</strong></dt><dd><p>The predictive model.</p>
+<dt><strong>estimator</strong><span class="classifier">sklearn compatible estimator, optionals</span></dt><dd><p>The estimator to use for the prediction.</p>
 </dd>
-<dt><strong>n_permutations: int, default=50</strong></dt><dd><p>Number of permutations to perform.</p>
+<dt><strong>loss</strong><span class="classifier">callable, default=root_mean_squared_error</span></dt><dd><p>The loss function to use when comparing the perturbed model to the full
+model.</p>
 </dd>
-<dt><strong>loss: callable, default=root_mean_squared_error</strong></dt><dd><p>Loss function to evaluate the model performance.</p>
+<dt><strong>method</strong><span class="classifier">str, default=”predict”</span></dt><dd><p>The method to use for the prediction. This determines the predictions passed
+to the loss function. Supported methods are “predict”, “predict_proba”,
+“decision_function”, “transform”.</p>
 </dd>
-<dt><strong>method: str, default=’predict’</strong></dt><dd><p>Method to use for predicting values that will be used to compute
-the loss and the importance scores. The method must be implemented by the
-estimator. Supported methods are ‘predict’, ‘predict_proba’,
-‘decision_function’ and ‘transform’.</p>
+<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>The number of jobs to run in parallel. Parallelization is done over the
+variables or groups of variables.</p>
 </dd>
-<dt><strong>random_state: int, default=None</strong></dt><dd><p>Random seed for the permutation.</p>
+<dt><strong>n_permutations</strong><span class="classifier">int, default=50</span></dt><dd><p>The number of permutations to perform. For each variable/group of variables,
+the mean of the losses over the <cite>n_permutations</cite> is computed.</p>
 </dd>
-<dt><strong>n_jobs: int, default=1</strong></dt><dd><p>Number of jobs to run in parallel.</p>
+<dt><strong>random_state</strong><span class="classifier">int, default=None</span></dt><dd><p>The random state to use for sampling.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="hidimstat.PermutationImportance.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss:</span> <span class="pre">callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">root_mean_squared_error&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'predict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hidimstat.PermutationImportance.__init__" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-breimanrandomforests2001" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id3">2</a>)</span>
+<p>Leo Breiman. Random Forests. <em>Machine Learning</em>, 45(1):5–32, October 2001. <a class="reference external" href="https://doi.org/10.1023/A:1010933404324">doi:10.1023/A:1010933404324</a>.</p>
+</aside>
+</aside>
+</div>
+</dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#hidimstat.PermutationImportance.__init__" title="hidimstat.PermutationImportance.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(estimator[, n_permutations, loss, ...])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#hidimstat.PermutationImportance.__init__" title="hidimstat.PermutationImportance.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(estimator[, loss, method, n_jobs, ...])</p></td>
+<td><p>Permutation Importance algorithm as presented in Breiman<a class="footnote-reference brackets" href="#footcite-breimanrandomforests2001" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X[, y, groups])</p></td>
-<td><p></p></td>
+<td><p>Base fit method for perturbation-based methods.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_metadata_routing</span></code>()</p></td>
 <td><p>Get metadata routing of this object.</p></td>
@@ -166,8 +181,8 @@ estimator. Supported methods are ‘predict’, ‘predict_proba’,
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_params</span></code>([deep])</p></td>
 <td><p>Get parameters for this estimator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X[, y])</p></td>
-<td><p>Compute the prediction of the model with permuted data for each group.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code>(X)</p></td>
+<td><p>Compute the predictions after perturbation of the data for each group of variables.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code>(X, y)</p></td>
 <td><p>Compute the importance scores for each group of covariates.</p></td>
@@ -197,7 +212,7 @@ estimator. Supported methods are ‘predict’, ‘predict_proba’,
     </p>
     <p>
         &copy; Copyright 2024, Mind-Inria.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.2.0.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 8.2.3.<br/>
     </p>
   </div>
 </footer>

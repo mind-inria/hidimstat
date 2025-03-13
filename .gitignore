@@ -9,7 +9,7 @@ joblib
 *.pyc
 __pycache__
 *.egg-info
-.coverage
+.coverage*
 
 # documenation 
 doc

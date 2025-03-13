@@ -12,8 +12,6 @@ dependencies = [
     "pandas>=2.2.2",
     "scikit-learn>=1.5.1",
     "scipy>=1.14.0",
-    "torch>=2.3.1",
-    "torchmetrics>=1.4.0.post0",
 ]
 requires-python = ">=3.12"
 authors = [{name = "HiDimStat developers"}]
@@ -84,4 +82,4 @@ source = "vcs"
 
 #pyproject.toml
 [tool.pytest.ini_options]
-addopts = "--ignore=src"   # ignore src directory
+testpaths = "tests"
