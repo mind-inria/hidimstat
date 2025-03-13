@@ -90,6 +90,7 @@ autosummary_generate = True
 # https://numpydoc.readthedocs.io/en/latest/install.html
 numpydoc_show_class_members = False
 
+# -- Options for autodoc ----------------------------------------------------
 autodoc_default_options = {
     "inherited-members": True,
     "member-order": "bysource",
