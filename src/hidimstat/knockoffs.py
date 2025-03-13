@@ -234,9 +234,7 @@ def model_x_knockoff(
         return selected, test_scores, threshold, X_tildes
 
 
-def model_x_knockoff_pvalue(
-    test_score, fdr=0.1, fdr_control="bhq", offset=1, selection_only=True
-):
+def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1):
     """
     This function implements the computation of the empirical p-values
 
@@ -255,11 +253,6 @@ def model_x_knockoff_pvalue(
         The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
         knockoff+.
 
-    selection_only : bool, optional (default=True)
-        Whether to return only the selected variables or additional information.
-        If True, the function will return only the selected variables. If False,
-        the function will return the selected variables and the p-values.
-
     Returns
     -------
     selected : 1D array, int
@@ -276,16 +269,10 @@ def model_x_knockoff_pvalue(
     pvals = _empirical_knockoff_pval(test_score, offset)
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
-
-    if selection_only:
-        return selected
-    else:
-        return selected, pvals
+    return selected, pvals
 
 
-def model_x_knockoff_bootstrap_e_value(
-    test_scores, ko_threshold, fdr=0.1, offset=1, selection_only=True
-):
+def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1, offset=1):
     """
     This function implements the computation of the empirical e-values
     from knockoff test and aggregates them using the e-BH procedure.
@@ -304,9 +291,6 @@ def model_x_knockoff_bootstrap_e_value(
     offset : int, 0 or 1, optional (default=1)
         The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
         knockoff+.
-
-    selection_only : bool, optional (default=True)
-        Whether to return only the selected variables or additional information.
 
     Returns
     -------
@@ -337,10 +321,7 @@ def model_x_knockoff_bootstrap_e_value(
     threshold = fdr_threshold(aggregated_eval, fdr=fdr, method="ebh")
     selected = np.where(aggregated_eval >= threshold)[0]
 
-    if selection_only:
-        return selected
-    else:
-        return selected, aggregated_eval, evals
+    return selected, aggregated_eval, evals
 
 
 def model_x_knockoff_bootstrap_quantile(
@@ -352,7 +333,6 @@ def model_x_knockoff_bootstrap_quantile(
     gamma=0.5,
     gamma_min=0.05,
     offset=1,
-    selection_only=True,
 ):
     """
     This function implements the computation of the empirical p-values
@@ -384,9 +364,6 @@ def model_x_knockoff_bootstrap_quantile(
     offset : int, 0 or 1, optional (default=1)
         The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
         knockoff+.
-
-    selection_only : bool, optional (default=True)
-        Whether to return only the selected variables or additional information.
 
     Returns
     -------
@@ -422,10 +399,7 @@ def model_x_knockoff_bootstrap_quantile(
     )
     selected = np.where(aggregated_pval <= threshold)[0]
 
-    if selection_only:
-        return selected
-    else:
-        return selected, aggregated_pval, pvals
+    return selected, aggregated_pval, pvals
 
 
 def _stat_coefficient_diff(

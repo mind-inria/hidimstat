@@ -30,23 +30,17 @@ def test_knockoff_bootstrap_quantile():
     )
 
     selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, selection_only=False
+        test_scores, fdr=fdr
     )
     fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
 
-    selected_no_verbose = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, selection_only=True
-    )
-    fdp_no_verbose, power_no_verbose = cal_fdp_power(
-        selected_no_verbose, non_zero_index
-    )
+    fdp_no_verbose, power_no_verbose = cal_fdp_power(selected_verbose, non_zero_index)
 
     assert pvals.shape == (n_bootstraps, p)
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
     assert fdp_no_verbose < 0.5
     assert power_no_verbose > 0.1
-    np.testing.assert_array_equal(selected_no_verbose, selected_verbose)
 
     # Checking value for offset not belonging to (0,1)
     with pytest.raises(Exception):
@@ -71,16 +65,11 @@ def test_knockoff_bootstrap_e_values():
 
     # Using e-values aggregation (verbose vs no verbose)
     selected_verbose, aggregated_eval, evals = model_x_knockoff_bootstrap_e_value(
-        test_scores, threshold, fdr=fdr, selection_only=False
+        test_scores, threshold, fdr=fdr
     )
     fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
 
-    selected_no_verbose = model_x_knockoff_bootstrap_e_value(
-        test_scores, threshold, fdr=fdr, selection_only=True
-    )
-    fdp_no_verbose, power_no_verbose = cal_fdp_power(
-        selected_no_verbose, non_zero_index
-    )
+    fdp_no_verbose, power_no_verbose = cal_fdp_power(selected_verbose, non_zero_index)
 
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
@@ -156,10 +145,8 @@ def test_model_x_knockoff():
             X, y, n_bootstraps=1, random_state=seed + 1, offset=-0.1, fdr=fdr
         )
 
-    ko_result = model_x_knockoff_pvalue(test_score, fdr=fdr, selection_only=True)
-    ko_result_bis, pvals = model_x_knockoff_pvalue(
-        test_score, fdr=fdr, selection_only=False
-    )
+    ko_result, _ = model_x_knockoff_pvalue(test_score, fdr=fdr)
+    ko_result_bis, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr)
     assert np.all(ko_result == ko_result_bis)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2

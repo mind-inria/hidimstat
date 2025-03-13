@@ -98,16 +98,14 @@ def single_run(
         n_jobs=n_jobs,
         random_state=seed,
     )
-    aggregated_ko_selection = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, gamma=0.3, selection_only=True
+    aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
+        test_scores, fdr=fdr, gamma=0.3
     )
 
     fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
-    eval_selection = model_x_knockoff_bootstrap_e_value(
-        test_scores, fdr=fdr, selection_only=True
-    )
+    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(test_scores, fdr=fdr)
 
     fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
 
