@@ -2,7 +2,6 @@ from .base_perturbation import BasePerturbation
 from .clustered_inference import clustered_inference, hd_inference
 from .conditional_permutation_importance import CPI
 from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
-from .Dnn_learner_single import DnnLearnerSingle
 from .empirical_thresholding import empirical_thresholding
 from .ensemble_clustered_inference import ensemble_clustered_inference
 from .knockoff_aggregation import knockoff_aggregation
@@ -26,7 +25,6 @@ __all__ = [
     "dcrt_zero",
     "desparsified_lasso",
     "desparsified_group_lasso",
-    "DnnLearnerSingle",
     "ensemble_clustered_inference",
     "group_reid",
     "hd_inference",
