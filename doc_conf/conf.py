@@ -8,7 +8,6 @@ from utils import linkcode_resolve
 
 from hidimstat import __version__
 
-# The full version, including alpha/beta/rc tags.
 
 
 # Configuration file for the Sphinx documentation builder.
