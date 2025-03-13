@@ -114,7 +114,6 @@ html_theme_options = {
 # Generate the plots for the gallery
 matplotlib.use("agg")
 sphinx_gallery_conf = {
-    "doc_module": "groupmne",
     "examples_dirs": ["../examples"],
     "gallery_dirs": ["auto_examples"],
     "plot_gallery": "True",
