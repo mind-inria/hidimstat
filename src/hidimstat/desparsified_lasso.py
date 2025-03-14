@@ -20,7 +20,7 @@ def desparsified_lasso(
     alpha_max_fraction=0.01,
     epsilon=1e-2,
     tolerance_reid=1e-4,
-    n_split=5,
+    n_splits=5,
     n_jobs=1,
     seed=0,
     verbose=0,
@@ -64,7 +64,7 @@ def desparsified_lasso(
     tolerance_reid : float, optional (default=1e-4)
         Tolerance for variance estimation with the Reid method.
 
-    n_split : int, optional (default=5)
+    n_splits : int, optional (default=5)
         Number of splits for cross-validation in Reid procedure.
 
     n_jobs : int, optional (default=1)
@@ -141,10 +141,10 @@ def desparsified_lasso(
     sigma_hat, beta_reid = reid(
         X_,
         y_,
-        eps=epsilon,
-        tol=tolerance_reid,
-        max_iter=max_iteration,
-        n_split=n_split,
+        epsilon=epsilon,
+        tolerance=tolerance_reid,
+        max_iterance=max_iteration,
+        n_splits=n_splits,
         n_jobs=n_jobs,
         seed=seed,
         # for group
