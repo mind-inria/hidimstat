@@ -281,7 +281,7 @@ def clustered_inference(
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
     # Clustering
-    X, ward = _ward_clustering(X_init, ward, train_index)
+    X, ward = memory.cache(_ward_clustering)(X_init, ward, train_index)
 
     # Preprocessing
     X = StandardScaler().fit_transform(X)
