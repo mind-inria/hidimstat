@@ -286,7 +286,7 @@ def clustered_inference(
     print("Clustered inference", kwargs)
     beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = memory.cache(
         hd_inference
-    )(X, y, method, n_jobs=n_jobs, memory=memory, **kwargs)
+    )(X, y, method, n_jobs=n_jobs, **kwargs)
 
     # De-grouping
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
