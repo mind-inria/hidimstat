@@ -71,7 +71,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
         runing the clustered inference.
-    
+
     memory : str or joblib.Memory object, optional (default=None)
         Used to cache the output of the computation of the clustering
         and the inference. By default, no caching is done. If a string is
@@ -101,7 +101,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
     """
     # check the validity of the memory
     memory = check_memory(memory=memory)
-    
+
     if method not in ["desparsified-lasso", "desparsified-group-lasso"]:
         raise ValueError("Unknow method")
     group = method == "desparsified-group-lasso"
@@ -110,20 +110,25 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
         X, y, group=group, n_jobs=n_jobs, verbose=verbose, **kwargs
     )
     if not group:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-            memory.cache(desparsified_lasso_pvalue)(
-                X.shape[0],
-                beta_hat,
-                theta_hat,
-                omega_diag,
-                confidence=0.95,
-                **kwargs,
-            )
+        (
+            pval,
+            pval_corr,
+            one_minus_pval,
+            one_minus_pval_corr,
+            cb_min,
+            cb_max,
+        ) = memory.cache(desparsified_lasso_pvalue)(
+            X.shape[0],
+            beta_hat,
+            theta_hat,
+            omega_diag,
+            confidence=0.95,
+            **kwargs,
         )
     else:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            memory.cache(desparsified_group_lasso_pvalue)(beta_hat, theta_hat, omega_diag, **kwargs)
-        )
+        pval, pval_corr, one_minus_pval, one_minus_pval_corr = memory.cache(
+            desparsified_group_lasso_pvalue
+        )(beta_hat, theta_hat, omega_diag, **kwargs)
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
@@ -262,7 +267,7 @@ def clustered_inference(
             "'memory' must be None or a string corresponding "
             + "to the path of the caching directory."
         )
-    
+
     n_samples, n_features = X_init.shape
 
     if verbose > 0:
