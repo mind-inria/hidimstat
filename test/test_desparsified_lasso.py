@@ -88,7 +88,9 @@ def test_desparsified_group_lasso():
         rho_noise=rho,
     )
 
-    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, group=True, covariance=cov)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(
+        X, Y, group=True, covariance=cov
+    )
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )

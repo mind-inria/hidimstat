@@ -258,12 +258,25 @@ def desparsified_lasso_pvalue(
     confidence_bound_min = beta_hat - confint_radius
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        confidence_bound_min, confidence_bound_max, confidence=confidence, distribution=distribution, eps=epsilon
+        confidence_bound_min,
+        confidence_bound_max,
+        confidence=confidence,
+        distribution=distribution,
+        eps=epsilon,
     )
-    return pval, pval_corr, one_minus_pval, one_minus_pval_corr, confidence_bound_min, confidence_bound_max
+    return (
+        pval,
+        pval_corr,
+        one_minus_pval,
+        one_minus_pval_corr,
+        confidence_bound_min,
+        confidence_bound_max,
+    )
 
 
-def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diagonal, test="chi2"):
+def desparsified_group_lasso_pvalue(
+    beta_hat, theta_hat, precision_diagonal, test="chi2"
+):
     """
     Compute p-values for the desparsified group Lasso estimator using
     chi-squared or F tests
