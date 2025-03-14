@@ -166,7 +166,9 @@ def reid(
         if not stationary or method == "simple":
             rho_hat = np.median(np.diag(correlation_emperical, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
-            correlation_hat = toeplitz(np.geomspace(1, rho_hat ** (n_times - 1), n_times))
+            correlation_hat = toeplitz(
+                np.geomspace(1, rho_hat ** (n_times - 1), n_times)
+            )
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
 
         # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
@@ -190,7 +192,9 @@ def reid(
                 end = -i - 1
                 residual_estimate += coefficients_ar[i] * residual[:, start:end]
             residual_difference = residual[:, order:] - residual_estimate
-            sigma_epsilon = np.median(norm(residual_difference, axis=0) / np.sqrt(n_samples))
+            sigma_epsilon = np.median(
+                norm(residual_difference, axis=0) / np.sqrt(n_samples)
+            )
 
             # estimation of the autocorrelation matrices
             rho_ar_full = np.zeros(n_times)
@@ -202,7 +206,9 @@ def reid(
             correlation_hat = toeplitz(rho_ar_full)
 
             # estimation of the variance of an AR process
-            sigma_hat[:] = sigma_epsilon / np.sqrt((1 - np.dot(coefficients_ar, rho_ar[1:])))
+            sigma_hat[:] = sigma_epsilon / np.sqrt(
+                (1 - np.dot(coefficients_ar, rho_ar[1:]))
+            )
             # estimation of the covariance based on the
             # correlation matrix and sigma
             # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
