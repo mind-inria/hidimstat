@@ -4,6 +4,7 @@ from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
 from sklearn.linear_model import Lasso
+from sklearn.utils.validation import check_memory
 
 from hidimstat.noise_std import reid
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
@@ -23,6 +24,7 @@ def desparsified_lasso(
     n_splits=5,
     n_jobs=1,
     seed=0,
+    memory=None,
     verbose=0,
     group=False,
     covariance=None,
@@ -73,6 +75,11 @@ def desparsified_lasso(
     seed : int, default=0
         Random seed for reproducibility.
 
+    memory : str or joblib.Memory object, optional (default=None)
+        Used to cache the output of the computation of the Nodewise Lasso.
+        By default, no caching is done. If a string is given, it is the path
+        to the caching directory.
+
     verbose : int, default=0
         Verbosity level for logging.
 
@@ -121,6 +128,7 @@ def desparsified_lasso(
     ----------
     .. footbibliography::
     """
+    memory = check_memory(memory)
 
     X_ = np.asarray(X)
 
@@ -138,7 +146,7 @@ def desparsified_lasso(
     X_ = X_ - np.mean(X_, axis=0)
 
     # Lasso regression and noise standard deviation estimation
-    sigma_hat, beta_reid = reid(
+    sigma_hat, beta_reid = memory.cache(reid, ignore=["n_jobs"])(
         X_,
         y_,
         epsilon=epsilon,
@@ -159,7 +167,9 @@ def desparsified_lasso(
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, precision_diagonal = _compute_all_residuals(
+    Z, precision_diagonal = memory.cache(
+        _compute_all_residuals, ignore=["n_jobs", "verbose"]
+    )(
         X_,
         alphas,
         np.dot(X_.T, X_),  # Gram matrix
