@@ -38,9 +38,6 @@ HiDimStat depends on the following packages::
   scipy
   scikit-learn
   pandas
-  torch
-  torchmetrics
-
 
 To run examples it is neccessary to install ``matplotlib``, and to run tests it
 is also needed to install ``pytest``.
