@@ -43,14 +43,17 @@ doc = [
     "PyQt5                  >= 5.15.10",
     "pyvista                >= 0.44.0",
     "pyvistaqt              >= 0.11.1",
-    "sphinx-bootstrap-theme >= 0.8.1",
+    "pydata_sphinx_theme    >= 0.16.1",
     "sphinxcontrib-bibtex   >= 2.6.2",
     "sphinx-gallery         >= 0.16.0",
 ]
-plotting = ["matplotlib >= 3.9.0"]
+plotting = [
+    "matplotlib>=3.9.0",
+]
 style = [
     "black  >= 24.4.2", 
-    "isort  >= 5.13.2"]
+    "isort  >= 5.13.2"
+]
 # For running unit and docstring tests
 test = [
     "iniconfig  >= 0.1,  < 3",

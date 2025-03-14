@@ -1,0 +1,17 @@
+﻿hidimstat.BasePerturbation
+==========================
+
+.. currentmodule:: hidimstat
+
+.. autoclass:: BasePerturbation
+   :inherited-members:
+
+   
+   .. automethod:: __init__
+   
+
+.. include:: hidimstat.BasePerturbation.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>
