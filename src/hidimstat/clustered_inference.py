@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
+from sklearn.utils.validation import check_memory
 
 from .desparsified_lasso import (
     desparsified_lasso,
@@ -47,7 +48,7 @@ def _ward_clustering(X_init, ward, train_index):
     return X_reduced, ward
 
 
-def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
+def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
     """Wrap-up high-dimensional inference procedures
 
     Parameters
@@ -70,6 +71,11 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
         runing the clustered inference.
+    
+    memory : str or joblib.Memory object, optional (default=None)
+        Used to cache the output of the computation of the clustering
+        and the inference. By default, no caching is done. If a string is
+        given, it is the path to the caching directory.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -93,6 +99,9 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
+    # check the validity of the memory
+    memory = check_memory(memory=memory)
+    
     if method not in ["desparsified-lasso", "desparsified-group-lasso"]:
         raise ValueError("Unknow method")
     group = method == "desparsified-group-lasso"
@@ -102,7 +111,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
     )
     if not group:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-            desparsified_lasso_pvalue(
+            memory.cache(desparsified_lasso_pvalue)(
                 X.shape[0],
                 beta_hat,
                 theta_hat,
@@ -113,7 +122,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, **kwargs):
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, **kwargs)
+            memory.cache(desparsified_group_lasso_pvalue)(beta_hat, theta_hat, omega_diag, **kwargs)
         )
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
@@ -169,6 +178,7 @@ def clustered_inference(
     method="desparsified-lasso",
     seed=0,
     n_jobs=1,
+    memory=None,
     verbose=1,
     **kwargs,
 ):
@@ -210,6 +220,11 @@ def clustered_inference(
     n_jobs : int or None, optional (default=1)
         Number of CPUs to use during parallel steps such as inference.
 
+    memory : str or joblib.Memory object, optional (default=None)
+        Used to cache the output of the computation of the clustering
+        and the inference. By default, no caching is done. If a string is
+        given, it is the path to the caching directory.
+
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
         runing the clustered inference.
@@ -242,6 +257,12 @@ def clustered_inference(
            Spatially relaxed inference on high-dimensional linear models.
            arXiv preprint arXiv:2106.02590.
     """
+    if memory is not None and not isinstance(memory, str):
+        raise ValueError(
+            "'memory' must be None or a string corresponding "
+            + "to the path of the caching directory."
+        )
+    
     n_samples, n_features = X_init.shape
 
     if verbose > 0:
@@ -264,7 +285,7 @@ def clustered_inference(
     # Inference: computing reduced parameter vector and stats
     print("Clustered inference", kwargs)
     beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = hd_inference(
-        X, y, method, n_jobs=n_jobs, **kwargs
+        X, y, method, n_jobs=n_jobs, memory=memory, **kwargs
     )
 
     # De-grouping

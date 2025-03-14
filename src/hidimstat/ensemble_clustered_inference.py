@@ -57,6 +57,7 @@ def ensemble_clustered_inference(
     gamma_min=0.2,
     n_bootstraps=25,
     n_jobs=1,
+    memory=None,
     verbose=1,
     **kwargs,
 ):
@@ -112,6 +113,11 @@ def ensemble_clustered_inference(
         Number of CPUs used to compute several clustered inference
         algorithms at the same time.
 
+    memory : str, optional (default=None)
+        Used to cache the output of the computation of the clustering
+        and the inference. By default, no caching is done. If a string is
+        given, it is the path to the caching directory.
+
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
         runing the clustered inference.
@@ -144,6 +150,13 @@ def ensemble_clustered_inference(
            Spatially relaxed inference on high-dimensional linear models.
            arXiv preprint arXiv:2106.02590.
     """
+
+    if memory is not None and not isinstance(memory, str):
+        raise ValueError(
+            "'memory' must be None or a string corresponding "
+            + "to the path of the caching directory."
+        )
+
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
         delayed(clustered_inference)(
@@ -156,6 +169,7 @@ def ensemble_clustered_inference(
             method=inference_method,
             seed=i,
             n_jobs=1,
+            memory=memory,
             verbose=verbose,
             **kwargs,
         )
