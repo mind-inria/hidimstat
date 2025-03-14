@@ -104,7 +104,7 @@ def desparsified_lasso(
         Estimated noise level (single response) or precision matrix
         (multiple responses).
 
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
     Notes
@@ -159,7 +159,7 @@ def desparsified_lasso(
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = _compute_all_residuals(
+    Z, precision_diag = _compute_all_residuals(
         X_,
         alphas,
         np.dot(X_.T, X_),  # Gram matrix
@@ -189,23 +189,23 @@ def desparsified_lasso(
     P_nodiag = dof_factor * P_nodiag + (dof_factor - 1) * Id
     beta_hat = beta_bias.T - P_nodiag.dot(beta_reid.T)
     # confidence intervals
-    omega_diag = omega_diag * dof_factor**2
+    precision_diag = precision_diag * dof_factor**2
 
     if not group:
-        return beta_hat, sigma_hat, omega_diag
+        return beta_hat, sigma_hat, precision_diag
     else:
         cov_hat = sigma_hat
         if cov is not None:
             cov_hat = cov
         theta_hat = n_samples * inv(cov_hat)
-        return beta_hat, theta_hat, omega_diag
+        return beta_hat, theta_hat, precision_diag
 
 
 def desparsified_lasso_pvalue(
     n_samples,
     beta_hat,
     sigma_hat,
-    omega_diag,
+    precision_diag,
     confidence=0.95,
     distribution="norm",
     eps=1e-14,
@@ -223,7 +223,7 @@ def desparsified_lasso_pvalue(
         The desparsified lasso coefficient estimates.
     sigma_hat : float
         Estimated noise level.
-    omega_diag : ndarray, shape (n_features,)
+    precision_diag : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix estimate.
     confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
@@ -253,10 +253,10 @@ def desparsified_lasso_pvalue(
     """
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-    # TODO:why the double inverse of omega_diag?
-    omega_invsqrt_diag = omega_diag ** (-0.5)
+    # TODO:why the double inverse of precision_diag?
+    precision_invsqrt_diag = precision_diag ** (-0.5)
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag)
+        quantile * sigma_hat / (np.sqrt(n_samples) * precision_invsqrt_diag)
     )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
@@ -453,7 +453,7 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     z : ndarray, shape (n_samples,)
         Residuals from regression
 
-    omega_diag_i : float
+    precision_diag_i : float
         Diagonal entry i of precision matrix estimate,
         computed as n * ||z||^2 / <x_i, z>^2
 
@@ -479,6 +479,6 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
 
     # Computing the diagonal of the covariance matrix,
     # which is used as an estimation of the noise covariance.
-    omega_diag_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
+    precision_diag_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
-    return z, omega_diag_i
+    return z, precision_diag_i

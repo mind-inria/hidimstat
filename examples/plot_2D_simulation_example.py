@@ -240,9 +240,9 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 # and referred to as Desparsified Lasso.
 
 # compute desparsified lasso
-beta_hat, sigma_hat, omega_diag = desparsified_lasso(X_init, y, n_jobs=n_jobs)
+beta_hat, sigma_hat, precision_diag = desparsified_lasso(X_init, y, n_jobs=n_jobs)
 pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-    desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, omega_diag)
+    desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diag)
 )
 
 # compute estimated support (first method)

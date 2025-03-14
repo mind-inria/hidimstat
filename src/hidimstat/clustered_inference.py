@@ -106,7 +106,7 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
         raise ValueError("Unknow method")
     group = method == "desparsified-group-lasso"
     print("hd_inference", group, kwargs)
-    beta_hat, theta_hat, omega_diag = desparsified_lasso(
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(
         X, y, group=group, n_jobs=n_jobs, verbose=verbose, **kwargs
     )
     if not group:
@@ -121,14 +121,14 @@ def hd_inference(X, y, method, n_jobs=1, verbose=0, memory=None, **kwargs):
             X.shape[0],
             beta_hat,
             theta_hat,
-            omega_diag,
+            precision_diag,
             confidence=0.95,
             **kwargs,
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = memory.cache(
             desparsified_group_lasso_pvalue
-        )(beta_hat, theta_hat, omega_diag, **kwargs)
+        )(beta_hat, theta_hat, precision_diag, **kwargs)
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
