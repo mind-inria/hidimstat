@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
-import pytest
 
 from hidimstat.desparsified_lasso import (
     desparsified_lasso,
@@ -89,7 +88,7 @@ def test_desparsified_group_lasso():
         rho_noise=rho,
     )
 
-    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, group=True, cov=cov)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, group=True, covariance=cov)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )
@@ -112,7 +111,7 @@ def test_desparsified_group_lasso():
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(cov, 0, axis=1)
     np.testing.assert_raises(
-        ValueError, desparsified_lasso, X=X, y=Y, group=True, cov=bad_cov
+        ValueError, desparsified_lasso, X=X, y=Y, group=True, covariance=bad_cov
     )
 
     with pytest.raises(ValueError, match=f"Unknown test 'r2'"):

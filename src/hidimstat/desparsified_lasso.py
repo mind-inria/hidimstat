@@ -15,17 +15,17 @@ def desparsified_lasso(
     X,
     y,
     dof_ajdustement=False,
-    max_iter=5000,
-    tol=1e-3,
+    max_iteration=5000,
+    tolerance=1e-3,
     alpha_max_fraction=0.01,
-    eps=1e-2,
-    tol_reid=1e-4,
+    epsilon=1e-2,
+    tolerance_reid=1e-4,
     n_split=5,
     n_jobs=1,
     seed=0,
     verbose=0,
     group=False,
-    cov=None,
+    covariance=None,
     noise_method="AR",
     order=1,
     stationary=True,
@@ -49,19 +49,19 @@ def desparsified_lasso(
         If True, applies degrees of freedom adjustment from :footcite:t:`bellec2022biasing`.
         If False, computes original Desparsified Lasso estimator.
 
-    max_iter : int, optional (default=5000)
+    max_iteration : int, optional (default=5000)
         Maximum iterations for Nodewise Lasso regressions.
 
-    tol : float, optional (default=1e-3)
+    tolerance : float, optional (default=1e-3)
         Convergence tolerance for optimization.
 
     alpha_max_fraction : float, optional (default=0.01)
         Fraction of max alpha used for Lasso regularization.
 
-    eps : float, optional (default=1e-2)
+    epsilon : float, optional (default=1e-2)
         Small constant used in noise estimation.
 
-    tol_reid : float, optional (default=1e-4)
+    tolerance_reid : float, optional (default=1e-4)
         Tolerance for variance estimation with the Reid method.
 
     n_split : int, optional (default=5)
@@ -79,7 +79,7 @@ def desparsified_lasso(
     group : bool, default=False
         If True, use group Lasso for multiple responses.
 
-    cov : ndarray, shape (n_times, n_times), default=None
+    covariance : ndarray, shape (n_times, n_times), default=None
         Temporal covariance matrix of the noise.
         If None, it is estimated.
 
@@ -104,7 +104,7 @@ def desparsified_lasso(
         Estimated noise level (single response) or precision matrix
         (multiple responses).
 
-    precision_diag : ndarray, shape (n_features,)
+    precision_diagonal : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
     Notes
@@ -127,10 +127,10 @@ def desparsified_lasso(
     n_samples, n_features = X_.shape
     if group:
         n_times = y.shape[1]
-        if cov is not None and cov.shape != (n_times, n_times):
+        if covariance is not None and covariance.shape != (n_times, n_times):
             raise ValueError(
                 f'Shape of "cov" should be ({n_times}, {n_times}),'
-                + f' the shape of "cov" was ({cov.shape}) instead'
+                + f' the shape of "cov" was ({covariance.shape}) instead'
             )
 
     # centering the data and the target variable
@@ -141,9 +141,9 @@ def desparsified_lasso(
     sigma_hat, beta_reid = reid(
         X_,
         y_,
-        eps=eps,
-        tol=tol_reid,
-        max_iter=max_iter,
+        eps=epsilon,
+        tol=tolerance_reid,
+        max_iter=max_iteration,
         n_split=n_split,
         n_jobs=n_jobs,
         seed=seed,
@@ -159,20 +159,20 @@ def desparsified_lasso(
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, precision_diag = _compute_all_residuals(
+    Z, precision_diagonal = _compute_all_residuals(
         X_,
         alphas,
         np.dot(X_.T, X_),  # Gram matrix
-        max_iter=max_iter,
-        tol=tol,
+        max_iteration=max_iteration,
+        tolerance=tolerance,
         n_jobs=n_jobs,
         verbose=verbose,
     )
 
     # Computing the degrees of freedom adjustement
     if dof_ajdustement:
-        coef_max = np.max(np.abs(beta_reid))
-        support = np.sum(np.abs(beta_reid) > 0.01 * coef_max)
+        coefficient_max = np.max(np.abs(beta_reid))
+        support = np.sum(np.abs(beta_reid) > 0.01 * coefficient_max)
         support = min(support, n_samples - 1)
         dof_factor = n_samples / (n_samples - support)
     else:
@@ -184,31 +184,31 @@ def desparsified_lasso(
 
     # beta hat
     P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
-    P_nodiag = P - np.diag(np.diag(P))
+    P_nodiagonal = P - np.diag(np.diag(P))
     Id = np.identity(n_features)
-    P_nodiag = dof_factor * P_nodiag + (dof_factor - 1) * Id
-    beta_hat = beta_bias.T - P_nodiag.dot(beta_reid.T)
+    P_nodiagonal = dof_factor * P_nodiagonal + (dof_factor - 1) * Id
+    beta_hat = beta_bias.T - P_nodiagonal.dot(beta_reid.T)
     # confidence intervals
-    precision_diag = precision_diag * dof_factor**2
+    precision_diagonal = precision_diagonal * dof_factor**2
 
     if not group:
-        return beta_hat, sigma_hat, precision_diag
+        return beta_hat, sigma_hat, precision_diagonal
     else:
-        cov_hat = sigma_hat
-        if cov is not None:
-            cov_hat = cov
-        theta_hat = n_samples * inv(cov_hat)
-        return beta_hat, theta_hat, precision_diag
+        covariance_hat = sigma_hat
+        if covariance is not None:
+            covariance_hat = covariance
+        theta_hat = n_samples * inv(covariance_hat)
+        return beta_hat, theta_hat, precision_diagonal
 
 
 def desparsified_lasso_pvalue(
     n_samples,
     beta_hat,
     sigma_hat,
-    precision_diag,
+    precision_diagonal,
     confidence=0.95,
     distribution="norm",
-    eps=1e-14,
+    epsilon=1e-14,
 ):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
@@ -223,21 +223,17 @@ def desparsified_lasso_pvalue(
         The desparsified lasso coefficient estimates.
     sigma_hat : float
         Estimated noise level.
-    precision_diag : ndarray, shape (n_features,)
+    precision_diagonal : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix estimate.
     confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
     distribution : str, default="norm"
         Distribution to use for p-value calculation.
         Currently only "norm" supported.
-    eps : float, default=1e-14
+    epsilon : float, default=1e-14
         Small value to avoid numerical issues in p-value calculation.
     Returns
     -------
-    cb_min : ndarray, shape (n_features,)
-        Lower bounds of confidence intervals
-    cb_max : ndarray, shape (n_features,)
-        Upper bounds of confidence intervals
     pval : ndarray, shape (n_features,)
         P-values
     pval_corr : ndarray, shape (n_features,)
@@ -246,28 +242,28 @@ def desparsified_lasso_pvalue(
         1 - p-values
     one_minus_pval_corr : ndarray, shape (n_features,)
         1 - corrected p-values
-    cb_min : ndarray, shape (n_features,)
+    confidence_bound_min : ndarray, shape (n_features,)
         Lower bounds of confidence intervals
-    cb_max : ndarray, shape (n_features,)
+    confidence_bound_max : ndarray, shape (n_features,)
         Upper bounds of confidence intervals
     """
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     # TODO:why the double inverse of precision_diag?
-    precision_invsqrt_diag = precision_diag ** (-0.5)
+    precision_invsqrt_diagonal = precision_diagonal ** (-0.5)
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * precision_invsqrt_diag)
+        quantile * sigma_hat / (np.sqrt(n_samples) * precision_invsqrt_diagonal)
     )
-    cb_max = beta_hat + confint_radius
-    cb_min = beta_hat - confint_radius
+    confidence_bound_max = beta_hat + confint_radius
+    confidence_bound_min = beta_hat - confint_radius
 
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        cb_min, cb_max, confidence=confidence, distribution=distribution, eps=eps
+        confidence_bound_min, confidence_bound_max, confidence=confidence, distribution=distribution, eps=epsilon
     )
-    return pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max
+    return pval, pval_corr, one_minus_pval, one_minus_pval_corr, confidence_bound_min, confidence_bound_max
 
 
-def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="chi2"):
+def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diagonal, test="chi2"):
     """
     Compute p-values for the desparsified group Lasso estimator using
     chi-squared or F tests
@@ -280,7 +276,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
     theta_hat : ndarray, shape (n_times, n_times)
         Estimated precision matrix (inverse covariance).
 
-    precision_diag : ndarray, shape (n_features,)
+    precision_diagonal : ndarray, shape (n_features,)
         Diagonal elements of the precision matrix.
 
     test : {'chi2', 'F'}, default='chi2'
@@ -314,18 +310,18 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
     coefficients and precision matrix.
     """
     n_features, n_times = beta_hat.shape
-    n_samples = precision_diag.shape[0]
+    n_samples = precision_diagonal.shape[0]
 
     # Compute the two-sided p-values
     if test == "chi2":
         chi2_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / precision_diag
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / precision_diagonal
         )
         two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
     elif test == "F":
         f_scores = (
             np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
-            / precision_diag
+            / precision_diagonal
             / n_times
         )
         two_sided_pval = np.minimum(
@@ -344,7 +340,7 @@ def desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="c
 
 
 def _compute_all_residuals(
-    X, alphas, gram, max_iter=5000, tol=1e-3, n_jobs=1, verbose=0
+    X, alphas, gram, max_iteration=5000, tolerance=1e-3, n_jobs=1, verbose=0
 ):
     """
     Nodewise Lasso for computing residuals and precision matrix diagonal.
@@ -364,10 +360,10 @@ def _compute_all_residuals(
     gram : ndarray, shape (n_features, n_features)
         Precomputed Gram matrix X.T @ X to speed up computations.
 
-    max_iter : int, optional (default=5000)
+    max_itereration : int, optional (default=5000)
         Maximum number of iterations for Lasso optimization.
 
-    tol : float, optional (default=1e-3)
+    tolerance : float, optional (default=1e-3)
         Convergence tolerance for Lasso optimization.
 
     n_jobs : int or None, optional (default=1)
@@ -384,7 +380,7 @@ def _compute_all_residuals(
     Z : ndarray, shape (n_samples, n_features)
         Matrix of residuals from nodewise regressions.
 
-    precision_diag : ndarray, shape (n_features,)
+    precision_diagonal : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
 
     Notes
@@ -407,8 +403,8 @@ def _compute_all_residuals(
             id_column=i,
             alpha=alphas[i],
             gram=gram,
-            max_iter=max_iter,
-            tol=tol,
+            max_iteration=max_iteration,
+            tolerance=tolerance,
         )
         for i in range(n_features)
     )
@@ -416,12 +412,12 @@ def _compute_all_residuals(
     # Unpacking the results
     results = np.asarray(results, dtype=object)
     Z = np.stack(results[:, 0], axis=1)
-    precision_diag = np.stack(results[:, 1])
+    precision_diagonal = np.stack(results[:, 1])
 
-    return Z, precision_diag
+    return Z, precision_diagonal
 
 
-def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
+def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=1e-3):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -442,10 +438,10 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     gram : ndarray, shape (n_features, n_features)
         Precomputed X.T @ X matrix
 
-    max_iter : int, default=5000
+    max_iteration : int, default=5000
         Maximum Lasso iterations
 
-    tol : float, default=1e-3
+    tolerance : float, default=1e-3
         Optimization tolerance
 
     Returns
@@ -453,7 +449,7 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     z : ndarray, shape (n_samples,)
         Residuals from regression
 
-    precision_diag_i : float
+    precision_diagonal_i : float
         Diagonal entry i of precision matrix estimate,
         computed as n * ||z||^2 / <x_i, z>^2
 
@@ -471,7 +467,7 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
     gram_ = np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
-    clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
+    clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iteration, tol=tolerance)
 
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
@@ -479,6 +475,6 @@ def _compute_residuals(X, id_column, alpha, gram, max_iter=5000, tol=1e-3):
 
     # Computing the diagonal of the covariance matrix,
     # which is used as an estimation of the noise covariance.
-    precision_diag_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
+    precision_diagonal_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
-    return z, precision_diag_i
+    return z, precision_diagonal_i
