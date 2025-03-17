@@ -1,5 +1,5 @@
 import numpy as np
-from hidimstat.statistical_tools.utils import pval_from_scale
+from hidimstat.statistical_tools.p_values import pval_from_scale
 
 __all__ = ["ada_svr", "ada_svr_pvalue"]
 

@@ -7,7 +7,7 @@ from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
 from hidimstat.noise_std import group_reid, reid
-from hidimstat.statistical_tools.utils import pval_from_two_sided_pval_and_sign
+from hidimstat.statistical_tools.p_values import pval_from_two_sided_pval_and_sign
 
 
 def _compute_all_residuals(
