@@ -1,6 +1,7 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat._utils.utils import _alpha_max, fdr_threshold
+from hidimstat._utils.utils import _alpha_max
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier

@@ -29,7 +29,7 @@ from sklearn.utils import check_random_state
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 from hidimstat.knockoff_aggregation import knockoff_aggregation
 from hidimstat.knockoffs import model_x_knockoff
-from hidimstat._utils.utils import cal_fdp_power
+from hidimstat.statistical_tools.multiple_testing import cal_fdp_power
 
 plt.rcParams.update({"font.size": 26})
 

@@ -1,6 +1,6 @@
 from hidimstat import model_x_knockoff
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
-from hidimstat._utils.utils import cal_fdp_power
+from hidimstat.statistical_tools.multiple_testing import cal_fdp_power
 
 
 def test_model_x_knockoff():

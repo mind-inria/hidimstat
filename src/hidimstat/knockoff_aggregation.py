@@ -11,7 +11,7 @@ from hidimstat.gaussian_knockoff import (
     gaussian_knockoff_generation,
 )
 from hidimstat.stat_coef_diff import stat_coef_diff, _coef_diff_threshold
-from hidimstat._utils.utils import fdr_threshold
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.quantile_aggregation import quantile_aggregation
 
 
