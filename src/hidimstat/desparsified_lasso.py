@@ -326,9 +326,8 @@ def desparsified_group_lasso_pvalue(
 
     Notes
     -----
-    Both tests assume asymptotic normality of the estimators.
-    The F-test is a rescaled version of the chi-squared test that may
-    perform better in some finite sample settings.
+    The Chi-squared test assumes asymptotic normality while the F-test
+    is preferable for small sample sizes.
     P-values are computed based on score statistics from the estimated
     coefficients and precision matrix.
     """
