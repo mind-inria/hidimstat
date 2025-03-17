@@ -12,7 +12,7 @@ from hidimstat.gaussian_knockoff import (
 )
 from hidimstat.stat_coef_diff import stat_coef_diff, _coef_diff_threshold
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.quantile_aggregation import quantile_aggregation
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
 def knockoff_aggregation(
