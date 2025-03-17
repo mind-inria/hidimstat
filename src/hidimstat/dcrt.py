@@ -115,9 +115,9 @@ def dcrt_zero(
             n_jobs=n_jobs,
             n_alphas=n_alphas * 2,  # TODO: Why * 2 ?
             tol=tol,
-            fit_intercept=False,
-            random_state=random_state + 1,  # avoid the same seed as the main function
             max_iter=max_iter,
+            fit_intercept=False,
+            selection='cyclic',
         )
         clf.fit(X_, y_)
         coef_X_full = np.ravel(clf.coef_)
