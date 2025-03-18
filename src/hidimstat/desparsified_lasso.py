@@ -128,7 +128,7 @@ def desparsified_lasso(
     ----------
     .. footbibliography::
     """
-    memory = check_memory(memory)
+    memory_instance = check_memory(memory)
 
     X_ = np.asarray(X)
 
@@ -146,7 +146,7 @@ def desparsified_lasso(
     X_ = X_ - np.mean(X_, axis=0)
 
     # Lasso regression and noise standard deviation estimation
-    sigma_hat, beta_reid = memory.cache(reid, ignore=["n_jobs"])(
+    sigma_hat, beta_reid = memory_instance.cache(reid, ignore=["n_jobs"])(
         X_,
         y_,
         epsilon=epsilon,
@@ -167,7 +167,7 @@ def desparsified_lasso(
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, precision_diagonal = memory.cache(
+    Z, precision_diagonal = memory_instance.cache(
         _compute_all_residuals, ignore=["n_jobs", "verbose"]
     )(
         X_,
