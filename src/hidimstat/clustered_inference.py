@@ -284,9 +284,11 @@ def clustered_inference(
 
     # Inference: computing reduced parameter vector and stats
     print("Clustered inference", kwargs)
-    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = memory_instance.cache(
-        hd_inference, ignore=["n_jobs", "verbose", "memory"]
-    )(X, y, method, n_jobs=n_jobs, memory=memory, **kwargs)
+    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = (
+        memory_instance.cache(hd_inference, ignore=["n_jobs", "verbose", "memory"])(
+            X, y, method, n_jobs=n_jobs, memory=memory, **kwargs
+        )
+    )
 
     # De-grouping
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
