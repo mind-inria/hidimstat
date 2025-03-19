@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
     model_x_knockoff,
-    model_x_knockoff_filter,
+    model_x_knockoff_pvalue,
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_bootstrap_e_value,
 )
@@ -81,7 +81,7 @@ def single_run(
         n_bootstraps=1,
         random_state=seed,
     )
-    mx_selection = model_x_knockoff_filter(test_scores, fdr=fdr)
+    mx_selection = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
 
     # Use p-values aggregation [2]
