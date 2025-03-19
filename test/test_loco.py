@@ -1,16 +1,16 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat.loco import LOCO
+from hidimstat import LOCO
 
 
 def test_loco(linear_scenario):
+    """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -23,7 +23,6 @@ def test_loco(linear_scenario):
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
 
@@ -52,7 +51,6 @@ def test_loco(linear_scenario):
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
     loco.fit(
@@ -74,7 +72,6 @@ def test_loco(linear_scenario):
     loco_clf = LOCO(
         estimator=logistic_model,
         method="predict_proba",
-        random_state=0,
         n_jobs=1,
         loss=log_loss,
     )
@@ -92,6 +89,7 @@ def test_loco(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
+    """Test for error when model does not have predict_proba or predict."""
     X, y, _ = linear_scenario
     # Not fitted estimator
     with pytest.raises(NotFittedError):
@@ -107,7 +105,7 @@ def test_raises_value_error(
             estimator=fitted_model,
             method="predict",
         )
-        loco.predict(X, y)
+        loco.predict(X)
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(

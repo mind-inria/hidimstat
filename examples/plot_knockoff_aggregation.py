@@ -23,6 +23,11 @@ References
 # ------------------------------
 
 import numpy as np
+from sklearn.utils import check_random_state
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
+import matplotlib.pyplot as plt
+
 from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
     model_x_knockoff,
@@ -31,10 +36,6 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_e_value,
 )
 from hidimstat.utils import cal_fdp_power
-from sklearn.utils import check_random_state
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
-import matplotlib.pyplot as plt
 
 plt.rcParams.update({"font.size": 26})
 

@@ -79,7 +79,6 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=10000, n_jobs=1, seed=0):
 def group_reid(
     X,
     Y,
-    fit_Y=True,
     stationary=True,
     method="simple",
     order=1,
@@ -171,31 +170,23 @@ def group_reid(
 
     cv = KFold(n_splits=5, shuffle=True, random_state=seed)
 
-    if fit_Y:
+    clf_mtlcv = MultiTaskLassoCV(
+        eps=eps,
+        fit_intercept=False,
+        cv=cv,
+        tol=tol,
+        max_iter=max_iter,
+        n_jobs=n_jobs,
+    )
 
-        clf_mtlcv = MultiTaskLassoCV(
-            eps=eps,
-            fit_intercept=False,
-            cv=cv,
-            tol=tol,
-            max_iter=max_iter,
-            n_jobs=n_jobs,
-        )
+    clf_mtlcv.fit(X, Y)
+    beta_hat = clf_mtlcv.coef_
+    residual = clf_mtlcv.predict(X) - Y
+    row_max = np.max(np.sum(np.abs(beta_hat), axis=0))
+    support = np.sum(np.sum(np.abs(beta_hat), axis=0) > tol * row_max)
 
-        clf_mtlcv.fit(X, Y)
-        beta_hat = clf_mtlcv.coef_
-        residual = clf_mtlcv.predict(X) - Y
-        row_max = np.max(np.sum(np.abs(beta_hat), axis=0))
-        support = np.sum(np.sum(np.abs(beta_hat), axis=0) > tol * row_max)
-
-        # avoid dividing by 0
-        support = min(support, n_samples - 1)
-
-    else:
-
-        beta_hat = np.zeros((n_features, n_times))
-        residual = np.copy(Y)
-        support = 0
+    # avoid dividing by 0
+    support = min(support, n_samples - 1)
 
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - support)
 

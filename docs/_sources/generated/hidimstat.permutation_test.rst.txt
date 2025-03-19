@@ -1,0 +1,8 @@
+﻿hidimstat.permutation_test
+==========================
+
+.. currentmodule:: hidimstat
+
+.. autofunction:: permutation_test
+
+.. include:: hidimstat.permutation_test.examples
