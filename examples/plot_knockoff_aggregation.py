@@ -106,7 +106,9 @@ def single_run(
     fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
-    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(result[1], fdr=fdr)
+    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(
+        result[1], result[2], fdr=fdr
+    )
 
     fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
 
