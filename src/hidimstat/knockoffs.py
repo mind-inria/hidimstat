@@ -356,8 +356,8 @@ def model_x_knockoff_bootstrap_quantile(
         Whether to use adaptive quantile aggregation.
 
     gamma : float, optional (default=0.5)
-        The quantile level (between 0 and 1) used for aggregation. 
-        For non-adaptive aggregation, a single gamma value is used. 
+        The quantile level (between 0 and 1) used for aggregation.
+        For non-adaptive aggregation, a single gamma value is used.
         For adaptive aggregation, this is the starting point for the grid search
         over gamma values.
 

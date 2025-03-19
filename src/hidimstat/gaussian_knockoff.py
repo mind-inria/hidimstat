@@ -27,16 +27,16 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
         The empirical covariance matrix.
 
     seed : int, optional
-        A random seed for generating the uniform noise used to create 
+        A random seed for generating the uniform noise used to create
         the knockoff variables.
 
     tol : float, default=1.e-14
-        A tolerance value used for numerical stability in the calculation 
+        A tolerance value used for numerical stability in the calculation
         of the Cholesky decomposition.
 
     repeat : bool, default=False
         If True, the function returns the values used to generate the knockoff
-        variables (mu_tilde and sigma_tilde_decompose), which can be used to 
+        variables (mu_tilde and sigma_tilde_decompose), which can be used to
         generate additional knockoff variables without having to recompute them.
 
     Returns
@@ -85,9 +85,9 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
     """
     Generate additional knockoff variables using pre-computed values.
 
-    This function generates additional knockoff variables using pre-computed 
-    values returned by the gaussian_knockoff_generation function 
-    with repeat=True. It takes as input mu_tilde and sigma_tilde_decompose, 
+    This function generates additional knockoff variables using pre-computed
+    values returned by the gaussian_knockoff_generation function
+    with repeat=True. It takes as input mu_tilde and sigma_tilde_decompose,
     which were returned by gaussian_knockoff_generation, and a random seed.
     It returns the new knockoff variables X_tilde.
 
@@ -98,12 +98,12 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
         returned by gaussian_knockoff_generation.
 
     sigma_tilde_decompose : 2D ndarray (n_features, n_features)
-        The Cholesky decomposition of the covariance matrix used 
-        to generate the knockoff variables,returned by 
+        The Cholesky decomposition of the covariance matrix used
+        to generate the knockoff variables,returned by
         gaussian_knockoff_generation.
 
     seed : int
-        A random seed for generating the uniform noise used to create 
+        A random seed for generating the uniform noise used to create
         the knockoff variables.
 
     Returns
@@ -123,25 +123,25 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
 
 def _s_equi(sigma, tol=1e-14):
     """
-    Estimate the diagonal matrix of correlation between real 
+    Estimate the diagonal matrix of correlation between real
     and knockoff variables using the equi-correlated equation.
 
-    This function estimates the diagonal matrix of correlation 
-    between real and knockoff variables using the equi-correlated 
+    This function estimates the diagonal matrix of correlation
+    between real and knockoff variables using the equi-correlated
     equation described in :cite:`barber2015controlling` and
-    :cite:`candes2018panning`. It takes as input the empirical 
+    :cite:`candes2018panning`. It takes as input the empirical
     covariance matrix sigma and a tolerance value tol,
-    and returns a vector of diagonal values of the estimated 
+    and returns a vector of diagonal values of the estimated
     matrix diag{s}.
 
     Parameters
     ----------
     sigma : 2D ndarray (n_features, n_features)
-        The empirical covariance matrix calculated from 
+        The empirical covariance matrix calculated from
         the original design matrix.
 
     tol : float, optional
-        A tolerance value used for numerical stability in the calculation 
+        A tolerance value used for numerical stability in the calculation
         of the eigenvalues of the correlation matrix.
 
     Returns

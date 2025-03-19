@@ -15,8 +15,8 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
     gamma : float, default=0.05
-        The quantile level (between 0 and 1) used for aggregation. 
-        For non-adaptive aggregation, a single gamma value is used. 
+        The quantile level (between 0 and 1) used for aggregation.
+        For non-adaptive aggregation, a single gamma value is used.
         For adaptive aggregation, this is the starting point for the grid search
         over gamma values.
     n_grid : int, default=20
