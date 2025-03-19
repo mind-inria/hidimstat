@@ -68,7 +68,7 @@ def single_run(
     )
 
     # Use model-X Knockoffs [1]
-    test_scores = model_x_knockoff(
+    result = model_x_knockoff(
         X,
         y,
         estimator=LassoCV(
@@ -81,11 +81,11 @@ def single_run(
         n_bootstraps=1,
         random_state=seed,
     )
-    mx_selection = model_x_knockoff_pvalue(test_scores, fdr=fdr)
+    mx_selection = model_x_knockoff_pvalue(result[1], fdr=fdr)
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
 
     # Use p-values aggregation [2]
-    test_scores = model_x_knockoff(
+    result = model_x_knockoff(
         X,
         y,
         estimator=LassoCV(
@@ -100,13 +100,13 @@ def single_run(
         random_state=seed,
     )
     aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, gamma=0.3
+        result[1], fdr=fdr, gamma=0.3
     )
 
     fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
-    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(test_scores, fdr=fdr)
+    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(result[1], fdr=fdr)
 
     fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
 
