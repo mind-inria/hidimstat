@@ -64,7 +64,6 @@ test = [
     "pytest-randomly",
     "pytest-xdist[psutil]",
     "pytest-timeout",
-    "pytest-json-crtf == 0.3.5"
 ]
 
 [project.urls]
