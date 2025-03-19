@@ -1,5 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.utils.validation import check_memory
 
 from .clustered_inference import clustered_inference
 from .multi_sample_split import aggregate_medians, aggregate_quantiles
@@ -151,16 +152,7 @@ def ensemble_clustered_inference(
            arXiv preprint arXiv:2106.02590.
     """
 
-    if (
-        memory is not None
-        and not isinstance(memory, str)
-        and not hasattr(memory, "cache")
-    ):
-        raise ValueError(
-            "'memory' must be None, a string corresponding "
-            + "to the path of the caching directory "
-            + "or have the same interface as joblib.Memory."
-        )
+    memory = check_memory(memory=memory)
 
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
