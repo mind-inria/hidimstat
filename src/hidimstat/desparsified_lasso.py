@@ -259,10 +259,11 @@ def desparsified_lasso_pvalue(
     """
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-    # TODO:why the double inverse of precision_diag?
-    precision_invsqrt_diagonal = precision_diagonal ** (-0.5)
+    # see definition of lower and upper bound in algorithm 1
+    # in `chevalier2020statistical`:
+    # quantile_(1-alpha/2) * (n**(-1/2)) * sigma * (precision_diagonal**(1/2))
     confint_radius = np.abs(
-        quantile * sigma_hat / (np.sqrt(n_samples) * precision_invsqrt_diagonal)
+        quantile * sigma_hat * np.sqrt(precision_diagonal) / np.sqrt(n_samples)
     )
     confidence_bound_max = beta_hat + confint_radius
     confidence_bound_min = beta_hat - confint_radius
