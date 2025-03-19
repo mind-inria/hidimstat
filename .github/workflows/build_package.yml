@@ -42,4 +42,7 @@ jobs:
       uses: ctrf-io/github-test-reporter@v1
       with:
         report-path: 'test-results/report.json'
+        pull-request-report: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: always()
