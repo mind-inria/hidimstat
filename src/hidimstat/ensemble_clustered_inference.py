@@ -79,48 +79,48 @@ def ensemble_clustered_inference(
 
     train_size : float, optional (default=0.3)
         Fraction of samples used to compute the clustering.
-        If `train_size = 1`, clustering is not random since all the samples
+        If `train_size = 1`, clustering is not random since all samples
         are used to compute the clustering.
 
     groups : ndarray, shape (n_samples,), optional (default=None)
-        Group labels for every sample. If not None, `groups` is used to build
-        the subsamples that serve for computing the clustering.
+        Group labels for each sample. If not None, `groups` is used to build
+        the subsamples that serve to compute the clustering.
 
     inference_method : str, optional (default='desparsified-lasso')
-        Method used for making the inference.
-        Currently, the two methods available are 'desparsified-lasso'
+        Method used for inference.
+        Currently, the two available methods are 'desparsified-lasso'
         and 'group-desparsified-lasso'. Use 'desparsified-lasso' for
         non-temporal data and 'group-desparsified-lasso' for temporal data.
 
     seed: int, optional (default=0)
-        Seed used for generating a the first random subsample of the data.
+        Seed used for generating the first random subsample of the data.
         This seed controls the clustering randomness.
 
     ensembling_method : str, optional (default='quantiles')
-        Method used for making the ensembling. Currently, the two methods
-        available are 'quantiles' and 'median'.
+        Method used for ensembling. Currently, the two available methods
+        are 'quantiles' and 'median'.
 
     gamma_min : float, optional (default=0.2)
-        Lowest gamma-quantile being considered to compute the adaptive
-        quantile aggregation formula. This parameter is considered only if
+        Lowest gamma-quantile considered to compute the adaptive
+        quantile aggregation formula. This parameter is used only if
         `ensembling_method` is 'quantiles'.
 
     n_bootstraps : int, optional (default=25)
         Number of clustered inference algorithm solutions to compute before
-        making the ensembling.
+        ensembling.
 
     n_jobs : int or None, optional (default=1)
         Number of CPUs used to compute several clustered inference
-        algorithms at the same time.
+        algorithms simultaneously.
 
-    memory : str, optional (default=None)
-        Used to cache the output of the computation of the clustering
-        and the inference. By default, no caching is done. If a string is
-        given, it is the path to the caching directory.
+    memory : joblib.Memory or str, optional (default=None)
+        Used to cache the output of the clustering and inference computation.
+        By default, no caching is done. If provided, it should be the path
+        to the caching directory or a joblib.Memory object.
 
     verbose: int, optional (default=1)
-        The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        The verbosity level. If `verbose > 0`, a message is printed before
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -132,14 +132,14 @@ def ensemble_clustered_inference(
 
     pval : ndarray, shape (n_features,)
         p-value, with numerically accurate values for
-        positive effects (ie., for p-value close to zero).
+        positive effects (i.e., for p-values close to zero).
 
     pval_corr : ndarray, shape (n_features,)
         p-value corrected for multiple testing.
 
     one_minus_pval : ndarray, shape (n_features,)
         One minus the p-value, with numerically accurate values
-        for negative effects (ie., for p-value close to one).
+        for negative effects (i.e., for p-values close to one).
 
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
