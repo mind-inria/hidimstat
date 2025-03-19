@@ -81,7 +81,7 @@ def single_run(
         n_bootstraps=1,
         random_state=seed,
     )
-    mx_selection = model_x_knockoff_pvalue(result[1], fdr=fdr)
+    mx_selection, _ = model_x_knockoff_pvalue(result[1], fdr=fdr)
     fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
 
     # Use p-values aggregation [2]
