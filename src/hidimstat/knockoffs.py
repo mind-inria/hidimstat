@@ -331,7 +331,7 @@ def model_x_knockoff_bootstrap_quantile(
     reshaping_function=None,
     adaptive_aggregation=False,
     gamma=0.5,
-    gamma_min=0.05,
+    n_grid=20,
     offset=1,
 ):
     """
@@ -356,10 +356,13 @@ def model_x_knockoff_bootstrap_quantile(
         Whether to use adaptive quantile aggregation.
 
     gamma : float, optional (default=0.5)
-        The quantile level for aggregation.
+        The quantile level (between 0 and 1) used for aggregation. 
+        For non-adaptive aggregation, a single gamma value is used. 
+        For adaptive aggregation, this is the starting point for the grid search
+        over gamma values.
 
-    gamma_min : float, optional (default=0.05)
-        The minimum quantile level for adaptive aggregation.
+    n_grid_gamma : int, default=20
+        Number of gamma grid points for adaptive aggregation.
 
     offset : int, 0 or 1, optional (default=1)
         The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
@@ -388,7 +391,7 @@ def model_x_knockoff_bootstrap_quantile(
     )
 
     aggregated_pval = quantile_aggregation(
-        pvals, gamma=gamma, gamma_min=gamma_min, adaptive=adaptive_aggregation
+        pvals, gamma=gamma, n_grid=n_grid, adaptive=adaptive_aggregation
     )
 
     threshold = fdr_threshold(
