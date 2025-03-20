@@ -30,7 +30,7 @@ jobs:
         python -m pip install .[test]
     - name: Generate coverage report
       run: |
-        python -m pytest --cov=. --cov-report=xml --ctrf $REPORT
+        python -m pytest --cov=. --cov-report=xml --ctrf=$REPORT
       env:
         REPORT: 'test-results/report.json'
     - name: Upload coverage reports to Codecov
