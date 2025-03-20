@@ -15,7 +15,7 @@ from hidimstat.scenario import (
 )
 
 
-def test_ensemble_clustered_inference():
+def test_ensemble_clustered_inference_senario_1():
     """Testing the procedure on a simulation with a 1D data structure
     and with n << p: the first test has no temporal dimension, the second has a
     temporal dimension. The support is connected and of size 10, it must be
@@ -76,6 +76,7 @@ def test_ensemble_clustered_inference():
         decimal=1,
     )
 
+def test_ensemble_clustered_inference_senario_2():
     # Scenario 2: temporal data
     # #########################
     inference_method = "desparsified-group-lasso"
