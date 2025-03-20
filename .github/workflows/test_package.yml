@@ -23,7 +23,7 @@ jobs:
       - name: Wait previous
         run: |
           echo 
-          while [${{ github.event.workflow_run.conclusion }} != 'success' ]; do echo ${{ github.event.workflow_run.conclusion }}; sleep 10; done
+          while [${{ github.event.workflow_run.conclusion }} -ne 'success' ]; do echo ${{ github.event.workflow_run.conclusion }}; sleep 10; done
   
   build:
     needs: [previous_step]
