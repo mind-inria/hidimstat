@@ -10,9 +10,9 @@ on:
     branches: [ "main" ]
   workflow_run:
       workflows: ["Lint"]
+      branches: [main]
       types: 
         - completed
-
 jobs:
   build:
 
