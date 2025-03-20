@@ -90,9 +90,9 @@ def desparsified_lasso(
         Temporal covariance matrix of the noise.
         If None, it is estimated.
 
-    noise_method : {'AR', 'simple'}, default='AR'
+    noise_method : {'AR', 'median'}, default='AR'
         Method to estimate noise covariance:
-        - 'simple': Uses median correlation between consecutive
+        - 'median': Uses median correlation between consecutive
                     timepoints
         - 'AR': Fits autoregressive model of specified order
 

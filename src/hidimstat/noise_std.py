@@ -16,7 +16,7 @@ def reid(
     seed=0,
     group=False,
     stationary=True,
-    method="simple",
+    method="median",
     order=1,
 ):
     """
@@ -63,9 +63,9 @@ def reid(
     stationary : bool, (default=True)
         Whether noise has constant magnitude across time steps.
 
-    method : {'simple', 'AR'}, (default='simple')
+    method : {'median', 'AR'}, (default='simple')
         Covariance estimation method:
-        - 'simple': Uses median correlation between consecutive time steps
+        - 'median': Uses median correlation between consecutive time steps
         - 'AR': Uses Yule-Walker method with specified order
 
     order : int, default=1
@@ -131,7 +131,7 @@ def reid(
 
     ## Computation of the covariance matrix for group
     else:
-        if method == "simple":
+        if method == "median":
             print("Group reid: simple cov estimation")
         elif method == "AR":
             print(f"Group reid: {method}{order} cov estimation")
@@ -160,10 +160,8 @@ def reid(
             residual_rescaled = residual / sigma_hat
             correlation_emperical = np.corrcoef(residual_rescaled.T)
 
-        # TODO: Why the name of the method is different
-        #           than the name of the "function"?
         # Median method
-        if not stationary or method == "simple":
+        if not stationary or method == "median":
             rho_hat = np.median(np.diag(correlation_emperical, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
             correlation_hat = toeplitz(
