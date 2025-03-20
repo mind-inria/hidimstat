@@ -22,8 +22,11 @@ permissions:
   contents: write
 
 jobs:
+  previous_step:
+    uses: ./.github/workflows/tests_package.yml 
   build_docs:
     runs-on: ubuntu-latest
+    needs: [previous_step]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
