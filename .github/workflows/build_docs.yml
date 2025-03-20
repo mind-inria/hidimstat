@@ -5,9 +5,10 @@ on:
   push:
     branches: main
   workflow_run:
-    workflows: ["Tests"]
-    types: 
-      - completed
+      workflows:
+        ["Lint", "Tests"]
+      types:
+        - completed
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
