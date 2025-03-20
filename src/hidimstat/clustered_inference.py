@@ -261,7 +261,7 @@ def clustered_inference(
            Spatially relaxed inference on high-dimensional linear models.
            arXiv preprint arXiv:2106.02590.
     """
-    memory_instance = check_memory(memory=memory)
+    memory = check_memory(memory=memory)
 
     n_samples, n_features = X_init.shape
 
@@ -276,7 +276,7 @@ def clustered_inference(
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
     # Clustering
-    X, ward = memory_instance.cache(_ward_clustering)(X_init, ward, train_index)
+    X, ward = memory.cache(_ward_clustering)(X_init, ward, train_index)
 
     # Preprocessing
     X = StandardScaler().fit_transform(X)
@@ -284,11 +284,9 @@ def clustered_inference(
 
     # Inference: computing reduced parameter vector and stats
     print("Clustered inference", kwargs)
-    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = (
-        memory_instance.cache(hd_inference, ignore=["n_jobs", "verbose", "memory"])(
-            X, y, method, n_jobs=n_jobs, memory=memory, **kwargs
-        )
-    )
+    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = memory.cache(
+        hd_inference, ignore=["n_jobs", "verbose", "memory"]
+    )(X, y, method, n_jobs=n_jobs, memory=memory, **kwargs)
 
     # De-grouping
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
