@@ -9,7 +9,11 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_run:
-      workflows: ["Lint"]
+    workflows:
+      ["Lint"]
+    types:
+      - completed
+
 jobs:
   build:
 
@@ -20,7 +24,6 @@ jobs:
         python-version: ["3.12"]
         os: [ubuntu-latest, macos-latest, windows-latest]
 
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
