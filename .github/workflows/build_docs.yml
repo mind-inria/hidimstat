@@ -24,6 +24,7 @@ permissions:
 jobs:
   previous_step:
     uses: ./.github/workflows/tests_package.yml 
+  
   build_docs:
     runs-on: ubuntu-latest
     needs: [previous_step]

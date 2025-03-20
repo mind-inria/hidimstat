@@ -16,8 +16,10 @@ on:
   workflow_call:
 
 jobs:
+  previous_step:
+    uses: ./.github/workflows/black.yml 
   build:
-
+    needs: [previous_step]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: True
