@@ -78,6 +78,7 @@ def model_x_knockoff(
         tol=1e-6,
     ),
     preconfigure_estimator=preconfigure_estimator_LassoCV,
+    fdr=0.1,
     centered=True,
     cov_estimator=LedoitWolf(assume_centered=True),
     joblib_verbose=0,
@@ -85,7 +86,6 @@ def model_x_knockoff(
     n_jobs=1,
     random_state=None,
     tol_gauss=1e-14,
-    fdr=0.1,
     offset=1,
     memory=None
 ):
@@ -127,6 +127,9 @@ def model_x_knockoff(
         A function that configures the estimator for the Model-X knockoff procedure.
         If provided, this function will be called with the estimator, X, X_tilde, and y
         as arguments, and should modify the estimator in-place.
+    
+    fdr : float, optional (default=0.1)
+        The desired controlled False Discovery Rate (FDR) level.
 
     centered : bool, optional (default=True)
         Whether to standardize the data before performing the inference procedure.
@@ -151,9 +154,6 @@ def model_x_knockoff(
 
     tol_gauss : float, optional (default=1e-14)
         A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
-
-    fdr : float, optional (default=0.1)
-        The desired controlled False Discovery Rate (FDR) level.
 
     offset : int, 0 or 1, optional (default=1)
         The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
@@ -242,7 +242,7 @@ def model_x_knockoff(
         return selected, test_scores, threshold, X_tildes
 
 
-def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1):
+def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq"):
     """
     This function implements the computation of the empirical p-values
 
@@ -257,10 +257,6 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1):
     fdr_control : str, optional (default="bhq")
         The method used to control the False Discovery Rate.
 
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
-
     Returns
     -------
     selected : 1D array, int
@@ -274,7 +270,7 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq", offset=1):
     This function calculates the empirical p-values based on the test statistics and the
     desired FDR level. It then identifies the selected variables based on the p-values.
     """
-    pvals = _empirical_knockoff_pval(test_score, offset)
+    pvals = _empirical_knockoff_pval(test_score) 
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
     return selected, pvals
@@ -508,17 +504,14 @@ def _knockoff_threshold(test_score, fdr=0.1, offset=1):
     return threshold
 
 
-def _empirical_knockoff_pval(test_score, offset=1):
+def _empirical_knockoff_pval(test_score):
     """
-    Compute the empirical p-values from the knockoff test.
+    Compute the empirical p-values from the knockoff+ test.
 
     Parameters
     ----------
     test_score : 1D ndarray, shape (n_features, )
         Vector of test statistics.
-
-    offset : int, 0 or 1, optional
-        Offset equals 1 is the knockoff+ procedure.
 
     Returns
     -------
@@ -528,8 +521,7 @@ def _empirical_knockoff_pval(test_score, offset=1):
     pvals = []
     n_features = test_score.size
 
-    if offset not in (0, 1):
-        raise ValueError("'offset' must be either 0 or 1")
+    offset = 1 # we want to compute knockoff+ function 
 
     test_score_inv = -test_score
     for i in range(n_features):
