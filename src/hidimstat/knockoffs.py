@@ -4,6 +4,7 @@ from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
+from sklearn.utils.validation import check_memory
 from joblib import Parallel, delayed
 
 from hidimstat.gaussian_knockoff import (
@@ -86,6 +87,7 @@ def model_x_knockoff(
     tol_gauss=1e-14,
     fdr=0.1,
     offset=1,
+    memory=None
 ):
     """
     Model-X Knockoff
@@ -159,6 +161,11 @@ def model_x_knockoff(
 
     threshold : float
         The knockoff threshold.
+    
+    memory : joblib.Memory or str, optional (default=None)
+        Used to cache the output of the clustering and inference computation.
+        By default, no caching is done. If provided, it should be the path
+        to the caching directory or a joblib.Memory object.
 
     Returns
     -------
@@ -178,6 +185,7 @@ def model_x_knockoff(
     .. footbibliography::
     """
     assert n_bootstraps > 0, "the number of bootstraps should at least higher than 1"
+    memory = check_memory(memory)
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
@@ -201,7 +209,7 @@ def model_x_knockoff(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    data_generated = gaussian_knockoff_generation(
+    data_generated = memory.cache(gaussian_knockoff_generation)(
         X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=(n_bootstraps > 1)
     )
 
@@ -221,7 +229,7 @@ def model_x_knockoff(
         X_tildes.insert(0, X_tilde)
 
     results = parallel(
-        delayed(_stat_coefficient_diff)(
+        delayed(memory.cache(_stat_coefficient_diff))(
             X, X_tildes[i], y, estimator, fdr, offset, preconfigure_estimator
         )
         for i in range(n_bootstraps)
