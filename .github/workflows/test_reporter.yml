@@ -2,6 +2,7 @@
 
 name: 'Test Report'
 on:
+  pull_request:
   workflow_run:
     workflows: ['CI']                     # runs after CI workflow
     types:
