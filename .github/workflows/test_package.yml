@@ -17,7 +17,14 @@ on:
 
 jobs:
   previous_step:
-    uses: ./.github/workflows/black.yml 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait previous
+        run: |
+          echo 
+          while [${{ github.event.workflow_run.conclusion }} != 'success' ]; do echo ${{ github.event.workflow_run.conclusion }}; sleep 10; done
+  
   build:
     needs: [previous_step]
     runs-on: ${{ matrix.os }}
