@@ -76,6 +76,7 @@ def test_ensemble_clustered_inference_senario_1():
         decimal=1,
     )
 
+
 def test_ensemble_clustered_inference_senario_2():
     # Scenario 2: temporal data
     # #########################
