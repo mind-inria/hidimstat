@@ -13,6 +13,7 @@ on:
       ["Lint"]
     types:
       - completed
+  workflow_call:
 
 jobs:
   build:
