@@ -87,7 +87,7 @@ def model_x_knockoff(
     random_state=None,
     tol_gauss=1e-14,
     offset=1,
-    memory=None
+    memory=None,
 ):
     """
     Model-X Knockoff
@@ -127,7 +127,7 @@ def model_x_knockoff(
         A function that configures the estimator for the Model-X knockoff procedure.
         If provided, this function will be called with the estimator, X, X_tilde, and y
         as arguments, and should modify the estimator in-place.
-    
+
     fdr : float, optional (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
 
@@ -161,7 +161,7 @@ def model_x_knockoff(
 
     threshold : float
         The knockoff threshold.
-    
+
     memory : joblib.Memory or str, optional (default=None)
         Used to cache the output of the clustering and inference computation.
         By default, no caching is done. If provided, it should be the path
@@ -270,7 +270,7 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq"):
     This function calculates the empirical p-values based on the test statistics and the
     desired FDR level. It then identifies the selected variables based on the p-values.
     """
-    pvals = _empirical_knockoff_pval(test_score) 
+    pvals = _empirical_knockoff_pval(test_score)
     threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
     selected = np.where(pvals <= threshold)[0]
     return selected, pvals
@@ -336,7 +336,6 @@ def model_x_knockoff_bootstrap_quantile(
     adaptive_aggregation=False,
     gamma=0.5,
     n_grid=20,
-    offset=1,
 ):
     """
     This function implements the computation of the empirical p-values
@@ -368,10 +367,6 @@ def model_x_knockoff_bootstrap_quantile(
     n_grid_gamma : int, default=20
         Number of gamma grid points for adaptive aggregation.
 
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
-
     Returns
     -------
     selected : 1D array, int
@@ -391,7 +386,7 @@ def model_x_knockoff_bootstrap_quantile(
     """
     n_bootstraps = len(test_scores)
     pvals = np.array(
-        [_empirical_knockoff_pval(test_scores[i], offset) for i in range(n_bootstraps)]
+        [_empirical_knockoff_pval(test_scores[i]) for i in range(n_bootstraps)]
     )
 
     aggregated_pval = quantile_aggregation(
@@ -521,7 +516,7 @@ def _empirical_knockoff_pval(test_score):
     pvals = []
     n_features = test_score.size
 
-    offset = 1 # we want to compute knockoff+ function 
+    offset = 1  # we want to compute knockoff+ function
 
     test_score_inv = -test_score
     for i in range(n_features):

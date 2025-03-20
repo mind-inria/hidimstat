@@ -42,13 +42,6 @@ def test_knockoff_bootstrap_quantile():
     assert fdp_no_verbose < 0.5
     assert power_no_verbose > 0.1
 
-    # Checking value for offset not belonging to (0,1)
-    with pytest.raises(Exception):
-        _ = model_x_knockoff_bootstrap_quantile(
-            test_scores,
-            offset=2,
-        )
-
 
 def test_knockoff_bootstrap_e_values():
     """Test bootstrap Knockoff with e-values"""
