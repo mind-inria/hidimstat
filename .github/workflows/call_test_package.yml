@@ -38,14 +38,14 @@ jobs:
     - name: Generate coverage report
       run: |
         python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-output=test-results-${REPORT_NAME}.md
-    # create a comment in the PR with the failling tests
-    - name: Render the report to the PR when tests fail
-      uses: marocchino/sticky-pull-request-comment@v2
-      if: failure()
-      with:
-        header: test-report:${{ env.REPORT_NAME }}
-        recreate: true
-        path: test-results-${{ env.REPORT_NAME }}.md
+    # # create a comment in the PR with the failling tests
+    # - name: Render the report to the PR when tests fail
+    #   uses: marocchino/sticky-pull-request-comment@v2
+    #   if: failure()
+    #   with:
+    #     header: test-report:${{ env.REPORT_NAME }}
+    #     recreate: true
+    #     path: test-results-${{ env.REPORT_NAME }}.md
     # create a comment in the summary with the failling tests
     - name: Output reports to the job summary when tests fail
       if: failure()
