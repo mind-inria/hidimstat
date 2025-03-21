@@ -64,6 +64,7 @@ test = [
     "pytest-randomly",
     "pytest-xdist[psutil]",
     "pytest-timeout",
+    "pytest-md-report",
 ]
 
 [project.urls]
@@ -108,3 +109,8 @@ markers = [
 # pytest-timeout
 timeout= 30          # on individual test should not take more than 10s
 session_timeout=1200 # all the tests should be run in 5 min
+# mardown report for github
+md_report = true
+md_report_verbose = 0
+md_report_color = "auto"
+
