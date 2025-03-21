@@ -6,17 +6,10 @@ on:
 
 jobs:
     ci:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v3 # Necessary to access local action
-        - name: CI
-          uses: ./.github/workflows/ci.yml
+      name: CI
+      uses: ./.github/workflows/ci.yml
 
     test_report:
-      runs-on: ubuntu-latest
-      if: ${{ always() }}
       needs: ci
-      steps:
-        - uses: actions/checkout@v3 # Necessary to access local action
-        - name: CI
-          uses: ./.github/workflows/test_reporter.yml
+      name: Test reporter
+      uses: ./.github/workflows/test_reporter.yml
