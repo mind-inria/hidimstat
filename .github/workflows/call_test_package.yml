@@ -14,6 +14,10 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"] #CHECK: not forget to add new version of python
         os: [macos-latest] #, ubuntu-latest, windows-latest]
+    
+    # name for the file
+    env:
+      REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
 
     steps:
     # Checkout to the branch for getting the ritgh code
@@ -29,17 +33,29 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install .[test]
     # Run the tests with coverage and report add this end
-    # option for grouping by modules: --doctest-modules
     # option for the retport test: --junitxml=... 
     # option for the coverage: --cov=. --cov-report=xml : 
     - name: Generate coverage report
       run: |
-        python -m pytest --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml --cov=. --cov-report=xml:cov/cov-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
+        python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-flavor=gfm --md-report-exclude-outcomes="passed skipped xpassed" --md-report-output=test-results-${REPORT_NAME}.md
+    - name: Render the report to the PR when tests fail
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: failure()
+      with:
+        header: test-report:${{ env.REPORT_NAME }}
+        recreate: true
+        path: test-results-${{ env.REPORT_NAME }}.md
     - name: Upload test result
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-${{ matrix.python-version }}-os-${{ matrix.os }}
         path: junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
+      if: ${{ always() }}
+    - name: Upload test result in mardown
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-mardown-${{ matrix.python-version }}-os-${{ matrix.os }}
+        path: test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.md
       if: ${{ always() }}
     - name: Upload coverage data
       uses: actions/upload-artifact@v4
