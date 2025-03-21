@@ -13,3 +13,4 @@ jobs:
       needs: ci
       name: Test reporter
       uses: ./.github/workflows/test_reporter.yml
+      if: always()
