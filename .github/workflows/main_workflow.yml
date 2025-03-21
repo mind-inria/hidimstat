@@ -10,7 +10,18 @@ jobs:
   linter:
     name: Linter
     uses: ./.github/workflows/call_black.yml
-
+  
+  print:
+    needs: linter 
+    env: 
+      STATE_LINTER: needs.linter.result
+    runs-on: ubuntu-latest
+    steps:
+      - name: print output
+        run: 
+          echo "Linter "$STATE_LINTER
+    if: ${{ always() }} 
+    
   ci:
     name: CI
     needs: [linter]
@@ -21,3 +32,15 @@ jobs:
     needs: [linter, ci]
     uses: ./.github/workflows/call_test_reporter.yml
     if: ${{ needs.linter.result == 'success'}}
+  
+  print_2:
+    needs: [linter, ci] 
+    env: 
+      STATE_LINTER: needs.linter.result
+      STATE_CI: needs.linter.result
+    runs-on: ubuntu-latest
+    steps:
+      - name: print output
+        run: 
+          echo "Linter "$STATE_LINTER" CI "$STATE_CI
+    if: ${{ always() }} 
