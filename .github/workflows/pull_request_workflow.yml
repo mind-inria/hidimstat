@@ -5,12 +5,11 @@ on:
   pull_request:
 
 jobs:
-    
     ci:
       name: launche ci
       uses: lionelkusch/hidimstat/.github/workflows/ci.yml@PR_test_config
 
-
     test_report:
+      needs: ci
       name: report test
       uses: lionelkusch/hidimstat/.github/workflows/test_reporter.yml@PR_test_config
