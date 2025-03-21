@@ -6,11 +6,17 @@ on:
 
 jobs:
     ci:
-      name: launche ci
-      uses: lionelkusch/hidimstat/.github/workflows/ci.yml@PR_test_config
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3 # Necessary to access local action
+        - name: CI
+          uses: .github/workflows/ci.yml
 
     test_report:
+      runs-on: ubuntu-latest
       if: ${{ always() }}
       needs: ci
-      name: report test
-      uses: lionelkusch/hidimstat/.github/workflows/test_reporter.yml@PR_test_config
+      steps:
+        - uses: actions/checkout@v3 # Necessary to access local action
+        - name: CI
+          uses: .github/workflows/test_report.yml
