@@ -3,6 +3,7 @@
 name: 'Pull_request_workflow'
 on:
   pull_request:
+    branches: main
   push:
     branches: main
 
@@ -11,37 +12,32 @@ jobs:
     name: Linter
     uses: ./.github/workflows/call_black.yml
   
-  print:
-    needs: linter 
-    env: 
-      STATE_LINTER: ${{ needs.linter.result }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: print output
-        run: 
-          echo "Linter "$STATE_LINTER
-    if: ${{ always() }} 
-    
-  ci:
-    name: CI
+  tests:
+    name: tests
     needs: [linter]
-    uses: ./.github/workflows/call_ci.yml
+    uses: ./.github/workflows/call_test_package.yml
 
   test_report:
     name: Test reporter
-    needs: [linter, ci]
+    needs: [linter, tests]
     uses: ./.github/workflows/call_test_reporter.yml
     if: ${{ always() && needs.linter.result == 'success'}}
   
-  print_2:
-    needs: [linter, ci] 
-    env: 
-      STATE_LINTER: ${{ needs.linter.result }}
-      STATE_CI: ${{ needs.ci.result }}
-      CONDITION: ${{ needs.linter.result == 'success'}}
-    runs-on: ubuntu-latest
-    steps:
-      - name: print output
-        run: 
-          echo "Linter "$STATE_LINTER" CI "$STATE_CI " condition " $CONDITION
-    if: ${{ always() }} 
+  make_documentation:
+    name: Make_documentation
+    needs: [linter, tests]
+    uses: ./.github/workflows/call_build_docs.yml
+    if: ${{ always() && needs.linter.result == 'success'}}
+
+  
+  # debugger:
+  #   needs: linter 
+  #   env: 
+  #     STATE_LINTER: ${{ needs.linter.result }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: print output
+  #       run: 
+  #         echo "Linter "$STATE_LINTER
+  #   if: ${{ always() }} 
+    
