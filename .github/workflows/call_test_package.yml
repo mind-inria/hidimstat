@@ -38,13 +38,13 @@ jobs:
     - name: Upload test result
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-${{ matrix.python-version }}-os-${{ matrix.os }}
+        name: pytest-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
         path: junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
       if: ${{ always() }}
     - name: Upload coverage data
       uses: actions/upload-artifact@v4
       with:
-        name: cov-results-${{ matrix.python-version }}-os-${{ matrix.os }}
+        name: cov-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
         path: cov/cov-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
       if: ${{ always() }}
 
@@ -57,7 +57,7 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: pytest-results-*-os-*
+        pattern: pytest-results-*-os-*.xml
     # Upload the report as artifact for being read by the workflow tests reports
     - name: Upload pytest test results
       uses: actions/upload-artifact@v4
@@ -75,7 +75,7 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: cov-results-3.13-os-ubuntu-latest  #CHECK: need to be updated when new version are available
+        pattern: cov-results-3.13-os-ubuntu-latest.xml  #CHECK: need to be updated when new version are available
     - name: ls
       run: |
         ls -rla
