@@ -48,7 +48,7 @@ jobs:
         path: test-results-${{ env.REPORT_NAME }}.md
     # create a comment in the summary with the failling tests
     - name: Output reports to the job summary when tests fail
-      if: success()
+      if: failure()
       shell: bash
       run: |
         if [ -f "$REPORT_FILE" ]; then
