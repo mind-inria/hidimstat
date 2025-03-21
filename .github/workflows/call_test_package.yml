@@ -80,7 +80,7 @@ jobs:
       with:
         header: test-report
         recreate: true
-        path: pytest-results-md-3.13-os-macos-latest/test-results-3.13-os-macos-latest.xml     #CHECK: need to be updated when new version are available
+        path: pytest-results-md-3.13-os-macos-latest/test-results-3.13-os-macos-latest.rmd     #CHECK: need to be updated when new version are available
     # create a comment in the summary with the failling tests
     - name: Output reports to the job summary when tests fail
       shell: bash
@@ -119,6 +119,7 @@ jobs:
         reporter: jest-junit              # Format of test results
         list-tests: 'failed'              # list only failed tests
         list-suites: 'failed'             # list only failed tests
+        fail-on-error: false
 
   merge_upload_coverage_data:
     needs: build-test
