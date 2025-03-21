@@ -37,7 +37,7 @@ jobs:
     # option for the coverage: --cov=. --cov-report=xml : 
     - name: Generate coverage report
       run: |
-        python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-flavor=gfm --md-report-exclude-outcomes="passed,skipped,xpassed" --md-report-output=test-results-${REPORT_NAME}.md
+        python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-output=test-results-${REPORT_NAME}.md
     - name: Render the report to the PR when tests fail
       uses: marocchino/sticky-pull-request-comment@v2
       if: failure()
