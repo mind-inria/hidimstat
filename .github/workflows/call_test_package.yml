@@ -95,6 +95,7 @@ jobs:
           cat $folder/*.md >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
+        done
 
   merge_xml_test_data:
     needs: build-test
