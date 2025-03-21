@@ -9,15 +9,15 @@ on:
 jobs:
   linter:
     name: Linter
-    uses: ./.github/workflows/call/black.yml
+    uses: ./.github/workflows/black.yml
 
   ci:
     name: CI
     needs: [linter]
-    uses: ./.github/workflows/call/ci.yml
+    uses: ./.github/workflows/ci.yml
 
   test_report:
     name: Test reporter
     needs: [linter, ci]
-    uses: ./.github/workflows/call/test_reporter.yml
+    uses: ./.github/workflows/test_reporter.yml
     if: ${{ needs.linter.result == 'success'}}
