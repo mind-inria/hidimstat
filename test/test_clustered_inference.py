@@ -35,7 +35,7 @@ def test_clustered_inference_no_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
+    X_init, y, beta, epsilon, _, _ = multivariate_1D_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
