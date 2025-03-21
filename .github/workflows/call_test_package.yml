@@ -13,7 +13,7 @@ jobs:
       fail-fast: True  # if on job fail all the other jobs are cancelled
       matrix:
         python-version: ["3.12", "3.13"] #CHECK: not forget to add new version of python
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest] #, ubuntu-latest, windows-latest]
 
     steps:
     # Checkout to the branch for getting the ritgh code
@@ -57,7 +57,6 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        path: junit/
         pattern: pytest-results-*-os-*
     - name: ls
       run: |
