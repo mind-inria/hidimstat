@@ -37,10 +37,11 @@ jobs:
     needs: [linter, ci] 
     env: 
       STATE_LINTER: ${{ needs.linter.result }}
-      STATE_CI: ${{ needs.linter.result }}
+      STATE_CI: ${{ needs.ci.result }}
+      CONDITION: ${{ needs.linter.result == 'success'}}
     runs-on: ubuntu-latest
     steps:
       - name: print output
         run: 
-          echo "Linter "$STATE_LINTER" CI "$STATE_CI
+          echo "Linter "$STATE_LINTER" CI "$STATE_CI " condition " $CONDITION
     if: ${{ always() }} 
