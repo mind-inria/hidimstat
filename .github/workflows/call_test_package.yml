@@ -90,7 +90,7 @@ jobs:
       run: |
         for folder in *;
         do 
-          echo "<details><summary>Failed Test Report:$folder</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Failed Test Report: $folder</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat $folder/*.md >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -121,6 +121,7 @@ jobs:
         name: Test hidimstat              # Name of the check run which will be created
         path: '*/*.xml'                   # Path to test results (inside artifact .zip)
         reporter: jest-junit              # Format of test results
+        only-summary: 'true'              # display on summary
         list-tests: 'failed'              # list only failed tests
         list-suites: 'failed'             # list only failed tests
         fail-on-error: false
