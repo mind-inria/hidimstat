@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5223b1f1"></script>
+    <script src="../_static/documentation_options.js?v=0da900eb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.ensemble_clustered_inference';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.group_reid" href="hidimstat.group_reid.html" />
-    <link rel="prev" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
+    <link rel="next" title="hidimstat.reid" href="hidimstat.reid.html" />
+    <link rel="prev" title="hidimstat.desparsified_group_lasso_pvalue" href="hidimstat.desparsified_group_lasso_pvalue.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -336,8 +336,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.group_reid.html">hidimstat.group_reid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
@@ -416,7 +418,7 @@
 <h1>hidimstat.ensemble_clustered_inference<a class="headerlink" href="#hidimstat-ensemble-clustered-inference" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.ensemble_clustered_inference">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">ensemble_clustered_inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'desparsified-lasso'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensembling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quantiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/ensemble_clustered_inference.py#L47-L203"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.ensemble_clustered_inference" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">ensemble_clustered_inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inference_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'desparsified-lasso'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ensembling_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quantiles'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/ensemble_clustered_inference.py#L48-L200"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.ensemble_clustered_inference" title="Link to this definition">#</a></dt>
 <dd><p>Ensemble clustered inference algorithm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -430,39 +432,39 @@
 <dt><strong>n_clusters</strong><span class="classifier">int</span></dt><dd><p>Number of clusters used for the compression.</p>
 </dd>
 <dt><strong>train_size</strong><span class="classifier">float, optional (default=0.3)</span></dt><dd><p>Fraction of samples used to compute the clustering.
-If <cite>train_size = 1</cite>, clustering is not random since all the samples
+If <cite>train_size = 1</cite>, clustering is not random since all samples
 are used to compute the clustering.</p>
 </dd>
-<dt><strong>groups</strong><span class="classifier">ndarray, shape (n_samples,), optional (default=None)</span></dt><dd><p>Group labels for every sample. If not None, <cite>groups</cite> is used to build
-the subsamples that serve for computing the clustering.</p>
+<dt><strong>groups</strong><span class="classifier">ndarray, shape (n_samples,), optional (default=None)</span></dt><dd><p>Group labels for each sample. If not None, <cite>groups</cite> is used to build
+the subsamples that serve to compute the clustering.</p>
 </dd>
-<dt><strong>inference_method</strong><span class="classifier">str, optional (default=’desparsified-lasso’)</span></dt><dd><p>Method used for making the inference.
-Currently, the two methods available are ‘desparsified-lasso’
+<dt><strong>inference_method</strong><span class="classifier">str, optional (default=’desparsified-lasso’)</span></dt><dd><p>Method used for inference.
+Currently, the two available methods are ‘desparsified-lasso’
 and ‘group-desparsified-lasso’. Use ‘desparsified-lasso’ for
 non-temporal data and ‘group-desparsified-lasso’ for temporal data.</p>
 </dd>
-<dt><strong>seed: int, optional (default=0)</strong></dt><dd><p>Seed used for generating a the first random subsample of the data.
+<dt><strong>seed: int, optional (default=0)</strong></dt><dd><p>Seed used for generating the first random subsample of the data.
 This seed controls the clustering randomness.</p>
 </dd>
-<dt><strong>ensembling_method</strong><span class="classifier">str, optional (default=’quantiles’)</span></dt><dd><p>Method used for making the ensembling. Currently, the two methods
-available are ‘quantiles’ and ‘median’.</p>
+<dt><strong>ensembling_method</strong><span class="classifier">str, optional (default=’quantiles’)</span></dt><dd><p>Method used for ensembling. Currently, the two available methods
+are ‘quantiles’ and ‘median’.</p>
 </dd>
-<dt><strong>gamma_min</strong><span class="classifier">float, optional (default=0.2)</span></dt><dd><p>Lowest gamma-quantile being considered to compute the adaptive
-quantile aggregation formula. This parameter is considered only if
+<dt><strong>gamma_min</strong><span class="classifier">float, optional (default=0.2)</span></dt><dd><p>Lowest gamma-quantile considered to compute the adaptive
+quantile aggregation formula. This parameter is used only if
 <cite>ensembling_method</cite> is ‘quantiles’.</p>
 </dd>
 <dt><strong>n_bootstraps</strong><span class="classifier">int, optional (default=25)</span></dt><dd><p>Number of clustered inference algorithm solutions to compute before
-making the ensembling.</p>
+ensembling.</p>
 </dd>
 <dt><strong>n_jobs</strong><span class="classifier">int or None, optional (default=1)</span></dt><dd><p>Number of CPUs used to compute several clustered inference
-algorithms at the same time.</p>
+algorithms simultaneously.</p>
 </dd>
-<dt><strong>memory</strong><span class="classifier">str, optional (default=None)</span></dt><dd><p>Used to cache the output of the computation of the clustering
-and the inference. By default, no caching is done. If a string is
-given, it is the path to the caching directory.</p>
+<dt><strong>memory</strong><span class="classifier">joblib.Memory or str, optional (default=None)</span></dt><dd><p>Used to cache the output of the clustering and inference computation.
+By default, no caching is done. If provided, it should be the path
+to the caching directory or a joblib.Memory object.</p>
 </dd>
-<dt><strong>verbose: int, optional (default=1)</strong></dt><dd><p>The verbosity level. If <cite>verbose &gt; 0</cite>, we print a message before
-runing the clustered inference.</p>
+<dt><strong>verbose: int, optional (default=1)</strong></dt><dd><p>The verbosity level. If <cite>verbose &gt; 0</cite>, a message is printed before
+running the clustered inference.</p>
 </dd>
 <dt><strong>**kwargs:</strong></dt><dd><p>Arguments passed to the statistical inference function.</p>
 </dd>
@@ -473,12 +475,12 @@ runing the clustered inference.</p>
 <dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,) or (n_features, n_times)</span></dt><dd><p>Estimated parameter vector or matrix.</p>
 </dd>
 <dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value, with numerically accurate values for
-positive effects (ie., for p-value close to zero).</p>
+positive effects (i.e., for p-values close to zero).</p>
 </dd>
 <dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value corrected for multiple testing.</p>
 </dd>
 <dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the p-value, with numerically accurate values
-for negative effects (ie., for p-value close to one).</p>
+for negative effects (i.e., for p-values close to one).</p>
 </dd>
 <dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the p-value corrected for multiple testing.</p>
 </dd>
@@ -518,20 +520,20 @@ arXiv preprint arXiv:2106.02590.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.desparsified_lasso.html"
+       href="hidimstat.desparsified_group_lasso_pvalue.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
+        <p class="prev-next-title">hidimstat.desparsified_group_lasso_pvalue</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.group_reid.html"
+       href="hidimstat.reid.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.group_reid</p>
+        <p class="prev-next-title">hidimstat.reid</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

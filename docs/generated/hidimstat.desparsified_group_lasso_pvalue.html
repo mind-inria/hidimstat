@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.clustered_inference &#8212; HiDimStat</title>
+    <title>hidimstat.desparsified_group_lasso_pvalue &#8212; HiDimStat</title>
   
   
   
@@ -45,11 +45,11 @@
     <script src="../_static/documentation_options.js?v=0da900eb"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.clustered_inference';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_group_lasso_pvalue';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
-    <link rel="prev" title="hidimstat.aggregate_quantiles" href="hidimstat.aggregate_quantiles.html" />
+    <link rel="next" title="hidimstat.ensemble_clustered_inference" href="hidimstat.ensemble_clustered_inference.html" />
+    <link rel="prev" title="hidimstat.desparsified_lasso_pvalue" href="hidimstat.desparsified_lasso_pvalue.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.clustered_inference</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.desparsified_group_lasso_pvalue</span></li>
   </ul>
 </nav>
 </div>
@@ -414,88 +414,51 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-clustered-inference">
-<h1>hidimstat.clustered_inference<a class="headerlink" href="#hidimstat-clustered-inference" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-desparsified-group-lasso-pvalue">
+<h1>hidimstat.desparsified_group_lasso_pvalue<a class="headerlink" href="#hidimstat-desparsified-group-lasso-pvalue" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.clustered_inference">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">clustered_inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'desparsified-lasso'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/clustered_inference.py#L175-L301"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.clustered_inference" title="Link to this definition">#</a></dt>
-<dd><p>Clustered inference algorithm</p>
+<dt class="sig sig-object py" id="hidimstat.desparsified_group_lasso_pvalue">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_group_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chi2'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L288-L362"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_group_lasso_pvalue" title="Link to this definition">#</a></dt>
+<dd><p>Compute p-values for the desparsified group Lasso estimator using
+chi-squared or F tests</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>X_init</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Original data (uncompressed).</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features, n_times)</span></dt><dd><p>Estimated parameter matrix from desparsified group Lasso.</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,) or (n_samples, n_times)</span></dt><dd><p>Target.</p>
+<dt><strong>theta_hat</strong><span class="classifier">ndarray, shape (n_times, n_times)</span></dt><dd><p>Estimated precision matrix (inverse covariance).</p>
 </dd>
-<dt><strong>ward</strong><span class="classifier">sklearn.cluster.FeatureAgglomeration</span></dt><dd><p>Scikit-learn object that computes Ward hierarchical clustering.</p>
+<dt><strong>precision_diagonal</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix.</p>
 </dd>
-<dt><strong>n_clusters</strong><span class="classifier">int</span></dt><dd><p>Number of clusters used for the compression.</p>
-</dd>
-<dt><strong>train_size</strong><span class="classifier">float, optional (default=1.0)</span></dt><dd><p>Fraction of samples used to compute the clustering.
-If <cite>train_size = 1</cite>, clustering is not random since all the samples
-are used to compute the clustering.</p>
-</dd>
-<dt><strong>groups</strong><span class="classifier">ndarray, shape (n_samples,), optional (default=None)</span></dt><dd><p>Group labels for every sample. If not None, <cite>groups</cite> is used to build
-the subsamples that serve for computing the clustering.</p>
-</dd>
-<dt><strong>method</strong><span class="classifier">str, optional (default=’desparsified-lasso’)</span></dt><dd><p>Method used for making the inference.
-Currently the two methods available are ‘desparsified-lasso’
-and ‘group-desparsified-lasso’. Use ‘desparsified-lasso’ for
-non-temporal data and ‘group-desparsified-lasso’ for temporal data.</p>
-</dd>
-<dt><strong>seed: int, optional (default=0)</strong></dt><dd><p>Seed used for generating a random subsample of the data.
-This seed controls the clustering randomness.</p>
-</dd>
-<dt><strong>n_jobs</strong><span class="classifier">int or None, optional (default=1)</span></dt><dd><p>Number of CPUs to use during parallel steps such as inference.</p>
-</dd>
-<dt><strong>memory</strong><span class="classifier">str or joblib.Memory object, optional (default=None)</span></dt><dd><p>Used to cache the output of the computation of the clustering
-and the inference. By default, no caching is done. If a string is
-given, it is the path to the caching directory.</p>
-</dd>
-<dt><strong>verbose: int, optional (default=1)</strong></dt><dd><p>The verbosity level. If <cite>verbose &gt; 0</cite>, we print a message before
-runing the clustered inference.</p>
-</dd>
-<dt><strong>**kwargs:</strong></dt><dd><p>Arguments passed to the statistical inference function.</p>
+<dt><strong>test</strong><span class="classifier">{‘chi2’, ‘F’}, default=’chi2’</span></dt><dd><p>Statistical test for computing p-values:
+- ‘chi2’: Chi-squared test (recommended for large samples)
+- ‘F’: F-test</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,) or (n_features, n_times)</span></dt><dd><p>Estimated parameter vector or matrix.</p>
+<dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Raw p-values, numerically accurate for positive effects
+(p-values close to 0).</p>
 </dd>
-<dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value, with numerically accurate values for
-positive effects (ie., for p-value close to zero).</p>
+<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values corrected for multiple testing using
+Benjamini-Hochberg procedure.</p>
 </dd>
-<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value corrected for multiple testing.</p>
+<dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values, numerically accurate for negative effects
+(p-values close to 1).</p>
 </dd>
-<dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the p-value, with numerically accurate values
-for negative effects (ie., for p-value close to one).</p>
-</dd>
-<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the p-value corrected for multiple testing.</p>
-</dd>
-</dl>
+<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values.</p>
 </dd>
 </dl>
-<p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="r371da4698ae4-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<p>Chevalier, J. A., Nguyen, T. B., Thirion, B., &amp; Salmon, J. (2021).
-Spatially relaxed inference on high-dimensional linear models.
-arXiv preprint arXiv:2106.02590.</p>
-</div>
-</div>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The Chi-squared test assumes asymptotic normality while the F-test
+is preferable for small sample sizes.
+P-values are computed based on score statistics from the estimated
+coefficients and precision matrix.</p>
 </dd></dl>
 
-<section id="examples-using-hidimstat-clustered-inference">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.clustered_inference</span></code><a class="headerlink" href="#examples-using-hidimstat-clustered-inference" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_fmri_data_example.html#sphx-glr-auto-examples-plot-fmri-data-example-py"><span class="std std-ref">Support recovery on fMRI data</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on fMRI data</div>
-</div></div></section>
 </section>
 
 
@@ -509,20 +472,20 @@ arXiv preprint arXiv:2106.02590.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.aggregate_quantiles.html"
+       href="hidimstat.desparsified_lasso_pvalue.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.aggregate_quantiles</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso_pvalue</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.desparsified_lasso.html"
+       href="hidimstat.ensemble_clustered_inference.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
+        <p class="prev-next-title">hidimstat.ensemble_clustered_inference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -545,8 +508,7 @@ arXiv preprint arXiv:2106.02590.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.clustered_inference"><code class="docutils literal notranslate"><span class="pre">clustered_inference()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-clustered-inference">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.clustered_inference</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.desparsified_group_lasso_pvalue"><code class="docutils literal notranslate"><span class="pre">desparsified_group_lasso_pvalue()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -554,7 +516,7 @@ arXiv preprint arXiv:2106.02590.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.clustered_inference.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.desparsified_group_lasso_pvalue.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
