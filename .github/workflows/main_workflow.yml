@@ -1,6 +1,6 @@
 # Management of the action do made during a pull request
 
-name: 'Pull_request_workflow'
+name: 'Main_workflow'
 on:
   pull_request:
     branches: main
