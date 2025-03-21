@@ -6,6 +6,13 @@ name: Tests
 on:
   workflow_call:
 
+# permission for reportting
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+
 jobs:
   build-test:
     runs-on: ${{ matrix.os }}
@@ -71,7 +78,7 @@ jobs:
     - name: Render the report to the PR when tests fail
       uses: marocchino/sticky-pull-request-comment@v2
       with:
-        header: test-report:macos-3.13                                                        #CHECK: need to be updated when new version are available
+        header: test-report
         recreate: true
         path: pytest-results-md-3.13-os-macos-latest/test-results-3.13-os-macos-latest.xml     #CHECK: need to be updated when new version are available
     # create a comment in the summary with the failling tests
@@ -96,6 +103,12 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-xml-*-os-*
+    # Upload the report as artifact for being read by the action of test_reporters
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results
+        path: pytest-results-*/test-results-*.xml
     # report the result with test-reporter 
     # For details see https://github.com/marketplace/actions/test-reporter
     - uses: dorny/test-reporter@v2
