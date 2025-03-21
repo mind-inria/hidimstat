@@ -66,6 +66,8 @@ jobs:
         path: cov/cov-${{env.REPORT_NAME}}.xml
 
   merge_md_test_data:
+    # for more details
+    # https://github.com/thombashi/pytest-md-report
     needs: build-test
     runs-on: ubuntu-latest
     if: ${{ failure() }}
@@ -79,6 +81,7 @@ jobs:
       run: |
         ls -alR
     # create a comment in the PR with the failling tests
+    # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR when tests fail
       uses: marocchino/sticky-pull-request-comment@v2
       with:
