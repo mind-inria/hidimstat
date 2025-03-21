@@ -42,20 +42,20 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-md-${REPORT_NAME}
-        path: test-results-${REPORT_NAME}.md
+        name: pytest-results-md-${{env.REPORT_NAME}}
+        path: test-results-${{env.REPORT_NAME}}.md
     - name: Upload xml test result 
       if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-xml-${REPORT_NAME}
-        path: junit/test-results-${REPORT_NAME}.xml
+        name: pytest-results-xml-${{env.REPORT_NAME}}
+        path: junit/test-results-${{env.REPORT_NAME}}.xml
     - name: Upload coverage data
       if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
-        name: cov-results-${REPORT_NAME}
-        path: cov/cov-${REPORT_NAME}.xml
+        name: cov-results-${{env.REPORT_NAME}}
+        path: cov/cov-${{env.REPORT_NAME}}.xml
 
   merge_md_test_data:
     needs: build-test
