@@ -60,16 +60,13 @@ jobs:
         pattern: pytest-results-*-os-*
     - name: ls
       run: |
-        ls -rla
-    - name: cat
-      run: |
-        cat *
+        ls -Rla
     # Upload the report as artifact for being read by the workflow tests reports
     - name: Upload pytest test results
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results
-        path: pytest-results-*.xml
+        path: */pytest-results-*.xml
       # Use always() to always run this step to publish test results when there are test failures
 
   merge_upload_coverage_data:
@@ -91,5 +88,5 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        files: cov-3.13-os-macos-latest.xml    #CHECK: need to be updated when new version are available
+        files: cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml    #CHECK: need to be updated when new version are available
   
