@@ -37,7 +37,7 @@ jobs:
     # option for the coverage: --cov=. --cov-report=xml : 
     - name: Generate coverage report
       run: |
-        python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-output=test-results-${REPORT_NAME}.md
+        python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md
     - name: Upload md test result 
       if: ${{ always() }}
       uses: actions/upload-artifact@v4
