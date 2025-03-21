@@ -31,7 +31,7 @@ jobs:
     name: Test reporter
     needs: [linter, ci]
     uses: ./.github/workflows/call_test_reporter.yml
-    if: ${{ needs.linter.result == 'success'}}
+    if: ${{ always() && needs.linter.result == 'success'}}
   
   print_2:
     needs: [linter, ci] 
