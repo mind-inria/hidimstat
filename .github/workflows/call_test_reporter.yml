@@ -16,5 +16,8 @@ jobs:
       with:
         artifact: pytest-results          # artifact name
         name: Test hidimstat              # Name of the check run which will be created
-        path: '*/*.xml'               # Path to test results (inside artifact .zip)
+        path: '*/*.xml'                   # Path to test results (inside artifact .zip)
         reporter: jest-junit              # Format of test results
+        only-summary: 'True'
+        list-tests: 'failed'
+        list-suites: 'failed'
