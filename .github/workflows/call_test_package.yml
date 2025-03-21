@@ -17,10 +17,10 @@ jobs:
   build-test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # if on job fail all the other jobs are cancelled
+      fail-fast: true  # if on job fail all the other jobs are cancelled
       matrix:
-        python-version: ["3.12", "3.13"] #CHECK: not forget to add new version of python
-        os: [macos-latest] #, ubuntu-latest, windows-latest]
+        python-version: ["3.13", "3.12"] #CHECK: not forget to add new version of python
+        os: [macos-latest, ubuntu-latest, windows-latest]
     
     # name for the file
     env:
@@ -41,7 +41,8 @@ jobs:
         python -m pip install .[test]
     # Run the tests with coverage and report add this end
     # option for the retport test: --junitxml=... 
-    # option for the coverage: --cov=. --cov-report=xml : 
+    # option for mardown report: --md-report --md-report-output= ...
+    # option for the coverage: --cov=. --cov-report=xml:... 
     - name: Generate coverage report
       run: |
         python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md
