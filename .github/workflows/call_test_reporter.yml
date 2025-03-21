@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: dorny/test-reporter@v2
       with:
-        artifact: pytest-results-*-os-*   # artifact name
+        artifact: pytest-results          # artifact name
         name: Test hidimstat              # Name of the check run which will be created
         path: 'junit/*.xml'               # Path to test results (inside artifact .zip)
         reporter: jest-junit              # Format of test results

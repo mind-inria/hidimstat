@@ -34,18 +34,55 @@ jobs:
     # option for the coverage: --cov=. --cov-report=xml : 
     - name: Generate coverage report
       run: |
-        python -m pytest --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml --cov=. --cov-report=xml
-    # Upload the report as artifact for being read by the workflow tests reports
-    - name: Upload pytest test results
+        python -m pytest --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml --cov=. --cov-report=xml:cov/cov-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
+    - name: Upload test result
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-${{ matrix.python-version }}-os-${{ matrix.os }}
         path: junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
-      # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+    - name: Upload coverage data
+      uses: actions/upload-artifact@v4
+      with:
+        name: cov-results-${{ matrix.python-version }}-os-${{ matrix.os }}
+        path: cov/cov-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
+      if: ${{ always() }}
+
+  merge_upload_test_data:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+    # get report from previous job 
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        path: junit/
+        pattern: pytest-results-*-os-*
+    # Upload the report as artifact for being read by the workflow tests reports
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results
+        path: junit/test-results-*.xml
+      # Use always() to always run this step to publish test results when there are test failures
+
+  merge_upload_coverage_data:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    steps:
+    # get coverage only for 1 job 
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        path: cov/
+        pattern: cov-results-3.13-os-ubuntu-latest  #CHECK: need to be updated when new version are available
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.5.0
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
+        files: cov/cov-3.13-os-ubuntu-latest.xml    #CHECK: need to be updated when new version are available
+  
