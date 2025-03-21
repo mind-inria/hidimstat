@@ -1,0 +1,14 @@
+# Management of the action do made during a pull request
+
+name: 'Pull_request_workflow'
+on:
+  pull_request:
+
+jobs:
+    ci:
+        name: launche ci
+        uses: ./.github/workflows/ci.yml
+
+    test_report:
+        name: report test
+        uses: ./github/workflows/test_reporter.yml

@@ -2,11 +2,8 @@
 
 name: 'Test Report'
 on:
-  pull_request:
-  workflow_run:
-    workflows: ['CI']                     # runs after CI workflow
-    types:
-      - completed
+  workflow_call:
+    
 permissions:
   contents: read
   actions: read
