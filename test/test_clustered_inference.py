@@ -49,9 +49,7 @@ def test_clustered_inference_no_temporal():
     X_init = X_init - np.mean(X_init, axis=0)
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
+    ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference(X_init, y, ward, n_clusters)
