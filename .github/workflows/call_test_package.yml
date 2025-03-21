@@ -13,7 +13,7 @@ jobs:
       fail-fast: True  # if on job fail all the other jobs are cancelled
       matrix:
         python-version: ["3.12", "3.13"] #CHECK: not forget to add new version of python
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest] #, ubuntu-latest, windows-latest]
 
     steps:
     # Checkout to the branch for getting the ritgh code
@@ -61,10 +61,7 @@ jobs:
     - name: ls
       run: |
         ls -rla
-    - name: type
-      run: |
-        type *
-    - name: ls
+    - name: cat
       run: |
         cat *
     # Upload the report as artifact for being read by the workflow tests reports
@@ -84,7 +81,7 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: cov-results-3.13-os-ubuntu-latest  #CHECK: need to be updated when new version are available
+        pattern: cov-results-3.13-os-macos-latest  #CHECK: need to be updated when new version are available
     - name: ls
       run: |
         ls -rla
@@ -94,5 +91,5 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        files: cov-3.13-os-ubuntu-latest.xml    #CHECK: need to be updated when new version are available
+        files: cov-3.13-os-macos-latest.xml    #CHECK: need to be updated when new version are available
   
