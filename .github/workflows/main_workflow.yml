@@ -14,7 +14,7 @@ jobs:
   print:
     needs: linter 
     env: 
-      STATE_LINTER: needs.linter.result
+      STATE_LINTER: ${{ needs.linter.result }}
     runs-on: ubuntu-latest
     steps:
       - name: print output
@@ -36,8 +36,8 @@ jobs:
   print_2:
     needs: [linter, ci] 
     env: 
-      STATE_LINTER: needs.linter.result
-      STATE_CI: needs.linter.result
+      STATE_LINTER: ${{ needs.linter.result }}
+      STATE_CI: ${{ needs.linter.result }}
     runs-on: ubuntu-latest
     steps:
       - name: print output
