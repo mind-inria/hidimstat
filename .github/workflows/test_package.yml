@@ -4,11 +4,7 @@
 name: Tests
 
 on:
-  workflow_run:
-    workflows:
-      ["Lint"]
-    types:
-      - completed
+  workflow_call:
 
 jobs:
   build-test:
