@@ -27,7 +27,6 @@ jobs:
     name: Make_documentation
     needs: [linter, tests]
     uses: ./.github/workflows/call_build_docs.yml
-    if: ${{ always() && needs.linter.result == 'success'}}
 
   
   # debugger:
