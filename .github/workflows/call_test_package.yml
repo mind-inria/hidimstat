@@ -51,10 +51,10 @@ jobs:
       if: failure()
       shell: bash
       run: |
-        if [ -f "$REPORT_FILE" ]; then
+        if [ -f test-results-${REPORT_NAME}.md ]; then
           echo "<details><summary>Failed Test Report</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat "$REPORT_FILE" >> $GITHUB_STEP_SUMMARY
+          cat test-results-${REPORT_NAME}.md >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         fi
