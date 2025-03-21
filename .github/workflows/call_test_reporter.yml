@@ -18,6 +18,6 @@ jobs:
         name: Test hidimstat              # Name of the check run which will be created
         path: '*/*.xml'                   # Path to test results (inside artifact .zip)
         reporter: jest-junit              # Format of test results
-        only-summary: 'True'
+        only-summary: 'true'
         list-tests: 'failed'
         list-suites: 'failed'
