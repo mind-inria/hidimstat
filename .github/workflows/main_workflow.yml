@@ -17,12 +17,6 @@ jobs:
     needs: [linter]
     uses: ./.github/workflows/call_test_package.yml
 
-  test_report:
-    name: Test reporter
-    needs: [linter, tests]
-    uses: ./.github/workflows/call_test_reporter.yml
-    if: ${{ always() && needs.linter.result == 'success'}}
-  
   make_documentation:
     name: Make_documentation
     needs: [linter, tests]

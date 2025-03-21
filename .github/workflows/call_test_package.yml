@@ -38,17 +38,44 @@ jobs:
     - name: Generate coverage report
       run: |
         python -m pytest --junitxml=junit/test-results-${REPORT_NAME}.xml --cov=. --cov-report=xml:cov/cov-${REPORT_NAME}.xml --md-report --md-report-output=test-results-${REPORT_NAME}.md
-    # # create a comment in the PR with the failling tests
-    # - name: Render the report to the PR when tests fail
-    #   uses: marocchino/sticky-pull-request-comment@v2
-    #   if: failure()
-    #   with:
-    #     header: test-report:${{ env.REPORT_NAME }}
-    #     recreate: true
-    #     path: test-results-${{ env.REPORT_NAME }}.md
+    - name: Upload md test result 
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-md-${REPORT_NAME}
+        path: test-results-${REPORT_NAME}.md
+    - name: Upload xml test result 
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-xml-${REPORT_NAME}
+        path: junit/test-results-${REPORT_NAME}.xml
+    - name: Upload coverage data
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: cov-results-${REPORT_NAME}
+        path: cov/cov-${REPORT_NAME}.xml
+
+  merge_md_test_data:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+    # get report from previous job 
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        pattern: pytest-results-md-*-os-*
+    # create a comment in the PR with the failling tests
+    - name: Render the report to the PR when tests fail
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: test-report:macos-3.13                                                        #CHECK: need to be updated when new version are available
+        recreate: true
+        path: pytest-results-md-3.13-os-macos-latest/test-results-3.13-os-macos-latest.xml     #CHECK: need to be updated when new version are available
     # create a comment in the summary with the failling tests
     - name: Output reports to the job summary when tests fail
-      if: failure()
       shell: bash
       run: |
         if [ -f test-results-${REPORT_NAME}.md ]; then
@@ -58,20 +85,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         fi
-    - name: Upload test result
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results-${{ matrix.python-version }}-os-${{ matrix.os }}
-        path: junit/test-results-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
-      if: ${{ always() }}
-    - name: Upload coverage data
-      uses: actions/upload-artifact@v4
-      with:
-        name: cov-results-${{ matrix.python-version }}-os-${{ matrix.os }}
-        path: cov/cov-${{ matrix.python-version }}-os-${{ matrix.os }}.xml
-      if: ${{ always() }}
 
-  merge_upload_test_data:
+  merge_xml_test_data:
     needs: build-test
     runs-on: ubuntu-latest
     if: ${{ always() }}
@@ -80,14 +95,17 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: pytest-results-*-os-*
-    # Upload the report as artifact for being read by the workflow tests reports
-    - name: Upload pytest test results
-      uses: actions/upload-artifact@v4
+        pattern: pytest-results-xml-*-os-*
+    # report the result with test-reporter 
+    # For details see https://github.com/marketplace/actions/test-reporter
+    - uses: dorny/test-reporter@v2
       with:
-        name: pytest-results
-        path: pytest-results-*/test-results-*.xml
-      # Use always() to always run this step to publish test results when there are test failures
+        artifact: pytest-results          # artifact name
+        name: Test hidimstat              # Name of the check run which will be created
+        path: '*/*.xml'                   # Path to test results (inside artifact .zip)
+        reporter: jest-junit              # Format of test results
+        list-tests: 'failed'              # list only failed tests
+        list-suites: 'failed'             # list only failed tests
 
   merge_upload_coverage_data:
     needs: build-test
