@@ -8,13 +8,9 @@ jobs:
     
     ci:
       name: launche ci
-      uses: ./.github/workflows/ci.yml@7381b54a75c35491268f93fb4dd22fb95c7288c1
-      secrets:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      uses: lionelkusch/hidimstat/.github/workflows/ci.yml@PR_test_config
 
 
     test_report:
       name: report test
-      uses: ./github/workflows/test_reporter.yml@7381b54a75c35491268f93fb4dd22fb95c7288c1
-      secrets:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      uses: lionelkusch/hidimstat/.github/workflows/test_reporter.yml@PR_test_config
