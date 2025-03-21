@@ -10,7 +10,7 @@ jobs:
       steps:
         - uses: actions/checkout@v3 # Necessary to access local action
         - name: CI
-          uses: .github/workflows/ci.yml
+          uses: ./.github/workflows/ci.yml
 
     test_report:
       runs-on: ubuntu-latest
@@ -19,4 +19,4 @@ jobs:
       steps:
         - uses: actions/checkout@v3 # Necessary to access local action
         - name: CI
-          uses: .github/workflows/test_report.yml
+          uses: ./.github/workflows/test_reporter.yml
