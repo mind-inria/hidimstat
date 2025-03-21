@@ -59,6 +59,9 @@ jobs:
       with:
         path: junit/
         pattern: pytest-results-*-os-*
+    - name: ls
+      run: |
+        ls -rla
     # Upload the report as artifact for being read by the workflow tests reports
     - name: Upload pytest test results
       uses: actions/upload-artifact@v4
