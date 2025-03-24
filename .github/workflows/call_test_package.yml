@@ -49,7 +49,8 @@ jobs:
          --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --html=report-${{env.REPORT_NAME}}.html --self-contained-html\
-         --template=html1/index.html --report=report_1-${{env.REPORT_NAME}}.html
+         --template=html1/index.html --report=report_1-${{env.REPORT_NAME}}.html\
+         --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -74,6 +75,12 @@ jobs:
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: report_1-${{env.REPORT_NAME}}.html
+    - name: Upload duration test result
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-log-${{env.REPORT_NAME}}
+        path: log-${{env.REPORT_NAME}}.txt
     - name: Upload coverage data
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
