@@ -76,7 +76,7 @@ jobs:
       if: ${{ always() && !cancelled()}}
       run: 
         echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
-    - name: Upload md HTML link test result 
+    - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
@@ -110,6 +110,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-md-*-os-*
+    - name: ls
+      run: |
+        ls -alR
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR when tests fail
