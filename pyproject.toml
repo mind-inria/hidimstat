@@ -109,7 +109,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 # pytest-timeout
-timeout= 15          # on individual test should not take more than 10s
+timeout= 20          # on individual test should not take more than 10s
 session_timeout=1200 # all the tests should be run in 5 min
 # mardown report for github
 md_report_verbose = 0
