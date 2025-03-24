@@ -48,7 +48,7 @@ jobs:
         python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml\
          --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
-         --html=html/report-${{env.REPORT_NAME}}.html --self-contained-html\
+         --html=report-${{env.REPORT_NAME}}.html --self-contained-html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     - name: Upload xml test result 
       if: ${{ always() && !cancelled()}}
@@ -63,7 +63,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
-        path: html/report-${{env.REPORT_NAME}}.html
+        path: report-${{env.REPORT_NAME}}.html
         if-no-files-found: error
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
