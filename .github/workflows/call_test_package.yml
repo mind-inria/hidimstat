@@ -42,7 +42,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install .[test]
     # Run the tests with coverage and report add this end
-    # option for the retport test: --junitxml=... 
     # option for the coverage: --cov=. --cov-report=xml:... 
     # option for mardown report: --md-report --md-report-output= ...
     # option for html report: --self-contained-html --html=report-...
@@ -50,19 +49,11 @@ jobs:
     - name: Generate coverage report
       run: |
         python -m pytest\
-         --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml\
          --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     ## apploading results
-    - name: Upload xml test result 
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results-xml-${{env.REPORT_NAME}}
-        path: junit/test-results-${{env.REPORT_NAME}}.xml
-        if-no-files-found: error
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
@@ -130,35 +121,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         done
-
-  merge_xml_test_data:
-    needs: build-test
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    steps:
-    # get report from previous job 
-    - name: Get data
-      uses: actions/download-artifact@v4
-      with:
-        pattern: pytest-results-xml-*-os-*
-    # Upload the report as artifact for being read by the action of test_reporters
-    - name: Upload pytest test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results
-        path: pytest-results-*/test-results-*.xml
-    # report the result with test-reporter 
-    # For details see https://github.com/marketplace/actions/test-reporter
-    - uses: dorny/test-reporter@v2
-      with:
-        artifact: pytest-results          # artifact name
-        name: Test hidimstat              # Name of the check run which will be created
-        path: '*/*.xml'                   # Path to test results (inside artifact .zip)
-        reporter: jest-junit              # Format of test results
-        only-summary: 'true'              # display on summary
-        list-tests: 'failed'              # list only failed tests
-        list-suites: 'failed'             # list only failed tests
-        fail-on-error: false
 
   merge_upload_coverage_data:
     needs: build-test
