@@ -64,6 +64,7 @@ jobs:
         path: junit/test-results-${{env.REPORT_NAME}}.xml
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
+      id: html_report
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
@@ -71,7 +72,7 @@ jobs:
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
-        echo ${{ steps.upload_html_test_result.outputs.artifact-url }} >> html/${{env.REPORT_NAME}}_link.txt
+        echo ${{ steps.html_report.outputs.artifact-url }} >> html/${{env.REPORT_NAME}}_link.txt
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
