@@ -76,7 +76,7 @@ jobs:
         name: pytest-results-md-${{env.REPORT_NAME}}
         path: | 
             test-results-${{env.REPORT_NAME}}.md
-            html/${{env.REPORT_NAME}}_link.txt
+            ${{env.REPORT_NAME}}_link.txt
         if-no-files-found: error
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
