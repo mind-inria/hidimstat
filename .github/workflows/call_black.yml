@@ -2,6 +2,7 @@
 name: Lint
 
 on: 
+  # Allows you to run this workflow from another workflow
   workflow_call
 
 jobs:

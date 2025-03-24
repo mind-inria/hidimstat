@@ -27,7 +27,6 @@ jobs:
     needs: [linter, tests]
     uses: ./.github/workflows/call_build_docs.yml
 
-  
   # debugger:
   #   needs: linter 
   #   env: 

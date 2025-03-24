@@ -4,14 +4,16 @@
 name: Tests
 
 on:
+  # Allows you to run this workflow from another workflow
   workflow_call:
 
-# permission for reportting
+# permission for reporting
 permissions:
   contents: read
   actions: read
   checks: write
   pull-requests: write
+
 
 jobs:
   build-test:
@@ -22,7 +24,7 @@ jobs:
         python-version: ["3.13", "3.12"] #CHECK: not forget to add new version of python
         os: [macos-latest, ubuntu-latest, windows-latest]
     
-    # name for the file
+    # name for files
     env:
       REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
 
@@ -41,15 +43,19 @@ jobs:
         python -m pip install .[test]
     # Run the tests with coverage and report add this end
     # option for the retport test: --junitxml=... 
-    # option for mardown report: --md-report --md-report-output= ...
     # option for the coverage: --cov=. --cov-report=xml:... 
+    # option for mardown report: --md-report --md-report-output= ...
+    # option for html report: --self-contained-html --html=report-...
+    # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
     - name: Generate coverage report
       run: |
-        python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml\
+        python -m pytest\
+         --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml\
          --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
-         --html=report-${{env.REPORT_NAME}}.html --self-contained-html\
+         --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+    ## apploading results
     - name: Upload xml test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -65,10 +71,11 @@ jobs:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: report-${{env.REPORT_NAME}}.html
         if-no-files-found: error
+    # add the link for html report to the mardown file
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
-        echo -e "\n [summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
+        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
     - name: Upload md HTML link test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -103,9 +110,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-md-*-os-*
-    - name: ls
-      run: |
-        ls -alR
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR when tests fail
