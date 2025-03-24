@@ -56,6 +56,7 @@ jobs:
       with:
         name: pytest-results-xml-${{env.REPORT_NAME}}
         path: junit/test-results-${{env.REPORT_NAME}}.xml
+        if-no-files-found: error
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
@@ -63,6 +64,7 @@ jobs:
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: html/report-${{env.REPORT_NAME}}.html
+        if-no-files-found: error
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
@@ -72,20 +74,24 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-md-${{env.REPORT_NAME}}
-        path: test-results-${{env.REPORT_NAME}}.md
-              html/${{env.REPORT_NAME}}_link.txt
+        path: | 
+            test-results-${{env.REPORT_NAME}}.md
+            html/${{env.REPORT_NAME}}_link.txt
+        if-no-files-found: error
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-log-${{env.REPORT_NAME}}
         path: log-${{env.REPORT_NAME}}.txt
+        if-no-files-found: error
     - name: Upload coverage data
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
         name: cov-results-${{env.REPORT_NAME}}
         path: cov/cov-${{env.REPORT_NAME}}.xml
+        if-no-files-found: error
 
   merge_md_test_data:
     # for more details
