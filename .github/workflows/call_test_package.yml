@@ -73,7 +73,7 @@ jobs:
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-html-${{env.REPORT_NAME}}
+        name: pytest-results-html-1-${{env.REPORT_NAME}}
         path: report_1-${{env.REPORT_NAME}}.html
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
