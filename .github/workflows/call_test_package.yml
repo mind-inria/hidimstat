@@ -66,8 +66,7 @@ jobs:
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
-        #echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
-        cat report-${{env.REPORT_NAME}}.html >> test-results-${{env.REPORT_NAME}}.md
+        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
