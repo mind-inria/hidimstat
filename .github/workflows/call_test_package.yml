@@ -50,12 +50,6 @@ jobs:
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --html=html/report-${{env.REPORT_NAME}}.html --self-contained-html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    - name: Upload md test result 
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results-md-${{env.REPORT_NAME}}
-        path: test-results-${{env.REPORT_NAME}}.md
     - name: Upload xml test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -73,12 +67,13 @@ jobs:
       if: ${{ always() && !cancelled()}}
       run: 
         echo ${{ steps.html_report.outputs.artifact-url }} >> html/${{env.REPORT_NAME}}_link.txt
-    - name: Upload HTML test result
+    - name: Upload md HTML link test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-link-html-${{env.REPORT_NAME}}
-        path: html/${{env.REPORT_NAME}}_link.txt
+        name: pytest-results-md-${{env.REPORT_NAME}}
+        path: test-results-${{env.REPORT_NAME}}.md
+              html/${{env.REPORT_NAME}}_link.txt
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -104,10 +99,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-md-*-os-*
-    - name: Get data
-      uses: actions/download-artifact@v4
-      with:
-        pattern: pytest-link-html-*-os-*
     - name: ls
       run: |
         ls -alR
