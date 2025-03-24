@@ -49,7 +49,6 @@ jobs:
          --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --html=report-${{env.REPORT_NAME}}.html --self-contained-html\
-         --template=html1/index.html --report=report_1-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
@@ -63,18 +62,22 @@ jobs:
       with:
         name: pytest-results-xml-${{env.REPORT_NAME}}
         path: junit/test-results-${{env.REPORT_NAME}}.xml
-    - name: Upload HTML 1 test result
+    - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
-        path: report-${{env.REPORT_NAME}}.html
-    - name: Upload HTML 2 test result
+        path: html/report-${{env.REPORT_NAME}}.html
+    - name: Save link HTML in file
+      if: ${{ always() && !cancelled()}}
+      run: 
+        echo ${{ steps.upload_html_test_result.outputs.artifact-url }} >> html/${{env.REPORT_NAME}}_link.txt
+    - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-html-1-${{env.REPORT_NAME}}
-        path: report_1-${{env.REPORT_NAME}}.html
+        name: pytest-link-html-${{env.REPORT_NAME}}
+        path: html/${{env.REPORT_NAME}}_link.txt
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -100,6 +103,10 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-md-*-os-*
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        pattern: pytest-link-html-*-os-*
     - name: ls
       run: |
         ls -alR
@@ -120,6 +127,7 @@ jobs:
           echo "<details><summary>Failed Test Report: $folder</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat $folder/*.md >> $GITHUB_STEP_SUMMARY
+          cat $folder/*_link.txt >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         done
