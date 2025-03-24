@@ -45,7 +45,11 @@ jobs:
     # option for the coverage: --cov=. --cov-report=xml:... 
     - name: Generate coverage report
       run: |
-        python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md
+        python -m pytest --junitxml=junit/test-results-${{env.REPORT_NAME}}.xml\
+         --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
+         --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
+         --html=report-${{env.REPORT_NAME}}.html --self-contained-html\
+         --template=html1/index.html --report=report_1-${{env.REPORT_NAME}}.html
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -58,6 +62,18 @@ jobs:
       with:
         name: pytest-results-xml-${{env.REPORT_NAME}}
         path: junit/test-results-${{env.REPORT_NAME}}.xml
+    - name: Upload HTML 1 test result
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-html-${{env.REPORT_NAME}}
+        path: report-${{env.REPORT_NAME}}.html
+    - name: Upload HTML 2 test result
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-html-${{env.REPORT_NAME}}
+        path: report_1-${{env.REPORT_NAME}}.html
     - name: Upload coverage data
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
