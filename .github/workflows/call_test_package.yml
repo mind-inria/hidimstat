@@ -68,15 +68,13 @@ jobs:
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
-        echo ${{ steps.html_report.outputs.artifact-url }} >> ${{env.REPORT_NAME}}_link.txt
+        echo -e "\n"${{ steps.html_report.outputs.artifact-url }} >> test-results-${{env.REPORT_NAME}}.md
     - name: Upload md HTML link test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
       with:
         name: pytest-results-md-${{env.REPORT_NAME}}
-        path: | 
-            test-results-${{env.REPORT_NAME}}.md
-            ${{env.REPORT_NAME}}_link.txt
+        path: test-results-${{env.REPORT_NAME}}.md 
         if-no-files-found: error
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
@@ -125,7 +123,6 @@ jobs:
           echo "<details><summary>Failed Test Report: $folder</summary>" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat $folder/*.md >> $GITHUB_STEP_SUMMARY
-          cat $folder/*_link.txt >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "</details>" >> $GITHUB_STEP_SUMMARY
         done
