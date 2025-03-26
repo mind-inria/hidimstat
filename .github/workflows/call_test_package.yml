@@ -48,13 +48,6 @@ jobs:
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    ## uploading results
-    - name: HTML Preview
-      id: html_preview
-      uses: pavi2410/html-preview-action@v4
-      with:
-        html_file: report-${{env.REPORT_NAME}}.html
-        job_summary: false
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
@@ -63,11 +56,6 @@ jobs:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: report-${{env.REPORT_NAME}}.html
         if-no-files-found: error
-    # add the link for html report to the mardown file
-    - name: Save link HTML in file
-      if: ${{ always() && !cancelled()}}
-      run: 
-        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}") [2](html_preview.outputs.url)" >> test-results-${{env.REPORT_NAME}}.md
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
@@ -90,12 +78,23 @@ jobs:
         path: cov/cov-${{env.REPORT_NAME}}.xml
         if-no-files-found: error
 
-  merge_md_test_data:# permission for reporting
-permissions:
-  contents: read
-  actions: read
-  checks: write
-  pull-requests: write
+  commit_html_report:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+    # get report from previous job 
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        pattern: pytest-results-html-*-os-*
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        file_pattern: '*/*.html'
+        branch: 'report_test'
+        create_branch: true
+  
+  merge_md_test_data:
     # for more details
     # https://github.com/thombashi/pytest-md-report
     needs: build-test
@@ -107,6 +106,16 @@ permissions:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-md-*-os-*
+    - name: Update mardown
+      shell: bash
+      run: |
+        for FOLDER in *;
+        do 
+        SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
+        LINK="https://htmlpreview.github.io/https:/${{github.repository}}/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
+        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}") [2]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
+        done
+
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR when tests fail
