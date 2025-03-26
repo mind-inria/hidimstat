@@ -237,7 +237,9 @@ def test_gaussian_knockoff_equi():
     mu = X.mean(axis=0)
     sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
 
-    X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2)
+    X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
+        X, mu, sigma, seed=seed * 2
+    )
 
     assert X_tilde.shape == (n, p)
 
@@ -259,7 +261,9 @@ def test_gaussian_knockoff_equi_warning():
         UserWarning,
         match="The conditional covariance matrix for knockoffs is not positive",
     ):
-        X_tilde = gaussian_knockoff_generation(X, mu, sigma, seed=seed * 2, tol=tol)
+        X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
+            X, mu, sigma, seed=seed * 2, tol=tol
+        )
 
     assert X_tilde.shape == (n, p)
 

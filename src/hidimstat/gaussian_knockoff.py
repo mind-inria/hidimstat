@@ -38,6 +38,12 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     -------
     X_tilde : 2D ndarray (n_samples, n_features)
         The knockoff variables.
+    
+    mu_tilde : 2D ndarray (n_samples, n_features)
+        The mean matrix used for generating knockoffs.
+    
+    sigma_tilde_decompose : 2D ndarray (n_features, n_features)
+        The Cholesky decomposition of the covariance matrix.
 
     References
     ----------

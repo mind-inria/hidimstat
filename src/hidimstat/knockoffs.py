@@ -130,7 +130,7 @@ def model_x_knockoff(
         If provided, this function will be called with the estimator, X, X_tilde, and y
         as arguments, and should modify the estimator in-place.
 
-    fdr : float, default=0.1 
+    fdr : float, default=0.1
         The desired controlled False Discovery Rate (FDR) level.
 
     centered : bool, default=True
@@ -139,20 +139,20 @@ def model_x_knockoff(
     cov_estimator : estimator object, default=LedoitWolf()
         Estimator for empirical covariance matrix.
 
-    joblib_verbose : int, default=0 
+    joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
 
     n_bootstraps : int, default=1
         Number of bootstrap samples for aggregation.
 
-    n_jobs : int, default=1 
+    n_jobs : int, default=1
         Number of parallel jobs.
 
     random_state : int or None, default=None
         The random seed used to generate the Gaussian knockoff variables.
 
     tol_gauss : float, default=1e-14
-        A tolerance value used for numerical stability in the calculation of 
+        A tolerance value used for numerical stability in the calculation of
         the Cholesky decomposition in the gaussian generation function.
 
     offset : {0, 1}, default=1
@@ -206,10 +206,9 @@ def model_x_knockoff(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    X_tilde, mu_tilde, sigma_tilde_decompose \
-        = memory.cache(gaussian_knockoff_generation)(
-            X, mu, sigma, seed=seed_list[0], tol=tol_gauss
-        )
+    X_tilde, mu_tilde, sigma_tilde_decompose = memory.cache(
+        gaussian_knockoff_generation
+    )(X, mu, sigma, seed=seed_list[0], tol=tol_gauss)
 
     if n_bootstraps == 1:
         X_tildes = [X_tilde]
@@ -414,7 +413,7 @@ def _stat_coefficient_diff(
     X : ndarray of shape (n_samples, n_features)
         Original feature matrix.
 
-    X_tilde : ndarray of shape (n_samples, n_features) 
+    X_tilde : ndarray of shape (n_samples, n_features)
         Knockoff feature matrix.
 
     y : ndarray of shape (n_samples,)
