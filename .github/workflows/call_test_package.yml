@@ -53,7 +53,13 @@ jobs:
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    ## apploading results
+    ## uploading results
+    - name: HTML Preview
+      id: html_preview
+      uses: pavi2410/html-preview-action@v4
+      with:
+        html_file: report-${{env.REPORT_NAME}}.html
+        job_summary: false
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
@@ -66,7 +72,7 @@ jobs:
     - name: Save link HTML in file
       if: ${{ always() && !cancelled()}}
       run: 
-        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}")" >> test-results-${{env.REPORT_NAME}}.md
+        echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}") [2](html_preview.outputs.url)" >> test-results-${{env.REPORT_NAME}}.md
     - name: Upload md test result 
       if: ${{ always() && !cancelled()}}
       uses: actions/upload-artifact@v4
