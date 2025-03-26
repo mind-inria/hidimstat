@@ -258,7 +258,7 @@ def clustered_inference(
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
     # transformation matrix
-    X_reduced, ward_ = memory(_ward_clustering)(X_init, ward, train_index)
+    X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, ward, train_index)
 
     # Preprocessing
     if scaler_sampling is not None:
