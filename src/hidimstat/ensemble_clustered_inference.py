@@ -228,7 +228,7 @@ def clustered_inference(
     theta_hat : ndarray
         Estimated precision matrix.
 
-    omega_diag : ndarray
+    precision_diag : ndarray
         Diagonal of the covariance matrix.
 
     References
@@ -265,7 +265,7 @@ def clustered_inference(
         X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
 
     # inference methods
-    beta_hat, theta_hat, omega_diag = memory.cache(
+    beta_hat, theta_hat, precision_diag = memory.cache(
         desparsified_lasso, ignore=["n_jobs", "verbose", "memory"]
     )(
         X_reduced,
@@ -277,7 +277,7 @@ def clustered_inference(
         **kwargs,
     )
 
-    return ward_, beta_hat, theta_hat, omega_diag
+    return ward_, beta_hat, theta_hat, precision_diag
 
 
 def clustered_inference_pvalue(
@@ -299,7 +299,7 @@ def clustered_inference_pvalue(
         Estimated coefficients at cluster level
     theta_hat : ndarray
         Estimated precision matrix
-    omega_diag : ndarray
+    precision_diag : ndarray
         Diagonal elements of the covariance matrix
     **kwargs : dict
         Additional arguments passed to p-value computation functions
@@ -448,7 +448,7 @@ def ensemble_clustered_inference(
     list_theta_hat : list of ndarray
         List of estimated precision matrices.
 
-    list_omega_diag : list of ndarray
+    list_precision_diag : list of ndarray
         List of diagonal elements of covariance matrices.
 
     one_minus_pval : ndarray, shape (n_features,)
@@ -488,13 +488,13 @@ def ensemble_clustered_inference(
         )
         for i in np.arange(seed, seed + n_bootstraps)
     )
-    list_ward, list_beta_hat, list_theta_hat, list_omega_diag = [], [], [], []
-    for ward, beta_hat, theta_hat, omega_diag in results:
+    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = [], [], [], []
+    for ward, beta_hat, theta_hat, precision_diag in results:
         list_ward.append(ward)
         list_beta_hat.append(beta_hat)
         list_theta_hat.append(theta_hat)
-        list_omega_diag.append(omega_diag)
-    return list_ward, list_beta_hat, list_theta_hat, list_omega_diag
+        list_precision_diag.append(precision_diag)
+    return list_ward, list_beta_hat, list_theta_hat, list_precision_diag
 
 
 def ensemble_clustered_inference_pvalue(
@@ -503,7 +503,7 @@ def ensemble_clustered_inference_pvalue(
     list_ward,
     list_beta_hat,
     list_theta_hat,
-    list_omega_diag,
+    list_precision_diag,
     aggregate_method=aggregate_quantiles,
     n_jobs=None,
     verbose=0,
@@ -530,7 +530,7 @@ def ensemble_clustered_inference_pvalue(
         List of estimated coefficients at cluster level from each bootstrap
     list_theta_hat : list of ndarray
         List of estimated precision matrices from each bootstrap
-    list_omega_diag : list of ndarray
+    list_precision_diag : list of ndarray
         List of diagonal elements of covariance matrices from each bootstrap
     aggregate_method : callable, default=aggregate_quantiles
         Function to aggregate results across bootstraps. Must accept a 2D array
@@ -566,7 +566,7 @@ def ensemble_clustered_inference_pvalue(
             list_ward[i],
             list_beta_hat[i],
             list_theta_hat[i],
-            list_omega_diag[i],
+            list_precision_diag[i],
             **kwargs,
         )
         for i in range(len(list_ward))

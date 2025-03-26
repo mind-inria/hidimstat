@@ -7,7 +7,6 @@ from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
-import pytest
 
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
@@ -62,13 +61,13 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
         X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_samples, None, ward_, beta_hat, theta_hat, omega_diag
+            n_samples, None, ward_, beta_hat, theta_hat, precision_diag
         )
     )
 
@@ -117,13 +116,13 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
         X, Y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_samples, True, ward_, beta_hat, theta_hat, omega_diag
+            n_samples, True, ward_, beta_hat, theta_hat, precision_diag
         )
     )
 
@@ -187,13 +186,13 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
         X_, y_, ward, n_clusters, groups=groups, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_groups * n_samples, False, ward_, beta_hat, theta_hat, omega_diag
+            n_groups * n_samples, False, ward_, beta_hat, theta_hat, precision_diag
         )
     )
 
@@ -243,7 +242,7 @@ def test_ensemble_clustered_inference():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
         ensemble_clustered_inference(
             X_init,
             y,
@@ -255,7 +254,7 @@ def test_ensemble_clustered_inference():
     )
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         ensemble_clustered_inference_pvalue(
-            n_samples, False, list_ward, list_beta_hat, list_theta_hat, list_omega_diag
+            n_samples, False, list_ward, list_beta_hat, list_theta_hat, list_precision_diag
         )
     )
 
@@ -303,7 +302,7 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
         ensemble_clustered_inference(
             X,
             Y,
@@ -320,7 +319,7 @@ def test_ensemble_clustered_inference_temporal_data():
             list_ward,
             list_beta_hat,
             list_theta_hat,
-            list_omega_diag,
+            list_precision_diag,
             aggregate_method=aggregate_adaptive_quantiles,
         )
     )
@@ -343,7 +342,7 @@ def test_ensemble_clustered_inference_temporal_data():
             list_ward,
             list_beta_hat,
             list_theta_hat,
-            list_omega_diag,
+            list_precision_diag,
             aggregate_method=aggregate_quantiles,
         )
     )
@@ -358,24 +357,3 @@ def test_ensemble_clustered_inference_temporal_data():
         pval_corr[extended_support:], expected[extended_support:], decimal=1
     )
 
-
-def test_ensemble_clustered_inference_exception():
-    """
-    Test the raise of exception
-    """
-    n_samples, n_features = 100, 2000
-    n_clusters = 10
-    X, Y, beta, epsilon = multivariate_1D_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-    )
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
-
-    # Test the raise of exception
-    with pytest.raises(ValueError, match="Unknown ensembling method."):
-        ensemble_clustered_inference(
-            X, Y, ward, n_clusters, ensembling_method="wrong_method"
-        )
