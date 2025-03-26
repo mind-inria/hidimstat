@@ -34,7 +34,6 @@ __all__ = [
     "dcrt_zero",
     "desparsified_lasso",
     "desparsified_lasso_pvalue",
-    "desparsified_group_lasso",
     "desparsified_group_lasso_pvalue",
     "reid",
     "knockoff_aggregation",
