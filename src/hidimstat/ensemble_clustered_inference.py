@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.base import clone
 from sklearn.utils import resample
 from joblib import Parallel, delayed
+from sklearn.utils.validation import check_memory
 
 from hidimstat.desparsified_lasso import (
     desparsified_lasso,
@@ -341,6 +342,7 @@ def ensemble_clustered_inference(
     n_bootstraps=25,
     n_jobs=None,
     verbose=1,
+    memory=None,
     **kwargs,
 ):
     """
@@ -376,8 +378,24 @@ def ensemble_clustered_inference(
         Sample group labels for stratified subsampling. Ensures balanced
         representation of groups in subsamples.
 
-    seed : int, optional (default=0)
-        Random seed for reproducible subsampling sequence.
+    inference_method : str, optional (default='desparsified-lasso')
+        Method used for inference.
+        Currently, the two available methods are 'desparsified-lasso'
+        and 'group-desparsified-lasso'. Use 'desparsified-lasso' for
+        non-temporal data and 'group-desparsified-lasso' for temporal data.
+
+    seed: int, optional (default=0)
+        Seed used for generating the first random subsample of the data.
+        This seed controls the clustering randomness.
+
+    ensembling_method : str, optional (default='quantiles')
+        Method used for ensembling. Currently, the two available methods
+        are 'quantiles' and 'median'.
+
+    gamma_min : float, optional (default=0.2)
+        Lowest gamma-quantile considered to compute the adaptive
+        quantile aggregation formula. This parameter is used only if
+        `ensembling_method` is 'quantiles'.
 
     n_bootstraps : int, optional (default=25)
         Number of bootstrap iterations for ensemble inference.
@@ -385,8 +403,14 @@ def ensemble_clustered_inference(
     n_jobs : int or None, optional (default=None)
         Number of parallel jobs. None means using all processors.
 
-    verbose : int, optional (default=1)
-        Verbosity level for progress reporting.
+    verbose: int, optional (default=1)
+        The verbosity level. If `verbose > 0`, a message is printed before
+        running the clustered inference.
+
+    memory : joblib.Memory or str, optional (default=None)
+        Used to cache the output of the clustering and inference computation.
+        By default, no caching is done. If provided, it should be the path
+        to the caching directory or a joblib.Memory object.
 
     **kwargs : dict
         Additional keyword arguments passed to statistical inference functions.
@@ -399,11 +423,19 @@ def ensemble_clustered_inference(
     list_beta_hat : list of ndarray
         List of estimated coefficients from each bootstrap.
 
+    pval : ndarray, shape (n_features,)
+        p-value, with numerically accurate values for
+        positive effects (i.e., for p-values close to zero).
+
     list_theta_hat : list of ndarray
         List of estimated precision matrices.
 
     list_omega_diag : list of ndarray
         List of diagonal elements of covariance matrices.
+
+    one_minus_pval : ndarray, shape (n_features,)
+        One minus the p-value, with numerically accurate values
+        for negative effects (i.e., for p-values close to one).
 
     Notes
     -----
@@ -418,6 +450,8 @@ def ensemble_clustered_inference(
     ----------
     .. footbibliography::
     """
+    memory = check_memory(memory=memory)
+
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
         delayed(clustered_inference)(

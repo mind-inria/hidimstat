@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
-import pytest
 
 from hidimstat.desparsified_lasso import (
     desparsified_lasso,
@@ -42,11 +41,10 @@ def test_desparsified_lasso():
         (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
     )
 
-    beta_hat, sigma_hat, omega_diag = desparsified_lasso(X, y)
-
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
         desparsified_lasso_pvalue(
-            X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99
+            X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
         )
     )
     assert_almost_equal(beta_hat, beta, decimal=1)
@@ -54,22 +52,12 @@ def test_desparsified_lasso():
     assert_equal(cb_max > beta, True)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
-    beta_hat, sigma_hat, omega_diag = desparsified_lasso(X, y, dof_ajdustement=True)
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y, dof_ajdustement=True)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
         desparsified_lasso_pvalue(
-            X.shape[0], beta_hat, sigma_hat, omega_diag, confidence=0.99
+            X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
         )
     )
-    cb_min_bis, cb_max_bis = desparsified_lasso_pvalue(
-        X.shape[0],
-        beta_hat,
-        sigma_hat,
-        omega_diag,
-        confidence=0.99,
-        confidence_interval_only=True,
-    )
-    assert np.all(cb_min_bis == cb_min)
-    assert np.all(cb_max_bis == cb_max)
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_equal(cb_min < beta, True)
     assert_equal(cb_max > beta, True)
@@ -100,9 +88,11 @@ def test_desparsified_group_lasso():
         rho_noise=rho,
     )
 
-    beta_hat, theta_hat, omega_diag = desparsified_lasso(X, Y, group=True, cov=cov)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(
+        X, Y, group=True, covariance=cov
+    )
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag)
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )
 
     expected_pval_corr = np.concatenate(
@@ -112,9 +102,9 @@ def test_desparsified_group_lasso():
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
-    beta_hat, theta_hat, omega_diag = desparsified_lasso(X, Y, group=True)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, group=True)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="F")
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="F")
     )
 
     assert_almost_equal(beta_hat, beta, decimal=1)
@@ -123,8 +113,8 @@ def test_desparsified_group_lasso():
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(cov, 0, axis=1)
     np.testing.assert_raises(
-        ValueError, desparsified_lasso, X=X, y=Y, group=True, cov=bad_cov
+        ValueError, desparsified_lasso, X=X, y=Y, group=True, covariance=bad_cov
     )
 
     with pytest.raises(ValueError, match=f"Unknown test 'r2'"):
-        desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, test="r2")
+        desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="r2")

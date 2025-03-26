@@ -1,3 +1,4 @@
+from .base_perturbation import BasePerturbation
 from .ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,

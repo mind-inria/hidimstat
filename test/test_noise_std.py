@@ -35,7 +35,7 @@ def test_reid():
     )
 
     # max_iter=1 to get a better coverage
-    sigma_hat, _ = reid(X, y, tol=1e-3, max_iter=1)
+    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
     expected = sigma
 
     assert_almost_equal(sigma_hat / expected, 1.0, decimal=0)
@@ -85,7 +85,7 @@ def test_group_reid():
     )
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, group=True, tol=1e-3, max_iter=1)
+    cov_hat, _ = reid(X, Y, group=True, tolerance=1e-3, max_iterance=1)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)

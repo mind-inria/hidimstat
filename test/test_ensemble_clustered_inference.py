@@ -7,6 +7,7 @@ from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+import pytest
 
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
@@ -356,3 +357,25 @@ def test_ensemble_clustered_inference_temporal_data():
     assert_almost_equal(
         pval_corr[extended_support:], expected[extended_support:], decimal=1
     )
+
+
+def test_ensemble_clustered_inference_exception():
+    """
+    Test the raise of exception
+    """
+    n_samples, n_features = 100, 2000
+    n_clusters = 10
+    X, Y, beta, epsilon = multivariate_1D_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+    )
+    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+    ward = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
+
+    # Test the raise of exception
+    with pytest.raises(ValueError, match="Unknown ensembling method."):
+        ensemble_clustered_inference(
+            X, Y, ward, n_clusters, ensembling_method="wrong_method"
+        )
