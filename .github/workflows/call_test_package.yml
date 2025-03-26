@@ -7,12 +7,7 @@ on:
   # Allows you to run this workflow from another workflow
   workflow_call:
 
-# permission for reporting
-permissions:
-  contents: read
-  actions: read
-  checks: write
-  pull-requests: write
+
 
 
 jobs:
@@ -95,7 +90,12 @@ jobs:
         path: cov/cov-${{env.REPORT_NAME}}.xml
         if-no-files-found: error
 
-  merge_md_test_data:
+  merge_md_test_data:# permission for reporting
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
     # for more details
     # https://github.com/thombashi/pytest-md-report
     needs: build-test
