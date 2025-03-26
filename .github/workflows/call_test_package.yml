@@ -113,10 +113,9 @@ jobs:
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
-        LINK="https://htmlpreview.github.io/https:/${{github.repository}}/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
+        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
         echo -e "\n [HTML summary]("${{ steps.html_report.outputs.artifact-url }}") [2]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
         done
-
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR when tests fail
