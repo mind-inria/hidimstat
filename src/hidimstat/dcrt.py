@@ -114,7 +114,7 @@ def dcrt_zero(
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
         # is based on a cross-validated lasso
-        clf, alpha = fit_lasso(
+        clf, alpha = _fit_lasso(
             X_,
             y_,
             alpha=alpha,
@@ -125,6 +125,7 @@ def dcrt_zero(
             random_state=random_state,
             alpha_max_fraction=alpha_max_fraction,
             # other argument for the cross validation not used  by other fitting
+            # TODO: What is the reason for this specific options here?
             tol=tol,
             max_iter=max_iter,
             fit_intercept=False,
@@ -352,7 +353,7 @@ def _x_distillation_lasso(
     if sigma_X is None:
         # Distill X with least square loss
         # configure Lasso and determine the alpha
-        clf, alpha = fit_lasso(
+        clf, alpha = _fit_lasso(
             X_minus_idx,
             X[:, idx],
             alpha=alpha,
@@ -467,7 +468,7 @@ def _lasso_distillation_residual(
     # Distill Y - calculate residual
     # get the coefficients
     if fit_y:
-        clf_null, alpha_null = fit_lasso(
+        clf_null, alpha_null = _fit_lasso(
             X_minus_idx,
             y,
             alpha=alpha,
@@ -595,7 +596,7 @@ def _rf_distillation(
     )
 
 
-def fit_lasso(
+def _fit_lasso(
     X,
     y,
     alpha,
