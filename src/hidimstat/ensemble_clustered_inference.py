@@ -45,9 +45,9 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
     return train_index
 
 
-def _rescale_beta(beta_hat, n_features, ward):
+def _ungroup_beta(beta_hat, n_features, ward):
     """
-    Rescales cluster-level beta coefficients to individual feature-level
+    Ungroup cluster-level beta coefficients to individual feature-level
     coefficients.
 
     Parameters
@@ -140,7 +140,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
         [pval, pval_corr, one_minus_pval, one_minus_pval_corr],
     )
 
-    beta_hat = _rescale_beta(beta_hat, n_features=pval.shape[0], ward=ward)
+    beta_hat = _ungroup_beta(beta_hat, n_features=pval.shape[0], ward=ward)
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
@@ -531,7 +531,7 @@ def ensemble_clustered_inference_pvalue(
         List of estimated precision matrices from each bootstrap
     list_precision_diag : list of ndarray
         List of diagonal elements of covariance matrices from each bootstrap
-    aggregate_method : callable, default=aggregate_adaptive_quantiles
+    aggregate_method : callable, default=adaptive_quantile_aggregation
         Function to aggregate results across bootstraps. Must accept a 2D array
         and return a 1D array of aggregated values.
     n_jobs : int or None, optional (default=None)
