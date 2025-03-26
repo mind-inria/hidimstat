@@ -83,6 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:
+    - uses: actions/checkout@v4
     # get report from previous job 
     - name: Get data
       uses: actions/download-artifact@v4
