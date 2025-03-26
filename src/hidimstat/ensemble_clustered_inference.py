@@ -278,7 +278,7 @@ def clustered_inference(
 
 
 def clustered_inference_pvalue(
-    n_samples, group, ward, beta_hat, theta_hat, omega_diag, **kwargs
+    n_samples, group, ward, beta_hat, theta_hat, precision_diag, **kwargs
 ):
     """
     Compute corrected p-values at the cluster level and transform them
@@ -321,13 +321,13 @@ def clustered_inference_pvalue(
                 n_samples,
                 beta_hat,
                 theta_hat,
-                omega_diag,
+                precision_diag,
                 **kwargs,
             )
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(beta_hat, theta_hat, omega_diag, **kwargs)
+            desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, **kwargs)
         )
 
     # De-grouping
@@ -478,6 +478,7 @@ def ensemble_clustered_inference(
             seed=i,
             n_jobs=1,
             verbose=verbose,
+            memory=memory,
             **kwargs,
         )
         for i in np.arange(seed, seed + n_bootstraps)
