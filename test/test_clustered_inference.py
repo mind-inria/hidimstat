@@ -53,6 +53,12 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
+    # test exception
+    with pytest.raises(ValueError, match="Unknow method"):
+        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+            clustered_inference(X_init, y, ward, n_clusters, method="test")
+        )
+
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference(X_init, y, ward, n_clusters)
     )

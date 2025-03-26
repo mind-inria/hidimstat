@@ -87,7 +87,7 @@ References
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-69
+.. GENERATED FROM PYTHON SOURCE LINES 59-72
 
 .. code-block:: Python
 
@@ -96,10 +96,13 @@ Imports needed for this script
     from sklearn.feature_extraction import image
 
     from hidimstat.clustered_inference import clustered_inference
-    from hidimstat.desparsified_lasso import desparsified_lasso
+    from hidimstat.desparsified_lasso import (
+        desparsified_lasso,
+        desparsified_lasso_pvalue,
+    )
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.scenario import multivariate_simulation
-    from hidimstat.stat_tools import pval_from_cb, zscore_from_pval
+    from hidimstat.stat_tools import zscore_from_pval
 
 
 
@@ -108,7 +111,7 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 70-78
+.. GENERATED FROM PYTHON SOURCE LINES 73-81
 
 Specific plotting functions
 ---------------------------
@@ -119,7 +122,7 @@ you can skip this section.
 The following function builds a 2D map with four active regions that are
 enfolded by thin tolerance regions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 78-110
+.. GENERATED FROM PYTHON SOURCE LINES 81-113
 
 .. code-block:: Python
 
@@ -162,12 +165,12 @@ enfolded by thin tolerance regions.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 111-113
+.. GENERATED FROM PYTHON SOURCE LINES 114-116
 
 To generate a plot that exhibits the true support and the estimated
 supports for every method, we define the two following functions:
 
-.. GENERATED FROM PYTHON SOURCE LINES 113-152
+.. GENERATED FROM PYTHON SOURCE LINES 116-155
 
 .. code-block:: Python
 
@@ -217,7 +220,7 @@ supports for every method, we define the two following functions:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 153-159
+.. GENERATED FROM PYTHON SOURCE LINES 156-162
 
 Generating the data
 -------------------
@@ -226,7 +229,7 @@ After setting the simulation parameters, we run the function that generates
 the 2D scenario that we have briefly described in the first section of this
 example.
 
-.. GENERATED FROM PYTHON SOURCE LINES 159-173
+.. GENERATED FROM PYTHON SOURCE LINES 162-176
 
 .. code-block:: Python
 
@@ -251,7 +254,7 @@ example.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 174-191
+.. GENERATED FROM PYTHON SOURCE LINES 177-194
 
 Choosing inference parameters
 -----------------------------
@@ -271,7 +274,7 @@ the average cluster radius. In this example, we choose ``n_clusters = 200``,
 leading to a theoretical spatial tolerance ``delta = 6``, which is still
 conservative (see Results).
 
-.. GENERATED FROM PYTHON SOURCE LINES 191-202
+.. GENERATED FROM PYTHON SOURCE LINES 194-205
 
 .. code-block:: Python
 
@@ -293,7 +296,7 @@ conservative (see Results).
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 203-213
+.. GENERATED FROM PYTHON SOURCE LINES 206-216
 
 Computing z-score thresholds for support estimation
 ---------------------------------------------------
@@ -306,7 +309,7 @@ consists in dividing the targeted FWER target by the number of features.
 For methods that group features into clusters, the correction
 consists in dividing by the number of clusters.
 
-.. GENERATED FROM PYTHON SOURCE LINES 213-221
+.. GENERATED FROM PYTHON SOURCE LINES 216-224
 
 .. code-block:: Python
 
@@ -325,7 +328,7 @@ consists in dividing by the number of clusters.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 222-227
+.. GENERATED FROM PYTHON SOURCE LINES 225-230
 
 Inference with several algorithms
 ---------------------------------
@@ -333,7 +336,7 @@ Inference with several algorithms
 First, we compute a reference map that exhibits the true support and
 the theoretical tolerance region.
 
-.. GENERATED FROM PYTHON SOURCE LINES 227-231
+.. GENERATED FROM PYTHON SOURCE LINES 230-234
 
 .. code-block:: Python
 
@@ -348,7 +351,7 @@ the theoretical tolerance region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 232-238
+.. GENERATED FROM PYTHON SOURCE LINES 235-241
 
 Now, we compute the support estimated by a high-dimensional statistical
 infernece method that does not leverage the data structure. This method
@@ -357,14 +360,16 @@ and Van de Geer, S. et al.. (2014) (full references are available at
 https://mind-inria.github.io/hidimstat/).
 and referred to as Desparsified Lasso.
 
-.. GENERATED FROM PYTHON SOURCE LINES 238-252
+.. GENERATED FROM PYTHON SOURCE LINES 241-257
 
 .. code-block:: Python
 
 
     # compute desparsified lasso
-    beta_hat, cb_min, cb_max = desparsified_lasso(X_init, y, n_jobs=n_jobs)
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(cb_min, cb_max)
+    beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
+        desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diagonal)
+    )
 
     # compute estimated support (first method)
     zscore = zscore_from_pval(pval, one_minus_pval)
@@ -379,16 +384,22 @@ and referred to as Desparsified Lasso.
 
 
 
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    'max_iter' has been increased to 8000
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 253-256
+
+.. GENERATED FROM PYTHON SOURCE LINES 258-261
 
 Now, we compute the support estimated using a clustered inference algorithm
 (c.f. :ref:`References`) called Clustered Desparsified Lasso (CluDL) since it
 uses the Desparsified Lasso technique after clustering the data.
 
-.. GENERATED FROM PYTHON SOURCE LINES 256-278
+.. GENERATED FROM PYTHON SOURCE LINES 261-283
 
 .. code-block:: Python
 
@@ -423,11 +434,13 @@ uses the Desparsified Lasso technique after clustering the data.
  .. code-block:: none
 
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 0
+    Clustered inference {}
+    hd_inference False {}
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 279-284
+.. GENERATED FROM PYTHON SOURCE LINES 284-289
 
 Finally, we compute the support estimated by an ensembled clustered
 inference algorithm (c.f. :ref:`References`). This algorithm is called
@@ -435,7 +448,7 @@ Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
 CluDL algorithms with different clustering choices. The different CluDL
 solutions are then aggregated into one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 284-295
+.. GENERATED FROM PYTHON SOURCE LINES 289-300
 
 .. code-block:: Python
 
@@ -459,35 +472,85 @@ solutions are then aggregated into one.
  .. code-block:: none
 
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 0
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 1
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 2
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 3
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 4
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 5
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 6
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 7
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 8
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 9
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 10
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 11
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 12
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 13
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 14
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 15
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 16
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 17
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 18
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 19
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 20
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 21
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 22
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 23
+    Clustered inference {}
+    hd_inference False {}
     Clustered inference: n_clusters = 200, inference method = desparsified-lasso, seed = 24
+    Clustered inference {}
+    hd_inference False {}
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 296-301
+.. GENERATED FROM PYTHON SOURCE LINES 301-306
 
 Results
 -------
@@ -495,7 +558,7 @@ Results
 Now we plot the true support, the theoretical tolerance regions and
 the estimated supports for every method.
 
-.. GENERATED FROM PYTHON SOURCE LINES 301-325
+.. GENERATED FROM PYTHON SOURCE LINES 306-330
 
 .. code-block:: Python
 
@@ -535,7 +598,7 @@ the estimated supports for every method.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 326-339
+.. GENERATED FROM PYTHON SOURCE LINES 331-344
 
 Analysis of the results
 -----------------------
@@ -554,9 +617,9 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 2.413 seconds)
+   **Total running time of the script:** (1 minutes 7.222 seconds)
 
-**Estimated memory usage:**  722 MB
+**Estimated memory usage:**  257 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_2D_simulation_example.py:

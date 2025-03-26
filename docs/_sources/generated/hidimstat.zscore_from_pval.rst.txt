@@ -1,6 +1,8 @@
-﻿hidimstat.zscore\_from\_pval
-============================
+﻿hidimstat.zscore_from_pval
+==========================
 
 .. currentmodule:: hidimstat
 
 .. autofunction:: zscore_from_pval
+
+.. include:: hidimstat.zscore_from_pval.examples

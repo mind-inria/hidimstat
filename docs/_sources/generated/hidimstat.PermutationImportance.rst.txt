@@ -4,26 +4,14 @@
 .. currentmodule:: hidimstat
 
 .. autoclass:: PermutationImportance
+   :inherited-members:
 
    
    .. automethod:: __init__
-
-   
-   .. rubric:: Methods
-
-   .. autosummary::
-   
-      ~PermutationImportance.__init__
-      ~PermutationImportance.fit
-      ~PermutationImportance.get_metadata_routing
-      ~PermutationImportance.get_params
-      ~PermutationImportance.predict
-      ~PermutationImportance.score
-      ~PermutationImportance.set_fit_request
-      ~PermutationImportance.set_params
-   
    
 
-   
-   
-   
+.. include:: hidimstat.PermutationImportance.examples
+
+.. raw:: html
+
+    <div style='clear:both'></div>

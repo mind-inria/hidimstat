@@ -1,7 +1,7 @@
 .. _api_documentation:
 
 =================
-API Documentation
+API
 =================
 
 Estimators
@@ -14,6 +14,7 @@ Functions
 
 .. autosummary::
    :toctree: generated/
+   :template: function.rst
 
    aggregate_quantiles
    clustered_inference
@@ -21,12 +22,13 @@ Functions
    dcrt_pvalue
    data_simulation
    desparsified_lasso
+   desparsified_lasso_pvalue
+   desparsified_group_lasso_pvalue
    ensemble_clustered_inference
-   group_reid
+   reid
    hd_inference
    knockoff_aggregation
    model_x_knockoff
-   multivariate_1D_simulation
    permutation_test
    permutation_test_pval
    reid
@@ -38,7 +40,9 @@ Classes
 
 .. autosummary::
    :toctree: generated/
-
+   :template: class.rst
+   
+   BasePerturbation
    LOCO
    CPI
    PermutationImportance
