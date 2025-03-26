@@ -89,6 +89,8 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-html-*-os-*
+    # for more details about how to commit a file:
+    # https://github.com/stefanzweifel/git-auto-commit-action
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
         file_pattern: '*/*.html'
@@ -108,6 +110,8 @@ jobs:
       with:
         pattern: pytest-results-md-*-os-*
     # add manual link to render the HTML commit on the reporter_test branch
+    # the rendering is based on the trick propose here: 
+    # https://github.com/htmlpreview/htmlpreview.github.com
     # TODO add this report to the documentation generated with a PR
     - name: Update mardown
       shell: bash
