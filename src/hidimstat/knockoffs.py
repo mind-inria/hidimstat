@@ -206,15 +206,14 @@ def model_x_knockoff(
     sigma = cov_estimator.fit(X).covariance_
 
     # Create knockoff variables
-    data_generated = memory.cache(gaussian_knockoff_generation)(
-        X, mu, sigma, seed=seed_list[0], tol=tol_gauss, repeat=(n_bootstraps > 1)
-    )
+    X_tilde, mu_tilde, sigma_tilde_decompose \
+        = memory.cache(gaussian_knockoff_generation)(
+            X, mu, sigma, seed=seed_list[0], tol=tol_gauss
+        )
 
     if n_bootstraps == 1:
-        X_tilde = data_generated
         X_tildes = [X_tilde]
     else:
-        X_tilde, (mu_tilde, sigma_tilde_decompose) = data_generated
         X_tildes = parallel(
             delayed(repeat_gaussian_knockoff_generation)(
                 mu_tilde,

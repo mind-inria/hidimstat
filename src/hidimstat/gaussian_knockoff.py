@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 
 
-def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=False):
+def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     """
     Generate second-order knockoff variables using the equi-correlated method.
 
@@ -33,11 +33,6 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     tol : float, default=1.e-14
         A tolerance value used for numerical stability in the calculation
         of the Cholesky decomposition.
-
-    repeat : bool, default=False
-        If True, the function returns the values used to generate the knockoff
-        variables (mu_tilde and sigma_tilde_decompose), which can be used to
-        generate additional knockoff variables without having to recompute them.
 
     Returns
     -------
@@ -75,10 +70,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14, repeat=Fals
     sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
     X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
 
-    if not repeat:
-        return X_tilde
-    else:
-        return X_tilde, (mu_tilde, sigma_tilde_decompose)
+    return X_tilde, mu_tilde, sigma_tilde_decompose
 
 
 def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
