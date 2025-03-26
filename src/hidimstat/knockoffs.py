@@ -119,66 +119,63 @@ def model_x_knockoff(
             LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,
                 cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
             LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
-                cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None, tol=1e-8)
+                cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None,
+                tol=1e-8)
             LogisticRegressionCV(penalty="l2", max_iter=1000, n_jobs=None,
-                verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8,)
+                verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0),
+                tol=1e-8,)
 
-    preconfigure_estimator : function, optional
+    preconfigure_estimator : callable, default=preconfigure_estimator_LassoCV
         A function that configures the estimator for the Model-X knockoff procedure.
         If provided, this function will be called with the estimator, X, X_tilde, and y
         as arguments, and should modify the estimator in-place.
 
-    fdr : float, optional (default=0.1)
+    fdr : float, default=0.1 
         The desired controlled False Discovery Rate (FDR) level.
 
-    centered : bool, optional (default=True)
+    centered : bool, default=True
         Whether to standardize the data before performing the inference procedure.
 
-    cov_estimator : sklearn covariance estimator instance, optional
-        The method used to estimate the empirical covariance matrix. This can be any
-        estimator with a `fit` method that accepts a 2D array and a `covariance_`
-        attribute that returns a 2D array of the estimated covariance matrix.
-        Examples include LedoitWolf and GraphicalLassoCV.
+    cov_estimator : estimator object, default=LedoitWolf()
+        Estimator for empirical covariance matrix.
 
-    joblib_verbose : int, optional (default=0)
-        The verbosity level of the joblib parallel processing.
+    joblib_verbose : int, default=0 
+        Verbosity level for parallel jobs.
 
-    n_bootstraps : int, optional (default=1)
-        The number of bootstrap samples to generate for aggregation.
+    n_bootstraps : int, default=1
+        Number of bootstrap samples for aggregation.
 
-    n_jobs : int, optional (default=1)
-        The number of jobs to run in parallel.
+    n_jobs : int, default=1 
+        Number of parallel jobs.
 
-    random_state : int or None, optional (default=None)
+    random_state : int or None, default=None
         The random seed used to generate the Gaussian knockoff variables.
 
-    tol_gauss : float, optional (default=1e-14)
-        A tolerance value used for numerical stability in the calculation of the Cholesky decomposition in the gaussian generation function.
+    tol_gauss : float, default=1e-14
+        A tolerance value used for numerical stability in the calculation of 
+        the Cholesky decomposition in the gaussian generation function.
 
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
+    offset : {0, 1}, default=1
+        Offset for knockoff threshold. Use 1 for knockoff+.
 
-    threshold : float
-        The knockoff threshold.
-
-    memory : joblib.Memory or str, optional (default=None)
+    memory : str or Memory object, default=None
         Used to cache the output of the clustering and inference computation.
         By default, no caching is done. If provided, it should be the path
         to the caching directory or a joblib.Memory object.
 
     Returns
     -------
-    test_scores : 2D ndarray (n_bootstraps, n_features)
-        A matrix of test statistics for each bootstrap sample.
+    selected : ndarray or list of ndarrays
+        Selected feature indices. List if n_bootstraps>1.
 
-    Notes
-    -----
-    This function generates multiple sets of Gaussian knockoff variables and calculates
-    the test statistics for each set using the `_stat_coefficient_diff` function. This
-    _stat_coefficient_diff calculates the knockoff threshold based on the test statistics
-    and the desired FDR level. It then identifies the selected variables based on the
-    threshold. It ehen aggregates the result across the sets to improve stability and power.
+    test_scores : ndarray or list of ndarrays
+        Test statistics. List if n_bootstraps>1.
+
+    threshold : float or list of floats
+        Knockoff thresholds. List if n_bootstraps>1.
+
+    X_tildes : ndarray or list of ndarrays
+        Generated knockoff variables. List if n_bootstraps>1.
 
     References
     ----------
@@ -408,32 +405,52 @@ def _stat_coefficient_diff(
     X, X_tilde, y, estimator, fdr, offset, preconfigure_estimator=None
 ):
     """
-    Compute statistic based on a cross-validation procedure.
+    Compute feature importance statistics by comparing original and knockoff coefficients.
 
-    Original implementation:
-    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/stats_glmnet_cv.R
+    This function fits a model on the concatenated original and knockoff features, then
+    calculates test statistics based on the difference between coefficient magnitudes.
 
     Parameters
     ----------
-    X : 2D ndarray (n_samples, n_features)
-        The original design matrix.
+    X : ndarray of shape (n_samples, n_features)
+        Original feature matrix.
 
-    X_tilde : 2D ndarray (n_samples, n_features)
-        The knockoff design matrix.
+    X_tilde : ndarray of shape (n_samples, n_features) 
+        Knockoff feature matrix.
 
-    y : 1D ndarray (n_samples, )
-        The target vector.
+    y : ndarray of shape (n_samples,)
+        Target values.
 
-    estimator : sklearn estimator instance or a cross-validation instance
-        The estimator used for fitting the data and computing the test statistics.
+    estimator : estimator object
+        Scikit-learn estimator with fit() method and coef_ attribute.
+        Common choices include LassoCV, LogisticRegressionCV.
 
-    preconfigure_estimator : function, optional
-        A function that configures the estimator for the Model-X knockoff procedure.
+    fdr : float
+        Target false discovery rate level between 0 and 1.
+
+    offset : {0, 1}
+        Knockoff threshold offset. Use 1 for knockoff+.
+
+    preconfigure_estimator : callable, default=None
+        Optional function to configure estimator parameters before fitting.
+        Called with arguments (estimator, X, X_tilde, y).
 
     Returns
     -------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistics.
+    test_score : ndarray of shape (n_features,)
+        Feature importance scores computed as |beta_j| - |beta_j'|
+        where beta_j and beta_j' are original and knockoff coefficients.
+
+    ko_thr : float
+        Knockoff threshold value used for feature selection.
+
+    selected : ndarray
+        Indices of features with test_score >= ko_thr.
+
+    Notes
+    -----
+    The test statistic follows Equation 1.7 in Barber & Candès (2015) and
+    Equation 3.6 in Candès et al. (2018).
     """
     n_samples, n_features = X.shape
     X_ko = np.column_stack([X, X_tilde])
