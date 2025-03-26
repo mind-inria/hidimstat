@@ -361,8 +361,8 @@ def _x_distillation_lasso(
             cv=cv,
             n_jobs=n_jobs,
             random_state=random_state,
-            alpha_max_fraction=0.1, # TODO: why 0.1 ?
-        ) 
+            alpha_max_fraction=0.1,  # TODO: why 0.1 ?
+        )
 
         # get the residuals
         X_res = X[:, idx] - clf.predict(X_minus_idx)
