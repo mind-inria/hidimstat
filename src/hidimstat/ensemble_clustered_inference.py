@@ -145,6 +145,14 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
+def _ward_clustering(X_init, ward, train_index):
+    """Ward clustering applied to full X but computed from a subsample of X"""
+    ward_ = clone(ward)
+    ward_ = ward_.fit(X_init[train_index, :])
+    X_reduced = ward_.transform(X_init)
+    return X_reduced, ward_
+
+
 def clustered_inference(
     X_init,
     y,
@@ -155,6 +163,7 @@ def clustered_inference(
     groups=None,
     seed=0,
     n_jobs=1,
+    memory=None,
     verbose=1,
     **kwargs,
 ):
@@ -196,6 +205,11 @@ def clustered_inference(
 
     n_jobs : int, optional (default=1)
         Number of parallel jobs for computation.
+    
+    memory : str or joblib.Memory object, optional (default=None)
+        Used to cache the output of the computation of the clustering
+        and the inference. By default, no caching is done. If a string is
+        given, it is the path to the caching directory.
 
     verbose : int, optional (default=1)
         Verbosity level for progress messages.
@@ -229,6 +243,7 @@ def clustered_inference(
     3. Transform data to cluster space
     4. Perform statistical inference using desparsified lasso
     """
+    memory = check_memory(memory=memory)
     n_samples, n_features = X_init.shape
 
     if verbose > 0:
@@ -243,16 +258,14 @@ def clustered_inference(
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
     # transformation matrix
-    ward_ = clone(ward)
-    ward_.fit(X_init[train_index, :])
-    X_reduced = ward_.transform(X_init)
+    X_reduced, ward_ = memory(_ward_clustering)(X_init, ward, train_index)
 
     # Preprocessing
     if scaler_sampling is not None:
         X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
 
     # inference methods
-    beta_hat, theta_hat, omega_diag = desparsified_lasso(
+    beta_hat, theta_hat, omega_diag = memory.cache(desparsified_lasso)(
         X_reduced,
         y,
         group=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
