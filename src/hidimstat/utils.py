@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.utils import resample
 
 
 ########################## quantile aggregation method ##########################
@@ -361,3 +362,39 @@ def _check_vim_predict_method(method):
                 method
             )
         )
+
+
+################# function for boostraping data ################################
+
+
+def _subsampling(n_samples, train_size, groups=None, seed=0):
+    """
+    Random subsampling for statistical inference.
+
+    Parameters
+    ----------
+    n_samples : int
+        Total number of samples in the dataset.
+    train_size : float
+        Fraction of samples to include in the training set (between 0 and 1).
+    groups : ndarray, shape (n_samples,), optional (default=None)
+        Group labels for samples. If provided, subsampling is done
+        at group level.
+    seed : int, optional (default=0)
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    train_index : ndarray
+        Indices of selected samples for training.
+    """
+    index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+    train_index = resample(
+        index_row,
+        n_samples=int(len(index_row) * train_size),
+        replace=False,
+        random_state=seed,
+    )
+    if groups is not None:
+        train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+    return train_index

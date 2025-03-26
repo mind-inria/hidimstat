@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.base import clone
-from sklearn.utils import resample
 from joblib import Parallel, delayed
 from sklearn.utils.validation import check_memory
 
@@ -10,39 +9,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_group_lasso_pvalue,
 )
 from hidimstat.stat_tools import adaptive_quantile_aggregation
-
-
-def _subsampling(n_samples, train_size, groups=None, seed=0):
-    """
-    Random subsampling for statistical inference.
-
-    Parameters
-    ----------
-    n_samples : int
-        Total number of samples in the dataset.
-    train_size : float
-        Fraction of samples to include in the training set (between 0 and 1).
-    groups : ndarray, shape (n_samples,), optional (default=None)
-        Group labels for samples. If provided, subsampling is done
-        at group level.
-    seed : int, optional (default=0)
-        Random seed for reproducibility.
-
-    Returns
-    -------
-    train_index : ndarray
-        Indices of selected samples for training.
-    """
-    index_row = np.arange(n_samples) if groups is None else np.unique(groups)
-    train_index = resample(
-        index_row,
-        n_samples=int(len(index_row) * train_size),
-        replace=False,
-        random_state=seed,
-    )
-    if groups is not None:
-        train_index = np.arange(n_samples)[np.isin(groups, train_index)]
-    return train_index
+from hidimstat.utils import _subsampling
 
 
 def _ungroup_beta(beta_hat, n_features, ward):

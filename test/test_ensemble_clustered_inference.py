@@ -254,7 +254,12 @@ def test_ensemble_clustered_inference():
     )
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         ensemble_clustered_inference_pvalue(
-            n_samples, False, list_ward, list_beta_hat, list_theta_hat, list_precision_diag
+            n_samples,
+            False,
+            list_ward,
+            list_beta_hat,
+            list_theta_hat,
+            list_precision_diag,
         )
     )
 
@@ -356,4 +361,3 @@ def test_ensemble_clustered_inference_temporal_data():
     assert_almost_equal(
         pval_corr[extended_support:], expected[extended_support:], decimal=1
     )
-

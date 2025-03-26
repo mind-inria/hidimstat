@@ -63,7 +63,7 @@ from sklearn.feature_extraction import image
 
 from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue
+    ensemble_clustered_inference_pvalue,
 )
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
