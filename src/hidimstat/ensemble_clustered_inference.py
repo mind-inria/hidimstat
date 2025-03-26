@@ -205,7 +205,7 @@ def clustered_inference(
 
     n_jobs : int, optional (default=1)
         Number of parallel jobs for computation.
-    
+
     memory : str or joblib.Memory object, optional (default=None)
         Used to cache the output of the computation of the clustering
         and the inference. By default, no caching is done. If a string is
@@ -265,11 +265,14 @@ def clustered_inference(
         X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
 
     # inference methods
-    beta_hat, theta_hat, omega_diag = memory.cache(desparsified_lasso)(
+    beta_hat, theta_hat, omega_diag = memory.cache(
+        desparsified_lasso, ignore=["n_jobs", "verbose", "memory"]
+    )(
         X_reduced,
         y,
         group=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
         n_jobs=n_jobs,
+        memory=memory,
         verbose=verbose,
         **kwargs,
     )
@@ -327,7 +330,9 @@ def clustered_inference_pvalue(
         )
     else:
         pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, **kwargs)
+            desparsified_group_lasso_pvalue(
+                beta_hat, theta_hat, precision_diag, **kwargs
+            )
         )
 
     # De-grouping
