@@ -29,7 +29,7 @@ jobs:
       REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
 
     steps:
-    # Checkout to the branch for getting the ritgh code
+    # Checkout to the branch for getting the right code
     - uses: actions/checkout@v4
     # Install python
     - name: Set up Python ${{ matrix.python-version }}
