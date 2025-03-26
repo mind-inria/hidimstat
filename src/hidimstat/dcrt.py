@@ -13,10 +13,11 @@ def dcrt_zero(
     y,
     estimated_coef=None,
     sigma_X=None,
-    use_cv=False,
     cv=5,
-    n_alphas=20,
     alpha=None,
+    n_alphas=0,
+    alphas=None,
+    alpha_max_fraction=0.5,
     tol=1e-6,
     max_iter=1000,
     refit=False,
@@ -48,14 +49,17 @@ def dcrt_zero(
         Pre-computed feature coefficients
     sigma_X : array-like of shape (n_features, n_features), optional
         Covariance matrix of X
-    use_cv : bool, default=False
-        Whether to use cross-validation for Lasso
     cv : int, default=5
         Number of cross-validation folds
-    n_alphas : int, default=20
-        Number of alphas for Lasso path
     alpha : float, optional
         L1 regularization strength
+    alpha_max_fraction : float, default=0.5
+        Fraction of lambda_max to use when determining alpha.
+    n_alphas : int, default=0
+        Number of alphas for Lasso path
+    alphas : array-like, default=None
+        List of alphas where to compute the models.
+        If None alphas are set automatically.
     tol : float, default=1e-6
         Solver tolerance
     max_iter : int, default=1000
@@ -110,16 +114,22 @@ def dcrt_zero(
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
         # is based on a cross-validated lasso
-        clf = LassoCV(
+        clf, alpha = fit_lasso(
+            X_,
+            y_,
+            alpha=alpha,
+            alphas=alphas,
+            n_alphas=n_alphas * 2,  # TODO: Why * 2 ?
             cv=cv,
             n_jobs=n_jobs,
-            n_alphas=n_alphas * 2,  # TODO: Why * 2 ?
+            random_state=random_state,
+            alpha_max_fraction=alpha_max_fraction,
+            # other argument for the cross validation not used  by other fitting
             tol=tol,
             max_iter=max_iter,
             fit_intercept=False,
-            selection='cyclic',
+            selection="cyclic",
         )
-        clf.fit(X_, y_)
         coef_X_full = np.ravel(clf.coef_)
     else:
         coef_X_full = estimated_coef
@@ -161,11 +171,12 @@ def dcrt_zero(
                 coef_full=coef_X_full,
                 sigma_X=sigma_X,
                 cv=cv,
-                use_cv=use_cv,
                 alpha=alpha,
-                n_jobs=1,  # the function is already called in parallel
+                alpha_max_fraction=alpha_max_fraction,
                 n_alphas=n_alphas,
+                alphas=alphas,
                 fit_y=fit_y,
+                n_jobs=1,  # the function is already called in parallel
                 random_state=random_state,
             )
             for idx in selection_set
@@ -179,12 +190,13 @@ def dcrt_zero(
                 idx,
                 sigma_X=sigma_X,
                 cv=cv,
-                use_cv=use_cv,
                 alpha=alpha,
-                n_jobs=1,  # the function is already called in parallel
+                alpha_max_fraction=alpha_max_fraction,
                 n_alphas=n_alphas,
+                alphas=alphas,
                 ntree=ntree,
                 problem_type=problem_type,
+                n_jobs=1,  # the function is already called in parallel
                 random_state=random_state,
             )
             for idx in selection_set
@@ -289,9 +301,10 @@ def _x_distillation_lasso(
     idx,
     sigma_X=None,
     cv=3,
-    n_alphas=100,
     alpha=None,
-    use_cv=False,
+    alpha_max_fraction=0.5,
+    n_alphas=100,
+    alphas=None,
     n_jobs=1,
     random_state=0,
 ):
@@ -312,12 +325,15 @@ def _x_distillation_lasso(
         The covariance matrix of X. If provided, used instead of Lasso regression.
     cv : int, cross-validation generator or iterable, default=3
         Determines the cross-validation splitting strategy for LassoCV.
-    n_alphas : int, default=100
-        Number of alphas along the regularization path for LassoCV.
     alpha : float, default=None
         The regularization strength for Lasso. If None, determined automatically.
-    use_cv : bool, default=False
-        Whether to use cross-validation to select alpha.
+    n_alphas : int, default=100
+        Number of alphas along the regularization path for LassoCV.
+    alphas : array-like, default=None
+        List of alphas where to compute the models.
+        If None alphas are set automatically.
+    alpha_max_fraction : float, default=0.5
+        Fraction of lambda_max to use when determining alpha.
     n_jobs : int, default=1
         Number of CPUs to use for cross-validation.
     random_state : int, default=0
@@ -336,21 +352,17 @@ def _x_distillation_lasso(
     if sigma_X is None:
         # Distill X with least square loss
         # configure Lasso and determine the alpha
-        if use_cv:
-            clf = LassoCV(
-                cv=cv, n_alphas=n_alphas, n_jobs=n_jobs, random_state=random_state
-            )
-            clf.fit(X_minus_idx, X[:, idx])
-            alpha = clf.alpha_
-        else:
-            if alpha is None:
-                alpha = 0.1 * _alpha_max(X_minus_idx, X[:, idx])  # TODO: why 0.1 ?
-            clf = Lasso(
-                alpha=alpha,
-                fit_intercept=False,
-                random_state=random_state,
-            )
-            clf.fit(X_minus_idx, X[:, idx])
+        clf, alpha = fit_lasso(
+            X_minus_idx,
+            X[:, idx],
+            alpha=alpha,
+            alphas=alphas,
+            n_alphas=n_alphas,
+            cv=cv,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            alpha_max_fraction=0.1, # TODO: why 0.1 ?
+        ) 
 
         # get the residuals
         X_res = X[:, idx] - clf.predict(X_minus_idx)
@@ -383,12 +395,12 @@ def _lasso_distillation_residual(
     coef_full=None,
     sigma_X=None,
     cv=3,
-    n_alphas=50,
     alpha=None,
-    n_jobs=1,
-    use_cv=False,
-    fit_y=False,
     alpha_max_fraction=0.5,
+    n_alphas=0,
+    alphas=None,
+    n_jobs=1,
+    fit_y=False,
     random_state=42,
 ):
     """
@@ -412,18 +424,19 @@ def _lasso_distillation_residual(
         The covariance matrix of X.
     cv : int, default=3
         Number of folds for cross-validation.
-    n_alphas : int, default=50
-        Number of alphas along the regularization path.
     alpha : float, default=None
         The regularization strength. If None, determined automatically.
-    n_jobs : int, default=1
-        Number of CPUs to use.
-    use_cv : bool, default=False
-        Whether to use cross-validation for selecting alpha.
-    fit_y : bool, default=False
-        Whether to fit y using Lasso when coef_full is None.
     alpha_max_fraction : float, default=0.5
         Fraction of lambda_max to use when determining alpha.
+    n_alphas : int, default=50
+        Number of alphas along the regularization path.
+    alphas : array-like, default=None
+        List of alphas where to compute the models.
+        If None alphas are set automatically.
+    n_jobs : int, default=1
+        Number of CPUs to use.
+    fit_y : bool, default=False
+        Whether to fit y using Lasso when coef_full is None.
     random_state : int, default=42
         Random seed for reproducibility.
 
@@ -436,7 +449,6 @@ def _lasso_distillation_residual(
     ----------
     .. footbibliography::
     """
-    n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
@@ -445,9 +457,9 @@ def _lasso_distillation_residual(
         idx,
         sigma_X,
         cv=cv,
-        use_cv=use_cv,
         alpha=alpha,
         n_alphas=n_alphas,
+        alphas=alphas,
         n_jobs=n_jobs,
         random_state=random_state + 2,  # avoid the same seed as the main function
     )
@@ -455,26 +467,17 @@ def _lasso_distillation_residual(
     # Distill Y - calculate residual
     # get the coefficients
     if fit_y:
-        # configure Lasso
-        if use_cv:
-            clf_null = LassoCV(
-                cv=cv,
-                n_alphas=n_alphas,
-                n_jobs=n_jobs,
-                random_state=random_state,
-            )
-        else:
-            if alpha is None:
-                alpha = alpha_max_fraction * _alpha_max(
-                    X_minus_idx, y, use_noise_estimate=False
-                )
-            clf_null = Lasso(
-                alpha=alpha,
-                fit_intercept=False,
-                random_state=random_state,
-            )
-
-        clf_null.fit(X_minus_idx, y)
+        clf_null, alpha_null = fit_lasso(
+            X_minus_idx,
+            y,
+            alpha=alpha,
+            alphas=alphas,
+            n_alphas=n_alphas,
+            cv=cv,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            alpha_max_fraction=alpha_max_fraction,
+        )
         coef_minus_idx = clf_null.coef_
     elif coef_full is not None:
         coef_minus_idx = np.delete(np.copy(coef_full), idx)
@@ -493,11 +496,12 @@ def _rf_distillation(
     idx,
     sigma_X=None,
     cv=3,
-    n_alphas=50,
     alpha=None,
+    alpha_max_fraction=0.5,
+    n_alphas=0,
+    alphas=None,
     n_jobs=1,
     problem_type="regression",
-    use_cv=False,
     ntree=100,
     random_state=42,
 ):
@@ -520,10 +524,15 @@ def _rf_distillation(
         The covariance matrix of X.
     cv : int, default=3
         Number of folds for cross-validation in X distillation.
-    n_alphas : int, default=50
-        Number of alphas for Lasso path in X distillation.
     alpha : float, default=None
         Regularization strength for X distillation.
+    alpha_max_fraction : float, default=0.5
+        Fraction of lambda_max to use when determining alpha.
+    n_alphas : int, default=50
+        Number of alphas for Lasso path in X distillation.
+    alphas : array-like, default=None
+        List of alphas where to compute the models.
+        If None alphas are set automatically.
     n_jobs : int, default=1
         Number of CPUs to use.
     problem_type : {'regression', 'classification'}, default='regression'
@@ -534,7 +543,6 @@ def _rf_distillation(
         Number of trees in the Random Forest.
     random_state : int, default=42
         Random seed for reproducibility.
-
 
     Returns
     -------
@@ -556,9 +564,10 @@ def _rf_distillation(
         idx,
         sigma_X,
         cv=cv,
-        use_cv=use_cv,
         alpha=alpha,
+        alpha_max_fraction=alpha_max_fraction,
         n_alphas=n_alphas,
+        alphas=alphas,
         n_jobs=n_jobs,
         random_state=random_state + 2,  # avoid the same seed as the main function
     )
@@ -584,3 +593,75 @@ def _rf_distillation(
         sigma2_X,
         y_res,
     )
+
+
+def fit_lasso(
+    X,
+    y,
+    alpha,
+    alphas,
+    n_alphas,
+    cv,
+    n_jobs,
+    random_state,
+    alpha_max_fraction,
+    **kwargs_cv,
+):
+    """
+    Fits a LASSO regression model with optional cross-validation for alpha selection.
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Training data.
+    y : array-like of shape (n_samples,)
+        Target values.
+    alpha : float, optional
+        Constant that multiplies the L1 term. If None and alphas/n_alphas not provided,
+        alpha is set to alpha_max_fraction * alpha_max.
+    alphas : array-like, optional
+        List of alphas where to compute the models. If None and n_alphas > 0,
+        alphas are set automatically.
+    n_alphas : int, optional
+        Number of alphas along the regularization path. Ignored if alphas is provided.
+    cv : int, cross-validation generator or iterable, optional
+        Determines the cross-validation splitting strategy.
+    n_jobs : int, optional
+        Number of CPUs to use during cross-validation.
+    random_state : int, RandomState instance or None, optional
+        Controls the randomness of the estimator.
+    alpha_max_fraction : float
+        Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
+    **kwargs_cv : dict
+        Additional keyword arguments to be passed to LassoCV.
+    Returns
+    -------
+    tuple
+        A tuple containing:
+        - clf : The fitted Lasso or LassoCV model
+        - alpha : The alpha value used or selected by cross-validation
+    Notes
+    -----
+    If alphas or n_alphas is provided, performs cross-validation to select the best alpha.
+    Otherwise, uses a single alpha value either provided or computed from alpha_max_fraction.
+    """
+    if alphas is not None or n_alphas > 0:
+        clf = LassoCV(
+            cv=cv,
+            n_alphas=n_alphas,
+            alphas=alphas,
+            n_jobs=n_jobs,
+            random_state=random_state,
+            **kwargs_cv,
+        )
+        clf.fit(X, y)
+        alpha = clf.alpha_
+    else:
+        if alpha is None:
+            alpha = alpha_max_fraction * _alpha_max(X, y)
+        clf = Lasso(
+            alpha=alpha,
+            fit_intercept=False,
+            random_state=random_state,
+        )
+        clf.fit(X, y)
+    return clf, alpha

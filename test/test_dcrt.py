@@ -134,7 +134,7 @@ def test_dcrt_lasso_with_use_cv(generate_regation_dataset):
     results_use_cv = dcrt_zero(
         X,
         y,
-        use_cv=True,
+        n_alphas=20,
         screening=False,
         statistic="residual",
         random_state=2024,
@@ -248,7 +248,7 @@ def test_dcrt_lasso_fit_with_cv():
         X,
         y,
         fit_y=True,
-        use_cv=True,
+        n_alphas=20,
         screening=False,
         statistic="residual",
         random_state=2024,
