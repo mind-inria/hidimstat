@@ -9,7 +9,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat.stat_tools import aggregate_quantiles
+from hidimstat.stat_tools import adaptive_quantile_aggregation
 
 
 def _subsampling(n_samples, train_size, groups=None, seed=0):
@@ -147,10 +147,9 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
 def _ward_clustering(X_init, ward, train_index):
     """Ward clustering applied to full X but computed from a subsample of X"""
-    ward_ = clone(ward)
-    ward_ = ward_.fit(X_init[train_index, :])
-    X_reduced = ward_.transform(X_init)
-    return X_reduced, ward_
+    ward = ward.fit(X_init[train_index, :])
+    X_reduced = ward.transform(X_init)
+    return X_reduced, ward
 
 
 def clustered_inference(
@@ -258,7 +257,7 @@ def clustered_inference(
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
     # transformation matrix
-    X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, ward, train_index)
+    X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, clone(ward), train_index)
 
     # Preprocessing
     if scaler_sampling is not None:
@@ -504,7 +503,7 @@ def ensemble_clustered_inference_pvalue(
     list_beta_hat,
     list_theta_hat,
     list_precision_diag,
-    aggregate_method=aggregate_quantiles,
+    aggregate_method=adaptive_quantile_aggregation,
     n_jobs=None,
     verbose=0,
     **kwargs,
@@ -532,7 +531,7 @@ def ensemble_clustered_inference_pvalue(
         List of estimated precision matrices from each bootstrap
     list_precision_diag : list of ndarray
         List of diagonal elements of covariance matrices from each bootstrap
-    aggregate_method : callable, default=aggregate_quantiles
+    aggregate_method : callable, default=aggregate_adaptive_quantiles
         Function to aggregate results across bootstraps. Must accept a 2D array
         and return a 1D array of aggregated values.
     n_jobs : int or None, optional (default=None)

@@ -16,8 +16,8 @@ from hidimstat.stat_tools import (
     two_sided_pval_from_zscore,
     zscore_from_cb,
     zscore_from_pval,
-    aggregate_quantiles,
-    aggregate_adaptive_quantiles,
+    quantile_aggregation,
+    adaptive_quantile_aggregation,
 )
 
 
@@ -200,7 +200,7 @@ def test_aggregate_quantiles():
     list_pval[15:, :] = 3e-3
     list_pval[:, 0] = 0.8
 
-    pval = aggregate_quantiles(list_pval)
+    pval = quantile_aggregation(list_pval)
     expected = 0.04 * np.ones(n_features)
     expected[0] = 1.0
 
@@ -217,7 +217,7 @@ def test_aggregate_adaptive_quantiles():
     list_pval = list_pval.reshape((n_iter, n_features))
     list_pval[15:, :] = 3e-3
 
-    pval = aggregate_adaptive_quantiles(list_pval)
+    pval = adaptive_quantile_aggregation(list_pval)
     expected = 0.03 * np.ones(n_features)
 
     assert_almost_equal(pval, expected, decimal=2)

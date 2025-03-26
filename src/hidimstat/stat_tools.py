@@ -466,7 +466,7 @@ def step_down_max_t(stat, permutation_stats):
     return two_sided_pval_corr
 
 
-def aggregate_quantiles(list_one_sided_pval, quantile=0.5):
+def quantile_aggregation(list_one_sided_pval, quantile=0.5):
     """
     Aggregation of survival function values returning an asymptotically correct p-value,
     adjusted for the multiplicity :footcite:`Meinshausen_2008`.
@@ -491,7 +491,7 @@ def aggregate_quantiles(list_one_sided_pval, quantile=0.5):
     return one_sided_pval
 
 
-def aggregate_adaptive_quantiles(list_one_sided_pval, gamma_min=0.2):
+def adaptive_quantile_aggregation(list_one_sided_pval, gamma_min=0.2):
     """
     Aggregation of survival function values by adaptive quantile procedure
 
