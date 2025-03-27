@@ -142,7 +142,7 @@ def dcrt_zero(
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
     )[0]
     # optimisation to reduce the number of elements different to zeros
-    coef_X_full[non_selection] = 0.0  
+    coef_X_full[non_selection] = 0.0
 
     # select the variables for the screening
     if screening:
