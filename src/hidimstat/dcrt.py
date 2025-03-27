@@ -141,9 +141,8 @@ def dcrt_zero(
         np.abs(coef_X_full)
         <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
     )[0]
-    coef_X_full[non_selection] = (
-        0.0  # TODO this should be after the screening process ????
-    )
+    # optimisation to reduce the number of elements different to zeros
+    coef_X_full[non_selection] = 0.0  
 
     # select the variables for the screening
     if screening:
@@ -303,7 +302,7 @@ def _x_distillation_lasso(
     sigma_X=None,
     cv=3,
     alpha=None,
-    alpha_max_fraction=0.5,
+    alpha_max_fraction=0.1,
     n_alphas=100,
     alphas=None,
     n_jobs=1,
@@ -362,7 +361,7 @@ def _x_distillation_lasso(
             cv=cv,
             n_jobs=n_jobs,
             random_state=random_state,
-            alpha_max_fraction=0.1,  # TODO: why 0.1 ?
+            alpha_max_fraction=alpha_max_fraction,
         )
 
         # get the residuals
