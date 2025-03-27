@@ -28,7 +28,7 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     estimator : sklearn.linear_model._base.LinearModel
         An instance of a linear model estimator from sklearn.linear_model.
         This estimator will be used to fit the data and compute the test
-        statistics. In this case, it should be an instance of LassoCV.
+        statistics. In this case, it must be an instance of LassoCV.
 
     X : 2D ndarray (n_samples, n_features)
         The original design matrix.
@@ -58,7 +58,7 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     which combines original and knockoff variables in the design matrix.
     """
     if type(estimator).__name__ != "LassoCV":
-        raise TypeError("You should not use this function for configure your estimator")
+        raise TypeError("You should not use this function to configure the estimator")
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
