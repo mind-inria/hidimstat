@@ -20,7 +20,7 @@ from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )
-from hidimstat.stat_tools import adaptive_quantile_aggregation, quantile_aggregation
+from hidimstat.utils import fixed_quantile_aggregation, adaptive_quantile_aggregation
 
 
 # Scenario 1: data with no temporal dimension
@@ -348,7 +348,7 @@ def test_ensemble_clustered_inference_temporal_data():
             list_beta_hat,
             list_theta_hat,
             list_precision_diag,
-            aggregate_method=quantile_aggregation,
+            aggregate_method=fixed_quantile_aggregation,
         )
     )
 

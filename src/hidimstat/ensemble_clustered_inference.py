@@ -8,8 +8,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat.stat_tools import adaptive_quantile_aggregation
-from hidimstat.utils import _subsampling
+from hidimstat.utils import _subsampling, adaptive_quantile_aggregation
 
 
 def _ungroup_beta(beta_hat, n_features, ward):
