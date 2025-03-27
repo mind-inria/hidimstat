@@ -25,10 +25,8 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
 
     Parameters
     ----------
-    estimator : sklearn.linear_model._base.LinearModel
-        An instance of a linear model estimator from sklearn.linear_model.
-        This estimator will be used to fit the data and compute the test
-        statistics. In this case, it must be an instance of LassoCV.
+    estimator : sklearn.linear_model.LassoCV
+        The Lasso estimator to configure.
 
     X : 2D ndarray (n_samples, n_features)
         The original design matrix.
@@ -44,18 +42,18 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
 
     Returns
     -------
-    None
-        The function modifies the `estimator` object in-place.
+    estimator : sklearn.linear_model.LassoCV
+        The configured estimator.
 
     Raises
     ------
     TypeError
-        If the estimator is not an instance of LassoCV.
+        If estimator is not an instance of LassoCV.
 
     Notes
     -----
-    This function is specifically designed for the Model-X knockoffs procedure,
-    which combines original and knockoff variables in the design matrix.
+    The alpha values are calculated based on the combined design matrix [X, X_tilde].
+    alpha_max is set to max(X_ko.T @ y)/(2*n_features).
     """
     if type(estimator).__name__ != "LassoCV":
         raise TypeError("You should not use this function to configure the estimator")
@@ -65,6 +63,7 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
     alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
     estimator.alphas = alphas
+    return estimator
 
 
 def model_x_knockoff(
@@ -453,7 +452,7 @@ def _stat_coefficient_diff(
     n_samples, n_features = X.shape
     X_ko = np.column_stack([X, X_tilde])
     if preconfigure_estimator is not None:
-        preconfigure_estimator(estimator, X, X_tilde, y)
+        estimator = preconfigure_estimator(estimator, X, X_tilde, y)
     estimator.fit(X_ko, y)
     if hasattr(estimator, "coef_"):
         coef = np.ravel(estimator.coef_)
