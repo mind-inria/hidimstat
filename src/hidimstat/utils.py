@@ -67,7 +67,7 @@ def fixed_quantile_aggregation(pvals, gamma=0.5):
     """
     assert gamma > 0 and gamma <= 1, "gamma should be between 0 and 1"
     # equation 2.2 of meinshausen2009p
-    converted_score = np.quantile(pvals, q=gamma, axis=0)/ gamma
+    converted_score = np.quantile(pvals, q=gamma, axis=0) / gamma
     return np.minimum(1, converted_score)
 
 
@@ -99,10 +99,13 @@ def adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     ordered_pval = np.sort(pvals, axis=0)[n_min:]
     # calculation of the pvalue / quantile (=j/m)
     # see equation 2.2 of `meinshausen2009p`
-    P = np.min(ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0) * n_iter
+    P = (
+        np.min(ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0)
+        * n_iter
+    )
     # see equation 2.3 of `meinshausen2009p`
     pval_aggregate = np.minimum(1, (1 - np.log(gamma_min)) * P)
-    return  pval_aggregate
+    return pval_aggregate
 
 
 ########################## False Discovery Proportion ##########################
