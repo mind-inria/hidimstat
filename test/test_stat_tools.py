@@ -186,4 +186,3 @@ def test_two_sided_pval_from_pval():
 
     assert_almost_equal(two_sided_pval, expected[0], decimal=2)
     assert_almost_equal(two_sided_pval_corr, expected[1], decimal=2)
-
