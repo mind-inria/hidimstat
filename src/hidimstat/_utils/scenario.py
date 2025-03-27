@@ -316,7 +316,7 @@ def multivariate_1D_simulation_AR(
         coefficients
 
     rho : float, optional
-        Level of correlation between neighboring features (if not `shuffle`).
+        Level of correlation between neighboring features.
 
     effect : float, optional
         signal magnitude, value of non-null coefficients
