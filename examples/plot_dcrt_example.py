@@ -52,21 +52,21 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     selection_features, X_res, sigma2_X, y_res = dcrt_zero(X, y, screening=False)
-    results_lasso = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
+    variables_important_lasso, pvals_lasso, ts_lasso = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
     typeI_error["Lasso"].append(
-        sum(results_lasso[1][n_signal:] < alpha) / (p - n_signal)
+        sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal)
     )
-    power["Lasso"].append(sum(results_lasso[1][:n_signal] < alpha) / (n_signal))
+    power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
     selection_features, X_res, sigma2_X, y_res = dcrt_zero(
         X, y, screening=False, statistic="randomforest"
     )
-    results_forest = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
+    rvariables_important_forest, pvals_forest, ts_forest = dcrt_pvalue(selection_features, X_res, sigma2_X, y_res)
     typeI_error["Forest"].append(
-        sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
+        sum(pvals_forest[n_signal:] < alpha) / (p - n_signal)
     )
-    power["Forest"].append(sum(results_forest[1][:n_signal] < alpha) / (n_signal))
+    power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
 
 #############################################################################
 # Plotting the comparison
