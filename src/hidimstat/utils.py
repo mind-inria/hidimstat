@@ -67,7 +67,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     ----------
     .. footbibliography::
     """
-    assert gamma > 0 and gamma <= 1, "gamma should be between O and 1"
+    assert gamma > 0 and gamma <= 1, "gamma should be between 0 and 1"
     # equation 2.2 of meinshausen2009p
     converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
     return np.minimum(1, converted_score)
