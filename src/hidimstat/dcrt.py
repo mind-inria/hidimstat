@@ -207,10 +207,10 @@ def dcrt_zero(
     # contatenate result
     selection_features = np.ones((n_features,), dtype=bool)
     selection_features[non_selection] = 0
-    X_res = np.array([i[0] for i in results])
-    sigma2_X = np.array([i[1] for i in results])
-    y_res = np.array([i[2] for i in results])
-    return selection_features, X_res, sigma2_X, y_res
+    X_residual = np.array([result[0] for result in results])
+    sigma2_X = np.array([result[1] for result in results])
+    y_residual = np.array([result[2] for result in results])
+    return selection_features, X_residual, sigma2_X, y_residual
 
 
 def dcrt_pvalue(
