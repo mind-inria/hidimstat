@@ -513,7 +513,7 @@ def adaptive_quantile_aggregation(list_one_sided_pval, gamma_min=0.2):
     ----------
     .. footbibliography::
     """
-    assert gamma_min > 0 and gamma_min <= 1, 'gamma min should between 0 and 1'
+    assert gamma_min > 0 and gamma_min <= 1, "gamma min should between 0 and 1"
 
     n_iter, n_features = list_one_sided_pval.shape
     one_sided_pval = 0.5 * np.ones(n_features)
