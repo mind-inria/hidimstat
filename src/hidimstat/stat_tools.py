@@ -486,8 +486,8 @@ def quantile_aggregation(list_one_sided_pval, quantile=0.5):
     .. footbibliography::
     """
     # From the equation 2.2 of `Meinshausen_2008`
-    one_sided_pval = np.median(list_one_sided_pval, axis=0) / quantile
-    one_sided_pval[np.where(one_sided_pval > 1)] = 1
+    one_sided_pval = np.quantile(list_one_sided_pval, quantile, axis=0) / quantile
+    one_sided_pval[np.where(one_sided_pval > 1)] = 1  # avoid value higher than 1
     return one_sided_pval
 
 
@@ -513,33 +513,18 @@ def adaptive_quantile_aggregation(list_one_sided_pval, gamma_min=0.2):
     ----------
     .. footbibliography::
     """
+    assert gamma_min > 0 and gamma_min <= 1, 'gamma min should between 0 and 1'
 
     n_iter, n_features = list_one_sided_pval.shape
     one_sided_pval = 0.5 * np.ones(n_features)
 
-    m = n_iter + 1
-    k = np.maximum(1, int(np.floor(gamma_min * n_iter)))
     r = 1 - np.log(gamma_min)
-    seq = range(k, n_iter)
+    m = n_iter + 1
 
     ordered_pval = np.sort(list_one_sided_pval, axis=0)
-    rev_ordered_pval = ordered_pval[::-1]
-
-    for i in np.arange(n_features):
-        # calculation of the pvalue / quantile
-        adjusted_ordered_pval = min([ordered_pval[j, i] * m / (j + 1) for j in seq])
-        # TODO: why comparions with 0.5 and not 1 ????
-        adjusted_ordered_pval = min(0.5, adjusted_ordered_pval)
-        # TODO: do the same result but with the other size of the distribution???
-        adjusted_rev_ordered_pval = max(
-            [1 - (1 - rev_ordered_pval[j, i]) * m / (j + 1) for j in seq]
-        )
-        adjusted_rev_ordered_pval = max(0.5, adjusted_rev_ordered_pval)
-
-        # TODO why use 0.5 and not 1 as in the paper???
-        if (1 - adjusted_rev_ordered_pval) < adjusted_ordered_pval:
-            one_sided_pval[i] = np.maximum(0.5, 1 - (1 - adjusted_rev_ordered_pval) * r)
-        else:
-            one_sided_pval[i] = np.minimum(0.5, adjusted_ordered_pval * r)
-
+    # calculation of the pvalue / quantile (=j/m)
+    # see equation 2.2 of `Meinshausen_2008`
+    P = np.min(ordered_pval / np.arange(1, m, 1).reshape(-1, 1), axis=0) * m
+    # see equation 2.3 of `Meinshausen_2008`
+    one_sided_pval = np.minimum(1, r * P)
     return one_sided_pval

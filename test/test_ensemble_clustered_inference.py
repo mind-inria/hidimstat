@@ -215,7 +215,7 @@ def test_ensemble_clustered_inference():
 
     # Scenario 1: data with no temporal dimension
     # ###########################################
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 200, 2000
     support_size = 10
     sigma = 5.0
     rho = 0.95
@@ -263,7 +263,7 @@ def test_ensemble_clustered_inference():
         )
     )
 
-    expected = 0.5 * np.ones(n_features)
+    expected = np.ones(n_features)
     expected[:support_size] = 0.0
 
     assert_almost_equal(
@@ -329,7 +329,7 @@ def test_ensemble_clustered_inference_temporal_data():
         )
     )
 
-    expected = 0.5 * np.ones(n_features)
+    expected = np.ones(n_features)
     expected[:support_size] = 0.0
 
     assert_almost_equal(
@@ -352,7 +352,7 @@ def test_ensemble_clustered_inference_temporal_data():
         )
     )
 
-    expected = 0.5 * np.ones(n_features)
+    expected = np.ones(n_features)
     expected[:support_size] = 0.0
 
     assert_almost_equal(
