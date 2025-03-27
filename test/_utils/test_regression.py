@@ -1,5 +1,5 @@
 import numpy as np
-from hidimstat._utils.utils import _alpha_max
+from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 
 seed = 42
