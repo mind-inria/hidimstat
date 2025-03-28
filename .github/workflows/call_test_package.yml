@@ -49,6 +49,13 @@ jobs:
          --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
+    - name: generate an empty mardown report if succeed
+      if: ${{ success()}}
+      shell: bash
+      run: |
+        mkdir pytest-results-md-${{env.REPORT_NAME}};
+        touch pytest-results-md-${{env.REPORT_NAME}}/test-results-${{env.REPORT_NAME}}.md 
+    
     # publish different reports (HTML, Mardown, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
