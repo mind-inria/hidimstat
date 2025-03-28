@@ -21,13 +21,17 @@ jobs:
     - name: clean repository
       shell: bash
       run: |
-        echo "PR${{github.event.number}}: ${{ github.event.head_commit.message }}\n branch:${{github.head_ref}} commit: ${{ github.sha }}";
         rm -rd *
     # get report from previous job 
     - name: Get data
       uses: actions/download-artifact@v4
       with:
         pattern: pytest-results-html-*-os-*
+    - name: create tag name
+      id: tag_name
+      shell: bash
+      run: |
+        echo $(echo "PR${{github.event.number}}_doc"|sed 's/ //g') >> $GITHUB_OUTPUT
     # for more details about how to commit a file:
     # https://github.com/stefanzweifel/git-auto-commit-action
     - uses: stefanzweifel/git-auto-commit-action@v5
@@ -36,7 +40,7 @@ jobs:
         file_pattern: '*/*.html'
         branch: 'report_test'
         commit_message: "PR${{github.event.number}}: ${{ github.event.head_commit.message }}\n branch:${{github.head_ref}} commit: ${{ github.sha }}"
-        tagging_message: "PR5"
+        tagging_message: ${{steps.tag_name.outputs}}
   
   merge_md_test_data:
     # for more details
