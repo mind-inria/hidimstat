@@ -36,7 +36,7 @@ jobs:
         file_pattern: '*/*.html'
         branch: 'report_test'
         commit_message: "PR${{github.event.number}}: ${{ github.event.head_commit.message }}\n branch:${{github.head_ref}} commit: ${{ github.sha }}"
-        tagging_message: $(echo "PR${{github.event.number}}"'|sed 's/ //g')
+        tagging_message: "$(echo 'PR${{github.event.number}}'|sed 's/ //g')"
   
   merge_md_test_data:
     # for more details
