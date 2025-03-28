@@ -5,16 +5,19 @@ on:
   workflow_call:
 
 # disable all the permission for the workflow
-permissions:
-      contents: write
+permissions: {}
 
 jobs:
   commit_html_report:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: 'report_test'
     # get report from previous job 
     - name: Get data
       uses: actions/download-artifact@v4
@@ -23,17 +26,18 @@ jobs:
     # for more details about how to commit a file:
     # https://github.com/stefanzweifel/git-auto-commit-action
     - uses: stefanzweifel/git-auto-commit-action@v5
+      id: auto_commit 
       with:
         file_pattern: '*/*.html'
         branch: 'report_test'
-        create_branch: true
   
   merge_md_test_data:
     # for more details
     # https://github.com/thombashi/pytest-md-report
     needs: commit_html_report
     runs-on: ubuntu-latest
-    # if: ${{ failure() }}
+    permissions:
+      contents: write
     steps:
     # get report from previous job 
     - name: Get data
@@ -50,7 +54,7 @@ jobs:
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
-        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
+        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/${{job.commit_html_report.steps.auto_commit.outputs.commit_hash}}/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
         echo -e "\n [HTML summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
         done
     # create a comment in the PR with the failling tests
