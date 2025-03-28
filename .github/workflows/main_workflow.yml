@@ -28,7 +28,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [tests]
-    if: ${{ always() }}
+    if: ${{ !cancelled() }}
     permissions:
       pull-requests: write
       contents: write
