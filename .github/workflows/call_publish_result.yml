@@ -51,6 +51,8 @@ jobs:
     - name: Update mardown
       shell: bash
       run: |
+        echo ${{job.commit_html_report.steps.auto_commit.outputs.commit_hash}};
+        ls -lR;
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
@@ -59,7 +61,7 @@ jobs:
         done
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
-    - name: Render the report to the PR when tests fail
+    - name: Render the report to the PR
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: test-report
