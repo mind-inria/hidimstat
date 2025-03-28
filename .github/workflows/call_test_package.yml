@@ -80,6 +80,8 @@ jobs:
 
   commit_html_report:
     needs: build-test
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:
