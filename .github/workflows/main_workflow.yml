@@ -9,18 +9,7 @@ on:
 
 # disable all the permission for the workflow
 permissions:
-  actions: none
-  checks: none
-  deployments: none
-  id-token: none
-  issues: none
-  discussions: none
-  packages: none
-  pages: none
-  pull-requests: none
-  repository-projects: none
-  security-events: none
-  statuses: none
+  contents: write
 
 # Cancel existing runs 
 concurrency:
@@ -30,11 +19,15 @@ concurrency:
 jobs:
   linter:
     name: Linter
+    permissions:
+      contents: none
     uses: ./.github/workflows/call_black.yml
   
   tests:
     name: tests
     needs: [linter]
+    permissions:
+      contents: none
     uses: ./.github/workflows/call_test_package.yml
   
   tests_publish:
@@ -48,6 +41,8 @@ jobs:
   make_documentation:
     name: Make_documentation
     needs: [linter, tests]
+    permissions:
+      contents: none
     uses: ./.github/workflows/call_build_docs.yml
 
   # debugger:
