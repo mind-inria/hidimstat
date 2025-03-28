@@ -27,7 +27,7 @@ jobs:
   
   tests_publish:
     name: tests_publish
-    needs: [tests]
+    needs: [linter, tests]
     if: ${{ !cancelled() }}
     permissions:
       pull-requests: write
