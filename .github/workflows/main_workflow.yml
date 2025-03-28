@@ -24,6 +24,14 @@ jobs:
     name: tests
     needs: [linter]
     uses: ./.github/workflows/call_test_package.yml
+  
+  tests_publish:
+    name: tests_publish
+    needs: [tests]
+    if: ${{ always() }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/call_test_package.yml
 
   make_documentation:
     name: Make_documentation
