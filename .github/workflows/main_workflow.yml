@@ -11,7 +11,6 @@ on:
 permissions:
   actions: none
   checks: none
-  contents: read
   deployments: none
   id-token: none
   issues: none
