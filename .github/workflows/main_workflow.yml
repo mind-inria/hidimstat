@@ -8,8 +8,7 @@ on:
     branches: main
 
 # disable all the permission for the workflow
-permissions:
-  contents: write
+permissions: {}
 
 # Cancel existing runs 
 concurrency:
@@ -19,15 +18,11 @@ concurrency:
 jobs:
   linter:
     name: Linter
-    permissions:
-      contents: none
     uses: ./.github/workflows/call_black.yml
   
   tests:
     name: tests
     needs: [linter]
-    permissions:
-      contents: none
     uses: ./.github/workflows/call_test_package.yml
   
   tests_publish:
@@ -36,14 +31,19 @@ jobs:
     if: ${{ always() }}
     permissions:
       contents: write
-    uses: ./.github/workflows/call_test_package.yml
+    uses: ./.github/workflows/call_publish_result.yml
 
   make_documentation:
     name: Make_documentation
     needs: [linter, tests]
-    permissions:
-      contents: none
     uses: ./.github/workflows/call_build_docs.yml
+  
+  deploy_documentation:
+    name: 
+    needs: [make_documentation]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/call_deploy_on_main.yml
 
   # debugger:
   #   needs: linter 

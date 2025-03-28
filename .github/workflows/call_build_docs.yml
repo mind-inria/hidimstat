@@ -1,8 +1,6 @@
 name: Documentation
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
   # Allows you to run this workflow from another workflow
   workflow_call:
 
@@ -37,36 +35,4 @@ jobs:
         with:
           name: DocHTML
           path: doc/_build/html
-
-  deploy_on_main:
-    runs-on: ubuntu-latest
-    needs: [build_docs]
-    # add permission to write for create a commit with the updated library
-    permissions:
-      contents: write
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch", "schedule"]'), github.event_name)}}
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: DocHTML
-          path: doc/_build/html
-      - name: Commit to main
-        run: |
-          git clone --depth 1 https://github.com/${{ github.repository_owner }}/hidimstat.git
-          rm -Rf hidimstat/docs
-          mkdir hidimstat/docs
-          cp -r doc/_build/html/* hidimstat/docs
-          cd hidimstat
-          touch docs/.nojekyll
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub actions"
-          git add .
-          git commit -m "Update documentation" -a || true
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          branch: main
-          directory: hidimstat
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           
