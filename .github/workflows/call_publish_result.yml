@@ -38,6 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
     # get report from previous job 
     - name: Get data
@@ -51,7 +52,6 @@ jobs:
     - name: Update mardown
       shell: bash
       run: |
-        ls -lR;
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');

@@ -30,6 +30,7 @@ jobs:
     needs: [tests]
     if: ${{ always() }}
     permissions:
+      pull-requests: write
       contents: write
     uses: ./.github/workflows/call_publish_result.yml
 
