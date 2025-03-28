@@ -7,8 +7,8 @@ on:
   # Allows you to run this workflow from another workflow
   workflow_call:
 
-
-
+# disable all the permission for the workflow
+permissions: {}
 
 jobs:
   build-test:

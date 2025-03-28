@@ -6,15 +6,14 @@ on:
   # Allows you to run this workflow from another workflow
   workflow_call:
 
-
 env:
     # Force to use color
     FORCE_COLOR: true
     BROWSER: /usr/bin/firefox
     DISPLAY: :99.0
-    
-permissions:
-  contents: write
+
+# disable all the permission for the workflow
+permissions: {}
 
 jobs:
   build_docs:
@@ -42,6 +41,9 @@ jobs:
   deploy_on_main:
     runs-on: ubuntu-latest
     needs: [build_docs]
+    # add permission to write for create a commit with the updated library
+    permissions:
+      contents: write
     if: ${{ contains(fromJSON('["push", "workflow_dispatch", "schedule"]'), github.event_name)}}
     steps:
       - name: Download artifacts
