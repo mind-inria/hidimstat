@@ -31,7 +31,7 @@ jobs:
     needs: [linter]
     if: ${{ failure() }}
     steps:
-    - uses: styfle/cancel-workflow-action
+    - uses: styfle/cancel-workflow-action@main
   
   tests_publish:
     name: tests_publish
