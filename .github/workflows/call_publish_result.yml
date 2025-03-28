@@ -31,7 +31,9 @@ jobs:
       id: tag_name
       shell: bash
       run: |
+        echo "text<<$EOF" >> $GITHUB_OUTPUT
         echo "PR${{github.event.number}}_doc" >> $GITHUB_OUTPUT
+        echo "$EOF" >> $GITHUB_OUTPUT
     # for more details about how to commit a file:
     # https://github.com/stefanzweifel/git-auto-commit-action
     - uses: stefanzweifel/git-auto-commit-action@v5
@@ -39,7 +41,7 @@ jobs:
       with:
         file_pattern: '*/*.html'
         branch: 'report_test'
-        commit_message: "PR${{github.event.number}}: ${{ github.event.head_commit.message }}\n branch:${{github.head_ref}} commit: ${{ github.sha }}"
+        commit_message: "PR${{github.event.number}}: ${{ github.sha }}\n branch: ${{github.head_ref}} commit: ${{ github.sha }}"
         tagging_message: ${{steps.tag_name.outputs}}
   
   merge_md_test_data:
