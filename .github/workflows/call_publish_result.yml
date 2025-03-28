@@ -18,6 +18,10 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: 'report_test'
+    - name: clean repository
+      shell: bash
+      run: |
+        rm -rd *
     # get report from previous job 
     - name: Get data
       uses: actions/download-artifact@v4
@@ -30,6 +34,8 @@ jobs:
       with:
         file_pattern: '*/*.html'
         branch: 'report_test'
+        commit_message: "PR${{github.event.number}}: ${{ github.event.head_commit.message }}\n branch:${{github.head_ref}} commit: ${{ github.sha }}"
+        tagging_message: "PR${{github.event.number}} "
   
   merge_md_test_data:
     # for more details
