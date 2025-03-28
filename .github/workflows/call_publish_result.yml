@@ -55,7 +55,7 @@ jobs:
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
-        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/${{needs.commit_html_report.outputs.commit_hash}}/report_test/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
+        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/${{needs.commit_html_report.outputs.commit_hash}}/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
         echo -e "\n [HTML summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
         done
     # create a comment in the PR with the failling tests
