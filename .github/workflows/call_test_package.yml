@@ -82,6 +82,8 @@ jobs:
     needs: build-test
     permissions:
       contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     if: ${{ failure() }}
     steps:
