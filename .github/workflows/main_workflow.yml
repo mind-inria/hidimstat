@@ -25,18 +25,10 @@ jobs:
     needs: [linter]
     uses: ./.github/workflows/call_test_package.yml
   
-  # job to avoid to run tests_publish when the linter is failling
-  cancel_itself:
-    runs-on: ubuntu-latest
-    needs: [linter]
-    if: ${{ failure() }}
-    steps:
-    - uses: styfle/cancel-workflow-action@main
-  
   tests_publish:
     name: tests_publish
-    needs: [cancel_itself, tests]
-    if: ${{ !cancelled() }}
+    needs: [tests]
+    if: ${{ needs.tests.result != 'cancelled' }}
     permissions:
       pull-requests: write
       contents: write
