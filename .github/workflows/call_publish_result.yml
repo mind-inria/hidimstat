@@ -1,4 +1,4 @@
-name: Tests
+name: Publish Tests
 
 on:
   # Allows you to run this workflow from another workflow

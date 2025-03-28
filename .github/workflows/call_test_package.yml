@@ -48,6 +48,8 @@ jobs:
          --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
          --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
          --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+    
+    # publish different reports (HTML, Mardown, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
