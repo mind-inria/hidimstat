@@ -53,8 +53,7 @@ jobs:
       if: ${{ success()}}
       shell: bash
       run: |
-        mkdir pytest-results-md-${{env.REPORT_NAME}};
-        touch pytest-results-md-${{env.REPORT_NAME}}/test-results-${{env.REPORT_NAME}}.md 
+        touch test-results-${{env.REPORT_NAME}}.md 
     
     # publish different reports (HTML, Mardown, Coverage)
     - name: Upload HTML test result
