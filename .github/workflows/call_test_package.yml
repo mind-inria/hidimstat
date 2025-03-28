@@ -43,11 +43,7 @@ jobs:
     # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
     - name: Generate coverage report
       run: |
-        python -m pytest\
-         --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml\
-         --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md\
-         --self-contained-html --html=report-${{env.REPORT_NAME}}.html\
-         --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+        python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     - name: generate an empty mardown report if succeed
       if: ${{ success()}}
