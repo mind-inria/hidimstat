@@ -77,9 +77,8 @@ def test_ensemble_clustered_inference_senario_1():
     )
 
 
-def test_ensemble_clustered_inference_senario_2():
-    # Scenario 2: temporal data
-    # #########################
+def test_ensemble_clustered_inference_temporal_data():
+    """ test using temporal data"""
     inference_method = "desparsified-group-lasso"
     n_samples, n_features, n_times = 200, 2000, 10
     support_size = 10
