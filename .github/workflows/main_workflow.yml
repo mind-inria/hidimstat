@@ -2,11 +2,12 @@
 
 name: 'Main_workflow'
 on:
-  pull_request:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
     branches: main
   # allows to push on branches
   push:
-    branches: report_test
+    branches: main
 
 # disable all the permission for the workflow
 permissions: {}
