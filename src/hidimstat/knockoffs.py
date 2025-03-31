@@ -402,7 +402,7 @@ def _stat_coefficient_diff(
     X, X_tilde, y, estimator, fdr, offset, preconfigure_estimator=None
 ):
     """
-    Compute feature importance statistics by comparing original and knockoff coefficients.
+    Compute the Lasso Coefficient-Difference (LCD) statistic by comparing original and knockoff coefficients.
 
     This function fits a model on the concatenated original and knockoff features, then
     calculates test statistics based on the difference between coefficient magnitudes.
