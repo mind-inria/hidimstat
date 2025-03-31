@@ -171,10 +171,3 @@ def test_ensemble_clustered_inference_exception():
         ensemble_clustered_inference(
             X, Y, ward, n_clusters, ensembling_method="wrong_method"
         )
-
-    with pytest.raises(
-        ValueError,
-        match="'memory' must be None or a string corresponding "
-        + "to the path of the caching directory.",
-    ):
-        ensemble_clustered_inference(X, Y, ward, n_clusters, memory=[])

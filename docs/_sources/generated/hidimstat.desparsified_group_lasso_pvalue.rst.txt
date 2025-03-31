@@ -1,0 +1,8 @@
+﻿hidimstat.desparsified_group_lasso_pvalue
+=========================================
+
+.. currentmodule:: hidimstat
+
+.. autofunction:: desparsified_group_lasso_pvalue
+
+.. include:: hidimstat.desparsified_group_lasso_pvalue.examples

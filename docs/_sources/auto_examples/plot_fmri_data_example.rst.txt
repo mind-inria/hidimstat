@@ -185,7 +185,8 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 140312576 of 291168628 bytes (48.2%%,    1.1s remaining)
+    [_chunk_report_]     Downloaded 124338176 of 291168628 bytes (42.7%%,    1.3s remaining)
+    [_chunk_report_]     Downloaded 271736832 of 291168628 bytes (93.3%%,    0.1s remaining)
     [fetch_single_file]  ...done. (2 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
@@ -342,6 +343,8 @@ and high-dimensional inference (c.f. References).
  .. code-block:: none
 
     Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
+    Clustered inference {}
+    hd_inference False {}
     /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
       model = cd_fast.enet_coordinate_descent_gram(
 
@@ -375,7 +378,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   33.1s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.0s finished
 
 
 
@@ -620,9 +623,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 17.678 seconds)
+   **Total running time of the script:** (1 minutes 13.899 seconds)
 
-**Estimated memory usage:**  2717 MB
+**Estimated memory usage:**  2681 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

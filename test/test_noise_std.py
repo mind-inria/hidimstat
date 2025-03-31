@@ -2,12 +2,12 @@
 Test the noise_std module
 """
 
-import numpy as np
 import pytest
+import numpy as np
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.noise_std import empirical_snr, group_reid, reid
+from hidimstat.noise_std import empirical_snr, reid
 from hidimstat.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
@@ -35,7 +35,7 @@ def test_reid():
     )
 
     # max_iter=1 to get a better coverage
-    sigma_hat, _ = reid(X, y, tol=1e-3, max_iter=1)
+    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
     expected = sigma
 
     assert_almost_equal(sigma_hat / expected, 1.0, decimal=0)
@@ -85,13 +85,19 @@ def test_group_reid():
     )
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = group_reid(X, Y, tol=1e-3, max_iter=1)
+    cov_hat, _ = reid(X, Y, group=True, tolerance=1e-3, max_iterance=1)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = group_reid(X, Y, method="AR")
+    cov_hat, _ = reid(X, Y, group=True, method="AR")
+    error_ratio = cov_hat / cov
+
+    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
+    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
+
+    cov_hat, _ = reid(X, Y, group=True, stationary=False)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
@@ -111,46 +117,48 @@ def test_group_reid():
         seed=1,
     )
 
-    cov_hat, _ = group_reid(X, Y)
+    cov_hat, _ = reid(X, Y, group=True)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
-
-    cov_hat, _ = group_reid(X, Y, method="AR")
+    cov_hat, _ = reid(X, Y, group=True, method="AR")
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
 
-def test_group_reid_exception():
-    """
-    Test the exception of group reid
-    """
-    n_samples = 30
-    n_features = 50
+def test_reid_exception():
+    "Test for testing the exceptions on the arguments of reid function"
+    n_samples, n_features = 50, 30
     n_times = 10
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    sigma = 1.0
+    rho = 0.9
+
+    # First expe
+    # ##########
+    support_size = 2
+
+    X, y, beta, noise = multivariate_temporal_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
+        support_size=support_size,
+        sigma=sigma,
+        rho_noise=rho,
     )
-    # max_iter=1 to get a better coverage
-    with pytest.raises(
-        ValueError,
-        match="The requested AR order is to high with "
-        + "respect to the number of time steps.",
-    ):
-        group_reid(X, Y, stationary=True, method="AR", order=100)
-
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):
-        group_reid(X, Y, method="test", order=100)
+        _, _ = reid(X, y, method="test", group=True)
+    with pytest.raises(
+        ValueError, match="The AR method is not compatible with the non-stationary"
+    ):
+        _, _ = reid(X, y, method="AR", stationary=False, group=True)
+    with pytest.raises(ValueError, match="The requested AR order is to high with"):
+        _, _ = reid(X, y, method="AR", order=1e4, group=True)
 
 
 def test_empirical_snr():

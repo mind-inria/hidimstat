@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5223b1f1"></script>
+    <script src="../_static/documentation_options.js?v=519a0dd6"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.empirical_thresholding';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="hidimstat.zscore_from_pval" href="hidimstat.zscore_from_pval.html" />
-    <link rel="prev" title="hidimstat.reid" href="hidimstat.reid.html" />
+    <link rel="prev" title="hidimstat.permutation_test_pval" href="hidimstat.permutation_test_pval.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -336,8 +336,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.group_reid.html">hidimstat.group_reid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
@@ -422,7 +424,7 @@ estimator.</p>
 <p>This function fits a linear estimator to the input data and target,
 and then uses the estimated coefficients to perform empirical thresholding.
 The threshold is calculated for keeping only extreme coefficients.
-For more details, see section 6.3.2 of Chevalier<a class="footnote-reference brackets" href="#footcite-chevalier-statistical-2020" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+For more details, see section 6.3.2 of .</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -459,14 +461,6 @@ coefficients multiplied by the square root of the number of features.
 This is based on the assumption that the coefficients follow a normal
 distribution with mean zero.</p>
 <p class="rubric">References</p>
-<div class="docutils container" id="id2">
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-chevalier-statistical-2020" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Jérôme-Alexis Chevalier. Statistical control of sparse models in high dimension. <em>Université Paris-Saclay</em>, 2020. URL: <a class="reference external" href="https://theses.hal.science/tel-03147200">https://theses.hal.science/tel-03147200</a>.</p>
-</aside>
-</aside>
-</div>
 </dd></dl>
 
 <section id="examples-using-hidimstat-empirical-thresholding">
@@ -488,12 +482,12 @@ distribution with mean zero.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.reid.html"
+       href="hidimstat.permutation_test_pval.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.reid</p>
+        <p class="prev-next-title">hidimstat.permutation_test_pval</p>
       </div>
     </a>
     <a class="right-next"
