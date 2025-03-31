@@ -8,44 +8,10 @@ on:
 permissions: {}
 
 jobs:
-  commit_html_report:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-        commit_hash: ${{steps.auto_commit.outputs.commit_hash}}
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: 'report_test'
-    - name: clean repository
-      shell: bash
-      run: |
-        rm -rd *
-    # get report from previous job 
-    - name: Get data
-      uses: actions/download-artifact@v4
-      with:
-        pattern: pytest-results-html-*-os-*
-    - name: create tag name
-      id: tag_name
-      shell: bash
-      run: |
-        echo "TAG=test_PR${{github.event.number}}" >> $GITHUB_OUTPUT
-    # for more details about how to commit a file:
-    # https://github.com/stefanzweifel/git-auto-commit-action
-    - uses: stefanzweifel/git-auto-commit-action@v5
-      id: auto_commit 
-      with:
-        file_pattern: '*/*.html'
-        branch: 'report_test'
-        commit_message: "PR${{github.event.number}}: ${{ github.sha }}\n branch: ${{github.head_ref}} commit: ${{ github.sha }}"
-        tagging_message: ${{steps.tag_name.outputs.TAG}}
   
   merge_md_test_data:
     # for more details
     # https://github.com/thombashi/pytest-md-report
-    needs: commit_html_report
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -59,15 +25,15 @@ jobs:
     # add manual link to render the HTML commit on the reporter_test branch
     # the rendering is based on the trick propose here: 
     # https://github.com/htmlpreview/htmlpreview.github.com
-    # TODO add this report to the documentation generated with a PR
+    # TODO Determine the link to the circleci  
     - name: Update mardown
       shell: bash
       run: |
         for FOLDER in *;
         do 
         SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
-        LINK="https://htmlpreview.github.io?https://github.com/${{github.repository}}/blob/${{needs.commit_html_report.outputs.commit_hash}}/pytest-results-html-${SUFFIX}/report-${SUFFIX}.html"
-        echo -e "\n [HTML tests summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
+        #LINK=""
+        #echo -e "\n [HTML tests summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
         done
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
