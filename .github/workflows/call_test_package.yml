@@ -1,0 +1,84 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Tests
+
+on:
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+
+# disable all the permission for the workflow
+permissions: {}
+
+jobs:
+  build-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true  # if on job fail all the other jobs are cancelled
+      matrix:
+        python-version: ["3.13", "3.12"] #CHECK: not forget to add new version of python
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    
+    # name for files
+    env:
+      REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
+
+    steps:
+    # Checkout to the branch for getting the right code
+    - uses: actions/checkout@v4
+    # Install python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    # Install dependency for running the tests
+    - name: Install the dependance
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[test]
+    # Run the tests with coverage and report add this end
+    # option for the coverage: --cov=. --cov-report=xml:... 
+    # option for mardown report: --md-report --md-report-output= ...
+    # option for html report: --self-contained-html --html=report-...
+    # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
+    # inline command for being compatible on linux and windows
+    - name: Generate coverage report
+      run: |
+        python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+    
+    - name: generate an empty mardown report if succeed
+      if: ${{ success()}}
+      shell: bash
+      run: |
+        echo "SUCCESS" >> test-results-${{env.REPORT_NAME}}.md 
+    
+    # publish different reports (HTML, Mardown, Coverage)
+    - name: Upload HTML test result
+      if: ${{ always() && !cancelled()}}
+      id: html_report
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-html-${{env.REPORT_NAME}}
+        path: report-${{env.REPORT_NAME}}.html
+        if-no-files-found: error
+    - name: Upload md test result 
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-md-${{env.REPORT_NAME}}
+        path: test-results-${{env.REPORT_NAME}}.md 
+        if-no-files-found: error
+    - name: Upload duration test result
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: pytest-results-log-${{env.REPORT_NAME}}
+        path: log-${{env.REPORT_NAME}}.txt
+        if-no-files-found: error
+    - name: Upload coverage data
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v4
+      with:
+        name: cov-results-${{env.REPORT_NAME}}
+        path: cov/cov-${{env.REPORT_NAME}}.xml
+        if-no-files-found: error

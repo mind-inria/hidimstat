@@ -1,0 +1,59 @@
+# Management of the action do made during a pull request
+
+name: 'Main_workflow'
+on:
+  pull_request:
+    branches: main
+  # allows to push on branches
+  push:
+    branches: main
+
+# disable all the permission for the workflow
+permissions: {}
+
+# Cancel existing runs 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: Linter
+    uses: ./.github/workflows/call_black.yml
+  
+  tests:
+    name: tests
+    needs: [linter]
+    uses: ./.github/workflows/call_test_package.yml
+  
+  tests_publish:
+    name: tests_publish
+    needs: [tests]
+    if: ${{ needs.tests.result != 'cancelled' }}
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/call_publish_result.yml
+
+  make_documentation:
+    name: Make_documentation
+    needs: [linter, tests]
+    uses: ./.github/workflows/call_build_docs.yml
+  
+  deploy_documentation:
+    name: 
+    needs: [make_documentation]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/call_deploy_on_main.yml
+
+  # debugger:
+  #   needs: linter 
+  #   env: 
+  #     STATE_LINTER: ${{ needs.linter.result }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: print output
+  #       run: 
+  #         echo "Linter "$STATE_LINTER
+  #   if: ${{ always() }} 
+    
