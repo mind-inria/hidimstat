@@ -4,8 +4,9 @@ name: 'Main_workflow'
 on:
   pull_request:
     branches: main
+  # allows to push on branches
   push:
-    branches: main
+    branches: report_test
 
 # disable all the permission for the workflow
 permissions: {}
