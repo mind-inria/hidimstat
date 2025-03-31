@@ -3,8 +3,8 @@
 name: 'Main_workflow'
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
-    branches: main
+    types: [synchronize]
+    branches: [main, report_test]
   pull_request:
     branches: main
   # allows to push on branches
