@@ -14,7 +14,6 @@ jobs:
     # https://github.com/thombashi/pytest-md-report
     runs-on: ubuntu-latest
     permissions:
-      contents: write
       pull-requests: write
     steps:
     # get report from previous job 
@@ -35,6 +34,9 @@ jobs:
         #LINK=""
         #echo -e "\n [HTML tests summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
         done
+    - name: ls
+      shell: bash
+      run: ls -Rl
     # create a comment in the PR with the failling tests
     # for more details: https://github.com/marocchino/sticky-pull-request-comment
     - name: Render the report to the PR

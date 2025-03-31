@@ -2,11 +2,8 @@
 
 name: 'Main_workflow'
 on:
-  pull_request_target:
-    types: [synchronize]
-    branches: [main, report_test]
   pull_request:
-    branches: [main, report_test]
+    branches: main
   # allows to push on branches
   push:
     branches: main
@@ -35,7 +32,6 @@ jobs:
     if: ${{ needs.tests.result != 'cancelled' }}
     permissions:
       pull-requests: write
-      contents: write
     uses: ./.github/workflows/call_publish_result.yml
 
   make_documentation:
