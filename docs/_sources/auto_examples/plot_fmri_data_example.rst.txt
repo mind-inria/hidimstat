@@ -185,9 +185,14 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 124338176 of 291168628 bytes (42.7%%,    1.3s remaining)
-    [_chunk_report_]     Downloaded 271736832 of 291168628 bytes (93.3%%,    0.1s remaining)
-    [fetch_single_file]  ...done. (2 seconds, 0 min)
+    [_chunk_report_]     Downloaded 19800064 of 291168628 bytes (6.8%%,   14.4s remaining)
+    [_chunk_report_]     Downloaded 61292544 of 291168628 bytes (21.1%%,    7.9s remaining)
+    [_chunk_report_]     Downloaded 101621760 of 291168628 bytes (34.9%%,    5.9s remaining)
+    [_chunk_report_]     Downloaded 143638528 of 291168628 bytes (49.3%%,    4.3s remaining)
+    [_chunk_report_]     Downloaded 180936704 of 291168628 bytes (62.1%%,    3.2s remaining)
+    [_chunk_report_]     Downloaded 223772672 of 291168628 bytes (76.9%%,    1.9s remaining)
+    [_chunk_report_]     Downloaded 266207232 of 291168628 bytes (91.4%%,    0.7s remaining)
+    [fetch_single_file]  ...done. (8 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
@@ -378,7 +383,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.0s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   30.8s finished
 
 
 
@@ -623,9 +628,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 13.899 seconds)
+   **Total running time of the script:** (1 minutes 19.742 seconds)
 
-**Estimated memory usage:**  2681 MB
+**Estimated memory usage:**  2929 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:
