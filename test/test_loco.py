@@ -78,7 +78,7 @@ def test_loco(linear_scenario):
     loco_clf.fit(
         X_train,
         y_train_clf,
-        groups={"group_0":important_features,"the_group_1":non_important_features},
+        groups={"group_0": important_features, "the_group_1": non_important_features},
     )
     vim_clf = loco_clf.score(X_test, y_test_clf)
 
