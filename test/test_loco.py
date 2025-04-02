@@ -59,7 +59,7 @@ def test_loco(linear_scenario):
         groups=groups,
     )
     # warnings because we doesn't considere the name of columns of pandas
-    with pytest.warns(UserWarning, match='X does not have valid feature names, but'):
+    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = loco.score(X_test_df, y_test)
 
     importance = vim["importance"]

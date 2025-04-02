@@ -62,7 +62,7 @@ def test_permutation_importance(linear_scenario):
         groups=groups,
     )
     # warnings because we doesn't considere the name of columns of pandas
-    with pytest.warns(UserWarning, match='X does not have valid feature names, but'):
+    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = pi.score(X_test_df, y_test)
 
     importance = vim["importance"]
