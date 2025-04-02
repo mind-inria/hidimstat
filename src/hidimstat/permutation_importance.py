@@ -52,14 +52,13 @@ class PermutationImportance(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
         )
-        self.rng = check_random_state(random_state)
-        self.random_state = random_state
+        self.random_state = check_random_state(random_state)
 
     def _permutation(self, X, group_id):
         """Create the permuted data for the j-th group of covariates"""
         X_perm_j = np.array(
             [
-                self.rng.permutation(X[:, self._groups_ids[group_id]].copy())
+                self.random_state.permutation(X[:, self._groups_ids[group_id]].copy())
                 for _ in range(self.n_permutations)
             ]
         )
