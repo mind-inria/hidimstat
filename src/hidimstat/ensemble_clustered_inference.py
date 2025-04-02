@@ -235,7 +235,7 @@ def clustered_inference(
     )(
         X_reduced,
         y,
-        group=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
+        multioutput=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
         n_jobs=n_jobs,
         memory=memory,
         verbose=verbose,
