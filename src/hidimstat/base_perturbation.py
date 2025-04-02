@@ -155,7 +155,7 @@ class BasePerturbation(BaseEstimator):
     def _check_fit(self):
         """Check that the estimator has been fitted if needed."""
         if self.n_groups is None \
-            or not hasattr(self, 'group')\
+            or not hasattr(self, 'groups')\
             or not hasattr(self, '_groups_ids'):
             raise ValueError("The estimators require to be fit before to use them")
 
