@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV
+from sklearn.linear_model import LogisticRegressionCV, RidgeClassifier, RidgeCV, HuberRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
@@ -92,34 +92,70 @@ def test_binary_case():
         assert 0.9 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
 
-def test_error():
-    """Test for error when model does not have predict_proba or predict."""
-    # Test for error when model does not have predict_proba
+def test_error_wrong_type_data():
+    """Test for error when model does not have predict"""
+    sampler = ConditionalSampler(
+        data_type="wrong_type",
+        random_state=0,
+    )
+    X = np.random.randint(0, 2, size=(100, 2))
+    with pytest.raises(ValueError, match="type of data 'wrong_type' unknow."):
+        sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+
+
+def test_error_no_predic_proba():
+    """Test for error when model does not have predict_proba"""
     np.random.seed(40)
     sampler = ConditionalSampler(
-        model_regression=RidgeClassifier(),
+        model_categorical=RidgeClassifier(),
         data_type="categorical",
         random_state=0,
     )
     X = np.random.randint(0, 2, size=(100, 2))
-    with pytest.raises(AttributeError):
-        sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+    sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+    with pytest.raises(
+        AttributeError,
+        match="The model must have a `predict_proba` method to be used for",
+    ):
+        sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
-    # test for error when model does not have predict
+
+def test_error_no_predic():
+    """Test for error when model does not have predict"""
+    np.random.seed(40)
+    X = np.random.randint(0, 2, size=(100, 2))
     sampler = ConditionalSampler(
         model_regression=StandardScaler(),
         data_type="continuous",
         random_state=0,
     )
-    with pytest.raises(AttributeError):
-        sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+    sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+    with pytest.raises(
+        AttributeError, match="The model must have a `predict` method to be used for"
+    ):
         sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
+
+def test_error_no_model_provide():
+    """Test when there is no model for the category"""
+    np.random.seed(40)
+    X = np.random.randint(0, 2, size=(100, 2))
     sampler = ConditionalSampler(
         data_type="auto",
         random_state=0,
     )
-    with pytest.raises(AttributeError):
+    with pytest.raises(
+        AttributeError, match="No model was provided for categorical data"
+    ):
+        sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+    X = np.random.randn(100, 2)
+    sampler = ConditionalSampler(
+        data_type="auto",
+        random_state=0,
+    )
+    with pytest.raises(
+        AttributeError, match="No model was provided for continuous data"
+    ):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
 
 
@@ -148,7 +184,7 @@ def test_group_case():
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 1], X[:, 3]])[0, 1] < 0.9
     # test with a model DOES nativly support multioutput
     sampler = ConditionalSampler(
-        model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
+        model_regression=HuberRegressor(),
         data_type="continuous",
         random_state=0,
     )
