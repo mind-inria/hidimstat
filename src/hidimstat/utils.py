@@ -384,8 +384,8 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
     train_size : float
         Fraction of samples to include in the training set (between 0 and 1).
     groups : ndarray, shape (n_samples,), optional (default=None)
-        Group labels for samples. If provided, subsampling is done
-        at group level.
+        Group labels for samples.
+        If not None, a subset of groups is selected.
     seed : int, optional (default=0)
         Random seed for reproducibility.
 
