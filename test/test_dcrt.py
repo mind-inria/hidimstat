@@ -134,12 +134,12 @@ def test_dcrt_lasso_with_no_cv(generate_regation_dataset):
     results_use_cv = dcrt_zero(
         X,
         y,
-    kargs_lasso_estimator={
-        'alpha':None,
-        'n_alphas':0,
-        'alphas':None,
-        'alpha_max_fraction':0.5,
-        "fit_intercept": False,
+        kargs_lasso_estimator={
+            "alpha": None,
+            "n_alphas": 0,
+            "alphas": None,
+            "alpha_max_fraction": 0.5,
+            "fit_intercept": False,
         },
         screening=False,
         statistic="residual",
@@ -235,7 +235,7 @@ def test_dcrt_lasso_refit():
 
 def test_dcrt_lasso_no_selection():
     """
-    This function tests the dcrt function using the Lasso learner 
+    This function tests the dcrt function using the Lasso learner
     with distillation  y using different argument
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
@@ -248,18 +248,21 @@ def test_dcrt_lasso_no_selection():
 
 def test_dcrt_distillation_x_different():
     """
-    This function tests the dcrt function using the Lasso learner 
+    This function tests the dcrt function using the Lasso learner
     with distillation x using different argument
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     results = dcrt_zero(
-        X, y, statistic="residual", random_state=2024,
-            kargs_lasso_distillation_y={
-        'alpha':None,
-        'n_alphas':0,
-        'alphas':None,
-        'alpha_max_fraction':0.5,
-        "fit_intercept": False,
+        X,
+        y,
+        statistic="residual",
+        random_state=2024,
+        kargs_lasso_distillation_y={
+            "alpha": None,
+            "n_alphas": 0,
+            "alphas": None,
+            "alpha_max_fraction": 0.5,
+            "fit_intercept": False,
         },
     )
     vi = dcrt_pvalue(
@@ -280,13 +283,16 @@ def test_dcrt_distillation_y_different():
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     results = dcrt_zero(
-        X, y, statistic="residual", random_state=2024,
-            kargs_lasso_distillation_x={
-        'alpha':None,
-        'n_alphas':0,
-        'alphas':None,
-        'alpha_max_fraction':0.5,
-        "fit_intercept": False,
+        X,
+        y,
+        statistic="residual",
+        random_state=2024,
+        kargs_lasso_distillation_x={
+            "alpha": None,
+            "n_alphas": 0,
+            "alphas": None,
+            "alpha_max_fraction": 0.5,
+            "fit_intercept": False,
         },
     )
     vi = dcrt_pvalue(
@@ -311,11 +317,11 @@ def test_dcrt_lasso_fit_with_no_cv():
         y,
         fit_y=True,
         kargs_lasso_estimator={
-        'alpha':None,
-        'n_alphas':0,
-        'alphas':None,
-        'alpha_max_fraction':0.5,
-        "fit_intercept": False,
+            "alpha": None,
+            "n_alphas": 0,
+            "alphas": None,
+            "alpha_max_fraction": 0.5,
+            "fit_intercept": False,
         },
         screening=False,
         statistic="residual",

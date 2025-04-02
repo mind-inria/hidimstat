@@ -14,11 +14,11 @@ def dcrt_zero(
     estimated_coef=None,
     sigma_X=None,
     kargs_lasso_estimator={
-        'alpha':None,
-        'n_alphas':10,
-        'alphas':None,
-        'alpha_max_fraction':0.5,
-        'cv':5,
+        "alpha": None,
+        "n_alphas": 10,
+        "alphas": None,
+        "alpha_max_fraction": 0.5,
+        "cv": 5,
         "tol": 1e-6,
         "max_iter": 1000,
         "fit_intercept": False,
@@ -129,11 +129,11 @@ def dcrt_zero(
             **kargs_lasso_estimator,
         )
         # update the alpha value from the estiamtor on all values
-        kargs_lasso_estimator['alpha'] = alpha
+        kargs_lasso_estimator["alpha"] = alpha
         if kargs_lasso_distillation_x is not None:
-            kargs_lasso_distillation_x['alpha'] = alpha
+            kargs_lasso_distillation_x["alpha"] = alpha
         if kargs_lasso_distillation_y is not None:
-            kargs_lasso_distillation_y['alpha'] = alpha
+            kargs_lasso_distillation_y["alpha"] = alpha
         coef_X_full = np.ravel(clf.coef_)
     else:
         coef_X_full = estimated_coef
@@ -393,17 +393,17 @@ def _lasso_distillation_residual(
     fit_y=False,
     random_state=42,
     kwargs_lasso_distillation_x={
-        'alpha':None,
-        'n_alphas':10,
-        'alphas':None,
-        'alpha_max_fraction':0.5
-        },
+        "alpha": None,
+        "n_alphas": 10,
+        "alphas": None,
+        "alpha_max_fraction": 0.5,
+    },
     kwargs_lasso_distillation_y={
-        'alpha':None,
-        'n_alphas':10,
-        'alphas':None,
-        'alpha_max_fraction':0.5
-        },
+        "alpha": None,
+        "n_alphas": 10,
+        "alphas": None,
+        "alpha_max_fraction": 0.5,
+    },
 ):
     """
     Standard Lasso Distillation for least squares regression.
@@ -492,11 +492,11 @@ def _rf_distillation(
     ntree=100,
     random_state=42,
     kargs_lasso_distillation_x={
-        'alpha':None,
-        'n_alphas':10,
-        'alphas':None,
-        'alpha_max_fraction':0.5
-        },
+        "alpha": None,
+        "n_alphas": 10,
+        "alphas": None,
+        "alpha_max_fraction": 0.5,
+    },
 ):
     """
     Random Forest based distillation for both regression and classification.
