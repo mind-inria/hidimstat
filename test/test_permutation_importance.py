@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
+import pytest
 
 from hidimstat import PermutationImportance
 
@@ -60,7 +61,9 @@ def test_permutation_importance(linear_scenario):
         y_train,
         groups=groups,
     )
-    vim = pi.score(X_test_df, y_test)
+    # warnings because we doesn't considere the name of columns of pandas
+    with pytest.warns(UserWarning, match='X does not have valid feature names, but'):
+        vim = pi.score(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
