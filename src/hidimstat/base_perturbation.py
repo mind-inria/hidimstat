@@ -159,7 +159,9 @@ class BasePerturbation(BaseEstimator):
             or not hasattr(self, "groups")
             or not hasattr(self, "_groups_ids")
         ):
-            raise ValueError("The estimator is not fitted. The fit method must be called to set variable groups. If no grouping is needed, call fit with groups=None")
+            raise ValueError(
+                "The estimator is not fitted. The fit method must be called to set variable groups. If no grouping is needed, call fit with groups=None"
+            )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
