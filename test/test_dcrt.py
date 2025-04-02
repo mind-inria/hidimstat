@@ -235,7 +235,8 @@ def test_dcrt_lasso_refit():
 
 def test_dcrt_lasso_no_selection():
     """
-    This function tests the dcrt function using the Lasso learner
+    This function tests the dcrt function using the Lasso learner 
+    with distillation  y using different argument
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     results = dcrt_zero(
@@ -243,6 +244,61 @@ def test_dcrt_lasso_no_selection():
     )
     for i in results:
         assert np.all(i == np.array([]))
+
+
+def test_dcrt_distillation_x_different():
+    """
+    This function tests the dcrt function using the Lasso learner 
+    with distillation x using different argument
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    results = dcrt_zero(
+        X, y, statistic="residual", random_state=2024,
+            kargs_lasso_distillation_y={
+        'alpha':None,
+        'n_alphas':0,
+        'alphas':None,
+        'alpha_max_fraction':0.5,
+        "fit_intercept": False,
+        },
+    )
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+    )
+    assert np.sum(results[0]) <= 10
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
+
+
+def test_dcrt_distillation_y_different():
+    """
+    This function tests the dcrt function using the Lasso learner
+    """
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    results = dcrt_zero(
+        X, y, statistic="residual", random_state=2024,
+            kargs_lasso_distillation_x={
+        'alpha':None,
+        'n_alphas':0,
+        'alphas':None,
+        'alpha_max_fraction':0.5,
+        "fit_intercept": False,
+        },
+    )
+    vi = dcrt_pvalue(
+        results[0],
+        results[1],
+        results[2],
+        results[3],
+    )
+    assert np.sum(results[0]) <= 10
+    assert len(vi[0]) <= 10
+    assert len(vi[1]) == 10
+    assert len(vi[2]) == 10
 
 
 def test_dcrt_lasso_fit_with_no_cv():
