@@ -116,5 +116,5 @@ def test_desparsified_group_lasso():
         ValueError, desparsified_lasso, X=X, y=Y, multioutput=True, covariance=bad_cov
     )
 
-    with pytest.raises(ValueError, match=f"Unknown test 'r2'"):
+    with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="r2")
