@@ -66,7 +66,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
     Parameters
     ----------
-    ward : AgglomerativeClustering
+    ward : FeatureAgglomeration
         Fitted clustering object containing the hierarchical structure
     beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
         Estimated parameters at cluster level
