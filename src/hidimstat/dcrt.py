@@ -13,7 +13,7 @@ def dcrt_zero(
     y,
     estimated_coef=None,
     sigma_X=None,
-    kargs_lasso_estimator={
+    params_lasso_screening={
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
@@ -24,8 +24,8 @@ def dcrt_zero(
         "fit_intercept": False,
         "selection": "cyclic",
     },
-    kargs_lasso_distillation_x=None,
-    kargs_lasso_distillation_y=None,
+    params_lasso_distillation_x=None,
+    params_lasso_distillation_y=None,
     refit=False,
     screening=True,
     screening_threshold=1e-1,
@@ -55,7 +55,7 @@ def dcrt_zero(
         Pre-computed feature coefficients
     sigma_X : array-like of shape (n_features, n_features), optional
         Covariance matrix of X
-    kargs_lasso_estimator : dict
+    params_lasso_screening : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float, optional - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
@@ -67,10 +67,10 @@ def dcrt_zero(
         - max_iter : int, default=1000 - Maximum iterations.
         - fit_intercept : bool, default=False - Whether to fit intercept.
         - selection : str, default='cyclic' - Feature selection method.
-    kargs_lasso_distillation_x : dict, optional
-        Parameters for X distillation Lasso. Defaults to kargs_lasso_estimator.
-    kargs_lasso_distillation_y : dict, optional
-        Parameters for y distillation Lasso. Defaults to kargs_lasso_estimator.
+    params_lasso_distillation_x : dict, optional
+        Parameters for X distillation Lasso. Defaults to params_lasso_screening.
+    params_lasso_distillation_y : dict, optional
+        Parameters for y distillation Lasso. Defaults to params_lasso_screening.
     refit : bool, default=False
         Whether to refit on estimated support set
     screening : bool, default=True
@@ -121,20 +121,20 @@ def dcrt_zero(
     if estimated_coef is None:
         # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
         # is based on a cross-validated lasso
-        clf, alpha = _fit_lasso(
+        clf_screening, alpha_screening = _fit_lasso(
             X_,
             y_,
             n_jobs=n_jobs,
             random_state=random_state,
-            **kargs_lasso_estimator,
+            **params_lasso_screening,
         )
         # update the alpha value from the estiamtor on all values
-        kargs_lasso_estimator["alpha"] = alpha
-        if kargs_lasso_distillation_x is not None:
-            kargs_lasso_distillation_x["alpha"] = alpha
-        if kargs_lasso_distillation_y is not None:
-            kargs_lasso_distillation_y["alpha"] = alpha
-        coef_X_full = np.ravel(clf.coef_)
+        params_lasso_screening["alpha"] = alpha_screening
+        if params_lasso_distillation_x is not None:
+            params_lasso_distillation_x["alpha"] = alpha_screening
+        if params_lasso_distillation_y is not None:
+            params_lasso_distillation_y["alpha"] = alpha_screening
+        coef_X_full = np.ravel(clf_screening.coef_)
     else:
         coef_X_full = estimated_coef
         screening_threshold = 100  # remove the screening process
@@ -159,7 +159,7 @@ def dcrt_zero(
 
     # Refit the model with the estimated support set
     if refit and estimated_coef is None and selection_set.size < n_features:
-        clf_refit = clone(clf)
+        clf_refit = clone(clf_screening)
         clf_refit.fit(X_[:, selection_set], y_)
         coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
 
@@ -173,15 +173,15 @@ def dcrt_zero(
                 idx,
                 coef_full=coef_X_full,
                 sigma_X=sigma_X,
-                kwargs_lasso_distillation_x=(
-                    kargs_lasso_distillation_x
-                    if kargs_lasso_distillation_x is not None
-                    else kargs_lasso_estimator
+                params_lasso_distillation_x=(
+                    params_lasso_distillation_x
+                    if params_lasso_distillation_x is not None
+                    else params_lasso_screening
                 ),
-                kwargs_lasso_distillation_y=(
-                    kargs_lasso_distillation_y
-                    if kargs_lasso_distillation_y is not None
-                    else kargs_lasso_estimator
+                params_lasso_distillation_y=(
+                    params_lasso_distillation_y
+                    if params_lasso_distillation_y is not None
+                    else params_lasso_screening
                 ),
                 fit_y=fit_y,
                 n_jobs=1,  # the function is already called in parallel
@@ -201,10 +201,10 @@ def dcrt_zero(
                 problem_type=problem_type,
                 n_jobs=1,  # the function is already called in parallel
                 random_state=random_state,
-                kargs_lasso_distillation_x=(
-                    kargs_lasso_distillation_x
-                    if kargs_lasso_distillation_y is not None
-                    else kargs_lasso_estimator
+                params_lasso_distillation_x=(
+                    params_lasso_distillation_x
+                    if params_lasso_distillation_y is not None
+                    else params_lasso_screening
                 ),
             )
             for idx in selection_set
@@ -310,7 +310,7 @@ def _x_distillation_lasso(
     sigma_X=None,
     n_jobs=1,
     random_state=0,
-    kwargs_lasso_distillation_x=None,
+    params_lasso_distillation_x=None,
 ):
     """
     Distill variable X[:, idx] using Lasso regression on remaining variables.
@@ -331,7 +331,7 @@ def _x_distillation_lasso(
         Number of CPUs to use for cross-validation.
     random_state : int, default=0
         Random seed for reproducibility.
-    kargs_lasso_distillation_x : dict
+    params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float, optional - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
@@ -356,7 +356,7 @@ def _x_distillation_lasso(
             X[:, idx],
             n_jobs=n_jobs,
             random_state=random_state,
-            **kwargs_lasso_distillation_x,
+            **params_lasso_distillation_x,
         )
 
         # get the residuals
@@ -392,13 +392,13 @@ def _lasso_distillation_residual(
     n_jobs=1,
     fit_y=False,
     random_state=42,
-    kwargs_lasso_distillation_x={
+    params_lasso_distillation_x={
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
         "alpha_max_fraction": 0.5,
     },
-    kwargs_lasso_distillation_y={
+    params_lasso_distillation_y={
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
@@ -457,7 +457,7 @@ def _lasso_distillation_residual(
         sigma_X,
         n_jobs=n_jobs,
         random_state=random_state + 2,  # avoid the same seed as the main function
-        kwargs_lasso_distillation_x=kwargs_lasso_distillation_x,
+        params_lasso_distillation_x=params_lasso_distillation_x,
     )
 
     # Distill Y - calculate residual
@@ -468,7 +468,7 @@ def _lasso_distillation_residual(
             y,
             n_jobs=n_jobs,
             random_state=random_state,
-            **kwargs_lasso_distillation_y,
+            **params_lasso_distillation_y,
         )
         coef_minus_idx = clf_null.coef_
     elif coef_full is not None:
@@ -491,7 +491,7 @@ def _rf_distillation(
     problem_type="regression",
     ntree=100,
     random_state=42,
-    kargs_lasso_distillation_x={
+    params_lasso_distillation_x={
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
@@ -523,7 +523,7 @@ def _rf_distillation(
         Number of trees in the Random Forest.
     random_state : int, default=42
         Random seed for reproducibility.
-    kargs_lasso_distillation_y : dict
+    params_lasso_distillation_y : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float, optional - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
@@ -551,7 +551,7 @@ def _rf_distillation(
         sigma_X,
         n_jobs=n_jobs,
         random_state=random_state + 2,  # avoid the same seed as the main function
-        kwargs_lasso_distillation_x=kargs_lasso_distillation_x,
+        params_lasso_distillation_x=params_lasso_distillation_x,
     )
 
     # Distill Y
@@ -586,7 +586,7 @@ def _fit_lasso(
     n_alphas,
     alpha_max_fraction,
     random_state,
-    **kwargs_cv,
+    **params,
 ):
     """
     Fits a LASSO regression model with optional cross-validation for alpha selection.
@@ -612,7 +612,7 @@ def _fit_lasso(
         Controls the randomness of the estimator.
     alpha_max_fraction : float
         Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
-    **kwargs_cv : dict
+    **params : dict
         Additional keyword arguments to be passed to LassoCV.
     Returns
     -------
@@ -631,7 +631,7 @@ def _fit_lasso(
             alphas=alphas,
             n_jobs=n_jobs,
             random_state=random_state,
-            **kwargs_cv,
+            **params,
         )
         clf.fit(X, y)
         alpha = clf.alpha_
@@ -641,7 +641,7 @@ def _fit_lasso(
         clf = Lasso(
             alpha=alpha,
             random_state=random_state,
-            **kwargs_cv,
+            **params,
         )
         clf.fit(X, y)
     return clf, alpha

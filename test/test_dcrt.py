@@ -134,7 +134,7 @@ def test_dcrt_lasso_with_no_cv(generate_regation_dataset):
     results_use_cv = dcrt_zero(
         X,
         y,
-        kargs_lasso_estimator={
+        params_lasso_screening={
             "alpha": None,
             "n_alphas": 0,
             "alphas": None,
@@ -257,7 +257,7 @@ def test_dcrt_distillation_x_different():
         y,
         statistic="residual",
         random_state=2024,
-        kargs_lasso_distillation_y={
+        params_lasso_distillation_y={
             "alpha": None,
             "n_alphas": 0,
             "alphas": None,
@@ -287,7 +287,7 @@ def test_dcrt_distillation_y_different():
         y,
         statistic="residual",
         random_state=2024,
-        kargs_lasso_distillation_x={
+        params_lasso_distillation_x={
             "alpha": None,
             "n_alphas": 0,
             "alphas": None,
@@ -316,7 +316,7 @@ def test_dcrt_lasso_fit_with_no_cv():
         X,
         y,
         fit_y=True,
-        kargs_lasso_estimator={
+        params_lasso_screening={
             "alpha": None,
             "n_alphas": 0,
             "alphas": None,
