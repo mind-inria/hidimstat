@@ -125,7 +125,7 @@ def test_dcrt_lasso_with_refit(generate_regation_dataset):
     assert len(vi_refit[2]) == 10
 
 
-def test_dcrt_lasso_with_use_cv(generate_regation_dataset):
+def test_dcrt_lasso_with_no_cv(generate_regation_dataset):
     """
     Test the use_cv parameter
     """
@@ -134,7 +134,13 @@ def test_dcrt_lasso_with_use_cv(generate_regation_dataset):
     results_use_cv = dcrt_zero(
         X,
         y,
-        n_alphas=20,
+    kargs_lasso_estimator={
+        'alpha':None,
+        'n_alphas':0,
+        'alphas':None,
+        'alpha_max_fraction':0.5,
+        "fit_intercept": False,
+        },
         screening=False,
         statistic="residual",
         random_state=2024,
@@ -239,7 +245,7 @@ def test_dcrt_lasso_no_selection():
         assert np.all(i == np.array([]))
 
 
-def test_dcrt_lasso_fit_with_cv():
+def test_dcrt_lasso_fit_with_no_cv():
     """
     Test the dcrt function using the Lasso learner
     """
@@ -248,7 +254,13 @@ def test_dcrt_lasso_fit_with_cv():
         X,
         y,
         fit_y=True,
-        n_alphas=20,
+        kargs_lasso_estimator={
+        'alpha':None,
+        'n_alphas':0,
+        'alphas':None,
+        'alpha_max_fraction':0.5,
+        "fit_intercept": False,
+        },
         screening=False,
         statistic="residual",
         random_state=2024,
