@@ -72,7 +72,7 @@ class CPI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = check_random_state(random_state)
+        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
@@ -96,6 +96,7 @@ class CPI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
