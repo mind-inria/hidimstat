@@ -89,7 +89,7 @@ def test_desparsified_group_lasso():
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
-        X, Y, group=True, covariance=cov
+        X, Y, multioutput=True, covariance=cov
     )
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
@@ -102,7 +102,7 @@ def test_desparsified_group_lasso():
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
-    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, group=True)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, multioutput=True)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="F")
     )
@@ -113,7 +113,7 @@ def test_desparsified_group_lasso():
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(cov, 0, axis=1)
     np.testing.assert_raises(
-        ValueError, desparsified_lasso, X=X, y=Y, group=True, covariance=bad_cov
+        ValueError, desparsified_lasso, X=X, y=Y, multioutput=True, covariance=bad_cov
     )
 
     with pytest.raises(ValueError, match=f"Unknown test 'r2'"):
