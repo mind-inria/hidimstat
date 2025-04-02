@@ -131,16 +131,8 @@ def test_model_x_knockoff():
     selected, test_score, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=1, random_state=seed + 1, fdr=fdr
     )
-    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
-        model_x_knockoff(X, y, n_bootstraps=1, random_state=seed + 1, offset=2, fdr=fdr)
-    with pytest.raises(ValueError, match="'offset' must be either 0 or 1"):
-        model_x_knockoff(
-            X, y, n_bootstraps=1, random_state=seed + 1, offset=-0.1, fdr=fdr
-        )
 
-    ko_result, _ = model_x_knockoff_pvalue(test_score, fdr=fdr)
-    ko_result_bis, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr)
-    assert np.all(ko_result == ko_result_bis)
+    ko_result, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr)
     fdp, power = cal_fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7

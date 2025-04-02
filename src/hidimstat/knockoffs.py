@@ -85,7 +85,6 @@ def model_x_knockoff(
     n_jobs=1,
     random_state=None,
     tol_gauss=1e-14,
-    offset=1,
     memory=None,
 ):
     """
@@ -154,9 +153,6 @@ def model_x_knockoff(
         A tolerance value used for numerical stability in the calculation of
         the Cholesky decomposition in the gaussian generation function.
 
-    offset : {0, 1}, default=1
-        Offset for knockoff threshold. Use 1 for knockoff+.
-
     memory : str or Memory object, default=None
         Used to cache the output of the clustering and inference computation.
         By default, no caching is done. If provided, it should be the path
@@ -224,7 +220,7 @@ def model_x_knockoff(
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
-            X, X_tildes[i], y, estimator, fdr, offset, preconfigure_estimator
+            X, X_tildes[i], y, estimator, fdr, preconfigure_estimator
         )
         for i in range(n_bootstraps)
     )
@@ -270,7 +266,7 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq"):
     return selected, pvals
 
 
-def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1, offset=1):
+def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1):
     """
     This function implements the computation of the empirical e-values
     from knockoff test and aggregates them using the e-BH procedure.
@@ -285,10 +281,6 @@ def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1, offse
 
     fdr : float, optional (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
-
-    offset : int, 0 or 1, optional (default=1)
-        The offset to calculate the knockoff threshold. An offset of 1 is equivalent to
-        knockoff+.
 
     Returns
     -------
@@ -310,7 +302,7 @@ def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1, offse
     n_bootstraps = len(test_scores)
     evals = np.array(
         [
-            _empirical_knockoff_eval(test_scores[i], ko_threshold[i], offset)
+            _empirical_knockoff_eval(test_scores[i], ko_threshold[i])
             for i in range(n_bootstraps)
         ]
     )
@@ -398,9 +390,7 @@ def model_x_knockoff_bootstrap_quantile(
     return selected, aggregated_pval, pvals
 
 
-def _stat_coefficient_diff(
-    X, X_tilde, y, estimator, fdr, offset, preconfigure_estimator=None
-):
+def _stat_coefficient_diff(X, X_tilde, y, estimator, fdr, preconfigure_estimator=None):
     """
     Compute the Lasso Coefficient-Difference (LCD) statistic by comparing original and knockoff coefficients.
 
@@ -424,9 +414,6 @@ def _stat_coefficient_diff(
 
     fdr : float
         Target false discovery rate level between 0 and 1.
-
-    offset : {0, 1}
-        Knockoff threshold offset. Use 1 for knockoff+.
 
     preconfigure_estimator : callable, default=None
         Optional function to configure estimator parameters before fitting.
@@ -466,13 +453,13 @@ def _stat_coefficient_diff(
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
 
     # Compute the threshold level and selecte the important variables
-    ko_thr = _knockoff_threshold(test_score, fdr=fdr, offset=offset)
+    ko_thr = _knockoff_threshold(test_score, fdr=fdr)
     selected = np.where(test_score >= ko_thr)[0]
 
     return test_score, ko_thr, selected
 
 
-def _knockoff_threshold(test_score, fdr=0.1, offset=1):
+def _knockoff_threshold(test_score, fdr=0.1):
     """
     Calculate the knockoff threshold based on the procedure stated in the article.
 
@@ -487,16 +474,12 @@ def _knockoff_threshold(test_score, fdr=0.1, offset=1):
     fdr : float, optional
         Desired controlled FDR (false discovery rate) level.
 
-    offset : int, 0 or 1, optional
-        Offset equals 1 is the knockoff+ procedure.
-
     Returns
     -------
     threshold : float or np.inf
         Threshold level.
     """
-    if offset not in (0, 1):
-        raise ValueError("'offset' must be either 0 or 1")
+    offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
     threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
     np.concatenate(
@@ -530,7 +513,7 @@ def _empirical_knockoff_pval(test_score):
     pvals = []
     n_features = test_score.size
 
-    offset = 1  # we want to compute knockoff+ function
+    offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
     test_score_inv = -test_score
     for i in range(n_features):
@@ -544,7 +527,7 @@ def _empirical_knockoff_pval(test_score):
     return np.array(pvals)
 
 
-def _empirical_knockoff_eval(test_score, ko_thr, offset=1):
+def _empirical_knockoff_eval(test_score, ko_threshold):
     """
     Compute the empirical e-values from the knockoff test.
 
@@ -553,11 +536,8 @@ def _empirical_knockoff_eval(test_score, ko_thr, offset=1):
     test_score : 1D ndarray, shape (n_features, )
         Vector of test statistics.
 
-    threshold : float
+    ko_threshold : float
         Threshold level.
-
-    offset : int, 0 or 1, optional
-        Offset equals 1 is the knockoff+ procedure.
 
     Returns
     -------
@@ -567,13 +547,12 @@ def _empirical_knockoff_eval(test_score, ko_thr, offset=1):
     evals = []
     n_features = test_score.size
 
-    if offset not in (0, 1):
-        raise ValueError("'offset' must be either 0 or 1")
+    offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
     for i in range(n_features):
-        if test_score[i] < ko_thr:
+        if test_score[i] < ko_threshold:
             evals.append(0)
         else:
-            evals.append(n_features / (offset + np.sum(test_score <= -ko_thr)))
+            evals.append(n_features / (offset + np.sum(test_score <= -ko_threshold)))
 
     return np.array(evals)
