@@ -267,7 +267,7 @@ def dcrt_pvalue(
     pvals : ndarray of shape (n_features,)
         P-values for all features (including unselected ones)
     ts : ndarray of shape (n_features,)
-        Test statistics for all features
+        test statistics following a standard normal distribution for all features
 
     Notes
     -----
