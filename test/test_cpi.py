@@ -67,7 +67,7 @@ def test_cpi(linear_scenario):
         groups=groups,
         var_type="continuous",
     )
-    # warnings because we doesn't considere the name of columns of pandas
+    # warnings because we don't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = cpi.score(X_test_df, y_test)
 
