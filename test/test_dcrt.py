@@ -352,14 +352,14 @@ def test_dcrt_RF_regression():
             screening=False,
             loss="test",
             random_state=2024,
-            statistic="randomforest",
+            statistic="random_forest",
         )
 
     res = dcrt_zero(
         X,
         y,
         screening=False,
-        statistic="randomforest",
+        statistic="random_forest",
         problem_type="regression",
         random_state=2024,
     )
@@ -378,7 +378,7 @@ def test_dcrt_RF_classification():
         X,
         y,
         screening=False,
-        statistic="randomforest",
+        statistic="random_forest",
         problem_type="classification",
         random_state=2024,
     )

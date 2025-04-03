@@ -77,7 +77,7 @@ def dcrt_zero(
         Whether to screen variables
     screening_threshold : float, default=0.1
         Threshold for variable screening (0-100)
-    statistic : {'residual', 'randomforest'}, default='residual'
+    statistic : {'residual', 'random_forest'}, default='residual'
         Learning method for outcome distillation
     centered : bool, default=True
         Whether to standardize features
@@ -189,7 +189,7 @@ def dcrt_zero(
             )
             for idx in selection_set
         )
-    elif statistic == "randomforest":
+    elif statistic == "random_forest":
         # For distillation of X use least_square loss
         results = Parallel(n_jobs, verbose=joblib_verbose)(
             delayed(_rf_distillation)(
@@ -293,7 +293,7 @@ def dcrt_pvalue(
     ts = np.zeros(n_features)
     ts[selection_features] = ts_selected_variables
 
-    # for residual and randomforest, the test statistics follows Gaussian distribution
+    # for residual and random_forest, the test statistics follows Gaussian distribution
     pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
 
     threshold = fdr_threshold(
