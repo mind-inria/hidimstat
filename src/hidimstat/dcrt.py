@@ -430,19 +430,23 @@ def _lasso_distillation_residual(
         Whether to fit y using Lasso when coef_full is None.
     random_state : int, default=42
         Random seed for reproducibility.
-    kargs_lasso_distillation_x : dict
+    params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float, optional - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
         - alphas : array-like, default=None - List of alpha values to try in CV.
         - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
-    kargs_lasso_distillation_y : dict
-        same as kargs_lasso_distillation_x
+    params_lasso_distillation_y : dict
+        Same as params_lasso_distillation_x.
 
     Returns
     -------
-    ts : float
-        The computed test statistic.
+    X_res : ndarray of shape (n_samples,)
+        The residuals after X distillation.
+    sigma2_X : float
+        The estimated variance of the residuals.
+    y_res : ndarray of shape (n_samples,)
+        The residuals after y distillation.
 
     References
     ----------
@@ -523,7 +527,7 @@ def _rf_distillation(
         Number of trees in the Random Forest.
     random_state : int, default=42
         Random seed for reproducibility.
-    params_lasso_distillation_y : dict
+    params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float, optional - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
@@ -532,8 +536,12 @@ def _rf_distillation(
 
     Returns
     -------
-    ts : float
-        The computed test statistic.
+    X_res : ndarray of shape (n_samples,)
+        The residuals after X distillation.
+    sigma2_X : float
+        The estimated variance of the residuals.
+    y_res : ndarray of shape (n_samples,)
+        The residuals after y distillation.
 
     Notes
     -----
@@ -590,39 +598,40 @@ def _fit_lasso(
 ):
     """
     Fits a LASSO regression model with optional cross-validation for alpha selection.
+
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features)
-        Training data.
+        Training data
     y : array-like of shape (n_samples,)
-        Target values.
-    alpha : float, optional
+        Target values
+    n_jobs : int
+        Number of CPUs for cross-validation
+    alpha : float
         Constant that multiplies the L1 term. If None and alphas/n_alphas not provided,
         alpha is set to alpha_max_fraction * alpha_max.
-    alphas : array-like, optional
+    alphas : array-like
         List of alphas where to compute the models. If None and n_alphas > 0,
         alphas are set automatically.
-    n_alphas : int, optional
+    n_alphas : int
         Number of alphas along the regularization path. Ignored if alphas is provided.
-    cv : int, cross-validation generator or iterable, optional
-        Determines the cross-validation splitting strategy.
-    n_jobs : int, optional
-        Number of CPUs to use during cross-validation.
-    random_state : int, RandomState instance or None, optional
-        Controls the randomness of the estimator.
     alpha_max_fraction : float
         Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
+    random_state : int, RandomState instance or None
+        Random seed for reproducibility
     **params : dict
-        Additional keyword arguments to be passed to LassoCV.
+        Additional parameters for Lasso/LassoCV
+
     Returns
     -------
-    tuple
-        A tuple containing:
-        - clf : The fitted Lasso or LassoCV model
-        - alpha : The alpha value used or selected by cross-validation
+    clf : estimator
+        Fitted Lasso/LassoCV model
+    alpha : float
+        Selected alpha value
+
     Notes
     -----
-    If alphas or n_alphas is provided, performs cross-validation to select the best alpha.
+    Uses cross-validation to select the best alpha if alphas or n_alphas provided.
     Otherwise, uses a single alpha value either provided or computed from alpha_max_fraction.
     """
     if alphas is not None or n_alphas > 0:
