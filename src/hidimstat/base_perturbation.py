@@ -154,7 +154,14 @@ class BasePerturbation(BaseEstimator):
 
     def _check_fit(self):
         """Check that the estimator has been fitted if needed."""
-        pass
+        if (
+            self.n_groups is None
+            or not hasattr(self, "groups")
+            or not hasattr(self, "_groups_ids")
+        ):
+            raise ValueError(
+                "The estimator is not fitted. The fit method must be called to set variable groups. If no grouping is needed, call fit with groups=None"
+            )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
