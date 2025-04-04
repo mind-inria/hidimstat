@@ -143,12 +143,12 @@ for i, pval in enumerate(pval_pi):
             i + 1,
             color="red",
             marker="*",
-            label="p < 0.05" if i == 0 else "",
+            label="Important (p < 0.05)" if i == 0 else "",
         )
 ax.axvline(x=0, color="black", linestyle="--")
 # Add legend for asterisks
 ax.legend(loc="upper right")
-sns.despine(ax=ax)
+sns.despine(ax=ax)s
 ax.set_yticklabels(feature_names, fontsize=10)  # Set y-tick labels to feature names
 fig.tight_layout()
 plt.show()
@@ -206,8 +206,8 @@ sns.barplot(
     ax=ax,
 )
 ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
+plt.show()
 
-# sphinx_gallery_defer_figures
 ###############################################################################
 # Extrapolationbias in PFI
 # ----------------------------
@@ -235,6 +235,7 @@ conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
     X_test[:, :7], X_test[:, 7], n_samples=1
 ).ravel()
+# sphinx_gallery_thumbnail_number = 4
 fig, ax = plt.subplots()
 
 sns.histplot(
