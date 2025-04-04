@@ -3,18 +3,12 @@ Pitfalls of Permutation Feature Importance (PFI)
 ===============================================
 
 In this example, we illustrate the pitfalls of using permutation feature importance
-(PFI) [:footcite:t:`breimanRandomForests2001`] on the California housing dataset.
+(PFI) on the California housing dataset.
 PFI measures the importance of a variable. However, it does not measure conditional
 importance and does not provide statistical control over the risk of making false
 discoveries, i.e., the risk of declaring a variable as important when it is not.
-
-References
-----------
-.. footbibliography::
-
 """
 
-# %%
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -213,7 +207,7 @@ sns.barplot(
 )
 ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
 
-
+# sphinx_gallery_defer_figures
 ###############################################################################
 # Extrapolationbias in PFI
 # ----------------------------
@@ -241,7 +235,6 @@ conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
     X_test[:, :7], X_test[:, 7], n_samples=1
 ).ravel()
-
 fig, ax = plt.subplots()
 
 sns.histplot(
