@@ -81,7 +81,9 @@ class BasePerturbation(BaseEstimator):
                         ]
                     )
             else:
-                self._groups_ids = np.array(list(self.groups.values()), dtype=int)
+                self._groups_ids = [
+                    np.array(ids, dtype=int) for ids in list(self.groups.values())
+                ]
 
     def predict(self, X):
         """
