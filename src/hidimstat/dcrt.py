@@ -100,7 +100,7 @@ def dcrt_zero(
         Boolean mask of selected features
     X_res : ndarray of shape (n_selected, n_samples)
         Residuals after X distillation
-    sigma2_X : ndarray of shape (n_selected,)
+    sigma2 : ndarray of shape (n_selected,)
         Estimated residual variances
     y_res : ndarray of shape (n_selected, n_samples)
         Response residuals
@@ -216,15 +216,15 @@ def dcrt_zero(
     selection_features = np.ones((n_features,), dtype=bool)
     selection_features[non_selection] = 0
     X_residual = np.array([result[0] for result in results])
-    sigma2_X = np.array([result[1] for result in results])
+    sigma2 = np.array([result[1] for result in results])
     y_residual = np.array([result[2] for result in results])
-    return selection_features, X_residual, sigma2_X, y_residual
+    return selection_features, X_residual, sigma2, y_residual
 
 
 def dcrt_pvalue(
     selection_features,
     X_res,
-    sigma2_X,
+    sigma2,
     y_res,
     fdr=0.1,
     fdr_control="bhq",
@@ -244,7 +244,7 @@ def dcrt_pvalue(
         Boolean mask indicating which features were selected for testing
     X_res : ndarray of shape (n_selected, n_samples)
         Residuals from feature distillation
-    sigma2_X : ndarray of shape (n_selected,)
+    sigma2 : ndarray of shape (n_selected,)
         Estimated residual variances for each tested feature
     y_res : ndarray of shape (n_selected, n_samples)
         Response residuals for each tested feature
@@ -280,7 +280,7 @@ def dcrt_pvalue(
 
     ts_selected_variables = [
         np.dot(y_res[i], X_res[i])
-        / np.sqrt(n_samples * sigma2_X[i] * np.mean(y_res[i] ** 2))
+        / np.sqrt(n_samples * sigma2[i] * np.mean(y_res[i] ** 2))
         for i in range(X_res.shape[0])
     ]
 
@@ -342,7 +342,7 @@ def _x_distillation_lasso(
     -------
     X_res : ndarray of shape (n_samples,)
         The residuals after distillation.
-    sigma2_X : float
+    sigma2 : float
         The estimated variance of the residuals.
     """
     n_samples = X.shape[0]
@@ -365,7 +365,7 @@ def _x_distillation_lasso(
         # In the original paper and implementation, the term:
         #  alpha * np.linalg.norm(clf.coef_, ord=1)
         # is not present and has been added without any reference actually
-        sigma2_X = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
+        sigma2 = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
             clf.coef_, ord=1
         )
 
@@ -376,11 +376,11 @@ def _x_distillation_lasso(
         A = np.delete(np.copy(sigma_temp), idx, 1)
         coefs_X = np.linalg.solve(A, b)
         X_res = X[:, idx] - np.dot(X_minus_idx, coefs_X)
-        sigma2_X = sigma_X[idx, idx] - np.dot(
+        sigma2 = sigma_X[idx, idx] - np.dot(
             np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
         )
 
-    return X_res, sigma2_X
+    return X_res, sigma2
 
 
 def _lasso_distillation_residual(
@@ -443,7 +443,7 @@ def _lasso_distillation_residual(
     -------
     X_res : ndarray of shape (n_samples,)
         The residuals after X distillation.
-    sigma2_X : float
+    sigma2 : float
         The estimated variance of the residuals.
     y_res : ndarray of shape (n_samples,)
         The residuals after y distillation.
@@ -455,7 +455,7 @@ def _lasso_distillation_residual(
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_res, sigma2_X = _x_distillation_lasso(
+    X_res, sigma2 = _x_distillation_lasso(
         X,
         idx,
         sigma_X,
@@ -483,7 +483,7 @@ def _lasso_distillation_residual(
     # compute the residuals
     y_res = y - X_minus_idx.dot(coef_minus_idx)
 
-    return X_res, sigma2_X, y_res
+    return X_res, sigma2, y_res
 
 
 def _rf_distillation(
@@ -538,7 +538,7 @@ def _rf_distillation(
     -------
     X_res : ndarray of shape (n_samples,)
         The residuals after X distillation.
-    sigma2_X : float
+    sigma2 : float
         The estimated variance of the residuals.
     y_res : ndarray of shape (n_samples,)
         The residuals after y distillation.
@@ -553,7 +553,7 @@ def _rf_distillation(
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_res, sigma2_X = _x_distillation_lasso(
+    X_res, sigma2 = _x_distillation_lasso(
         X,
         idx,
         sigma_X,
@@ -580,7 +580,7 @@ def _rf_distillation(
 
     return (
         X_res,
-        sigma2_X,
+        sigma2,
         y_res,
     )
 
