@@ -34,7 +34,7 @@ def dcrt_zero(
     n_jobs=1,
     joblib_verbose=0,
     fit_y=False,
-    ntree=100,
+    n_tree=100,
     problem_type="regression",
     random_state=2022,
 ):
@@ -87,7 +87,7 @@ def dcrt_zero(
         Verbosity level
     fit_y : bool, default=False
         Whether to fit y using selected features
-    ntree : int, default=100
+    n_tree : int, default=100
         Number of trees for random forest
     problem_type : {'regression', 'classification'}, default='regression'
         Type of learning problem
@@ -197,7 +197,7 @@ def dcrt_zero(
                 y_,
                 idx,
                 sigma_X=sigma_X,
-                ntree=ntree,
+                n_tree=n_tree,
                 problem_type=problem_type,
                 n_jobs=1,  # the function is already called in parallel
                 random_state=random_state,
@@ -493,7 +493,7 @@ def _rf_distillation(
     sigma_X=None,
     n_jobs=1,
     problem_type="regression",
-    ntree=100,
+    n_tree=100,
     random_state=42,
     params_lasso_distillation_x={
         "alpha": None,
@@ -523,7 +523,7 @@ def _rf_distillation(
         Number of CPUs to use.
     problem_type : {'regression', 'classification'}, default='regression'
         The type of prediction problem.
-    ntree : int, default=100
+    n_tree : int, default=100
         Number of trees in the Random Forest.
     random_state : int, default=42
         Random seed for reproducibility.
@@ -566,14 +566,14 @@ def _rf_distillation(
     # get the residuals
     if problem_type == "regression":
         clf = RandomForestRegressor(
-            n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
+            n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
         y_res = y - clf.predict(X_minus_idx)
 
     elif problem_type == "classification":
         clf = RandomForestClassifier(
-            n_estimators=ntree, random_state=random_state, n_jobs=n_jobs
+            n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
         clf.fit(X_minus_idx, y)
         y_res = y - clf.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
