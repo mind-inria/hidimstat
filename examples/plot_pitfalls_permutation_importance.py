@@ -148,7 +148,7 @@ for i, pval in enumerate(pval_pi):
 ax.axvline(x=0, color="black", linestyle="--")
 # Add legend for asterisks
 ax.legend(loc="upper right")
-sns.despine(ax=ax)s
+sns.despine(ax=ax)
 ax.set_yticklabels(feature_names, fontsize=10)  # Set y-tick labels to feature names
 fig.tight_layout()
 plt.show()
