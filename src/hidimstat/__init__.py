@@ -42,24 +42,10 @@ __all__ = [
     "desparsified_lasso_pvalue",
     "desparsified_group_lasso_pvalue",
     "reid",
-<<<<<<< HEAD
-    "knockoff_aggregation",
-||||||| fa4a7f5
-    "hd_inference",
-    "knockoff_aggregation",
-=======
-    "hd_inference",
->>>>>>> main
     "model_x_knockoff",
-<<<<<<< HEAD
-||||||| fa4a7f5
-    "multivariate_1D_simulation",
-=======
     "model_x_knockoff_pvalue",
     "model_x_knockoff_bootstrap_quantile",
     "model_x_knockoff_bootstrap_e_value",
-    "multivariate_1D_simulation",
->>>>>>> main
     "permutation_test",
     "permutation_test_pval",
     "empirical_thresholding",
