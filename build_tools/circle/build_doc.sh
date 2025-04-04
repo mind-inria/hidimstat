@@ -97,8 +97,7 @@ if [[ `type -t deactivate` ]]; then
 fi
 
 # Install dependencies with miniconda
-wget https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh \
-     -O miniconda.sh
+wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" -O miniconda.sh
 chmod +x miniconda.sh && bash ./miniconda.sh -b -p "miniconda"
 export PATH="miniconda/bin:$PATH"
 
