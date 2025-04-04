@@ -22,7 +22,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
         Beta coefficients at cluster level
     n_features : int
         Number of features in original space
-    ward : AgglomerativeClustering
+    ward : sklearn.cluster.FeatureAgglomeration
         Fitted clustering object
 
     Returns
