@@ -127,6 +127,7 @@ sphinx_gallery_conf = {
     "show_memory": True,
     "doc_module": "hidimstat",
     "backreferences_dir": "generated",
+    "parallel": True,
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
