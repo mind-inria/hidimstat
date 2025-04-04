@@ -2,12 +2,9 @@
 Controlled variable selection: why and how?
 =======================================
 """
-
-# %% [markdown]
-#
 # In this example, we explore the basics of variable selection and illustrate the need to statistically control the amount of faslely selected variables. We start off by loading the Wisconsin breast cancer dataset:
 
-# %%
+#%%
 import numpy as np
 
 # Set random seed for reproducibility
@@ -27,14 +24,14 @@ X = StandardScaler().fit_transform(X)
 print(X.shape)
 n, p = X.shape
 
-# %% [markdown]
+
 # There are 569 samples and 30 features that correspond to tumor attributes. The downstream task is to classify tumors as benign or malignant.
 
-# %%
+#%%
 feature_names = [str(name) for name in data.feature_names]
 feature_names[:10]
 
-# %%
+#%%
 data.target_names
 
 #############################################################################
@@ -59,7 +56,7 @@ print(np.array(feature_names)[np.abs(clf.coef_[0]) > 1e-6])
 #
 # Since we do not have the ground truth, we cannot evaluate this selection set directly. To investigate the reliability of this method, we artificially increase the number of variables by adding synthetic noise features. These are completely irrelevant to the problem at hand.
 
-# %%
+#%%
 repeats_noise = 3  # Number of synthetic noisy sets to add
 
 X_to_shuff = X.copy()
@@ -72,10 +69,9 @@ for k in range(repeats_noise):
 noisy = np.concatenate(noises, axis=1)
 print("Shape after adding noise features:", noisy.shape)
 
-# %% [markdown]
 # There are 120 features -- 30 of them are real and 90 of them are fake and independent of the outcome. We now apply the Lasso to the augmented dataset:
 
-# %%
+#%%
 clf_noisy = LogisticRegressionCV(penalty="l1", solver="liblinear", max_iter=int(1e4))
 clf_noisy.fit(noisy, y)
 
@@ -85,7 +81,6 @@ selected_logl1 = np.where(np.abs(clf_noisy.coef_[0]) > 1e-6)[0]
 num_false_discoveries = np.sum(selected_logl1 >= p)
 print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 
-# %% [markdown]
 # To mitigate this problem, we can use one of the statistically controlled variable selection methods implemented in hidimstat. This ensures that the proportion of False Discoveries is below a certain bound set by the user in all scenarios.
 
 #############################################################################
@@ -115,11 +110,10 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
 print("Selected features with Knockoffs:")
 print(np.array(feature_names)[selected])
 
-
-# %% [markdown]
+#%%
 # We now apply the Knockoffs procedure to the noisy dataset:
 
-# %%
+#%%
 selected, test_scores, threshold, X_tildes = model_x_knockoff(
     X,
     y,
@@ -140,5 +134,5 @@ print(np.array(feature_names)[selected])
 num_false_discoveries = np.sum(selected >= p)
 print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 
-# %% [markdown]
+#%%
 # Knockoffs select the same variable as previously and select **no fake variables**.
