@@ -18,6 +18,9 @@ Functions
 
    aggregate_quantiles
    clustered_inference
+   dcrt_zero
+   dcrt_pvalue
+   data_simulation
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue

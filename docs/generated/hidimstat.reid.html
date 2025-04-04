@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=c318d3b8"></script>
+    <script src="../_static/documentation_options.js?v=ecbc0032"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.reid';</script>
@@ -335,6 +335,9 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -419,7 +422,7 @@
 <dd><p>Residual sum of squares based estimators for noise standard deviation
 estimation.</p>
 <p>This implementation follows the procedure described in
-<a class="footnote-reference brackets" href="#footcite-fan2012variance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and <span id="id2">[<a class="reference internal" href="../index.html#id16" title="Stephen Reid, Robert Tibshirani, and Jerome Friedman. A study of error variance estimation in lasso regression. Statistica Sinica, pages 35–67, 2016.">Reid <em>et al.</em>, 2016</a>]</span>. It uses Lasso with
+<a class="footnote-reference brackets" href="#footcite-fan2012variance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and <span id="id2">[<a class="reference internal" href="../index.html#id18" title="Stephen Reid, Robert Tibshirani, and Jerome Friedman. A study of error variance estimation in lasso regression. Statistica Sinica, pages 35–67, 2016.">Reid <em>et al.</em>, 2016</a>]</span>. It uses Lasso with
 cross-validation to estimate both the noise standard deviation and model
 coefficients.</p>
 <p>For group, the implementation is based on the procedure

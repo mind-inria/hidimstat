@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.desparsified_lasso_pvalue &#8212; HiDimStat</title>
+    <title>hidimstat.data_simulation &#8212; HiDimStat</title>
   
   
   
@@ -45,11 +45,11 @@
     <script src="../_static/documentation_options.js?v=ecbc0032"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_lasso_pvalue';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.data_simulation';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.desparsified_group_lasso_pvalue" href="hidimstat.desparsified_group_lasso_pvalue.html" />
-    <link rel="prev" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
+    <link rel="next" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
+    <link rel="prev" title="hidimstat.dcrt_pvalue" href="hidimstat.dcrt_pvalue.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -337,9 +337,9 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.desparsified_lasso_pvalue</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.data_simulation</span></li>
   </ul>
 </nav>
 </div>
@@ -414,61 +414,13 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-desparsified-lasso-pvalue">
-<h1>hidimstat.desparsified_lasso_pvalue<a class="headerlink" href="#hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-data-simulation">
+<h1>hidimstat.data_simulation<a class="headerlink" href="#hidimstat-data-simulation" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.desparsified_lasso_pvalue">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L214-L285"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso_pvalue" title="Link to this definition">#</a></dt>
-<dd><p>Calculate confidence intervals and p-values for desparsified lasso estimators.
-This function computes confidence intervals for the desparsified lasso
-estimator beta_hat.
-It can also return p-values derived from these confidence intervals.
-Parameters
-———-
-n_samples : float</p>
-<blockquote>
-<div><p>The number of samples</p>
-</div></blockquote>
-<dl class="simple">
-<dt>beta_hat<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The desparsified lasso coefficient estimates.</p>
-</dd>
-<dt>sigma_hat<span class="classifier">float</span></dt><dd><p>Estimated noise level.</p>
-</dd>
-<dt>precision_diagonal<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix estimate.</p>
-</dd>
-<dt>confidence<span class="classifier">float, default=0.95</span></dt><dd><p>Confidence level for intervals, must be in [0, 1].</p>
-</dd>
-<dt>distribution<span class="classifier">str, default=”norm”</span></dt><dd><p>Distribution to use for p-value calculation.
-Currently only “norm” supported.</p>
-</dd>
-<dt>epsilon<span class="classifier">float, default=1e-14</span></dt><dd><p>Small value to avoid numerical issues in p-value calculation.</p>
-</dd>
-</dl>
-<section id="returns">
-<h2>Returns<a class="headerlink" href="#returns" title="Link to this heading">#</a></h2>
-<dl class="simple">
-<dt>pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values</p>
-</dd>
-<dt>pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Corrected p-values</p>
-</dd>
-<dt>one_minus_pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values</p>
-</dd>
-<dt>one_minus_pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values</p>
-</dd>
-<dt>confidence_bound_min<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Lower bounds of confidence intervals</p>
-</dd>
-<dt>confidence_bound_max<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Upper bounds of confidence intervals</p>
-</dd>
-</dl>
-</section>
-</dd></dl>
+<dt class="sig sig-object py" id="hidimstat.data_simulation">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">data_simulation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/data_simulation.py#L0-L55"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.data_simulation" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
 
-<section id="examples-using-hidimstat-desparsified-lasso-pvalue">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.desparsified_lasso_pvalue</span></code><a class="headerlink" href="#examples-using-hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
-</div></div></section>
 </section>
 
 
@@ -482,20 +434,20 @@ Currently only “norm” supported.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.desparsified_lasso.html"
+       href="hidimstat.dcrt_pvalue.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
+        <p class="prev-next-title">hidimstat.dcrt_pvalue</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.desparsified_group_lasso_pvalue.html"
+       href="hidimstat.desparsified_lasso.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.desparsified_group_lasso_pvalue</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -518,8 +470,7 @@ Currently only “norm” supported.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.desparsified_lasso_pvalue"><code class="docutils literal notranslate"><span class="pre">desparsified_lasso_pvalue()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-desparsified-lasso-pvalue">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.desparsified_lasso_pvalue</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.data_simulation"><code class="docutils literal notranslate"><span class="pre">data_simulation()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -527,7 +478,7 @@ Currently only “norm” supported.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.desparsified_lasso_pvalue.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.data_simulation.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

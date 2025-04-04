@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=c318d3b8"></script>
+    <script src="../_static/documentation_options.js?v=ecbc0032"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.model_x_knockoff';</script>
@@ -335,6 +335,9 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -418,7 +421,7 @@
 <span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">model_x_knockoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator=LassoCV(cv=KFold(n_splits=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter=200000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconfigure_estimator=&lt;function</span> <span class="pre">preconfigure_estimator_LassoCV&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator=LedoitWolf(assume_centered=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol_gauss=1e-14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory=None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoffs.py#L69-L232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.model_x_knockoff" title="Link to this definition">#</a></dt>
 <dd><p>Model-X Knockoff</p>
 <p>This module implements the Model-X knockoff inference procedure, which is an approach
-to control the False Discovery Rate (FDR) based on <span id="id1">[<a class="reference internal" href="../index.html#id13" title="Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for gold:‘model-x’knockoffs for high dimensional controlled variable selection. Journal of the Royal Statistical Society Series B: Statistical Methodology, 80(3):551–577, 2018.">Candes <em>et al.</em>, 2018</a>]</span>. The original
+to control the False Discovery Rate (FDR) based on <span id="id1">[<a class="reference internal" href="../index.html#id14" title="Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for gold:‘model-x’knockoffs for high dimensional controlled variable selection. Journal of the Royal Statistical Society Series B: Statistical Methodology, 80(3):551–577, 2018.">Candes <em>et al.</em>, 2018</a>]</span>. The original
 implementation can be found at
 <a class="github reference external" href="https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R">msesia/knockoff-filter</a>
 The noisy variables are generated with second-order knockoff variables using the equi-correlated method.</p>
