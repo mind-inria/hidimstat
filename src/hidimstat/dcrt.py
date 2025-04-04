@@ -262,7 +262,7 @@ def dcrt_pvalue(
 
     Returns
     -------
-    variables_important : ndarray
+    selected_variables : ndarray
         Indices of features deemed significant
     pvals : ndarray of shape (n_features,)
         P-values for all features (including unselected ones)
@@ -299,9 +299,9 @@ def dcrt_pvalue(
     threshold = fdr_threshold(
         pvals, fdr=fdr, method=fdr_control, reshaping_function=reshaping_function
     )
-    variables_important = np.where(pvals <= threshold)[0]
+    selected_variables = np.where(pvals <= threshold)[0]
 
-    return variables_important, pvals, ts
+    return selected_variables, pvals, ts
 
 
 def _x_distillation_lasso(
