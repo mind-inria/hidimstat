@@ -4,7 +4,6 @@ Controlled variable selection: why and how?
 """
 
 # %% [markdown]
-# # Controlled variable selection: why and how?
 #
 # In this example, we explore the basics of variable selection and illustrate the need to statistically control the amount of faslely selected variables. We start off by loading the Wisconsin breast cancer dataset:
 
@@ -38,8 +37,10 @@ feature_names[:10]
 # %%
 data.target_names
 
-# %% [markdown]
-# ## Step 1: Selecting variables with the Lasso
+#############################################################################
+# Step 1: Selecting variables with the Lasso
+# ------------------------------------------
+# 
 # We want to select variables that are relevant to the outcome, i.e. tumor charateristics that are associated with tumor malignance. We start off by applying a classical method using Lasso logistic regression and retaining variables with non-null coefficients:
 
 # %%
@@ -52,8 +53,10 @@ selected_lasso = np.where(np.abs(clf.coef_[0]) > 1e-6)[0]
 print(f" {len(selected_lasso)} features are selected by the Lasso:")
 print(np.array(feature_names)[np.abs(clf.coef_[0]) > 1e-6])
 
-# %% [markdown]
-# ## Step 2: Evaluating the rejection set
+#############################################################################
+# Step 2: Evaluating the rejection set
+# ------------------------------------------
+#
 # Since we do not have the ground truth, we cannot evaluate this selection set directly. To investigate the reliability of this method, we artificially increase the number of variables by adding synthetic noise features. These are completely irrelevant to the problem at hand.
 
 # %%
@@ -85,8 +88,10 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # %% [markdown]
 # To mitigate this problem, we can use one of the statistically controlled variable selection methods implemented in hidimstat. This ensures that the proportion of False Discoveries is below a certain bound set by the user in all scenarios.
 
-# %% [markdown]
-# ## Step 3: Controlled variable selection with Knockoffs
+#############################################################################
+# Step 3: Controlled variable selection with Knockoffs
+# ----------------------------------------------------
+#  
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). To setup a fair comparison between the two methods, we first run the Knockoffs procedure on the original data and observe the results:
 
 # %%
