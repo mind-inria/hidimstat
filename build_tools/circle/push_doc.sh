@@ -5,6 +5,7 @@
 # in the circle.yml in the top level folder of the project.
 
 set -e
+set -x
 
 GENERATED_DOC_DIR=$1
 
