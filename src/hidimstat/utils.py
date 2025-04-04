@@ -212,10 +212,10 @@ def _bhq_threshold(pvals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return pvals_sorted[selected_index]
+        threshold = pvals_sorted[selected_index]
     else:
-        # no threshold, all the pvalue are positive
-        return -1.0
+        threshold = -1.0
+    return threshold
 
 
 def _ebh_threshold(evals, fdr=0.1):
@@ -246,10 +246,10 @@ def _ebh_threshold(evals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return evals_sorted[selected_index]
+        threshold = evals_sorted[selected_index]
     else:
-        # no threshold, no e-value is significant at the chosen level
-        return np.inf
+        threshold = np.inf
+    return threshold
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
@@ -283,17 +283,17 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     if reshaping_function is None:
         temp = np.arange(n_features)
         sum_inverse = np.sum(1 / (temp + 1))
-        return _bhq_threshold(pvals, fdr / sum_inverse)
+        threshold = _bhq_threshold(pvals, fdr / sum_inverse)
     else:
         for i in range(n_features - 1, -1, -1):
             if pvals_sorted[i] <= fdr * reshaping_function(i + 1) / n_features:
                 selected_index = i
                 break
         if selected_index <= n_features:
-            return pvals_sorted[selected_index]
+            threshold = pvals_sorted[selected_index]
         else:
-            # no threshold, all the p-values are positive
-            return -1.0
+            threshold = -1.0
+    return threshold
 
 
 ########################## alpha Max Calculation ##########################

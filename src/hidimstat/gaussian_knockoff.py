@@ -1,169 +1,190 @@
-"""Generation of model-x knockoff following equi-correlated method or
-optimization scheme following Barber et al. (2015). Requires cvxopt.
-"""
-
 import warnings
-
 import numpy as np
-from sklearn.covariance import GraphicalLassoCV, empirical_covariance, ledoit_wolf
-from sklearn.utils.validation import check_memory
 
 
-def gaussian_knockoff_generation(X, mu, Sigma, method="equi", memory=None, seed=None):
-    """Generate second-order knockoff variables using equi-correlated method.
-    Reference: Candes et al. (2016), Barber et al. (2015)
+def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
+    """
+    Generate second-order knockoff variables using the equi-correlated method.
+
+    This function generates knockoff variables for a given design matrix X,
+    using the equi-correlated method described in :cite:`barber2015controlling`
+    and :cite:`candes2018panning`. The function takes as input the design matrix
+    X, the vector of empirical mean values mu, and the empirical covariance
+    matrix sigma. It returns the knockoff variables X_tilde.
+
+    The original implementation can be found at
+    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_gaussian.R
 
     Parameters
     ----------
     X: 2D ndarray (n_samples, n_features)
-        original design matrix
+        The original design matrix.
 
     mu : 1D ndarray (n_features, )
-        vector of empirical mean values
+        A vector of empirical mean values.
 
-    method: str
-        method to generate gaussian knockoff
+    sigma : 2D ndarray (n_samples, n_features)
+        The empirical covariance matrix.
 
-    Sigma : 2D ndarray (n_samples, n_features)
-        empirical covariance matrix
+    seed : int, optional
+        A random seed for generating the uniform noise used to create
+        the knockoff variables.
+
+    tol : float, default=1.e-14
+        A tolerance value used for numerical stability in the calculation
+        of the Cholesky decomposition.
 
     Returns
     -------
     X_tilde : 2D ndarray (n_samples, n_features)
-        knockoff design matrix
+        The knockoff variables.
+
+    mu_tilde : 2D ndarray (n_samples, n_features)
+        The mean matrix used for generating knockoffs.
+
+    sigma_tilde_decompose : 2D ndarray (n_features, n_features)
+        The Cholesky decomposition of the covariance matrix.
+
+    References
+    ----------
+    .. footbibliography::
     """
-    memory = check_memory(memory)
-
     n_samples, n_features = X.shape
-    if method == "equi":
-        Diag_s = np.diag(_s_equi(Sigma))
-    else:
-        raise ValueError(
-            "{} is not a valid knockoff " "contriction method".format(method)
-        )
 
-    Sigma_inv_s = np.linalg.solve(Sigma, Diag_s)
+    # create a uniform noise for all the data
+    rng = np.random.RandomState(seed)
+    u_tilde = rng.randn(n_samples, n_features)
 
-    # First part on the RHS of equation 1.4 in Barber & Candes (2015)
-    Mu_tilde = X - np.dot(X - mu, Sigma_inv_s)
+    diag_s = np.diag(_s_equi(sigma, tol=tol))
+
+    sigma_inv_s = np.linalg.solve(sigma, diag_s)
+
+    # First part on the RHS of equation 1.4 in barber2015controlling
+    mu_tilde = X - np.dot(X - mu, sigma_inv_s)
     # To calculate the Cholesky decomposition later on
-    Sigma_tilde = 2 * Diag_s - Diag_s.dot(Sigma_inv_s.dot(Diag_s))
-    while not _is_posdef(Sigma_tilde):
-        Sigma_tilde += 1e-10 * np.eye(n_features)
+    sigma_tilde = 2 * diag_s - diag_s.dot(sigma_inv_s)
+    # test is the matrix is positive definite
+    while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol):
+        sigma_tilde += 1e-10 * np.eye(n_features)
         warnings.warn(
             "The conditional covariance matrix for knockoffs is not positive "
-            "definite. Adding minor positive value to the matrix."
+            "definite. Adding minor positive value to the matrix.",
+            UserWarning,
         )
 
-    rng = np.random.RandomState(seed)
-    U_tilde = rng.randn(n_samples, n_features)
-    # Equation 1.4 in Barber & Candes (2015)
-    X_tilde = Mu_tilde + np.dot(U_tilde, np.linalg.cholesky(Sigma_tilde))
+    # Equation 1.4 in barber2015controlling
+    sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
+    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
 
+    return X_tilde, mu_tilde, sigma_tilde_decompose
+
+
+def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
+    """
+    Generate additional knockoff variables using pre-computed values.
+
+    This function generates additional knockoff variables using pre-computed
+    values returned by the gaussian_knockoff_generation function
+    with repeat=True. It takes as input mu_tilde and sigma_tilde_decompose,
+    which were returned by gaussian_knockoff_generation, and a random seed.
+    It returns the new knockoff variables X_tilde.
+
+    Parameters
+    ----------
+    mu_tilde : 2D ndarray (n_samples, n_features)
+        The matrix of means used to generate the knockoff variables,
+        returned by gaussian_knockoff_generation.
+
+    sigma_tilde_decompose : 2D ndarray (n_features, n_features)
+        The Cholesky decomposition of the covariance matrix used
+        to generate the knockoff variables,returned by
+        gaussian_knockoff_generation.
+
+    seed : int
+        A random seed for generating the uniform noise used to create
+        the knockoff variables.
+
+    Returns
+    -------
+    X_tilde : 2D ndarray (n_samples, n_features)
+        The knockoff variables.
+    """
+    n_samples, n_features = mu_tilde.shape
+
+    # create a uniform noise for all the data
+    rng = np.random.RandomState(seed)
+    u_tilde = rng.randn(n_samples, n_features)
+
+    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
     return X_tilde
 
 
-def _is_posdef(X, tol=1e-14):
-    """Check a matrix is positive definite by calculating eigenvalue of the
-    matrix
+def _s_equi(sigma, tol=1e-14):
+    """
+    Estimate the diagonal matrix of correlation between real
+    and knockoff variables using the equi-correlated equation.
+
+    This function estimates the diagonal matrix of correlation
+    between real and knockoff variables using the equi-correlated
+    equation described in :cite:`barber2015controlling` and
+    :cite:`candes2018panning`. It takes as input the empirical
+    covariance matrix sigma and a tolerance value tol,
+    and returns a vector of diagonal values of the estimated
+    matrix diag{s}.
 
     Parameters
     ----------
-    X : 2D ndarray, shape (n_samples x n_features)
-        Matrix to check
+    sigma : 2D ndarray (n_features, n_features)
+        The empirical covariance matrix calculated from
+        the original design matrix.
 
     tol : float, optional
-        minimum threshold for eigenvalue
-
-    Returns
-    -------
-    True or False
-    """
-    eig_value = np.linalg.eigvalsh(X)
-    return np.all(eig_value > tol)
-
-
-def _cov_to_corr(Sigma):
-    """Convert covariance matrix to correlation matrix
-
-    Parameters
-    ----------
-    Sigma : 2D ndarray (n_features, n_features)
-        Covariance matrix
-
-    Returns
-    -------
-    Corr_matrix : 2D ndarray (n_features, n_features)
-        Transformed correlation matrix
-    """
-
-    features_std = np.sqrt(np.diag(Sigma))
-    Scale = np.outer(features_std, features_std)
-
-    Corr_matrix = Sigma / Scale
-
-    return Corr_matrix
-
-
-def _estimate_distribution(X, shrink=False, cov_estimator="ledoit_wolf"):
-
-    alphas = [1e-3, 1e-2, 1e-1, 1]
-
-    mu = X.mean(axis=0)
-    Sigma = empirical_covariance(X)
-
-    if shrink or not _is_posdef(Sigma):
-
-        if cov_estimator == "ledoit_wolf":
-            Sigma_shrink = ledoit_wolf(X, assume_centered=True)[0]
-
-        elif cov_estimator == "graph_lasso":
-            model = GraphicalLassoCV(alphas=alphas)
-            Sigma_shrink = model.fit(X).covariance_
-
-        else:
-            raise ValueError(
-                "{} is not a valid covariance estimated method".format(cov_estimator)
-            )
-
-        return mu, Sigma_shrink
-
-    return mu, Sigma
-
-
-def _s_equi(Sigma):
-    """Estimate diagonal matrix of correlation between real and knockoff
-    variables using equi-correlated equation
-
-    Parameters
-    ----------
-    Sigma : 2D ndarray (n_features, n_features)
-        empirical covariance matrix calculated from original design matrix
+        A tolerance value used for numerical stability in the calculation
+        of the eigenvalues of the correlation matrix.
 
     Returns
     -------
     1D ndarray (n_features, )
-        vector of diagonal values of estimated matrix diag{s}
+        A vector of diagonal values of the estimated matrix diag{s}.
+
+    Raises
+    ------
+    Exception
+        If the covariance matrix is not positive-definite.
     """
-    n_features = Sigma.shape[0]
+    n_features = sigma.shape[0]
 
-    G = _cov_to_corr(Sigma)
-    eig_value = np.linalg.eigvalsh(G)
+    # Convert covariance matrix to correlation matrix
+    # as example see cov2corr from statsmodels
+    features_std = np.sqrt(np.diag(sigma))
+    scale = np.outer(features_std, features_std)
+    corr_matrix = sigma / scale
+
+    eig_value = np.linalg.eigvalsh(corr_matrix)
     lambda_min = np.min(eig_value[0])
-    S = np.ones(n_features) * min(2 * lambda_min, 1)
+    # check if the matrix is positive-defined
+    if lambda_min <= 0:
+        raise Exception("The covariance matrix is not positive-definite.")
 
-    psd = False
+    s = np.ones(n_features) * min(2 * lambda_min, 1)
+
+    psd = np.all(np.linalg.eigvalsh(2 * corr_matrix - np.diag(s)) > tol)
     s_eps = 0
+    while not psd:
+        if s_eps == 0:
+            s_eps = np.finfo(type(s[0])).eps  # avoid zeros
+        else:
+            s_eps *= 10
+        # if all eigval > 0 then the matrix is positive define
+        psd = np.all(
+            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps))) > tol
+        )
+        warnings.warn(
+            "The equi-correlated matrix for knockoffs is not positive "
+            "definite. Reduce the value of distance.",
+            UserWarning,
+        )
 
-    while psd is False:
-        # if all eigval > 0 then the matrix is psd
-        psd = _is_posdef(2 * G - np.diag(S * (1 - s_eps)))
-        if not psd:
-            if s_eps == 0:
-                s_eps = 1e-08
-            else:
-                s_eps *= 10
+    s = s * (1 - s_eps)
 
-    S = S * (1 - s_eps)
-
-    return S * np.diag(Sigma)
+    return s * np.diag(sigma)

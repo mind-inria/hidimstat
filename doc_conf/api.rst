@@ -18,6 +18,9 @@ Functions
 
    aggregate_quantiles
    clustered_inference
+   dcrt_zero
+   dcrt_pvalue
+   data_simulation
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
@@ -27,13 +30,10 @@ Functions
    clustered_inference_pvalue,
    reid
    hd_inference
-   knockoff_aggregation
    model_x_knockoff
    permutation_test
-   permutation_test_pval
    reid
    empirical_thresholding
-   zscore_from_pval
 
 Classes
 =======
