@@ -1,3 +1,8 @@
+"""
+Controlled variable selection: why and how?
+=======================================
+"""
+
 # %% [markdown]
 # # Controlled variable selection: why and how?
 # 
