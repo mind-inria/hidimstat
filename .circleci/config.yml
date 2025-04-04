@@ -23,15 +23,15 @@ jobs:
           command: ./build_tools/circle/build_doc.sh
           no_output_timeout: 40m
       - store_artifacts:
-          path: doc/_build/html
-          destination: doc
+          path: doc_conf/_build/html
+          destination: doc_conf
       - store_artifacts:
           path: ~/log.txt
           destination: log.txt
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy' step.
       - persist_to_workspace:
-          root: doc/_build/html
+          root: doc_conf/_build/html
           paths: .
       - save_cache:
           key: saved-cache
@@ -48,12 +48,12 @@ jobs:
       # Attach documentation generated in the 'python3' step so that it can be
       # deployed.
       - attach_workspace:
-          at: doc/_build/html
-      - run: ls -ltrh doc/_build/html
+          at: doc_conf/_build/html
+      - run: ls -ltrh doc_conf/_build/html
       - deploy:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash build_tools/circle/push_doc.sh doc/_build/html
+              bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
 
 workflows:
