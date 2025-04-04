@@ -4,6 +4,8 @@
 # The behavior of the script is controlled by environment variable defined
 # in the circle.yml in the top level folder of the project.
 
+set -e
+
 GENERATED_DOC_DIR=$1
 
 if [[ -z "$GENERATED_DOC_DIR" ]]; then
