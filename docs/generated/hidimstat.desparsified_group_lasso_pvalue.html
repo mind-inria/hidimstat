@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.aggregate_quantiles &#8212; HiDimStat</title>
+    <title>hidimstat.desparsified_group_lasso_pvalue &#8212; HiDimStat</title>
   
   
   
@@ -45,11 +45,11 @@
     <script src="../_static/documentation_options.js?v=b486f0d8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.aggregate_quantiles';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_group_lasso_pvalue';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
-    <link rel="prev" title="API" href="../api.html" />
+    <link rel="next" title="hidimstat.ensemble_clustered_inference" href="hidimstat.ensemble_clustered_inference.html" />
+    <link rel="prev" title="hidimstat.desparsified_lasso_pvalue" href="hidimstat.desparsified_lasso_pvalue.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -333,11 +333,11 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.aggregate_quantiles</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.desparsified_group_lasso_pvalue</span></li>
   </ul>
 </nav>
 </div>
@@ -414,38 +414,49 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-aggregate-quantiles">
-<h1>hidimstat.aggregate_quantiles<a class="headerlink" href="#hidimstat-aggregate-quantiles" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-desparsified-group-lasso-pvalue">
+<h1>hidimstat.desparsified_group_lasso_pvalue<a class="headerlink" href="#hidimstat-desparsified-group-lasso-pvalue" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.aggregate_quantiles">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">aggregate_quantiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_one_sided_pval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/multi_sample_split.py#L37-L90"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.aggregate_quantiles" title="Link to this definition">#</a></dt>
-<dd><p>Aggregation of survival function values by adaptive quantile procedure</p>
+<dt class="sig sig-object py" id="hidimstat.desparsified_group_lasso_pvalue">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_group_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'chi2'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L288-L362"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_group_lasso_pvalue" title="Link to this definition">#</a></dt>
+<dd><p>Compute p-values for the desparsified group Lasso estimator using
+chi-squared or F tests</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>list_one_sided_pval</strong><span class="classifier">ndarray, shape (n_iter, n_features)</span></dt><dd><p>List of one-sided p-values.</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features, n_times)</span></dt><dd><p>Estimated parameter matrix from desparsified group Lasso.</p>
 </dd>
-<dt><strong>gamma_min</strong><span class="classifier">float, optional (default=0.2)</span></dt><dd><p>Lowest gamma-quantile being considered to compute the adaptive
-quantile aggregation formula (cf. <a class="reference internal" href="#ra27054ad05b6-1" id="id1">[1]</a>).</p>
+<dt><strong>theta_hat</strong><span class="classifier">ndarray, shape (n_times, n_times)</span></dt><dd><p>Estimated precision matrix (inverse covariance).</p>
+</dd>
+<dt><strong>precision_diagonal</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix.</p>
+</dd>
+<dt><strong>test</strong><span class="classifier">{‘chi2’, ‘F’}, default=’chi2’</span></dt><dd><p>Statistical test for computing p-values:
+- ‘chi2’: Chi-squared test (recommended for large samples)
+- ‘F’: F-test</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>one_sided_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Aggregated one-sided p-values.</p>
+<dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Raw p-values, numerically accurate for positive effects
+(p-values close to 0).</p>
+</dd>
+<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values corrected for multiple testing using
+Benjamini-Hochberg procedure.</p>
+</dd>
+<dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values, numerically accurate for negative effects
+(p-values close to 1).</p>
+</dd>
+<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values.</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="ra27054ad05b6-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Meinshausen, N., Meier, L., &amp; Bühlmann, P. (2009). P-values for
-high-dimensional regression. Journal of the American Statistical
-Association, 104(488), 1671-1681.</p>
-</div>
-</div>
+<p class="rubric">Notes</p>
+<p>The Chi-squared test assumes asymptotic normality while the F-test
+is preferable for small sample sizes.
+P-values are computed based on score statistics from the estimated
+coefficients and precision matrix.</p>
 </dd></dl>
 
 </section>
@@ -461,20 +472,20 @@ Association, 104(488), 1671-1681.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../api.html"
+       href="hidimstat.desparsified_lasso_pvalue.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">API</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso_pvalue</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.clustered_inference.html"
+       href="hidimstat.ensemble_clustered_inference.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.clustered_inference</p>
+        <p class="prev-next-title">hidimstat.ensemble_clustered_inference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -497,7 +508,7 @@ Association, 104(488), 1671-1681.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.aggregate_quantiles"><code class="docutils literal notranslate"><span class="pre">aggregate_quantiles()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.desparsified_group_lasso_pvalue"><code class="docutils literal notranslate"><span class="pre">desparsified_group_lasso_pvalue()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -505,7 +516,7 @@ Association, 104(488), 1671-1681.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.aggregate_quantiles.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.desparsified_group_lasso_pvalue.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

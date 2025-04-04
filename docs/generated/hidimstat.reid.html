@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5223b1f1"></script>
+    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.reid';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.empirical_thresholding" href="hidimstat.empirical_thresholding.html" />
-    <link rel="prev" title="hidimstat.permutation_test_pval" href="hidimstat.permutation_test_pval.html" />
+    <link rel="next" title="hidimstat.hd_inference" href="hidimstat.hd_inference.html" />
+    <link rel="prev" title="hidimstat.ensemble_clustered_inference" href="hidimstat.ensemble_clustered_inference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -336,8 +336,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.group_reid.html">hidimstat.group_reid</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
@@ -416,47 +418,69 @@
 <h1>hidimstat.reid<a class="headerlink" href="#hidimstat-reid" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.reid">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">reid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/noise_std.py#L8-L76"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.reid" title="Link to this definition">#</a></dt>
-<dd><p>Estimation of noise standard deviation using Reid procedure</p>
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">reid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iterance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'median'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/noise_std.py#L8-L215"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.reid" title="Link to this definition">#</a></dt>
+<dd><p>Residual sum of squares based estimators for noise standard deviation
+estimation.</p>
+<p>This implementation follows the procedure described in
+<a class="footnote-reference brackets" href="#footcite-fan2012variance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and <span id="id2">[<a class="reference internal" href="../index.html#id24" title="Stephen Reid, Robert Tibshirani, and Jerome Friedman. A study of error variance estimation in lasso regression. Statistica Sinica, pages 35–67, 2016.">Reid <em>et al.</em>, 2016</a>]</span>. It uses Lasso with
+cross-validation to estimate both the noise standard deviation and model
+coefficients.</p>
+<p>For group, the implementation is based on the procedure
+from <a class="footnote-reference brackets" href="#footcite-chevalier2020statistical" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Data.</p>
+<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Input data matrix.</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)</span></dt><dd><p>Target.</p>
+<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)/(n_samples, n_times)</span></dt><dd><p>Target vector. The time means the presence of groups.</p>
 </dd>
-<dt><strong>eps: float, optional (default=1e-2)</strong></dt><dd><p>Length of the cross-validation path.
-eps=1e-2 means that alpha_min / alpha_max = 1e-2.</p>
+<dt><strong>epsilon</strong><span class="classifier">float, optional (default=1e-2)</span></dt><dd><p>Length of the cross-validation path, where alpha_min / alpha_max = eps.
+Smaller values create a finer grid.</p>
 </dd>
-<dt><strong>tol</strong><span class="classifier">float, optional (default=1e-4)</span></dt><dd><p>The tolerance for the optimization: if the updates are smaller
-than <cite>tol</cite>, the optimization code checks the dual gap for optimality
-and continues until it is smaller than <cite>tol</cite>.</p>
+<dt><strong>tolerance</strong><span class="classifier">float, optional (default=1e-4)</span></dt><dd><p>Tolerance for optimization convergence. The algorithm stops
+when updates are smaller than tol and dual gap is smaller than tol.</p>
 </dd>
-<dt><strong>max_iter</strong><span class="classifier">int, optional (default=1e4)</span></dt><dd><p>The maximum number of iterations.</p>
+<dt><strong>max_iteration</strong><span class="classifier">int, optional (default=10000)</span></dt><dd><p>Maximum number of iterations for the optimization algorithm.</p>
 </dd>
-<dt><strong>n_jobs</strong><span class="classifier">int or None, optional (default=1)</span></dt><dd><p>Number of CPUs to use during the cross validation.</p>
+<dt><strong>n_splits</strong><span class="classifier">int, optional (default=5)</span></dt><dd><p>Number of folds for cross-validation.</p>
 </dd>
-<dt><strong>seed: int, optional (default=0)</strong></dt><dd><p>Seed passed in the KFold object which is used to cross-validate
-LassoCV. This seed controls the partitioning randomness.</p>
+<dt><strong>n_jobs</strong><span class="classifier">int, optional (default=1)</span></dt><dd><p>Number of parallel jobs for cross-validation.
+-1 means using all processors.</p>
+</dd>
+<dt><strong>seed</strong><span class="classifier">int, optional (default=0)</span></dt><dd><p>Random seed for reproducible cross-validation splits.</p>
+</dd>
+<dt><strong>stationary</strong><span class="classifier">bool, (default=True)</span></dt><dd><p>Whether noise has constant magnitude across time steps.</p>
+</dd>
+<dt><strong>method</strong><span class="classifier">{‘median’, ‘AR’}, (default=’simple’)</span></dt><dd><p>Covariance estimation method:
+- ‘median’: Uses median correlation between consecutive time steps
+- ‘AR’: Uses Yule-Walker method with specified order</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, default=1</span></dt><dd><p>Order of AR model when method=’AR’. Must be &lt; n_times.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>sigma_hat</strong><span class="classifier">float</span></dt><dd><p>Estimated noise standard deviation.</p>
+<dt><strong>sigma_hat/cov_hat</strong><span class="classifier">float/ndarray, shape (n_times, n_times)</span></dt><dd><p>Estimated noise standard deviation based on residuals
+or estimated covariance matrix for group.</p>
 </dd>
-<dt><strong>beta_hat</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Estimated parameter vector.</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,)/(n_features, n_times)</span></dt><dd><p>Estimated sparse coefficient vector from Lasso regression.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="r7f6eb9104fcf-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<p>Reid, S., Tibshirani, R., &amp; Friedman, J. (2016). A study of error
-variance estimation in lasso regression. Statistica Sinica, 35-67.</p>
-</div>
+<div class="docutils container" id="id4">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-fan2012variance" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Jianqing Fan, Shaojun Guo, and Ning Hao. Variance estimation using refitted cross-validation in ultrahigh dimensional regression. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em>, 74(1):37–65, 2012.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-chevalier2020statistical" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
+<p>Jérôme-Alexis Chevalier. <em>Statistical control of sparse models in high dimension</em>. PhD thesis, Université Paris-Saclay, 2020.</p>
+</aside>
+</aside>
 </div>
 </dd></dl>
 
@@ -473,20 +497,20 @@ variance estimation in lasso regression. Statistica Sinica, 35-67.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.permutation_test_pval.html"
+       href="hidimstat.ensemble_clustered_inference.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.permutation_test_pval</p>
+        <p class="prev-next-title">hidimstat.ensemble_clustered_inference</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.empirical_thresholding.html"
+       href="hidimstat.hd_inference.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.empirical_thresholding</p>
+        <p class="prev-next-title">hidimstat.hd_inference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

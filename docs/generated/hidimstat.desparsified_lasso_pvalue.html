@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.group_reid &#8212; HiDimStat</title>
+    <title>hidimstat.desparsified_lasso_pvalue &#8212; HiDimStat</title>
   
   
   
@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5223b1f1"></script>
+    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.group_reid';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_lasso_pvalue';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.hd_inference" href="hidimstat.hd_inference.html" />
-    <link rel="prev" title="hidimstat.ensemble_clustered_inference" href="hidimstat.ensemble_clustered_inference.html" />
+    <link rel="next" title="hidimstat.desparsified_group_lasso_pvalue" href="hidimstat.desparsified_group_lasso_pvalue.html" />
+    <link rel="prev" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -336,8 +336,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.group_reid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
@@ -395,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.group_reid</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.desparsified_lasso_pvalue</span></li>
   </ul>
 </nav>
 </div>
@@ -412,74 +414,61 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-group-reid">
-<h1>hidimstat.group_reid<a class="headerlink" href="#hidimstat-group-reid" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-desparsified-lasso-pvalue">
+<h1>hidimstat.desparsified_lasso_pvalue<a class="headerlink" href="#hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.group_reid">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">group_reid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'simple'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/noise_std.py#L79-L252"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.group_reid" title="Link to this definition">#</a></dt>
-<dd><p>Estimation of the covariance matrix using group Reid procedure</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Data.</p>
+<dt class="sig sig-object py" id="hidimstat.desparsified_lasso_pvalue">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L214-L285"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso_pvalue" title="Link to this definition">#</a></dt>
+<dd><p>Calculate confidence intervals and p-values for desparsified lasso estimators.
+This function computes confidence intervals for the desparsified lasso
+estimator beta_hat.
+It can also return p-values derived from these confidence intervals.
+Parameters
+———-
+n_samples : float</p>
+<blockquote>
+<div><p>The number of samples</p>
+</div></blockquote>
+<dl class="simple">
+<dt>beta_hat<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The desparsified lasso coefficient estimates.</p>
 </dd>
-<dt><strong>Y</strong><span class="classifier">ndarray, shape (n_samples, n_times)</span></dt><dd><p>Target.</p>
+<dt>sigma_hat<span class="classifier">float</span></dt><dd><p>Estimated noise level.</p>
 </dd>
-<dt><strong>fit_Y</strong><span class="classifier">bool, optional (default=True)</span></dt><dd><p>If True, Y will be regressed against X by MultiTaskLassoCV
-and the covariance matrix is estimated on the residuals.
-Otherwise, covariance matrix is estimated directly on Y.</p>
+<dt>precision_diagonal<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix estimate.</p>
 </dd>
-<dt><strong>stationary</strong><span class="classifier">bool, optional (default=True)</span></dt><dd><p>If True, noise is considered to have the same magnitude for each
-time step. Otherwise, magnitude of the noise is not constant.</p>
+<dt>confidence<span class="classifier">float, default=0.95</span></dt><dd><p>Confidence level for intervals, must be in [0, 1].</p>
 </dd>
-<dt><strong>method</strong><span class="classifier">str, optional (default=’simple’)</span></dt><dd><p>If ‘simple’, the correlation matrix is estimated by taking the
-median of the correlation between two consecutive time steps
-and the noise standard deviation for each time step is estimated
-by taking the median of the standard deviations for every time step.
-If ‘AR’, the order of the AR model is given by <cite>order</cite> and
-Yule-Walker method is used to estimate the covariance matrix.</p>
+<dt>distribution<span class="classifier">str, default=”norm”</span></dt><dd><p>Distribution to use for p-value calculation.
+Currently only “norm” supported.</p>
 </dd>
-<dt><strong>order</strong><span class="classifier">int, optional (default=1)</span></dt><dd><p>If <cite>stationary=True</cite> and <cite>method=AR</cite>, <cite>order</cite> gives the
-order of the estimated autoregressive model. <cite>order</cite> must
-be smaller than the number of time steps.</p>
-</dd>
-<dt><strong>eps</strong><span class="classifier">float, optional (default=1e-2)</span></dt><dd><p>Length of the cross-validation path.
-eps=1e-2 means that alpha_min / alpha_max = 1e-2.</p>
-</dd>
-<dt><strong>tol</strong><span class="classifier">float, optional (default=1e-4)</span></dt><dd><p>The tolerance for the optimization: if the updates are smaller
-than <cite>tol</cite>, the optimization code checks the dual gap for optimality
-and continues until it is smaller than <cite>tol</cite>.</p>
-</dd>
-<dt><strong>max_iter</strong><span class="classifier">int, optional (default=1e4)</span></dt><dd><p>The maximum number of iterations.</p>
-</dd>
-<dt><strong>n_jobs</strong><span class="classifier">int or None, optional (default=1)</span></dt><dd><p>Number of CPUs to use during the cross validation.</p>
-</dd>
-<dt><strong>seed: int, optional (default=0)</strong></dt><dd><p>Seed passed in the KFold object which is used to cross-validate
-LassoCV. This seed controls also the partitioning randomness.</p>
+<dt>epsilon<span class="classifier">float, default=1e-14</span></dt><dd><p>Small value to avoid numerical issues in p-value calculation.</p>
 </dd>
 </dl>
+<section id="returns">
+<h2>Returns<a class="headerlink" href="#returns" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt>pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>cov_hat</strong><span class="classifier">ndarray, shape (n_times, n_times)</span></dt><dd><p>Estimated covariance matrix.</p>
+<dt>pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Corrected p-values</p>
 </dd>
-<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features, n_times)</span></dt><dd><p>Estimated parameter matrix.</p>
+<dt>one_minus_pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values</p>
+</dd>
+<dt>one_minus_pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values</p>
+</dd>
+<dt>confidence_bound_min<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Lower bounds of confidence intervals</p>
+</dd>
+<dt>confidence_bound_max<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Upper bounds of confidence intervals</p>
 </dd>
 </dl>
-</dd>
-</dl>
-<p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="rc438b0ba1368-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<p>Chevalier, J. A., Gramfort, A., Salmon, J., &amp; Thirion, B. (2020).
-Statistical control for spatio-temporal MEG/EEG source imaging with
-desparsified multi-task Lasso. In NeurIPS 2020-34h Conference on
-Neural Information Processing Systems.</p>
-</div>
-</div>
+</section>
 </dd></dl>
 
+<section id="examples-using-hidimstat-desparsified-lasso-pvalue">
+<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.desparsified_lasso_pvalue</span></code><a class="headerlink" href="#examples-using-hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
+<p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
+</div></div></section>
 </section>
 
 
@@ -493,20 +482,20 @@ Neural Information Processing Systems.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.ensemble_clustered_inference.html"
+       href="hidimstat.desparsified_lasso.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.ensemble_clustered_inference</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.hd_inference.html"
+       href="hidimstat.desparsified_group_lasso_pvalue.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.hd_inference</p>
+        <p class="prev-next-title">hidimstat.desparsified_group_lasso_pvalue</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -529,7 +518,8 @@ Neural Information Processing Systems.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.group_reid"><code class="docutils literal notranslate"><span class="pre">group_reid()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.desparsified_lasso_pvalue"><code class="docutils literal notranslate"><span class="pre">desparsified_lasso_pvalue()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-desparsified-lasso-pvalue">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.desparsified_lasso_pvalue</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -537,7 +527,7 @@ Neural Information Processing Systems.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.group_reid.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.desparsified_lasso_pvalue.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

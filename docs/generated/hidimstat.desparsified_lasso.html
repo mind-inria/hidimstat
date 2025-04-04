@@ -42,13 +42,13 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=5223b1f1"></script>
+    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_lasso';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.ensemble_clustered_inference" href="hidimstat.ensemble_clustered_inference.html" />
+    <link rel="next" title="hidimstat.desparsified_lasso_pvalue" href="hidimstat.desparsified_lasso_pvalue.html" />
     <link rel="prev" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -336,8 +336,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_lasso</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.group_reid.html">hidimstat.group_reid</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
@@ -416,54 +418,71 @@
 <h1>hidimstat.desparsified_lasso<a class="headerlink" href="#hidimstat-desparsified-lasso" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.desparsified_lasso">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_ajdustement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">residual_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lasso'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_max_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L70-L235"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso" title="Link to this definition">#</a></dt>
-<dd><p>Desparsified Lasso with confidence intervals</p>
-<dl class="field-list simple">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_ajdustement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iteration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_max_fraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance_reid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AR'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stationary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L15-L211"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso" title="Link to this definition">#</a></dt>
+<dd><p>Desparsified Lasso</p>
+<p>Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
+<span id="id1">[<a class="reference internal" href="../index.html#id22" title="Jérôme-Alexis Chevalier. Statistical control of sparse models in high dimension. PhD thesis, Université Paris-Saclay, 2020.">Chevalier, 2020</a>]</span>.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Data.</p>
+<dd class="field-odd"><dl>
+<dt><strong>X</strong><span class="classifier">ndarray, shape (n_samples, n_features)</span></dt><dd><p>Input data matrix.</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,)</span></dt><dd><p>Target.</p>
+<dt><strong>y</strong><span class="classifier">ndarray, shape (n_samples,) or (n_samples, n_times)</span></dt><dd><p>Target vector for single response or matrix for multiple
+responses.</p>
 </dd>
-<dt><strong>dof_ajdustement</strong><span class="classifier">bool, optional (default=False)</span></dt><dd><p>If True, makes the degrees of freedom adjustement (cf. <a class="reference internal" href="#rd84d7f69adb6-4" id="id1">[4]</a> and <a class="reference internal" href="#rd84d7f69adb6-5" id="id2">[5]</a>).
-Otherwise, the original Desparsified Lasso estimator is computed
-(cf. <a class="reference internal" href="#rd84d7f69adb6-1" id="id3">[1]</a> and <a class="reference internal" href="#rd84d7f69adb6-2" id="id4">[2]</a> and <a class="reference internal" href="#rd84d7f69adb6-3" id="id5">[3]</a>).</p>
+<dt><strong>dof_ajdustement</strong><span class="classifier">bool, optional (default=False)</span></dt><dd><p>If True, applies degrees of freedom adjustment from Bellec and Zhang<a class="footnote-reference brackets" href="#footcite-bellec2022biasing" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.
+If False, computes original Desparsified Lasso estimator.</p>
 </dd>
-<dt><strong>confidence</strong><span class="classifier">float, optional (default=0.95)</span></dt><dd><p>Confidence level used to compute the confidence intervals.
-Each value should be in the range [0, 1].</p>
+<dt><strong>max_iteration</strong><span class="classifier">int, optional (default=5000)</span></dt><dd><p>Maximum iterations for Nodewise Lasso regressions.</p>
 </dd>
-<dt><strong>max_iter</strong><span class="classifier">int, optional (default=5000)</span></dt><dd><p>The maximum number of iterations when regressing, by Lasso,
-each column of the design matrix against the others.</p>
+<dt><strong>tolerance</strong><span class="classifier">float, optional (default=1e-3)</span></dt><dd><p>Convergence tolerance for optimization.</p>
 </dd>
-<dt><strong>tol</strong><span class="classifier">float, optional (default=1e-3)</span></dt><dd><p>The tolerance for the optimization of the Lasso problems: if the
-updates are smaller than <cite>tol</cite>, the optimization code checks the
-dual gap for optimality and continues until it is smaller than <cite>tol</cite>.</p>
+<dt><strong>alpha_max_fraction</strong><span class="classifier">float, optional (default=0.01)</span></dt><dd><p>Fraction of max alpha used for Lasso regularization.</p>
 </dd>
-<dt><strong>residual_method</strong><span class="classifier">str, optional (default=’lasso’)</span></dt><dd><p>Method used for computing the residuals of the Nodewise Lasso.
-Currently the only method available is ‘lasso’.</p>
+<dt><strong>epsilon</strong><span class="classifier">float, optional (default=1e-2)</span></dt><dd><p>Small constant used in noise estimation.</p>
 </dd>
-<dt><strong>alpha_max_fraction</strong><span class="classifier">float, optional (default=0.01)</span></dt><dd><p>Only used if method=’lasso’.
-Then alpha = alpha_max_fraction * alpha_max.</p>
+<dt><strong>tolerance_reid</strong><span class="classifier">float, optional (default=1e-4)</span></dt><dd><p>Tolerance for variance estimation with the Reid method.</p>
 </dd>
-<dt><strong>n_jobs</strong><span class="classifier">int or None, optional (default=1)</span></dt><dd><p>Number of CPUs to use during the Nodewise Lasso.</p>
+<dt><strong>n_splits</strong><span class="classifier">int, optional (default=5)</span></dt><dd><p>Number of splits for cross-validation in Reid procedure.</p>
+</dd>
+<dt><strong>n_jobs</strong><span class="classifier">int, optional (default=1)</span></dt><dd><p>Number of parallel jobs. Use -1 for all CPUs.</p>
+</dd>
+<dt><strong>seed</strong><span class="classifier">int, default=0</span></dt><dd><p>Random seed for reproducibility.</p>
 </dd>
 <dt><strong>memory</strong><span class="classifier">str or joblib.Memory object, optional (default=None)</span></dt><dd><p>Used to cache the output of the computation of the Nodewise Lasso.
 By default, no caching is done. If a string is given, it is the path
 to the caching directory.</p>
 </dd>
-<dt><strong>verbose: int, optional (default=1)</strong></dt><dd><p>The verbosity level: if non zero, progress messages are printed
-when computing the Nodewise Lasso in parralel.
-The frequency of the messages increases with the verbosity level.</p>
+<dt><strong>verbose</strong><span class="classifier">int, default=0</span></dt><dd><p>Verbosity level for logging.</p>
+</dd>
+<dt><strong>group</strong><span class="classifier">bool, default=False</span></dt><dd><p>If True, use group Lasso for multiple responses.</p>
+</dd>
+<dt><strong>covariance</strong><span class="classifier">ndarray, shape (n_times, n_times), default=None</span></dt><dd><p>Temporal covariance matrix of the noise.
+If None, it is estimated.</p>
+</dd>
+<dt><strong>noise_method</strong><span class="classifier">{‘AR’, ‘median’}, default=’AR’</span></dt><dd><p>Method to estimate noise covariance:
+- ‘median’: Uses median correlation between consecutive</p>
+<blockquote>
+<div><p>timepoints</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>‘AR’: Fits autoregressive model of specified order</p></li>
+</ul>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, default=1</span></dt><dd><p>Order of AR model when noise_method=’AR’. Must be &lt; n_times.</p>
+</dd>
+<dt><strong>stationary</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to assume stationary noise in estimation.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>beta_hat</strong><span class="classifier">array, shape (n_features,)</span></dt><dd><p>Estimated parameter vector.</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,) or (n_features, n_times)</span></dt><dd><p>Desparsified Lasso coefficient estimates.</p>
 </dd>
-<dt><strong>cb_min</strong><span class="classifier">array, shape (n_features)</span></dt><dd><p>Lower bound of the confidence intervals on the parameter vector.</p>
+<dt><strong>sigma_hat/theta_hat</strong><span class="classifier">float or ndarray, shape (n_times, n_times)</span></dt><dd><p>Estimated noise level (single response) or precision matrix
+(multiple responses).</p>
 </dd>
-<dt><strong>cb_max</strong><span class="classifier">array, shape (n_features)</span></dt><dd><p>Upper bound of the confidence intervals on the parameter vector.</p>
+<dt><strong>precision_diagonal</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix.</p>
 </dd>
 </dl>
 </dd>
@@ -477,37 +496,13 @@ the consideration of unecessary additional parameters.
 Also, you may consider to center and scale <cite>X</cite> beforehand, notably if
 the data contained in <cite>X</cite> has not been prescaled from measurements.</p>
 <p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="rd84d7f69adb6-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
-<p>Zhang, C. H., &amp; Zhang, S. S. (2014). Confidence intervals for
-low dimensional parameters in high dimensional linear models.
-Journal of the Royal Statistical Society: Series B: Statistical
-Methodology, 217-242.</p>
-</div>
-<div class="citation" id="rd84d7f69adb6-2" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">2</a><span class="fn-bracket">]</span></span>
-<p>Van de Geer, S., Bühlmann, P., Ritov, Y. A., &amp; Dezeure, R. (2014).
-On asymptotically optimal confidence regions and tests for
-high-dimensional models. Annals of Statistics, 42(3), 1166-1202.</p>
-</div>
-<div class="citation" id="rd84d7f69adb6-3" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id5">3</a><span class="fn-bracket">]</span></span>
-<p>Javanmard, A., &amp; Montanari, A. (2014). Confidence intervals and
-hypothesis testing for high-dimensional regression. The Journal
-of Machine Learning Research, 15(1), 2869-2909.</p>
-</div>
-<div class="citation" id="rd84d7f69adb6-4" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">4</a><span class="fn-bracket">]</span></span>
-<p>Bellec, P. C., &amp; Zhang, C. H. (2019). De-biasing the lasso with
-degrees-of-freedom adjustment. arXiv preprint arXiv:1902.08885.</p>
-</div>
-<div class="citation" id="rd84d7f69adb6-5" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">5</a><span class="fn-bracket">]</span></span>
-<p>Celentano, M., Montanari, A., &amp; Wei, Y. (2020). The Lasso with
-general Gaussian designs with applications to hypothesis testing.
-arXiv preprint arXiv:2007.13716.</p>
-</div>
+<div class="docutils container" id="id3">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-bellec2022biasing" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">1</a><span class="fn-bracket">]</span></span>
+<p>Pierre C Bellec and Cun-Hui Zhang. De-biasing the lasso with degrees-of-freedom adjustment. <em>Bernoulli</em>, 28(2):713–743, 2022.</p>
+</aside>
+</aside>
 </div>
 </dd></dl>
 
@@ -539,11 +534,11 @@ arXiv preprint arXiv:2007.13716.</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.ensemble_clustered_inference.html"
+       href="hidimstat.desparsified_lasso_pvalue.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.ensemble_clustered_inference</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso_pvalue</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

@@ -3,8 +3,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 
-from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
-from .stat_tools import pval_from_cb
+from .desparsified_lasso import (
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
+    desparsified_group_lasso_pvalue,
+)
 
 
 def _subsampling(n_samples, train_size, groups=None, seed=0):
@@ -96,34 +99,35 @@ def hd_inference(X, y, method, n_jobs=1, memory=None, verbose=0, **kwargs):
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-
-    if method == "desparsified-lasso":
-
-        beta_hat, cb_min, cb_max = desparsified_lasso(
-            X,
-            y,
+    if method not in ["desparsified-lasso", "desparsified-group-lasso"]:
+        raise ValueError("Unknow method")
+    group = method == "desparsified-group-lasso"
+    print("hd_inference", group, kwargs)
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(
+        X, y, group=group, n_jobs=n_jobs, verbose=verbose, memory=memory, **kwargs
+    )
+    if not group:
+        (
+            pval,
+            pval_corr,
+            one_minus_pval,
+            one_minus_pval_corr,
+            cb_min,
+            cb_max,
+        ) = desparsified_lasso_pvalue(
+            X.shape[0],
+            beta_hat,
+            theta_hat,
+            precision_diag,
             confidence=0.95,
-            n_jobs=n_jobs,
-            memory=memory,
-            verbose=verbose,
             **kwargs,
         )
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-            cb_min, cb_max, confidence=0.95
-        )
-
-    elif method == "desparsified-group-lasso":
-
-        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso(
-                X, y, n_jobs=n_jobs, memory=memory, verbose=verbose, **kwargs
+    else:
+        pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+            desparsified_group_lasso_pvalue(
+                beta_hat, theta_hat, precision_diag, **kwargs
             )
         )
-
-    else:
-
-        raise ValueError("Unknow method")
-
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
@@ -257,8 +261,7 @@ def clustered_inference(
            Spatially relaxed inference on high-dimensional linear models.
            arXiv preprint arXiv:2106.02590.
     """
-
-    memory = check_memory(memory)
+    memory = check_memory(memory=memory)
 
     n_samples, n_features = X_init.shape
 
@@ -280,13 +283,19 @@ def clustered_inference(
     y = y - np.mean(y)
 
     # Inference: computing reduced parameter vector and stats
-    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = hd_inference(
-        X, y, method, n_jobs=n_jobs, memory=memory, **kwargs
-    )
+    print("Clustered inference", kwargs)
+    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = memory.cache(
+        hd_inference, ignore=["n_jobs", "verbose", "memory"]
+    )(X, y, method, n_jobs=n_jobs, memory=memory, **kwargs)
 
     # De-grouping
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
-        ward, beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_
+        ward,
+        beta_hat_,
+        pval_,
+        pval_corr_,
+        one_minus_pval_,
+        one_minus_pval_corr_,
     )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr

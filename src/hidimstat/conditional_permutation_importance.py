@@ -2,6 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -67,14 +68,11 @@ class CPI(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
         )
-        self.rng = np.random.RandomState(random_state)
         self._list_imputation_models = []
-
-        self.imputation_model = {
-            "continuous": imputation_model_continuous,
-            "categorical": imputation_model_categorical,
-        }
         self.categorical_max_cardinality = categorical_max_cardinality
+        self.imputation_model_categorical = imputation_model_categorical
+        self.imputation_model_continuous = imputation_model_continuous
+        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
@@ -98,6 +96,7 @@ class CPI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
@@ -109,15 +108,15 @@ class CPI(BasePerturbation):
                 data_type=self.var_type[groupd_id],
                 model_regression=(
                     None
-                    if self.imputation_model["continuous"] is None
-                    else clone(self.imputation_model["continuous"])
+                    if self.imputation_model_continuous is None
+                    else clone(self.imputation_model_continuous)
                 ),
                 model_categorical=(
                     None
-                    if self.imputation_model["categorical"] is None
-                    else clone(self.imputation_model["categorical"])
+                    if self.imputation_model_categorical is None
+                    else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.rng,
+                random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)

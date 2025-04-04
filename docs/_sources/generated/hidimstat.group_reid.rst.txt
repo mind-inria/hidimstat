@@ -1,8 +1,0 @@
-﻿hidimstat.group_reid
-====================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: group_reid
-
-.. include:: hidimstat.group_reid.examples
