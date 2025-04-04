@@ -5,11 +5,12 @@ Controlled variable selection: why and how?
 
 # %% [markdown]
 # # Controlled variable selection: why and how?
-# 
+#
 # In this example, we explore the basics of variable selection and illustrate the need to statistically control the amount of faslely selected variables. We start off by loading the Wisconsin breast cancer dataset:
 
 # %%
 import numpy as np
+
 # Set random seed for reproducibility
 seed = 99
 np.random.seed(seed)
@@ -44,7 +45,7 @@ data.target_names
 # %%
 from sklearn.linear_model import LogisticRegressionCV
 
-clf = LogisticRegressionCV(penalty='l1', solver='liblinear', max_iter=int(1e4))
+clf = LogisticRegressionCV(penalty="l1", solver="liblinear", max_iter=int(1e4))
 clf.fit(X, y)
 
 selected_lasso = np.where(np.abs(clf.coef_[0]) > 1e-6)[0]
@@ -72,7 +73,7 @@ print("Shape after adding noise features:", noisy.shape)
 # There are 120 features -- 30 of them are real and 90 of them are fake and independent of the outcome. We now apply the Lasso to the augmented dataset:
 
 # %%
-clf_noisy = LogisticRegressionCV(penalty='l1', solver='liblinear', max_iter=int(1e4))
+clf_noisy = LogisticRegressionCV(penalty="l1", solver="liblinear", max_iter=int(1e4))
 clf_noisy.fit(noisy, y)
 
 selected_logl1 = np.where(np.abs(clf_noisy.coef_[0]) > 1e-6)[0]
@@ -97,7 +98,7 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
     X,
     y,
     estimator=LogisticRegressionCV(
-        solver='liblinear',
+        solver="liblinear",
         penalty="l1",
     ),
     n_bootstraps=1,
@@ -118,7 +119,7 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
     X,
     y,
     estimator=LogisticRegressionCV(
-        solver='liblinear',
+        solver="liblinear",
         penalty="l1",
     ),
     n_bootstraps=1,
@@ -136,5 +137,3 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 
 # %% [markdown]
 # Knockoffs select the same variable as previously and select **no fake variables**.
-
-
