@@ -31,7 +31,7 @@ jobs:
       - name: Sphinx build
         id: build-docs
         run: |
-          sphinx-build -b html doc_conf doc/_build/html
+          sphinx-build -j auto -b html doc_conf doc/_build/html
       - name: Upload documentation
         if: steps.build-docs.outcome == 'success'
         uses: actions/upload-artifact@v4
