@@ -24,13 +24,10 @@ Functions
    ensemble_clustered_inference
    reid
    hd_inference
-   knockoff_aggregation
    model_x_knockoff
    permutation_test
-   permutation_test_pval
    reid
    empirical_thresholding
-   zscore_from_pval
 
 Classes
 =======
