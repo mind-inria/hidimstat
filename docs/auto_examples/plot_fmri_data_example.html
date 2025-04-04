@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
+    <script src="../_static/documentation_options.js?v=c318d3b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_fmri_data_example';</script>
@@ -465,8 +465,8 @@ control on decoder maps. NeuroImage, 234, 117921.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">clustered_inference</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.empirical_thresholding</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.empirical_thresholding.html#hidimstat.empirical_thresholding" title="hidimstat.empirical_thresholding" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">empirical_thresholding</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.ensemble_clustered_inference.html#hidimstat.ensemble_clustered_inference" title="hidimstat.ensemble_clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">ensemble_clustered_inference</span></a>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.permutation_test</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test</span></a><span class="p">,</span> <a href="../generated/hidimstat.permutation_test_pval.html#hidimstat.permutation_test_pval" title="hidimstat.permutation_test_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test_pval</span></a>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pval_from_scale</span><span class="p">,</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.permutation_test</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test</span></a><span class="p">,</span> <span class="n">permutation_test_pval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pval_from_scale</span><span class="p">,</span> <span class="n">zscore_from_pval</span>
 
 <span class="n">n_job</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
@@ -528,15 +528,27 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
 [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
 [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-[fetch_single_file]  ...done. (0 seconds, 0 min)
+[fetch_single_file]  ...done. (1 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
 [fetch_single_file]  ...done. (0 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 155402240 of 291168628 bytes (53.4%%,    0.9s remaining)
-[fetch_single_file]  ...done. (2 seconds, 0 min)
+Downloaded 13680640 of 291168628 bytes (4.7%%,   20.3s remaining)
+[_chunk_report_]
+Downloaded 53575680 of 291168628 bytes (18.4%%,    9.0s remaining)
+[_chunk_report_]
+Downloaded 93372416 of 291168628 bytes (32.1%%,    6.4s remaining)
+[_chunk_report_]
+Downloaded 134717440 of 291168628 bytes (46.3%%,    4.7s remaining)
+[_chunk_report_]
+Downloaded 174604288 of 291168628 bytes (60.0%%,    3.4s remaining)
+[_chunk_report_]
+Downloaded 215769088 of 291168628 bytes (74.1%%,    2.1s remaining)
+[_chunk_report_]
+Downloaded 256499712 of 291168628 bytes (88.1%%,    1.0s remaining)
+[fetch_single_file]  ...done. (8 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
 [uncompress_file] .. done.
@@ -587,7 +599,7 @@ of the distribution of these weights.</p>
     <span class="n">weight_svr</span><span class="p">,</span> <span class="n">weight_svr_distribution</span> <span class="o">=</span> <a href="../generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test</span></a><span class="p">(</span>
         <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">X</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">y</span></a><span class="p">,</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html#sklearn.linear_model.Ridge" title="sklearn.linear_model.Ridge" class="sphx-glr-backref-module-sklearn-linear_model sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">estimator</span></a><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="mi">50</span>
     <span class="p">)</span>
-    <span class="n">pval_corr_svr_perm_test</span><span class="p">,</span> <span class="n">one_minus_pval_corr_svr_perm_test</span> <span class="o">=</span> <a href="../generated/hidimstat.permutation_test_pval.html#hidimstat.permutation_test_pval" title="hidimstat.permutation_test_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test_pval</span></a><span class="p">(</span>
+    <span class="n">pval_corr_svr_perm_test</span><span class="p">,</span> <span class="n">one_minus_pval_corr_svr_perm_test</span> <span class="o">=</span> <span class="n">permutation_test_pval</span><span class="p">(</span>
         <span class="n">weight_svr</span><span class="p">,</span> <span class="n">weight_svr_distribution</span>
     <span class="p">)</span>
 
@@ -600,7 +612,7 @@ of the distribution of these weights.</p>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">weight_ridge</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">weight_ridge_distribution</span></a> <span class="o">=</span> <a href="../generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test</span></a><span class="p">(</span>
     <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">X</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">y</span></a><span class="p">,</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html#sklearn.linear_model.Ridge" title="sklearn.linear_model.Ridge" class="sphx-glr-backref-module-sklearn-linear_model sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">estimator</span></a><span class="o">=</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html#sklearn.linear_model.Ridge" title="sklearn.linear_model.Ridge" class="sphx-glr-backref-module-sklearn-linear_model sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">estimator</span></a><span class="p">,</span> <span class="n">n_permutations</span><span class="o">=</span><span class="mi">200</span>
 <span class="p">)</span>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval_corr_ridge_perm_test</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval_corr_ridge_perm_test</span></a> <span class="o">=</span> <a href="../generated/hidimstat.permutation_test_pval.html#hidimstat.permutation_test_pval" title="hidimstat.permutation_test_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test_pval</span></a><span class="p">(</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval_corr_ridge_perm_test</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval_corr_ridge_perm_test</span></a> <span class="o">=</span> <span class="n">permutation_test_pval</span><span class="p">(</span>
     <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">weight_ridge</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">weight_ridge_distribution</span></a>
 <span class="p">)</span>
 </pre></div>
@@ -640,7 +652,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.3s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.1s finished
 </pre></div>
 </div>
 </section>
@@ -658,20 +670,20 @@ inverse survival function.</p>
 <p>We now translate the FWER target into a z-score target.
 For the permutation test methods we do not need any additional correction
 since the p-values are already adjusted for multiple testing.</p>
-<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_corr</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_corr</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Other methods need to be corrected. We consider the Bonferroni correction.
 For methods that do not reduce the feature space, the correction
 consists in dividing by the number of features.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction</span></a> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_features</span></a>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_no_clust</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_no_clust</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <p>For methods that parcelates the brain into groups of voxels, the correction
 consists in dividing by the number of parcels (or clusters).</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_clust</span></a> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_clusters</span></a>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_clust</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_clust</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore_threshold_clust</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">target_fwer</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_clust</span></a><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now, we can plot the thresholded z-score maps by translating the
@@ -688,7 +700,7 @@ called <cite>plot_map</cite> that wraps all these steps.</p>
     <span class="n">bg_img</span><span class="o">=</span><a href="https://scikit-learn.org/stable/modules/generated/sklearn.utils.Bunch.html#sklearn.utils.Bunch" title="sklearn.utils.Bunch" class="sphx-glr-backref-module-sklearn-utils sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">data</span></a><span class="o">.</span><span class="n">bg_img</span><span class="p">,</span>
 <span class="p">):</span>
 
-    <span class="n">zscore</span> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">(</span><span class="n">pval</span><span class="p">,</span> <span class="n">one_minus_pval</span><span class="p">)</span>
+    <span class="n">zscore</span> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">(</span><span class="n">pval</span><span class="p">,</span> <span class="n">one_minus_pval</span><span class="p">)</span>
     <span class="n">zscore_img</span> <span class="o">=</span> <span class="n">masker</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">zscore</span><span class="p">)</span>
     <span class="n">plot_stat_map</span><span class="p">(</span>
         <span class="n">zscore_img</span><span class="p">,</span>
@@ -763,8 +775,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 8.941 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  2590 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 14.998 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  2596 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>

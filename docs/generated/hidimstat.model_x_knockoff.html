@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
+    <script src="../_static/documentation_options.js?v=c318d3b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.model_x_knockoff';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="hidimstat.permutation_test" href="hidimstat.permutation_test.html" />
-    <link rel="prev" title="hidimstat.knockoff_aggregation" href="hidimstat.knockoff_aggregation.html" />
+    <link rel="prev" title="hidimstat.hd_inference" href="hidimstat.hd_inference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -341,13 +341,10 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test_pval.html">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.zscore_from_pval.html">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -418,59 +415,82 @@
 <h1>hidimstat.model_x_knockoff<a class="headerlink" href="#hidimstat-model-x-knockoff" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.model_x_knockoff">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">model_x_knockoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lasso_cv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ledoit_wolf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoffs.py#L17-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.model_x_knockoff" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">model_x_knockoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator=LassoCV(cv=KFold(n_splits=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter=200000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconfigure_estimator=&lt;function</span> <span class="pre">preconfigure_estimator_LassoCV&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator=LedoitWolf(assume_centered=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol_gauss=1e-14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory=None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoffs.py#L69-L232"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.model_x_knockoff" title="Link to this definition">#</a></dt>
 <dd><p>Model-X Knockoff</p>
-<p>It’s an inference procedure to control False Discoveries Rate,
-based on Candes <em>et al.</em><a class="footnote-reference brackets" href="#footcite-candespanninggoldmodelx2017" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
-<dl class="field-list simple">
+<p>This module implements the Model-X knockoff inference procedure, which is an approach
+to control the False Discovery Rate (FDR) based on <span id="id1">[<a class="reference internal" href="../index.html#id13" title="Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for gold:‘model-x’knockoffs for high dimensional controlled variable selection. Journal of the Royal Statistical Society Series B: Statistical Methodology, 80(3):551–577, 2018.">Candes <em>et al.</em>, 2018</a>]</span>. The original
+implementation can be found at
+<a class="github reference external" href="https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R">msesia/knockoff-filter</a>
+The noisy variables are generated with second-order knockoff variables using the equi-correlated method.</p>
+<p>In addition, this function generates multiple sets of Gaussian knockoff variables and calculates
+the test statistics for each set. It then aggregates the test statistics across
+the sets to improve stability and power.</p>
+<dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">2D ndarray (n_samples, n_features)</span></dt><dd><p>design matrix</p>
+<dd class="field-odd"><dl>
+<dt><strong>X</strong><span class="classifier">2D ndarray (n_samples, n_features)</span></dt><dd><p>The design matrix.</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">1D ndarray (n_samples, )</span></dt><dd><p>response vector</p>
+<dt><strong>y</strong><span class="classifier">1D ndarray (n_samples, )</span></dt><dd><p>The target vector.</p>
 </dd>
-<dt><strong>fdr</strong><span class="classifier">float, optional</span></dt><dd><p>desired controlled FDR level</p>
+<dt><strong>estimator</strong><span class="classifier">sklearn estimator instance or a cross validation instance, optional</span></dt><dd><p>The estimator used for fitting the data and computing the test statistics.
+This can be any estimator with a <cite>fit</cite> method that accepts a 2D array and
+a 1D array, and a <cite>coef_</cite> attribute that returns a 1D array of coefficients.
+Examples include LassoCV, LogisticRegressionCV, and LinearRegression.
+Configuration example:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,</dt><dd><p>cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)</p>
 </dd>
-<dt><strong>offset</strong><span class="classifier">int, 0 or 1, optional</span></dt><dd><p>offset to calculate knockoff threshold, offset = 1 is equivalent to
-knockoff+</p>
+<dt>LogisticRegressionCV(penalty=”l1”, max_iter=1000, solver=”liblinear”,</dt><dd><p>cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None,
+tol=1e-8)</p>
 </dd>
-<dt><strong>method</strong><span class="classifier">str, optional</span></dt><dd><p>knockoff construction methods, either equi for equi-correlated knockoff
-or sdp for optimization scheme</p>
+<dt>LogisticRegressionCV(penalty=”l2”, max_iter=1000, n_jobs=None,</dt><dd><p>verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0),
+tol=1e-8,)</p>
 </dd>
-<dt><strong>statistics</strong><span class="classifier">str, optional</span></dt><dd><p>method to calculate knockoff test score</p>
+</dl>
+</div></blockquote>
 </dd>
-<dt><strong>shrink</strong><span class="classifier">bool, optional</span></dt><dd><p>whether to shrink the empirical covariance matrix</p>
+<dt><strong>preconfigure_estimator</strong><span class="classifier">callable, default=preconfigure_estimator_LassoCV</span></dt><dd><p>A function that configures the estimator for the Model-X knockoff procedure.
+If provided, this function will be called with the estimator, X, X_tilde, and y
+as arguments, and should modify the estimator in-place.</p>
 </dd>
-<dt><strong>centered</strong><span class="classifier">bool, optional</span></dt><dd><p>whether to standardize the data before doing the inference procedure</p>
+<dt><strong>fdr</strong><span class="classifier">float, default=0.1</span></dt><dd><p>The desired controlled False Discovery Rate (FDR) level.</p>
 </dd>
-<dt><strong>cov_estimator</strong><span class="classifier">str, optional</span></dt><dd><p>method of empirical covariance matrix estimation</p>
+<dt><strong>centered</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to standardize the data before performing the inference procedure.</p>
 </dd>
-<dt><strong>seed</strong><span class="classifier">int or None, optional</span></dt><dd><p>random seed used to generate Gaussian knockoff variable</p>
+<dt><strong>cov_estimator</strong><span class="classifier">estimator object, default=LedoitWolf()</span></dt><dd><p>Estimator for empirical covariance matrix.</p>
+</dd>
+<dt><strong>joblib_verbose</strong><span class="classifier">int, default=0</span></dt><dd><p>Verbosity level for parallel jobs.</p>
+</dd>
+<dt><strong>n_bootstraps</strong><span class="classifier">int, default=1</span></dt><dd><p>Number of bootstrap samples for aggregation.</p>
+</dd>
+<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>Number of parallel jobs.</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int or None, default=None</span></dt><dd><p>The random seed used to generate the Gaussian knockoff variables.</p>
+</dd>
+<dt><strong>tol_gauss</strong><span class="classifier">float, default=1e-14</span></dt><dd><p>A tolerance value used for numerical stability in the calculation of
+the Cholesky decomposition in the gaussian generation function.</p>
+</dd>
+<dt><strong>memory</strong><span class="classifier">str or Memory object, default=None</span></dt><dd><p>Used to cache the output of the clustering and inference computation.
+By default, no caching is done. If provided, it should be the path
+to the caching directory or a joblib.Memory object.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>selected</strong><span class="classifier">1D array, int</span></dt><dd><p>vector of index of selected variables</p>
+<dt><strong>selected</strong><span class="classifier">ndarray or list of ndarrays</span></dt><dd><p>Selected feature indices. List if n_bootstraps&gt;1.</p>
 </dd>
-<dt><strong>test_score</strong><span class="classifier">1D array, (n_features, )</span></dt><dd><p>vector of test statistic</p>
+<dt><strong>test_scores</strong><span class="classifier">ndarray or list of ndarrays</span></dt><dd><p>Test statistics. List if n_bootstraps&gt;1.</p>
 </dd>
-<dt><strong>thres</strong><span class="classifier">float</span></dt><dd><p>knockoff threshold</p>
+<dt><strong>threshold</strong><span class="classifier">float or list of floats</span></dt><dd><p>Knockoff thresholds. List if n_bootstraps&gt;1.</p>
 </dd>
-<dt><strong>X_tilde</strong><span class="classifier">2D array, (n_samples, n_features)</span></dt><dd><p>knockoff design matrix</p>
+<dt><strong>X_tildes</strong><span class="classifier">ndarray or list of ndarrays</span></dt><dd><p>Generated knockoff variables. List if n_bootstraps&gt;1.</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id2">
-<aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-candespanninggoldmodelx2017" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for Gold: Model-X Knockoffs for High-dimensional Controlled Variable Selection. <em>arXiv:1610.02351 [math, stat]</em>, December 2017. <a class="reference external" href="https://arxiv.org/abs/1610.02351">arXiv:1610.02351</a>.</p>
-</aside>
-</aside>
-</div>
 </dd></dl>
 
 <section id="examples-using-hidimstat-model-x-knockoff">
@@ -492,12 +512,12 @@ or sdp for optimization scheme</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.knockoff_aggregation.html"
+       href="hidimstat.hd_inference.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.knockoff_aggregation</p>
+        <p class="prev-next-title">hidimstat.hd_inference</p>
       </div>
     </a>
     <a class="right-next"
