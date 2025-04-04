@@ -40,7 +40,7 @@ data.target_names
 #############################################################################
 # Step 1: Selecting variables with the Lasso
 # ------------------------------------------
-# 
+#
 # We want to select variables that are relevant to the outcome, i.e. tumor charateristics that are associated with tumor malignance. We start off by applying a classical method using Lasso logistic regression and retaining variables with non-null coefficients:
 
 # %%
@@ -91,7 +91,7 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 #############################################################################
 # Step 3: Controlled variable selection with Knockoffs
 # ----------------------------------------------------
-#  
+#
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). To setup a fair comparison between the two methods, we first run the Knockoffs procedure on the original data and observe the results:
 
 # %%
