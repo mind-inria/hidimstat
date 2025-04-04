@@ -21,6 +21,8 @@ then
 else
     # Strip off .X
     dir="${CIRCLE_BRANCH::-2}"
+    # TODO remove
+    dir=dev
 fi
 
 MSG="Pushing the docs to $dir/ for branch: $CIRCLE_BRANCH, commit $CIRCLE_SHA1"
