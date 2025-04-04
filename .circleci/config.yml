@@ -31,7 +31,8 @@ jobs:
       - save_cache:
           key: saved-cache
           paths:
-            - /home/circleci/skrub_data
+            - /home/circleci/nilearn_data
+            - /home/circleci/sklearn_data
 
   deploy:
     docker:
