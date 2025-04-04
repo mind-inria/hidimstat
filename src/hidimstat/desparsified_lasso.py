@@ -222,9 +222,11 @@ def desparsified_lasso_pvalue(
 ):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
+
     This function computes confidence intervals for the desparsified lasso
     estimator beta_hat.
     It can also return p-values derived from these confidence intervals.
+
     Parameters
     ----------
     n_samples : float
@@ -242,6 +244,7 @@ def desparsified_lasso_pvalue(
         Currently only "norm" supported.
     epsilon : float, default=1e-14
         Small value to avoid numerical issues in p-value calculation.
+
     Returns
     -------
     pval : ndarray, shape (n_features,)
