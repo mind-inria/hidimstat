@@ -26,7 +26,7 @@ def desparsified_lasso(
     seed=0,
     memory=None,
     verbose=0,
-    group=False,
+    multioutput=False,
     covariance=None,
     noise_method="AR",
     order=1,
@@ -83,7 +83,7 @@ def desparsified_lasso(
     verbose : int, default=0
         Verbosity level for logging.
 
-    group : bool, default=False
+    multioutput : bool, default=False
         If True, use group Lasso for multiple responses.
 
     covariance : ndarray, shape (n_times, n_times), default=None
@@ -133,7 +133,7 @@ def desparsified_lasso(
     X_ = np.asarray(X)
 
     n_samples, n_features = X_.shape
-    if group:
+    if multioutput:
         n_times = y.shape[1]
         if covariance is not None and covariance.shape != (n_times, n_times):
             raise ValueError(
@@ -156,7 +156,7 @@ def desparsified_lasso(
         n_jobs=n_jobs,
         seed=seed,
         # for group
-        group=group,
+        multioutput=multioutput,
         method=noise_method,
         order=order,
         stationary=stationary,
@@ -201,7 +201,7 @@ def desparsified_lasso(
     # confidence intervals
     precision_diagonal = precision_diagonal * dof_factor**2
 
-    if not group:
+    if not multioutput:
         return beta_hat, sigma_hat, precision_diagonal
     else:
         covariance_hat = sigma_hat
