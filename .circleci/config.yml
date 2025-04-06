@@ -58,6 +58,8 @@ jobs:
             mkdir -p ~/.ssh
             echo "$DOCS_REPO_DEPLOY_RSA_KEY" > ~/.ssh/id_rsa
             chmod 600 ~/.ssh/id_rsa
+            ls -lh ~/.ssh/id_rsa
+            sha256sum ~/.ssh/id_rsa
             ssh-keyscan github.com >> ~/.ssh/known_hosts
             eval "$(ssh-agent -s)"
             ssh-add ~/.ssh/id_rsa
