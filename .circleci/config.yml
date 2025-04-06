@@ -47,7 +47,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
+            - "8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
       - run:
           name: Show loaded SSH keys
           command:
