@@ -45,6 +45,13 @@ jobs:
       - MINICONDA_PATH: ~/miniconda
       - CONDA_ENV_NAME: testenv
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:HZ69emANfeAFrtpYPbazz22HwY9GJEndiQjxa6PXrRU"
+      - run:
+          name: Show loaded SSH keys
+          command: |
+            ssh-add -l || echo "No keys loaded"
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
       # Attach documentation generated in the 'python3' step so that it can be
@@ -52,17 +59,6 @@ jobs:
       - attach_workspace:
           at: doc_conf/_build/html
       - run: ls -ltrh doc_conf/_build/html
-      - run:
-          name: Manually install SSH key
-          command: |
-            mkdir -p ~/.ssh
-            echo "$DOCS_REPO_DEPLOY_KEY" > ~/.ssh/id_ed25519
-            chmod 600 ~/.ssh/id_ed25519
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-            eval "$(ssh-agent -s)"
-            ssh-keygen -lf ~/.ssh/id_ed25519
-            ssh-add ~/.ssh/id_ed25519
-            ssh-add -l
       - deploy:
           command: |
             # TODO restore
