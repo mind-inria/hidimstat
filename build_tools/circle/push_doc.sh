@@ -33,9 +33,9 @@ MSG="Pushing the docs to $dir/ for branch: $CIRCLE_BRANCH, commit $CIRCLE_SHA1"
 cd $HOME
 if [ ! -d $DOC_REPO ];
 then git clone "git@github.com:"$ORGANIZATION"/"$DOC_REPO".git";
-
 fi
 cd $DOC_REPO
+pwd
 
 git checkout main
 git reset --hard origin/main

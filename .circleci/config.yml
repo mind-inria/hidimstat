@@ -5,13 +5,6 @@ jobs:
     docker:
       - image: cimg/python:3.9
     environment:
-      - USERNAME: "jeromedockes"
-      - ORGANIZATION: "hidimstat"
-      - DOC_REPO: "hidimstat.github.io"
-      - DOC_URL: ""
-      - EMAIL: "jerome@dockes.org"
-      - MINICONDA_PATH: ~/miniconda
-      - CONDA_ENV_NAME: testenv
       - PYTHON_VERSION: "3.12"
       - OMP_NUM_THREADS: 2
     steps:
@@ -42,6 +35,14 @@ jobs:
   deploy:
     docker:
       - image: cimg/python:3.9
+    environment:
+      - USERNAME: "jeromedockes"
+      - ORGANIZATION: "hidimstat"
+      - DOC_REPO: "hidimstat.github.io"
+      - DOC_URL: ""
+      - EMAIL: "jerome@dockes.org"
+      - MINICONDA_PATH: ~/miniconda
+      - CONDA_ENV_NAME: testenv
     steps:
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
