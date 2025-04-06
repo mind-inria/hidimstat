@@ -46,10 +46,11 @@ jobs:
       - CONDA_ENV_NAME: testenv
     steps:
       - add_ssh_keys:
+          fingerprints:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
       - run:
           name: Show loaded SSH keys
-          command: |
+          command:
             ssh-add -l || echo "No keys loaded"
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
