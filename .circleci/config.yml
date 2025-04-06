@@ -45,6 +45,9 @@ jobs:
       - MINICONDA_PATH: ~/miniconda
       - CONDA_ENV_NAME: testenv
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "81:2b:e0:f0:cb:c4:86:b3:89:5d:cf:45:bd:47:93:49"
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
       # Attach documentation generated in the 'python3' step so that it can be
