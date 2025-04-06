@@ -60,11 +60,9 @@ jobs:
             chmod 600 ~/.ssh/id_ed25519
             ssh-keyscan github.com >> ~/.ssh/known_hosts
             eval "$(ssh-agent -s)"
+            ssh-keygen -lf ~/.ssh/id_ed25519
             ssh-add ~/.ssh/id_ed25519
-      - run:
-          name: Show loaded SSH keys
-          command:
-            ssh-add -l || echo "No keys loaded"
+            ssh-add -l
       - deploy:
           command: |
             # TODO restore
