@@ -413,7 +413,7 @@ def parse_docstring(docstring):
     section_texts = detection_section(lines)
     sections = {"short": section_texts[0]}
     for section_text in section_texts:
-        if len(section_text) < 1 or "---" not in section_text[1]:
+        if len(section_text) <= 1 or "---" not in section_text[1]:
             sections["short"] = section_text
         else:
             sections["".join(section_text[0].split())] = section_text
