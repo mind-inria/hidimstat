@@ -67,8 +67,8 @@ plt.show()
 # Then, we compute the conditional importance using the CPI class. The univarariate
 # models don't perform above chance, since solving the XOR problem requires to use both
 # features. The conditional importance, on the other hand, reveals that both features
-# are important (therefore rejecting the null hypothesis $Y \perp\!\!\!\perp X^1 | X^2$)
-# .
+# are important (therefore rejecting the null hypothesis
+# :math:`Y \perp\!\!\!\perp X^1 | X^2`).
 
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 clf = SVC(kernel="rbf", random_state=0)
@@ -121,11 +121,12 @@ sns.boxplot(
     color="C0",
     linewidth=3,
 )
-axes[0].set_xlabel("Marginal Scores (accuracy)")
-axes[0].set_ylabel("Features")
 axes[0].axvline(x=0.5, color="k", linestyle="--", lw=3)
 axes[0].set_ylabel("")
-axes[0].set_yticklabels(["X1", "X2"])
+axes[0].set_yticks([0, 1], ["X1", "X2"])
+sns.despine(ax=axes[0])
+axes[0].set_xlabel("Marginal Scores (accuracy)")
+axes[0].set_ylabel("Features")
 
 # Importances boxplot
 sns.boxplot(
@@ -136,9 +137,8 @@ sns.boxplot(
     color="C0",
     linewidth=3,
 )
+sns.despine(ax=axes[1])
 axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 axes[1].set_xlabel("Conditional Importance")
 
-sns.despine(ax=axes[1])
-sns.despine(ax=axes[0])
 plt.show()
