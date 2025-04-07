@@ -209,7 +209,7 @@ ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
 plt.show()
 
 ###############################################################################
-# Extrapolationbias in PFI
+# Extrapolation bias in PFI
 # ----------------------------
 # One of the main pitfalls of PFI is that it leads to extrapolation bias, i.e., it
 # forces the model to predict from regions of the feature space that are not present in
