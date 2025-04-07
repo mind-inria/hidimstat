@@ -98,6 +98,7 @@ class D0CRT:
     ----------
     .. footbibliography::
     """
+
     def __init__(
         self,
         estimated_coef=None,
@@ -182,7 +183,7 @@ class D0CRT:
             X_ = StandardScaler().fit_transform(X)
         else:
             X_ = X
-        
+
         y_ = y  # avoid modifying the original y
         _, n_features = X_.shape
 
@@ -293,7 +294,7 @@ class D0CRT:
         self.y_residual = np.array([result[2] for result in results])
         self.clf_x_residual = np.array([result[3] for result in results])
         self.clf_y_residual = np.array([result[4] for result in results])
-    
+
     def importance(
         self,
         fdr=0.1,
@@ -447,7 +448,6 @@ def _x_distillation_lasso(
             np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
         )
     return X_res, sigma2, clf
-
 
 
 def _lasso_distillation_residual(
