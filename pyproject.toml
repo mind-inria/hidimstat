@@ -46,6 +46,7 @@ doc = [
     "pydata_sphinx_theme    >= 0.16.1",
     "sphinxcontrib-bibtex   >= 2.6.2",
     "sphinx-gallery         >= 0.16.0",
+    "seaborn"
 ]
 plotting = [
     "matplotlib>=3.9.0",
