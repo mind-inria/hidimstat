@@ -1,6 +1,6 @@
 """
 Conditional vs Marginal Importance on the XOR dataset
-===============================================
+==================================================================
 
 This example illustrates on XOR data that variables can be conditionally important even
 if they are not marginally important. The conditional importance is computed using the
@@ -109,8 +109,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X_train)):
     vim.fit(X_train_cv, y_train_cv)
     importances.append(vim.score(X_test_cv, y_test_cv)["importance"])
 importances = np.array(importances).T
-# %%
-fig, axes = plt.subplots(1, 2, sharey=True, figsize=(5, 2))
+fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 
 # Marginal scores boxplot
 sns.boxplot(
@@ -140,5 +139,4 @@ sns.boxplot(
 sns.despine(ax=axes[1])
 axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 axes[1].set_xlabel("Conditional Importance")
-
 plt.show()
