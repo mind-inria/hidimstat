@@ -8,8 +8,12 @@ from .desparsified_lasso import (
 from .conditional_permutation_importance import CPI
 from .empirical_thresholding import empirical_thresholding
 from .ensemble_clustered_inference import ensemble_clustered_inference
-from .knockoff_aggregation import knockoff_aggregation
-from .knockoffs import model_x_knockoff
+from .knockoffs import (
+    model_x_knockoff,
+    model_x_knockoff_pvalue,
+    model_x_knockoff_bootstrap_quantile,
+    model_x_knockoff_bootstrap_e_value,
+)
 from .leave_one_covariate_out import LOCO
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import reid
@@ -36,8 +40,10 @@ __all__ = [
     "ensemble_clustered_inference",
     "reid",
     "hd_inference",
-    "knockoff_aggregation",
     "model_x_knockoff",
+    "model_x_knockoff_pvalue",
+    "model_x_knockoff_bootstrap_quantile",
+    "model_x_knockoff_bootstrap_e_value",
     "multivariate_1D_simulation",
     "permutation_test",
     "permutation_test_pval",

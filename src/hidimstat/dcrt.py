@@ -98,7 +98,6 @@ class D0CRT:
     ----------
     .. footbibliography::
     """
-
     def __init__(
         self,
         estimated_coef=None,
@@ -128,7 +127,6 @@ class D0CRT:
         problem_type="regression",
         random_state=2022,
     ):
-
         self.estimated_coef = estimated_coef
         self.sigma_X = sigma_X
         self.params_lasso_screening = params_lasso_screening
@@ -184,8 +182,8 @@ class D0CRT:
             X_ = StandardScaler().fit_transform(X)
         else:
             X_ = X
+        
         y_ = y  # avoid modifying the original y
-
         _, n_features = X_.shape
 
         ## Screening of variables for accelarate dCRT
@@ -209,7 +207,6 @@ class D0CRT:
         else:
             self.coef_X_full = self.estimated_coef
             self.screening_threshold = 100  # remove the screening process
-
         # noisy estimated coefficients is set to 0.0
         self.non_selection = np.where(
             np.abs(self.coef_X_full)
@@ -217,11 +214,9 @@ class D0CRT:
         )[0]
         # optimisation to reduce the number of elements different to zeros
         self.coef_X_full[self.non_selection] = 0.0
-
         # select the variables for the screening
         if self.screening:
             selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
-
             if selection_set.size == 0:
                 self.selection_features = np.array([])
                 self.X_residual = np.array([])
@@ -233,7 +228,6 @@ class D0CRT:
         else:
             self.non_selection = []
             selection_set = np.arange(n_features)
-
         # Refit the model with the estimated support set
         if (
             self.refit
@@ -291,7 +285,6 @@ class D0CRT:
             )
         else:
             raise ValueError(f"{self.statistic} statistic is not supported.")
-
         # contatenate result
         self.selection_features = np.ones((n_features,), dtype=bool)
         self.selection_features[self.non_selection] = 0
@@ -300,7 +293,7 @@ class D0CRT:
         self.y_residual = np.array([result[2] for result in results])
         self.clf_x_residual = np.array([result[3] for result in results])
         self.clf_y_residual = np.array([result[4] for result in results])
-
+    
     def importance(
         self,
         fdr=0.1,
@@ -310,7 +303,6 @@ class D0CRT:
     ):
         """
         Calculate p-values and identify significant features using the dCRT test statistics.
-
         This function processes the results from dCRT to identify statistically significant
         features while controlling for false discoveries. It assumes test statistics follow
         a Gaussian distribution.
@@ -454,8 +446,8 @@ def _x_distillation_lasso(
         sigma2 = sigma_X[idx, idx] - np.dot(
             np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
         )
-
     return X_res, sigma2, clf
+
 
 
 def _lasso_distillation_residual(
@@ -626,7 +618,6 @@ def _rf_distillation(
         The fitted Lasso model for X distillation, or None if sigma_X was used.
     clf_y : RandomForestRegressor or RandomForestClassifier
         The fitted Random Forest model for y distillation.
-
     Notes
     -----
     For classification, the function uses probability predictions from
@@ -653,14 +644,12 @@ def _rf_distillation(
         )
         clf_y.fit(X_minus_idx, y)
         y_res = y - clf_y.predict(X_minus_idx)
-
     elif problem_type == "classification":
         clf_y = RandomForestClassifier(
             n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
         clf_y.fit(X_minus_idx, y)
         y_res = y - clf_y.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
-
     return (X_residual, sigma2, y_res, clf_x_residual, clf_y)
 
 

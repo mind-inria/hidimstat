@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_regression, make_classification
-
 from hidimstat.dcrt import D0CRT, _lasso_distillation_residual
 
 
@@ -148,7 +147,7 @@ def test_dcrt_lasso_with_covariance(generate_regation_dataset):
 
 def test_dcrt_lasso_center():
     """
-    This function tests the dcrt function using the Lasso learner
+    Test for unknows statistic
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     d0crt = D0CRT(
@@ -258,7 +257,7 @@ def test_dcrt_lasso_fit_with_no_cv():
         },
         screening=False,
         statistic="residual",
-        random_state=2024,
+        random_state=2026,
     )
     d0crt.fit(X, y)
     sv, pvalue = d0crt.importance(scaled_statistics=True)

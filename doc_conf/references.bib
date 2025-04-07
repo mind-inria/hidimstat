@@ -89,22 +89,6 @@ doi = {10.1214/aos/1013699998}
     eprint = {https://academic.oup.com/jrsssb/article-pdf/86/1/122/56629998/qkad085.pdf},
 }
 
-@article{Candes_2018,
-    author = {Candès, Emmanuel and Fan, Yingying and Janson, Lucas and Lv, Jinchi},
-    title = "{Panning for Gold: ‘Model-X’ Knockoffs for High Dimensional Controlled Variable Selection}",
-    journal = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
-    volume = {80},
-    number = {3},
-    pages = {551-577},
-    year = {2018},
-    month = {01},
-    abstract = "{ Many contemporary large-scale applications involve building interpretable models linking a large set of potential covariates to a response in a non-linear fashion, such as when the response is binary. Although this modelling problem has been extensively studied, it remains unclear how to control the fraction of false discoveries effectively even in high dimensional logistic regression, not to mention general high dimensional non-linear models. To address such a practical problem, we propose a new framework of ‘model-X’ knockoffs, which reads from a different perspective the knockoff procedure that was originally designed for controlling the false discovery rate in linear models. Whereas the knockoffs procedure is constrained to homoscedastic linear models with n⩾p, the key innovation here is that model-X knockoffs provide valid inference from finite samples in settings in which the conditional distribution of the response is arbitrary and completely unknown. Furthermore, this holds no matter the number of covariates. Correct inference in such a broad setting is achieved by constructing knockoff variables probabilistically instead of geometrically. To do this, our approach requires that the covariates are random (independent and identically distributed rows) with a distribution that is known, although we provide preliminary experimental evidence that our procedure is robust to unknown or estimated distributions. To our knowledge, no other procedure solves the controlled variable selection problem in such generality but, in the restricted settings where competitors exist, we demonstrate the superior power of knockoffs through simulations. Finally, we apply our procedure to data from a case–control study of Crohn's disease in the UK, making twice as many discoveries as the original analysis of the same data.}",
-    issn = {1369-7412},
-    doi = {10.1111/rssb.12265},
-    url = {https://doi.org/10.1111/rssb.12265},
-    eprint = {https://academic.oup.com/jrsssb/article-pdf/80/3/551/49274696/jrsssb\_80\_3\_551.pdf},
-}
-
 @article{breimanRandomForests2001,
   title = {Random {{Forests}}},
   author = {Breiman, Leo},
@@ -170,20 +154,24 @@ doi = {10.1214/aos/1013699998}
   keywords = {Cancer,Data mining,Machine learning,Statistical methods},
 }
 
-@article{candesPanningGoldModelX2017,
-  title = {Panning for {{Gold}}: {{Model-X Knockoffs}} for {{High-dimensional Controlled Variable Selection}}},
-  shorttitle = {Panning for {{Gold}}},
-  author = {Candes, Emmanuel and Fan, Yingying and Janson, Lucas and Lv, Jinchi},
-  year = {2017},
-  month = dec,
-  journal = {arXiv:1610.02351 [math, stat]},
-  eprint = {1610.02351},
-  primaryclass = {math, stat},
-  urldate = {2022-01-12},
-  abstract = {Many contemporary large-scale applications involve building interpretable models linking a large set of potential covariates to a response in a nonlinear fashion, such as when the response is binary. Although this modeling problem has been extensively studied, it remains unclear how to effectively control the fraction of false discoveries even in high-dimensional logistic regression, not to mention general high-dimensional nonlinear models. To address such a practical problem, we propose a new framework of \$model\$-\$X\$ knockoffs, which reads from a different perspective the knockoff procedure (Barber and Cand{\textbackslash}`es, 2015) originally designed for controlling the false discovery rate in linear models. Whereas the knockoffs procedure is constrained to homoscedastic linear models with \$n{\textbackslash}ge p\$, the key innovation here is that model-X knockoffs provide valid inference from finite samples in settings in which the conditional distribution of the response is arbitrary and completely unknown. Furthermore, this holds no matter the number of covariates. Correct inference in such a broad setting is achieved by constructing knockoff variables probabilistically instead of geometrically. To do this, our approach requires the covariates be random (independent and identically distributed rows) with a distribution that is known, although we provide preliminary experimental evidence that our procedure is robust to unknown/estimated distributions. To our knowledge, no other procedure solves the \$controlled\$ variable selection problem in such generality, but in the restricted settings where competitors exist, we demonstrate the superior power of knockoffs through simulations. Finally, we apply our procedure to data from a case-control study of Crohn's disease in the United Kingdom, making twice as many discoveries as the original analysis of the same data.},
-  archiveprefix = {arxiv},
-  keywords = {Mathematics - Statistics Theory,Statistics - Applications,Statistics - Methodology},
-  file = {/home/ahmad/Zotero/storage/YZ23F3Q5/Candes et al. - 2017 - Panning for Gold Model-X Knockoffs for High-dimen.pdf;/home/ahmad/Zotero/storage/ZSN64F6N/1610.html}
+@article{candes2018panning,
+  title={Panning for gold:‘model-X’knockoffs for high dimensional controlled variable selection},
+  author={Candes, Emmanuel and Fan, Yingying and Janson, Lucas and Lv, Jinchi},
+  journal={Journal of the Royal Statistical Society Series B: Statistical Methodology},
+  volume={80},
+  number={3},
+  pages={551--577},
+  year={2018},
+  publisher={Oxford University Press}
+ }
+
+@article{barber2015controlling,
+  title={Controlling the false discovery rate via knockoffs},
+  author={Barber, Rina Foygel and Cand{\`e}s, Emmanuel J},
+  journal={The Annals of statistics},
+  pages={2055--2085},
+  year={2015},
+  publisher={JSTOR}
 }
 
 @article{liu2022fast,
@@ -195,6 +183,40 @@ doi = {10.1214/aos/1013699998}
   pages={277--293},
   year={2022},
   publisher={Oxford University Press}
+}
+
+@article{liu2022fast,
+  title={Fast and powerful conditional randomization testing via distillation},
+  author={Liu, Molei and Katsevich, Eugene and Janson, Lucas and Ramdas, Aaditya},
+  journal={Biometrika},
+  volume={109},
+  number={2},
+  pages={277--293},
+  year={2022},
+  publisher={Oxford University Press}
+}
+
+@article{liuFastPowerfulConditional2021,
+  title = {Fast and {{Powerful Conditional Randomization Testing}} via {{Distillation}}},
+  author = {Liu, Molei and Katsevich, Eugene and Janson, Lucas and Ramdas, Aaditya},
+  year = {2021},
+  month = jun,
+  journal = {arXiv:2006.03980 [stat]},
+  eprint = {2006.03980},
+  primaryclass = {stat},
+  urldate = {2022-01-12},
+  abstract = {We consider the problem of conditional independence testing: given a response Y and covariates (X,Z), we test the null hypothesis that Y is independent of X given Z. The conditional randomization test (CRT) was recently proposed as a way to use distributional information about X{\textbar}Z to exactly (non-asymptotically) control Type-I error using any test statistic in any dimensionality without assuming anything about Y{\textbar}(X,Z). This flexibility in principle allows one to derive powerful test statistics from complex prediction algorithms while maintaining statistical validity. Yet the direct use of such advanced test statistics in the CRT is prohibitively computationally expensive, especially with multiple testing, due to the CRT's requirement to recompute the test statistic many times on resampled data. We propose the distilled CRT, a novel approach to using state-of-the-art machine learning algorithms in the CRT while drastically reducing the number of times those algorithms need to be run, thereby taking advantage of their power and the CRT's statistical guarantees without suffering the usual computational expense. In addition to distillation, we propose a number of other tricks like screening and recycling computations to further speed up the CRT without sacrificing its high power and exact validity. Indeed, we show in simulations that all our proposals combined lead to a test that has similar power to the most powerful existing CRT implementations but requires orders of magnitude less computation, making it a practical tool even for large data sets. We demonstrate these benefits on a breast cancer dataset by identifying biomarkers related to cancer stage.},
+  archiveprefix = {arxiv},
+  keywords = {Statistics - Methodology},
+}
+
+@article{reid2016study,
+  title={A study of error variance estimation in lasso regression},
+  author={Reid, Stephen and Tibshirani, Robert and Friedman, Jerome},
+  journal={Statistica Sinica},
+  pages={35--67},
+  year={2016},
+  publisher={JSTOR}
 }
 
 @article{Williamson_General_2023,
