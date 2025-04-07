@@ -1,6 +1,7 @@
 import numpy as np
 from copy import deepcopy
 
+
 ########################## quantile aggregation method ##########################
 def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
@@ -362,6 +363,7 @@ def _check_vim_predict_method(method):
             )
         )
 
+
 def detection_section(lines):
     """
     Detect sections in a numpy-style docstring by identifying section headers and their underlines.
@@ -381,11 +383,11 @@ def detection_section(lines):
     index_line = 1
     begin_section = index_line
     while len(lines) > index_line:
-        if '-------' in lines[index_line]:
-            sections.append(lines[begin_section:index_line-2])
-            begin_section = index_line-1
-        index_line +=1
-    sections.append(lines[begin_section:len(lines)])
+        if "-------" in lines[index_line]:
+            sections.append(lines[begin_section : index_line - 2])
+            begin_section = index_line - 1
+        index_line += 1
+    sections.append(lines[begin_section : len(lines)])
     return sections
 
 
@@ -406,12 +408,12 @@ def parse_docstring(docstring):
     """
     lines = docstring.split("\n")
     section_texts = detection_section(lines)
-    sections = {'short': section_texts[0]}
+    sections = {"short": section_texts[0]}
     for section_text in section_texts:
-        if len(section_text) < 1 or '---' not in section_text[1]:
-            sections['short'] = section_text
+        if len(section_text) < 1 or "---" not in section_text[1]:
+            sections["short"] = section_text
         else:
-            sections[''.join(section_text[0].split())] = section_text
+            sections["".join(section_text[0].split())] = section_text
     return sections
 
 
@@ -432,7 +434,7 @@ def reindent(string):
     new_string = deepcopy(string)
     for i in range(len(new_string)):
         new_string[i] = "\n" + new_string[i]
-    new_string = ''.join(new_string)
+    new_string = "".join(new_string)
     return "\n".join(l.strip() for l in new_string.strip().split("\n"))
 
 
@@ -462,15 +464,15 @@ def aggregate_docstring(list_docstring):
     list_line = []
     for index, docstring in enumerate(list_docstring):
         if docstring is not None:
-            list_line.append(parse_docstring(docstring=docstring))  
-        
-    # add summary 
-    final_docstring = deepcopy(list_line[0]['short'])
+            list_line.append(parse_docstring(docstring=docstring))
+
+    # add summary
+    final_docstring = deepcopy(list_line[0]["short"])
     # add parameter
-    final_docstring += list_line[0]['Parameters']
+    final_docstring += list_line[0]["Parameters"]
     for i in range(1, len(list_line)):
-        # add paraemter after remove the title section 
-        final_docstring += list_line[i]['Parameters'][2:]
+        # add paraemter after remove the title section
+        final_docstring += list_line[i]["Parameters"][2:]
     # the last return
-    final_docstring +=list_line[-1]['Returns']
+    final_docstring += list_line[-1]["Returns"]
     return reindent(final_docstring)

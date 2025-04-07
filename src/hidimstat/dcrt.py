@@ -149,7 +149,7 @@ class D0CRT:
             Training data matrix where n_samples is the number of samples and
             n_features is the number of features.
             Target values.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -237,7 +237,7 @@ class D0CRT:
                 self.y_residual = np.array([])
                 self.clf_x_residual = np.array([])
                 self.clf_y_residual = np.array([])
-                return 
+                return
         else:
             self.non_selection = []
             selection_set = np.arange(n_features)
@@ -352,7 +352,7 @@ class D0CRT:
         """
         n_features = self.selection_features.shape[0]
         n_samples = self.X_residual.shape[1]
-        
+
         ts_selected_variables = [
             np.dot(self.y_residual[i], self.X_residual[i])
             / np.sqrt(n_samples * self.sigma2[i] * np.mean(self.y_residual[i] ** 2))
@@ -799,6 +799,7 @@ def d0crt(
         reshaping_function=reshaping_function,
         scaled_statistics=scaled_statistics,
     )
+
 
 # use the docstring of the class for the function
 d0crt.__doc__ = aggregate_docstring(
