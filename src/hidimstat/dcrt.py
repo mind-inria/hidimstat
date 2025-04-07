@@ -12,81 +12,87 @@ class D0CRT:
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
-    A faster version of the Conditional Randomization Test :cite:`candes2018panning` using the distillation
-    process from :cite:`liu2022fast`. Based on original implementation at:
-    https://github.com/moleibobliu/Distillation-CRT/
+    A faster version of the Conditional Randomization Test :cite:`candes2018panning`
+    using the distillation process from :cite:`liu2022fast`. Based on original
+    implementation at: https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
     ----------
-    estimated_coef : array-like of shape (n_features,), optional
+    estimated_coef : array-like of shape (n_features,)
         Pre-computed feature coefficients
-    sigma_X : array-like of shape (n_features, n_features), optional
+    sigma_X : array-like of shape (n_features, n_features)
         Covariance matrix of X
     params_lasso_screening : dict
-        Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float, optional - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int, default=0 - Number of alphas for cross-validation.
+        - alpha : float - L1 regularization strength. If None, determined by CV.
+        - n_alphas : int, default=10 - Number of alphas for cross-validation.
         - alphas : array-like, default=None - List of alpha values to try in CV.
         - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
         For other parameters see :py:func:LassoCV, here is some advise configuration
         - cv : int, default=5 - Number of cross-validation folds.
-        - tol : float, default=1e-6 - Tolerance for optimization.
+        - tol : float, default=1e-6 - Convergence tolerance.
         - max_iter : int, default=1000 - Maximum iterations.
         - fit_intercept : bool, default=False - Whether to fit intercept.
         - selection : str, default='cyclic' - Feature selection method.
-    params_lasso_distillation_x : dict, optional
-        Parameters for X distillation Lasso. Defaults to params_lasso_screening.
-    params_lasso_distillation_y : dict, optional
-        Parameters for y distillation Lasso. Defaults to params_lasso_screening.
+    params_lasso_distillation_x : dict
+        Parameters for X distillation Lasso. If None, uses params_lasso_screening.
+    params_lasso_distillation_y : dict
+        Parameters for y distillation Lasso. If None, uses params_lasso_screening.
     refit : bool, default=False
-        Whether to refit on estimated support set
+        Whether to refit model on selected features
     screening : bool, default=True
-        Whether to screen variables
+        Whether to perform variable screening
     screening_threshold : float, default=0.1
-        Threshold for variable screening (0-100)
+        Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
-        Learning method for outcome distillation
+        Method for computing test statistics
     centered : bool, default=True
-        Whether to standardize features
+        Whether to center and scale features
     n_jobs : int, default=1
         Number of parallel jobs
     joblib_verbose : int, default=0
-        Verbosity level
+        Verbosity level for parallel jobs
     fit_y : bool, default=False
         Whether to fit y using selected features
     n_tree : int, default=100
         Number of trees for random forest
     problem_type : {'regression', 'classification'}, default='regression'
-        Type of learning problem
+        Type of prediction problem
     random_state : int, default=2022
-        Random seed
-
-    Returns
-    -------
-    selection_features : ndarray of shape (n_features,)
-        Boolean mask of selected features
-    X_res : ndarray of shape (n_selected, n_samples)
-        Residuals after X distillation
-    sigma2 : ndarray of shape (n_selected,)
-        Estimated residual variances
-    y_res : ndarray of shape (n_selected, n_samples)
-        Response residuals
+        Random seed for reproducibility
 
     Attributes
     ----------
-    clf_screening:
-        CV Lasso for screening
-    non_selection:
-        non selected cofficient
-    coef_X_full:
-        coefficient
+    selection_features : ndarray of shape (n_features,)
+        Boolean mask indicating selected features
+    X_residual : ndarray
+        Residuals from X distillation
+    sigma2 : ndarray
+        Estimated residual variances
+    y_residual : ndarray
+        Residuals from y distillation
     ts : ndarray of shape (n_features,)
         test statistics following a standard normal distribution for all features
-    clf_x_residual:
+    coef_X_full : ndarray
+        Estimated feature coefficients
+    clf_screening : estimator
+        Fitted screening model
+    clf_x_residual : array of estimators
+        Fitted models for X distillation
+    clf_y_residual : array of estimators
+        Fitted models for y distillation
 
-    clf_y_residual:
+    Notes
+    -----
+    The implementation follows Liu et al. (2022) which introduces distillation to
+    speed up conditional randomization testing. It first screens variables using
+    Lasso, then computes test statistics via residual correlations or random forests.
 
-
+    See Also
+    --------
+    sklearn.linear_model.Lasso
+    sklearn.linear_model.LassoCV
+    sklearn.ensemble.RandomForestRegressor
+    sklearn.ensemble.RandomForestClassifier
 
     References
     ----------
@@ -141,30 +147,18 @@ class D0CRT:
         self.random_state = random_state
 
     def fit(self, X, y):
-        """Fit the dCRT model.
-
-        This method implements the distilled Conditional Randomization Test (dCRT) by first performing
-        variable screening using LASSO, then applying distillation techniques to calculate test statistics.
-
-            Training data matrix where n_samples is the number of samples and
-            n_features is the number of features.
-            Target values.
+        """
+        Fit the dCRT model.
+        Based on the paper by :cite:`liu2022fast` for fast conditional
+        randomization testing.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            Training data
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
         y : array-like of shape (n_samples,)
-            Target values
-
-        Returns
-        -------
-        tuple
-            Returns multiple arrays related to the fitted model:
-            - X_residual : Residuals from X distillation
-            - sigma2 : Estimated variances
-            - y_residual : Residuals from y distillation
-            - Various classifier objects used in the distillation process
+            Target values.
 
         Notes
         -----
@@ -180,13 +174,11 @@ class D0CRT:
         threshold percentile are set to zero.
 
         References
-        Based on the paper by Liu et al. (2022) for fast conditional randomization testing.
+        ----------
 
-        See Also
-        --------
-        _fit_lasso : Helper function for LASSO fitting
-        _lasso_distillation_residual : Helper function for residual-based distillation
-        _rf_distillation : Helper function for random forest-based distillation
+        References
+        ----------
+        .. footbibliography::
         """
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
@@ -332,7 +324,7 @@ class D0CRT:
             - 'bhq': Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
             - 'ebh': e-BH procedure
-        reshaping_function : callable, optional
+        reshaping_function : callable
             Reshaping function for the 'bhy' method
         scaled_statistics : bool, default=False
             Whether to standardize test statistics before computing p-values
@@ -353,6 +345,9 @@ class D0CRT:
         n_features = self.selection_features.shape[0]
         n_samples = self.X_residual.shape[1]
 
+        # By assumming X|Z following a normal law, the exact p-value can be
+        # computed with the following equation (see section 2.5 in `liu2022fast`)
+        # based on the residuals of y and x.
         ts_selected_variables = [
             np.dot(self.y_residual[i], self.X_residual[i])
             / np.sqrt(n_samples * self.sigma2[i] * np.mean(self.y_residual[i] ** 2))
@@ -368,8 +363,6 @@ class D0CRT:
         self.ts = np.zeros(n_features)
         self.ts[self.selection_features] = ts_selected_variables
 
-        # for residual and random_forest, the test statistics follows Gaussian distribution
-        # TODO add reference
         self.pvals = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
 
         self.threshold = fdr_threshold(
@@ -412,7 +405,7 @@ def _x_distillation_lasso(
         Random seed for reproducibility.
     params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float, optional - L1 regularization strength. If None, determined by CV.
+        - alpha : float - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
         - alphas : array-like, default=None - List of alpha values to try in CV.
         - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
@@ -423,6 +416,8 @@ def _x_distillation_lasso(
         The residuals after distillation.
     sigma2 : float
         The estimated variance of the residuals.
+    clf : estimator or None
+        The fitted Lasso model, or None if sigma_X was used.
     """
     n_samples = X.shape[0]
     X_minus_idx = np.delete(np.copy(X), idx, 1)
@@ -512,7 +507,7 @@ def _lasso_distillation_residual(
         Random seed for reproducibility.
     params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float, optional - L1 regularization strength. If None, determined by CV.
+        - alpha : float - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
         - alphas : array-like, default=None - List of alpha values to try in CV.
         - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
@@ -527,10 +522,10 @@ def _lasso_distillation_residual(
         The estimated variance of the residuals.
     y_residual : ndarray of shape (n_samples,)
         The residuals after y distillation.
-    clf_x_residual:
-
-    clf_y:
-
+    clf_x_residual : Lasso or None
+        The fitted Lasso model for X distillation, or None if sigma_X was used.
+    clf_y : Lasso or None
+        The fitted Lasso model for y distillation, or None if coef_full was provided.
 
     References
     ----------
@@ -614,7 +609,7 @@ def _rf_distillation(
         Random seed for reproducibility.
     params_lasso_distillation_x : dict
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float, optional - L1 regularization strength. If None, determined by CV.
+        - alpha : float - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
         - alphas : array-like, default=None - List of alpha values to try in CV.
         - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
@@ -627,9 +622,10 @@ def _rf_distillation(
         The estimated variance of the residuals.
     y_residual : ndarray of shape (n_samples,)
         The residuals after y distillation.
-    clf_x_residual:
-
-    clf_y:
+    clf_x_residual : Lasso or None
+        The fitted Lasso model for X distillation, or None if sigma_X was used.
+    clf_y : RandomForestRegressor or RandomForestClassifier
+        The fitted Random Forest model for y distillation.
 
     Notes
     -----
@@ -637,7 +633,6 @@ def _rf_distillation(
     RandomForestClassifier and assumes binary classification (uses class 1
     probability only).
     """
-    n_samples, _ = X.shape
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
