@@ -10,7 +10,6 @@ CPI class and the marginal importance is computed using univariate models.
 #############################################################################
 # To sovlve the XOR problem, we will use a SVC with RBF kernel. The decision function of
 # the fitted model shows that the model is able to separate the two classes.
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -37,13 +36,15 @@ model.fit(X_train, y_train)
 
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
 fig, ax = plt.subplots()
-ax.contourf(
-    xx,
-    yy,
+
+ax.imshow(
     Z.reshape(xx.shape),
-    levels=20,
+    interpolation="nearest",
+    extent=(xx.min(), xx.max(), yy.min(), yy.max()),
     cmap="RdYlBu_r",
-    alpha=0.5,
+    alpha=0.6,
+    origin="lower",
+    aspect="auto",
 )
 sns.scatterplot(
     x=X[:, 0],
@@ -69,7 +70,6 @@ plt.show()
 # features. The conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
-
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 clf = SVC(kernel="rbf", random_state=0)
 # Compute marginal importance using univariate models
@@ -123,7 +123,6 @@ sns.boxplot(
 axes[0].axvline(x=0.5, color="k", linestyle="--", lw=3)
 axes[0].set_ylabel("")
 axes[0].set_yticks([0, 1], ["X1", "X2"])
-sns.despine(ax=axes[0])
 axes[0].set_xlabel("Marginal Scores (accuracy)")
 axes[0].set_ylabel("Features")
 
@@ -136,7 +135,6 @@ sns.boxplot(
     color="C0",
     linewidth=3,
 )
-sns.despine(ax=axes[1])
-axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 axes[1].set_xlabel("Conditional Importance")
+axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 plt.show()
