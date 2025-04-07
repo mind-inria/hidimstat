@@ -36,12 +36,14 @@ from hidimstat.conditional_sampling import ConditionalSampler
 # The spurious feature does not provide any additional information about the target.
 
 dataset = fetch_california_housing()
-X, y = dataset.data, dataset.target
+X_, y_ = dataset.data, dataset.target
+# only use 2/3 of samples to speed up the example
+X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=0, shuffle=True)
 rng = np.random.RandomState(0)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
-X_spurious += rng.normal(0, scale=np.std(X_spurious), size=X.shape[0])
+X_spurious += rng.normal(0, scale=np.std(X_spurious) * 0.5, size=X.shape[0])
 X = np.hstack([X, X_spurious[:, np.newaxis]])
 feature_names = dataset.feature_names + ["Spurious"]
 
@@ -49,7 +51,7 @@ feature_names = dataset.feature_names + ["Spurious"]
 correlation_matrix = np.corrcoef(X, rowvar=False)
 
 # Plot the lower triangle of the correlation matrix
-fig, ax = plt.subplots(figsize=(10, 8))
+fig, ax = plt.subplots()
 mask = np.triu(np.ones_like(correlation_matrix, dtype=bool))
 sns.heatmap(
     correlation_matrix,
@@ -62,10 +64,9 @@ sns.heatmap(
     ax=ax,
 )
 ax.set_title("Correlation Matrix")
-ax.set_yticklabels(feature_names, fontsize=10)
+ax.set_yticklabels(feature_names, fontsize=10, rotation=45)
 ax.set_xticklabels(feature_names, fontsize=10, rotation=45)
 plt.show()
-
 
 ###############################################################################
 # Fit a predictive model
@@ -78,7 +79,13 @@ scores = []
 model = TransformedTargetRegressor(
     regressor=make_pipeline(
         StandardScaler(),
-        MLPRegressor(random_state=0, hidden_layer_sizes=(64, 32, 16, 4)),
+        MLPRegressor(
+            random_state=0,
+            hidden_layer_sizes=(32, 16, 8),
+            early_stopping=True,
+            learning_rate_init=0.01,
+            n_iter_no_change=5,
+        ),
     ),
     transformer=StandardScaler(),
 )
@@ -96,7 +103,6 @@ for train_index, test_index in kf.split(X):
     scores.append(r2_score(y_test, y_pred))
 
 print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
-
 
 #########################################################################
 # Measure the importance of variables using the PFI method
@@ -130,17 +136,21 @@ pval_pi = ttest_1samp(
 
 # Define a p-value threshold
 pval_threshold = 0.05
-
 # Create a horizontal boxplot of permutation importances
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.boxplot(permutation_importances, vert=False, patch_artist=True)
+fig, ax = plt.subplots()
+sns.barplot(
+    permutation_importances,
+    orient="h",
+    color="tab:blue",
+    capsize=0.2,
+)
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
 for i, pval in enumerate(pval_pi):
     if pval < pval_threshold:
         ax.scatter(
             np.max(permutation_importances[:, i]) + 0.01,
-            i + 1,
+            i,
             color="red",
             marker="*",
             label="Important (p < 0.05)" if i == 0 else "",
@@ -152,7 +162,6 @@ sns.despine(ax=ax)
 ax.set_yticklabels(feature_names, fontsize=10)  # Set y-tick labels to feature names
 fig.tight_layout()
 plt.show()
-
 
 ###########################################################################
 # A valid alternative: Condional permutation importance
@@ -172,7 +181,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     # Compute conditional permutation feature importance
     cpi = CPI(
         model_c,
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 5)),
         random_state=0,
         n_jobs=5,
     )
@@ -226,7 +235,7 @@ X_train, X_test = train_test_split(
 )
 
 conditional_sampler = ConditionalSampler(
-    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 20)),
+    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
     random_state=0,
 )
 
@@ -250,14 +259,14 @@ sns.scatterplot(
     x=X_test[:, 6],
     y=X_test_sample,
     ax=ax,
-    alpha=0.1,
+    alpha=0.2,
     c="tab:green",
 )
 sns.scatterplot(
     x=X_test[:, 6],
     y=rng.permutation(X_test[:, 7]),
     ax=ax,
-    alpha=0.1,
+    alpha=0.2,
     c="tab:orange",
 )
 
