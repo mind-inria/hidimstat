@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_regression, make_classification
-from hidimstat.dcrt import D0CRT, _lasso_distillation_residual
+from hidimstat.dcrt import d0crt, D0CRT, _lasso_distillation_residual
 
 
 @pytest.fixture
@@ -315,3 +315,10 @@ def test_exception_lasso_distillation_residual():
         ValueError, match="Either fit_y is true or coeff_full must be provided."
     ):
         _lasso_distillation_residual(X, y, 0)
+
+
+def test_function_d0crt():
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    sv, pvalue = d0crt(X, y)
+    assert len(sv) <= 10
+    assert len(pvalue) == 10
