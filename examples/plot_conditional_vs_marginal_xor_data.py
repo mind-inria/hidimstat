@@ -16,7 +16,7 @@ import numpy as np
 import seaborn as sns
 from sklearn.base import clone
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import explained_variance_score, hinge_loss
+from sklearn.metrics import hinge_loss
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.svm import SVC
 
