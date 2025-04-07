@@ -14,7 +14,7 @@ the power
 
 import matplotlib.pyplot as plt
 import numpy as np
-from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
+from hidimstat.dcrt import D0CRT
 from hidimstat.scenario import multivariate_1D_simulation
 
 plt.rcParams.update({"font.size": 21})
@@ -51,20 +51,16 @@ for sim_ind in range(10):
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
-    selection_features, X_res, sigma2, y_res = dcrt_zero(X, y, screening=False)
-    variables_important_lasso, pvals_lasso, ts_lasso = dcrt_pvalue(
-        selection_features, X_res, sigma2, y_res
-    )
+    D0CRT_lasso = D0CRT(screening=False, statistic="residual")
+    D0CRT_lasso.fit(X, y) 
+    variables_important_lasso, pvals_lasso = D0CRT_lasso.importance()
     typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
     power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
-    selection_features, X_res, sigma2, y_res = dcrt_zero(
-        X, y, screening=False, statistic="random_forest"
-    )
-    rvariables_important_forest, pvals_forest, ts_forest = dcrt_pvalue(
-        selection_features, X_res, sigma2, y_res
-    )
+    D0CRT_random_forest = D0CRT(screening=False, statistic="random_forest")
+    D0CRT_random_forest.fit(X, y) 
+    variables_important_forest, pvals_forest = D0CRT_random_forest.importance()
     typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
     power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
 

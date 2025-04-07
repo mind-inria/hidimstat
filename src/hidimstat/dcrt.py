@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _alpha_max, fdr_threshold
+from hidimstat.utils import _alpha_max, fdr_threshold, aggregate_docstring
 from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -8,36 +8,7 @@ from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 
-def dcrt_zero(
-    X,
-    y,
-    estimated_coef=None,
-    sigma_X=None,
-    params_lasso_screening={
-        "alpha": None,
-        "n_alphas": 10,
-        "alphas": None,
-        "alpha_max_fraction": 0.5,
-        "cv": 5,
-        "tol": 1e-6,
-        "max_iter": 1000,
-        "fit_intercept": False,
-        "selection": "cyclic",
-    },
-    params_lasso_distillation_x=None,
-    params_lasso_distillation_y=None,
-    refit=False,
-    screening=True,
-    screening_threshold=1e-1,
-    statistic="residual",
-    centered=True,
-    n_jobs=1,
-    joblib_verbose=0,
-    fit_y=False,
-    n_tree=100,
-    problem_type="regression",
-    random_state=2022,
-):
+class D0CRT:
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
@@ -47,10 +18,6 @@ def dcrt_zero(
 
     Parameters
     ----------
-    X : array-like of shape (n_samples, n_features)
-        Training data
-    y : array-like of shape (n_samples,)
-        Target values
     estimated_coef : array-like of shape (n_features,), optional
         Pre-computed feature coefficients
     sigma_X : array-like of shape (n_features, n_features), optional
@@ -105,203 +72,315 @@ def dcrt_zero(
     y_res : ndarray of shape (n_selected, n_samples)
         Response residuals
 
+    Attributes
+    ----------
+    clf_screening:
+        CV Lasso for screening
+    non_selection:
+        non selected cofficient
+    coef_X_full:
+        coefficient
+    ts : ndarray of shape (n_features,)
+        test statistics following a standard normal distribution for all features
+    clf_x_residual:
+
+    clf_y_residual:
+
+
+
     References
     ----------
     .. footbibliography::
     """
-    if centered:
-        X_ = StandardScaler().fit_transform(X)
-    else:
-        X_ = X
-    y_ = y  # avoid modifying the original y
 
-    _, n_features = X_.shape
+    def __init__(
+        self,
+        estimated_coef=None,
+        sigma_X=None,
+        params_lasso_screening={
+            "alpha": None,
+            "n_alphas": 10,
+            "alphas": None,
+            "alpha_max_fraction": 0.5,
+            "cv": 5,
+            "tol": 1e-6,
+            "max_iter": 1000,
+            "fit_intercept": False,
+            "selection": "cyclic",
+        },
+        params_lasso_distillation_x=None,
+        params_lasso_distillation_y=None,
+        refit=False,
+        screening=True,
+        screening_threshold=1e-1,
+        statistic="residual",
+        centered=True,
+        n_jobs=1,
+        joblib_verbose=0,
+        fit_y=False,
+        n_tree=100,
+        problem_type="regression",
+        random_state=2022,
+    ):
 
-    ## Screening of variables for accelarate dCRT
-    if estimated_coef is None:
-        # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
-        # is based on a cross-validated lasso
-        clf_screening, alpha_screening = _fit_lasso(
-            X_,
-            y_,
-            n_jobs=n_jobs,
-            random_state=random_state,
-            **params_lasso_screening,
-        )
-        # update the alpha value from the estiamtor on all values
-        params_lasso_screening["alpha"] = alpha_screening
-        if params_lasso_distillation_x is not None:
-            params_lasso_distillation_x["alpha"] = alpha_screening
-        if params_lasso_distillation_y is not None:
-            params_lasso_distillation_y["alpha"] = alpha_screening
-        coef_X_full = np.ravel(clf_screening.coef_)
-    else:
-        coef_X_full = estimated_coef
-        screening_threshold = 100  # remove the screening process
+        self.estimated_coef = estimated_coef
+        self.sigma_X = sigma_X
+        self.params_lasso_screening = params_lasso_screening
+        self.params_lasso_distillation_x = params_lasso_distillation_x
+        self.params_lasso_distillation_y = params_lasso_distillation_y
+        self.refit = refit
+        self.screening = screening
+        self.screening_threshold = screening_threshold
+        self.statistic = statistic
+        self.centered = centered
+        self.n_jobs = n_jobs
+        self.joblib_verbose = joblib_verbose
+        self.fit_y = fit_y
+        self.n_tree = n_tree
+        self.problem_type = problem_type
+        self.random_state = random_state
 
-    # noisy estimated coefficients is set to 0.0
-    non_selection = np.where(
-        np.abs(coef_X_full)
-        <= np.percentile(np.abs(coef_X_full), 100 - screening_threshold)
-    )[0]
-    # optimisation to reduce the number of elements different to zeros
-    coef_X_full[non_selection] = 0.0
+    def fit(self, X, y):
+        """Fit the dCRT model.
 
-    # select the variables for the screening
-    if screening:
-        selection_set = np.setdiff1d(np.arange(n_features), non_selection)
+        This method implements the distilled Conditional Randomization Test (dCRT) by first performing
+        variable screening using LASSO, then applying distillation techniques to calculate test statistics.
 
-        if selection_set.size == 0:
-            return np.array([]), np.array([]), np.array([]), np.array([])
-    else:
-        non_selection = []
-        selection_set = np.arange(n_features)
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
+            Target values.
+        
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data
+        y : array-like of shape (n_samples,)
+            Target values
 
-    # Refit the model with the estimated support set
-    if refit and estimated_coef is None and selection_set.size < n_features:
-        clf_refit = clone(clf_screening)
-        clf_refit.fit(X_[:, selection_set], y_)
-        coef_X_full[selection_set] = np.ravel(clf_refit.coef_)
+        Returns
+        -------
+        tuple
+            Returns multiple arrays related to the fitted model:
+            - X_residual : Residuals from X distillation
+            - sigma2 : Estimated variances
+            - y_residual : Residuals from y distillation
+            - Various classifier objects used in the distillation process
 
-    ## Distillation & calculate
-    if statistic == "residual":
-        # For distillation of X use least_square loss
-        results = Parallel(n_jobs, verbose=joblib_verbose)(
-            delayed(_lasso_distillation_residual)(
+        Notes
+        -----
+        The method follows these main steps:
+        1. Optional data centering using StandardScaler
+        2. Variable screening using LASSO (if not provided with estimated coefficients)
+        3. Feature selection based on coefficient magnitudes
+        4. Model refitting on selected features (if refit=True)
+        5. Distillation process using either residual or random forest statistics
+
+        The screening threshold determines which features are considered significant
+        based on their LASSO coefficients. Features with coefficients below the
+        threshold percentile are set to zero.
+
+        References
+        Based on the paper by Liu et al. (2022) for fast conditional randomization testing.
+
+        See Also
+        --------
+        _fit_lasso : Helper function for LASSO fitting
+        _lasso_distillation_residual : Helper function for residual-based distillation
+        _rf_distillation : Helper function for random forest-based distillation
+        """
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        y_ = y  # avoid modifying the original y
+
+        _, n_features = X_.shape
+
+        ## Screening of variables for accelarate dCRT
+        if self.estimated_coef is None:
+            # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
+            # is based on a cross-validated lasso
+            self.clf_screening, alpha_screening = _fit_lasso(
                 X_,
                 y_,
-                idx,
-                coef_full=coef_X_full,
-                sigma_X=sigma_X,
-                params_lasso_distillation_x=(
-                    params_lasso_distillation_x
-                    if params_lasso_distillation_x is not None
-                    else params_lasso_screening
-                ),
-                params_lasso_distillation_y=(
-                    params_lasso_distillation_y
-                    if params_lasso_distillation_y is not None
-                    else params_lasso_screening
-                ),
-                fit_y=fit_y,
-                n_jobs=1,  # the function is already called in parallel
-                random_state=random_state,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+                **self.params_lasso_screening,
             )
-            for idx in selection_set
-        )
-    elif statistic == "random_forest":
-        # For distillation of X use least_square loss
-        results = Parallel(n_jobs, verbose=joblib_verbose)(
-            delayed(_rf_distillation)(
-                X_,
-                y_,
-                idx,
-                sigma_X=sigma_X,
-                n_tree=n_tree,
-                problem_type=problem_type,
-                n_jobs=1,  # the function is already called in parallel
-                random_state=random_state,
-                params_lasso_distillation_x=(
-                    params_lasso_distillation_x
-                    if params_lasso_distillation_y is not None
-                    else params_lasso_screening
-                ),
+            # update the alpha value from the estiamtor on all values
+            self.params_lasso_screening["alpha"] = alpha_screening
+            if self.params_lasso_distillation_x is not None:
+                self.params_lasso_distillation_x["alpha"] = alpha_screening
+            if self.params_lasso_distillation_y is not None:
+                self.params_lasso_distillation_y["alpha"] = alpha_screening
+            self.coef_X_full = np.ravel(self.clf_screening.coef_)
+        else:
+            self.coef_X_full = self.estimated_coef
+            self.screening_threshold = 100  # remove the screening process
+
+        # noisy estimated coefficients is set to 0.0
+        self.non_selection = np.where(
+            np.abs(self.coef_X_full)
+            <= np.percentile(np.abs(self.coef_X_full), 100 - self.screening_threshold)
+        )[0]
+        # optimisation to reduce the number of elements different to zeros
+        self.coef_X_full[self.non_selection] = 0.0
+
+        # select the variables for the screening
+        if self.screening:
+            selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
+
+            if selection_set.size == 0:
+                self.selection_features = np.array([])
+                self.X_residual = np.array([])
+                self.sigma2 = np.array([])
+                self.y_residual = np.array([])
+                self.clf_x_residual = np.array([])
+                self.clf_y_residual = np.array([])
+                return 
+        else:
+            self.non_selection = []
+            selection_set = np.arange(n_features)
+
+        # Refit the model with the estimated support set
+        if (
+            self.refit
+            and self.estimated_coef is None
+            and selection_set.size < n_features
+        ):
+            self.clf_refit = clone(self.clf_screening)
+            self.clf_refit.fit(X_[:, selection_set], y_)
+            self.coef_X_full[selection_set] = np.ravel(self.clf_refit.coef_)
+        ## Distillation & calculate
+        if self.statistic == "residual":
+            # For distillation of X use least_square loss
+            results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
+                delayed(_lasso_distillation_residual)(
+                    X_,
+                    y_,
+                    idx,
+                    coef_full=self.coef_X_full,
+                    sigma_X=self.sigma_X,
+                    params_lasso_distillation_x=(
+                        self.params_lasso_distillation_x
+                        if self.params_lasso_distillation_x is not None
+                        else self.params_lasso_screening
+                    ),
+                    params_lasso_distillation_y=(
+                        self.params_lasso_distillation_y
+                        if self.params_lasso_distillation_y is not None
+                        else self.params_lasso_screening
+                    ),
+                    fit_y=self.fit_y,
+                    n_jobs=1,  # the function is already called in parallel
+                    random_state=self.random_state,
+                )
+                for idx in selection_set
             )
-            for idx in selection_set
+        elif self.statistic == "random_forest":
+            # For distillation of X use least_square loss
+            results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
+                delayed(_rf_distillation)(
+                    X_,
+                    y_,
+                    idx,
+                    sigma_X=self.sigma_X,
+                    n_tree=self.n_tree,
+                    problem_type=self.problem_type,
+                    n_jobs=1,  # the function is already called in parallel
+                    random_state=self.random_state,
+                    params_lasso_distillation_x=(
+                        self.params_lasso_distillation_x
+                        if self.params_lasso_distillation_y is not None
+                        else self.params_lasso_screening
+                    ),
+                )
+                for idx in selection_set
+            )
+        else:
+            raise ValueError(f"{self.statistic} statistic is not supported.")
+
+        # contatenate result
+        self.selection_features = np.ones((n_features,), dtype=bool)
+        self.selection_features[self.non_selection] = 0
+        self.X_residual = np.array([result[0] for result in results])
+        self.sigma2 = np.array([result[1] for result in results])
+        self.y_residual = np.array([result[2] for result in results])
+        self.clf_x_residual = np.array([result[3] for result in results])
+        self.clf_y_residual = np.array([result[4] for result in results])
+
+    def importance(
+        self,
+        fdr=0.1,
+        fdr_control="bhq",
+        reshaping_function=None,
+        scaled_statistics=False,
+    ):
+        """
+        Calculate p-values and identify significant features using the dCRT test statistics.
+
+        This function processes the results from dCRT to identify statistically significant
+        features while controlling for false discoveries. It assumes test statistics follow
+        a Gaussian distribution.
+
+        Parameters
+        ----------
+        fdr : float, default=0.1
+            Target false discovery rate level (0 < fdr < 1)
+        fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
+            Method for FDR control:
+            - 'bhq': Benjamini-Hochberg procedure
+            - 'bhy': Benjamini-Hochberg-Yekutieli procedure
+            - 'ebh': e-BH procedure
+        reshaping_function : callable, optional
+            Reshaping function for the 'bhy' method
+        scaled_statistics : bool, default=False
+            Whether to standardize test statistics before computing p-values
+
+        Returns
+        -------
+        selected_variables : ndarray
+            Indices of features deemed significant
+        pvals : ndarray of shape (n_features,)
+            P-values for all features (including unselected ones)
+
+        Notes
+        -----
+        The function computes test statistics as correlations between residuals,
+        optionally scales them, and converts to p-values using a Gaussian null.
+        Multiple testing correction is applied to control FDR at the specified level.
+        """
+        n_features = self.selection_features.shape[0]
+        n_samples = self.X_residual.shape[1]
+        
+        ts_selected_variables = [
+            np.dot(self.y_residual[i], self.X_residual[i])
+            / np.sqrt(n_samples * self.sigma2[i] * np.mean(self.y_residual[i] ** 2))
+            for i in range(self.X_residual.shape[0])
+        ]
+
+        if scaled_statistics:
+            ts_selected_variables = (
+                ts_selected_variables - np.mean(ts_selected_variables)
+            ) / np.std(ts_selected_variables)
+
+        # get the results
+        self.ts = np.zeros(n_features)
+        self.ts[self.selection_features] = ts_selected_variables
+
+        # for residual and random_forest, the test statistics follows Gaussian distribution
+        # TODO add reference
+        self.pvals = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
+
+        self.threshold = fdr_threshold(
+            self.pvals,
+            fdr=fdr,
+            method=fdr_control,
+            reshaping_function=reshaping_function,
         )
-    else:
-        raise ValueError(f"{statistic} statistic is not supported.")
+        self.selected_variables = np.where(self.pvals <= self.threshold)[0]
 
-    # contatenate result
-    selection_features = np.ones((n_features,), dtype=bool)
-    selection_features[non_selection] = 0
-    X_residual = np.array([result[0] for result in results])
-    sigma2 = np.array([result[1] for result in results])
-    y_residual = np.array([result[2] for result in results])
-    return selection_features, X_residual, sigma2, y_residual
-
-
-def dcrt_pvalue(
-    selection_features,
-    X_res,
-    sigma2,
-    y_res,
-    fdr=0.1,
-    fdr_control="bhq",
-    reshaping_function=None,
-    scaled_statistics=False,
-):
-    """
-    Calculate p-values and identify significant features using the dCRT test statistics.
-
-    This function processes the results from dCRT to identify statistically significant
-    features while controlling for false discoveries. It assumes test statistics follow
-    a Gaussian distribution.
-
-    Parameters
-    ----------
-    selection_features : ndarray of shape (n_features,)
-        Boolean mask indicating which features were selected for testing
-    X_res : ndarray of shape (n_selected, n_samples)
-        Residuals from feature distillation
-    sigma2 : ndarray of shape (n_selected,)
-        Estimated residual variances for each tested feature
-    y_res : ndarray of shape (n_selected, n_samples)
-        Response residuals for each tested feature
-    fdr : float, default=0.1
-        Target false discovery rate level (0 < fdr < 1)
-    fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
-        Method for FDR control:
-        - 'bhq': Benjamini-Hochberg procedure
-        - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-        - 'ebh': e-BH procedure
-    reshaping_function : callable, optional
-        Reshaping function for the 'bhy' method
-    scaled_statistics : bool, default=False
-        Whether to standardize test statistics before computing p-values
-
-    Returns
-    -------
-    selected_variables : ndarray
-        Indices of features deemed significant
-    pvals : ndarray of shape (n_features,)
-        P-values for all features (including unselected ones)
-    ts : ndarray of shape (n_features,)
-        test statistics following a standard normal distribution for all features
-
-    Notes
-    -----
-    The function computes test statistics as correlations between residuals,
-    optionally scales them, and converts to p-values using a Gaussian null.
-    Multiple testing correction is applied to control FDR at the specified level.
-    """
-    n_features = selection_features.shape[0]
-    n_samples = X_res.shape[1]
-
-    ts_selected_variables = [
-        np.dot(y_res[i], X_res[i])
-        / np.sqrt(n_samples * sigma2[i] * np.mean(y_res[i] ** 2))
-        for i in range(X_res.shape[0])
-    ]
-
-    if scaled_statistics:
-        ts_selected_variables = (
-            ts_selected_variables - np.mean(ts_selected_variables)
-        ) / np.std(ts_selected_variables)
-
-    # get the results
-    ts = np.zeros(n_features)
-    ts[selection_features] = ts_selected_variables
-
-    # for residual and random_forest, the test statistics follows Gaussian distribution
-    pvals = np.minimum(2 * stats.norm.sf(np.abs(ts)), 1)
-
-    threshold = fdr_threshold(
-        pvals, fdr=fdr, method=fdr_control, reshaping_function=reshaping_function
-    )
-    selected_variables = np.where(pvals <= threshold)[0]
-
-    return selected_variables, pvals, ts
+        return self.selected_variables, self.pvals
 
 
 def _x_distillation_lasso(
@@ -370,6 +449,7 @@ def _x_distillation_lasso(
         )
 
     else:
+        clf = None
         # Distill X with sigma_X
         sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
         b = sigma_temp[:, idx]
@@ -380,7 +460,7 @@ def _x_distillation_lasso(
             np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
         )
 
-    return X_res, sigma2
+    return X_res, sigma2, clf
 
 
 def _lasso_distillation_residual(
@@ -441,12 +521,16 @@ def _lasso_distillation_residual(
 
     Returns
     -------
-    X_res : ndarray of shape (n_samples,)
+    X_residual : ndarray of shape (n_samples,)
         The residuals after X distillation.
     sigma2 : float
         The estimated variance of the residuals.
-    y_res : ndarray of shape (n_samples,)
+    y_residual : ndarray of shape (n_samples,)
         The residuals after y distillation.
+    clf_x_residual:
+
+    clf_y:
+
 
     References
     ----------
@@ -455,7 +539,7 @@ def _lasso_distillation_residual(
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_res, sigma2 = _x_distillation_lasso(
+    X_residual, sigma2, clf_x_residual = _x_distillation_lasso(
         X,
         idx,
         sigma_X,
@@ -467,23 +551,24 @@ def _lasso_distillation_residual(
     # Distill Y - calculate residual
     # get the coefficients
     if fit_y:
-        clf_null, alpha_null = _fit_lasso(
+        clf_y, alpha_null = _fit_lasso(
             X_minus_idx,
             y,
             n_jobs=n_jobs,
             random_state=random_state,
             **params_lasso_distillation_y,
         )
-        coef_minus_idx = clf_null.coef_
+        coef_minus_idx = clf_y.coef_
     elif coef_full is not None:
         coef_minus_idx = np.delete(np.copy(coef_full), idx)
+        clf_y = None
     else:
         raise ValueError("Either fit_y is true or coeff_full must be provided.")
 
     # compute the residuals
-    y_res = y - X_minus_idx.dot(coef_minus_idx)
+    y_residual = y - X_minus_idx.dot(coef_minus_idx)
 
-    return X_res, sigma2, y_res
+    return X_residual, sigma2, y_residual, clf_x_residual, clf_y
 
 
 def _rf_distillation(
@@ -536,12 +621,15 @@ def _rf_distillation(
 
     Returns
     -------
-    X_res : ndarray of shape (n_samples,)
+    X_residual : ndarray of shape (n_samples,)
         The residuals after X distillation.
     sigma2 : float
         The estimated variance of the residuals.
-    y_res : ndarray of shape (n_samples,)
+    y_residual : ndarray of shape (n_samples,)
         The residuals after y distillation.
+    clf_x_residual:
+
+    clf_y:
 
     Notes
     -----
@@ -553,7 +641,7 @@ def _rf_distillation(
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_res, sigma2 = _x_distillation_lasso(
+    X_residual, sigma2, clf_x_residual = _x_distillation_lasso(
         X,
         idx,
         sigma_X,
@@ -565,24 +653,20 @@ def _rf_distillation(
     # Distill Y
     # get the residuals
     if problem_type == "regression":
-        clf = RandomForestRegressor(
+        clf_y = RandomForestRegressor(
             n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
-        clf.fit(X_minus_idx, y)
-        y_res = y - clf.predict(X_minus_idx)
+        clf_y.fit(X_minus_idx, y)
+        y_res = y - clf_y.predict(X_minus_idx)
 
     elif problem_type == "classification":
-        clf = RandomForestClassifier(
+        clf_y = RandomForestClassifier(
             n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
-        clf.fit(X_minus_idx, y)
-        y_res = y - clf.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
+        clf_y.fit(X_minus_idx, y)
+        y_res = y - clf_y.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
 
-    return (
-        X_res,
-        sigma2,
-        y_res,
-    )
+    return (X_residual, sigma2, y_res, clf_x_residual, clf_y)
 
 
 def _fit_lasso(
@@ -654,3 +738,69 @@ def _fit_lasso(
         )
         clf.fit(X, y)
     return clf, alpha
+
+
+def d0crt(
+    X,
+    y,
+    estimated_coef=None,
+    sigma_X=None,
+    params_lasso_screening={
+        "alpha": None,
+        "n_alphas": 10,
+        "alphas": None,
+        "alpha_max_fraction": 0.5,
+        "cv": 5,
+        "tol": 1e-6,
+        "max_iter": 1000,
+        "fit_intercept": False,
+        "selection": "cyclic",
+    },
+    params_lasso_distillation_x=None,
+    params_lasso_distillation_y=None,
+    refit=False,
+    screening=True,
+    screening_threshold=1e-1,
+    statistic="residual",
+    centered=True,
+    n_jobs=1,
+    joblib_verbose=0,
+    fit_y=False,
+    n_tree=100,
+    problem_type="regression",
+    random_state=2022,
+    fdr=0.1,
+    fdr_control="bhq",
+    reshaping_function=None,
+    scaled_statistics=False,
+):
+    methods = D0CRT(
+        estimated_coef=estimated_coef,
+        sigma_X=sigma_X,
+        params_lasso_screening=params_lasso_screening,
+        params_lasso_distillation_x=params_lasso_distillation_x,
+        params_lasso_distillation_y=params_lasso_distillation_y,
+        refit=refit,
+        screening=screening,
+        screening_threshold=screening_threshold,
+        statistic=statistic,
+        centered=centered,
+        n_jobs=n_jobs,
+        joblib_verbose=joblib_verbose,
+        fit_y=fit_y,
+        n_tree=n_tree,
+        problem_type=problem_type,
+        random_state=random_state,
+    )
+    methods.fit(X, y)
+    return methods.importance(
+        fdr=fdr,
+        fdr_control=fdr_control,
+        reshaping_function=reshaping_function,
+        scaled_statistics=scaled_statistics,
+    )
+
+# use the docstring of the class for the function
+d0crt.__doc__ = aggregate_docstring(
+    [D0CRT.__doc__, D0CRT.__init__.__doc__, D0CRT.fit.__doc__, D0CRT.importance.__doc__]
+)
