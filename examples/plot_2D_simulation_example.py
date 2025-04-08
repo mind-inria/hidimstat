@@ -9,10 +9,10 @@ statistical methods that aim at recovering the support, i.e., predictive
 features. Among those methods some leverage the spatial structure of the
 data. For more details about the inference algorithms presented in this
 example or about the generative process used to simulate the data,
-please refer to Chevalier et al. (2021) [1]_.
+please refer to :footcite:t:`chevalier2022spatially`.
 
 This example corresponds to the experiment described in details in
-Chevalier et al. (2021) [1]_. Shortly, to simulate the data, we draw
+:footcite:t:`chevalier2022spatially`. Shortly, to simulate the data, we draw
 ``n_samples`` i.i.d Gaussian vectors of size ``n_features`` and reshape them
 into squares (edges are equal to ``n_features ** (1/2)``). Then, to introduce
 some spatial structure, we apply a Gaussian filter that correlates features
@@ -29,7 +29,7 @@ The results of this experiment show that the methods that leverage the spatial
 structure of the data are relevant. More precisely, we show that clustered
 inference algorithms (e.g., CluDL) and ensembled clustered inference algorithms
 (e.g., EnCluDL) are more powerful than the standard inference methods (see also
-Chevalier et al. (2021) [1]_). Indeed, when the number of features is much
+:footcite:t:`chevalier2022spatially`). Indeed, when the number of features is much
 greater than the number of samples, standard statistical methods are
 unlikely to recover the support. Then, the idea of clustered inference is to
 compress the data without breaking the spatial structure, leading to a
@@ -42,15 +42,11 @@ spatial compression, ensembled clustered inference algorithms reduce
 significantly the spatial uncertainty compared to clustered inference
 algorithms which consider only one spatial compression.
 
-.. _References:
-
 References
 ----------
-.. [1] Chevalier, J. A., Nguyen, T. B., Thirion, B., & Salmon, J. (2021).
-       Spatially relaxed inference on high-dimensional linear models.
-       arXiv preprint arXiv:2106.02590.
-"""
+.. footbibliography::
 
+"""
 import matplotlib.pyplot as plt
 
 #############################################################################
@@ -61,10 +57,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 
 from hidimstat.clustered_inference import clustered_inference
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-)
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.scenario import multivariate_simulation
 from hidimstat.stat_tools import zscore_from_pval

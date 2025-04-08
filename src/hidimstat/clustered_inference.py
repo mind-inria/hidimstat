@@ -4,9 +4,9 @@ from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 
 from .desparsified_lasso import (
+    desparsified_group_lasso_pvalue,
     desparsified_lasso,
     desparsified_lasso_pvalue,
-    desparsified_group_lasso_pvalue,
 )
 
 
@@ -186,7 +186,7 @@ def clustered_inference(
     verbose=1,
     **kwargs,
 ):
-    """Clustered inference algorithm
+    """Clustered inference algorithm :footcite:t:`chevalier2021decoding`.
 
     Parameters
     ----------
@@ -257,9 +257,7 @@ def clustered_inference(
 
     References
     ----------
-    .. [1] Chevalier, J. A., Nguyen, T. B., Thirion, B., & Salmon, J. (2021).
-           Spatially relaxed inference on high-dimensional linear models.
-           arXiv preprint arXiv:2106.02590.
+    .. footbibliography::
     """
     memory = check_memory(memory=memory)
 
