@@ -147,7 +147,7 @@ def test_dcrt_lasso_with_covariance(generate_regation_dataset):
 
 def test_dcrt_lasso_center():
     """
-    Test for unknows statistic
+    Test for unknow statistic
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     d0crt = D0CRT(

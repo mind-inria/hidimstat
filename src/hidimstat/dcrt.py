@@ -19,9 +19,9 @@ class D0CRT:
     Parameters
     ----------
     estimated_coef : array-like of shape (n_features,)
-        Pre-computed feature coefficients
-    sigma_X : array-like of shape (n_features, n_features)
-        Covariance matrix of X
+        Pre-computed feature coefficients. default=None
+    sigma_X : array-like of shape (n_features, n_features) or None
+        Covariance matrix of X. default = None
     params_lasso_screening : dict
         - alpha : float - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=10 - Number of alphas for cross-validation.
