@@ -40,7 +40,7 @@ class D0CRT:
     refit : bool, default=False
         Whether to refit model on selected features
     screening : bool, default=True
-        Whether to perform variable screening
+        Whether to perform variable screening step. This selection is based on the coefficients of a cross-fitted Lasso model, keeping only the fraction (defined by screening_threshold) of variables with the largest coefficient and assigning a p-value of 1 to all other covariates.  
     screening_threshold : float, default=0.1
         Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
