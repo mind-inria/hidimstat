@@ -108,9 +108,11 @@ for i, (train_index, test_index) in enumerate(cv.split(X_train)):
     )
     vim.fit(X_train_cv, y_train_cv)
     importances.append(vim.score(X_test_cv, y_test_cv)["importance"])
-importances = np.array(importances).T
-fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 
+importances = np.array(importances).T
+
+# Plotting the results
+fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
 sns.boxplot(
     data=np.array(marginal_scores).T,
@@ -137,4 +139,5 @@ sns.boxplot(
 )
 axes[1].set_xlabel("Conditional Importance")
 axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
+plt.tight_layout()
 plt.show()
