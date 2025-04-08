@@ -181,7 +181,7 @@ def _s_equi(sigma, tol=1e-14):
         )
         warnings.warn(
             "The equi-correlated matrix for knockoffs is not positive "
-            "definite. Reduce the value of distance.",
+            f"definite. Reduce the value of distance by {s_eps}.",
             UserWarning,
         )
 
