@@ -103,8 +103,8 @@ for train, test in cv.split(X):
     vim_linear.fit(X[train], y[train])
     vim_svc.fit(X[train], y[train])
 
-    importances_linear.append(vim_linear.score(X[test], y[test])["importance"])
-    importances_svc.append(vim_svc.score(X[test], y[test])["importance"])
+    importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
+    importances_svc.append(vim_svc.importance(X[test], y[test])["importance"])
 
 
 _, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
