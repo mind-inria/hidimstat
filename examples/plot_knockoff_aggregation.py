@@ -52,15 +52,13 @@ sparsity = 0.1
 fdr = 0.1
 seed = 45
 n_bootstraps = 25
-n_jobs = 10
 runs = 20
 
 rng = check_random_state(seed)
 seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 
-
 def single_run(
-    n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, n_jobs, seed=None
+    n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=None
 ):
     # Generate data
     X, y, _, non_zero_index = simu_data(
@@ -72,12 +70,13 @@ def single_run(
         X,
         y,
         estimator=LassoCV(
-            n_jobs=n_jobs,
+            n_jobs=None,
             verbose=0,
             max_iter=1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-6,
+            tol=1e-4,
         ),
+        tol_gauss=1e-14,
         n_bootstraps=1,
         random_state=seed,
     )
@@ -89,14 +88,15 @@ def single_run(
         X,
         y,
         estimator=LassoCV(
-            n_jobs=n_jobs,
+            n_jobs=None,
             verbose=0,
-            max_iter=1000,
+            max_iter=2000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-6,
+            tol=1e-4,
         ),
+        tol_gauss=1e-6,
         n_bootstraps=n_bootstraps,
-        n_jobs=n_jobs,
+        n_jobs=1,
         random_state=seed,
     )
     aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
@@ -124,7 +124,7 @@ powers_eval = []
 
 for seed in seed_list:
     fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval = single_run(
-        n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, n_jobs, seed=seed
+        n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=seed
     )
     fdps_mx.append(fdp_mx)
     fdps_pval.append(fdp_pval)
