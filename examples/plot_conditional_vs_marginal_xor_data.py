@@ -112,11 +112,6 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
 
 importances = np.array(importances).T
 
-########################################################################
-# On the left, we can see that both features are not marginally important, since the
-# boxplots overlap with the chance level (accuracy = 0.5). On the right, we can see that
-# both features are conditionally important, since the importance scores are far from
-# the null hypothesis (importance = 0.0).
 
 fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
@@ -147,3 +142,9 @@ axes[1].set_xlabel("Conditional Importance")
 axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 plt.tight_layout()
 plt.show()
+
+########################################################################
+# On the left, we can see that both features are not marginally important, since the
+# boxplots overlap with the chance level (accuracy = 0.5). On the right, we can see that
+# both features are conditionally important, since the importance scores are far from
+# the null hypothesis (importance = 0.0).
