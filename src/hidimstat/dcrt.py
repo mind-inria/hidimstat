@@ -158,6 +158,11 @@ class D0CRT:
             n_features is the number of features.
         y : array-like of shape (n_samples,)
             Target values.
+        
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
 
         Notes
         -----
@@ -171,9 +176,6 @@ class D0CRT:
         The screening threshold determines which features are considered significant
         based on their LASSO coefficients. Features with coefficients below the
         threshold percentile are set to zero.
-
-        References
-        ----------
 
         References
         ----------
@@ -225,7 +227,7 @@ class D0CRT:
                 self.y_residual = np.array([])
                 self.clf_x_residual = np.array([])
                 self.clf_y_residual = np.array([])
-                return
+                return self
         else:
             self.non_selection = []
             selection_set = np.arange(n_features)
@@ -294,6 +296,7 @@ class D0CRT:
         self.y_residual = np.array([result[2] for result in results])
         self.clf_x_residual = np.array([result[3] for result in results])
         self.clf_y_residual = np.array([result[4] for result in results])
+        return self
 
     def importance(
         self,
