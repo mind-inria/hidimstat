@@ -51,16 +51,16 @@ for sim_ind in range(10):
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
-    D0CRT_lasso = D0CRT(screening=False, statistic="residual")
-    D0CRT_lasso.fit(X, y)
-    variables_important_lasso, pvals_lasso = D0CRT_lasso.importance()
+    d0crt_lasso = D0CRT(screening=False, statistic="residual")
+    d0crt_lasso.fit(X, y)
+    variables_important_lasso, pvals_lasso = d0crt_lasso.importance()
     typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
     power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
-    D0CRT_random_forest = D0CRT(screening=False, statistic="random_forest")
-    D0CRT_random_forest.fit(X, y)
-    variables_important_forest, pvals_forest = D0CRT_random_forest.importance()
+    d0crt_random_forest = D0CRT(screening=False, statistic="random_forest")
+    d0crt_random_forest.fit(X, y)
+    variables_important_forest, pvals_forest = d0crt_random_forest.importance()
     typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
     power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
 
