@@ -1,6 +1,6 @@
 """
-Model agnostic variable importance when linear models fail
-==========================================================
+Model Agnostic Variable Selection when Linear Models Fail
+=============================================================
 
 In this example, we illustrate the limitations of variable selection methods based on
 linear models using the circles dataset. We first use the distilled conditional
