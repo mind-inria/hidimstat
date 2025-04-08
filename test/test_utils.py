@@ -154,5 +154,5 @@ def test_aggregate_docstring():
     )
     assert (
         final_doc
-        == 'Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\nThe function aggregates multiple p-values into a single p-value while controlling\nParameters\n----------\npvals : ndarray of shape (n_sampling*2, n_test)\nMatrix of p-values to aggregate. Each row represents a sampling instance.\npvals : 2D ndarray (n_sampling*2, n_test)\np-valueur\npvals : 2D ndarray (n_sampling*2, n_test)\np-value\nReturns\n-------\n2D ndarray (n_tests, )\nVector of aggregated p-values'
+        == "Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\nThe function aggregates multiple p-values into a single p-value while controlling\nParameters\n----------\npvals : ndarray of shape (n_sampling*2, n_test)\nMatrix of p-values to aggregate. Each row represents a sampling instance.\npvals : 2D ndarray (n_sampling*2, n_test)\np-valueur\npvals : 2D ndarray (n_sampling*2, n_test)\np-value\nReturns\n-------\n2D ndarray (n_tests, )\nVector of aggregated p-values"
     )
