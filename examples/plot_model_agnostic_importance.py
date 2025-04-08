@@ -4,26 +4,28 @@ Model Agnostic Variable Selection when Linear Models Fail
 
 In this example, we illustrate the limitations of variable selection methods based on
 linear models using the circles dataset. We first use the distilled conditional
-randomization test (d0CRT), which is based on linear models :cite:`liu2022fast` and then
+randomization test (d0CRT), which is based on linear models :footcite:t:`liu2022fast` and then
 demonstrate how model-agnostic methods, such as Leave-One-Covariate-Out (LOCO), can
 identify important variables even when classes are not linearly separable.
 
 To evaluate the importance of a variable, LOCO re-fits a sub-model using a subset of the
 data where the variable of interest is removed. The importance of the variable is
 quantified as the difference in loss between the full model and the sub-model. As shown
-in :cite:`williamson2021nonparametric`, this loss difference can be interpreted as an
+in :footcite:t:`williamson_2021_nonparametric` , this loss difference can be interpreted as an
 unnormalized generalized ANOVA (difference of R²).  Denoting :math:`\mu` the predictive
 model used, :math:`\mu_{-j}` the sub-model where the j-th variable is removed, and
 :math:`X^{-j}` the data with the j-th variable removed, the loss difference can be
 expressed as:
+
 .. math::
-\psi_{j} = \mathbb{V}(y) \left[\left[ 1 - \\frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)}\\right] - \left[ 1 - \\frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)}\\right]\\right]
+    \psi_{j} = \mathbb{V}(y) \left[ \left[ 1 - \\frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)} \\right] - \left[ 1 - \\frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)} \\right] \\right]
 
 where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 
 References
 ----------
-.. bibliography::
+.. footbibliography::
+
 """
 
 import matplotlib.pyplot as plt
@@ -133,3 +135,5 @@ sns.barplot(
 ax.set_xlabel("-$\log_{10}(pval)$")
 ax.axvline(-np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\log_{10}(0.05)$")
 ax.legend()
+plt.show()
+# %%
