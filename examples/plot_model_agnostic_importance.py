@@ -16,7 +16,8 @@ unnormalized generalized ANOVA (difference of R²).  Denoting :math:`\mu` the pr
 model used, :math:`\mu_{-j}` the sub-model where the j-th variable is removed, and
 :math:`X^{-j}` the data with the j-th variable removed, the loss difference can be
 expressed as:
-.. math:: \psi_{j} = \mathbb{V}(y) \left[\left[ 1 - \frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)}\right] - \left[ 1 - \frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)}\right]\right]
+.. math::
+\psi_{j} = \mathbb{V}(y) \left[\left[ 1 - \\frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)}\\right] - \left[ 1 - \\frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)}\\right]\\right]
 
 where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 
@@ -70,8 +71,7 @@ plt.show()
 # and show that it can accommodate both linear and non-linear models. When using a
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
-# identify the important variables. This is captured by the p-values plotted below
-# along with the commonly used 0.05 significance threshold.
+# identify the important variables.
 selection_feat, X_res, sigma2, y_res = dcrt_zero(
     X,
     y,
@@ -119,6 +119,8 @@ df_pval = pd.DataFrame(
 )
 df_pval["log10pval"] = -np.log10(df_pval["pval"])
 
+#################################################################################
+# Plot the p-values for the different methods and the 0.05 threshold (black line)
 fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
