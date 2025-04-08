@@ -67,7 +67,7 @@ plt.show()
 # We first compute the marginal importance by fitting univariate models on each feature.
 # Then, we compute the conditional importance using the CPI class. The univarariate
 # models don't perform above chance, since solving the XOR problem requires to use both
-# features. The conditional importance, on the other hand, reveals that both features
+# features. Conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
