@@ -297,6 +297,15 @@ class D0CRT:
         self.clf_x_residual = np.array([result[3] for result in results])
         self.clf_y_residual = np.array([result[4] for result in results])
         return self
+    
+    def _check_fit(self):
+        if not(hasattr(self, 'selection_features')
+                or hasattr(self, 'X_residual')
+                or hasattr(self, 'sigma2')
+                or hasattr(self, 'y_residual')
+                or hasattr(self, 'clf_x_residual')
+                or hasattr(self, 'clf_y_residual')):
+            raise  ValueError("The method requires to be fit before any analysis")
 
     def importance(
         self,
@@ -338,6 +347,7 @@ class D0CRT:
         optionally scales them, and converts to p-values using a Gaussian null.
         Multiple testing correction is applied to control FDR at the specified level.
         """
+        self.check_fit()
         n_features = self.selection_features.shape[0]
         n_samples = self.X_residual.shape[1]
 
