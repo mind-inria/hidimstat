@@ -7,9 +7,6 @@ if they are not marginally important. The conditional importance is computed usi
 CPI class and the marginal importance is computed using univariate models.
 """
 
-#############################################################################
-# To sovlve the XOR problem, we will use a SVC with RBF kernel. The decision function of
-# the fitted model shows that the model is able to separate the two classes.
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -21,6 +18,9 @@ from sklearn.svm import SVC
 
 from hidimstat import CPI
 
+#############################################################################
+# To sovlve the XOR problem, we will use a SVC with RBF kernel. The decision function of
+# the fitted model shows that the model is able to separate the two classes.
 rng = np.random.RandomState(0)
 X = rng.randn(400, 2)
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
@@ -33,10 +33,11 @@ xx, yy = np.meshgrid(
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 model = SVC(kernel="rbf", random_state=0)
 model.fit(X_train, y_train)
-
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
-fig, ax = plt.subplots()
 
+##############################################################
+
+fig, ax = plt.subplots()
 ax.imshow(
     Z.reshape(xx.shape),
     interpolation="nearest",
@@ -107,11 +108,16 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
         random_state=0,
     )
     vim.fit(X_train, y_train)
-    importances.append(vim.score(X_test, y_test)["importance"])
+    importances.append(vim.importance(X_test, y_test)["importance"])
 
 importances = np.array(importances).T
 
-# Plotting the results
+########################################################################
+# On the left, we can see that both features are not marginally important, since the
+# boxplots overlap with the chance level (accuracy = 0.5). On the right, we can see that
+# both features are conditionally important, since the importance scores are far from
+# the null hypothesis (importance = 0.0).
+
 fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
 sns.boxplot(
