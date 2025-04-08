@@ -299,6 +299,25 @@ class D0CRT:
         return self
 
     def _check_fit(self):
+        """
+        Check if the model has been fit before performing analysis.
+
+        This private method verifies that all necessary attributes have been set
+        during the fitting process.
+        These attributes include:
+        - selection_features
+        - X_residual
+        - sigma2
+        - y_residual
+        - clf_x_residual
+        - clf_y_residual
+
+        Raises
+        ------
+        ValueError
+            If any of the required attributes are missing, indicating the model
+            hasn't been fit.
+        """
         if not (
             hasattr(self, "selection_features")
             or hasattr(self, "X_residual")
@@ -349,7 +368,7 @@ class D0CRT:
         optionally scales them, and converts to p-values using a Gaussian null.
         Multiple testing correction is applied to control FDR at the specified level.
         """
-        self.check_fit()
+        self._check_fit()
         n_features = self.selection_features.shape[0]
         n_samples = self.X_residual.shape[1]
 
