@@ -241,7 +241,7 @@ Measure the importance of variables using the CPI method
             n_jobs=4,
         )
         cpi.fit(X_train, y_train)
-        importance = cpi.score(X_test, y_test)
+        importance = cpi.importance(X_test, y_test)
         cpi_importance_list.append(importance)
 
 
@@ -287,7 +287,7 @@ Measure the importance of variables using the LOCO method
             n_jobs=4,
         )
         loco.fit(X_train, y_train)
-        importance = loco.score(X_test, y_test)
+        importance = loco.importance(X_test, y_test)
         loco_importance_list.append(importance)
 
 
@@ -336,7 +336,7 @@ Measure the importance of variables using the permutation method
             n_jobs=4,
         )
         pi.fit(X_train, y_train)
-        importance = pi.score(X_test, y_test)
+        importance = pi.importance(X_test, y_test)
         pi_importance_list.append(importance)
 
 
@@ -490,7 +490,7 @@ Analyze the results
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 6.164 seconds)
+   **Total running time of the script:** (0 minutes 6.243 seconds)
 
 **Estimated memory usage:**  206 MB
 

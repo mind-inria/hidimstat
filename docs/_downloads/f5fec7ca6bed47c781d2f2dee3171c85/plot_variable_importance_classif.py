@@ -172,7 +172,7 @@ for train, test in cv.split(X, y):
         method="decision_function",
     )
     cpi_linear.fit(X[train], y[train])
-    imp_cpi_linear = cpi_linear.score(X[test], y[test])["importance"]
+    imp_cpi_linear = cpi_linear.importance(X[test], y[test])["importance"]
 
     model_non_linear_c = clone(model_non_linear)
     model_non_linear_c.fit(X[train], y[train])
@@ -186,7 +186,7 @@ for train, test in cv.split(X, y):
         method="decision_function",
     )
     cpi_non_linear.fit(X[train], y[train])
-    imp_cpi_non_linear = cpi_non_linear.score(X[test], y[test])["importance"]
+    imp_cpi_non_linear = cpi_non_linear.importance(X[test], y[test])["importance"]
 
     pi_non_linear = PermutationImportance(
         estimator=model_non_linear_c,
@@ -196,7 +196,7 @@ for train, test in cv.split(X, y):
         method="decision_function",
     )
     pi_non_linear.fit(X[train], y[train])
-    imp_pi_non_linear = pi_non_linear.score(X[test], y[test])["importance"]
+    imp_pi_non_linear = pi_non_linear.importance(X[test], y[test])["importance"]
 
     importance_list.append(
         np.stack(
