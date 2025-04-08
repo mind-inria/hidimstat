@@ -57,9 +57,8 @@ runs = 20
 rng = check_random_state(seed)
 seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 
-def single_run(
-    n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=None
-):
+
+def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=None):
     # Generate data
     X, y, _, non_zero_index = simu_data(
         n_subjects, n_clusters, rho=rho, sparsity=sparsity, seed=seed
