@@ -76,27 +76,27 @@ clf = SVC(kernel="rbf", random_state=0)
 marginal_scores = []
 for i in range(X.shape[1]):
     feat_scores = []
-    for train_index, test_index in cv.split(X_train):
-        X_train_cv, X_test_cv = X_train[train_index], X_train[test_index]
-        y_train_cv, y_test_cv = y_train[train_index], y_train[test_index]
+    for train_index, test_index in cv.split(X):
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = Y[train_index], Y[test_index]
 
-        X_train_univariate = X_train_cv[:, i].reshape(-1, 1)
-        X_test_univariate = X_test_cv[:, i].reshape(-1, 1)
+        X_train_univariate = X_train[:, i].reshape(-1, 1)
+        X_test_univariate = X_test[:, i].reshape(-1, 1)
 
         univariate_model = clone(clf)
-        univariate_model.fit(X_train_univariate, y_train_cv)
+        univariate_model.fit(X_train_univariate, y_train)
 
-        feat_scores.append(univariate_model.score(X_test_univariate, y_test_cv))
+        feat_scores.append(univariate_model.score(X_test_univariate, y_test))
     marginal_scores.append(feat_scores)
 
 
 importances = []
-for i, (train_index, test_index) in enumerate(cv.split(X_train)):
-    X_train_cv, X_test_cv = X_train[train_index], X_train[test_index]
-    y_train_cv, y_test_cv = y_train[train_index], y_train[test_index]
+for i, (train_index, test_index) in enumerate(cv.split(X)):
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = Y[train_index], Y[test_index]
 
     clf_c = clone(clf)
-    clf_c.fit(X_train_cv, y_train_cv)
+    clf_c.fit(X_train, y_train)
 
     vim = CPI(
         estimator=clf_c,
@@ -106,8 +106,8 @@ for i, (train_index, test_index) in enumerate(cv.split(X_train)):
         n_permutations=50,
         random_state=0,
     )
-    vim.fit(X_train_cv, y_train_cv)
-    importances.append(vim.score(X_test_cv, y_test_cv)["importance"])
+    vim.fit(X_train, y_train)
+    importances.append(vim.score(X_test, y_test)["importance"])
 
 importances = np.array(importances).T
 
