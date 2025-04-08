@@ -11,7 +11,7 @@ identify important variables even when classes are not linearly separable.
 To evaluate the importance of a variable, LOCO re-fits a sub-model using a subset of the
 data where the variable of interest is removed. The importance of the variable is
 quantified as the difference in loss between the full model and the sub-model. As shown
-in :cite:t:williamson2021nonparametric, this loss difference can be interpreted as an
+in :cite:`williamson2021nonparametric`, this loss difference can be interpreted as an
 unnormalized generalized ANOVA (difference of R²).  Denoting :math:`\mu` the predictive
 model used, :math:`\mu_{-j}` the sub-model where the j-th variable is removed, and
 :math:`X^{-j}` the data with the j-th variable removed, the loss difference can be
