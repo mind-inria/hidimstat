@@ -12,8 +12,8 @@ class D0CRT:
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
-    A faster version of the Conditional Randomization Test :cite:`candes2018panning`
-    using the distillation process from :cite:`liu2022fast`. Based on original
+    A faster version of the Conditional Randomization Test :footcite:t:`candes2018panning`
+    using the distillation process from :footcite:t:`liu2022fast`. Based on original
     implementation at: https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
@@ -40,11 +40,15 @@ class D0CRT:
     refit : bool, default=False
         Whether to refit model on selected features
     screening : bool, default=True
-        Whether to perform variable screening step. This selection is based on the coefficients of a cross-fitted Lasso model, keeping only the fraction (defined by screening_threshold) of variables with the largest coefficient and assigning a p-value of 1 to all other covariates.  
+        Whether to perform variable screening step. This selection is based on the coefficients of a cross-fitted Lasso model, keeping only the fraction (defined by screening_threshold) of variables with the largest coefficient and assigning a p-value of 1 to all other covariates.
     screening_threshold : float, default=0.1
         Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
-        Method for computing test statistics
+        Method for computing test statistics. Options are:
+        - 'residual': Uses Lasso regression residuals to compute test statistics.
+          This is faster and theoretically supported for linear relationships.
+        - 'random_forest': Uses Random Forest predictions to compute test statistics.
+          This can capture non-linear relationships but is computationally more intensive.
     centered : bool, default=True
         Whether to center and scale features
     n_jobs : int, default=1
@@ -148,7 +152,7 @@ class D0CRT:
     def fit(self, X, y):
         """
         Fit the dCRT model.
-        Based on the paper by :cite:`liu2022fast` for fast conditional
+        Based on the paper by :footcite:t:`liu2022fast` for fast conditional
         randomization testing.
 
         Parameters
@@ -191,7 +195,7 @@ class D0CRT:
 
         ## Screening of variables for accelarate dCRT
         if self.estimated_coef is None:
-            # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
+            # base on the Theorem 2 of `liu2022fast`, the rule of screening
             # is based on a cross-validated lasso
             self.clf_screening, alpha_screening = _fit_lasso(
                 X_,
@@ -346,7 +350,7 @@ class D0CRT:
         fdr : float, default=0.1
             Target false discovery rate level (0 < fdr < 1)
         fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
-            Method for FDR control:
+            Method for FDR control for the case of multitesting:
             - 'bhq': Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
             - 'ebh': e-BH procedure
