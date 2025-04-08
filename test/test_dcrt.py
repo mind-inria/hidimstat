@@ -306,6 +306,21 @@ def test_dcrt_RF_classification():
     assert len(d0crt.ts) == 10
 
 
+def test_exception_not_fitted():
+    """Test if an exception is raise when the methosd is not fitted"""
+    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    d0crt = D0CRT(
+        screening=False,
+        statistic="random_forest",
+        problem_type="classification",
+        random_state=2024,
+    )
+    with pytest.raises(
+        ValueError, match="The method requires to be fit before any analysis"
+    ):
+        _, _ = d0crt.importance(scaled_statistics=True)
+
+
 def test_exception_lasso_distillation_residual():
     """
     This function tests the dcrt function using the Lasso learner
@@ -318,6 +333,7 @@ def test_exception_lasso_distillation_residual():
 
 
 def test_function_d0crt():
+    """Test the function dcrt"""
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     sv, pvalue = d0crt(X, y)
     assert len(sv) <= 10
