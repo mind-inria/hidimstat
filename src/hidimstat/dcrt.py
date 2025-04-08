@@ -158,7 +158,7 @@ class D0CRT:
             n_features is the number of features.
         y : array-like of shape (n_samples,)
             Target values.
-        
+
         Returns
         -------
         self : object
