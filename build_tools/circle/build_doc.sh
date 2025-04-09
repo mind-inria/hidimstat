@@ -113,7 +113,7 @@ source activate $CONDA_ENV_NAME
 pip install -e ".[doc]"
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd doc_conf && make $make_args 2>&1 | tee ~/log.txt
+set -o pipefail && cd doc_conf && make $make_args -j 2>&1 | tee ~/log.txt
 
 cd -
 set +o pipefail
