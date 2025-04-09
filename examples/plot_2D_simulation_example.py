@@ -13,7 +13,6 @@ please refer to :footcite:t:`chevalier2022spatially`.
 
 This example corresponds to the experiment described in details in
 :footcite:t:`chevalier2022spatially`. Shortly, to simulate the data, we draw
-``n_samples`` i.i.d Gaussian vectors of size ``n_features`` and reshape them
 into squares (edges are equal to ``n_features ** (1/2)``). Then, to introduce
 some spatial structure, we apply a Gaussian filter that correlates features
 that are nearby. The 2D data are then flattened into a design matrix ``X`` to
@@ -177,7 +176,7 @@ X_init, y, beta, epsilon, _, _ = multivariate_simulation(
 # the required spatial tolerance (small clusters lead to limited spatial
 # uncertainty). Formally, "spatial tolerance" is defined by the largest
 # distance from the true support for which the occurence of a false discovery
-# is not statistically controlled (c.f. :ref:`References`).
+# is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
 # Theoretically, the spatial tolerance ``delta`` is equal to the largest
 # cluster diameter. However this choice is conservative, notably in the case
 # of ensembled clustered inference. For these algorithms, we recommend to take
@@ -249,8 +248,8 @@ selected_dl = np.logical_or(
 
 #############################################################################
 # Now, we compute the support estimated using a clustered inference algorithm
-# (c.f. :ref:`References`) called Clustered Desparsified Lasso (CluDL) since it
-# uses the Desparsified Lasso technique after clustering the data.
+# (c.f. :footcite:t:`chevalier2022spatially`) called Clustered Desparsified Lasso
+# (CluDL) since it uses the Desparsified Lasso technique after clustering the data.
 
 # Define the FeatureAgglomeration object that performs the clustering.
 # This object is necessary to run the current algorithm and the following one.
@@ -275,7 +274,7 @@ selected_cdl = np.logical_or(
 
 #############################################################################
 # Finally, we compute the support estimated by an ensembled clustered
-# inference algorithm (c.f. :ref:`References`). This algorithm is called
+# inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
 # Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
 # CluDL algorithms with different clustering choices. The different CluDL
 # solutions are then aggregated into one.
