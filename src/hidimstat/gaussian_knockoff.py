@@ -189,4 +189,3 @@ def _s_equi(sigma, tol=1e-14):
     s = s * (1 - s_eps)
 
     return s * np.diag(sigma)
-    return s * np.diag(sigma)
