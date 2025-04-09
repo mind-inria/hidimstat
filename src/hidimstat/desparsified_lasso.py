@@ -35,7 +35,7 @@ def desparsified_lasso(
     Desparsified Lasso
 
     Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
-    :cite:`chevalier2020statistical`.
+    :footcite:t:`chevalier2020statistical`.
 
     Parameters
     ----------

@@ -1,4 +1,5 @@
 import warnings
+
 import numpy as np
 
 
@@ -126,8 +127,8 @@ def _s_equi(sigma, tol=1e-14):
 
     This function estimates the diagonal matrix of correlation
     between real and knockoff variables using the equi-correlated
-    equation described in :cite:`barber2015controlling` and
-    :cite:`candes2018panning`. It takes as input the empirical
+    equation described in :footcite:t:`barber2015controlling` and
+    :footcite:t:`candes2018panning`. It takes as input the empirical
     covariance matrix sigma and a tolerance value tol,
     and returns a vector of diagonal values of the estimated
     matrix diag{s}.
