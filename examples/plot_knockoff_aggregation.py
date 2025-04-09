@@ -53,7 +53,7 @@ sparsity = 0.1
 fdr = 0.1
 seed = 45
 n_bootstraps = 25
-runs = 20
+runs = 10
 n_jobs = 3
 joblib_verbose = 0
 
