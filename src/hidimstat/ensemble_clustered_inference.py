@@ -63,7 +63,7 @@ def ensemble_clustered_inference(
     **kwargs,
 ):
     """Ensemble clustered inference algorithm.
-    
+
     For more details, see :footcite:t:`chevalier2021decoding`.
 
     Parameters

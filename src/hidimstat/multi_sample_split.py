@@ -3,7 +3,7 @@ import numpy as np
 
 def aggregate_medians(list_one_sided_pval):
     """Aggregation of survival function values taking twice the median
-    
+
     For me details, see:footcite:t:`meinshausen2009pvalues`.
 
     Parameters
