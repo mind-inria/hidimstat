@@ -3,7 +3,7 @@ import numpy as np
 
 def aggregate_medians(list_one_sided_pval):
     """Aggregation of survival function values taking twice the median
-    :footcite:t:`Meinshausen_2008`
+    :footcite:t:`meinshausen2009pvalues`
 
     Parameters
     ----------
@@ -35,7 +35,7 @@ def aggregate_medians(list_one_sided_pval):
 
 def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     """Aggregation of survival function values by adaptive quantile procedure
-    :footcite:t:`Meinshausen_2008`
+    :footcite:t:`meinshausen2009pvalues`
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     gamma_min : float, optional (default=0.2)
         Lowest gamma-quantile being considered to compute the adaptive
-        quantile aggregation formula (cf. [1]_).
+        quantile aggregation formula.
 
     Returns
     -------
