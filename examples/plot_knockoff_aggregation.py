@@ -27,6 +27,7 @@ from sklearn.utils import check_random_state
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
+from joblib import Parallel, delayed
 
 from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
@@ -53,6 +54,8 @@ fdr = 0.1
 seed = 45
 n_bootstraps = 25
 runs = 10
+n_jobs = 3
+joblib_verbose = 0
 
 rng = check_random_state(seed)
 seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
@@ -69,7 +72,7 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
         X,
         y,
         estimator=LassoCV(
-            n_jobs=None,
+            n_jobs=1,
             verbose=0,
             max_iter=1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -87,7 +90,7 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
         X,
         y,
         estimator=LassoCV(
-            n_jobs=None,
+            n_jobs=1,
             verbose=0,
             max_iter=2000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -114,17 +117,22 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
     return fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval
 
 
+parallel = Parallel(n_jobs, verbose=joblib_verbose)
+results = parallel(
+    delayed(single_run)(
+        n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=seed
+    )
+    for seed in seed_list
+)
+
 fdps_mx = []
 fdps_pval = []
 fdps_eval = []
 powers_mx = []
 powers_pval = []
 powers_eval = []
-
-for seed in seed_list:
-    fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval = single_run(
-        n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=seed
-    )
+for result in results:
+    fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval = result
     fdps_mx.append(fdp_mx)
     fdps_pval.append(fdp_pval)
     fdps_eval.append(fdp_eval)
