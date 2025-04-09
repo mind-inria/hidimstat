@@ -37,7 +37,7 @@ class LOCO(BasePerturbation):
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
 
-        Note
+        Notes
         -----
         :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
         additional data splitting strategy.
