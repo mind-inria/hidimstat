@@ -41,9 +41,9 @@ from hidimstat.utils import cal_fdp_power
 plt.rcParams.update({"font.size": 26})
 
 # Number of observations
-n_subjects = 300
+n_subjects = 400
 # Number of variables
-n_clusters = 300
+n_clusters = 400
 # Correlation parameter
 rho = 0.7
 # Ratio of number of variables with non-zero coefficients over total
@@ -53,7 +53,7 @@ sparsity = 0.1
 fdr = 0.1
 seed = 45
 n_bootstraps = 25
-runs = 10
+runs = 20
 n_jobs = 3
 joblib_verbose = 0
 
