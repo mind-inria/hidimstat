@@ -183,13 +183,13 @@ def test_dcrt_lasso_no_selection():
         estimated_coef=np.ones(10) * 10, statistic="residual", random_state=2024
     )
     d0crt.fit(X, y)
-    for i in [
+    for arr in [
         d0crt.selection_features,
         d0crt.X_residual,
         d0crt.sigma2,
         d0crt.y_residual,
     ]:
-        assert np.all(i == np.array([]))
+        assert np.all(arr == np.array([]))
 
 
 def test_dcrt_distillation_x_different():

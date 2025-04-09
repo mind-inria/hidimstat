@@ -40,7 +40,10 @@ class D0CRT:
     refit : bool, default=False
         Whether to refit model on selected features
     screening : bool, default=True
-        Whether to perform variable screening step. This selection is based on the coefficients of a cross-fitted Lasso model, keeping only the fraction (defined by screening_threshold) of variables with the largest coefficient and assigning a p-value of 1 to all other covariates.
+        Whether to perform variable screening step. This selection is based on 
+        the coefficients of a cross-fitted Lasso model, keeping only the fraction
+        (defined by screening_threshold) of variables with the largest 
+        coefficient and assigning a p-value of 1 to all other covariates.
     screening_threshold : float, default=0.1
         Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
@@ -48,7 +51,8 @@ class D0CRT:
         - 'residual': Uses Lasso regression residuals to compute test statistics.
           This is faster and theoretically supported for linear relationships.
         - 'random_forest': Uses Random Forest predictions to compute test statistics.
-          This can capture non-linear relationships but is computationally more intensive.
+          This can capture non-linear relationships but is computationally 
+          more intensive.
     centered : bool, default=True
         Whether to center and scale features
     n_jobs : int, default=1
@@ -340,10 +344,10 @@ class D0CRT:
         scaled_statistics=False,
     ):
         """
-        Calculate p-values and identify significant features using the dCRT test statistics.
-        This function processes the results from dCRT to identify statistically significant
-        features while controlling for false discoveries. It assumes test statistics follow
-        a Gaussian distribution.
+        Calculate p-values and identify significant features using the dCRT test
+        statistics. This function processes the results from dCRT to identify 
+        statistically significant features while controlling for false discoveries.
+        It assumes test statistics follow a Gaussian distribution.
 
         Parameters
         ----------
