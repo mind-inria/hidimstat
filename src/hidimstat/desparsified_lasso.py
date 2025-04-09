@@ -92,7 +92,7 @@ def desparsified_lasso(
     noise_method : {'AR', 'median'}, default='AR'
         Method to estimate noise covariance:
         - 'median': Uses median correlation between consecutive
-                    timepoints
+        timepoints
         - 'AR': Fits autoregressive model of specified order
 
     order : int, default=1

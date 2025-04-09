@@ -3,7 +3,8 @@ import numpy as np
 
 def aggregate_medians(list_one_sided_pval):
     """Aggregation of survival function values taking twice the median
-    :footcite:t:`meinshausen2009pvalues`
+
+    For me details, see:footcite:t:`meinshausen2009pvalues`.
 
     Parameters
     ----------
@@ -35,7 +36,8 @@ def aggregate_medians(list_one_sided_pval):
 
 def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     """Aggregation of survival function values by adaptive quantile procedure
-    :footcite:t:`meinshausen2009pvalues`
+
+    For more details, see :footcite:t:`meinshausen2009pvalues`
 
     Parameters
     ----------

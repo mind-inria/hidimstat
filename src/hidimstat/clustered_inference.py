@@ -186,7 +186,9 @@ def clustered_inference(
     verbose=1,
     **kwargs,
 ):
-    """Clustered inference algorithm :footcite:t:`chevalier2021decoding`.
+    """Clustered inference algorithm.
+
+    For more details, see :footcite:t:`chevalier2021decoding`.
 
     Parameters
     ----------
