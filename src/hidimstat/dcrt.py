@@ -33,9 +33,9 @@ class D0CRT:
         - max_iter : int, default=1000 - Maximum iterations.
         - fit_intercept : bool, default=False - Whether to fit intercept.
         - selection : str, default='cyclic' - Feature selection method.
-    params_lasso_distillation_x : dict or None, default=None 
+    params_lasso_distillation_x : dict or None, default=None
         Parameters for X distillation Lasso. If None, uses params_lasso_screening.
-    params_lasso_distillation_y : dict or None, default=None 
+    params_lasso_distillation_y : dict or None, default=None
         Parameters for y distillation Lasso. If None, uses params_lasso_screening.
     refit : bool, default=False
         Whether to refit model on selected features
@@ -44,7 +44,7 @@ class D0CRT:
         the coefficients of a cross-fitted Lasso model, keeping only the fraction
         (defined by screening_threshold) of variables with the largest
         coefficient and assigning a p-value of 1 to all other covariates.
-    screening_threshold : float, default=0.1
+    screening_threshold : float, default=10
         Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
         Method for computing test statistics. Options are:
@@ -126,7 +126,7 @@ class D0CRT:
         params_lasso_distillation_y=None,
         refit=False,
         screening=True,
-        screening_threshold=1e-1,
+        screening_threshold=1e1,
         statistic="residual",
         centered=True,
         n_jobs=1,
@@ -358,7 +358,7 @@ class D0CRT:
             - 'bhq': Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
             - 'ebh': e-BH procedure
-        reshaping_function : callable or None, default=None 
+        reshaping_function : callable or None, default=None
             Reshaping function for the 'bhy' method
         scaled_statistics : bool, default=False
             Whether to standardize test statistics before computing p-values
@@ -438,7 +438,7 @@ def _x_distillation_lasso(
         Number of CPUs to use for cross-validation.
     random_state : int, default=0
         Random seed for reproducibility.
-    params_lasso_distillation_x : dict or None, default=None 
+    params_lasso_distillation_x : dict or None, default=None
         Parameters for main Lasso estimation or crossvalidation Lasso, including:
         - alpha : float - L1 regularization strength. If None, determined by CV.
         - n_alphas : int, default=0 - Number of alphas for cross-validation.
