@@ -7,8 +7,7 @@ from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
 from hidimstat.noise_std import reid
-from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
-from hidimstat.stat_tools import pval_from_cb
+from hidimstat.stat_tools import pval_from_cb, pval_from_two_sided_pval_and_sign
 from hidimstat.utils import _alpha_max
 
 
@@ -225,6 +224,7 @@ def desparsified_lasso_pvalue(
     This function computes confidence intervals for the desparsified lasso
     estimator beta_hat.
     It can also return p-values derived from these confidence intervals.
+
     Parameters
     ----------
     n_samples : float
@@ -242,6 +242,7 @@ def desparsified_lasso_pvalue(
         Currently only "norm" supported.
     epsilon : float, default=1e-14
         Small value to avoid numerical issues in p-value calculation.
+
     Returns
     -------
     pval : ndarray, shape (n_features,)
