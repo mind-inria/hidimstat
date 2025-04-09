@@ -121,7 +121,7 @@ def dcrt_zero(
 
     ## Screening of variables for accelarate dCRT
     if estimated_coef is None:
-        # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
+        # base on the Theorem 2 of :footcite:t:`liu2022fast`, the rule of screening
         # is based on a cross-validated lasso
         clf_screening, alpha_screening = _fit_lasso(
             X_,

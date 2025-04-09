@@ -409,7 +409,7 @@ def _compute_all_residuals(
 
     Notes
     -----
-    This implements the nodewise Lasso procedure from :cite:`chevalier2020statistical`
+    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statistical`
     for estimating entries of the precision matrix needed in the
     desparsified Lasso. The procedure regresses each feature against
     all others using Lasso to obtain residuals and precision matrix estimates.

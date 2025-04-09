@@ -4,7 +4,7 @@ import numpy as np
 ########################## quantile aggregation method ##########################
 def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
-    Implements the quantile aggregation method for p-values based on :cite:meinshausen2009pvalues.
+    Implements the quantile aggregation method for p-values based on :footcite:t:meinshausen2009pvalues.
 
     The function aggregates multiple p-values into a single p-value while controlling
     the family-wise error rate. It supports both fixed and adaptive quantile aggregation.
@@ -50,7 +50,7 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
     """
-    Quantile aggregation function based on :cite:meinshausen2009pvalues
+    Quantile aggregation function based on footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------
@@ -77,7 +77,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 
 def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
     """
-    Adaptive version of quantile aggregation method based on :cite:meinshausen2009pvalues
+    Adaptive version of quantile aggregation method based on footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------
