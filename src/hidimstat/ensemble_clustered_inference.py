@@ -62,7 +62,9 @@ def ensemble_clustered_inference(
     verbose=1,
     **kwargs,
 ):
-    """Ensemble clustered inference algorithm :footcite:t:`chevalier2021decoding`.
+    """Ensemble clustered inference algorithm.
+    
+    For more details, see :footcite:t:`chevalier2021decoding`.
 
     Parameters
     ----------
