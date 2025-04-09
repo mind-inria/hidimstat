@@ -70,24 +70,24 @@ class D0CRT:
 
     Attributes
     ----------
-    selection_features : ndarray of shape (n_features,)
-        Boolean mask indicating selected features
-    X_residual : ndarray (n_selected_features)
-        Residuals from X distillation
-    sigma2 : ndarray (n_selected_features, n_selected_features)
-        Estimated residual variances
-    y_residual : ndarray (n_selected_features,)
-        Residuals from y distillation
-    ts : ndarray of shape (n_features,)
-        test statistics following a standard normal distribution for all features
     coef_X_full : ndarray (n_features,)
         Estimated feature coefficients
-    clf_screening : sklearn.linear_model.Lasso
-        Fitted screening model
     clf_x_residual : list of sklearn.linear_model.Lasso (n_features)
         Fitted models for X distillation
     clf_y_residual : list of sklearn.linear_model.Lasso (n_features)
         Fitted models for y distillation
+    clf_screening : sklearn.linear_model.Lasso
+        Fitted screening model
+    selection_features : ndarray of shape (n_features,)
+        Boolean mask indicating selected features
+    sigma2 : ndarray (n_selected_features, n_selected_features)
+        Estimated residual variances
+    ts : ndarray of shape (n_features,)
+        test statistics following a standard normal distribution for all features
+    X_residual : ndarray (n_selected_features)
+        Residuals from X distillation
+    y_residual : ndarray (n_selected_features,)
+        Residuals from y distillation
 
     Notes
     -----
