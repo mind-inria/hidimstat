@@ -54,7 +54,7 @@ fdr = 0.1
 seed = 45
 n_bootstraps = 25
 runs = 20
-n_jobs = 3
+n_jobs = None
 joblib_verbose = 0
 
 rng = check_random_state(seed)
