@@ -122,6 +122,8 @@ def desparsified_lasso(
     the consideration of unecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
+    Other relevant references: :footcite:t:`van2014asymptotically`,
+    :footcite:t:`zhang2014confidence`.
 
     References
     ----------
