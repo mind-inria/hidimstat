@@ -79,6 +79,7 @@ selection_features, X_residual, sigma2, y_res = dcrt_zero(
     y,
     problem_type="classification",
 )
+print(X_residual)
 _, pval_dcrt, _ = dcrt_pvalue(
     selection_features=selection_features,
     X_res=X_residual,
@@ -140,4 +141,3 @@ ax.set_xlabel("-$\log_{10}(pval)$")
 ax.axvline(-np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\log_{10}(0.05)$")
 ax.legend()
 plt.show()
-# %%
