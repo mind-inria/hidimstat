@@ -40,9 +40,9 @@ class D0CRT:
     refit : bool, default=False
         Whether to refit model on selected features
     screening : bool, default=True
-        Whether to perform variable screening step. This selection is based on 
+        Whether to perform variable screening step. This selection is based on
         the coefficients of a cross-fitted Lasso model, keeping only the fraction
-        (defined by screening_threshold) of variables with the largest 
+        (defined by screening_threshold) of variables with the largest
         coefficient and assigning a p-value of 1 to all other covariates.
     screening_threshold : float, default=0.1
         Percentile threshold for screening (0-100)
@@ -51,7 +51,7 @@ class D0CRT:
         - 'residual': Uses Lasso regression residuals to compute test statistics.
           This is faster and theoretically supported for linear relationships.
         - 'random_forest': Uses Random Forest predictions to compute test statistics.
-          This can capture non-linear relationships but is computationally 
+          This can capture non-linear relationships but is computationally
           more intensive.
     centered : bool, default=True
         Whether to center and scale features
@@ -72,21 +72,21 @@ class D0CRT:
     ----------
     selection_features : ndarray of shape (n_features,)
         Boolean mask indicating selected features
-    X_residual : ndarray
+    X_residual : ndarray (n_selected_features)
         Residuals from X distillation
-    sigma2 : ndarray
+    sigma2 : ndarray (n_selected_features, n_selected_features)
         Estimated residual variances
-    y_residual : ndarray
+    y_residual : ndarray (n_selected_features,)
         Residuals from y distillation
     ts : ndarray of shape (n_features,)
         test statistics following a standard normal distribution for all features
-    coef_X_full : ndarray
+    coef_X_full : ndarray (n_features,)
         Estimated feature coefficients
-    clf_screening : estimator
+    clf_screening : sklearn.linear_model.Lasso
         Fitted screening model
-    clf_x_residual : array of estimators
+    clf_x_residual : list of sklearn.linear_model.Lasso (n_features)
         Fitted models for X distillation
-    clf_y_residual : array of estimators
+    clf_y_residual : list of sklearn.linear_model.Lasso (n_features)
         Fitted models for y distillation
 
     Notes
@@ -345,7 +345,7 @@ class D0CRT:
     ):
         """
         Calculate p-values and identify significant features using the dCRT test
-        statistics. This function processes the results from dCRT to identify 
+        statistics. This function processes the results from dCRT to identify
         statistically significant features while controlling for false discoveries.
         It assumes test statistics follow a Gaussian distribution.
 
