@@ -34,6 +34,8 @@ jobs:
             - /home/circleci/sklearn_data
 
   deploy:
+    docker:
+      - image: cimg/python:3.9
     environment:
       - USERNAME: "jeromedockes"
       - ORGANIZATION: "hidimstat"
