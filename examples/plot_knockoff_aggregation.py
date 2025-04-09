@@ -41,9 +41,9 @@ from hidimstat.utils import cal_fdp_power
 plt.rcParams.update({"font.size": 26})
 
 # Number of observations
-n_subjects = 400
+n_subjects = 450
 # Number of variables
-n_clusters = 380
+n_clusters = 350
 # Correlation parameter
 rho = 0.7
 # Ratio of number of variables with non-zero coefficients over total
