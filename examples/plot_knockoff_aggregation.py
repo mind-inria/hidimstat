@@ -53,7 +53,7 @@ sparsity = 0.1
 fdr = 0.1
 seed = 45
 n_bootstraps = 25
-runs = 10
+runs = 20
 n_jobs = 3
 joblib_verbose = 0
 
@@ -73,12 +73,8 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
         y,
         estimator=LassoCV(
             n_jobs=1,
-            verbose=0,
-            max_iter=1000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
         ),
-        tol_gauss=1e-14,
         n_bootstraps=1,
         random_state=seed,
     )
@@ -91,12 +87,8 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
         y,
         estimator=LassoCV(
             n_jobs=1,
-            verbose=0,
-            max_iter=2000,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
         ),
-        tol_gauss=1e-6,
         n_bootstraps=n_bootstraps,
         n_jobs=1,
         random_state=seed,
