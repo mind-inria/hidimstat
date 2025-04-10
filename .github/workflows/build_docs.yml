@@ -32,7 +32,6 @@ jobs:
         id: build-docs
         run: |
           cd doc_conf
-          ls 
           make html 
       - name: Upload documentation
         if: steps.build-docs.outcome == 'success'
