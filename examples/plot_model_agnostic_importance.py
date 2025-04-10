@@ -79,6 +79,8 @@ selection_features, X_residual, sigma2, y_res = dcrt_zero(
     y,
     problem_type="classification",
 )
+if len(X_residual.shape) < 2:
+    raise ValueError(f"X_residual should be 2D, got {X_residual.shape} instead.")
 _, pval_dcrt, _ = dcrt_pvalue(
     selection_features=selection_features,
     X_res=X_residual,
@@ -86,7 +88,6 @@ _, pval_dcrt, _ = dcrt_pvalue(
     sigma2=sigma2,
     fdr=0.05,
 )
-
 # Compute p-values using LOCO
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 model_svc = SVC(kernel="rbf", random_state=0)
