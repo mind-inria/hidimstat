@@ -27,8 +27,9 @@ from hidimstat import CPI, LOCO, PermutationImportance
 # Load the iris dataset and add a spurious feature
 # ----------------------------------------------------------------------
 # We load the iris dataset and add a spurious feature that is a linear combination of
-# the petal length and width. The spurious feature allows to illustrate that
-# PermutationImportance is not robust to spurious features, contrarily to LOCO and CPI.
+# the petal length, width amd some noise but not related to the target. The spurious feature
+# allows to illustrate that `PermutationImportance` is not robust to spurious features,
+# contrarily to `LOCO`` and `CPI``.
 dataset = load_iris()
 rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
@@ -212,10 +213,10 @@ plot_results(df, df_pval)
 
 
 ####################################################################################
-# The boxplot show the importance of each feature and the color indicates the classifier
-# used. The star indicates the features that have a p-value (computed with a t-test)
-# below 0.05. As expected, the spurious feature is not selected by LOCO and CPI, but is
-# selected by PermutationImportance.
+# The boxplot shows the importance of each feature, with colors indicating the
+# classifier used. A star marks the features that have a p-value (computed with a
+# t-test) below 0.05. As expected, the spurious feature is not selected by LOCO and CPI,
+# but is selected by Permutation Importance.
 
 
 #########################################################################
