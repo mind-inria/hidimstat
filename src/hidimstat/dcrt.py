@@ -46,7 +46,7 @@ class D0CRT:
         (defined by screening_threshold) of variables with the largest
         coefficient and assigning a p-value of 1 to all other covariates.
     screening_threshold : float, default=10
-        Percentile threshold for screening (0-100)
+        Percentile threshold for screening (0-100), larger values lead to the inclusion of more variables at the screening stage (screening_threshold=100 keeps all variables). 
     statistic : {'residual', 'random_forest'}, default='residual'
         Method for computing test statistics. Options are:
         - 'residual': Uses Lasso regression residuals to compute test statistics.
