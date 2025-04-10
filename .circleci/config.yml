@@ -30,6 +30,7 @@ jobs:
           destination: log.txt
       - store_artifacts:
           path: /tmp/*.log
+          destination: logs
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy' step.
       - persist_to_workspace:
