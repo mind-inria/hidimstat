@@ -51,7 +51,7 @@ rho = 0.3
 sparsity = 0.1
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
-snr = 20
+snr = 10
 seed = 45
 n_bootstraps = 25
 runs = 20
