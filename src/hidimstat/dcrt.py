@@ -19,89 +19,87 @@ class D0CRT:
 
     Parameters
     ----------
-    estimated_coef : array-like of shape (n_features,)
-        Pre-computed feature coefficients. default=None
-    sigma_X : array-like of shape (n_features, n_features) or None
-        Covariance matrix of X. default = None
+    estimated_coef : array-like of shape (n_features,) or None, default=None
+        Pre-computed feature coefficients
+    sigma_X : array-like of shape (n_features, n_features) or None, default=None
+        Covariance matrix of X
     params_lasso_screening : dict
-        - alpha : float - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int, default=10 - Number of alphas for cross-validation.
-        - alphas : array-like, default=None - List of alpha values to try in CV.
-        - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
-        For other parameters see :py:func:LassoCV, here is some advise configuration
-        - cv : int, default=5 - Number of cross-validation folds.
-        - tol : float, default=1e-6 - Convergence tolerance.
-        - max_iter : int, default=1000 - Maximum iterations.
-        - fit_intercept : bool, default=False - Whether to fit intercept.
-        - selection : str, default='cyclic' - Feature selection method.
+        Parameters for variable screening Lasso:
+        - alpha : float or None - L1 regularization strength. If None, determined by CV
+        - n_alphas : int - Number of alphas for cross-validation (default: 10)
+        - alphas : array-like or None - List of alpha values to try in CV (default: None)
+        - alpha_max_fraction : float - Scale factor for alpha_max (default: 0.5)
+        - cv : int - Cross-validation folds (default: 5)
+        - tol : float - Convergence tolerance (default: 1e-6)
+        - max_iter : int - Maximum iterations (default: 1000)
+        - fit_intercept : bool - Whether to fit intercept (default: False)
+        - selection : {'cyclic'} - Feature selection method (default: 'cyclic')
     params_lasso_distillation_x : dict or None, default=None
-        Parameters for X distillation Lasso. If None, uses params_lasso_screening.
+        Parameters for X distillation Lasso. If None, uses params_lasso_screening
     params_lasso_distillation_y : dict or None, default=None
-        Parameters for y distillation Lasso. If None, uses params_lasso_screening.
+        Parameters for y distillation Lasso. If None, uses params_lasso_screening
     refit : bool, default=False
         Whether to refit model on selected features
     screening : bool, default=True
-        Whether to perform variable screening step. This selection is based on
-        the coefficients of a cross-fitted Lasso model, keeping only the fraction
-        (defined by screening_threshold) of variables with the largest
-        coefficient and assigning a p-value of 1 to all other covariates.
+        Whether to perform variable screening step based on Lasso coefficients
     screening_threshold : float, default=10
         Percentile threshold for screening (0-100)
     statistic : {'residual', 'random_forest'}, default='residual'
-        Method for computing test statistics. Options are:
-        - 'residual': Uses Lasso regression residuals to compute test statistics.
-          This is faster and theoretically supported for linear relationships.
-        - 'random_forest': Uses Random Forest predictions to compute test statistics.
-          This can capture non-linear relationships but is computationally
-          more intensive.
+        Method for computing test statistics:
+        - 'residual': Uses Lasso regression residuals (faster, better for linear relationships)
+        - 'random_forest': Uses Random Forest predictions (captures non-linear relationships)
     centered : bool, default=True
-        Whether to center and scale features
+        Whether to center and scale features using StandardScaler
     n_jobs : int, default=1
         Number of parallel jobs
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs
     fit_y : bool, default=False
-        Whether to fit y using selected features
+        Whether to fit y using selected features instead of using estimated_coef
     n_tree : int, default=100
-        Number of trees for random forest
+        Number of trees for random forest when statistic='random_forest'
     problem_type : {'regression', 'classification'}, default='regression'
-        Type of prediction problem
+        Type of prediction problem when using random forest
     random_state : int, default=2022
         Random seed for reproducibility
 
     Attributes
     ----------
-    coef_X_full : ndarray (n_features,)
+    coef_X_full : ndarray of shape (n_features,)
         Estimated feature coefficients
-    clf_x_residual : list of sklearn.linear_model.Lasso (n_features)
-        Fitted models for X distillation
-    clf_y_residual : list of sklearn.linear_model.Lasso (n_features)
-        Fitted models for y distillation
-    clf_screening : sklearn.linear_model.Lasso
-        Fitted screening model
+    clf_x_residual : list of estimators of length n_features
+        Fitted models for X distillation (Lasso or None if using sigma_X)
+    clf_y_residual : list of estimators of length n_features
+        Fitted models for y distillation (Lasso/RandomForest or None if using estimated_coef)
+    clf_screening : LassoCV or Lasso
+        Fitted screening model if estimated_coef=None
     selection_features : ndarray of shape (n_features,)
-        Boolean mask indicating selected features
-    sigma2 : ndarray (n_selected_features, n_selected_features)
-        Estimated residual variances
+        Boolean mask indicating selected features after screening
+    sigma2 : ndarray of shape (n_selected_features,)
+        Estimated residual variances for selected features
     ts : ndarray of shape (n_features,)
-        test statistics following a standard normal distribution for all features
-    X_residual : ndarray (n_selected_features)
-        Residuals from X distillation
-    y_residual : ndarray (n_selected_features,)
-        Residuals from y distillation
+        Test statistics following standard normal distribution
+    X_residual : ndarray of shape (n_selected_features, n_samples)
+        Residuals from X distillation for selected features
+    y_residual : ndarray of shape (n_selected_features, n_samples)
+        Residuals from y distillation for selected features
 
     Notes
     -----
     The implementation follows Liu et al. (2022) which introduces distillation to
-    speed up conditional randomization testing. It first screens variables using
-    Lasso, then computes test statistics via residual correlations or random forests.
+    speed up conditional randomization testing. Key steps:
+    1. Optional screening using Lasso coefficients to reduce dimensionality
+    2. Distillation to estimate conditional distributions
+    3. Test statistic computation using residual correlations or random forests
+    4. P-value calculation assuming Gaussian null distribution
 
     See Also
     --------
-    sklearn.linear_model.Lasso
-    sklearn.linear_model.LassoCV
-    sklearn.ensemble.RandomForestRegressor
-    sklearn.ensemble.RandomForestClassifier
+    sklearn.linear_model.Lasso : Basic Lasso regression
+    sklearn.linear_model.LassoCV : Lasso with cross-validation
+    sklearn.ensemble.RandomForestRegressor : Random forest for regression
+    sklearn.ensemble.RandomForestClassifier : Random forest for classification
+    sklearn.preprocessing.StandardScaler : Feature standardization
 
     References
     ----------
@@ -198,59 +196,61 @@ class D0CRT:
         y_ = y  # avoid modifying the original y
         _, n_features = X_.shape
 
-        ## Screening of variables for accelarate dCRT
-        if self.estimated_coef is None:
-            # base on the Theorem 2 of `liu2022fast`, the rule of screening
-            # is based on a cross-validated lasso
-            self.clf_screening, alpha_screening = _fit_lasso(
-                X_,
-                y_,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-                **self.params_lasso_screening,
-            )
-            # update the alpha value from the estiamtor on all values
-            self.params_lasso_screening["alpha"] = alpha_screening
-            if self.params_lasso_distillation_x is not None:
-                self.params_lasso_distillation_x["alpha"] = alpha_screening
-            if self.params_lasso_distillation_y is not None:
-                self.params_lasso_distillation_y["alpha"] = alpha_screening
-            self.coef_X_full = np.ravel(self.clf_screening.coef_)
-        else:
-            self.coef_X_full = self.estimated_coef
-            self.screening_threshold = 100  # remove the screening process
-        # noisy estimated coefficients is set to 0.0
-        self.non_selection = np.where(
-            np.abs(self.coef_X_full)
-            <= np.percentile(np.abs(self.coef_X_full), 100 - self.screening_threshold)
-        )[0]
-        # optimisation to reduce the number of elements different to zeros
-        self.coef_X_full[self.non_selection] = 0.0
-        # select the variables for the screening
-        if self.screening:
-            selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
-            if selection_set.size == 0:
-                self.selection_features = np.array([])
-                self.X_residual = np.array([])
-                self.sigma2 = np.array([])
-                self.y_residual = np.array([])
-                self.clf_x_residual = np.array([])
-                self.clf_y_residual = np.array([])
-                return self
-        else:
-            self.non_selection = []
-            selection_set = np.arange(n_features)
-        # Refit the model with the estimated support set
-        if (
-            self.refit
-            and self.estimated_coef is None
-            and selection_set.size < n_features
-        ):
-            self.clf_refit = clone(self.clf_screening)
-            self.clf_refit.fit(X_[:, selection_set], y_)
-            self.coef_X_full[selection_set] = np.ravel(self.clf_refit.coef_)
         ## Distillation & calculate
         if self.statistic == "residual":
+            ## Screening of variables for accelarate dCRT
+            if self.estimated_coef is None:
+                # base on the Theorem 2 of `liu2022fast`, the rule of screening
+                # is based on a cross-validated lasso
+                self.clf_screening, alpha_screening = _fit_lasso(
+                    X_,
+                    y_,
+                    n_jobs=self.n_jobs,
+                    random_state=self.random_state,
+                    **self.params_lasso_screening,
+                )
+                # update the alpha value from the estiamtor on all values
+                self.params_lasso_screening["alpha"] = alpha_screening
+                if self.params_lasso_distillation_x is not None:
+                    self.params_lasso_distillation_x["alpha"] = alpha_screening
+                if self.params_lasso_distillation_y is not None:
+                    self.params_lasso_distillation_y["alpha"] = alpha_screening
+                self.coef_X_full = np.ravel(self.clf_screening.coef_)
+            else:
+                self.coef_X_full = self.estimated_coef
+                self.screening_threshold = 100  # remove the screening process
+            # noisy estimated coefficients is set to 0.0
+            self.non_selection = np.where(
+                np.abs(self.coef_X_full)
+                <= np.percentile(
+                    np.abs(self.coef_X_full), 100 - self.screening_threshold
+                )
+            )[0]
+            # optimisation to reduce the number of elements different to zeros
+            self.coef_X_full[self.non_selection] = 0.0
+            # select the variables for the screening
+            if self.screening:
+                selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
+                if selection_set.size == 0:
+                    self.selection_features = np.array([])
+                    self.X_residual = np.array([])
+                    self.sigma2 = np.array([])
+                    self.y_residual = np.array([])
+                    self.clf_x_residual = np.array([])
+                    self.clf_y_residual = np.array([])
+                    return self
+            else:
+                self.non_selection = []
+                selection_set = np.arange(n_features)
+            # Refit the model with the estimated support set
+            if (
+                self.refit
+                and self.estimated_coef is None
+                and selection_set.size < n_features
+            ):
+                self.clf_refit = clone(self.clf_screening)
+                self.clf_refit.fit(X_[:, selection_set], y_)
+                self.coef_X_full[selection_set] = np.ravel(self.clf_refit.coef_)
             # For distillation of X use least_square loss
             results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
                 delayed(_lasso_distillation_residual)(
@@ -276,6 +276,8 @@ class D0CRT:
                 for idx in selection_set
             )
         elif self.statistic == "random_forest":
+            selection_set = range(n_features)
+            self.non_selection = []
             # For distillation of X use least_square loss
             results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
                 delayed(_rf_distillation)(
