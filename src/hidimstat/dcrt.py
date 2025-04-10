@@ -365,7 +365,6 @@ class D0CRT:
         -----
         The function computes test statistics as correlations between residuals,
         optionally scales them, and converts to p-values using a Gaussian null.
-        Multiple testing correction is applied to control FDR at the specified level.
         """
         self._check_fit()
         n_features = self.selection_features.shape[0]
