@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=b486f0d8"></script>
+    <script src="../_static/documentation_options.js?v=2d569116"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.CPI';</script>
@@ -335,19 +335,19 @@
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test_pval.html">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.zscore_from_pval.html">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -541,29 +541,8 @@ contained subobjects that are estimators.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="hidimstat.CPI.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L86-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.predict" title="Link to this definition">#</a></dt>
-<dd><p>Compute the predictions after perturbation of the data for each group of
-variables.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>X: array-like of shape (n_samples, n_features)</strong></dt><dd><p>The input samples.</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt>out: array-like of shape (n_groups, n_permutations, n_samples)</dt><dd><p>The predictions after perturbation of the data for each group of variables.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hidimstat.CPI.score">
-<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L111-L153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.score" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="hidimstat.CPI.importance">
+<span class="sig-name descname"><span class="pre">importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L111-L153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.importance" title="Link to this definition">#</a></dt>
 <dd><p>Compute the importance scores for each group of covariates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -581,6 +560,27 @@ variables.</p>
 - ‘loss’: a dictionary containing the loss of the perturbed model
 for each group.
 - ‘importance’: the importance scores for each group.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hidimstat.CPI.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L86-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.predict" title="Link to this definition">#</a></dt>
+<dd><p>Compute the predictions after perturbation of the data for each group of
+variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>X: array-like of shape (n_samples, n_features)</strong></dt><dd><p>The input samples.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>out: array-like of shape (n_groups, n_permutations, n_samples)</dt><dd><p>The predictions after perturbation of the data for each group of variables.</p>
 </dd>
 </dl>
 </dd>
@@ -721,8 +721,8 @@ possible to update each component of a nested object.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.fit"><code class="docutils literal notranslate"><span class="pre">CPI.fit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.get_metadata_routing"><code class="docutils literal notranslate"><span class="pre">CPI.get_metadata_routing()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.get_params"><code class="docutils literal notranslate"><span class="pre">CPI.get_params()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.importance"><code class="docutils literal notranslate"><span class="pre">CPI.importance()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.predict"><code class="docutils literal notranslate"><span class="pre">CPI.predict()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.score"><code class="docutils literal notranslate"><span class="pre">CPI.score()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.set_fit_request"><code class="docutils literal notranslate"><span class="pre">CPI.set_fit_request()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.CPI.set_params"><code class="docutils literal notranslate"><span class="pre">CPI.set_params()</span></code></a></li>
 </ul>

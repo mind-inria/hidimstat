@@ -126,7 +126,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         n_jobs=4,
     )
     cpi.fit(X_train, y_train)
-    importance = cpi.score(X_test, y_test)
+    importance = cpi.importance(X_test, y_test)
     cpi_importance_list.append(importance)
 
 #############################################################################
@@ -144,7 +144,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         n_jobs=4,
     )
     loco.fit(X_train, y_train)
-    importance = loco.score(X_test, y_test)
+    importance = loco.importance(X_test, y_test)
     loco_importance_list.append(importance)
 
 
@@ -165,7 +165,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         n_jobs=4,
     )
     pi.fit(X_train, y_train)
-    importance = pi.score(X_test, y_test)
+    importance = pi.importance(X_test, y_test)
     pi_importance_list.append(importance)
 
 

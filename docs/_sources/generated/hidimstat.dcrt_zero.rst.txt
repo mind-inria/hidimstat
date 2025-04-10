@@ -1,0 +1,8 @@
+﻿hidimstat.dcrt_zero
+===================
+
+.. currentmodule:: hidimstat
+
+.. autofunction:: dcrt_zero
+
+.. include:: hidimstat.dcrt_zero.examples
