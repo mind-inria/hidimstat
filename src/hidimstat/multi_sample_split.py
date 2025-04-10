@@ -4,6 +4,8 @@ import numpy as np
 def aggregate_medians(list_one_sided_pval):
     """Aggregation of survival function values taking twice the median
 
+    For me details, see:footcite:t:`meinshausen2009pvalues`.
+
     Parameters
     ----------
     list_one_sided_pval : ndarray, shape (n_iter, n_features)
@@ -16,9 +18,7 @@ def aggregate_medians(list_one_sided_pval):
 
     References
     ----------
-    .. [1] Meinshausen, N., Meier, L., & Bühlmann, P. (2009). P-values for
-           high-dimensional regression. Journal of the American Statistical
-           Association, 104(488), 1671-1681.
+    .. footbibliography::
     """
 
     n_iter, n_features = list_one_sided_pval.shape
@@ -37,6 +37,8 @@ def aggregate_medians(list_one_sided_pval):
 def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     """Aggregation of survival function values by adaptive quantile procedure
 
+    For more details, see :footcite:t:`meinshausen2009pvalues`
+
     Parameters
     ----------
     list_one_sided_pval : ndarray, shape (n_iter, n_features)
@@ -44,7 +46,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     gamma_min : float, optional (default=0.2)
         Lowest gamma-quantile being considered to compute the adaptive
-        quantile aggregation formula (cf. [1]_).
+        quantile aggregation formula.
 
     Returns
     -------
@@ -53,9 +55,7 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
 
     References
     ----------
-    .. [1] Meinshausen, N., Meier, L., & Bühlmann, P. (2009). P-values for
-           high-dimensional regression. Journal of the American Statistical
-           Association, 104(488), 1671-1681.
+    .. footbibliography::
     """
 
     n_iter, n_features = list_one_sided_pval.shape
