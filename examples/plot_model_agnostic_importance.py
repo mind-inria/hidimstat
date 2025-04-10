@@ -74,18 +74,18 @@ plt.show()
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
-# selection_features, X_residual, sigma2, y_res = dcrt_zero(
-#     X,
-#     y,
-#     problem_type="classification",
-# )
-# _, pval_dcrt, _ = dcrt_pvalue(
-#     selection_features=selection_features,
-#     X_res=X_residual,
-#     y_res=y_res,
-#     sigma2=sigma2,
-#     fdr=0.05,
-# )
+selection_features, X_residual, sigma2, y_res = dcrt_zero(
+    X,
+    y,
+    problem_type="classification",
+)
+_, pval_dcrt, _ = dcrt_pvalue(
+    selection_features=selection_features,
+    X_res=X_residual,
+    y_res=y_res,
+    sigma2=sigma2,
+    fdr=0.05,
+)
 
 # Compute p-values using LOCO
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
