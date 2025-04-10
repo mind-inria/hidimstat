@@ -19,7 +19,7 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 
 from hidimstat import CPI, LOCO, PermutationImportance
 
@@ -58,10 +58,6 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
         method = "decision_function"
         loss = hinge_loss
         model_name = "SVC"
-    # else:
-    #     method = "predict_proba"
-    #     loss = log_loss
-    #     model_name = "RF"
 
     if vim_name == "CPI":
         vim = CPI(
@@ -103,7 +99,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
 
 models = [
     LogisticRegressionCV(Cs=np.logspace(-3, 3, 10)),
-    GridSearchCV(LinearSVC(), {"C": np.logspace(-3, 3, 10)}),
+    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 groups = {ft: i for i, ft in enumerate(dataset.feature_names)}
@@ -146,7 +142,7 @@ def compute_pval(df, threshold=0.05):
     return df_pval
 
 
-threshold = 0.01
+threshold = 0.05
 df_pval = compute_pval(df, threshold=threshold)
 
 
@@ -225,13 +221,13 @@ plot_results(df, df_pval)
 #########################################################################
 # Measuring the importance of groups of features
 # -----------------------------------------------------------------------
-# In the example above, CPI and LOCO did not select the sepal features, this is because
-# they measure conditional importance, which is additional information carried by the
-# considered feature, knowing all the other. This quantity decreases when the features
-# are correlated, resulting in a lower importance. To mitigate this, we can group
-# correlated features together and measure the importance of a group of features. Here,
-# we group the sepal width with the sepal length and the petal length with the petal
-# width and the spurious feature.
+# In the example above, CPI and LOCO did not select some features. This is because they
+# measure conditional importance, which is the additional independent information a
+# feature provides knowing all the other features. When features are highly correlated,
+# this additional information decreases, resulting in lower importance rankings. To
+# mitigate this issue, we can group correlated features together and measure the
+# importance of these feature groups. For instance, we can group 'sepal width' with
+# 'sepal length' and 'petal length' with 'petal width' and the spurious feature.
 groups = {"sepal features": [0, 1], "petal features": [2, 3, 4]}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
@@ -242,6 +238,6 @@ out_list = Parallel(n_jobs=5)(
     for vim_name in ["CPI", "LOCO", "PermutationImportance"]
 )
 
-df = pd.concat(out_list)
-df_pval = compute_pval(df, threshold=threshold)
-plot_results(df, df_pval)
+df_grouped = pd.concat(out_list)
+df_pval = compute_pval(df_grouped, threshold=threshold)
+plot_results(df_grouped, df_pval)
