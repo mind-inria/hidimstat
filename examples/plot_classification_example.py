@@ -204,7 +204,7 @@ def plot_results(df_importance, df_pval):
         loc="center left",
         bbox_to_anchor=(1, 0.5),
     )
-
+    plt.tight_layout()
     plt.show()
 
 
