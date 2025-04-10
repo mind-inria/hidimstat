@@ -1,11 +1,12 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _alpha_max, aggregate_docstring
 from scipy import stats
 from sklearn.base import clone
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
+
+from hidimstat.utils import _alpha_max, aggregate_docstring
 
 
 class D0CRT:

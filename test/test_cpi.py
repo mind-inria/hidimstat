@@ -37,7 +37,7 @@ def test_cpi(linear_scenario):
         groups=None,
         var_type="auto",
     )
-    vim = cpi.score(X_test, y_test)
+    vim = cpi.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -67,7 +67,7 @@ def test_cpi(linear_scenario):
         groups=groups,
         var_type="continuous",
     )
-    vim = cpi.score(X_test_df, y_test)
+    vim = cpi.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -93,7 +93,7 @@ def test_cpi(linear_scenario):
         groups=None,
         var_type=["continuous"] * X.shape[1],
     )
-    vim = cpi.score(X_test, y_test_clf)
+    vim = cpi.importance(X_test, y_test_clf)
 
 
 def test_raises_value_error(
@@ -119,7 +119,7 @@ def test_raises_value_error(
             method="predict",
         )
 
-    # Not fitted imputation model with predict and score methods
+    # Not fitted imputation model with predict and importance methods
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
@@ -133,4 +133,4 @@ def test_raises_value_error(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.score(X, y)
+        cpi.importance(X, y)

@@ -81,7 +81,7 @@ class BasePerturbation(BaseEstimator):
                         ]
                     )
             else:
-                self._groups_ids = np.array(list(self.groups.values()), dtype=int)
+                self._groups_ids = list(self.groups.values())
 
     def predict(self, X):
         """
@@ -108,7 +108,7 @@ class BasePerturbation(BaseEstimator):
         )
         return np.stack(out_list, axis=0)
 
-    def score(self, X, y):
+    def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
 

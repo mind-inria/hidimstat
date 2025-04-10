@@ -30,6 +30,7 @@ except ImportError:
 
 __all__ = [
     "aggregate_quantiles",
+    "quantile_aggregation",
     "clustered_inference",
     "d0crt",
     "D0CRT",
