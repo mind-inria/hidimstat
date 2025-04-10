@@ -41,7 +41,7 @@ from hidimstat.utils import cal_fdp_power
 plt.rcParams.update({"font.size": 26})
 
 # Number of observations
-n_subjects = 100
+n_subjects = 50
 # Number of variables
 n_clusters = 100
 # Correlation parameter
@@ -51,7 +51,7 @@ rho = 0.3
 sparsity = 0.1
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
-snr = 10
+snr = 20
 seed = 45
 n_bootstraps = 25
 runs = 30
