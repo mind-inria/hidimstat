@@ -1,11 +1,12 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _alpha_max, fdr_threshold
 from scipy import stats
 from sklearn.base import clone
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
+
+from hidimstat.utils import _alpha_max, fdr_threshold
 
 
 def dcrt_zero(
@@ -41,8 +42,9 @@ def dcrt_zero(
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
-    A faster version of the Conditional Randomization Test :cite:`candes2018panning` using the distillation
-    process from :cite:`liu2022fast`. Based on original implementation at:
+    A faster version of the Conditional Randomization Test
+    :footcite:t:`candes2018panning` using the distillation process from
+    :footcite:t:`liu2022fast`. Based on original implementation at:
     https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
@@ -119,7 +121,7 @@ def dcrt_zero(
 
     ## Screening of variables for accelarate dCRT
     if estimated_coef is None:
-        # base on the Theorem 2 of :cite:`liu2022fast`, the rule of screening
+        # base on the Theorem 2 of :footcite:t:`liu2022fast`, the rule of screening
         # is based on a cross-validated lasso
         clf_screening, alpha_screening = _fit_lasso(
             X_,
