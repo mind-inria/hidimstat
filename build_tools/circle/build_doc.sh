@@ -113,10 +113,12 @@ source activate $CONDA_ENV_NAME
 pip install -e ".[doc]"
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd doc_conf && sphinx-build -j auto . ./_build/html -b $make_args 2>&1 | tee ~/log.txt
+set -o pipefail && cd doc_conf && sphinx-build -j auto . ./_build/html -b $make_args 2>&1 | tee ~/output_sphinx.log
 
 cd -
 set +o pipefail
+
+cp /tmp/*.log ~ 
 
 affected_doc_paths() {
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
