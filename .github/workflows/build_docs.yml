@@ -31,7 +31,7 @@ jobs:
       - name: Sphinx build
         id: build-docs
         run: |
-          cd ~/hidimstat/doc_conf & make html 
+          cd doc_conf & make html 
       - name: Upload documentation
         if: steps.build-docs.outcome == 'success'
         uses: actions/upload-artifact@v4
