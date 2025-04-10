@@ -75,9 +75,7 @@ plt.show()
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
 selection_features, X_residual, sigma2, y_res = dcrt_zero(
-    X,
-    y,
-    problem_type="classification",
+    X, y, problem_type="classification", screening=False
 )
 if len(X_residual.shape) < 2:
     raise ValueError(f"X_residual should be 2D, got {X_residual.shape} instead.")
