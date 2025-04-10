@@ -656,4 +656,3 @@ def _fit_lasso(
         )
         clf.fit(X, y)
     return clf, alpha
-    return clf, alpha
