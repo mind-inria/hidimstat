@@ -115,7 +115,7 @@ pip install -e ".[doc]"
 mkdir log
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd doc_conf && sphinx-build -j auto . ./_build/html -b $make_args 2>&1 | tee ~/log/output_sphinx.log && cp /tmp/*.log ~/log
+set -o pipefail && cd doc_conf && make $make_args 2>&1 | tee ~/log/output_sphinx.log && cp /tmp/*.log ~/log
 
 cd -
 
