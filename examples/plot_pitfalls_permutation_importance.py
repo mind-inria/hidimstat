@@ -1,6 +1,6 @@
 """
-Pitfalls of Permutation Feature Importance (PFI)
-===============================================
+Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset
+==================================================================================
 
 In this example, we illustrate the pitfalls of using permutation feature importance
 (PFI) on the California housing dataset.
@@ -66,6 +66,7 @@ sns.heatmap(
 ax.set_title("Correlation Matrix")
 ax.set_yticklabels(feature_names, fontsize=10, rotation=45)
 ax.set_xticklabels(feature_names, fontsize=10, rotation=45)
+plt.tight_layout()
 plt.show()
 
 ###############################################################################
@@ -153,7 +154,7 @@ for i, pval in enumerate(pval_pi):
             i,
             color="red",
             marker="*",
-            label="Important (p < 0.05)" if i == 0 else "",
+            label="pvalue < 0.05" if i == 0 else "",
         )
 ax.axvline(x=0, color="black", linestyle="--")
 # Add legend for asterisks
@@ -162,6 +163,14 @@ sns.despine(ax=ax)
 ax.set_yticklabels(feature_names, fontsize=10)  # Set y-tick labels to feature names
 fig.tight_layout()
 plt.show()
+
+
+################################################################################
+# While the most important variables identified by PFI are plausible, such as the
+# geographic coordinates or the median income of the block group, it is not robust to
+# the presence of spurious features and misleadingly identifies the spurious feature as
+# important.
+
 
 ###########################################################################
 # A valid alternative: Condional permutation importance
@@ -215,7 +224,14 @@ sns.barplot(
     ax=ax,
 )
 ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
+ax.set_xlabel("-$\log_{10}(pval)$")
+plt.tight_layout()
 plt.show()
+
+
+###############################################################################
+# Contrary to PFI, CPI does not identify the spurious feature as important.
+
 
 ###############################################################################
 # Extrapolation bias in PFI
@@ -250,7 +266,6 @@ fig, ax = plt.subplots()
 sns.histplot(
     x=X_test[:, 6],
     y=X_test[:, 7],
-    # scatter=False,
     color="tab:blue",
     ax=ax,
     alpha=0.9,
@@ -305,3 +320,9 @@ sns.despine(ax=ax)
 ax.set_xlabel("Latitude")
 ax.set_ylabel("Longitude")
 plt.show()
+
+
+###############################################################################
+# PFI is likely to generate samples that are unrealistic and outside of the training
+# data, leading to extrapolation bias. In contrast, CPI generates samples that respect
+# the conditional distribution of the feature of interest.
