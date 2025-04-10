@@ -17,6 +17,7 @@ Functions
    :template: function.rst
 
    aggregate_quantiles
+   quantile_aggregation
    clustered_inference
    dcrt_zero
    dcrt_pvalue

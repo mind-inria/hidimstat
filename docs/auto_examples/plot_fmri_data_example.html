@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d13ca356"></script>
+    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_fmri_data_example';</script>
@@ -415,7 +415,7 @@ of a given subject and try produce a brain map that corresponds to the
 discriminative pattern that makes the decoding of the two conditions.</p>
 <p>In this example, we show that standard statistical methods (i.e., method
 such as thresholding by permutation test the SVR or Ridge decoder or the
-algorithm introduced by Gaonkar et al. <a class="footnote-reference brackets" href="#id3" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>) are not powerful when applied on
+algorithm introduced by Gaonkar and Davatzikos<a class="footnote-reference brackets" href="#footcite-gaonkar-deriving-2012" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>) are not powerful when applied on
 the uncompressed problem (i.e., the orignal problem in which the activation
 maps are not reduced using compression techniques such as parcellation).
 This is notably due to the high dimensionality (too many voxels) and
@@ -426,26 +426,22 @@ clustered desparsified lasso (CLuDL) combines clustering (parcellation)
 and statistical inference ; ensemble of clustered desparsified lasso (EnCluDL)
 adds a randomization step over the choice of clustering.</p>
 <p>EnCluDL is powerful and does not depend on a unique clustering choice.
-As shown in Chevalier et al. (2021) <a class="footnote-reference brackets" href="#id4" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>, for several tasks the estimated
+As shown in Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2021decoding" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>, for several tasks the estimated
 support (predictive regions) looks relevant.</p>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id3">
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id3" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-gaonkar-deriving-2012" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Gaonkar, B., &amp; Davatzikos, C. (2012, October). Deriving statistical
-significance maps for SVM based image classification and group
-comparisons. In International Conference on Medical Image Computing
-and Computer-Assisted Intervention (pp. 723-730). Springer, Berlin,
-Heidelberg.</p>
+<p>Bilwaj Gaonkar and Christos Davatzikos. Deriving statistical significance maps for SVM based image classification and group comparisons. <em>International Conference on Medical Image Computing and Computer-Assisted Intervention</em>, 15(0):723–730, 2012. URL: <a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/">https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3703958/</a> (visited on 2024-12-16).</p>
 </aside>
-<aside class="footnote brackets" id="id4" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-chevalier2021decoding" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p>Chevalier, J. A., Nguyen, T. B., Salmon, J., Varoquaux, G.,
-&amp; Thirion, B. (2021). Decoding with confidence: Statistical
-control on decoder maps. NeuroImage, 234, 117921.</p>
+<p>Jérôme-Alexis Chevalier, Tuan-Binh Nguyen, Joseph Salmon, Gaël Varoquaux, and Bertrand Thirion. Decoding with confidence: statistical control on decoder maps. <em>NeuroImage</em>, 234:117921, 2021.</p>
 </aside>
 </aside>
+</div>
 </section>
 <section id="imports-needed-for-this-script">
 <h2>Imports needed for this script<a class="headerlink" href="#imports-needed-for-this-script" title="Link to this heading">#</a></h2>
@@ -528,22 +524,22 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
 [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
 [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-[fetch_single_file]  ...done. (0 seconds, 0 min)
+[fetch_single_file]  ...done. (1 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
 [fetch_single_file]  ...done. (0 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 134152192 of 291168628 bytes (46.1%%,    1.2s remaining)
+Downloaded 87425024 of 291168628 bytes (30.0%%,    2.3s remaining)
 [_chunk_report_]
-Downloaded 288186368 of 291168628 bytes (99.0%%,    0.0s remaining)
-[fetch_single_file]  ...done. (2 seconds, 0 min)
+Downloaded 195190784 of 291168628 bytes (67.0%%,    1.0s remaining)
+[fetch_single_file]  ...done. (3 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
 [uncompress_file] .. done.
 
-/home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:91: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
+/home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:84: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
   bg_img = mean_img(haxby_dataset.anat)
 /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
   warnings.warn(
@@ -642,7 +638,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.4s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.5s finished
 </pre></div>
 </div>
 </section>
@@ -765,8 +761,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 9.707 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  2570 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 14.747 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  2694 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>

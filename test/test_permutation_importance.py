@@ -31,7 +31,7 @@ def test_permutation_importance(linear_scenario):
         y_train,
         groups=None,
     )
-    vim = pi.score(X_test, y_test)
+    vim = pi.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -60,7 +60,7 @@ def test_permutation_importance(linear_scenario):
         y_train,
         groups=groups,
     )
-    vim = pi.score(X_test_df, y_test)
+    vim = pi.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -85,7 +85,7 @@ def test_permutation_importance(linear_scenario):
         y_train_clf,
         groups=None,
     )
-    vim_clf = pi_clf.score(X_test, y_test_clf)
+    vim_clf = pi_clf.importance(X_test, y_test_clf)
 
     importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (X.shape[1],)

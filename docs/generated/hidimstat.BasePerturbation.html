@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d13ca356"></script>
+    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.BasePerturbation';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -492,8 +492,8 @@ variables.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="hidimstat.BasePerturbation.score">
-<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L111-L153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.BasePerturbation.score" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="hidimstat.BasePerturbation.importance">
+<span class="sig-name descname"><span class="pre">importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L111-L153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.BasePerturbation.importance" title="Link to this definition">#</a></dt>
 <dd><p>Compute the importance scores for each group of covariates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -686,7 +686,7 @@ possible to update each component of a nested object.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.__init__"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.__init__()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.fit"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.fit()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.predict"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.predict()</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.score"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.score()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.importance"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.importance()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.get_metadata_routing"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.get_metadata_routing()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.get_params"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.get_params()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.BasePerturbation.set_fit_request"><code class="docutils literal notranslate"><span class="pre">BasePerturbation.set_fit_request()</span></code></a></li>

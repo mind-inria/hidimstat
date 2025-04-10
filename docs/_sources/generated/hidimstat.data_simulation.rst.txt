@@ -1,8 +1,0 @@
-﻿hidimstat.data_simulation
-=========================
-
-.. currentmodule:: hidimstat.data_simulation
-
-.. autofunction:: hidimstat.data_simulation
-
-.. include:: hidimstat.data_simulation.hidimstat.data_simulation.examples

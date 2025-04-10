@@ -42,13 +42,13 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=d13ca356"></script>
+    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.aggregate_quantiles';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
+    <link rel="next" title="hidimstat.quantile_aggregation" href="hidimstat.quantile_aggregation.html" />
     <link rel="prev" title="API" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -420,13 +420,14 @@
 <dt class="sig sig-object py" id="hidimstat.aggregate_quantiles">
 <span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">aggregate_quantiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_one_sided_pval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/multi_sample_split.py#L37-L90"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.aggregate_quantiles" title="Link to this definition">#</a></dt>
 <dd><p>Aggregation of survival function values by adaptive quantile procedure</p>
+<p>For more details, see Nicolai Meinshausen and Buhlmann<a class="footnote-reference brackets" href="#footcite-meinshausen2009pvalues" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>list_one_sided_pval</strong><span class="classifier">ndarray, shape (n_iter, n_features)</span></dt><dd><p>List of one-sided p-values.</p>
 </dd>
 <dt><strong>gamma_min</strong><span class="classifier">float, optional (default=0.2)</span></dt><dd><p>Lowest gamma-quantile being considered to compute the adaptive
-quantile aggregation formula (cf. <a class="reference internal" href="#ra27054ad05b6-1" id="id1">[1]</a>).</p>
+quantile aggregation formula.</p>
 </dd>
 </dl>
 </dd>
@@ -438,13 +439,13 @@ quantile aggregation formula (cf. <a class="reference internal" href="#ra27054ad
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="ra27054ad05b6-1" role="doc-biblioentry">
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-meinshausen2009pvalues" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Meinshausen, N., Meier, L., &amp; Bühlmann, P. (2009). P-values for
-high-dimensional regression. Journal of the American Statistical
-Association, 104(488), 1671-1681.</p>
-</div>
+<p>Lukas Meier Nicolai Meinshausen and Peter Buhlmann. P-values for high-dimensional regression. <em>Journal of the American Statistical Association</em>, 104(488):1671–1681, 2009. <a class="reference external" href="https://doi.org/10.1198/jasa.2009.tm08647">doi:10.1198/jasa.2009.tm08647</a>.</p>
+</aside>
+</aside>
 </div>
 </dd></dl>
 
@@ -470,11 +471,11 @@ Association, 104(488), 1671-1681.</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.clustered_inference.html"
+       href="hidimstat.quantile_aggregation.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.clustered_inference</p>
+        <p class="prev-next-title">hidimstat.quantile_aggregation</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
