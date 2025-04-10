@@ -35,7 +35,9 @@ model = SVC(kernel="rbf", random_state=0)
 model.fit(X_train, y_train)
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
 
-##############################################################
+#############################################################################
+#  Visualizing the decision function of the SVC
+# -----------------------------------------------------
 
 fig, ax = plt.subplots()
 ax.imshow(
@@ -60,6 +62,12 @@ ax.legend(
 )
 ax.set_title("Decision function of SVC with RBF kernel")
 plt.show()
+
+
+##############################################################################
+# The decision function of the SVC shows that the model is able to learn the
+# non-linear decision boundary of the XOR problem. It also highlights that knowing
+# the value of both features is necessary to classify each sample correctly.
 
 
 ###############################################################################
