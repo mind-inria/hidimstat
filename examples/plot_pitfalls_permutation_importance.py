@@ -128,7 +128,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     )
     pfi.fit(X_test, y_test)
 
-    permutation_importances.append(pfi.score(X_test, y_test)["importance"])
+    permutation_importances.append(pfi.importance(X_test, y_test)["importance"])
 permutation_importances = np.stack(permutation_importances)
 pval_pi = ttest_1samp(
     permutation_importances, 0.0, axis=0, alternative="greater"
@@ -196,7 +196,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     )
     cpi.fit(X_test, y_test)
 
-    conditional_importances.append(cpi.score(X_test, y_test)["importance"])
+    conditional_importances.append(cpi.importance(X_test, y_test)["importance"])
 
 
 cpi_pval = ttest_1samp(
