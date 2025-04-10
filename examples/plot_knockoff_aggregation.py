@@ -54,7 +54,7 @@ fdr = 0.1
 snr = 20
 seed = 45
 n_bootstraps = 25
-runs = 30
+runs = 20
 n_jobs = None
 joblib_verbose = 0
 
