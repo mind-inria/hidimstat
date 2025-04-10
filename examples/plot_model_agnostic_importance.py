@@ -79,6 +79,7 @@ selection_features, X_residual, sigma2, y_res = dcrt_zero(
     y,
     problem_type="classification",
 )
+1 / 0
 _, pval_dcrt, _ = dcrt_pvalue(
     selection_features=selection_features,
     X_res=X_residual,
