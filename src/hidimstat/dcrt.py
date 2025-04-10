@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _alpha_max, fdr_threshold, aggregate_docstring
+from hidimstat.utils import _alpha_max, aggregate_docstring
 from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
@@ -339,8 +339,6 @@ class D0CRT:
     def importance(
         self,
         fdr=0.1,
-        fdr_control="bhq",
-        reshaping_function=None,
         scaled_statistics=False,
     ):
         """
@@ -353,13 +351,6 @@ class D0CRT:
         ----------
         fdr : float, default=0.1
             Target false discovery rate level (0 < fdr < 1)
-        fdr_control : {'bhq', 'bhy', 'ebh'}, default='bhq'
-            Method for FDR control for the case of multitesting:
-            - 'bhq': Benjamini-Hochberg procedure
-            - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-            - 'ebh': e-BH procedure
-        reshaping_function : callable or None, default=None
-            Reshaping function for the 'bhy' method
         scaled_statistics : bool, default=False
             Whether to standardize test statistics before computing p-values
 
@@ -400,13 +391,7 @@ class D0CRT:
 
         self.pvals = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
 
-        self.threshold = fdr_threshold(
-            self.pvals,
-            fdr=fdr,
-            method=fdr_control,
-            reshaping_function=reshaping_function,
-        )
-        self.selected_variables = np.where(self.pvals <= self.threshold)[0]
+        self.selected_variables = np.where(self.pvals <= fdr)[0]
 
         return self.selected_variables, self.pvals
 
@@ -796,8 +781,6 @@ def d0crt(
     problem_type="regression",
     random_state=2022,
     fdr=0.1,
-    fdr_control="bhq",
-    reshaping_function=None,
     scaled_statistics=False,
 ):
     methods = D0CRT(
@@ -821,8 +804,6 @@ def d0crt(
     methods.fit(X, y)
     return methods.importance(
         fdr=fdr,
-        fdr_control=fdr_control,
-        reshaping_function=reshaping_function,
         scaled_statistics=scaled_statistics,
     )
 
