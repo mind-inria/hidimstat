@@ -43,7 +43,7 @@ class D0CRT:
     screening : bool, default=True
         Whether to perform variable screening step based on Lasso coefficients
     screening_threshold : float, default=10
-        Percentile threshold for screening (0-100), larger values lead to the inclusion of more variables at the screening stage (screening_threshold=100 keeps all variables). 
+        Percentile threshold for screening (0-100), larger values lead to the inclusion of more variables at the screening stage (screening_threshold=100 keeps all variables).
     statistic : {'residual', 'random_forest'}, default='residual'
         Method for computing test statistics:
         - 'residual': Uses Lasso regression residuals (faster, better for linear relationships)
