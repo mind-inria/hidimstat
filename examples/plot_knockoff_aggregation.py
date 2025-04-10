@@ -41,7 +41,7 @@ from hidimstat.utils import cal_fdp_power
 plt.rcParams.update({"font.size": 26})
 
 # Number of observations
-n_subjects = 50
+n_subjects = 100
 # Number of variables
 n_clusters = 100
 # Correlation parameter
