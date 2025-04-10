@@ -278,6 +278,9 @@ def dcrt_pvalue(
     Multiple testing correction is applied to control FDR at the specified level.
     """
     n_features = selection_features.shape[0]
+    print(X_res.shape)
+    if len(X_res.shape) == 1:
+        1 / 0
     n_samples = X_res.shape[1]
 
     ts_selected_variables = [
