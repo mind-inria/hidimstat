@@ -41,19 +41,20 @@ from hidimstat.utils import cal_fdp_power
 plt.rcParams.update({"font.size": 26})
 
 # Number of observations
-n_subjects = 450
+n_subjects = 100
 # Number of variables
-n_clusters = 350
+n_clusters = 100
 # Correlation parameter
-rho = 0.7
+rho = 0.3
 # Ratio of number of variables with non-zero coefficients over total
 # coefficients
 sparsity = 0.1
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
+snr=10
 seed = 45
 n_bootstraps = 25
-runs = 20
+runs = 30
 n_jobs = None
 joblib_verbose = 0
 
@@ -64,7 +65,7 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=None):
     # Generate data
     X, y, _, non_zero_index = simu_data(
-        n_subjects, n_clusters, rho=rho, sparsity=sparsity, seed=seed
+        n_subjects, n_clusters, rho=rho, sparsity=sparsity, seed=seed, snr=snr
     )
 
     # Use model-X Knockoffs [1]
@@ -140,7 +141,7 @@ powers = [powers_mx, powers_pval, powers_eval]
 
 
 def plot_results(bounds, fdr, nsubjects, n_clusters, rho, power=False):
-    plt.figure(figsize=(10, 10), layout="constrained")
+    plt.figure(figsize=(5, 5), layout="constrained")
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
             y = bounds[nb][i]
