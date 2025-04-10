@@ -3,7 +3,7 @@ Knockoff aggregation on simulated data
 ======================================
 
 In this example, we show an example of variable selection using
-model-X Knockoffs introduced by :footcite:t:`Candes_2018`. A notable
+model-X Knockoffs introduced by :footcite:t:`candes2018panning`. A notable
 drawback of this procedure is the randomness associated with
 the knockoff generation process. This can result in unstable
 inference.
@@ -22,18 +22,18 @@ References
 # Imports needed for this script
 # ------------------------------
 
+import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.utils import check_random_state
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
-import matplotlib.pyplot as plt
+from sklearn.utils import check_random_state
 
 from hidimstat.data_simulation import simu_data
 from hidimstat.knockoffs import (
     model_x_knockoff,
-    model_x_knockoff_pvalue,
-    model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_bootstrap_e_value,
+    model_x_knockoff_bootstrap_quantile,
+    model_x_knockoff_pvalue,
 )
 from hidimstat.utils import cal_fdp_power
 

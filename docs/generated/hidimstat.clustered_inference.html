@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=59a624d0"></script>
+    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.clustered_inference';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="hidimstat.dcrt_zero" href="hidimstat.dcrt_zero.html" />
-    <link rel="prev" title="hidimstat.aggregate_quantiles" href="hidimstat.aggregate_quantiles.html" />
+    <link rel="prev" title="hidimstat.quantile_aggregation" href="hidimstat.quantile_aggregation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -419,7 +419,8 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.clustered_inference">
 <span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">clustered_inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_clusters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'desparsified-lasso'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/clustered_inference.py#L175-L301"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.clustered_inference" title="Link to this definition">#</a></dt>
-<dd><p>Clustered inference algorithm</p>
+<dd><p>Clustered inference algorithm.</p>
+<p>For more details, see Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2021decoding" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -477,19 +478,19 @@ for negative effects (ie., for p-value close to one).</p>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div role="list" class="citation-list">
-<div class="citation" id="r371da4698ae4-1" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<p>Chevalier, J. A., Nguyen, T. B., Thirion, B., &amp; Salmon, J. (2021).
-Spatially relaxed inference on high-dimensional linear models.
-arXiv preprint arXiv:2106.02590.</p>
-</div>
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-chevalier2021decoding" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Jérôme-Alexis Chevalier, Tuan-Binh Nguyen, Joseph Salmon, Gaël Varoquaux, and Bertrand Thirion. Decoding with confidence: statistical control on decoder maps. <em>NeuroImage</em>, 234:117921, 2021.</p>
+</aside>
+</aside>
 </div>
 </dd></dl>
 
 <section id="examples-using-hidimstat-clustered-inference">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.clustered_inference</span></code><a class="headerlink" href="#examples-using-hidimstat-clustered-inference" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to :footcitechevalier2022spatially."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
 <p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
   <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
@@ -509,12 +510,12 @@ arXiv preprint arXiv:2106.02590.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.aggregate_quantiles.html"
+       href="hidimstat.quantile_aggregation.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.aggregate_quantiles</p>
+        <p class="prev-next-title">hidimstat.quantile_aggregation</p>
       </div>
     </a>
     <a class="right-next"
