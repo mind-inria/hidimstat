@@ -77,8 +77,6 @@ plt.show()
 selection_features, X_residual, sigma2, y_res = dcrt_zero(
     X, y, problem_type="classification", screening=False
 )
-if len(X_residual.shape) < 2:
-    raise ValueError(f"X_residual should be 2D, got {X_residual.shape} instead.")
 _, pval_dcrt, _ = dcrt_pvalue(
     selection_features=selection_features,
     X_res=X_residual,
@@ -124,8 +122,8 @@ df_pval = pd.DataFrame(
 )
 df_pval["log10pval"] = -np.log10(df_pval["pval"])
 
+
 #################################################################################
-# Plot the p-values for the different methods and the 0.05 threshold (black line)
 fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
@@ -139,3 +137,10 @@ ax.set_xlabel("-$\log_{10}(pval)$")
 ax.axvline(-np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\log_{10}(0.05)$")
 ax.legend()
 plt.show()
+
+
+#################################################################################
+# As expected, when using linear models (d0CRT and LOCO-linear) that are misspecified,
+# the varibles are not selected. This highlights the benefit of using model-agnostic
+# methods such as LOCO, which allows for the use of models that are expressive enough
+# to capture the underlying data generating process.
