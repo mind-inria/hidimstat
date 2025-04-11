@@ -110,7 +110,7 @@ class BasePerturbation(BaseEstimator):
         )
         return np.stack(out_list, axis=0)
 
-    def score(self, X, y):
+    def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
 

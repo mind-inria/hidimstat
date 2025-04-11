@@ -31,15 +31,14 @@ the power
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 14-26
+.. GENERATED FROM PYTHON SOURCE LINES 14-25
 
 .. code-block:: Python
 
 
     import matplotlib.pyplot as plt
     import numpy as np
-
-    from hidimstat.dcrt import dcrt_zero
+    from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
     from hidimstat.scenario import multivariate_1D_simulation
 
     plt.rcParams.update({"font.size": 21})
@@ -54,12 +53,12 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 27-29
+.. GENERATED FROM PYTHON SOURCE LINES 26-28
 
 Processing the computations
 ---------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 29-70
+.. GENERATED FROM PYTHON SOURCE LINES 28-71
 
 .. code-block:: Python
 
@@ -89,20 +88,22 @@ Processing the computations
         y = np.maximum(0.0, y)
 
         ## dcrt Lasso ##
-        results_lasso = dcrt_zero(X, y, screening=False, verbose=True)
-        typeI_error["Lasso"].append(
-            sum(results_lasso[1][n_signal:] < alpha) / (p - n_signal)
+        selection_features, X_res, sigma2, y_res = dcrt_zero(X, y, screening=False)
+        variables_important_lasso, pvals_lasso, ts_lasso = dcrt_pvalue(
+            selection_features, X_res, sigma2, y_res
         )
-        power["Lasso"].append(sum(results_lasso[1][:n_signal] < alpha) / (n_signal))
+        typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
+        power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
 
         ## dcrt Random Forest ##
-        results_forest = dcrt_zero(
-            X, y, screening=False, statistic="randomforest", verbose=True
+        selection_features, X_res, sigma2, y_res = dcrt_zero(
+            X, y, screening=False, statistic="random_forest"
         )
-        typeI_error["Forest"].append(
-            sum(results_forest[1][n_signal:] < alpha) / (p - n_signal)
+        rvariables_important_forest, pvals_forest, ts_forest = dcrt_pvalue(
+            selection_features, X_res, sigma2, y_res
         )
-        power["Forest"].append(sum(results_forest[1][:n_signal] < alpha) / (n_signal))
+        typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
+        power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
 
 
 
@@ -126,12 +127,12 @@ Processing the computations
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 71-73
+.. GENERATED FROM PYTHON SOURCE LINES 72-74
 
 Plotting the comparison
 -----------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-86
+.. GENERATED FROM PYTHON SOURCE LINES 74-87
 
 .. code-block:: Python
 
@@ -163,9 +164,9 @@ Plotting the comparison
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 2.967 seconds)
+   **Total running time of the script:** (1 minutes 4.708 seconds)
 
-**Estimated memory usage:**  212 MB
+**Estimated memory usage:**  215 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_dcrt_example.py:

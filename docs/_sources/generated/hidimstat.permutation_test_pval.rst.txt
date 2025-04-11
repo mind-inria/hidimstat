@@ -1,8 +1,0 @@
-﻿hidimstat.permutation_test_pval
-===============================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: permutation_test_pval
-
-.. include:: hidimstat.permutation_test_pval.examples

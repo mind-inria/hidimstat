@@ -3,7 +3,7 @@ Knockoff aggregation on simulated data
 ======================================
 
 In this example, we show an example of variable selection using
-model-X Knockoffs introduced by :footcite:t:`Candes_2018`. A notable
+model-X Knockoffs introduced by :footcite:t:`candes2018panning`. A notable
 drawback of this procedure is the randomness associated with
 the knockoff generation process. This can result in unstable
 inference.
@@ -24,11 +24,17 @@ References
 
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
 from hidimstat.data_simulation import simu_data
-from hidimstat.knockoff_aggregation import knockoff_aggregation
-from hidimstat.knockoffs import model_x_knockoff
+from hidimstat.knockoffs import (
+    model_x_knockoff,
+    model_x_knockoff_bootstrap_e_value,
+    model_x_knockoff_bootstrap_quantile,
+    model_x_knockoff_pvalue,
+)
 from hidimstat.utils import cal_fdp_power
 
 plt.rcParams.update({"font.size": 26})
@@ -62,32 +68,46 @@ def single_run(
     )
 
     # Use model-X Knockoffs [1]
-    mx_selection = model_x_knockoff(X, y, fdr=fdr, n_jobs=n_jobs, seed=seed)
-
-    fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
-    # Use p-values aggregation [2]
-    aggregated_ko_selection = knockoff_aggregation(
+    selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X,
         y,
-        fdr=fdr,
+        estimator=LassoCV(
+            n_jobs=n_jobs,
+            verbose=0,
+            max_iter=1000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-6,
+        ),
+        n_bootstraps=1,
+        random_state=seed,
+    )
+    mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
+    fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
+
+    # Use p-values aggregation [2]
+    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+        X,
+        y,
+        estimator=LassoCV(
+            n_jobs=n_jobs,
+            verbose=0,
+            max_iter=1000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-6,
+        ),
         n_bootstraps=n_bootstraps,
         n_jobs=n_jobs,
-        gamma=0.3,
         random_state=seed,
+    )
+    aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
+        test_scores, fdr=fdr, gamma=0.3
     )
 
     fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
-    eval_selection = knockoff_aggregation(
-        X,
-        y,
-        fdr=fdr,
-        method="e-values",
-        n_bootstraps=n_bootstraps,
-        n_jobs=n_jobs,
-        gamma=0.3,
-        random_state=seed,
+    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(
+        test_scores, threshold, fdr=fdr
     )
 
     fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
