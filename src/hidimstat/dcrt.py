@@ -6,7 +6,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat.utils import _alpha_max, aggregate_docstring
+from hidimstat.utils import _alpha_max
+from hidimstat._utils import _aggregate_docstring
 
 
 class D0CRT:
@@ -811,6 +812,6 @@ def d0crt(
 
 
 # use the docstring of the class for the function
-d0crt.__doc__ = aggregate_docstring(
+d0crt.__doc__ = _aggregate_docstring(
     [D0CRT.__doc__, D0CRT.__init__.__doc__, D0CRT.fit.__doc__, D0CRT.importance.__doc__]
 )
