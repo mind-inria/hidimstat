@@ -6,6 +6,17 @@ classification tasks. We use three different variable importance methods: CPI, L
 PermutationImportance with two different classifiers: LogisticRegressionCV and
 LinearSVC. We start by measuring the importance of individual variables and then show
 how to measure the importance of groups of variables.
+To briefly summarize the three methods:
+
+ - LOCO (Leave-One-Covariate-Out) fits a sub-model using a subset of the data where the
+ variable of interest is removed. The importance of the variable is quantified as the
+ loss difference between the full model and the sub-model.
+ - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
+ the increase in the loss when predicting (using om the same full model) on the
+ shuffled data.
+ - CPI (Conditional Permutation Importance) is a conditional version of PFI that
+ preserves the conditional distribution of the feature. It introduces a second model to
+ estimate this conditional distribution.
 """
 
 import matplotlib.pyplot as plt
