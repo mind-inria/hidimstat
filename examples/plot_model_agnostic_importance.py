@@ -86,32 +86,37 @@ _, pval_dcrt, _ = dcrt_pvalue(
 )
 # Compute p-values using LOCO
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
-model_svc = SVC(kernel="rbf", random_state=0)
-model_linear = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
+non_linear_model = SVC(kernel="rbf", random_state=0)
+linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 
 importances_linear = []
-importances_svc = []
+importances_non_linear = []
 for train, test in cv.split(X):
-    model_svc_ = clone(model_svc)
-    model_linear_ = clone(model_linear)
-    model_svc_.fit(X[train], y[train])
-    model_linear_.fit(X[train], y[train])
+    non_linear_model_ = clone(non_linear_model)
+    linear_model_ = clone(linear_model)
+    non_linear_model_.fit(X[train], y[train])
+    linear_model_.fit(X[train], y[train])
 
     vim_linear = LOCO(
-        estimator=model_linear_, loss=log_loss, method="predict_proba", n_jobs=2
+        estimator=linear_model_, loss=log_loss, method="predict_proba", n_jobs=2
     )
-    vim_svc = LOCO(
-        estimator=model_svc_, loss=hinge_loss, method="decision_function", n_jobs=2
+    vim_non_linear = LOCO(
+        estimator=non_linear_model_,
+        loss=hinge_loss,
+        method="decision_function",
+        n_jobs=2,
     )
     vim_linear.fit(X[train], y[train])
-    vim_svc.fit(X[train], y[train])
+    vim_non_linear.fit(X[train], y[train])
 
     importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
-    importances_svc.append(vim_svc.importance(X[test], y[test])["importance"])
+    importances_non_linear.append(
+        vim_non_linear.importance(X[test], y[test])["importance"]
+    )
 
 
 _, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
-_, pval_svc = ttest_1samp(importances_svc, 0, axis=0, alternative="greater")
+_, pval_svc = ttest_1samp(importances_non_linear, 0, axis=0, alternative="greater")
 
 df_pval = pd.DataFrame(
     {
@@ -128,7 +133,7 @@ fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
     y="Feature",
-    x="log10pval",
+    x="minus_log10_pval",
     hue="method",
     palette="muted",
     ax=ax,
