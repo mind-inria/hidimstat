@@ -73,9 +73,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso,
     desparsified_lasso_pvalue,
 )
-from hidimstat.empirical_thresholding import (
-    empirical_thresholding
-)
+from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.scenario import multivariate_simulation
 from hidimstat.stat_tools import zscore_from_pval, pval_from_scale
 
