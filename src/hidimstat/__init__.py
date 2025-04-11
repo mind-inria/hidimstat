@@ -18,8 +18,7 @@ from .leave_one_covariate_out import LOCO
 from .multi_sample_split import aggregate_quantiles
 from .noise_std import reid
 from .permutation_importance import PermutationImportance
-from .utils import quantile_aggregation
-from .dcrt import dcrt_zero, dcrt_pvalue
+from .dcrt import d0crt, D0CRT
 from .permutation_test import permutation_test, permutation_test_pval
 from .scenario import multivariate_1D_simulation
 from .stat_tools import zscore_from_pval
@@ -33,7 +32,8 @@ __all__ = [
     "aggregate_quantiles",
     "quantile_aggregation",
     "clustered_inference",
-    "dcrt_zero",
+    "d0crt",
+    "D0CRT",
     "dcrt_pvalue",
     "desparsified_lasso",
     "desparsified_lasso_pvalue",
