@@ -119,6 +119,23 @@ Examples Gallery
     </div>
 
 
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate the pitfalls of using permutation feature importance (PFI) on the California housing dataset. PFI measures the importance of a variable. However, it does not measure conditional importance and does not provide statistical control over the risk of making false discoveries, i.e., the risk of declaring a variable as important when it is not.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_pitfalls_permutation_importance_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</div>
+    </div>
+
+
 .. thumbnail-parent-div-close
 
 .. raw:: html
@@ -135,6 +152,7 @@ Examples Gallery
    /auto_examples/plot_2D_simulation_example
    /auto_examples/plot_fmri_data_example
    /auto_examples/plot_variable_importance_classif
+   /auto_examples/plot_pitfalls_permutation_importance
 
 
 .. only:: html
