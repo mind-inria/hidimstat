@@ -66,8 +66,12 @@ sns.heatmap(
     ax=ax,
 )
 ax.set_title("Correlation Matrix")
-ax.set_yticklabels(feature_names, fontsize=10, rotation=45)
-ax.set_xticklabels(feature_names, fontsize=10, rotation=45)
+ax.set_yticks(
+    np.arange(len(feature_names)) + 0.5, labels=feature_names, fontsize=10, rotation=45
+)
+ax.set_xticks(
+    np.arange(len(feature_names)) + 0.5, labels=feature_names, fontsize=10, rotation=45
+)
 plt.tight_layout()
 plt.show()
 
@@ -162,7 +166,7 @@ ax.axvline(x=0, color="black", linestyle="--")
 # Add legend for asterisks
 ax.legend(loc="upper right")
 sns.despine(ax=ax)
-ax.set_yticklabels(feature_names, fontsize=10)  # Set y-tick labels to feature names
+ax.set_yticks(range(len(feature_names)), labels=feature_names)
 fig.tight_layout()
 plt.show()
 
@@ -226,7 +230,7 @@ sns.barplot(
     ax=ax,
 )
 ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
-ax.set_xlabel("-$\log_{10}(pval)$")
+ax.set_xlabel("-$\\log_{10}(pval)$")
 plt.tight_layout()
 plt.show()
 
