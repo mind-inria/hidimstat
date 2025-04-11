@@ -116,12 +116,14 @@ for train, test in cv.split(X):
 
 
 _, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
-_, pval_svc = ttest_1samp(importances_non_linear, 0, axis=0, alternative="greater")
+_, pval_non_linear = ttest_1samp(
+    importances_non_linear, 0, axis=0, alternative="greater"
+)
 
 df_pval = pd.DataFrame(
     {
-        "pval": np.hstack([pval_dcrt, pval_linear, pval_svc]),
-        "method": ["d0CRT"] * 2 + ["LOCO-linear"] * 2 + ["LOCO-SVC"] * 2,
+        "pval": np.hstack([pval_dcrt, pval_linear, pval_non_linear]),
+        "method": ["d0CRT"] * 2 + ["LOCO-linear"] * 2 + ["LOCO-non-linear"] * 2,
         "Feature": ["X1", "X2"] * 3,
     }
 )
