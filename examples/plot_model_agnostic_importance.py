@@ -120,7 +120,7 @@ df_pval = pd.DataFrame(
         "Feature": ["X1", "X2"] * 3,
     }
 )
-df_pval["log10pval"] = -np.log10(df_pval["pval"])
+df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
 
 
 #################################################################################
