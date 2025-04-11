@@ -232,9 +232,10 @@ def clustered_inference(
     4. Perform statistical inference using desparsified lasso
     """
     memory = check_memory(memory=memory)
-    assert issubclass(ward.__class__, FeatureAgglomeration),\
-        'ward need to an instance of sklearn.cluster.FeatureAgglomeration'
-        
+    assert issubclass(
+        ward.__class__, FeatureAgglomeration
+    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
+
     n_samples, n_features = X_init.shape
 
     if verbose > 0:
@@ -460,8 +461,9 @@ def ensemble_clustered_inference(
     .. footbibliography::
     """
     memory = check_memory(memory=memory)
-    assert issubclass(ward.__class__, FeatureAgglomeration),\
-        'ward need to an instance of sklearn.cluster.FeatureAgglomeration'
+    assert issubclass(
+        ward.__class__, FeatureAgglomeration
+    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
 
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
