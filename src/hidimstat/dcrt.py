@@ -125,7 +125,7 @@ class D0CRT:
         params_lasso_distillation_y=None,
         refit=False,
         screening=True,
-        screening_threshold=1e1,
+        screening_threshold=10,
         statistic="residual",
         centered=True,
         n_jobs=1,
@@ -341,7 +341,7 @@ class D0CRT:
 
     def importance(
         self,
-        fdr=0.1,
+        fpr=0.05,
         scaled_statistics=False,
     ):
         """
@@ -393,7 +393,7 @@ class D0CRT:
 
         self.pvals = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
 
-        self.selected_variables = np.where(self.pvals <= fdr)[0]
+        self.selected_variables = np.where(self.pvals <= fpr)[0]
 
         return self.selected_variables, self.pvals
 
@@ -782,7 +782,7 @@ def d0crt(
     n_tree=100,
     problem_type="regression",
     random_state=2022,
-    fdr=0.1,
+    fpr=0.05,
     scaled_statistics=False,
 ):
     methods = D0CRT(
