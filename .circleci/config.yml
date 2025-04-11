@@ -5,15 +5,9 @@ jobs:
     docker:
       - image: cimg/python:3.9
     environment:
-      - USERNAME: "jeromedockes"
-      - ORGANIZATION: "hidimstat"
-      - DOC_REPO: "hidimstat.github.io"
-      - DOC_URL: ""
-      - EMAIL: "jerome@dockes.org"
-      - MINICONDA_PATH: ~/miniconda
-      - CONDA_ENV_NAME: testenv
       - PYTHON_VERSION: "3.12"
       - OMP_NUM_THREADS: 2
+      - CONDA_ENV_NAME: testenv
     steps:
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
@@ -42,6 +36,14 @@ jobs:
   deploy:
     docker:
       - image: cimg/python:3.9
+    environment:
+      - USERNAME: "jeromedockes"
+      - ORGANIZATION: "hidimstat"
+      - DOC_REPO: "hidimstat.github.io"
+      - DOC_URL: ""
+      - EMAIL: "jerome@dockes.org"
+      - MINICONDA_PATH: ~/miniconda
+      - CONDA_ENV_NAME: testenv
     steps:
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
@@ -50,11 +52,26 @@ jobs:
       - attach_workspace:
           at: doc_conf/_build/html
       - run: ls -ltrh doc_conf/_build/html
+      - run:
+          name: Manually install SSH key
+          command: |
+            mkdir -p ~/.ssh
+            ls -lh ~/.ssh/id_rsa
+            sha256sum ~/.ssh/id_rsa
+            echo "$DOCS_REPO_DEPLOY_RSA_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ls -lh ~/.ssh/id_rsa
+            sha256sum ~/.ssh/id_rsa
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+            eval "$(ssh-agent -s)"
+            ssh-add ~/.ssh/id_rsa
+            ssh-add -l
       - deploy:
           command: |
-            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash build_tools/circle/push_doc.sh doc_conf/_build/html
-            fi
+            # TODO restore
+            # if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
+            bash build_tools/circle/push_doc.sh doc_conf/_build/html
+            # fi
 
 workflows:
   version: 2
