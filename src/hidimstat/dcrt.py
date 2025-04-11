@@ -353,8 +353,8 @@ class D0CRT:
 
         Parameters
         ----------
-        fdr : float, default=0.1
-            Target false discovery rate level (0 < fdr < 1)
+        fdr : float, default=0.05
+            Target false positive rate level (0 < fdr < 1)
         scaled_statistics : bool, default=False
             Whether to standardize test statistics before computing p-values
 
@@ -806,7 +806,7 @@ def d0crt(
     )
     methods.fit(X, y)
     return methods.importance(
-        fdr=fdr,
+        fdr=fpr,
         scaled_statistics=scaled_statistics,
     )
 
