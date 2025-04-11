@@ -38,7 +38,7 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.utils import cal_fdp_power
 
-plt.rcParams.update({"font.size": 26})
+plt.rcParams.update({"font.size": 12})
 
 # Number of observations
 n_subjects = 100
