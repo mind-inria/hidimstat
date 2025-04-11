@@ -70,7 +70,7 @@ plt.show()
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships. We then compute the p-values using LOCO
-# and show that it can accommodate both linear and non-linear models. When using a
+# with a linear, and then a non-linear model. When using a
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
