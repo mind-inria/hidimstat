@@ -122,6 +122,10 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
 importances = np.array(importances).T
 
 
+#############################################################################
+# Visualizing the importance scores
+# -----------------------------------------------------------------------
+# We will use boxplots to visualize the distribution of the importance scores.
 fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
 sns.boxplot(
