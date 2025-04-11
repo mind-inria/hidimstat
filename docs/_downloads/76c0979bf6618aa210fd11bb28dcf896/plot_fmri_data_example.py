@@ -12,7 +12,7 @@ discriminative pattern that makes the decoding of the two conditions.
 
 In this example, we show that standard statistical methods (i.e., method
 such as thresholding by permutation test the SVR or Ridge decoder or the
-algorithm introduced by Gaonkar et al. [1]_) are not powerful when applied on
+algorithm introduced by :footcite:t:`gaonkar_deriving_2012`) are not powerful when applied on
 the uncompressed problem (i.e., the orignal problem in which the activation
 maps are not reduced using compression techniques such as parcellation).
 This is notably due to the high dimensionality (too many voxels) and
@@ -24,20 +24,13 @@ and statistical inference ; ensemble of clustered desparsified lasso (EnCluDL)
 adds a randomization step over the choice of clustering.
 
 EnCluDL is powerful and does not depend on a unique clustering choice.
-As shown in Chevalier et al. (2021) [2]_, for several tasks the estimated
+As shown in :footcite:t:`chevalier2021decoding`, for several tasks the estimated
 support (predictive regions) looks relevant.
 
 References
 ----------
-.. [1] Gaonkar, B., & Davatzikos, C. (2012, October). Deriving statistical
-       significance maps for SVM based image classification and group
-       comparisons. In International Conference on Medical Image Computing
-       and Computer-Assisted Intervention (pp. 723-730). Springer, Berlin,
-       Heidelberg.
+.. footbibliography::
 
-.. [2] Chevalier, J. A., Nguyen, T. B., Salmon, J., Varoquaux, G.,
-       & Thirion, B. (2021). Decoding with confidence: Statistical
-       control on decoder maps. NeuroImage, 234, 117921.
 """
 
 #############################################################################

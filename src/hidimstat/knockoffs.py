@@ -1,11 +1,11 @@
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
-from joblib import Parallel, delayed
 
 from hidimstat.gaussian_knockoff import (
     gaussian_knockoff_generation,
@@ -91,8 +91,8 @@ def model_x_knockoff(
     Model-X Knockoff
 
     This module implements the Model-X knockoff inference procedure, which is an approach
-    to control the False Discovery Rate (FDR) based on :cite:`candes2018panning`. The original
-    implementation can be found at
+    to control the False Discovery Rate (FDR) based on :footcite:t:`candes2018panning`.
+    The original implementation can be found at
     https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
     The noisy variables are generated with second-order knockoff variables using the equi-correlated method.
 
@@ -113,15 +113,19 @@ def model_x_knockoff(
         This can be any estimator with a `fit` method that accepts a 2D array and
         a 1D array, and a `coef_` attribute that returns a 1D array of coefficients.
         Examples include LassoCV, LogisticRegressionCV, and LinearRegression.
-        Configuration example:
-            LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,
-                cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
-            LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
-                cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None,
-                tol=1e-8)
-            LogisticRegressionCV(penalty="l2", max_iter=1000, n_jobs=None,
-                verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0),
-                tol=1e-8,)
+
+        *Configuration example:*
+
+        | LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,
+        | cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
+
+        | LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
+        | cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None,
+        | tol=1e-8)
+
+        | LogisticRegressionCV(penalty="l2", max_iter=1000, n_jobs=None,
+        | verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        | tol=1e-8,)
 
     preconfigure_estimator : callable, default=preconfigure_estimator_LassoCV
         A function that configures the estimator for the Model-X knockoff procedure.

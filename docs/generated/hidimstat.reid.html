@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=0f5f4e7c"></script>
+    <script src="../_static/documentation_options.js?v=20d6dcb7"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.reid';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -422,11 +422,11 @@
 <dd><p>Residual sum of squares based estimators for noise standard deviation
 estimation.</p>
 <p>This implementation follows the procedure described in
-<a class="footnote-reference brackets" href="#footcite-fan2012variance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and <span id="id2">[<a class="reference internal" href="../index.html#id18" title="Stephen Reid, Robert Tibshirani, and Jerome Friedman. A study of error variance estimation in lasso regression. Statistica Sinica, pages 35–67, 2016.">Reid <em>et al.</em>, 2016</a>]</span>. It uses Lasso with
+Fan <em>et al.</em><a class="footnote-reference brackets" href="#footcite-fan2012variance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and Reid <em>et al.</em><a class="footnote-reference brackets" href="#footcite-reid2016study" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. It uses Lasso with
 cross-validation to estimate both the noise standard deviation and model
 coefficients.</p>
 <p>For group, the implementation is based on the procedure
-from <a class="footnote-reference brackets" href="#footcite-chevalier2020statistical" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+from Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2020statistical" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -476,9 +476,13 @@ or estimated covariance matrix for group.</p>
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Jianqing Fan, Shaojun Guo, and Ning Hao. Variance estimation using refitted cross-validation in ultrahigh dimensional regression. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em>, 74(1):37–65, 2012.</p>
 </aside>
+<aside class="footnote brackets" id="footcite-reid2016study" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>Stephen Reid, Robert Tibshirani, and Jerome Friedman. A study of error variance estimation in lasso regression. <em>Statistica Sinica</em>, pages 35–67, 2016.</p>
+</aside>
 <aside class="footnote brackets" id="footcite-chevalier2020statistical" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">2</a><span class="fn-bracket">]</span></span>
-<p>Jérôme-Alexis Chevalier. <em>Statistical control of sparse models in high dimension</em>. PhD thesis, Université Paris-Saclay, 2020.</p>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p>Jérôme-Alexis Chevalier, Joseph Salmon, Alexandre Gramfort, and Bertrand Thirion. Statistical control for spatio-temporal meg/eeg source imaging with desparsified mutli-task lasso. <em>Advances in Neural Information Processing Systems</em>, 33:1759–1770, 2020.</p>
 </aside>
 </aside>
 </div>
