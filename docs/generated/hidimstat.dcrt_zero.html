@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.knockoff_aggregation &#8212; HiDimStat</title>
+    <title>hidimstat.dcrt_zero &#8212; HiDimStat</title>
   
   
   
@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=460dca9a"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.knockoff_aggregation';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.dcrt_zero';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.model_x_knockoff" href="hidimstat.model_x_knockoff.html" />
-    <link rel="prev" title="hidimstat.hd_inference" href="hidimstat.hd_inference.html" />
+    <link rel="next" title="hidimstat.dcrt_pvalue" href="hidimstat.dcrt_pvalue.html" />
+    <link rel="prev" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,20 +334,20 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test_pval.html">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.zscore_from_pval.html">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.knockoff_aggregation</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.dcrt_zero</span></li>
   </ul>
 </nav>
 </div>
@@ -414,118 +414,100 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-knockoff-aggregation">
-<h1>hidimstat.knockoff_aggregation<a class="headerlink" href="#hidimstat-knockoff-aggregation" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-dcrt-zero">
+<h1>hidimstat.dcrt_zero<a class="headerlink" href="#hidimstat-dcrt-zero" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.knockoff_aggregation">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">knockoff_aggregation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrink</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">construct_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'equi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr_control</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bhq'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reshaping_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'quantile'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lasso_cv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ledoit_wolf'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive_aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grid_gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoff_aggregation.py#L14-L206"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.knockoff_aggregation" title="Link to this definition">#</a></dt>
-<dd><p>Aggregation of Multiple knockoffs</p>
-<p>This function implements the aggregation of multiple knockoffs introduced by
-Nguyen <em>et al.</em><a class="footnote-reference brackets" href="#footcite-pmlr-v119-nguyen20a" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+<dt class="sig sig-object py" id="hidimstat.dcrt_zero">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">dcrt_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_screening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'alpha':</span> <span class="pre">np.float64(0.029080693703091007),</span> <span class="pre">'alpha_max_fraction':</span> <span class="pre">0.5,</span> <span class="pre">'alphas':</span> <span class="pre">None,</span> <span class="pre">'cv':</span> <span class="pre">5,</span> <span class="pre">'fit_intercept':</span> <span class="pre">False,</span> <span class="pre">'max_iter':</span> <span class="pre">1000,</span> <span class="pre">'n_alphas':</span> <span class="pre">10,</span> <span class="pre">'selection':</span> <span class="pre">'cyclic',</span> <span class="pre">'tol':</span> <span class="pre">1e-06}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_distillation_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_distillation_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">screening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">screening_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'residual'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2022</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/dcrt.py#L12-L223"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.dcrt_zero" title="Link to this definition">#</a></dt>
+<dd><p>Implements distilled conditional randomization test (dCRT) without interactions.</p>
+<p>A faster version of the Conditional Randomization Test
+Candes <em>et al.</em><a class="footnote-reference brackets" href="#footcite-candes2018panning" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> using the distillation process from
+Liu <em>et al.</em><a class="footnote-reference brackets" href="#footcite-liu2022fast" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. Based on original implementation at:
+<a class="github reference external" href="https://github.com/moleibobliu/Distillation-CRT/">moleibobliu/Distillation-CRT</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>X</strong><span class="classifier">{array-like, sparse matrix} of shape (n_samples, n_features)</span></dt><dd><p>The input samples.</p>
+<dt><strong>X</strong><span class="classifier">array-like of shape (n_samples, n_features)</span></dt><dd><p>Training data</p>
 </dd>
-<dt><strong>y</strong><span class="classifier">array-like of shape (n_samples,),</span></dt><dd><p>The target values (class labels in classification, real numbers in
-regression).</p>
+<dt><strong>y</strong><span class="classifier">array-like of shape (n_samples,)</span></dt><dd><p>Target values</p>
 </dd>
-<dt><strong>centered</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to standardize the data before doing the inference procedure.</p>
+<dt><strong>estimated_coef</strong><span class="classifier">array-like of shape (n_features,), optional</span></dt><dd><p>Pre-computed feature coefficients</p>
 </dd>
-<dt><strong>shrink</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to shrink the empirical covariance matrix.</p>
+<dt><strong>sigma_X</strong><span class="classifier">array-like of shape (n_features, n_features), optional</span></dt><dd><p>Covariance matrix of X</p>
 </dd>
-<dt><strong>construct_method</strong><span class="classifier">str, default=”equi”</span></dt><dd><p>The knockoff construction methods. The options include:
-- “equi” for equi-correlated knockoff
-- “sdp” for optimization scheme</p>
+<dt><strong>params_lasso_screening</strong><span class="classifier">dict</span></dt><dd><p>Parameters for main Lasso estimation or crossvalidation Lasso, including:
+- alpha : float, optional - L1 regularization strength. If None, determined by CV.
+- n_alphas : int, default=0 - Number of alphas for cross-validation.
+- alphas : array-like, default=None - List of alpha values to try in CV.
+- alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
+For other parameters see :py:func:LassoCV, here is some advise configuration
+- cv : int, default=5 - Number of cross-validation folds.
+- tol : float, default=1e-6 - Tolerance for optimization.
+- max_iter : int, default=1000 - Maximum iterations.
+- fit_intercept : bool, default=False - Whether to fit intercept.
+- selection : str, default=’cyclic’ - Feature selection method.</p>
 </dd>
-<dt><strong>fdr</strong><span class="classifier">float, default=0.1</span></dt><dd><p>The desired controlled FDR level</p>
+<dt><strong>params_lasso_distillation_x</strong><span class="classifier">dict, optional</span></dt><dd><p>Parameters for X distillation Lasso. Defaults to params_lasso_screening.</p>
 </dd>
-<dt><strong>fdr_control</strong><span class="classifier">srt, default=”bhq”</span></dt><dd><p>The control method for False Discovery Rate (FDR). The options include:
-- “bhq” for Standard Benjamini-Hochberg procedure
-- “bhy” for Benjamini-Hochberg-Yekutieli procedure
-- “ebh” for e-BH procedure</p>
+<dt><strong>params_lasso_distillation_y</strong><span class="classifier">dict, optional</span></dt><dd><p>Parameters for y distillation Lasso. Defaults to params_lasso_screening.</p>
 </dd>
-<dt><strong>reshaping_function</strong><span class="classifier">&lt;class ‘function’&gt;, default=None</span></dt><dd><p>The reshaping function defined in Benjamini and Yekutieli<a class="footnote-reference brackets" href="#footcite-bhy-2001" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
+<dt><strong>refit</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to refit on estimated support set</p>
 </dd>
-<dt><strong>offset</strong><span class="classifier">int, 0 or 1, optional</span></dt><dd><p>The offset to calculate knockoff threshold, offset = 1 is equivalent to
-knockoff+.</p>
+<dt><strong>screening</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to screen variables</p>
 </dd>
-<dt><strong>method</strong><span class="classifier">srt, default=”quantile”</span></dt><dd><p>The method to compute the statistical measures. The options include:
-- “quantile” for p-values
-- “e-values” for e-values</p>
+<dt><strong>screening_threshold</strong><span class="classifier">float, default=0.1</span></dt><dd><p>Threshold for variable screening (0-100)</p>
 </dd>
-<dt><strong>statistic</strong><span class="classifier">srt, default=”lasso_cv”</span></dt><dd><p>The method to calculate knockoff test score.</p>
+<dt><strong>statistic</strong><span class="classifier">{‘residual’, ‘random_forest’}, default=’residual’</span></dt><dd><p>Learning method for outcome distillation</p>
 </dd>
-<dt><strong>cov_estimator</strong><span class="classifier">srt, default=”ledoitwolf”</span></dt><dd><p>The method of empirical covariance matrix estimation.</p>
+<dt><strong>centered</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to standardize features</p>
 </dd>
-<dt><strong>joblib_versobe</strong><span class="classifier">int, default=0</span></dt><dd><p>The verbosity level of joblib: if non zero, progress messages are
-printed. Above 50, the output is sent to stdout. The frequency of the
-messages increases with the verbosity level. If it more than 10, all
-iterations are reported.</p>
+<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>Number of parallel jobs</p>
 </dd>
-<dt><strong>n_bootstraps</strong><span class="classifier">int, default=25</span></dt><dd><p>The number of bootstrapping iterations.</p>
+<dt><strong>joblib_verbose</strong><span class="classifier">int, default=0</span></dt><dd><p>Verbosity level</p>
 </dd>
-<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>The number of workers for parallel processing.</p>
+<dt><strong>fit_y</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to fit y using selected features</p>
 </dd>
-<dt><strong>adaptive_aggregation</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to apply the adaptive version of the quantile aggregation method
-as in Nicolai Meinshausen and Bühlmann<a class="footnote-reference brackets" href="#footcite-meinshausen-2008" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a>.</p>
+<dt><strong>n_tree</strong><span class="classifier">int, default=100</span></dt><dd><p>Number of trees for random forest</p>
 </dd>
-<dt><strong>gamma</strong><span class="classifier">float, default=0.5</span></dt><dd><p>The quantile level (between 0 and 1) used for aggregation. For non-adaptive aggregation,
-a single gamma value is used. For adaptive aggregation, this is the starting point
-for the grid search over gamma values.</p>
+<dt><strong>problem_type</strong><span class="classifier">{‘regression’, ‘classification’}, default=’regression’</span></dt><dd><p>Type of learning problem</p>
 </dd>
-<dt><strong>n_grid_gamma</strong><span class="classifier">int, default=20</span></dt><dd><p>Number of gamma grid points for adaptive aggregation.</p>
-</dd>
-<dt><strong>verbose</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to return the corresponding p-values of the variables along with
-the list of selected variables.</p>
-</dd>
-<dt><strong>memory</strong><span class="classifier">str or joblib.Memory object, default=None</span></dt><dd><p>Used to cache the output of the computation of the clustering
-and the inference. By default, no caching is done. If a string is
-given, it is the path to the caching directory.</p>
-</dd>
-<dt><strong>random_state</strong><span class="classifier">int, default=None</span></dt><dd><p>Fixing the seeds of the random generator.</p>
+<dt><strong>random_state</strong><span class="classifier">int, default=2022</span></dt><dd><p>Random seed</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>selected</strong><span class="classifier">1D array, int</span></dt><dd><p>The vector of index of selected variables.</p>
+<dt><strong>selection_features</strong><span class="classifier">ndarray of shape (n_features,)</span></dt><dd><p>Boolean mask of selected features</p>
 </dd>
-<dt>aggregated_pval: 1D array, float</dt><dd><p>The vector of aggregated p-values.</p>
+<dt><strong>X_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Residuals after X distillation</p>
 </dd>
-<dt>pvals: 1D array, float</dt><dd><p>The vector of the corresponding p-values.</p>
+<dt><strong>sigma2</strong><span class="classifier">ndarray of shape (n_selected,)</span></dt><dd><p>Estimated residual variances</p>
 </dd>
-<dt>aggregated_eval: 1D array, float</dt><dd><p>The vector of aggregated e-values.</p>
-</dd>
-<dt>evals: 1D array, float</dt><dd><p>The vector of the corresponding e-values.</p>
+<dt><strong>y_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Response residuals</p>
 </dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">References</p>
-<div class="docutils container" id="id4">
+<div class="docutils container" id="id3">
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="footcite-pmlr-v119-nguyen20a" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-candes2018panning" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Tuan-Binh Nguyen, Jerome-Alexis Chevalier, Bertrand Thirion, and Sylvain Arlot. Aggregation of multiple knockoffs. In Hal Daumé III and Aarti Singh, editors, <em>Proceedings of the 37th International Conference on Machine Learning</em>, volume 119 of Proceedings of Machine Learning Research, 7283–7293. PMLR, 13–18 Jul 2020. URL: <a class="reference external" href="https://proceedings.mlr.press/v119/nguyen20a.html">https://proceedings.mlr.press/v119/nguyen20a.html</a>.</p>
+<p>Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for gold:’model-x’ knockoffs for high dimensional controlled variable selection. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em>, 80(3):551–577, 2018.</p>
 </aside>
-<aside class="footnote brackets" id="footcite-bhy-2001" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-liu2022fast" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p>Yoav Benjamini and Daniel Yekutieli. The control of the false discovery rate in multiple testing under dependency. <em>Ann. Stat.</em>, 29:, 08 2001. <a class="reference external" href="https://doi.org/10.1214/aos/1013699998">doi:10.1214/aos/1013699998</a>.</p>
-</aside>
-<aside class="footnote brackets" id="footcite-meinshausen-2008" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
-<p>Lukas Meier Nicolai Meinshausen and Peter Bühlmann. P-values for high-dimensional regression. <em>Journal of the American Statistical Association</em>, 104(488):1671–1681, 2009. <a class="reference external" href="https://doi.org/10.1198/jasa.2009.tm08647">doi:10.1198/jasa.2009.tm08647</a>.</p>
+<p>Molei Liu, Eugene Katsevich, Lucas Janson, and Aaditya Ramdas. Fast and powerful conditional randomization testing via distillation. <em>Biometrika</em>, 109(2):277–293, 2022.</p>
 </aside>
 </aside>
 </div>
 </dd></dl>
 
-<section id="examples-using-hidimstat-knockoff-aggregation">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.knockoff_aggregation</span></code><a class="headerlink" href="#examples-using-hidimstat-knockoff-aggregation" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="In this example, we show an example of variable selection using model-X Knockoffs introduced by :footciteCandes_2018. A notable drawback of this procedure is the randomness associated with the knockoff generation process. This can result in unstable inference."><img alt="" src="../_images/sphx_glr_plot_knockoff_aggregation_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_knockoff_aggregation.html#sphx-glr-auto-examples-plot-knockoff-aggregation-py"><span class="std std-ref">Knockoff aggregation on simulated data</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Knockoff aggregation on simulated data</div>
+<section id="examples-using-hidimstat-dcrt-zero">
+<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_zero</span></code><a class="headerlink" href="#examples-using-hidimstat-dcrt-zero" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares the performance of d0crt based on the lasso (1) and random forest (2) implementations. The number of repetitions is set to 10. The metrics used are the type-I error and the power"><img alt="" src="../_images/sphx_glr_plot_dcrt_example_thumb.png" />
+<p><a class="reference internal" href="../auto_examples/plot_dcrt_example.html#sphx-glr-auto-examples-plot-dcrt-example-py"><span class="std std-ref">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</div>
 </div></div></section>
 </section>
 
@@ -540,20 +522,20 @@ given, it is the path to the caching directory.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.hd_inference.html"
+       href="hidimstat.clustered_inference.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.hd_inference</p>
+        <p class="prev-next-title">hidimstat.clustered_inference</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.model_x_knockoff.html"
+       href="hidimstat.dcrt_pvalue.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.model_x_knockoff</p>
+        <p class="prev-next-title">hidimstat.dcrt_pvalue</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -576,8 +558,8 @@ given, it is the path to the caching directory.</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.knockoff_aggregation"><code class="docutils literal notranslate"><span class="pre">knockoff_aggregation()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-knockoff-aggregation">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.knockoff_aggregation</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.dcrt_zero"><code class="docutils literal notranslate"><span class="pre">dcrt_zero()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-dcrt-zero">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_zero</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -585,7 +567,7 @@ given, it is the path to the caching directory.</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.knockoff_aggregation.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.dcrt_zero.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

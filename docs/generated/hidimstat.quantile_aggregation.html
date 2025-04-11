@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.zscore_from_pval &#8212; HiDimStat</title>
+    <title>hidimstat.quantile_aggregation &#8212; HiDimStat</title>
   
   
   
@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=460dca9a"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.zscore_from_pval';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.quantile_aggregation';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.BasePerturbation" href="hidimstat.BasePerturbation.html" />
-    <link rel="prev" title="hidimstat.empirical_thresholding" href="hidimstat.empirical_thresholding.html" />
+    <link rel="next" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
+    <link rel="prev" title="hidimstat.aggregate_quantiles" href="hidimstat.aggregate_quantiles.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,20 +334,20 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test_pval.html">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.zscore_from_pval</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.quantile_aggregation</span></li>
   </ul>
 </nav>
 </div>
@@ -414,44 +414,46 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-zscore-from-pval">
-<h1>hidimstat.zscore_from_pval<a class="headerlink" href="#hidimstat-zscore-from-pval" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-quantile-aggregation">
+<h1>hidimstat.quantile_aggregation<a class="headerlink" href="#hidimstat-quantile-aggregation" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.zscore_from_pval">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">zscore_from_pval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pval</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">one_minus_pval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/stat_tools.py#L276-L310"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.zscore_from_pval" title="Link to this definition">#</a></dt>
-<dd><p>Computing z-scores from one-sided p-values.</p>
+<dt class="sig sig-object py" id="hidimstat.quantile_aggregation">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">quantile_aggregation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pvals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/utils.py#L5-L50"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.quantile_aggregation" title="Link to this definition">#</a></dt>
+<dd><p>Implements the quantile aggregation method for p-values.</p>
+<p>This method is based on :footcite:t:meinshausen2009pvalues.</p>
+<p>The function aggregates multiple p-values into a single p-value while controlling
+the family-wise error rate. It supports both fixed and adaptive quantile aggregation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value, with numerically accurate values for
-positive effects (ie., for p-value close to zero).</p>
+<dt><strong>pvals</strong><span class="classifier">ndarray of shape (n_sampling*2, n_test)</span></dt><dd><p>Matrix of p-values to aggregate. Each row represents a sampling instance
+and each column a hypothesis test.</p>
 </dd>
-<dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,), optional (default=None)</span></dt><dd><p>One minus the p-value, with numerically accurate values
-for negative effects (ie., for p-value close to one).</p>
+<dt><strong>gamma</strong><span class="classifier">float, default=0.05</span></dt><dd><p>The quantile level (between 0 and 1) used for aggregation.
+For non-adaptive aggregation, a single gamma value is used.
+For adaptive aggregation, this is the starting point for the grid search
+over gamma values.</p>
 </dd>
-<dt><strong>distribution</strong><span class="classifier">str, opitonal (default=’norm’)</span></dt><dd><p>Type of distribution assumed for the underlying estimator.
-‘norm’ means normal and is the only value accepted at the moment.</p>
+<dt><strong>n_grid</strong><span class="classifier">int, default=20</span></dt><dd><p>Number of grid points to use for adaptive aggregation. Only used if adaptive=True.</p>
+</dd>
+<dt><strong>adaptive</strong><span class="classifier">bool, default=False</span></dt><dd><p>If True, uses adaptive quantile aggregation which optimizes over multiple gamma values.
+If False, uses fixed quantile aggregation with the provided gamma value.</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>zscore</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>z-scores.</p>
+<dt>ndarray of shape (n_test,)</dt><dd><p>Vector of aggregated p-values, one for each hypothesis test.</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>The aggregated p-values are guaranteed to be valid p-values in [0,1].
+When adaptive=True, gamma is treated as the minimum gamma value to consider.</p>
+<p class="rubric">References</p>
 </dd></dl>
 
-<section id="examples-using-hidimstat-zscore-from-pval">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.zscore_from_pval</span></code><a class="headerlink" href="#examples-using-hidimstat-zscore-from-pval" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_fmri_data_example.html#sphx-glr-auto-examples-plot-fmri-data-example-py"><span class="std std-ref">Support recovery on fMRI data</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on fMRI data</div>
-</div></div></section>
 </section>
 
 
@@ -465,20 +467,20 @@ for negative effects (ie., for p-value close to one).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.empirical_thresholding.html"
+       href="hidimstat.aggregate_quantiles.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.empirical_thresholding</p>
+        <p class="prev-next-title">hidimstat.aggregate_quantiles</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.BasePerturbation.html"
+       href="hidimstat.clustered_inference.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.BasePerturbation</p>
+        <p class="prev-next-title">hidimstat.clustered_inference</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -501,8 +503,7 @@ for negative effects (ie., for p-value close to one).</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.zscore_from_pval"><code class="docutils literal notranslate"><span class="pre">zscore_from_pval()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-zscore-from-pval">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.zscore_from_pval</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.quantile_aggregation"><code class="docutils literal notranslate"><span class="pre">quantile_aggregation()</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -510,7 +511,7 @@ for negative effects (ie., for p-value close to one).</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.zscore_from_pval.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.quantile_aggregation.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

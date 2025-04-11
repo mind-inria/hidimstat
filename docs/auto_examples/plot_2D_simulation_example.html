@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=460dca9a"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_2D_simulation_example';</script>
@@ -339,6 +339,7 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_variable_importance_classif.html">Measuring variable importance in classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
 </div>
 </nav></div>
@@ -412,10 +413,9 @@ statistical methods that aim at recovering the support, i.e., predictive
 features. Among those methods some leverage the spatial structure of the
 data. For more details about the inference algorithms presented in this
 example or about the generative process used to simulate the data,
-please refer to Chevalier et al. (2021) <a class="footnote-reference brackets" href="#id5" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
+please refer to Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>This example corresponds to the experiment described in details in
-Chevalier et al. (2021) <a class="footnote-reference brackets" href="#id5" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. Shortly, to simulate the data, we draw
-<code class="docutils literal notranslate"><span class="pre">n_samples</span></code> i.i.d Gaussian vectors of size <code class="docutils literal notranslate"><span class="pre">n_features</span></code> and reshape them
+Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. Shortly, to simulate the data, we draw
 into squares (edges are equal to <code class="docutils literal notranslate"><span class="pre">n_features</span> <span class="pre">**</span> <span class="pre">(1/2)</span></code>). Then, to introduce
 some spatial structure, we apply a Gaussian filter that correlates features
 that are nearby. The 2D data are then flattened into a design matrix <code class="docutils literal notranslate"><span class="pre">X</span></code> to
@@ -430,7 +430,7 @@ use a linear generative model: <code class="docutils literal notranslate"><span 
 structure of the data are relevant. More precisely, we show that clustered
 inference algorithms (e.g., CluDL) and ensembled clustered inference algorithms
 (e.g., EnCluDL) are more powerful than the standard inference methods (see also
-Chevalier et al. (2021) <a class="footnote-reference brackets" href="#id5" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>). Indeed, when the number of features is much
+Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>). Indeed, when the number of features is much
 greater than the number of samples, standard statistical methods are
 unlikely to recover the support. Then, the idea of clustered inference is to
 compress the data without breaking the spatial structure, leading to a
@@ -443,16 +443,16 @@ spatial compression, ensembled clustered inference algorithms reduce
 significantly the spatial uncertainty compared to clustered inference
 algorithms which consider only one spatial compression.</p>
 <section id="references">
-<span id="id4"></span><h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
+<div class="docutils container" id="id4">
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id5" role="doc-footnote">
+<aside class="footnote brackets" id="footcite-chevalier2022spatially" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>,<a role="doc-backlink" href="#id3">3</a>)</span>
-<p>Chevalier, J. A., Nguyen, T. B., Thirion, B., &amp; Salmon, J. (2021).
-Spatially relaxed inference on high-dimensional linear models.
-arXiv preprint arXiv:2106.02590.</p>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>,<a role="doc-backlink" href="#id3">3</a>,<a role="doc-backlink" href="#id5">4</a>,<a role="doc-backlink" href="#id6">5</a>,<a role="doc-backlink" href="#id7">6</a>)</span>
+<p>Jérôme-Alexis Chevalier, Tuan-Binh Nguyen, Bertrand Thirion, and Joseph Salmon. Spatially relaxed inference on high-dimensional linear models. <em>Statistics and Computing</em>, 32(5):83, 2022.</p>
 </aside>
 </aside>
+</div>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 </pre></div>
 </div>
@@ -464,13 +464,10 @@ arXiv preprint arXiv:2106.02590.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.feature_extraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">image</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">clustered_inference</span></a>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.desparsified_lasso</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <a href="../generated/hidimstat.desparsified_lasso.html#hidimstat.desparsified_lasso" title="hidimstat.desparsified_lasso" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso</span></a><span class="p">,</span>
-    <a href="../generated/hidimstat.desparsified_lasso_pvalue.html#hidimstat.desparsified_lasso_pvalue" title="hidimstat.desparsified_lasso_pvalue" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso_pvalue</span></a><span class="p">,</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.desparsified_lasso</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.desparsified_lasso.html#hidimstat.desparsified_lasso" title="hidimstat.desparsified_lasso" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso</span></a><span class="p">,</span> <a href="../generated/hidimstat.desparsified_lasso_pvalue.html#hidimstat.desparsified_lasso_pvalue" title="hidimstat.desparsified_lasso_pvalue" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso_pvalue</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.ensemble_clustered_inference.html#hidimstat.ensemble_clustered_inference" title="hidimstat.ensemble_clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">ensemble_clustered_inference</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.scenario</span><span class="w"> </span><span class="kn">import</span> <span class="n">multivariate_simulation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">zscore_from_pval</span>
 </pre></div>
 </div>
 </section>
@@ -580,7 +577,7 @@ the number of samples (small datasets require more dimension reduction) and
 the required spatial tolerance (small clusters lead to limited spatial
 uncertainty). Formally, “spatial tolerance” is defined by the largest
 distance from the true support for which the occurence of a false discovery
-is not statistically controlled (c.f. <a class="reference internal" href="#references"><span class="std std-ref">References</span></a>).
+is not statistically controlled (c.f. Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id5" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>).
 Theoretically, the spatial tolerance <code class="docutils literal notranslate"><span class="pre">delta</span></code> is equal to the largest
 cluster diameter. However this choice is conservative, notably in the case
 of ensembled clustered inference. For these algorithms, we recommend to take
@@ -611,8 +608,8 @@ consists in dividing by the number of clusters.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># computing the z-score thresholds for feature selection</span>
 <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_no_cluster</span></a> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_features</span></a>
 <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_cluster</span></a> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_clusters</span></a>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_c</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fwer_target</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_cluster</span></a><span class="p">)</span>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_nc</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fwer_target</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_no_cluster</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_c</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fwer_target</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_cluster</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_nc</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">((</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fwer_target</span></a> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">correction_no_cluster</span></a><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -637,7 +634,7 @@ and referred to as Desparsified Lasso.</p>
 <span class="p">)</span>
 
 <span class="c1"># compute estimated support (first method)</span>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval</span></a><span class="p">)</span>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">selected_dl</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">&gt;</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_nc</span></a>  <span class="c1"># use the &quot;no clustering threshold&quot;</span>
 
 <span class="c1"># compute estimated support (second method)</span>
@@ -650,8 +647,8 @@ and referred to as Desparsified Lasso.</p>
 </pre></div>
 </div>
 <p>Now, we compute the support estimated using a clustered inference algorithm
-(c.f. <a class="reference internal" href="#references"><span class="std std-ref">References</span></a>) called Clustered Desparsified Lasso (CluDL) since it
-uses the Desparsified Lasso technique after clustering the data.</p>
+(c.f. Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>) called Clustered Desparsified Lasso
+(CluDL) since it uses the Desparsified Lasso technique after clustering the data.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define the FeatureAgglomeration object that performs the clustering.</span>
 <span class="c1"># This object is necessary to run the current algorithm and the following one.</span>
 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.coo_matrix.html#scipy.sparse.coo_matrix" title="scipy.sparse.coo_matrix" class="sphx-glr-backref-module-scipy-sparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">connectivity</span></a> <span class="o">=</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.image.grid_to_graph.html#sklearn.feature_extraction.image.grid_to_graph" title="sklearn.feature_extraction.image.grid_to_graph" class="sphx-glr-backref-module-sklearn-feature_extraction-image sphx-glr-backref-type-py-function"><span class="n">image</span><span class="o">.</span><span class="n">grid_to_graph</span></a><span class="p">(</span><span class="n">n_x</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">shape</span></a><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_y</span><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">shape</span></a><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -665,7 +662,7 @@ uses the Desparsified Lasso technique after clustering the data.</p>
 <span class="p">)</span>
 
 <span class="c1"># compute estimated support (first method)</span>
-<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">=</span> <a href="../generated/hidimstat.zscore_from_pval.html#hidimstat.zscore_from_pval" title="hidimstat.zscore_from_pval" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">zscore_from_pval</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval</span></a><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">=</span> <span class="n">zscore_from_pval</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pval</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">one_minus_pval</span></a><span class="p">)</span>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">selected_cdl</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">zscore</span></a> <span class="o">&gt;</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">thr_c</span></a>  <span class="c1"># use the &quot;clustering threshold&quot;</span>
 
 <span class="c1"># compute estimated support (second method)</span>
@@ -680,7 +677,7 @@ hd_inference False {}
 </pre></div>
 </div>
 <p>Finally, we compute the support estimated by an ensembled clustered
-inference algorithm (c.f. <a class="reference internal" href="#references"><span class="std std-ref">References</span></a>). This algorithm is called
+inference algorithm (c.f. Chevalier <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chevalier2022spatially" id="id7" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>). This algorithm is called
 Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
 CluDL algorithms with different clustering choices. The different CluDL
 solutions are then aggregated into one.</p>
@@ -815,8 +812,8 @@ Also, one can note that the theoretical spatial tolerance is quite
 conservative. In practice, Type-1 Error guarantees seem to hold
 for a lower spatial tolerance. This is an additional benefit of clustering
 randomization.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 5.103 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  256 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 2.484 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  257 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-2d-simulation-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/7d2770a07fbe419760c9ac177df4f69e/plot_2D_simulation_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_2D_simulation_example.ipynb</span></code></a></p>

@@ -17,9 +17,10 @@ class LOCO(BasePerturbation):
     ):
         """
         Leave-One-Covariate-Out (LOCO) as presented in
-        :footcite:t:`Williamson_General_2023`. The model is re-fitted for each variable/
-        group of variables. The importance is then computed as the difference between
-        the loss of the full model and the loss of the model without the variable/group.
+        :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
+        The model is re-fitted for each variable/group of variables. The importance is
+        then computed as the difference between the loss of the full model and the loss
+        of the model without the variable/group.
 
         Parameters
         ----------
@@ -35,6 +36,11 @@ class LOCO(BasePerturbation):
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
+
+        Notes
+        -----
+        :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
+        additional data splitting strategy.
 
         References
         ----------

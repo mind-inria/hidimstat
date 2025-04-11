@@ -180,7 +180,7 @@ Visualize the data
  .. code-block:: none
 
 
-    [<matplotlib.axis.YTick object at 0x7f85761a6ab0>, <matplotlib.axis.YTick object at 0x7f8581419520>, <matplotlib.axis.YTick object at 0x7f858e814c20>, <matplotlib.axis.YTick object at 0x7f858e8165d0>, <matplotlib.axis.YTick object at 0x7f858e814a10>, <matplotlib.axis.YTick object at 0x7f858e8165a0>, <matplotlib.axis.YTick object at 0x7f858e8162a0>, <matplotlib.axis.YTick object at 0x7f858ea6f230>, <matplotlib.axis.YTick object at 0x7f858ea6de80>, <matplotlib.axis.YTick object at 0x7f858e8148c0>]
+    [<matplotlib.axis.YTick object at 0x7ff7a14abc20>, <matplotlib.axis.YTick object at 0x7ff7a14ab320>, <matplotlib.axis.YTick object at 0x7ff7a0e0ad80>, <matplotlib.axis.YTick object at 0x7ff7a0e089e0>, <matplotlib.axis.YTick object at 0x7ff7a0e2ed20>, <matplotlib.axis.YTick object at 0x7ff7a0e0a000>, <matplotlib.axis.YTick object at 0x7ff7a0e0af90>, <matplotlib.axis.YTick object at 0x7ff7a195f6b0>, <matplotlib.axis.YTick object at 0x7ff7a195c890>, <matplotlib.axis.YTick object at 0x7ff7a0e2c440>]
 
 
 
@@ -245,7 +245,7 @@ estimate the importance of the features.
             method="decision_function",
         )
         cpi_linear.fit(X[train], y[train])
-        imp_cpi_linear = cpi_linear.score(X[test], y[test])["importance"]
+        imp_cpi_linear = cpi_linear.importance(X[test], y[test])["importance"]
 
         model_non_linear_c = clone(model_non_linear)
         model_non_linear_c.fit(X[train], y[train])
@@ -259,7 +259,7 @@ estimate the importance of the features.
             method="decision_function",
         )
         cpi_non_linear.fit(X[train], y[train])
-        imp_cpi_non_linear = cpi_non_linear.score(X[test], y[test])["importance"]
+        imp_cpi_non_linear = cpi_non_linear.importance(X[test], y[test])["importance"]
 
         pi_non_linear = PermutationImportance(
             estimator=model_non_linear_c,
@@ -269,7 +269,7 @@ estimate the importance of the features.
             method="decision_function",
         )
         pi_non_linear.fit(X[train], y[train])
-        imp_pi_non_linear = pi_non_linear.score(X[test], y[test])["importance"]
+        imp_pi_non_linear = pi_non_linear.importance(X[test], y[test])["importance"]
 
         importance_list.append(
             np.stack(
@@ -419,16 +419,16 @@ correlation structure of the features.
  .. code-block:: none
 
 
-    <matplotlib.legend.Legend object at 0x7f85808f51c0>
+    <matplotlib.legend.Legend object at 0x7ff7a19288c0>
 
 
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 32.118 seconds)
+   **Total running time of the script:** (0 minutes 31.631 seconds)
 
-**Estimated memory usage:**  193 MB
+**Estimated memory usage:**  203 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_variable_importance_classif.py:

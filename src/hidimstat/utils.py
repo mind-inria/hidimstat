@@ -4,7 +4,9 @@ import numpy as np
 ########################## quantile aggregation method ##########################
 def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     """
-    Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.
+    Implements the quantile aggregation method for p-values.
+
+    This method is based on :footcite:t:meinshausen2009pvalues.
 
     The function aggregates multiple p-values into a single p-value while controlling
     the family-wise error rate. It supports both fixed and adaptive quantile aggregation.
@@ -15,7 +17,10 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
     gamma : float, default=0.05
-        Quantile level for aggregation. Must be in range (0,1].
+        The quantile level (between 0 and 1) used for aggregation.
+        For non-adaptive aggregation, a single gamma value is used.
+        For adaptive aggregation, this is the starting point for the grid search
+        over gamma values.
     n_grid : int, default=20
         Number of grid points to use for adaptive aggregation. Only used if adaptive=True.
     adaptive : bool, default=False
@@ -47,7 +52,9 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
 
 def _fixed_quantile_aggregation(pvals, gamma=0.5):
     """
-    Quantile aggregation function based on :cite:meinshausen2009p
+    Quantile aggregation function
+
+    For more details, see footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------
@@ -67,14 +74,16 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     .. footbibliography::
     """
     assert gamma > 0 and gamma <= 1, "gamma should be between O and 1"
-    # equation 2.2 of meinshausen2009p
+    # equation 2.2 of meinshausen2009pvalues
     converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
     return np.minimum(1, converted_score)
 
 
 def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
     """
-    Adaptive version of quantile aggregation method based on :cite:meinshausen2009p
+    Adaptive version of quantile aggregation method
+
+    For more details, see footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------
@@ -205,10 +214,10 @@ def _bhq_threshold(pvals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return pvals_sorted[selected_index]
+        threshold = pvals_sorted[selected_index]
     else:
-        # no threshold, all the pvalue are positive
-        return -1.0
+        threshold = -1.0
+    return threshold
 
 
 def _ebh_threshold(evals, fdr=0.1):
@@ -239,10 +248,10 @@ def _ebh_threshold(evals, fdr=0.1):
             selected_index = i
             break
     if selected_index <= n_features:
-        return evals_sorted[selected_index]
+        threshold = evals_sorted[selected_index]
     else:
-        # no threshold, no e-value is significant at the chosen level
-        return np.inf
+        threshold = np.inf
+    return threshold
 
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
@@ -276,17 +285,17 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     if reshaping_function is None:
         temp = np.arange(n_features)
         sum_inverse = np.sum(1 / (temp + 1))
-        return _bhq_threshold(pvals, fdr / sum_inverse)
+        threshold = _bhq_threshold(pvals, fdr / sum_inverse)
     else:
         for i in range(n_features - 1, -1, -1):
             if pvals_sorted[i] <= fdr * reshaping_function(i + 1) / n_features:
                 selected_index = i
                 break
         if selected_index <= n_features:
-            return pvals_sorted[selected_index]
+            threshold = pvals_sorted[selected_index]
         else:
-            # no threshold, all the p-values are positive
-            return -1.0
+            threshold = -1.0
+    return threshold
 
 
 ########################## alpha Max Calculation ##########################

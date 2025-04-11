@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.permutation_test_pval &#8212; HiDimStat</title>
+    <title>hidimstat.dcrt_pvalue &#8212; HiDimStat</title>
   
   
   
@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=460dca9a"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.permutation_test_pval';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.dcrt_pvalue';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.empirical_thresholding" href="hidimstat.empirical_thresholding.html" />
-    <link rel="prev" title="hidimstat.permutation_test" href="hidimstat.permutation_test.html" />
+    <link rel="next" title="hidimstat.desparsified_lasso" href="hidimstat.desparsified_lasso.html" />
+    <link rel="prev" title="hidimstat.dcrt_zero" href="hidimstat.dcrt_zero.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,20 +334,20 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.dcrt_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.zscore_from_pval.html">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.permutation_test_pval</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.dcrt_pvalue</span></li>
   </ul>
 </nav>
 </div>
@@ -414,39 +414,61 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-permutation-test-pval">
-<h1>hidimstat.permutation_test_pval<a class="headerlink" href="#hidimstat-permutation-test-pval" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-dcrt-pvalue">
+<h1>hidimstat.dcrt_pvalue<a class="headerlink" href="#hidimstat-dcrt-pvalue" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.permutation_test_pval">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">permutation_test_pval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_distribution</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/permutation_test.py#L78-L108"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.permutation_test_pval" title="Link to this definition">#</a></dt>
-<dd><p>Compute p-value from permutation test</p>
+<dt class="sig sig-object py" id="hidimstat.dcrt_pvalue">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">dcrt_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selection_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr_control</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bhq'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reshaping_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaled_statistics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/dcrt.py#L226-L306"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.dcrt_pvalue" title="Link to this definition">#</a></dt>
+<dd><p>Calculate p-values and identify significant features using the dCRT test statistics.</p>
+<p>This function processes the results from dCRT to identify statistically significant
+features while controlling for false discoveries. It assumes test statistics follow
+a Gaussian distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>weights</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The weights of the original model.</p>
+<dt><strong>selection_features</strong><span class="classifier">ndarray of shape (n_features,)</span></dt><dd><p>Boolean mask indicating which features were selected for testing</p>
 </dd>
-<dt><strong>weights_distribution</strong><span class="classifier">ndarray, shape (n_permutations, n_features)</span></dt><dd><p>The distribution of the weights of the model obtained by shuffling</p>
+<dt><strong>X_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Residuals from feature distillation</p>
+</dd>
+<dt><strong>sigma2</strong><span class="classifier">ndarray of shape (n_selected,)</span></dt><dd><p>Estimated residual variances for each tested feature</p>
+</dd>
+<dt><strong>y_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Response residuals for each tested feature</p>
+</dd>
+<dt><strong>fdr</strong><span class="classifier">float, default=0.1</span></dt><dd><p>Target false discovery rate level (0 &lt; fdr &lt; 1)</p>
+</dd>
+<dt><strong>fdr_control</strong><span class="classifier">{‘bhq’, ‘bhy’, ‘ebh’}, default=’bhq’</span></dt><dd><p>Method for FDR control:
+- ‘bhq’: Benjamini-Hochberg procedure
+- ‘bhy’: Benjamini-Hochberg-Yekutieli procedure
+- ‘ebh’: e-BH procedure</p>
+</dd>
+<dt><strong>reshaping_function</strong><span class="classifier">callable, optional</span></dt><dd><p>Reshaping function for the ‘bhy’ method</p>
+</dd>
+<dt><strong>scaled_statistics</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to standardize test statistics before computing p-values</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value corrected for multiple testing, with numerically accurate
-values for positive effects (ie., for p-value close to zero).</p>
+<dt><strong>selected_variables</strong><span class="classifier">ndarray</span></dt><dd><p>Indices of features deemed significant</p>
 </dd>
-<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the corrected p-value, with numerically accurate
-values for negative effects (ie., for p-value close to one).</p>
+<dt><strong>pvals</strong><span class="classifier">ndarray of shape (n_features,)</span></dt><dd><p>P-values for all features (including unselected ones)</p>
 </dd>
-</dl>
+<dt><strong>ts</strong><span class="classifier">ndarray of shape (n_features,)</span></dt><dd><p>test statistics following a standard normal distribution for all features</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function computes test statistics as correlations between residuals,
+optionally scales them, and converts to p-values using a Gaussian null.
+Multiple testing correction is applied to control FDR at the specified level.</p>
 </dd></dl>
 
-<section id="examples-using-hidimstat-permutation-test-pval">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.permutation_test_pval</span></code><a class="headerlink" href="#examples-using-hidimstat-permutation-test-pval" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_fmri_data_example.html#sphx-glr-auto-examples-plot-fmri-data-example-py"><span class="std std-ref">Support recovery on fMRI data</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on fMRI data</div>
+<section id="examples-using-hidimstat-dcrt-pvalue">
+<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_pvalue</span></code><a class="headerlink" href="#examples-using-hidimstat-dcrt-pvalue" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares the performance of d0crt based on the lasso (1) and random forest (2) implementations. The number of repetitions is set to 10. The metrics used are the type-I error and the power"><img alt="" src="../_images/sphx_glr_plot_dcrt_example_thumb.png" />
+<p><a class="reference internal" href="../auto_examples/plot_dcrt_example.html#sphx-glr-auto-examples-plot-dcrt-example-py"><span class="std std-ref">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</div>
 </div></div></section>
 </section>
 
@@ -461,20 +483,20 @@ values for negative effects (ie., for p-value close to one).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.permutation_test.html"
+       href="hidimstat.dcrt_zero.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.permutation_test</p>
+        <p class="prev-next-title">hidimstat.dcrt_zero</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.empirical_thresholding.html"
+       href="hidimstat.desparsified_lasso.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.empirical_thresholding</p>
+        <p class="prev-next-title">hidimstat.desparsified_lasso</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -497,8 +519,8 @@ values for negative effects (ie., for p-value close to one).</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.permutation_test_pval"><code class="docutils literal notranslate"><span class="pre">permutation_test_pval()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-permutation-test-pval">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.permutation_test_pval</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.dcrt_pvalue"><code class="docutils literal notranslate"><span class="pre">dcrt_pvalue()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-dcrt-pvalue">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_pvalue</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -506,7 +528,7 @@ values for negative effects (ie., for p-value close to one).</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.permutation_test_pval.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.dcrt_pvalue.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>
