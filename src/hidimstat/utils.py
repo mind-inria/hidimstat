@@ -1,8 +1,9 @@
 import numpy as np
+from sklearn.utils import resample
 
 
 ########################## quantile aggregation method ##########################
-def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
+def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
     """
     Implements the quantile aggregation method for p-values.
 
@@ -17,12 +18,7 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
     gamma : float, default=0.05
-        The quantile level (between 0 and 1) used for aggregation.
-        For non-adaptive aggregation, a single gamma value is used.
-        For adaptive aggregation, this is the starting point for the grid search
-        over gamma values.
-    n_grid : int, default=20
-        Number of grid points to use for adaptive aggregation. Only used if adaptive=True.
+        Quantile level for aggregation. Must be in range (0,1].
     adaptive : bool, default=False
         If True, uses adaptive quantile aggregation which optimizes over multiple gamma values.
         If False, uses fixed quantile aggregation with the provided gamma value.
@@ -45,12 +41,12 @@ def quantile_aggregation(pvals, gamma=0.05, n_grid=20, adaptive=False):
     if pvals.shape[0] == 1:
         return pvals[0]
     if adaptive:
-        return _adaptive_quantile_aggregation(pvals, gamma, n_grid=n_grid)
+        return adaptive_quantile_aggregation(pvals, gamma)
     else:
-        return _fixed_quantile_aggregation(pvals, gamma)
+        return fixed_quantile_aggregation(pvals, gamma)
 
 
-def _fixed_quantile_aggregation(pvals, gamma=0.5):
+def fixed_quantile_aggregation(pvals, gamma=0.5):
     """
     Quantile aggregation function
 
@@ -66,20 +62,20 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
 
     Returns
     -------
-    1D ndarray (n_tests, )
+    pvalue aggregate: 1D ndarray (n_tests, )
         Vector of aggregated p-values
 
     References
     ----------
     .. footbibliography::
     """
-    assert gamma > 0 and gamma <= 1, "gamma should be between O and 1"
-    # equation 2.2 of meinshausen2009pvalues
-    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
+    assert gamma > 0 and gamma <= 1, "gamma should be between 0 and 1"
+    # equation 2.2 of meinshausen2009p
+    converted_score = np.quantile(pvals, q=gamma, axis=0) / gamma
     return np.minimum(1, converted_score)
 
 
-def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
+def adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """
     Adaptive version of quantile aggregation method
 
@@ -94,20 +90,28 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05, n_grid=20):
 
     Returns
     -------
-    1D ndarray (n_tests, )
+    pvalue aggregate: 1D ndarray (n_tests, )
         Vector of aggregated p-values
 
     References
     ----------
     .. footbibliography::
     """
+    assert gamma_min > 0 and gamma_min <= 1, "gamma min should between 0 and 1"
 
-    gammas = np.linspace(gamma_min, 1.0, n_grid)
-    list_quantiles = np.array(
-        [_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas]
+    n_iter, n_features = pvals.shape
+
+    n_min = int(np.floor(gamma_min * n_iter))
+    ordered_pval = np.sort(pvals, axis=0)[n_min:]
+    # calculation of the pvalue / quantile (=j/m)
+    # see equation 2.2 of `meinshausen2009p`
+    P = (
+        np.min(ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0)
+        * n_iter
     )
-    # equation 2.3 of meinshausen2009p
-    return np.minimum(1, (1 - np.log(gamma_min)) * list_quantiles.min(0))
+    # see equation 2.3 of `meinshausen2009p`
+    pval_aggregate = np.minimum(1, (1 - np.log(gamma_min)) * P)
+    return pval_aggregate
 
 
 ########################## False Discovery Proportion ##########################
@@ -370,3 +374,39 @@ def _check_vim_predict_method(method):
                 method
             )
         )
+
+
+################# function for boostraping data ################################
+
+
+def _subsampling(n_samples, train_size, groups=None, seed=0):
+    """
+    Random subsampling for statistical inference.
+
+    Parameters
+    ----------
+    n_samples : int
+        Total number of samples in the dataset.
+    train_size : float
+        Fraction of samples to include in the training set (between 0 and 1).
+    groups : ndarray, shape (n_samples,), optional (default=None)
+        Group labels for samples.
+        If not None, a subset of groups is selected.
+    seed : int, optional (default=0)
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    train_index : ndarray
+        Indices of selected samples for training.
+    """
+    index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+    train_index = resample(
+        index_row,
+        n_samples=int(len(index_row) * train_size),
+        replace=False,
+        random_state=seed,
+    )
+    if groups is not None:
+        train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+    return train_index
