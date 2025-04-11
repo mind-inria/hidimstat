@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.base import clone
 from joblib import Parallel, delayed
 from sklearn.utils.validation import check_memory
+from sklearn.cluster import FeatureAgglomeration
 
 from hidimstat.desparsified_lasso import (
     desparsified_lasso,
@@ -66,7 +67,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
     Parameters
     ----------
-    ward : FeatureAgglomeration
+    ward : sklearn.cluster.FeatureAgglomeration
         Fitted clustering object containing the hierarchical structure
     beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
         Estimated parameters at cluster level
@@ -112,7 +113,29 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
 
 def _ward_clustering(X_init, ward, train_index):
-    """Ward clustering applied to full X but computed from a subsample of X"""
+    """
+    Performs Ward clustering on data using a training subset.
+
+    This function applies Ward hierarchical clustering to a dataset, where the clustering
+    is computed based on a subset of samples but then applied to the full dataset.
+
+    Parameters
+    ----------
+    X_init : numpy.ndarray
+        Initial data matrix of shape (n_samples, n_features) to be clustered
+    ward : sklearn.cluster.FeatureAgglomeration
+        Ward clustering estimator instance
+    train_index : array-like
+        Indices of samples to use for computing the clustering
+
+    Returns
+    -------
+    tuple
+        - X_reduced : numpy.ndarray
+            Transformed data matrix after applying Ward clustering
+        - ward : sklearn.cluster.FeatureAgglomeration
+            Fitted Ward clustering estimator
+    """
     ward = ward.fit(X_init[train_index, :])
     X_reduced = ward.transform(X_init)
     return X_reduced, ward
@@ -209,6 +232,9 @@ def clustered_inference(
     4. Perform statistical inference using desparsified lasso
     """
     memory = check_memory(memory=memory)
+    assert issubclass(ward.__class__, FeatureAgglomeration),\
+        'ward need to an instance of sklearn.cluster.FeatureAgglomeration'
+        
     n_samples, n_features = X_init.shape
 
     if verbose > 0:
@@ -434,6 +460,8 @@ def ensemble_clustered_inference(
     .. footbibliography::
     """
     memory = check_memory(memory=memory)
+    assert issubclass(ward.__class__, FeatureAgglomeration),\
+        'ward need to an instance of sklearn.cluster.FeatureAgglomeration'
 
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
