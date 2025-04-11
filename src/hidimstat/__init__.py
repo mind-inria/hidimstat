@@ -23,6 +23,7 @@ from .knockoffs import (
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_importance import PermutationImportance
+from .utils import quantile_aggregation
 from .dcrt import dcrt_zero, dcrt_pvalue
 from .permutation_test import permutation_test, permutation_test_pval
 
@@ -32,6 +33,7 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    "quantile_aggregation",
     "clustered_inference",
     "clustered_inference_pvalue",
     "ensemble_clustered_inference",

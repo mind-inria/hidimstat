@@ -5,7 +5,9 @@ from sklearn.utils import resample
 ########################## quantile aggregation method ##########################
 def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
     """
-    Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.
+    Implements the quantile aggregation method for p-values.
+
+    This method is based on :footcite:t:meinshausen2009pvalues.
 
     The function aggregates multiple p-values into a single p-value while controlling
     the family-wise error rate. It supports both fixed and adaptive quantile aggregation.
@@ -46,7 +48,9 @@ def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
 
 def fixed_quantile_aggregation(pvals, gamma=0.5):
     """
-    Quantile aggregation function based on :cite:meinshausen2009p
+    Quantile aggregation function
+
+    For more details, see footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------
@@ -73,7 +77,9 @@ def fixed_quantile_aggregation(pvals, gamma=0.5):
 
 def adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """
-    Adaptive version of quantile aggregation method based on :cite:meinshausen2009p
+    Adaptive version of quantile aggregation method
+
+    For more details, see footcite:t:meinshausen2009pvalues
 
     Parameters
     ----------

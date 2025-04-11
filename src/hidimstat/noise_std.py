@@ -24,12 +24,12 @@ def reid(
     estimation.
 
     This implementation follows the procedure described in
-    :footcite:`fan2012variance` and :cite:`reid2016study`. It uses Lasso with
+    :footcite:t:`fan2012variance` and :footcite:t:`reid2016study`. It uses Lasso with
     cross-validation to estimate both the noise standard deviation and model
     coefficients.
 
     For group, the implementation is based on the procedure
-    from :footcite:`chevalier2020statistical`.
+    from :footcite:t:`chevalier2020statistical`.
 
     Parameters
     ----------
