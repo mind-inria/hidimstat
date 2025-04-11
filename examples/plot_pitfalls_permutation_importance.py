@@ -28,6 +28,8 @@ from sklearn.preprocessing import StandardScaler
 from hidimstat import CPI, PermutationImportance
 from hidimstat.conditional_sampling import ConditionalSampler
 
+rng = np.random.RandomState(0)
+
 #############################################################################
 # Load the California housing dataset and add a spurious feature
 # ------------------------------------------------------------------
@@ -39,7 +41,6 @@ dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
 # only use 2/3 of samples to speed up the example
 X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=0, shuffle=True)
-rng = np.random.RandomState(0)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
