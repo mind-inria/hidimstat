@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>hidimstat.permutation_test_pval &#8212; HiDimStat</title>
+    <title>hidimstat.dcrt_zero &#8212; HiDimStat</title>
   
   
   
@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=460dca9a"></script>
+    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.permutation_test_pval';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.dcrt_zero';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="hidimstat.empirical_thresholding" href="hidimstat.empirical_thresholding.html" />
-    <link rel="prev" title="hidimstat.permutation_test" href="hidimstat.permutation_test.html" />
+    <link rel="next" title="hidimstat.dcrt_pvalue" href="hidimstat.dcrt_pvalue.html" />
+    <link rel="prev" title="hidimstat.clustered_inference" href="hidimstat.clustered_inference.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,20 +334,20 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.dcrt_zero</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.knockoff_aggregation.html">hidimstat.knockoff_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.model_x_knockoff.html">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.permutation_test_pval</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.empirical_thresholding.html">hidimstat.empirical_thresholding</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.zscore_from_pval.html">hidimstat.zscore_from_pval</a></li>
 </ul>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.BasePerturbation.html">hidimstat.BasePerturbation</a></li>
@@ -397,7 +397,7 @@
     
     <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.permutation_test_pval</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">hidimstat.dcrt_zero</span></li>
   </ul>
 </nav>
 </div>
@@ -414,39 +414,100 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="hidimstat-permutation-test-pval">
-<h1>hidimstat.permutation_test_pval<a class="headerlink" href="#hidimstat-permutation-test-pval" title="Link to this heading">#</a></h1>
+  <section id="hidimstat-dcrt-zero">
+<h1>hidimstat.dcrt_zero<a class="headerlink" href="#hidimstat-dcrt-zero" title="Link to this heading">#</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="hidimstat.permutation_test_pval">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">permutation_test_pval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_distribution</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/permutation_test.py#L78-L108"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.permutation_test_pval" title="Link to this definition">#</a></dt>
-<dd><p>Compute p-value from permutation test</p>
+<dt class="sig sig-object py" id="hidimstat.dcrt_zero">
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">dcrt_zero</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimated_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_X</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_screening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'alpha':</span> <span class="pre">np.float64(0.029080693703091007),</span> <span class="pre">'alpha_max_fraction':</span> <span class="pre">0.5,</span> <span class="pre">'alphas':</span> <span class="pre">None,</span> <span class="pre">'cv':</span> <span class="pre">5,</span> <span class="pre">'fit_intercept':</span> <span class="pre">False,</span> <span class="pre">'max_iter':</span> <span class="pre">1000,</span> <span class="pre">'n_alphas':</span> <span class="pre">10,</span> <span class="pre">'selection':</span> <span class="pre">'cyclic',</span> <span class="pre">'tol':</span> <span class="pre">1e-06}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_distillation_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params_lasso_distillation_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">screening</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">screening_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">statistic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'residual'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fit_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">problem_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regression'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2022</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/dcrt.py#L12-L223"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.dcrt_zero" title="Link to this definition">#</a></dt>
+<dd><p>Implements distilled conditional randomization test (dCRT) without interactions.</p>
+<p>A faster version of the Conditional Randomization Test
+Candes <em>et al.</em><a class="footnote-reference brackets" href="#footcite-candes2018panning" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> using the distillation process from
+Liu <em>et al.</em><a class="footnote-reference brackets" href="#footcite-liu2022fast" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>. Based on original implementation at:
+<a class="github reference external" href="https://github.com/moleibobliu/Distillation-CRT/">moleibobliu/Distillation-CRT</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>weights</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The weights of the original model.</p>
+<dt><strong>X</strong><span class="classifier">array-like of shape (n_samples, n_features)</span></dt><dd><p>Training data</p>
 </dd>
-<dt><strong>weights_distribution</strong><span class="classifier">ndarray, shape (n_permutations, n_features)</span></dt><dd><p>The distribution of the weights of the model obtained by shuffling</p>
+<dt><strong>y</strong><span class="classifier">array-like of shape (n_samples,)</span></dt><dd><p>Target values</p>
+</dd>
+<dt><strong>estimated_coef</strong><span class="classifier">array-like of shape (n_features,), optional</span></dt><dd><p>Pre-computed feature coefficients</p>
+</dd>
+<dt><strong>sigma_X</strong><span class="classifier">array-like of shape (n_features, n_features), optional</span></dt><dd><p>Covariance matrix of X</p>
+</dd>
+<dt><strong>params_lasso_screening</strong><span class="classifier">dict</span></dt><dd><p>Parameters for main Lasso estimation or crossvalidation Lasso, including:
+- alpha : float, optional - L1 regularization strength. If None, determined by CV.
+- n_alphas : int, default=0 - Number of alphas for cross-validation.
+- alphas : array-like, default=None - List of alpha values to try in CV.
+- alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
+For other parameters see :py:func:LassoCV, here is some advise configuration
+- cv : int, default=5 - Number of cross-validation folds.
+- tol : float, default=1e-6 - Tolerance for optimization.
+- max_iter : int, default=1000 - Maximum iterations.
+- fit_intercept : bool, default=False - Whether to fit intercept.
+- selection : str, default=’cyclic’ - Feature selection method.</p>
+</dd>
+<dt><strong>params_lasso_distillation_x</strong><span class="classifier">dict, optional</span></dt><dd><p>Parameters for X distillation Lasso. Defaults to params_lasso_screening.</p>
+</dd>
+<dt><strong>params_lasso_distillation_y</strong><span class="classifier">dict, optional</span></dt><dd><p>Parameters for y distillation Lasso. Defaults to params_lasso_screening.</p>
+</dd>
+<dt><strong>refit</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to refit on estimated support set</p>
+</dd>
+<dt><strong>screening</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to screen variables</p>
+</dd>
+<dt><strong>screening_threshold</strong><span class="classifier">float, default=0.1</span></dt><dd><p>Threshold for variable screening (0-100)</p>
+</dd>
+<dt><strong>statistic</strong><span class="classifier">{‘residual’, ‘random_forest’}, default=’residual’</span></dt><dd><p>Learning method for outcome distillation</p>
+</dd>
+<dt><strong>centered</strong><span class="classifier">bool, default=True</span></dt><dd><p>Whether to standardize features</p>
+</dd>
+<dt><strong>n_jobs</strong><span class="classifier">int, default=1</span></dt><dd><p>Number of parallel jobs</p>
+</dd>
+<dt><strong>joblib_verbose</strong><span class="classifier">int, default=0</span></dt><dd><p>Verbosity level</p>
+</dd>
+<dt><strong>fit_y</strong><span class="classifier">bool, default=False</span></dt><dd><p>Whether to fit y using selected features</p>
+</dd>
+<dt><strong>n_tree</strong><span class="classifier">int, default=100</span></dt><dd><p>Number of trees for random forest</p>
+</dd>
+<dt><strong>problem_type</strong><span class="classifier">{‘regression’, ‘classification’}, default=’regression’</span></dt><dd><p>Type of learning problem</p>
+</dd>
+<dt><strong>random_state</strong><span class="classifier">int, default=2022</span></dt><dd><p>Random seed</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>p-value corrected for multiple testing, with numerically accurate
-values for positive effects (ie., for p-value close to zero).</p>
+<dt><strong>selection_features</strong><span class="classifier">ndarray of shape (n_features,)</span></dt><dd><p>Boolean mask of selected features</p>
 </dd>
-<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>One minus the corrected p-value, with numerically accurate
-values for negative effects (ie., for p-value close to one).</p>
+<dt><strong>X_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Residuals after X distillation</p>
+</dd>
+<dt><strong>sigma2</strong><span class="classifier">ndarray of shape (n_selected,)</span></dt><dd><p>Estimated residual variances</p>
+</dd>
+<dt><strong>y_res</strong><span class="classifier">ndarray of shape (n_selected, n_samples)</span></dt><dd><p>Response residuals</p>
 </dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">References</p>
+<div class="docutils container" id="id3">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-candes2018panning" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Emmanuel Candes, Yingying Fan, Lucas Janson, and Jinchi Lv. Panning for gold:’model-x’ knockoffs for high dimensional controlled variable selection. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em>, 80(3):551–577, 2018.</p>
+</aside>
+<aside class="footnote brackets" id="footcite-liu2022fast" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>Molei Liu, Eugene Katsevich, Lucas Janson, and Aaditya Ramdas. Fast and powerful conditional randomization testing via distillation. <em>Biometrika</em>, 109(2):277–293, 2022.</p>
+</aside>
+</aside>
+</div>
 </dd></dl>
 
-<section id="examples-using-hidimstat-permutation-test-pval">
-<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.permutation_test_pval</span></code><a class="headerlink" href="#examples-using-hidimstat-permutation-test-pval" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
-<p><a class="reference internal" href="../auto_examples/plot_fmri_data_example.html#sphx-glr-auto-examples-plot-fmri-data-example-py"><span class="std std-ref">Support recovery on fMRI data</span></a></p>
-  <div class="sphx-glr-thumbnail-title">Support recovery on fMRI data</div>
+<section id="examples-using-hidimstat-dcrt-zero">
+<h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_zero</span></code><a class="headerlink" href="#examples-using-hidimstat-dcrt-zero" title="Link to this heading">#</a></h2>
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares the performance of d0crt based on the lasso (1) and random forest (2) implementations. The number of repetitions is set to 10. The metrics used are the type-I error and the power"><img alt="" src="../_images/sphx_glr_plot_dcrt_example_thumb.png" />
+<p><a class="reference internal" href="../auto_examples/plot_dcrt_example.html#sphx-glr-auto-examples-plot-dcrt-example-py"><span class="std std-ref">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</div>
 </div></div></section>
 </section>
 
@@ -461,20 +522,20 @@ values for negative effects (ie., for p-value close to one).</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="hidimstat.permutation_test.html"
+       href="hidimstat.clustered_inference.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.permutation_test</p>
+        <p class="prev-next-title">hidimstat.clustered_inference</p>
       </div>
     </a>
     <a class="right-next"
-       href="hidimstat.empirical_thresholding.html"
+       href="hidimstat.dcrt_pvalue.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">hidimstat.empirical_thresholding</p>
+        <p class="prev-next-title">hidimstat.dcrt_pvalue</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -497,8 +558,8 @@ values for negative effects (ie., for p-value close to one).</p>
   </div>
   <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.permutation_test_pval"><code class="docutils literal notranslate"><span class="pre">permutation_test_pval()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-permutation-test-pval">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.permutation_test_pval</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#hidimstat.dcrt_zero"><code class="docutils literal notranslate"><span class="pre">dcrt_zero()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-using-hidimstat-dcrt-zero">Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.dcrt_zero</span></code></a></li>
 </ul>
   </nav></div>
 
@@ -506,7 +567,7 @@ values for negative effects (ie., for p-value close to one).</p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="../_sources/generated/hidimstat.permutation_test_pval.rst.txt"
+      <li><a href="../_sources/generated/hidimstat.dcrt_zero.rst.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div></div>

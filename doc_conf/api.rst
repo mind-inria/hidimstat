@@ -17,20 +17,20 @@ Functions
    :template: function.rst
 
    aggregate_quantiles
+   quantile_aggregation
    clustered_inference
+   dcrt_zero
+   dcrt_pvalue
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    reid
    hd_inference
-   knockoff_aggregation
    model_x_knockoff
    permutation_test
-   permutation_test_pval
    reid
    empirical_thresholding
-   zscore_from_pval
 
 Classes
 =======

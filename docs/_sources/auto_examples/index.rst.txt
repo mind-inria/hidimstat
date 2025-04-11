@@ -36,7 +36,7 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we show an example of variable selection using model-X Knockoffs introduced by :footciteCandes_2018. A notable drawback of this procedure is the randomness associated with the knockoff generation process. This can result in unstable inference.">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we show an example of variable selection using model-X Knockoffs introduced by :footcitecandes2018panning. A notable drawback of this procedure is the randomness associated with the knockoff generation process. This can result in unstable inference.">
 
 .. only:: html
 
@@ -70,7 +70,7 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to :footcitechevalier2022spatially.">
 
 .. only:: html
 
