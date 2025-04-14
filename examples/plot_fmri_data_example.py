@@ -38,6 +38,7 @@ References
 # ------------------------------
 import numpy as np
 import pandas as pd
+from matplotlib.cm import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
 from nilearn.input_data import NiftiMasker
@@ -216,13 +217,14 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         n_jobs=2,
     )
 )
-beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = ensemble_clustered_inference_pvalue(
+beta_hat, selected = ensemble_clustered_inference_pvalue(
     X.shape[0],
     False,
     list_ward,
     list_beta_hat,
     list_theta_hat,
     list_omega_diag,
+    fdr=0.1,
 )
 
 #############################################################################
@@ -268,59 +270,60 @@ zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
 
 def plot_map(
-    pval,
-    one_minus_pval,
-    zscore_threshold,
+    data,
+    threshold,
     title=None,
     cut_coords=[-25, -40, -5],
     masker=masker,
     bg_img=data.bg_img,
+    vmin=None,
+    vmax=None,
 ):
 
-    zscore = zscore_from_pval(pval, one_minus_pval)
-    zscore_img = masker.inverse_transform(zscore)
+    zscore_img = masker.inverse_transform(data)
     plot_stat_map(
         zscore_img,
-        threshold=zscore_threshold,
+        threshold=threshold,
         bg_img=bg_img,
         dim=-1,
         cut_coords=cut_coords,
         title=title,
+        cmap=get_cmap("bwr"),
+        vmin=vmin,
+        vmax=vmax,
     )
 
 
 plot_map(
-    pval_std_svr,
-    one_minus_pval_std_svr,
+    zscore_from_pval(pval_std_svr, one_minus_pval_std_svr),
     zscore_threshold_no_clust,
     title="SVR parametric threshold",
 )
 
 if SVR_permutation_test_inference:
     plot_map(
-        pval_corr_svr_perm_test,
-        one_minus_pval_corr_svr_perm_test,
+        zscore_from_pval(pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test),
         zscore_threshold_corr,
         title="SVR permutation-test thresh.",
     )
 
 plot_map(
-    pval_corr_ridge_perm_test,
-    one_minus_pval_corr_ridge_perm_test,
+    zscore_from_pval(pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test),
     zscore_threshold_corr,
     title="Ridge permutation-test thresh.",
 )
 
 plot_map(
-    pval_ada_svr,
-    one_minus_pval_ada_svr,
+    zscore_from_pval(pval_ada_svr, one_minus_pval_ada_svr),
     zscore_threshold_no_clust,
     title="SVR adaptive perm. tresh.",
 )
 
-plot_map(pval_cdl, one_minus_pval_cdl, zscore_threshold_clust, "CluDL")
+plot_map(
+    zscore_from_pval(pval_cdl, one_minus_pval_cdl), zscore_threshold_clust, "CluDL"
+)
 
-plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
+plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 
 #############################################################################
 # Analysis of the results

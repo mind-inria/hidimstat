@@ -56,21 +56,20 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 
-from hidimstat.ensemble_clustered_inference import (
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
+from hidimstat.desparsified_lasso import (
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
 )
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
 )
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
+from hidimstat.ensemble_clustered_inference import (
+    ensemble_clustered_inference,
+    ensemble_clustered_inference_pvalue,
 )
-from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.scenario import multivariate_simulation
-from hidimstat.stat_tools import zscore_from_pval, pval_from_scale
+from hidimstat.stat_tools import zscore_from_pval
 
 #############################################################################
 # Specific plotting functions
@@ -235,25 +234,6 @@ thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
 beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 #############################################################################
-# Inference with several algorithms
-# ---------------------------------
-#
-# The most naive way to find the true support is to use a threshold
-# using a linear estimator
-
-beta_hat, scale = empirical_thresholding(X_init, y)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_scale(beta_hat, scale)
-
-# compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
-selected_emp_th = zscore > thr_nc  # use the "no clustering threshold"
-
-# compute estimated support (second method)
-selected_emp_th = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
-)
-
-#############################################################################
 # Now, we compute the support estimated by a high-dimensional statistical
 # infernece method that does not leverage the data structure. This method
 # was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
@@ -322,20 +302,14 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         scaler_sampling=StandardScaler(),
     )
 )
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    ensemble_clustered_inference_pvalue(
-        n_samples,
-        False,
-        list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_omega_diag,
-    )
-)
-
-# compute estimated support
-selected_ecdl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
+    n_samples,
+    False,
+    list_ward,
+    list_beta_hat,
+    list_theta_hat,
+    list_omega_diag,
+    fdr=fwer_target,
 )
 
 #############################################################################
@@ -354,11 +328,11 @@ titles.append("True weights")
 maps.append(np.reshape(beta_extended, shape))
 titles.append("True weights \nwith tolerance")
 
-maps.append(np.reshape(selected_emp_th, shape))
-titles.append("Empirical Thresholding")
-
 maps.append(np.reshape(selected_dl, shape))
 titles.append("Desparsified Lasso")
+
+maps.append(None)
+titles.append(None)
 
 maps.append(np.reshape(selected_cdl, shape))
 titles.append("CluDL")
