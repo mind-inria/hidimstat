@@ -1,11 +1,9 @@
 from hidimstat._utils.utils import (
     fdr_threshold,
     cal_fdp_power,
-    quantile_aggregation,
     _alpha_max,
 )
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
-from numpy.testing import assert_array_almost_equal
 import numpy as np
 import pytest
 
@@ -89,37 +87,6 @@ def test_cal_fdp_power():
     fdp, power = cal_fdp_power(np.empty(0), non_zero_index)
     assert fdp == 0.0
     assert power == 0.0
-
-
-def test_quantile_aggregation():
-    """
-    This function tests the application of the quantile aggregation method
-    """
-    col = np.arange(11)
-    p_values = np.tile(col, (10, 1)).T / 100
-
-    assert_array_almost_equal(0.1 * quantile_aggregation(p_values, 0.1), [0.01] * 10)
-    assert_array_almost_equal(0.3 * quantile_aggregation(p_values, 0.3), [0.03] * 10)
-    assert_array_almost_equal(0.5 * quantile_aggregation(p_values, 0.5), [0.05] * 10)
-
-    # with adaptation
-    assert_array_almost_equal(
-        quantile_aggregation(p_values, 0.1, adaptive=True) / (1 - np.log(0.1)),
-        [0.1] * 10,
-    )
-    assert_array_almost_equal(
-        quantile_aggregation(p_values, 0.3, adaptive=True) / (1 - np.log(0.3)),
-        [0.1] * 10,
-    )
-    assert_array_almost_equal(
-        quantile_aggregation(p_values, 0.5, adaptive=True) / (1 - np.log(0.5)),
-        [0.1] * 10,
-    )
-
-    # One p-value within the quantile aggregation method
-    p_values = np.array([0.0])
-
-    assert quantile_aggregation(p_values) == 0.0
 
 
 def test_alpha_max():
