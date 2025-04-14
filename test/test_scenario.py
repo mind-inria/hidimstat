@@ -5,7 +5,7 @@ Test the scenario module
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_simulation,
     multivariate_temporal_simulation,

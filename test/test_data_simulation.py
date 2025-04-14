@@ -1,5 +1,5 @@
 import numpy as np
-from hidimstat.data_simulation import simu_data
+from hidimstat._utils.data_simulation import simu_data
 
 
 def test_simu_data():

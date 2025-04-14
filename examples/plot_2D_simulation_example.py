@@ -58,8 +58,8 @@ from sklearn.feature_extraction import image
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-from hidimstat.scenario import multivariate_simulation
 from hidimstat.stat_tools import zscore_from_pval
+from hidimstat._utils.scenario import multivariate_simulation
 
 #############################################################################
 # Specific plotting functions
