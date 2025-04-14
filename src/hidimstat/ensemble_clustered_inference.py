@@ -3,7 +3,10 @@ from joblib import Parallel, delayed
 from sklearn.utils.validation import check_memory
 
 from hidimstat.clustered_inference import clustered_inference
-from hidimstat.statistical_tools.multi_sample_split import aggregate_medians, aggregate_quantiles
+from hidimstat.statistical_tools.multi_sample_split import (
+    aggregate_medians,
+    aggregate_quantiles,
+)
 
 
 def _ensembling(

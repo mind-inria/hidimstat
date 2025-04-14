@@ -314,20 +314,20 @@ def multivariate_1D_simulation_AR(
     ----------
     n_samples : int
         number of observations
-        
+
     n_features : int
         number of variables
-        
+
     sparsity : float, optional
         ratio of number of variables with non-zero coefficients over total
         coefficients
-        
+
     rho : float, optional
         Level of correlation between neighboring features (if not `shuffle`).
-        
+
     effect : float, optional
         signal magnitude, value of non-null coefficients
-        
+
     seed : None or Int, optional
         random seed for generator
 
@@ -335,13 +335,13 @@ def multivariate_1D_simulation_AR(
     -------
     X : ndarray, shape (n_samples, n_features)
         Design matrix resulted from simulation
-        
+
     y : ndarray, shape (n_samples, )
         Response vector resulted from simulation
-        
+
     beta_true : ndarray, shape (n_samples, )
         Vector of true coefficient value
-        
+
     non_zero : ndarray, shape (n_samples, )
         Vector of non zero coefficients index
 
@@ -357,7 +357,7 @@ def multivariate_1D_simulation_AR(
     Sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
     # X = np.dot(np.random.normal(size=(n, p)), cholesky(Sigma))
     X = rng.multivariate_normal(mu, Sigma, size=(n_samples))
-    
+
     # Generate the response from a linear model
     non_zero = rng.choice(n_features, k, replace=False)
     beta_true = np.zeros(n_features)
