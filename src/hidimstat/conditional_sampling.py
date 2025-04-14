@@ -76,7 +76,7 @@ class ConditionalSampler:
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """
+        r"""
         Fit the model that estimates $\mathbb{E}[y | X]$.
 
         Parameters
@@ -86,15 +86,6 @@ class ConditionalSampler:
         y : ndarray
             The group of variables to predict.
         """
-
-        # if self.data_type == "auto":
-        #     if len(np.unique(y)) <= self.categorical_max_cardinality:
-        #         self.data_type = "categorical"
-        #         self.model = self.model_auto["categorical"]
-        #     else:
-        #         self.data_type = "continuous"
-        #         self.model = self.model_auto["continuous"]
-
         self.data_type = _check_data_type(
             self.data_type, y, self.categorical_max_cardinality
         )
@@ -115,6 +106,8 @@ class ConditionalSampler:
             self.multioutput_ = True
         else:
             self.multioutput_ = False
+        if self.model is None:
+            raise AttributeError(f"No model was provided for {self.data_type} data")
         self.model.fit(X, y)
 
     def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:

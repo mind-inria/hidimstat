@@ -223,6 +223,7 @@ def desparsified_lasso_pvalue(
 ):
     """
     Calculate confidence intervals and p-values for desparsified lasso estimators.
+
     This function computes confidence intervals for the desparsified lasso
     estimator beta_hat.
     It can also return p-values derived from these confidence intervals.
