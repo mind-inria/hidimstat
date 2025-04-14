@@ -77,7 +77,7 @@ def _generate_2D_weight(shape, roi_size):
         Shape of the 2D data array for which to generate weights.
         n_x : int
             Size in x dimension
-        n_z : int  
+        n_z : int
             Size in z dimension
     roi_size : int
         Size of the edge length of each square ROI region.
@@ -90,12 +90,12 @@ def _generate_2D_weight(shape, roi_size):
         - First two dimensions match input shape
         - Third dimension contains 5 channels:
             - Channel 0: Upper left ROI weights
-            - Channel 1: Lower right ROI weights  
+            - Channel 1: Lower right ROI weights
             - Channel 2: Upper right ROI weights
             - Channel 3: Lower left ROI weights
             - Channel 4: Background (all zeros)
         Within each ROI region the weights are set to 1.0, elsewhere 0.0
-    
+
         Create a 2D weight map with four ROIs
     """
 
@@ -119,7 +119,7 @@ def _generate_3D_weight(shape, roi_size):
         n_x : int
             Size in x dimension
         n_y : int
-            Size in y dimension  
+            Size in y dimension
         n_z : int
             Size in z dimension
     roi_size : int
@@ -169,7 +169,7 @@ def multivariate_simulation(
     n_samples : int, default=100
         Number of samples.
     shape : tuple of int, default=(12, 12)
-        Shape of the data in the simulation. Either (n_x, n_y) for 2D 
+        Shape of the data in the simulation. Either (n_x, n_y) for 2D
         or (n_x, n_y, n_z) for 3D data.
     roi_size : int, default=2
         Size of the edge of the ROIs (Regions of Interest).
@@ -238,13 +238,13 @@ def multivariate_temporal_simulation(
     ----------
     n_samples : int, default=100
         Number of samples.
-    n_features : int, default=500 
+    n_features : int, default=500
         Number of features.
     n_times : int, default=30
         Number of time points.
     support_size : int, default=10
         Size of the row support (number of non-zero coefficient rows).
-    sigma : float, default=1.0 
+    sigma : float, default=1.0
         Standard deviation of the additive white Gaussian noise.
     rho_noise : float, default=0.0
         Level of temporal autocorrelation in the noise. Must be between 0 and 1.
@@ -261,7 +261,7 @@ def multivariate_temporal_simulation(
         Design matrix with Toeplitz correlation structure.
     Y : ndarray of shape (n_samples, n_times)
         Target matrix Y = X @ beta + noise.
-    beta : ndarray of shape (n_features, n_times) 
+    beta : ndarray of shape (n_features, n_times)
         Parameter matrix with first support_size rows equal to 1.
     noise : ndarray of shape (n_samples, n_times)
         Temporally correlated Gaussian noise matrix.

@@ -23,7 +23,5 @@ def _check_vim_predict_method(method):
     else:
         raise ValueError(
             "The method {} is not a valid method "
-            "for variable importance measure prediction".format(
-                method
-            )
+            "for variable importance measure prediction".format(method)
         )

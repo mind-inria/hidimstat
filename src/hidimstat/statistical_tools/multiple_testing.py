@@ -16,7 +16,7 @@ def fdp_power(selected, ground_truth):
     -------
     fdp : float
         False Discovery Proportion (number of false discoveries / total discoveries)
-    power : float 
+    power : float
         Statistical power (number of true discoveries / number of non-null variables)
     """
     # selected is the index list in R and will be different from index of
@@ -78,10 +78,10 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 
 def _bhq_threshold(pvals, fdr=0.1):
     """
-    Standard Benjamini-Hochberg 
+    Standard Benjamini-Hochberg
     for controlling False discovery rate
 
-    Calculate threshold for standard Benjamini-Hochberg procedure 
+    Calculate threshold for standard Benjamini-Hochberg procedure
     :footcite:`benjamini1995controlling,bhy_2001` for False Discovery Rate (FDR)
     control.
 
@@ -155,7 +155,7 @@ def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     controlling FDR
 
     Calculate threshold for Benjamini-Hochberg-Yekutieli procedure
-    :footcite:p:`bhy_2001` for False Discovery Rate control, 
+    :footcite:p:`bhy_2001` for False Discovery Rate control,
     with input shape function :footcite:p:`ramdas2017online`.
 
     Parameters
