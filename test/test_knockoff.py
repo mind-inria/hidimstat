@@ -6,7 +6,7 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
-from hidimstat.statistical_tools.multiple_testing import cal_fdp_power
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 import numpy as np
 import pytest
 from sklearn.covariance import LedoitWolf, GraphicalLassoCV
@@ -32,9 +32,9 @@ def test_knockoff_bootstrap_quantile():
     selected_verbose, aggregated_pval, pvals = model_x_knockoff_bootstrap_quantile(
         test_scores, fdr=fdr
     )
-    fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
+    fdp_verbose, power_verbose = fdp_power(selected_verbose, non_zero_index)
 
-    fdp_no_verbose, power_no_verbose = cal_fdp_power(selected_verbose, non_zero_index)
+    fdp_no_verbose, power_no_verbose = fdp_power(selected_verbose, non_zero_index)
 
     assert pvals.shape == (n_bootstraps, p)
     assert fdp_verbose < 0.5
@@ -60,9 +60,9 @@ def test_knockoff_bootstrap_e_values():
     selected_verbose, aggregated_eval, evals = model_x_knockoff_bootstrap_e_value(
         test_scores, threshold, fdr=fdr
     )
-    fdp_verbose, power_verbose = cal_fdp_power(selected_verbose, non_zero_index)
+    fdp_verbose, power_verbose = fdp_power(selected_verbose, non_zero_index)
 
-    fdp_no_verbose, power_no_verbose = cal_fdp_power(selected_verbose, non_zero_index)
+    fdp_no_verbose, power_no_verbose = fdp_power(selected_verbose, non_zero_index)
 
     assert fdp_verbose < 0.5
     assert power_verbose > 0.1
@@ -133,7 +133,7 @@ def test_model_x_knockoff():
     )
 
     ko_result, pvals = model_x_knockoff_pvalue(test_score, fdr=fdr)
-    fdp, power = cal_fdp_power(ko_result, non_zero)
+    fdp, power = fdp_power(ko_result, non_zero)
     assert fdp <= 0.2
     assert power > 0.7
     assert np.all(0 <= pvals) or np.all(pvals <= 1)
@@ -155,7 +155,7 @@ def test_model_x_knockoff_estimator():
         random_state=seed + 1,
         fdr=fdr,
     )
-    fdp, power = cal_fdp_power(selected, non_zero)
+    fdp, power = fdp_power(selected, non_zero)
 
     assert fdp <= 0.2
     assert power > 0.7

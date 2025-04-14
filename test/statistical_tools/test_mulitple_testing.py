@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hidimstat.statistical_tools.multiple_testing import cal_fdp_power, fdr_threshold
+from hidimstat.statistical_tools.multiple_testing import fdp_power, fdr_threshold
 
 
 def test_fdr_threshold():
@@ -59,7 +59,7 @@ def test_fdr_threshold_extreme_values():
     assert np.isinf(ebh_cutoff)
 
 
-def test_cal_fdp_power():
+def test_fdp_power():
     """
     This function tests the computation of power and False Discovery Proportion
     (FDP)
@@ -71,12 +71,12 @@ def test_cal_fdp_power():
     # 2 False Positives and 3 False Negatives
     non_zero_index = np.concatenate([np.arange(18), [35, 36, 37]])
 
-    fdp, power = cal_fdp_power(selected, non_zero_index)
+    fdp, power = fdp_power(selected, non_zero_index)
 
     assert fdp == 2 / len(selected)
     assert power == 18 / len(non_zero_index)
 
     # test empty selection
-    fdp, power = cal_fdp_power(np.empty(0), non_zero_index)
+    fdp, power = fdp_power(np.empty(0), non_zero_index)
     assert fdp == 0.0
     assert power == 0.0

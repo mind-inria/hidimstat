@@ -34,7 +34,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_pvalue,
 )
-from hidimstat.statistical_tools.multiple_testing import cal_fdp_power
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 
 plt.rcParams.update({"font.size": 26})
@@ -82,7 +82,7 @@ def single_run(
         random_state=seed,
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
-    fdp_mx, power_mx = cal_fdp_power(mx_selection, non_zero_index)
+    fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
 
     # Use p-values aggregation [2]
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
@@ -103,14 +103,14 @@ def single_run(
         test_scores, fdr=fdr, gamma=0.3
     )
 
-    fdp_pval, power_pval = cal_fdp_power(aggregated_ko_selection, non_zero_index)
+    fdp_pval, power_pval = fdp_power(aggregated_ko_selection, non_zero_index)
 
     # Use e-values aggregation [1]
     eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(
         test_scores, threshold, fdr=fdr
     )
 
-    fdp_eval, power_eval = cal_fdp_power(eval_selection, non_zero_index)
+    fdp_eval, power_eval = fdp_power(eval_selection, non_zero_index)
 
     return fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval
 

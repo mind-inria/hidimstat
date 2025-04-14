@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def cal_fdp_power(selected, non_zero_index):
+def fdp_power(selected, ground_truth):
     """
     Calculate False Discovery Proportion and statistical power
 
@@ -9,7 +9,7 @@ def cal_fdp_power(selected, non_zero_index):
     ----------
     selected : ndarray
         Array of indices of selected variables (R-style indexing)
-    non_zero_index : ndarray
+    ground_truth : ndarray
         Array of true non-null variable indices
 
     Returns
@@ -25,9 +25,9 @@ def cal_fdp_power(selected, non_zero_index):
     if selected.size == 0:
         return 0.0, 0.0
 
-    n_positives = len(non_zero_index)
+    n_positives = len(ground_truth)
 
-    true_positive = np.intersect1d(selected, non_zero_index)
+    true_positive = np.intersect1d(selected, ground_truth)
     false_positive = np.setdiff1d(selected, true_positive)
 
     fdp = len(false_positive) / max(1, len(selected))
