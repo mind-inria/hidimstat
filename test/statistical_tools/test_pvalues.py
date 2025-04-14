@@ -5,7 +5,7 @@ Test the stat module
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from hidimstat.statistical_tools.stat_tools import (
+from hidimstat.statistical_tools.pvalues import (
     _replace_infinity,
     pval_corr_from_pval,
     pval_from_cb,
