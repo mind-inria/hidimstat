@@ -37,7 +37,7 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     y : 1D ndarray (n_samples, )
         The target vector.
 
-    n_alphas : int, optional (default=10)
+    n_alphas : int (default=10)
         The number of alpha values to use to instantiate the cross-validation.
 
     Returns
@@ -108,7 +108,7 @@ def model_x_knockoff(
     y : 1D ndarray (n_samples, )
         The target vector.
 
-    estimator : sklearn estimator instance or a cross validation instance, optional
+    estimator : sklearn estimator instance or a cross validation instance
         The estimator used for fitting the data and computing the test statistics.
         This can be any estimator with a `fit` method that accepts a 2D array and
         a 1D array, and a `coef_` attribute that returns a 1D array of coefficients.
@@ -245,11 +245,15 @@ def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq"):
     test_score : 1D array, (n_features, )
         A vector of test statistics.
 
-    fdr : float, optional (default=0.1)
+    fdr : float (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
 
-    fdr_control : str, optional (default="bhq")
+    fdr_control : str (default="bhq")
         The method used to control the False Discovery Rate.
+        Available methods are:
+        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
+        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
 
     Returns
     -------
@@ -283,7 +287,7 @@ def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1):
     ko_threshold : float
         Threshold level.
 
-    fdr : float, optional (default=0.1)
+    fdr : float (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
 
     Returns
@@ -336,19 +340,23 @@ def model_x_knockoff_bootstrap_quantile(
     test_scores : 2D array, (n_bootstraps, n_features)
         A matrix of test statistics for each bootstrap sample.
 
-    fdr : float, optional (default=0.1)
+    fdr : float (default=0.1)
         The desired controlled False Discovery Rate (FDR) level.
 
-    fdr_control : str, optional (default="bhq")
+    fdr_control : str (default="bhq")
         The method used to control the False Discovery Rate.
+        Available methods are:
+        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
+        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
 
-    reshaping_function : function, optional (default=None)
+    reshaping_function : function (default=None)
         A function used to reshape the aggregated p-values before controlling the FDR.
 
-    adaptive_aggregation : bool, optional (default=False)
+    adaptive_aggregation : bool (default=False)
         Whether to use adaptive quantile aggregation.
 
-    gamma : float, optional (default=0.5)
+    gamma : float (default=0.5)
         The quantile level (between 0 and 1) used for aggregation.
         For non-adaptive aggregation, a single gamma value is used.
         For adaptive aggregation, this is the starting point for the grid search
@@ -475,7 +483,7 @@ def _knockoff_threshold(test_score, fdr=0.1):
     test_score : 1D ndarray, shape (n_features, )
         Vector of test statistic.
 
-    fdr : float, optional
+    fdr : float
         Desired controlled FDR (false discovery rate) level.
 
     Returns
