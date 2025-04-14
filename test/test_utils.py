@@ -4,7 +4,7 @@ from hidimstat._utils.utils import (
     quantile_aggregation,
     _alpha_max,
 )
-from hidimstat._utils.data_simulation import simu_data
+from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 from numpy.testing import assert_array_almost_equal
 import numpy as np
 import pytest
@@ -127,7 +127,7 @@ def test_alpha_max():
     n = 500
     p = 100
     snr = 5
-    X, y, beta_true, non_zero = simu_data(n, p, snr=snr, seed=0)
+    X, y, beta_true, non_zero = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
     max_alpha = _alpha_max(X, y)
     max_alpha_noise = _alpha_max(X, y, use_noise_estimate=True)
     # Assert alpha_max is positive

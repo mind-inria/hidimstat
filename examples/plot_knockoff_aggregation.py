@@ -34,7 +34,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_pvalue,
 )
-from hidimstat._utils.data_simulation import simu_data
+from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 from hidimstat._utils.utils import cal_fdp_power
 
 plt.rcParams.update({"font.size": 26})
@@ -63,7 +63,7 @@ def single_run(
     n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, n_jobs, seed=None
 ):
     # Generate data
-    X, y, _, non_zero_index = simu_data(
+    X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_subjects, n_clusters, rho=rho, sparsity=sparsity, seed=seed
     )
 
