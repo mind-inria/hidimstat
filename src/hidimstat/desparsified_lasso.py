@@ -11,7 +11,7 @@ from hidimstat.statistical_tools.p_values import (
     pval_from_two_sided_pval_and_sign,
     pval_from_cb,
 )
-from hidimstat._utils.utils import _alpha_max
+from hidimstat._utils.regression import _alpha_max
 
 
 def _compute_all_residuals(

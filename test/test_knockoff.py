@@ -6,7 +6,7 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
-from hidimstat._utils.utils import cal_fdp_power
+from hidimstat.statistical_tools.multiple_testing import cal_fdp_power
 import numpy as np
 import pytest
 from sklearn.covariance import LedoitWolf, GraphicalLassoCV
