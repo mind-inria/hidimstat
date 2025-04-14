@@ -151,8 +151,10 @@ sns.barplot(
     palette="muted",
     ax=ax,
 )
-ax.set_xlabel("-$\log_{10}(pval)$")
-ax.axvline(-np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\log_{10}(0.05)$")
+ax.set_xlabel("-$\\log_{10}(pval)$")
+ax.axvline(
+    -np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\\log_{10}(0.05)$"
+)
 ax.legend()
 plt.show()
 
