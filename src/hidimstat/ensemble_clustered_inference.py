@@ -9,7 +9,8 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat.utils import _subsampling, adaptive_quantile_aggregation
+from hidimstat.utils import _subsampling
+from hidimstat.utils import fdr_threshold, quantile_aggregation
 
 
 def _ungroup_beta(beta_hat, n_features, ward):
@@ -470,7 +471,7 @@ def ensemble_clustered_inference(
         delayed(clustered_inference)(
             X_init,
             y,
-            ward,
+            clone(ward),
             n_clusters,
             scaler_sampling=scaler_sampling,
             train_size=train_size,
@@ -499,7 +500,11 @@ def ensemble_clustered_inference_pvalue(
     list_beta_hat,
     list_theta_hat,
     list_precision_diag,
-    aggregate_method=adaptive_quantile_aggregation,
+    fdr=0.1,
+    fdr_control="bhq",
+    reshaping_function=None,
+    adaptive_aggregation=False,
+    gamma=0.5,
     n_jobs=None,
     verbose=0,
     **kwargs,
@@ -527,9 +532,20 @@ def ensemble_clustered_inference_pvalue(
         List of estimated precision matrices from each bootstrap
     list_precision_diag : list of ndarray
         List of diagonal elements of covariance matrices from each bootstrap
-    aggregate_method : callable, default=adaptive_quantile_aggregation
-        Function to aggregate results across bootstraps. Must accept a 2D array
-        and return a 1D array of aggregated values.
+    fdr : float, default=0.1
+        False discovery rate threshold for multiple testing correction
+    fdr_control : str, default="bhq"
+        Method for FDR control ('bhq' for Benjamini-Hochberg)
+        Available methods are:
+        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
+        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
+    reshaping_function : callable, optional (default=None)
+        Function to reshape data before FDR control
+    adaptive_aggregation : bool, default=False
+        Whether to use adaptive quantile aggregation
+    gamma : float, default=0.5
+        Quantile level for aggregation
     n_jobs : int or None, optional (default=None)
         Number of parallel jobs. None means using all processors.
     verbose : int, default=0
@@ -541,14 +557,9 @@ def ensemble_clustered_inference_pvalue(
     -------
     beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
         Averaged coefficients across bootstraps
-    pval : ndarray, shape (n_features,)
-        Aggregated p-values for each feature
-    pval_corr : ndarray, shape (n_features,)
-        Aggregated multiple testing corrected p-values
-    one_minus_pval : ndarray, shape (n_features,)
-        Aggregated 1-p values for numerical stability
-    one_minus_pval_corr : ndarray, shape (n_features,)
-        Aggregated 1-corrected p values for numerical stability
+    selected : ndarray, shape (n_features,)
+        Selected features: 1 for positive effects, -1 for negative effects,
+        0 for non-selected features
 
     References
     ----------
@@ -579,9 +590,29 @@ def ensemble_clustered_inference_pvalue(
 
     # Ensembling
     beta_hat = np.mean(list_beta_hat, axis=0)
-    results = [list_pval, list_pval_corr, list_one_minus_pval, list_one_minus_pval_corr]
-    for index, data in enumerate(results):
-        results[index] = aggregate_method(np.asarray(data))
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = results
+    # pvalue selection
+    aggregated_pval = quantile_aggregation(
+        np.array(list_pval), gamma=gamma, adaptive=adaptive_aggregation
+    )
+    threshold_pval = fdr_threshold(
+        aggregated_pval,
+        fdr=fdr,
+        method=fdr_control,
+        reshaping_function=reshaping_function,
+    )
+    # 1-pvalue selection
+    aggregated_one_minus_pval = quantile_aggregation(
+        np.array(list_one_minus_pval), gamma=gamma, adaptive=adaptive_aggregation
+    )
+    threshold_one_minus_pval = fdr_threshold(
+        aggregated_one_minus_pval,
+        fdr=fdr,
+        method=fdr_control,
+        reshaping_function=reshaping_function,
+    )
+    # group seelction
+    selected = np.zeros_like(beta_hat)
+    selected[np.where(aggregated_pval <= threshold_pval)] = 1
+    selected[np.where(aggregated_one_minus_pval <= threshold_one_minus_pval)] = -1
 
-    return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
+    return beta_hat, selected
