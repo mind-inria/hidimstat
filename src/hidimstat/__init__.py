@@ -15,13 +15,11 @@ from .knockoffs import (
     model_x_knockoff_bootstrap_e_value,
 )
 from .leave_one_covariate_out import LOCO
-from .multi_sample_split import aggregate_quantiles
 from .noise_std import reid
 from .permutation_importance import PermutationImportance
-from .utils import quantile_aggregation
+from ._utils.utils import quantile_aggregation
 from .dcrt import dcrt_zero, dcrt_pvalue
 from .permutation_test import permutation_test, permutation_test_pval
-from .stat_tools import zscore_from_pval
 
 try:
     from ._version import __version__
