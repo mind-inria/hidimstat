@@ -64,16 +64,12 @@ plt.show()
 
 
 ###############################################################################
-# Compute variable selection using d0CRT and then LOCO
+# Compute variable selection using d0CRT
 # ---------------------------------------------------------------------------
 # We first compute the p-values using d0CRT which performs a conditional independence
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
-# in the presence of non-linear relationships. We then compute the p-values using LOCO
-# with a linear, and then a non-linear model. When using a
-# misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
-# similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
-# identify the important variables.
+# in the presence of non-linear relationships.
 selection_features, X_residual, sigma2, y_res = dcrt_zero(
     X, y, problem_type="classification", screening=False
 )
@@ -84,7 +80,16 @@ _, pval_dcrt, _ = dcrt_pvalue(
     sigma2=sigma2,
     fdr=0.05,
 )
+
+
+################################################################################
 # Compute p-values using LOCO
+# ---------------------------------------------------------------------------
+# We then compute the p-values using LOCO
+# with a linear, and then a non-linear model. When using a
+# misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
+# similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
+# identify the important variables.
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 non_linear_model = SVC(kernel="rbf", random_state=0)
 linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
@@ -115,6 +120,10 @@ for train, test in cv.split(X):
     )
 
 
+################################################################################
+# To select variables using LOCO, we compute the p-values using a t-test over the
+# importance scores.
+
 _, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
 _, pval_non_linear = ttest_1samp(
     importances_non_linear, 0, axis=0, alternative="greater"
@@ -131,6 +140,8 @@ df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
 
 
 #################################################################################
+# Plot the :math:`-log_{10}(pval)` for each method and variable
+# ---------------------------------------------------------------------------
 fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
