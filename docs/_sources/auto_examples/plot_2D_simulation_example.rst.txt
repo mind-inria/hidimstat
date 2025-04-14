@@ -27,11 +27,10 @@ statistical methods that aim at recovering the support, i.e., predictive
 features. Among those methods some leverage the spatial structure of the
 data. For more details about the inference algorithms presented in this
 example or about the generative process used to simulate the data,
-please refer to Chevalier et al. (2021) [1]_.
+please refer to :footcite:t:`chevalier2022spatially`.
 
 This example corresponds to the experiment described in details in
-Chevalier et al. (2021) [1]_. Shortly, to simulate the data, we draw
-``n_samples`` i.i.d Gaussian vectors of size ``n_features`` and reshape them
+:footcite:t:`chevalier2022spatially`. Shortly, to simulate the data, we draw
 into squares (edges are equal to ``n_features ** (1/2)``). Then, to introduce
 some spatial structure, we apply a Gaussian filter that correlates features
 that are nearby. The 2D data are then flattened into a design matrix ``X`` to
@@ -47,7 +46,7 @@ The results of this experiment show that the methods that leverage the spatial
 structure of the data are relevant. More precisely, we show that clustered
 inference algorithms (e.g., CluDL) and ensembled clustered inference algorithms
 (e.g., EnCluDL) are more powerful than the standard inference methods (see also
-Chevalier et al. (2021) [1]_). Indeed, when the number of features is much
+:footcite:t:`chevalier2022spatially`). Indeed, when the number of features is much
 greater than the number of samples, standard statistical methods are
 unlikely to recover the support. Then, the idea of clustered inference is to
 compress the data without breaking the spatial structure, leading to a
@@ -60,18 +59,13 @@ spatial compression, ensembled clustered inference algorithms reduce
 significantly the spatial uncertainty compared to clustered inference
 algorithms which consider only one spatial compression.
 
-.. _References:
-
 References
 ----------
-.. [1] Chevalier, J. A., Nguyen, T. B., Thirion, B., & Salmon, J. (2021).
-       Spatially relaxed inference on high-dimensional linear models.
-       arXiv preprint arXiv:2106.02590.
+.. footbibliography::
 
-.. GENERATED FROM PYTHON SOURCE LINES 53-56
+.. GENERATED FROM PYTHON SOURCE LINES 49-51
 
 .. code-block:: Python
-
 
     import matplotlib.pyplot as plt
 
@@ -82,12 +76,12 @@ References
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 57-59
+.. GENERATED FROM PYTHON SOURCE LINES 52-54
 
 Imports needed for this script
 ------------------------------
 
-.. GENERATED FROM PYTHON SOURCE LINES 59-72
+.. GENERATED FROM PYTHON SOURCE LINES 54-64
 
 .. code-block:: Python
 
@@ -96,10 +90,7 @@ Imports needed for this script
     from sklearn.feature_extraction import image
 
     from hidimstat.clustered_inference import clustered_inference
-    from hidimstat.desparsified_lasso import (
-        desparsified_lasso,
-        desparsified_lasso_pvalue,
-    )
+    from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.scenario import multivariate_simulation
     from hidimstat.stat_tools import zscore_from_pval
@@ -111,7 +102,7 @@ Imports needed for this script
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 73-81
+.. GENERATED FROM PYTHON SOURCE LINES 65-73
 
 Specific plotting functions
 ---------------------------
@@ -122,7 +113,7 @@ you can skip this section.
 The following function builds a 2D map with four active regions that are
 enfolded by thin tolerance regions.
 
-.. GENERATED FROM PYTHON SOURCE LINES 81-113
+.. GENERATED FROM PYTHON SOURCE LINES 73-105
 
 .. code-block:: Python
 
@@ -165,12 +156,12 @@ enfolded by thin tolerance regions.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 114-116
+.. GENERATED FROM PYTHON SOURCE LINES 106-108
 
 To generate a plot that exhibits the true support and the estimated
 supports for every method, we define the two following functions:
 
-.. GENERATED FROM PYTHON SOURCE LINES 116-155
+.. GENERATED FROM PYTHON SOURCE LINES 108-147
 
 .. code-block:: Python
 
@@ -220,7 +211,7 @@ supports for every method, we define the two following functions:
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 156-162
+.. GENERATED FROM PYTHON SOURCE LINES 148-154
 
 Generating the data
 -------------------
@@ -229,7 +220,7 @@ After setting the simulation parameters, we run the function that generates
 the 2D scenario that we have briefly described in the first section of this
 example.
 
-.. GENERATED FROM PYTHON SOURCE LINES 162-176
+.. GENERATED FROM PYTHON SOURCE LINES 154-168
 
 .. code-block:: Python
 
@@ -254,7 +245,7 @@ example.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 177-194
+.. GENERATED FROM PYTHON SOURCE LINES 169-186
 
 Choosing inference parameters
 -----------------------------
@@ -266,7 +257,7 @@ the number of samples (small datasets require more dimension reduction) and
 the required spatial tolerance (small clusters lead to limited spatial
 uncertainty). Formally, "spatial tolerance" is defined by the largest
 distance from the true support for which the occurence of a false discovery
-is not statistically controlled (c.f. :ref:`References`).
+is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
 Theoretically, the spatial tolerance ``delta`` is equal to the largest
 cluster diameter. However this choice is conservative, notably in the case
 of ensembled clustered inference. For these algorithms, we recommend to take
@@ -274,7 +265,7 @@ the average cluster radius. In this example, we choose ``n_clusters = 200``,
 leading to a theoretical spatial tolerance ``delta = 6``, which is still
 conservative (see Results).
 
-.. GENERATED FROM PYTHON SOURCE LINES 194-205
+.. GENERATED FROM PYTHON SOURCE LINES 186-197
 
 .. code-block:: Python
 
@@ -296,7 +287,7 @@ conservative (see Results).
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 206-216
+.. GENERATED FROM PYTHON SOURCE LINES 198-208
 
 Computing z-score thresholds for support estimation
 ---------------------------------------------------
@@ -309,7 +300,7 @@ consists in dividing the targeted FWER target by the number of features.
 For methods that group features into clusters, the correction
 consists in dividing by the number of clusters.
 
-.. GENERATED FROM PYTHON SOURCE LINES 216-224
+.. GENERATED FROM PYTHON SOURCE LINES 208-216
 
 .. code-block:: Python
 
@@ -328,7 +319,7 @@ consists in dividing by the number of clusters.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 225-230
+.. GENERATED FROM PYTHON SOURCE LINES 217-222
 
 Inference with several algorithms
 ---------------------------------
@@ -336,7 +327,7 @@ Inference with several algorithms
 First, we compute a reference map that exhibits the true support and
 the theoretical tolerance region.
 
-.. GENERATED FROM PYTHON SOURCE LINES 230-234
+.. GENERATED FROM PYTHON SOURCE LINES 222-226
 
 .. code-block:: Python
 
@@ -351,7 +342,7 @@ the theoretical tolerance region.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 235-241
+.. GENERATED FROM PYTHON SOURCE LINES 227-233
 
 Now, we compute the support estimated by a high-dimensional statistical
 infernece method that does not leverage the data structure. This method
@@ -360,7 +351,7 @@ and Van de Geer, S. et al.. (2014) (full references are available at
 https://mind-inria.github.io/hidimstat/).
 and referred to as Desparsified Lasso.
 
-.. GENERATED FROM PYTHON SOURCE LINES 241-257
+.. GENERATED FROM PYTHON SOURCE LINES 233-249
 
 .. code-block:: Python
 
@@ -393,13 +384,13 @@ and referred to as Desparsified Lasso.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 258-261
+.. GENERATED FROM PYTHON SOURCE LINES 250-253
 
 Now, we compute the support estimated using a clustered inference algorithm
-(c.f. :ref:`References`) called Clustered Desparsified Lasso (CluDL) since it
-uses the Desparsified Lasso technique after clustering the data.
+(c.f. :footcite:t:`chevalier2022spatially`) called Clustered Desparsified Lasso
+(CluDL) since it uses the Desparsified Lasso technique after clustering the data.
 
-.. GENERATED FROM PYTHON SOURCE LINES 261-283
+.. GENERATED FROM PYTHON SOURCE LINES 253-275
 
 .. code-block:: Python
 
@@ -440,15 +431,15 @@ uses the Desparsified Lasso technique after clustering the data.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 284-289
+.. GENERATED FROM PYTHON SOURCE LINES 276-281
 
 Finally, we compute the support estimated by an ensembled clustered
-inference algorithm (c.f. :ref:`References`). This algorithm is called
+inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
 Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
 CluDL algorithms with different clustering choices. The different CluDL
 solutions are then aggregated into one.
 
-.. GENERATED FROM PYTHON SOURCE LINES 289-300
+.. GENERATED FROM PYTHON SOURCE LINES 281-292
 
 .. code-block:: Python
 
@@ -550,7 +541,7 @@ solutions are then aggregated into one.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 301-306
+.. GENERATED FROM PYTHON SOURCE LINES 293-298
 
 Results
 -------
@@ -558,7 +549,7 @@ Results
 Now we plot the true support, the theoretical tolerance regions and
 the estimated supports for every method.
 
-.. GENERATED FROM PYTHON SOURCE LINES 306-330
+.. GENERATED FROM PYTHON SOURCE LINES 298-322
 
 .. code-block:: Python
 
@@ -598,7 +589,7 @@ the estimated supports for every method.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 331-344
+.. GENERATED FROM PYTHON SOURCE LINES 323-336
 
 Analysis of the results
 -----------------------
@@ -617,7 +608,7 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 3.077 seconds)
+   **Total running time of the script:** (1 minutes 2.484 seconds)
 
 **Estimated memory usage:**  257 MB
 

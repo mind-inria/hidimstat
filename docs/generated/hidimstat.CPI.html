@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=59a624d0"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.CPI';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -424,7 +424,7 @@
 <dt class="sig sig-object py" id="hidimstat.CPI.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss:</span> <span class="pre">callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">root_mean_squared_error&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'predict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_permutations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputation_model_continuous=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imputation_model_categorical=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">categorical_max_cardinality:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/conditional_permutation_importance.py#L12-L75"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Conditional Permutation Importance (CPI) algorithm.
-CHAMMA <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and for group-level see
+Chamma <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> and for group-level see
 Chamma <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-aaai2024" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -464,11 +464,11 @@ when the variable type is inferred (set to “auto” or not provided).</p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-chamma-neurips2023" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Ahmad CHAMMA, Denis A. Engemann, and Bertrand Thirion. Statistically valid variable importance assessment through conditional permutations. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, editors, <em>Advances in Neural Information Processing Systems</em>, volume 36, 67662–67685. Curran Associates, Inc., 2023. URL: <a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf">https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf</a>.</p>
+<p>Ahmad Chamma, Denis A. Engemann, and Bertrand Thirion. Statistically valid variable importance assessment through conditional permutations. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, editors, <em>Advances in Neural Information Processing Systems</em>, volume 36, 67662–67685. Curran Associates, Inc., 2023. URL: <a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf">https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-chamma-aaai2024" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p>Ahmad Chamma, Bertrand Thirion, and Denis Engemann. Variable importance in high-dimensional settings requires grouping. <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, 38(10):11195–11203, Mar. 2024. URL: <a class="reference external" href="https://ojs.aaai.org/index.php/AAAI/article/view/28997">https://ojs.aaai.org/index.php/AAAI/article/view/28997</a>, <a class="reference external" href="https://doi.org/10.1609/aaai.v38i10.28997">doi:10.1609/aaai.v38i10.28997</a>.</p>
+<p>Ahmad Chamma, Bertrand Thirion, and Denis Engemann. Variable importance in high-dimensional settings requires grouping. <em>Proceedings of the AAAI Conference on Artificial Intelligence</em>, 38(10):11195–11203, 2024. URL: <a class="reference external" href="https://ojs.aaai.org/index.php/AAAI/article/view/28997">https://ojs.aaai.org/index.php/AAAI/article/view/28997</a>, <a class="reference external" href="https://doi.org/10.1609/aaai.v38i10.28997">doi:10.1609/aaai.v38i10.28997</a>.</p>
 </aside>
 </aside>
 </div>
@@ -542,7 +542,7 @@ contained subobjects that are estimators.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hidimstat.CPI.importance">
-<span class="sig-name descname"><span class="pre">importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L111-L153"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.importance" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L113-L155"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.importance" title="Link to this definition">#</a></dt>
 <dd><p>Compute the importance scores for each group of covariates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -568,7 +568,7 @@ for each group.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="hidimstat.CPI.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L86-L109"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.predict" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/base_perturbation.py#L88-L111"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.CPI.predict" title="Link to this definition">#</a></dt>
 <dd><p>Compute the predictions after perturbation of the data for each group of
 variables.</p>
 <dl class="field-list simple">
@@ -666,6 +666,9 @@ possible to update each component of a nested object.</p>
 </div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate how to measure variable importance in a classification context. The problem under consideration is a binary classification where the target variable is generated using a non-linear function of the features. Therefore illustrating the importance of model-agnostic variable importance methods, which, as opposed to linear models for instance, can capture non-linear relationships. The features are generated from a multivariate normal distribution with a Toeplitz correlation matrix. This second specificity of the problem is interesting to exemplify the benefits of the conditional permutation importance (CPI) method [:footciteChamma_NeurIPS2023] over the standard permutation importance (PI) method [:footcitebreimanRandomForests2001]."><img alt="" src="../_images/sphx_glr_plot_variable_importance_classif_thumb.png" />
 <p><a class="reference internal" href="../auto_examples/plot_variable_importance_classif.html#sphx-glr-auto-examples-plot-variable-importance-classif-py"><span class="std std-ref">Measuring variable importance in classification</span></a></p>
   <div class="sphx-glr-thumbnail-title">Measuring variable importance in classification</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate the pitfalls of using permutation feature importance (PFI) on the California housing dataset. PFI measures the importance of a variable. However, it does not measure conditional importance and does not provide statistical control over the risk of making false discoveries, i.e., the risk of declaring a variable as important when it is not."><img alt="" src="../_images/sphx_glr_plot_pitfalls_permutation_importance_thumb.png" />
+<p><a class="reference internal" href="../auto_examples/plot_pitfalls_permutation_importance.html#sphx-glr-auto-examples-plot-pitfalls-permutation-importance-py"><span class="std std-ref">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</div>
 </div></div><div style='clear:both'></div></section>
 </section>
 

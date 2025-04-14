@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=59a624d0"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.empirical_thresholding';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -424,7 +424,7 @@ estimator.</p>
 <p>This function fits a linear estimator to the input data and target,
 and then uses the estimated coefficients to perform empirical thresholding.
 The threshold is calculated for keeping only extreme coefficients.
-For more details, see section 6.3.2 of .</p>
+For more details, see section 6.3.2 of Chevalier<a class="footnote-reference brackets" href="#footcite-chevalier-statistical-2020" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -461,6 +461,14 @@ coefficients multiplied by the square root of the number of features.
 This is based on the assumption that the coefficients follow a normal
 distribution with mean zero.</p>
 <p class="rubric">References</p>
+<div class="docutils container" id="id2">
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="footcite-chevalier-statistical-2020" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Jérôme-Alexis Chevalier. Statistical control of sparse models in high dimension. <em>Université Paris-Saclay</em>, 2020. URL: <a class="reference external" href="https://theses.hal.science/tel-03147200">https://theses.hal.science/tel-03147200</a>.</p>
+</aside>
+</aside>
+</div>
 </dd></dl>
 
 <section id="examples-using-hidimstat-empirical-thresholding">

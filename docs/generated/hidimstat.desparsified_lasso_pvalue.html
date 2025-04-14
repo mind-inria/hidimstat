@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=59a624d0"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.desparsified_lasso_pvalue';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -418,54 +418,53 @@
 <h1>hidimstat.desparsified_lasso_pvalue<a class="headerlink" href="#hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.desparsified_lasso_pvalue">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L214-L285"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso_pvalue" title="Link to this definition">#</a></dt>
-<dd><p>Calculate confidence intervals and p-values for desparsified lasso estimators.
-This function computes confidence intervals for the desparsified lasso
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">desparsified_lasso_pvalue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision_diagonal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'norm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-14</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/desparsified_lasso.py#L215-L289"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.desparsified_lasso_pvalue" title="Link to this definition">#</a></dt>
+<dd><p>Calculate confidence intervals and p-values for desparsified lasso estimators.</p>
+<p>This function computes confidence intervals for the desparsified lasso
 estimator beta_hat.
-It can also return p-values derived from these confidence intervals.
-Parameters
-———-
-n_samples : float</p>
-<blockquote>
-<div><p>The number of samples</p>
-</div></blockquote>
-<dl class="simple">
-<dt>beta_hat<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The desparsified lasso coefficient estimates.</p>
+It can also return p-values derived from these confidence intervals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_samples</strong><span class="classifier">float</span></dt><dd><p>The number of samples</p>
 </dd>
-<dt>sigma_hat<span class="classifier">float</span></dt><dd><p>Estimated noise level.</p>
+<dt><strong>beta_hat</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>The desparsified lasso coefficient estimates.</p>
 </dd>
-<dt>precision_diagonal<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix estimate.</p>
+<dt><strong>sigma_hat</strong><span class="classifier">float</span></dt><dd><p>Estimated noise level.</p>
 </dd>
-<dt>confidence<span class="classifier">float, default=0.95</span></dt><dd><p>Confidence level for intervals, must be in [0, 1].</p>
+<dt><strong>precision_diagonal</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Diagonal elements of the precision matrix estimate.</p>
 </dd>
-<dt>distribution<span class="classifier">str, default=”norm”</span></dt><dd><p>Distribution to use for p-value calculation.
+<dt><strong>confidence</strong><span class="classifier">float, default=0.95</span></dt><dd><p>Confidence level for intervals, must be in [0, 1].</p>
+</dd>
+<dt><strong>distribution</strong><span class="classifier">str, default=”norm”</span></dt><dd><p>Distribution to use for p-value calculation.
 Currently only “norm” supported.</p>
 </dd>
-<dt>epsilon<span class="classifier">float, default=1e-14</span></dt><dd><p>Small value to avoid numerical issues in p-value calculation.</p>
+<dt><strong>epsilon</strong><span class="classifier">float, default=1e-14</span></dt><dd><p>Small value to avoid numerical issues in p-value calculation.</p>
 </dd>
 </dl>
-<section id="returns">
-<h2>Returns<a class="headerlink" href="#returns" title="Link to this heading">#</a></h2>
-<dl class="simple">
-<dt>pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values</p>
 </dd>
-<dt>pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Corrected p-values</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>P-values</p>
 </dd>
-<dt>one_minus_pval<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values</p>
+<dt><strong>pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Corrected p-values</p>
 </dd>
-<dt>one_minus_pval_corr<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values</p>
+<dt><strong>one_minus_pval</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - p-values</p>
 </dd>
-<dt>confidence_bound_min<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Lower bounds of confidence intervals</p>
+<dt><strong>one_minus_pval_corr</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>1 - corrected p-values</p>
 </dd>
-<dt>confidence_bound_max<span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Upper bounds of confidence intervals</p>
+<dt><strong>confidence_bound_min</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Lower bounds of confidence intervals</p>
+</dd>
+<dt><strong>confidence_bound_max</strong><span class="classifier">ndarray, shape (n_features,)</span></dt><dd><p>Upper bounds of confidence intervals</p>
 </dd>
 </dl>
-</section>
+</dd>
+</dl>
 </dd></dl>
 
 <section id="examples-using-hidimstat-desparsified-lasso-pvalue">
 <h2>Examples using <code class="docutils literal notranslate"><span class="pre">hidimstat.desparsified_lasso_pvalue</span></code><a class="headerlink" href="#examples-using-hidimstat-desparsified-lasso-pvalue" title="Link to this heading">#</a></h2>
-<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to Chevalier et al. (2021) [1]_."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
+<div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example shows the advantages of spatially relaxed inference when dealing with high-dimensional spatial data. To do so, we compare several statistical methods that aim at recovering the support, i.e., predictive features. Among those methods some leverage the spatial structure of the data. For more details about the inference algorithms presented in this example or about the generative process used to simulate the data, please refer to :footcitechevalier2022spatially."><img alt="" src="../_images/sphx_glr_plot_2D_simulation_example_thumb.png" />
 <p><a class="reference internal" href="../auto_examples/plot_2D_simulation_example.html#sphx-glr-auto-examples-plot-2d-simulation-example-py"><span class="std std-ref">Support recovery on simulated data (2D)</span></a></p>
   <div class="sphx-glr-thumbnail-title">Support recovery on simulated data (2D)</div>
 </div></div></section>

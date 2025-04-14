@@ -42,13 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=59a624d0"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_variable_importance_classif';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset" href="plot_pitfalls_permutation_importance.html" />
     <link rel="prev" title="Support recovery on fMRI data" href="plot_fmri_data_example.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -339,6 +340,7 @@
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Measuring variable importance in classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
 </div>
 </nav></div>
@@ -414,7 +416,7 @@ opposed to linear models for instance, can capture non-linear relationships. The
 features are generated from a multivariate normal distribution with a Toeplitz
 correlation matrix. This second specificity of the problem is interesting to exemplify
 the benefits of the conditional permutation importance (CPI) method
-[CHAMMA <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>] over the standard permutation importance (PI) method
+[Chamma <em>et al.</em><a class="footnote-reference brackets" href="#footcite-chamma-neurips2023" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>] over the standard permutation importance (PI) method
 [Breiman<a class="footnote-reference brackets" href="#footcite-breimanrandomforests2001" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>].</p>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading">#</a></h2>
@@ -422,11 +424,11 @@ the benefits of the conditional permutation importance (CPI) method
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="footcite-chamma-neurips2023" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>Ahmad CHAMMA, Denis A. Engemann, and Bertrand Thirion. Statistically valid variable importance assessment through conditional permutations. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, editors, <em>Advances in Neural Information Processing Systems</em>, volume 36, 67662–67685. Curran Associates, Inc., 2023. URL: <a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf">https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf</a>.</p>
+<p>Ahmad Chamma, Denis A. Engemann, and Bertrand Thirion. Statistically valid variable importance assessment through conditional permutations. In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine, editors, <em>Advances in Neural Information Processing Systems</em>, volume 36, 67662–67685. Curran Associates, Inc., 2023. URL: <a class="reference external" href="https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf">https://proceedings.neurips.cc/paper_files/paper/2023/file/d60e14c19cd6e0fc38556ad29ac8fbc9-Paper-Conference.pdf</a>.</p>
 </aside>
 <aside class="footnote brackets" id="footcite-breimanrandomforests2001" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
-<p>Leo Breiman. Random Forests. <em>Machine Learning</em>, 45(1):5–32, October 2001. <a class="reference external" href="https://doi.org/10.1023/A:1010933404324">doi:10.1023/A:1010933404324</a>.</p>
+<p>Leo Breiman. Random Forests. <em>Machine Learning</em>, 45(1):5–32, 2001. <a class="reference external" href="https://doi.org/10.1023/A:1010933404324">doi:10.1023/A:1010933404324</a>.</p>
 </aside>
 </aside>
 </div>
@@ -527,7 +529,7 @@ feature.</p>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">axes</span></a><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">labels</span></a><span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">])</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7fdbf98572f0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf98cac60&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958e960&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958d0a0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958e1b0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958dd30&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958c470&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbead543b0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbead57770&gt;, &lt;matplotlib.axis.YTick object at 0x7fdbf958c050&gt;]
+<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7ff7a14abc20&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a14ab320&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e0ad80&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e089e0&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e2ed20&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e0a000&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e0af90&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a195f6b0&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a195c890&gt;, &lt;matplotlib.axis.YTick object at 0x7ff7a0e2c440&gt;]
 </pre></div>
 </div>
 </section>
@@ -720,10 +722,10 @@ correlation structure of the features.</p>
 <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend" title="matplotlib.axes.Axes.legend" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a> <span class="o">+</span> <span class="p">[</span><a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">important_legend</span></a><span class="p">,</span> <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ground_truth_legend</span></a><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7fdbead42a80&gt;
+<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7ff7a19288c0&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.770 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.631 seconds)</p>
 <p><strong>Estimated memory usage:</strong>  203 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-variable-importance-classif-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
@@ -758,6 +760,15 @@ correlation structure of the features.</p>
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">Support recovery on fMRI data</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="plot_pitfalls_permutation_importance.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>

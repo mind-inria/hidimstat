@@ -58,7 +58,9 @@ def test_loco(linear_scenario):
         y_train,
         groups=groups,
     )
-    vim = loco.importance(X_test_df, y_test)
+    # warnings because we doesn't considere the name of columns of pandas
+    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
+        vim = loco.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -78,12 +80,13 @@ def test_loco(linear_scenario):
     loco_clf.fit(
         X_train,
         y_train_clf,
-        groups=None,
+        groups={"group_0": important_features, "the_group_1": non_important_features},
     )
     vim_clf = loco_clf.importance(X_test, y_test_clf)
 
     importance_clf = vim_clf["importance"]
-    assert importance_clf.shape == (X.shape[1],)
+    assert importance_clf.shape == (2,)
+    assert importance[0].mean() > importance[1].mean()
 
 
 def test_raises_value_error(

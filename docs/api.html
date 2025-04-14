@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="_static/documentation_options.js?v=59a624d0"></script>
+    <script src="_static/documentation_options.js?v=1c7551b8"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api';</script>
@@ -334,10 +334,10 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.dcrt_pvalue.html">hidimstat.dcrt_pvalue</a></li>
-<li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.data_simulation.html">hidimstat.data_simulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.desparsified_lasso.html">hidimstat.desparsified_lasso</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generated/hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
@@ -423,29 +423,29 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.aggregate_quantiles.html#hidimstat.aggregate_quantiles" title="hidimstat.aggregate_quantiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggregate_quantiles</span></code></a>(list_one_sided_pval[, ...])</p></td>
 <td><p>Aggregation of survival function values by adaptive quantile procedure</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clustered_inference</span></code></a>(X_init, y, ward, n_clusters)</p></td>
-<td><p>Clustered inference algorithm</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.quantile_aggregation.html#hidimstat.quantile_aggregation" title="hidimstat.quantile_aggregation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">quantile_aggregation</span></code></a>(pvals[, gamma, n_grid, ...])</p></td>
+<td><p>Implements the quantile aggregation method for p-values.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.dcrt_zero.html#hidimstat.dcrt_zero" title="hidimstat.dcrt_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dcrt_zero</span></code></a>(X, y[, estimated_coef, sigma_X, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clustered_inference</span></code></a>(X_init, y, ward, n_clusters)</p></td>
+<td><p>Clustered inference algorithm.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.dcrt_zero.html#hidimstat.dcrt_zero" title="hidimstat.dcrt_zero"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dcrt_zero</span></code></a>(X, y[, estimated_coef, sigma_X, ...])</p></td>
 <td><p>Implements distilled conditional randomization test (dCRT) without interactions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.dcrt_pvalue.html#hidimstat.dcrt_pvalue" title="hidimstat.dcrt_pvalue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dcrt_pvalue</span></code></a>(selection_features, X_res, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.dcrt_pvalue.html#hidimstat.dcrt_pvalue" title="hidimstat.dcrt_pvalue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dcrt_pvalue</span></code></a>(selection_features, X_res, ...)</p></td>
 <td><p>Calculate p-values and identify significant features using the dCRT test statistics.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.data_simulation.html#hidimstat.data_simulation" title="hidimstat.data_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data_simulation</span></code></a></p></td>
-<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.desparsified_lasso.html#hidimstat.desparsified_lasso" title="hidimstat.desparsified_lasso"><code class="xref py py-obj docutils literal notranslate"><span class="pre">desparsified_lasso</span></code></a>(X, y[, dof_ajdustement, ...])</p></td>
 <td><p>Desparsified Lasso</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.desparsified_lasso_pvalue.html#hidimstat.desparsified_lasso_pvalue" title="hidimstat.desparsified_lasso_pvalue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">desparsified_lasso_pvalue</span></code></a>(n_samples, ...[, ...])</p></td>
-<td><p>Calculate confidence intervals and p-values for desparsified lasso estimators. This function computes confidence intervals for the desparsified lasso estimator beta_hat. It can also return p-values derived from these confidence intervals. Parameters ---------- n_samples : float     The number of samples beta_hat : ndarray, shape (n_features,)     The desparsified lasso coefficient estimates. sigma_hat : float     Estimated noise level. precision_diagonal : ndarray, shape (n_features,)     Diagonal elements of the precision matrix estimate. confidence : float, default=0.95     Confidence level for intervals, must be in [0, 1]. distribution : str, default=&quot;norm&quot;     Distribution to use for p-value calculation. Currently only &quot;norm&quot; supported. epsilon : float, default=1e-14     Small value to avoid numerical issues in p-value calculation. Returns ------- pval : ndarray, shape (n_features,)     P-values pval_corr : ndarray, shape (n_features,)     Corrected p-values one_minus_pval : ndarray, shape (n_features,)     1 - p-values one_minus_pval_corr : ndarray, shape (n_features,)     1 - corrected p-values confidence_bound_min : ndarray, shape (n_features,)     Lower bounds of confidence intervals confidence_bound_max : ndarray, shape (n_features,)     Upper bounds of confidence intervals.</p></td>
+<td><p>Calculate confidence intervals and p-values for desparsified lasso estimators.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.desparsified_group_lasso_pvalue.html#hidimstat.desparsified_group_lasso_pvalue" title="hidimstat.desparsified_group_lasso_pvalue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">desparsified_group_lasso_pvalue</span></code></a>(beta_hat, ...)</p></td>
 <td><p>Compute p-values for the desparsified group Lasso estimator using chi-squared or F tests</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/hidimstat.ensemble_clustered_inference.html#hidimstat.ensemble_clustered_inference" title="hidimstat.ensemble_clustered_inference"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ensemble_clustered_inference</span></code></a>(X_init, y, ...)</p></td>
-<td><p>Ensemble clustered inference algorithm</p></td>
+<td><p>Ensemble clustered inference algorithm.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/hidimstat.reid.html#hidimstat.reid" title="hidimstat.reid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reid</span></code></a>(X, y[, epsilon, tolerance, ...])</p></td>
 <td><p>Residual sum of squares based estimators for noise standard deviation estimation.</p></td>
