@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 
 from hidimstat._utils.scenario import multivariate_1D_simulation
 from hidimstat.empirical_thresholding import empirical_thresholding
-from hidimstat.statistical_tools.utils import pval_from_scale
+from hidimstat.statistical_tools.p_values import pval_from_scale
 
 from sklearn.linear_model import Lasso
 from sklearn.tree import DecisionTreeRegressor

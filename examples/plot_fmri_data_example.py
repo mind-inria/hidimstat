@@ -53,7 +53,7 @@ from hidimstat.clustered_inference import clustered_inference
 from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
-from hidimstat.statistical_tools.utils import pval_from_scale, zscore_from_pval
+from hidimstat.statistical_tools.p_values import pval_from_scale, zscore_from_pval
 
 n_job = None
 
