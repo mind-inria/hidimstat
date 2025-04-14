@@ -13,44 +13,35 @@ def multivariate_1D_simulation(
     seed=0,
 ):
     """
-    Generate 1D data with Toeplitz design matrix
+    Generate 1D data with Toeplitz design matrix.
 
     Parameters
     ----------
-    n_samples : int
+    n_samples : int, default=100
         Number of samples.
-
-    n_features : int
+    n_features : int, default=500
         Number of features.
-
-    support_size : int
-        Size of the support.
-
-    sigma : float
+    support_size : int, default=10
+        Size of the support (number of non-zero coefficients).
+    sigma : float, default=1.0
         Standard deviation of the additive White Gaussian noise.
-
-    rho: float
-        Level of correlation between neighboring features (if not `shuffle`).
-
-    shuffle : bool
-        Shuffle the features (breaking 1D data structure) if True.
-
-    seed : int
-        Seed used for generating design matrix and noise.
+    rho : float, default=0.0
+        Level of correlation between neighboring features. Must be between 0 and 1.
+    shuffle : bool, default=True
+        If True, randomly shuffle the features to break 1D data structure.
+    seed : int, default=0
+        Random seed for reproducibility.
 
     Returns
     -------
-    X : ndarray, shape (n_samples, n_features)
-        Design matrix.
-
-    y : ndarray, shape (n_samples,)
-        Target.
-
-    beta : ndarray, shape (n_features,)
-        Parameter vector.
-
-    noise : ndarray, shape (n_samples,)
-        Additive white Gaussian noise.
+    X : ndarray of shape (n_samples, n_features)
+        Design matrix with Toeplitz correlation structure.
+    y : ndarray of shape (n_samples,)
+        Target vector y = X @ beta + noise.
+    beta : ndarray of shape (n_features,)
+        Parameter vector with support_size non-zero entries equal to 1.
+    noise : ndarray of shape (n_samples,)
+        Additive white Gaussian noise vector.
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)
@@ -78,20 +69,34 @@ def multivariate_1D_simulation(
 
 def _generate_2D_weight(shape, roi_size):
     """
-    Create a 2D weight map with four ROIs
+    Create a 2D weight map with four ROIs (Regions of Interest) in the corners.
 
-    Parameters
-    ----------
-    shape : tuple (n_x, n_z)
-        Shape of the data in the simulation.
-
+    Parameters:
+    -----------
+    shape : tuple of int (n_x, n_z)
+        Shape of the 2D data array for which to generate weights.
+        n_x : int
+            Size in x dimension
+        n_z : int  
+            Size in z dimension
     roi_size : int
-        Size of the edge of the ROIs.
+        Size of the edge length of each square ROI region.
+        ROIs will be placed in all four corners.
 
     Returns
     -------
-    w : ndarray, shape (n_x, n_z)
-        2D weight map.
+    w : numpy.ndarray, shape (n_x, n_z, 5)
+        3D weight map array where:
+        - First two dimensions match input shape
+        - Third dimension contains 5 channels:
+            - Channel 0: Upper left ROI weights
+            - Channel 1: Lower right ROI weights  
+            - Channel 2: Upper right ROI weights
+            - Channel 3: Lower left ROI weights
+            - Channel 4: Background (all zeros)
+        Within each ROI region the weights are set to 1.0, elsewhere 0.0
+    
+        Create a 2D weight map with four ROIs
     """
 
     w = np.zeros(shape + (5,))
@@ -105,20 +110,33 @@ def _generate_2D_weight(shape, roi_size):
 
 def _generate_3D_weight(shape, roi_size):
     """
-    Create a 3D weight map with five ROIs
+    Create a 3D weight map with five ROIs (Regions of Interest) in specific locations.
 
     Parameters
     ----------
-    shape : tuple (n_x, n_y, n_z)
-        Shape of the data in the simulation.
-
+    shape : tuple of int (n_x, n_y, n_z)
+        Shape of the 3D data array for which to generate weights.
+        n_x : int
+            Size in x dimension
+        n_y : int
+            Size in y dimension  
+        n_z : int
+            Size in z dimension
     roi_size : int
-        Size of the edge of the ROIs.
+        Size of the edge length of each cubic ROI region.
+        ROIs will be placed in corners and center.
 
     Returns
     -------
-    w : ndarray, shape (n_x, n_y, n_z)
-        3D weight map.
+    w : numpy.ndarray, shape (n_x, n_y, n_z, 5)
+        4D weight map array where:
+        - First three dimensions match input shape
+        - Fourth dimension contains 5 channels:
+            - Channel 0: Front-left-top ROI weights (-1.0)
+            - Channel 1: Back-right-top ROI weights (1.0)
+            - Channel 2: Front-right-bottom ROI weights (-1.0)
+            - Channel 3: Back-left-bottom ROI weights (1.0)
+            - Channel 4: Center ROI weights (1.0)
     """
 
     w = np.zeros(shape + (5,))
@@ -144,46 +162,38 @@ def multivariate_simulation(
     seed=0,
 ):
     """
-    Generate a multivariate simulation with 2D or 3D data
+    Generate a multivariate simulation with 2D or 3D data.
 
     Parameters
     ----------
-    n_samples : int
+    n_samples : int, default=100
         Number of samples.
-
-    shape : tuple (n_x, n_y) or (n_x, n_y, n_z)
-        Shape of the data in the simulation.
-
-    roi_size : int
-        Size of the edge of the ROIs.
-
-    sigma : float
+    shape : tuple of int, default=(12, 12)
+        Shape of the data in the simulation. Either (n_x, n_y) for 2D 
+        or (n_x, n_y, n_z) for 3D data.
+    roi_size : int, default=2
+        Size of the edge of the ROIs (Regions of Interest).
+    sigma : float, default=1.0
         Standard deviation of the additive white Gaussian noise.
-
-    smooth_X : float
-        Level of (data) smoothing using a Gaussian filter.
-
-    seed : int
-        Seed used for generating design matrix and noise.
+    smooth_X : float, default=1.0
+        Level of data smoothing using a Gaussian filter.
+    seed : int, default=0
+        Random seed for reproducibility.
 
     Returns
     -------
-    X : ndarray, shape (n_samples, n_features)
-        Design matrix.
-
-    y : ndarray, shape (n_samples,)
-        Target.
-    beta: ndarray, shape (n_features,)
+    X : ndarray of shape (n_samples, n_features)
+        Design matrix with n_features = product of shape dimensions.
+    y : ndarray of shape (n_samples,)
+        Target vector y = X @ beta + noise.
+    beta : ndarray of shape (n_features,)
         Parameter vector (flattened weight map).
-
-    noise: ndarray, shape (n_samples,)
-        Additive white Gaussian noise.
-
-    X_: ndarray, shape (n_samples, n_x, n_y) or (n_samples, n_x, n_y, n_z)
-        Reshaped design matrix.
-
-    w : ndarray, shape (n_x, n_y) or (n_x, n_y, n_z)
-        2D or 3D weight map.
+    noise : ndarray of shape (n_samples,)
+        Additive white Gaussian noise vector.
+    X_ : ndarray of shape (n_samples,) + shape
+        Reshaped design matrix matching input dimensions.
+    w : ndarray of shape shape + (5,)
+        Weight map with 5 channels for different ROIs.
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)
@@ -221,50 +231,40 @@ def multivariate_temporal_simulation(
     shuffle=True,
     seed=0,
 ):
-    """Generate 1D temporal data with constant design matrix
+    """
+    Generate 1D temporal data with constant design matrix.
 
     Parameters
     ----------
-    n_samples : int
+    n_samples : int, default=100
         Number of samples.
-
-    n_features : int
+    n_features : int, default=500 
         Number of features.
-
-    n_times : int
+    n_times : int, default=30
         Number of time points.
-
-    support_size: int
-        Size of the row support.
-
-    sigma : float
-        Standard deviation of the noise at each time point.
-
-    rho_noise : float
-        Level of autocorrelation in the noise.
-
-    rho_data: float
-        Level of correlation between neighboring features (if not `shuffle`).
-
-    shuffle : bool
-        Shuffle the features (breaking 1D data structure) if True.
-
-    seed : int
-        Seed used for generating design matrix and noise.
+    support_size : int, default=10
+        Size of the row support (number of non-zero coefficient rows).
+    sigma : float, default=1.0 
+        Standard deviation of the additive white Gaussian noise.
+    rho_noise : float, default=0.0
+        Level of temporal autocorrelation in the noise. Must be between 0 and 1.
+    rho_data : float, default=0.0
+        Level of correlation between neighboring features. Must be between 0 and 1.
+    shuffle : bool, default=True
+        If True, randomly shuffle the features to break 1D data structure.
+    seed : int, default=0
+        Random seed for reproducibility.
 
     Returns
     -------
-    X: ndarray, shape (n_samples, n_features)
-        Design matrix.
-
-    Y : ndarray, shape (n_samples, n_times)
-        Target.
-
-    beta : ndarray, shape (n_features, n_times)
-        Parameter matrix.
-
-    noise : ndarray, shape (n_samples, n_times)
-        Noise matrix.
+    X : ndarray of shape (n_samples, n_features)
+        Design matrix with Toeplitz correlation structure.
+    Y : ndarray of shape (n_samples, n_times)
+        Target matrix Y = X @ beta + noise.
+    beta : ndarray of shape (n_features, n_times) 
+        Parameter matrix with first support_size rows equal to 1.
+    noise : ndarray of shape (n_samples, n_times)
+        Temporally correlated Gaussian noise matrix.
     """
 
     rng = np.random.default_rng(seed)
@@ -307,37 +307,28 @@ def multivariate_1D_simulation_AR(
     ----------
     n_samples : int
         number of observations
-
     n_features : int
         number of variables
-
-    sparsity : float, optional
+    sparsity : float
         ratio of number of variables with non-zero coefficients over total
         coefficients
-
-    rho : float, optional
+    rho : float
         Level of correlation between neighboring features.
-
-    effect : float, optional
+    effect : float
         signal magnitude, value of non-null coefficients
-
-    seed : None or Int, optional
+    seed : None or Int
         random seed for generator
 
     Returns
     -------
     X : ndarray, shape (n_samples, n_features)
         Design matrix resulted from simulation
-
     y : ndarray, shape (n_samples, )
         Response vector resulted from simulation
-
     beta_true : ndarray, shape (n_samples, )
         Vector of true coefficient value
-
     non_zero : ndarray, shape (n_samples, )
         Vector of non zero coefficients index
-
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)

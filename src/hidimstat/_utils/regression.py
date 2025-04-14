@@ -12,13 +12,17 @@ def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
         Training data
     y : array-like of shape (n_samples,) or (n_samples, n_features)
         Target values
-    use_noise_estimate : bool, default=True
+    use_noise_estimate : bool, default=False
         Whether to use noise estimation in the calculation
+    fill_diagonal : bool, default=False
+        Whether to fill the diagonal of X.T @ y with zeros
+    axis : int, optional
+        The axis along which to find the maximum. If None, array is flattened
 
     Returns
     -------
-    float
-        The maximum alpha value
+    alpha_max : float
+        The maximum alpha value that yields non-zero coefficients
 
     Notes
     -----

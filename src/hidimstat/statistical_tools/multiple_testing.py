@@ -3,19 +3,21 @@ import numpy as np
 
 def cal_fdp_power(selected, non_zero_index):
     """
-    Calculate power and False Discovery Proportion
+    Calculate False Discovery Proportion and statistical power
 
     Parameters
     ----------
-    selected: list index (in R format) of selected non-null variables
-    non_zero_index: true index of non-null variables
+    selected : ndarray
+        Array of indices of selected variables (R-style indexing)
+    non_zero_index : ndarray
+        Array of true non-null variable indices
 
     Returns
     -------
-    fdp: False Discoveries Proportion
-    power: percentage of correctly selected variables over total number of
-        non-null variables
-
+    fdp : float
+        False Discovery Proportion (number of false discoveries / total discoveries)
+    power : float 
+        Statistical power (number of true discoveries / number of non-null variables)
     """
     # selected is the index list in R and will be different from index of
     # python by 1 unit
@@ -36,27 +38,26 @@ def cal_fdp_power(selected, non_zero_index):
 
 def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     """
-    False Discovery Rate thresholding method
+    Calculate threshold for False Discovery Rate control methods.
 
     Parameters
     ----------
     pvals : 1D ndarray
-        set of p-values
+        Set of p-values to threshold
     fdr : float, default=0.1
-        False Discovery Rate
-    method : str, default='bhq'
-        Method to control FDR.
-        Available methods are:
-        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
-        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
-        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
-    reshaping_function : function, default=None
-        Reshaping function for Benjamini-Hochberg-Yekutieli method
+        Target False Discovery Rate level
+    method : {'bhq', 'bhy', 'ebh'}, default='bhq'
+        Method for FDR control:
+        * 'bhq': Standard Benjamini-Hochberg procedure
+        * 'bhy': Benjamini-Hochberg-Yekutieli procedure
+        * 'ebh': e-Benjamini-Hochberg procedure
+    reshaping_function : callable
+        Reshaping function for BHY method, default uses sum of reciprocals
 
     Returns
     -------
     threshold : float
-        Threshold value
+        Threshold value for p-values. P-values below this threshold are rejected.
 
     References
     ----------
@@ -77,20 +78,24 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
 
 def _bhq_threshold(pvals, fdr=0.1):
     """
-    Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
+    Standard Benjamini-Hochberg 
     for controlling False discovery rate
+
+    Calculate threshold for standard Benjamini-Hochberg procedure 
+    :footcite:`benjamini1995controlling,bhy_2001` for False Discovery Rate (FDR)
+    control.
 
     Parameters
     ----------
     pvals : 1D ndarray
-        set of p-values
+        Array of p-values to threshold
     fdr : float, default=0.1
-        False Discovery Rate
+        Target False Discovery Rate level
 
     Returns
     -------
     threshold : float
-        Threshold value
+        Threshold value for p-values. P-values below this threshold are rejected.
 
     References
     ----------
@@ -117,14 +122,14 @@ def _ebh_threshold(evals, fdr=0.1):
     Parameters
     ----------
     evals : 1D ndarray
-        p-value
+        Array of e-values to threshold
     fdr : float, default=0.1
-        False Discovery Rate
+        Target False Discovery Rate level
 
     Returns
     -------
     threshold : float
-        Threshold value
+        Threshold value for e-values. E-values above this threshold are rejected.
 
     References
     ----------
@@ -146,22 +151,26 @@ def _ebh_threshold(evals, fdr=0.1):
 
 def _bhy_threshold(pvals, reshaping_function=None, fdr=0.1):
     """
-    Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001` procedure for
-    controlling FDR, with input shape function :footcite:p:`ramdas2017online`.
+        Benjamini-Hochberg-Yekutieli  procedure for
+    controlling FDR
+
+    Calculate threshold for Benjamini-Hochberg-Yekutieli procedure
+    :footcite:p:`bhy_2001` for False Discovery Rate control, 
+    with input shape function :footcite:p:`ramdas2017online`.
 
     Parameters
     ----------
     pvals : 1D ndarray
-        set of p-values
-    reshaping_function : function, default=None
-        Reshaping function for Benjamini-Hochberg-Yekutieli method
+        Array of p-values to threshold
+    reshaping_function : callable, default=None
+        Function to reshape FDR threshold. If None, uses sum of reciprocals.
     fdr : float, default=0.1
-        False Discovery Rate
+        Target False Discovery Rate level
 
     Returns
     -------
     threshold : float
-        Threshold value
+        Threshold value for p-values. P-values below this threshold are rejected.
 
     References
     ----------
