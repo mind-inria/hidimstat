@@ -252,25 +252,23 @@ def test_ensemble_clustered_inference():
             n_bootstraps=n_bootstraps,
         )
     )
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        ensemble_clustered_inference_pvalue(
-            n_samples,
-            False,
-            list_ward,
-            list_beta_hat,
-            list_theta_hat,
-            list_precision_diag,
-        )
+    beta_hat, selected = ensemble_clustered_inference_pvalue(
+        n_samples,
+        False,
+        list_ward,
+        list_beta_hat,
+        list_theta_hat,
+        list_precision_diag,
     )
 
-    expected = np.ones(n_features)
-    expected[:support_size] = 0.0
+    expected = np.zeros(n_features)
+    expected[:support_size] = 1.0
 
     assert_almost_equal(
-        pval_corr[: support_size - margin_size], expected[: support_size - margin_size]
+        selected[: support_size - margin_size], expected[: support_size - margin_size]
     )
     assert_almost_equal(
-        pval_corr[support_size + margin_size :],
+        selected[support_size + margin_size :],
         expected[support_size + margin_size :],
         decimal=1,
     )
@@ -317,47 +315,43 @@ def test_ensemble_clustered_inference_temporal_data():
             n_bootstraps=n_bootstraps,
         )
     )
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        ensemble_clustered_inference_pvalue(
-            n_samples,
-            True,
-            list_ward,
-            list_beta_hat,
-            list_theta_hat,
-            list_precision_diag,
-            aggregate_method=adaptive_quantile_aggregation,
-        )
+    beta_hat, selected = ensemble_clustered_inference_pvalue(
+        n_samples,
+        True,
+        list_ward,
+        list_beta_hat,
+        list_theta_hat,
+        list_precision_diag,
+        fdr_control="bhq",
     )
 
-    expected = np.ones(n_features)
-    expected[:support_size] = 0.0
+    expected = np.zeros(n_features)
+    expected[:support_size] = 1.0
 
     assert_almost_equal(
-        pval_corr[:interior_support], expected[:interior_support], decimal=3
+        selected[:interior_support, 0], expected[:interior_support], decimal=3
     )
     assert_almost_equal(
-        pval_corr[extended_support:], expected[extended_support:], decimal=1
+        selected[extended_support:, 0], expected[extended_support:], decimal=1
     )
 
     # different aggregation method
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        ensemble_clustered_inference_pvalue(
-            n_samples,
-            True,
-            list_ward,
-            list_beta_hat,
-            list_theta_hat,
-            list_precision_diag,
-            aggregate_method=fixed_quantile_aggregation,
-        )
+    beta_hat, selected = ensemble_clustered_inference_pvalue(
+        n_samples,
+        True,
+        list_ward,
+        list_beta_hat,
+        list_theta_hat,
+        list_precision_diag,
+        fdr_control="bhy",
     )
 
-    expected = np.ones(n_features)
-    expected[:support_size] = 0.0
+    expected = np.zeros(n_features)
+    expected[:support_size] = 1.0
 
     assert_almost_equal(
-        pval_corr[:interior_support], expected[:interior_support], decimal=3
+        selected[:interior_support, 0], expected[:interior_support], decimal=3
     )
     assert_almost_equal(
-        pval_corr[extended_support:], expected[extended_support:], decimal=1
+        selected[extended_support:, 0], expected[extended_support:], decimal=1
     )
