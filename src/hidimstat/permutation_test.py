@@ -2,7 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
+from hidimstat.statistical_tools.stat_tools import pval_from_two_sided_pval_and_sign, step_down_max_t
 
 __all__ = ["permutation_test", "permutation_test_pval"]
 

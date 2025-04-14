@@ -11,7 +11,7 @@ from hidimstat.gaussian_knockoff import (
     gaussian_knockoff_generation,
     repeat_gaussian_knockoff_generation,
 )
-from hidimstat.utils import fdr_threshold, quantile_aggregation
+from hidimstat._utils.utils import fdr_threshold, quantile_aggregation
 
 
 def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
@@ -64,7 +64,6 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
     alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
     estimator.alphas = alphas
     return estimator
-
 
 def model_x_knockoff(
     X,
