@@ -7,7 +7,7 @@ from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
 from hidimstat.noise_std import reid
-from hidimstat.statistical_tools.pvalues import pval_from_cb, pval_from_two_sided_pval_and_sign
+from hidimstat.statistical_tools.utils import pval_from_two_sided_pval_and_sign
 from hidimstat._utils.utils import _alpha_max
 
 
