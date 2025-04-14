@@ -12,7 +12,8 @@ def multivariate_1D_simulation(
     shuffle=True,
     seed=0,
 ):
-    """Generate 1D data with Toeplitz design matrix
+    """
+    Generate 1D data with Toeplitz design matrix
 
     Parameters
     ----------
@@ -75,8 +76,9 @@ def multivariate_1D_simulation(
     return X, y, beta, noise
 
 
-def generate_2D_weight(shape, roi_size):
-    """Create a 2D weight map with four ROIs
+def _generate_2D_weight(shape, roi_size):
+    """
+    Create a 2D weight map with four ROIs
 
     Parameters
     ----------
@@ -101,8 +103,9 @@ def generate_2D_weight(shape, roi_size):
     return w
 
 
-def generate_3D_weight(shape, roi_size):
-    """Create a 3D weight map with five ROIs
+def _generate_3D_weight(shape, roi_size):
+    """
+    Create a 3D weight map with five ROIs
 
     Parameters
     ----------
@@ -141,7 +144,8 @@ def multivariate_simulation(
     return_shaped_data=True,
     seed=0,
 ):
-    """Generate a multivariate simulation with 2D or 3D data
+    """
+    Generate a multivariate simulation with 2D or 3D data
 
     Parameters
     ----------
@@ -185,18 +189,18 @@ def multivariate_simulation(
     w : ndarray, shape (n_x, n_y) or (n_x, n_y, n_z)
         2D or 3D weight map.
     """
-
+    # Setup seed generator
     rng = np.random.default_rng(seed)
 
+    # generate the support of the data
     if len(shape) == 2:
-        w = generate_2D_weight(shape, roi_size)
+        w = _generate_2D_weight(shape, roi_size)
     elif len(shape) == 3:
-        w = generate_3D_weight(shape, roi_size)
+        w = _generate_3D_weight(shape, roi_size)
 
     beta = w.sum(-1).ravel()
     X_ = rng.standard_normal((n_samples,) + shape)
     X = []
-
     for i in np.arange(n_samples):
         Xi = ndimage.gaussian_filter(X_[i], smooth_X)
         X.append(Xi.ravel())
@@ -302,34 +306,43 @@ def multivariate_temporal_simulation(
 def multivariate_1D_simulation_AR(
     n_samples, n_features, rho=0.25, snr=2.0, sparsity=0.06, sigma=1.0, seed=None
 ):
-    """Function to simulate data follow an autoregressive structure with Toeplitz
+    """
+    Function to simulate data follow an autoregressive structure with Toeplitz
     covariance matrix
 
     Parameters
     ----------
     n_samples : int
         number of observations
+        
     n_features : int
         number of variables
+        
     sparsity : float, optional
         ratio of number of variables with non-zero coefficients over total
         coefficients
+        
     rho : float, optional
         Level of correlation between neighboring features (if not `shuffle`).
+        
     effect : float, optional
         signal magnitude, value of non-null coefficients
+        
     seed : None or Int, optional
         random seed for generator
 
     Returns
     -------
-    X : ndarray, shape (n, p)
+    X : ndarray, shape (n_samples, n_features)
         Design matrix resulted from simulation
-    y : ndarray, shape (n, )
+        
+    y : ndarray, shape (n_samples, )
         Response vector resulted from simulation
-    beta_true : ndarray, shape (n, )
+        
+    beta_true : ndarray, shape (n_samples, )
         Vector of true coefficient value
-    non_zero : ndarray, shape (n, )
+        
+    non_zero : ndarray, shape (n_samples, )
         Vector of non zero coefficients index
 
     """

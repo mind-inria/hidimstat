@@ -3,7 +3,7 @@ from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 
 
 def test_simu_data():
-    X, y, _, _ = multivariate_1D_simulation_AR(n=100, p=200, seed=42)
+    X, y, _, _ = multivariate_1D_simulation_AR(n_samples=100, n_features=200, seed=42)
 
     assert X.shape == (100, 200)
     assert y.size == 100
