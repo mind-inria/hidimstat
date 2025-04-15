@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from hidimstat.statistical_tools.multiple_testing import fdp_power, fdr_threshold
-from hidimstat._utils import _aggregate_docstring
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 def test_fdr_threshold():

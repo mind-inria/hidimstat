@@ -7,7 +7,7 @@ from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.regression import _alpha_max
-from hidimstat._utils import _aggregate_docstring
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 class D0CRT:
