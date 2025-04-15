@@ -21,11 +21,6 @@ expressed as:
     \psi_{j} = \mathbb{V}(y) \left[ \left[ 1 - \\frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)} \\right] - \left[ 1 - \\frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)} \\right] \\right]
 
 where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
-
-References
-----------
-.. footbibliography::
-
 """
 
 import matplotlib.pyplot as plt
@@ -164,3 +159,9 @@ plt.show()
 # the varibles are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
 # to capture the underlying data generating process.
+
+
+#################################################################################
+# References
+# ---------------------------------------------------------------------------
+# .. footbibliography::
