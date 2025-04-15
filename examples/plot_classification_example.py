@@ -7,10 +7,11 @@ Permutation Feature Importance (PFI) with two different classifiers: Logistic Re
 Support Vector Classifier. We start by measuring the importance of individual variables and then show
 how to measure the importance of groups of variables.
 To briefly summarize the two methods:
-- PFI (Permutation Feature Importance) shuffles the values of a feature and measures
+ - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
  the increase in the loss when predicting (using om the same full model) on the
  shuffled data.
-- CPI (Conditional Permutation Importance) is a conditional version of PFI that
+
+ - CPI (Conditional Permutation Importance) is a conditional version of PFI that
  preserves the conditional distribution of the feature. It introduces a second model to
  estimate this conditional distribution.
 """
