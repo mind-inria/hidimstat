@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
+    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_fmri_data_example';</script>
@@ -339,6 +339,7 @@
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Support recovery on fMRI data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_variable_importance_classif.html">Measuring variable importance in classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
 </div>
 </nav></div>
@@ -531,10 +532,20 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 87425024 of 291168628 bytes (30.0%%,    2.3s remaining)
+Downloaded 18268160 of 291168628 bytes (6.3%%,   15.0s remaining)
 [_chunk_report_]
-Downloaded 195190784 of 291168628 bytes (67.0%%,    1.0s remaining)
-[fetch_single_file]  ...done. (3 seconds, 0 min)
+Downloaded 62128128 of 291168628 bytes (21.3%%,    7.5s remaining)
+[_chunk_report_]
+Downloaded 105897984 of 291168628 bytes (36.4%%,    5.4s remaining)
+[_chunk_report_]
+Downloaded 148152320 of 291168628 bytes (50.9%%,    4.0s remaining)
+[_chunk_report_]
+Downloaded 191381504 of 291168628 bytes (65.7%%,    2.7s remaining)
+[_chunk_report_]
+Downloaded 233111552 of 291168628 bytes (80.1%%,    1.5s remaining)
+[_chunk_report_]
+Downloaded 277110784 of 291168628 bytes (95.2%%,    0.4s remaining)
+[fetch_single_file]  ...done. (8 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
 [uncompress_file] .. done.
@@ -638,7 +649,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.5s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.5s finished
 </pre></div>
 </div>
 </section>
@@ -761,8 +772,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 14.747 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  2694 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 16.272 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  2897 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>
