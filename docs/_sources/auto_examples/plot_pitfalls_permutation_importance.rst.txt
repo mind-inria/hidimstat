@@ -63,7 +63,7 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
 .. GENERATED FROM PYTHON SOURCE LINES 34-39
 
 Load the California housing dataset and add a spurious feature
-------------------------------------------------------------------
+--------------------------------------------------------------
 The California housing dataset is a regression dataset with 8 features. We add a
 spurious feature that is a linear combination of 3 features plus some noise.
 The spurious feature does not provide any additional information about the target.
@@ -132,7 +132,7 @@ The spurious feature does not provide any additional information about the targe
 .. GENERATED FROM PYTHON SOURCE LINES 79-84
 
 Fit a predictive model
-----------------------------
+----------------------
 We fit a neural network model to the California housing dataset. PFI is a
 model-agnostic method, we therefore illustrate its behavior when using a neural
 network model.
@@ -272,7 +272,7 @@ important.
 .. GENERATED FROM PYTHON SOURCE LINES 182-189
 
 A valid alternative: Condional permutation importance
----------------------------------------------------
+-----------------------------------------------------
 The `ConditionalPermutationImportance` class computes permutations of the feature of
 interest while conditioning on the other features. In other words, it shuffles the
 intrinsic information of the feature of interest while leaving the information that is
@@ -351,7 +351,7 @@ Contrary to PFI, CPI does not identify the spurious feature as important.
 .. GENERATED FROM PYTHON SOURCE LINES 243-253
 
 Extrapolation bias in PFI
-----------------------------
+-------------------------
 One of the main pitfalls of PFI is that it leads to extrapolation bias, i.e., it
 forces the model to predict from regions of the feature space that are not present in
 the training data. This can be seen on the california housing dataset, by comparing
@@ -464,9 +464,9 @@ the conditional distribution of the feature of interest.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.355 seconds)
+   **Total running time of the script:** (0 minutes 7.321 seconds)
 
-**Estimated memory usage:**  220 MB
+**Estimated memory usage:**  221 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_pitfalls_permutation_importance.py:
