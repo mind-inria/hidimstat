@@ -6,7 +6,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat.utils import _alpha_max, fdr_threshold
+from hidimstat._utils.regression import _alpha_max
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
 def dcrt_zero(

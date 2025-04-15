@@ -3,7 +3,33 @@ from scipy.stats import norm
 
 
 def _replace_infinity(x, replace_val=None, method="times-two"):
-    """Replace infinity by large value"""
+    """
+    Replace infinity values in array with finite values.
+
+    This function replaces infinite values in an array with finite values based on the
+    largest non-infinite value present in the array.
+
+    Parameters
+    ----------
+    x : array-like
+        Input array that may contain infinity values.
+    replace_val : float, optional
+        Custom replacement value for infinity. If provided and smaller than the
+        calculated minimum replacement value, the minimum replacement value is used instead.
+    method : {'times-two', 'plus-one'}, default='times-two'
+        Method to calculate replacement value:
+        - 'times-two': doubles the largest non-infinite absolute value
+        - 'plus-one': adds 1 to the largest non-infinite absolute value
+
+    Returns
+    -------
+    array-like
+        Array with infinity values replaced by finite values.
+
+    Notes
+    -----
+    The function preserves the sign of infinite values in the replacement.
+    """
 
     largest_non_inf = np.max(np.abs(x)[np.abs(x) != np.inf])
 

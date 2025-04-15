@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
+    <script src="../_static/documentation_options.js?v=6fd178ea"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_2D_simulation_example';</script>
@@ -339,6 +339,7 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_variable_importance_classif.html">Measuring variable importance in classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
 </div>
 </nav></div>
@@ -465,8 +466,8 @@ algorithms which consider only one spatial compression.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.clustered_inference.html#hidimstat.clustered_inference" title="hidimstat.clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">clustered_inference</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.desparsified_lasso</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.desparsified_lasso.html#hidimstat.desparsified_lasso" title="hidimstat.desparsified_lasso" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso</span></a><span class="p">,</span> <a href="../generated/hidimstat.desparsified_lasso_pvalue.html#hidimstat.desparsified_lasso_pvalue" title="hidimstat.desparsified_lasso_pvalue" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">desparsified_lasso_pvalue</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.ensemble_clustered_inference.html#hidimstat.ensemble_clustered_inference" title="hidimstat.ensemble_clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">ensemble_clustered_inference</span></a>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.scenario</span><span class="w"> </span><span class="kn">import</span> <span class="n">multivariate_simulation</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">zscore_from_pval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.statistical_tools.p_values</span><span class="w"> </span><span class="kn">import</span> <span class="n">zscore_from_pval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat._utils.scenario</span><span class="w"> </span><span class="kn">import</span> <span class="n">multivariate_simulation</span>
 </pre></div>
 </div>
 </section>
@@ -811,7 +812,7 @@ Also, one can note that the theoretical spatial tolerance is quite
 conservative. In practice, Type-1 Error guarantees seem to hold
 for a lower spatial tolerance. This is an additional benefit of clustering
 randomization.</p>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 4.201 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 6.292 seconds)</p>
 <p><strong>Estimated memory usage:</strong>  257 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-2d-simulation-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
