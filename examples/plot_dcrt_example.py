@@ -14,8 +14,9 @@ the power
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 from hidimstat.dcrt import D0CRT
-from hidimstat.scenario import multivariate_1D_simulation
+from hidimstat._utils.scenario import multivariate_1D_simulation
 
 plt.rcParams.update({"font.size": 21})
 

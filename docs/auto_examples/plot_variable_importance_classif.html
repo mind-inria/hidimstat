@@ -42,13 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=1ebca51b"></script>
+    <script src="../_static/documentation_options.js?v=ef6c755c"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_variable_importance_classif';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset" href="plot_pitfalls_permutation_importance.html" />
     <link rel="prev" title="Support recovery on fMRI data" href="plot_fmri_data_example.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -339,6 +340,7 @@
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Measuring variable importance in classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
 </div>
 </nav></div>
@@ -527,7 +529,7 @@ feature.</p>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">axes</span></a><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">labels</span></a><span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">])</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7f0f50b49520&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f42044140&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438a9a90&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438a95e0&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438a9340&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438ab470&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438abb90&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f50facb60&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f50fafc50&gt;, &lt;matplotlib.axis.YTick object at 0x7f0f438843e0&gt;]
+<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7f25b8293740&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8290500&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8294bf0&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8294050&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8295df0&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b82949b0&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8295040&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b826a930&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b8268e90&gt;, &lt;matplotlib.axis.YTick object at 0x7f25b826a5a0&gt;]
 </pre></div>
 </div>
 </section>
@@ -720,10 +722,10 @@ correlation structure of the features.</p>
 <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend" title="matplotlib.axes.Axes.legend" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a> <span class="o">+</span> <span class="p">[</span><a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">important_legend</span></a><span class="p">,</span> <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ground_truth_legend</span></a><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7f0f50a45d00&gt;
+<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7f25b970c5c0&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.887 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 32.627 seconds)</p>
 <p><strong>Estimated memory usage:</strong>  203 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-variable-importance-classif-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
@@ -758,6 +760,15 @@ correlation structure of the features.</p>
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">Support recovery on fMRI data</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="plot_pitfalls_permutation_importance.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>

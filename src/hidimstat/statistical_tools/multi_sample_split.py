@@ -43,7 +43,6 @@ def aggregate_quantiles(list_one_sided_pval, gamma_min=0.2):
     ----------
     list_one_sided_pval : ndarray, shape (n_iter, n_features)
         List of one-sided p-values.
-
     gamma_min : float, optional (default=0.2)
         Lowest gamma-quantile being considered to compute the adaptive
         quantile aggregation formula.

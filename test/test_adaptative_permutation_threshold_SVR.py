@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 
 from hidimstat.adaptative_permutation_threshold_SVR import ada_svr, ada_svr_pvalue
-from hidimstat.scenario import multivariate_1D_simulation
+from hidimstat._utils.scenario import multivariate_1D_simulation
 
 
 def test_ada_svr():

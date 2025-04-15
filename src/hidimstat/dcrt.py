@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat.utils import _alpha_max
+from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils import _aggregate_docstring
 
 
