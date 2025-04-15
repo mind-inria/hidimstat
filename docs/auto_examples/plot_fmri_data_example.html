@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
+    <script src="../_static/documentation_options.js?v=ef6c755c"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_fmri_data_example';</script>
@@ -463,7 +463,7 @@ support (predictive regions) looks relevant.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.empirical_thresholding</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.empirical_thresholding.html#hidimstat.empirical_thresholding" title="hidimstat.empirical_thresholding" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">empirical_thresholding</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.ensemble_clustered_inference</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.ensemble_clustered_inference.html#hidimstat.ensemble_clustered_inference" title="hidimstat.ensemble_clustered_inference" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">ensemble_clustered_inference</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.permutation_test</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.permutation_test.html#hidimstat.permutation_test" title="hidimstat.permutation_test" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-function"><span class="n">permutation_test</span></a><span class="p">,</span> <span class="n">permutation_test_pval</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.stat_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">pval_from_scale</span><span class="p">,</span> <span class="n">zscore_from_pval</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat.statistical_tools.p_values</span><span class="w"> </span><span class="kn">import</span> <span class="n">pval_from_scale</span><span class="p">,</span> <span class="n">zscore_from_pval</span>
 
 <span class="n">n_job</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
@@ -525,27 +525,17 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
 [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
 [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-[fetch_single_file]  ...done. (1 seconds, 0 min)
+[fetch_single_file]  ...done. (0 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
 [fetch_single_file]  ...done. (0 seconds, 0 min)
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 18268160 of 291168628 bytes (6.3%%,   15.0s remaining)
+Downloaded 128622592 of 291168628 bytes (44.2%%,    1.3s remaining)
 [_chunk_report_]
-Downloaded 62128128 of 291168628 bytes (21.3%%,    7.5s remaining)
-[_chunk_report_]
-Downloaded 105897984 of 291168628 bytes (36.4%%,    5.4s remaining)
-[_chunk_report_]
-Downloaded 148152320 of 291168628 bytes (50.9%%,    4.0s remaining)
-[_chunk_report_]
-Downloaded 191381504 of 291168628 bytes (65.7%%,    2.7s remaining)
-[_chunk_report_]
-Downloaded 233111552 of 291168628 bytes (80.1%%,    1.5s remaining)
-[_chunk_report_]
-Downloaded 277110784 of 291168628 bytes (95.2%%,    0.4s remaining)
-[fetch_single_file]  ...done. (8 seconds, 0 min)
+Downloaded 282640384 of 291168628 bytes (97.1%%,    0.1s remaining)
+[fetch_single_file]  ...done. (2 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
 [uncompress_file] .. done.
@@ -649,7 +639,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.5s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.5s finished
 </pre></div>
 </div>
 </section>
@@ -772,8 +762,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 16.272 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  2897 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 16.194 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  2953 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>

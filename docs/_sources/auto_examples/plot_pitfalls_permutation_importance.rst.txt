@@ -464,7 +464,7 @@ the conditional distribution of the feature of interest.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.917 seconds)
+   **Total running time of the script:** (0 minutes 7.355 seconds)
 
 **Estimated memory usage:**  220 MB
 
