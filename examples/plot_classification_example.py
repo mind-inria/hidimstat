@@ -3,14 +3,14 @@ Measuring Individual and Group Variable Importance for Classification
 ======================================================================
 In this example, we show on the Iris dataset how to measure variable importance for
 classification tasks. We use two different variable importance methods: Conditional Permutation importance (CPI) and
-Permutation Feature Importance (PFI) with two different classifiers: LogisticRegressionCV and
-LinearSVC. We start by measuring the importance of individual variables and then show
+Permutation Feature Importance (PFI) with two different classifiers: Logistic Regression and
+Support Vector Classifier. We start by measuring the importance of individual variables and then show
 how to measure the importance of groups of variables.
 To briefly summarize the two methods:
-
  - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
  the increase in the loss when predicting (using om the same full model) on the
  shuffled data.
+
  - CPI (Conditional Permutation Importance) is a conditional version of PFI that
  preserves the conditional distribution of the feature. It introduces a second model to
  estimate this conditional distribution.
@@ -37,7 +37,7 @@ from hidimstat import CPI, PermutationImportance
 # We load the iris dataset and add a spurious feature that is a linear combination of
 # the petal length, width amd some noise but not related to the target. The spurious feature
 # allows to illustrate that `PFI` is not robust to spurious features,
-# contrarily to `CPI``.
+# contrarily to `CPI`.
 dataset = load_iris()
 rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
@@ -125,7 +125,7 @@ df = pd.concat(out_list)
 
 ##########################################################################
 # Using the importance values, we can compute the p-value of each feature. As we will
-# see, the p-values computed with `PermutationImportance` are not valid since the method
+# see, the p-values computed with `PFI` are not valid since the method
 # does not provide type-1 error control.
 def compute_pval(df, threshold=0.05):
     df_pval_list = []
@@ -230,7 +230,12 @@ plot_results(df, df_pval)
 # The boxplot shows the importance of each feature, with colors indicating the
 # classifier used. A star marks the features that have a p-value (computed with a
 # t-test) below 0.05. As expected, the spurious feature is not selected by CPI,
-# but is selected by Permutation Importance.
+# but is selected by Permutation Importance. It can also be seen that using the logistic
+# regression model leads to greater statistical power than using the SVC model. This can
+# be explained by the small number of samples that do not allow leveraging the
+# additional flexibility of the SVC model. The SVC model could benefit from a more
+# extensive hyperparameter search, especially optimizing the gamma parameter of the RBF
+# kernel, which would be feasible with more data.
 
 
 #########################################################################
