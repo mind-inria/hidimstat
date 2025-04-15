@@ -7,11 +7,10 @@ Permutation Feature Importance (PFI) with two different classifiers: Logistic Re
 Support Vector Classifier. We start by measuring the importance of individual variables and then show
 how to measure the importance of groups of variables.
 To briefly summarize the two methods:
- - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
+- PFI (Permutation Feature Importance) shuffles the values of a feature and measures
  the increase in the loss when predicting (using om the same full model) on the
  shuffled data.
-
- - CPI (Conditional Permutation Importance) is a conditional version of PFI that
+- CPI (Conditional Permutation Importance) is a conditional version of PFI that
  preserves the conditional distribution of the feature. It introduces a second model to
  estimate this conditional distribution.
 """
@@ -78,7 +77,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
             method=method,
             loss=loss,
         )
-    elif vim_name == "PermutationImportance":
+    elif vim_name == "PFI":
         vim = PermutationImportance(
             estimator=model_c,
             n_permutations=50,
@@ -118,7 +117,7 @@ out_list = Parallel(n_jobs=5)(
     )
     for train_index, test_index in cv.split(X)
     for model in models
-    for vim_name in ["CPI", "PermutationImportance"]
+    for vim_name in ["CPI", "PFI"]
 )
 df = pd.concat(out_list)
 
@@ -164,9 +163,9 @@ df_pval = compute_pval(df, threshold=threshold)
 # --------------------------------------------------------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
-    for method, ax in zip(["CPI", "PermutationImportance"], axes):
+    for method, ax in zip(["CPI", "PFI"], axes):
         df_method = df_importance[df_importance["vim"] == method]
-        legend = ax == axes[-1]
+        legend = ax == axes[0]
         sns.stripplot(
             data=df_pval[df_pval["vim"] == method],
             x="y_coord",
@@ -198,8 +197,9 @@ def plot_results(df_importance, df_pval):
             if i % 2 == 0:
                 ax.axhspan(i - 0.5, i + 0.5, color="gray", alpha=0.33)
 
-    ax = axes[-1]
+    ax = axes[0]
     handles, labels = ax.get_legend_handles_labels()
+    ax.legend().remove()
     handles.append(
         plt.Line2D(
             [0],
@@ -213,11 +213,12 @@ def plot_results(df_importance, df_pval):
             markeredgewidth=1.5,
         )
     )
-    ax.legend(
+    fig.legend(
         handles=handles,
         labels=labels + [f"pval < {threshold}"],
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
+        loc="center",
+        bbox_to_anchor=(0.6, 1.01),
+        ncol=3,
     )
     plt.tight_layout()
     plt.show()
@@ -255,7 +256,7 @@ out_list = Parallel(n_jobs=5)(
     )
     for train_index, test_index in cv.split(X)
     for model in models
-    for vim_name in ["CPI", "PermutationImportance"]
+    for vim_name in ["CPI", "PFI"]
 )
 
 df_grouped = pd.concat(out_list)
