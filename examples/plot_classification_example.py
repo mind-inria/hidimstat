@@ -36,8 +36,8 @@ from hidimstat import CPI, PermutationImportance
 # ----------------------------------------------------------------------
 # We load the iris dataset and add a spurious feature that is a linear combination of
 # the petal length, width amd some noise but not related to the target. The spurious feature
-# allows to illustrate that `PermutationImportance` is not robust to spurious features,
-# contrarily to `LOCO`` and `CPI``.
+# allows to illustrate that `PFI` is not robust to spurious features,
+# contrarily to `CPI``.
 dataset = load_iris()
 rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
