@@ -158,7 +158,7 @@ plt.show()
 # As expected, when using linear models (d0CRT and LOCO-linear) that are misspecified,
 # the varibles are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
-# to capture the underlying data generating process.
+# to explain the data.
 
 
 #################################################################################
