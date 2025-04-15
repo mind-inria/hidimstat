@@ -102,7 +102,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
 
 
 ##############################################################################
-# We use two different classifiers: LogisticRegressionCV and SVC with a RBF kernel. We
+# We use two different classifiers: LR with cross-validation and SVC with a RBF kernel. We
 # then compute the importance for each (importance method, classifier, fold)
 # combination, in parallel.
 
