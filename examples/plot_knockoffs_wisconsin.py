@@ -132,9 +132,9 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 #############################################################################
 # Controlled variable selection with Knockoffs
 # ----------------------------------------------------
-# We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). To
-# setup a fair comparison between the two methods, we first run the Knockoffs procedure
-# on the original data and observe the results:
+# We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). The
+# selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
+# :footcite:t:`candes2018panning`.
 
 
 from hidimstat import model_x_knockoff
@@ -201,7 +201,7 @@ sns.scatterplot(
 )
 ax.axvline(x=threshold, color="k", linestyle="--", label="Threshold")
 ax.legend()
-ax.set_xlabel("KO statistic")
+ax.set_xlabel("KO statistic (LCD)")
 ax.set_ylabel("")
 ax.set_title("Knockoffs", fontweight="bold")
 
