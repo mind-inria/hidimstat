@@ -3,9 +3,9 @@ Controlled variable selection on the Wisconsin breast cancer dataset
 ====================================================================
 In this example, we explore the basics of variable selection and illustrate the need to
 statistically control the amount of faslely selected variables. We compare two variable
-selection methods: the Lasso and the Model-X Knockoffs. We show how the Lasso is not
-robust to the presence of irrelevant variables, while the Knockoffs method is able to
-address this issue.
+selection methods: the Lasso and the Model-X Knockoffs :footcite:t:`candes2018panning`.
+We show how the Lasso is not robust to the presence of irrelevant variables, while the
+Knockoffs method is able to address this issue.
 """
 
 import numpy as np
@@ -224,3 +224,9 @@ plt.show()
 ###############################################################################
 # We can clearly see that the knockoffs procedure is more conservative than the Lasso
 # and rejects the spurious features while many of them are selected by the Lasso.
+
+
+#################################################################################
+# References
+# ---------------------------------------------------------------------------
+# .. footbibliography::
