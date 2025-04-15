@@ -61,7 +61,7 @@ from hidimstat.ensemble_clustered_inference import (
 from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
 from hidimstat.empirical_thresholding import empirical_thresholding
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
-from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
+from hidimstat.statistical_tools.p_values import pval_from_scale, zscore_from_pval
 
 n_job = None
 

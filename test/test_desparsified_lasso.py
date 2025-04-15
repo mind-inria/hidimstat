@@ -12,7 +12,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )

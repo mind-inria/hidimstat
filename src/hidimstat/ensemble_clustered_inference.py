@@ -9,8 +9,8 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat.utils import _subsampling
-from hidimstat.utils import fdr_threshold, quantile_aggregation
+from hidimstat._utils.bootstrap import _subsampling
+from hidimstat.statistical_tools import fdr_threshold, quantile_aggregation
 
 
 def _ungroup_beta(beta_hat, n_features, ward):

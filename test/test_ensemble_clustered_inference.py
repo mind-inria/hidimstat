@@ -16,11 +16,10 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )
-from hidimstat.utils import fixed_quantile_aggregation, adaptive_quantile_aggregation
 
 
 # Scenario 1: data with no temporal dimension

@@ -76,7 +76,7 @@ Imports needed for this script
     from hidimstat.empirical_thresholding import empirical_thresholding
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
     from hidimstat.permutation_test import permutation_test, permutation_test_pval
-    from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
+    from hidimstat.statistical_tools.p_values import pval_from_scale, zscore_from_pval
 
     n_job = None
 
@@ -177,14 +177,9 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 18268160 of 291168628 bytes (6.3%%,   15.0s remaining)
-    [_chunk_report_]     Downloaded 62128128 of 291168628 bytes (21.3%%,    7.5s remaining)
-    [_chunk_report_]     Downloaded 105897984 of 291168628 bytes (36.4%%,    5.4s remaining)
-    [_chunk_report_]     Downloaded 148152320 of 291168628 bytes (50.9%%,    4.0s remaining)
-    [_chunk_report_]     Downloaded 191381504 of 291168628 bytes (65.7%%,    2.7s remaining)
-    [_chunk_report_]     Downloaded 233111552 of 291168628 bytes (80.1%%,    1.5s remaining)
-    [_chunk_report_]     Downloaded 277110784 of 291168628 bytes (95.2%%,    0.4s remaining)
-    [fetch_single_file]  ...done. (8 seconds, 0 min)
+    [_chunk_report_]     Downloaded 91406336 of 291168628 bytes (31.4%%,    2.2s remaining)
+    [_chunk_report_]     Downloaded 201506816 of 291168628 bytes (69.2%%,    0.9s remaining)
+    [fetch_single_file]  ...done. (3 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
@@ -375,7 +370,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.5s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   30.7s finished
 
 
 
@@ -620,9 +615,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 16.272 seconds)
+   **Total running time of the script:** (1 minutes 14.252 seconds)
 
-**Estimated memory usage:**  2897 MB
+**Estimated memory usage:**  2709 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

@@ -68,8 +68,8 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat.scenario import multivariate_simulation
-from hidimstat.stat_tools import zscore_from_pval
+from hidimstat.statistical_tools.p_values import zscore_from_pval
+from hidimstat._utils.scenario import multivariate_simulation
 
 #############################################################################
 # Specific plotting functions

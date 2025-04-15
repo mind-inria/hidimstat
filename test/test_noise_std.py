@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
 from hidimstat.noise_std import empirical_snr, reid
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )

@@ -5,10 +5,11 @@ Test the scenario module
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_simulation,
     multivariate_temporal_simulation,
+    multivariate_1D_simulation_AR,
 )
 
 ROI_SIZE_2D = 2
@@ -71,7 +72,6 @@ def test_multivariate_simulation():
     sigma = 1.0
     smooth_X = 1.0
     rho_expected = 0.8
-    return_shaped_data = True
 
     X, y, beta, noise, X_, w = multivariate_simulation(
         n_samples=n_samples,
@@ -79,7 +79,6 @@ def test_multivariate_simulation():
         roi_size=roi_size,
         sigma=sigma,
         smooth_X=smooth_X,
-        return_shaped_data=return_shaped_data,
         seed=0,
     )
 
@@ -96,13 +95,11 @@ def test_multivariate_simulation():
     # Test 2
     shape = SHAPE_3D
     roi_size = ROI_SIZE_3D
-    return_shaped_data = False
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, noise, _, _ = multivariate_simulation(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        return_shaped_data=return_shaped_data,
         seed=0,
     )
 
@@ -162,3 +159,17 @@ def test_multivariate_temporal_simulation():
     rho_data_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
     assert_almost_equal(rho_data_hat, rho_data, decimal=1)
     assert_equal(Y, np.dot(X, beta) + noise)
+
+
+def test_simu_data():
+    """Test multivariate 1D simulation AR"""
+    X, y, _, _ = multivariate_1D_simulation_AR(n_samples=100, n_features=200, seed=42)
+
+    assert X.shape == (100, 200)
+    assert y.size == 100
+
+
+def test_non_zero_index():
+    """Test to make sure non-null variable indices are sampled without replacement"""
+    X, y, _, non_zero = multivariate_1D_simulation_AR(10, 10, sparsity=1.0, seed=0)
+    assert non_zero.size == np.unique(non_zero).size
