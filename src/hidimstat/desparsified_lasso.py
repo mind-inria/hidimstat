@@ -28,7 +28,7 @@ def desparsified_lasso(
     seed=0,
     memory=None,
     verbose=0,
-    group=False,
+    multioutput=False,
     covariance=None,
     noise_method="AR",
     order=1,
@@ -38,7 +38,7 @@ def desparsified_lasso(
     Desparsified Lasso
 
     Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
-    :footcite:t:`chevalier2020statistical`.
+    :footcite:t:`chevalier2020statisticalthesis`.
 
     Parameters
     ----------
@@ -85,7 +85,7 @@ def desparsified_lasso(
     verbose : int, default=0
         Verbosity level for logging.
 
-    group : bool, default=False
+    multioutput : bool, default=False
         If True, use group Lasso for multiple responses.
 
     covariance : ndarray, shape (n_times, n_times), default=None
@@ -137,7 +137,7 @@ def desparsified_lasso(
     X_ = np.asarray(X)
 
     n_samples, n_features = X_.shape
-    if group:
+    if multioutput:
         n_times = y.shape[1]
         if covariance is not None and covariance.shape != (n_times, n_times):
             raise ValueError(
@@ -160,7 +160,7 @@ def desparsified_lasso(
         n_jobs=n_jobs,
         seed=seed,
         # for group
-        group=group,
+        multioutput=multioutput,
         method=noise_method,
         order=order,
         stationary=stationary,
@@ -205,7 +205,7 @@ def desparsified_lasso(
     # confidence intervals
     precision_diagonal = precision_diagonal * dof_factor**2
 
-    if not group:
+    if not multioutput:
         return beta_hat, sigma_hat, precision_diagonal
     else:
         covariance_hat = sigma_hat
@@ -267,7 +267,7 @@ def desparsified_lasso_pvalue(
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     # see definition of lower and upper bound in algorithm 1
-    # in `chevalier2020statistical`:
+    # in `chevalier2020statisticalthesis`:
     # quantile_(1-alpha/2) * (n**(-1/2)) * sigma * (precision_diagonal**(1/2))
     confint_radius = np.abs(
         quantile * sigma_hat * np.sqrt(precision_diagonal) / np.sqrt(n_samples)
@@ -415,7 +415,7 @@ def _compute_all_residuals(
 
     Notes
     -----
-    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statistical`
+    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statisticalthesis`
     for estimating entries of the precision matrix needed in the
     desparsified Lasso. The procedure regresses each feature against
     all others using Lasso to obtain residuals and precision matrix estimates.

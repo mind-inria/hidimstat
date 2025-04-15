@@ -25,6 +25,9 @@ Functions
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
+   ensemble_clustered_inference_pvalue
+   clustered_inference,
+   clustered_inference_pvalue,
    reid
    hd_inference
    model_x_knockoff

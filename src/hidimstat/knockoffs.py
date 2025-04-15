@@ -326,7 +326,6 @@ def model_x_knockoff_bootstrap_quantile(
     reshaping_function=None,
     adaptive_aggregation=False,
     gamma=0.5,
-    n_grid=20,
 ):
     """
     This function implements the computation of the empirical p-values
@@ -355,9 +354,6 @@ def model_x_knockoff_bootstrap_quantile(
         For adaptive aggregation, this is the starting point for the grid search
         over gamma values.
 
-    n_grid_gamma : int, default=20
-        Number of gamma grid points for adaptive aggregation.
-
     Returns
     -------
     selected : 1D array, int
@@ -381,7 +377,7 @@ def model_x_knockoff_bootstrap_quantile(
     )
 
     aggregated_pval = quantile_aggregation(
-        pvals, gamma=gamma, n_grid=n_grid, adaptive=adaptive_aggregation
+        pvals, gamma=gamma, adaptive=adaptive_aggregation
     )
 
     threshold = fdr_threshold(
