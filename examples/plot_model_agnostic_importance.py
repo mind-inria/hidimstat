@@ -59,7 +59,7 @@ plt.show()
 
 
 ###############################################################################
-# Compute variable selection using d0CRT
+# Compute p-values using d0CRT
 # ---------------------------------------------------------------------------
 # We first compute the p-values using d0CRT which performs a conditional independence
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
