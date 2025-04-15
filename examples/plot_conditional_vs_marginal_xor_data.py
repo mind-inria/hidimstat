@@ -19,7 +19,7 @@ from sklearn.svm import SVC
 from hidimstat import CPI
 
 #############################################################################
-# To solve the XOR problem, we will use a SVC with RBF kernel. The decision function of
+# To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel. The decision function of
 # the fitted model shows that the model is able to separate the two classes.
 rng = np.random.RandomState(0)
 X = rng.randn(400, 2)
