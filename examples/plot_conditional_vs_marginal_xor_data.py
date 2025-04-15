@@ -35,10 +35,10 @@ model = SVC(kernel="rbf", random_state=0)
 model.fit(X_train, y_train)
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
 
+
 #############################################################################
 #  Visualizing the decision function of the SVC
-# -----------------------------------------------------
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 fig, ax = plt.subplots()
 ax.imshow(
     Z.reshape(xx.shape),
