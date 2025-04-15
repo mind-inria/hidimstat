@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**09:04.871** total execution time for 7 files **from auto_examples**:
+**09:06.471** total execution time for 8 files **from auto_examples**:
 
 .. container::
 
@@ -33,23 +33,26 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``plot_knockoff_aggregation.py``)
-     - 04:53.566
-     - 364.9
+     - 04:56.803
+     - 362.9
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``plot_fmri_data_example.py``)
-     - 01:14.252
-     - 2708.9
-   * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
-     - 01:06.292
-     - 256.5
+     - 01:13.549
+     - 2596.9
    * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``plot_dcrt_example.py``)
-     - 01:05.146
+     - 01:04.926
      - 215.1
+   * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
+     - 01:04.094
+     - 256.7
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``plot_variable_importance_classif.py``)
-     - 00:31.983
+     - 00:32.225
      - 202.6
    * - :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py` (``plot_pitfalls_permutation_importance.py``)
-     - 00:07.321
-     - 220.6
+     - 00:07.173
+     - 218.7
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``plot_diabetes_variable_importance_example.py``)
-     - 00:06.310
-     - 204.9
+     - 00:06.266
+     - 203.4
+   * - :ref:`sphx_glr_auto_examples_plot_conditional_vs_marginal_xor_data.py` (``plot_conditional_vs_marginal_xor_data.py``)
+     - 00:01.434
+     - 213.4
