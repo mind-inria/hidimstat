@@ -50,14 +50,12 @@ feature_names = [str(name) for name in data.feature_names]
 # charateristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
 # coefficients:
-
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=rng
 )
 clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
 
 
@@ -68,7 +66,7 @@ print("-" * 45)
 for i in selected_lasso:
     print(f"{feature_names[i]:<30} | {clf.coef_[0][i]:>10.3f}")
 
-# %%
+
 #############################################################################
 # Evaluating the rejection set
 # ------------------------------------------
@@ -135,8 +133,6 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). The
 # selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
 # :footcite:t:`candes2018panning`.
-
-
 from hidimstat import model_x_knockoff
 
 fdr = 0.2
@@ -156,7 +152,6 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
     fdr=fdr,
     n_jobs=3,
 )
-
 
 # Count how many selected features are actually noise
 num_false_discoveries = np.sum(selected >= p)
@@ -224,6 +219,7 @@ ax.axvline(
 ax.set_title("Lasso", fontweight="bold")
 plt.tight_layout()
 plt.show()
+
 
 ###############################################################################
 # We can clearly see that the knockoffs procedure is more conservative than the Lasso
