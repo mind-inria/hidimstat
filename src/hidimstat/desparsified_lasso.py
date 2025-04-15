@@ -38,7 +38,7 @@ def desparsified_lasso(
     Desparsified Lasso
 
     Algorithm based on Algorithm 1 of d-Lasso and d-MTLasso in
-    :footcite:t:`chevalier2020statistical`.
+    :footcite:t:`chevalier2020statisticalthesis`.
 
     Parameters
     ----------
@@ -267,7 +267,7 @@ def desparsified_lasso_pvalue(
     # define the quantile for the confidence intervals
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
     # see definition of lower and upper bound in algorithm 1
-    # in `chevalier2020statistical`:
+    # in `chevalier2020statisticalthesis`:
     # quantile_(1-alpha/2) * (n**(-1/2)) * sigma * (precision_diagonal**(1/2))
     confint_radius = np.abs(
         quantile * sigma_hat * np.sqrt(precision_diagonal) / np.sqrt(n_samples)
@@ -415,7 +415,7 @@ def _compute_all_residuals(
 
     Notes
     -----
-    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statistical`
+    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statisticalthesis`
     for estimating entries of the precision matrix needed in the
     desparsified Lasso. The procedure regresses each feature against
     all others using Lasso to obtain residuals and precision matrix estimates.
