@@ -189,7 +189,7 @@ def plot_results(df_importance, df_pval):
             legend=legend,
             orient="h",
         )
-        ax.set_title(method, fontweight="bold")
+        ax.set_title(method, fontweight="bold", y=1.12)
         ax.axvline(0, color="k", linestyle="--")
         ax.set_xlabel("Importance")
         ax.set_ylabel("")
@@ -217,7 +217,7 @@ def plot_results(df_importance, df_pval):
         handles=handles,
         labels=labels + [f"pval < {threshold}"],
         loc="center",
-        bbox_to_anchor=(0.6, 1.01),
+        bbox_to_anchor=(0.6, 0.82),
         ncol=3,
     )
     plt.tight_layout()
