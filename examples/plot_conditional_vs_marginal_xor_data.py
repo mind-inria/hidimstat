@@ -4,7 +4,7 @@ Conditional vs Marginal Importance on the XOR dataset
 
 This example illustrates on XOR data that variables can be conditionally important even
 if they are not marginally important. The conditional importance is computed using the
-CPI class and the marginal importance is computed using univariate models.
+Conditional Permutation Importance (CPI) class and the marginal importance is computed using univariate models.
 """
 
 import matplotlib.pyplot as plt
