@@ -227,7 +227,10 @@ plt.show()
 
 ###############################################################################
 # We can clearly see that the knockoffs procedure is more conservative than the Lasso
-# and rejects the spurious features while many of them are selected by the Lasso.
+# and rejects the spurious features while many of them are selected by the Lasso. It is
+# also interesting to note that the variables with the highest KO statistic (worst
+# radius, worst area, mean concave points) are also the variables with the largest Lasso
+# coefficients.
 
 
 #################################################################################
