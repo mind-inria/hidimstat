@@ -1,13 +1,14 @@
 """
-Controlled variable selection on the Wisconsin breast cancer dataset
-====================================================================
+Controlled multiple variable selection on the Wisconsin breast cancer dataset
+=============================================================================
 In this example, we explore the basics of variable selection and illustrate the need to
 statistically control the amount of faslely selected variables. We compare two variable
 selection methods: the Lasso and the Model-X Knockoffs :footcite:t:`candes2018panning`.
 We show how the Lasso is not robust to the presence of irrelevant variables, while the
-Knockoffs method is able to address this issue.
+Knockoffs (KO) method is able to address this issue.
 """
 
+# %%
 import numpy as np
 import pandas as pd
 
@@ -40,7 +41,7 @@ n_train, p = X_train.shape
 n_test = X_test.shape[0]
 feature_names = [str(name) for name in data.feature_names]
 
-
+# %%
 #############################################################################
 # Selecting variables with the Lasso
 # ------------------------------------------
@@ -60,10 +61,13 @@ print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
 
 
 selected_lasso = np.where(np.abs(clf.coef_[0]) > 1e-6)[0]
-print(f" {len(selected_lasso)} features are selected by the Lasso:")
-print(np.array(feature_names)[np.abs(clf.coef_[0]) > 1e-6])
+print(f"The Lasso selects {len(selected_lasso)} variables:")
+print(f"{'Variable name':<30} | {'Coefficient':>10}")
+print("-" * 45)
+for i in selected_lasso:
+    print(f"{feature_names[i]:<30} | {clf.coef_[0][i]:>10.3f}")
 
-
+# %%
 #############################################################################
 # Evaluating the rejection set
 # ------------------------------------------
@@ -87,8 +91,6 @@ for k in range(repeats_noise):
 
 noisy_train = np.concatenate(noises_train, axis=1)
 noisy_test = np.concatenate(noises_test, axis=1)
-
-print("Shape after adding noise features:", noisy_train.shape)
 
 
 #################################################################################
@@ -124,6 +126,7 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # To mitigate this problem, we can use one of the statistically controlled variable
 # selection methods implemented in hidimstat. This ensures that the proportion of False
 # Discoveries is below a certain bound set by the user in all scenarios.
+
 
 #############################################################################
 # Controlled variable selection with Knockoffs
