@@ -25,13 +25,13 @@ class BasePerturbation(BaseEstimator):
         estimator : sklearn compatible estimator, optional
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
-            The function to compute the loss when comparing the perturbed model to the
-            original model.
+            The function to compute the loss when comparing the perturbed model
+            to the original model.
         n_permutations : int, default=50
             This parameter is relevant only for PermutationImportance or CPI.
             Specifies the number of times the variable group (residual for CPI) is
-            permuted. For each permutation, the perturbed model's loss is calculated and
-            averaged over all permutations.
+            permuted. For each permutation, the perturbed model's loss is calculated
+            and averaged over all permutations.
         method : str, default="predict"
             The method used for making predictions. This determines the predictions
             passed to the loss function. Supported methods are "predict",
@@ -162,13 +162,15 @@ class BasePerturbation(BaseEstimator):
             or not hasattr(self, "_groups_ids")
         ):
             raise ValueError(
-                "The estimator is not fitted. The fit method must be called to set variable groups. If no grouping is needed, call fit with groups=None"
+                "The estimator is not fitted. The fit method must be called"
+                " to set variable groups. If no grouping is needed,"
+                " call fit with groups=None"
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
-        Compute the predictions after perturbation of the data for a given group of
-        variables. This function is parallelized.
+        Compute the predictions after perturbation of the data for a given
+        group of variables. This function is parallelized.
 
         Parameters
         ----------
