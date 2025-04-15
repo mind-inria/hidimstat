@@ -1,6 +1,7 @@
 """
 Controlled multiple variable selection on the Wisconsin breast cancer dataset
 =============================================================================
+
 In this example, we explore the basics of variable selection and illustrate the need to
 statistically control the amount of faslely selected variables. We compare two variable
 selection methods: the Lasso and the Model-X Knockoffs :footcite:t:`candes2018panning`.
