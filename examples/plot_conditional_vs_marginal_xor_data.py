@@ -72,7 +72,7 @@ plt.show()
 
 ###############################################################################
 # Computing the conditional and marginal importance
-# -----------------------------------------------------
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # We first compute the marginal importance by fitting univariate models on each feature.
 # Then, we compute the conditional importance using the CPI class. The univarariate
 # models don't perform above chance, since solving the XOR problem requires to use both
