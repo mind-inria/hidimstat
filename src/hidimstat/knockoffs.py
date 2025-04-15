@@ -38,7 +38,6 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
         The target vector.
 
     n_alphas : int, default=10
-``` (in numpydoc, they don't put parentheses)
         The number of alpha values to use to instantiate the cross-validation.
 
     Returns
