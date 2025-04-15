@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat.utils import _check_vim_predict_method
+from hidimstat._utils.utils import _check_vim_predict_method
 
 
 class BasePerturbation(BaseEstimator):
