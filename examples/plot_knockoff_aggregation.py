@@ -25,9 +25,11 @@ References
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
+import warnings
 
 from hidimstat.knockoffs import (
     model_x_knockoff,
@@ -71,31 +73,37 @@ def different_result(n_subjects):
         )
 
         # Use model-X Knockoffs [1]
-        selected, test_scores, threshold, X_tildes = model_x_knockoff(
-            X,
-            y,
-            estimator=LassoCV(
-                n_jobs=1,
-                cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            ),
-            n_bootstraps=1,
-            random_state=seed,
-        )
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=ConvergenceWarning)
+            warnings.filterwarnings("ignore", category=UserWarning, module="hidimstat")
+            selected, test_scores, threshold, X_tildes = model_x_knockoff(
+                X,
+                y,
+                estimator=LassoCV(
+                    n_jobs=1,
+                    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+                ),
+                n_bootstraps=1,
+                random_state=seed,
+            )
         mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
         fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
 
         # Use p-values aggregation [2]
-        selected, test_scores, threshold, X_tildes = model_x_knockoff(
-            X,
-            y,
-            estimator=LassoCV(
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=ConvergenceWarning)
+            warnings.filterwarnings("ignore", category=UserWarning, module="hidimstat")
+            selected, test_scores, threshold, X_tildes = model_x_knockoff(
+                X,
+                y,
+                estimator=LassoCV(
+                    n_jobs=1,
+                    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+                ),
+                n_bootstraps=n_bootstraps,
                 n_jobs=1,
-                cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            ),
-            n_bootstraps=n_bootstraps,
-            n_jobs=1,
-            random_state=seed,
-        )
+                random_state=seed,
+            )
         aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
             test_scores, fdr=fdr, gamma=0.3
         )
