@@ -16,11 +16,11 @@ jobs:
       - OMP_NUM_THREADS: 2
     steps:
       - checkout
-      - run: ./build_tools/circle/checkout_merge_commit.sh
+      - run: ./tools/build_doc/circleci/checkout_merge_commit.sh
       - restore_cache:
           key: saved-cache
       - run:
-          command: ./build_tools/circle/build_doc.sh
+          command: ./tools/build_doc/circleci/build_doc.sh
           no_output_timeout: 40m
       - store_artifacts:
           path: doc_conf/_build/html
@@ -44,7 +44,7 @@ jobs:
       - image: cimg/python:3.9
     steps:
       - checkout
-      - run: ./build_tools/circle/checkout_merge_commit.sh
+      - run: ./tools/build_doc/circleci/checkout_merge_commit.sh
       # Attach documentation generated in the 'python3' step so that it can be
       # deployed.
       - attach_workspace:
@@ -53,7 +53,7 @@ jobs:
       - deploy:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash build_tools/circle/push_doc.sh doc_conf/_build/html
+              bash tools/build_doc/circleci/push_doc.sh doc_conf/_build/html
             fi
 
 workflows:
