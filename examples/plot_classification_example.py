@@ -29,10 +29,12 @@ from joblib import Parallel, delayed
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
 from sklearn.datasets import load_iris
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVC
+import warnings
 
 from hidimstat import CPI, PermutationImportance
 
@@ -62,7 +64,10 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # function and use joblib to parallelize the computation.
 def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=None):
     model_c = clone(model)
-    model_c.fit(X[train_index], y[train_index])
+    # ignore the convergence warning of the fit
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=ConvergenceWarning)
+        model_c.fit(X[train_index], y[train_index])
     y_pred = model_c.predict(X[test_index])
 
     if isinstance(model_c, LogisticRegressionCV):
