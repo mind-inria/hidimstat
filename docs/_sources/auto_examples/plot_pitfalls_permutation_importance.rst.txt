@@ -464,9 +464,9 @@ the conditional distribution of the feature of interest.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.128 seconds)
+   **Total running time of the script:** (0 minutes 7.659 seconds)
 
-**Estimated memory usage:**  219 MB
+**Estimated memory usage:**  221 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_pitfalls_permutation_importance.py:
