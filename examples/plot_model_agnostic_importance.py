@@ -1,4 +1,4 @@
-"""
+r"""
 Variable Selection Under Model Misspecification
 =============================================================
 
