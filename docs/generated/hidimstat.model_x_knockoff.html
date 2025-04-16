@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=1c7551b8"></script>
+    <script src="../_static/documentation_options.js?v=85b4de0c"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'generated/hidimstat.model_x_knockoff';</script>
@@ -333,7 +333,6 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.aggregate_quantiles.html">hidimstat.aggregate_quantiles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.quantile_aggregation.html">hidimstat.quantile_aggregation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.clustered_inference.html">hidimstat.clustered_inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.dcrt_zero.html">hidimstat.dcrt_zero</a></li>
@@ -342,7 +341,6 @@
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_lasso_pvalue.html">hidimstat.desparsified_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.desparsified_group_lasso_pvalue.html">hidimstat.desparsified_group_lasso_pvalue</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.ensemble_clustered_inference.html">hidimstat.ensemble_clustered_inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hidimstat.reid.html">hidimstat.reid</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.hd_inference.html">hidimstat.hd_inference</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">hidimstat.model_x_knockoff</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hidimstat.permutation_test.html">hidimstat.permutation_test</a></li>
@@ -418,7 +416,7 @@
 <h1>hidimstat.model_x_knockoff<a class="headerlink" href="#hidimstat-model-x-knockoff" title="Link to this heading">#</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="hidimstat.model_x_knockoff">
-<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">model_x_knockoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator=LassoCV(cv=KFold(n_splits=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter=200000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconfigure_estimator=&lt;function</span> <span class="pre">preconfigure_estimator_LassoCV&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator=LedoitWolf(assume_centered=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol_gauss=1e-14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory=None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoffs.py#L69-L236"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.model_x_knockoff" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">hidimstat.</span></span><span class="sig-name descname"><span class="pre">model_x_knockoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator=LassoCV(cv=KFold(n_splits=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter=200000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preconfigure_estimator=&lt;function</span> <span class="pre">preconfigure_estimator_LassoCV&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdr=0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centered=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cov_estimator=LedoitWolf(assume_centered=True)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joblib_verbose=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_bootstraps=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_state=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol_gauss=1e-14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory=None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/mind-inria/hidimstat/blob/main/src/../src/hidimstat/knockoffs.py#L70-L237"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hidimstat.model_x_knockoff" title="Link to this definition">#</a></dt>
 <dd><p>Model-X Knockoff</p>
 <p>This module implements the Model-X knockoff inference procedure, which is an approach
 to control the False Discovery Rate (FDR) based on Candes <em>et al.</em><a class="footnote-reference brackets" href="#footcite-candes2018panning" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.
@@ -435,7 +433,7 @@ the sets to improve stability and power.</p>
 </dd>
 <dt><strong>y</strong><span class="classifier">1D ndarray (n_samples, )</span></dt><dd><p>The target vector.</p>
 </dd>
-<dt><strong>estimator</strong><span class="classifier">sklearn estimator instance or a cross validation instance, optional</span></dt><dd><p>The estimator used for fitting the data and computing the test statistics.
+<dt><strong>estimator</strong><span class="classifier">sklearn estimator instance or a cross validation instance</span></dt><dd><p>The estimator used for fitting the data and computing the test statistics.
 This can be any estimator with a <cite>fit</cite> method that accepts a 2D array and
 a 1D array, and a <cite>coef_</cite> attribute that returns a 1D array of coefficients.
 Examples include LassoCV, LogisticRegressionCV, and LinearRegression.</p>

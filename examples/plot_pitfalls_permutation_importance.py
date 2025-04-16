@@ -32,7 +32,7 @@ rng = np.random.RandomState(0)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature
-# ------------------------------------------------------------------
+# --------------------------------------------------------------
 # The California housing dataset is a regression dataset with 8 features. We add a
 # spurious feature that is a linear combination of 3 features plus some noise.
 # The spurious feature does not provide any additional information about the target.
@@ -77,7 +77,7 @@ plt.show()
 
 ###############################################################################
 # Fit a predictive model
-# ----------------------------
+# ----------------------
 # We fit a neural network model to the California housing dataset. PFI is a
 # model-agnostic method, we therefore illustrate its behavior when using a neural
 # network model.
@@ -180,7 +180,7 @@ plt.show()
 
 ###########################################################################
 # A valid alternative: Condional permutation importance
-# ---------------------------------------------------
+# -----------------------------------------------------
 # The `ConditionalPermutationImportance` class computes permutations of the feature of
 # interest while conditioning on the other features. In other words, it shuffles the
 # intrinsic information of the feature of interest while leaving the information that is
@@ -241,7 +241,7 @@ plt.show()
 
 ###############################################################################
 # Extrapolation bias in PFI
-# ----------------------------
+# -------------------------
 # One of the main pitfalls of PFI is that it leads to extrapolation bias, i.e., it
 # forces the model to predict from regions of the feature space that are not present in
 # the training data. This can be seen on the california housing dataset, by comparing
