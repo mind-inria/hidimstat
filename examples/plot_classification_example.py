@@ -1,11 +1,13 @@
 """
 Measuring Individual and Group Variable Importance for Classification
 ======================================================================
+
 In this example, we show on the Iris dataset how to measure variable importance for
-classification tasks. We use two different variable importance methods: Conditional Permutation importance (CPI) and
-Permutation Feature Importance (PFI) with two different classifiers: Logistic Regression (LR) and
-Support Vector Classifier (SVC). We start by measuring the importance of individual variables and then show
-how to measure the importance of groups of variables.
+classification tasks. We use two different variable importance methods: Conditional
+Permutation importance (CPI) and Permutation Feature Importance (PFI) with two different
+classifiers: Logistic Regression (LR) and Support Vector Classifier (SVC). We start by
+measuring the importance of individual variables and then show how to measure the
+importance of groups of variables.
 
 To briefly summarize the two methods:
 
