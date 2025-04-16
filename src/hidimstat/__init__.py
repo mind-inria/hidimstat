@@ -27,7 +27,6 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "aggregate_quantiles",
     "quantile_aggregation",
     "clustered_inference",
     "dcrt_zero",

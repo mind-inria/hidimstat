@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=6fd178ea"></script>
+    <script src="../_static/documentation_options.js?v=85b4de0c"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -335,6 +335,8 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="plot_dcrt_example.html">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_model_agnostic_importance.html">Variable Selection Under Model Misspecification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_conditional_vs_marginal_xor_data.html">Conditional vs Marginal Importance on the XOR dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_knockoff_aggregation.html">Knockoff aggregation on simulated data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_diabetes_variable_importance_example.html">Variable Importance on diabetes dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
@@ -529,7 +531,7 @@ feature.</p>
 <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">axes</span></a><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">labels</span></a><span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">tck_ids</span></a><span class="p">])</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7fdf69ca9100&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf69c3f740&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776e5cd0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776e7a40&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776e7cb0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776e5400&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776e51f0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776ff1a0&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf776feb40&gt;, &lt;matplotlib.axis.YTick object at 0x7fdf69ca7b60&gt;]
+<img src="../_images/sphx_glr_plot_variable_importance_classif_001.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_001.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.axis.YTick object at 0x7f02455e8b30&gt;, &lt;matplotlib.axis.YTick object at 0x7f02455e9460&gt;, &lt;matplotlib.axis.YTick object at 0x7f0245e00710&gt;, &lt;matplotlib.axis.YTick object at 0x7f0245e02120&gt;, &lt;matplotlib.axis.YTick object at 0x7f0244b61e50&gt;, &lt;matplotlib.axis.YTick object at 0x7f0245e004a0&gt;, &lt;matplotlib.axis.YTick object at 0x7f0245e01e50&gt;, &lt;matplotlib.axis.YTick object at 0x7f0244b54170&gt;, &lt;matplotlib.axis.YTick object at 0x7f0244b54830&gt;, &lt;matplotlib.axis.YTick object at 0x7f0245e01880&gt;]
 </pre></div>
 </div>
 </section>
@@ -722,10 +724,10 @@ correlation structure of the features.</p>
 <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.legend.html#matplotlib.axes.Axes.legend" title="matplotlib.axes.Axes.legend" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#list" title="builtins.list" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">handles</span></a> <span class="o">+</span> <span class="p">[</span><a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">important_legend</span></a><span class="p">,</span> <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.lines.Line2D.html#matplotlib.lines.Line2D" title="matplotlib.lines.Line2D" class="sphx-glr-backref-module-matplotlib-lines sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ground_truth_legend</span></a><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s2">&quot;upper right&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7fdf5fb54ad0&gt;
+<img src="../_images/sphx_glr_plot_variable_importance_classif_002.png" srcset="../_images/sphx_glr_plot_variable_importance_classif_002.png" alt="plot variable importance classif" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend object at 0x7f0244bf33e0&gt;
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.983 seconds)</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 31.871 seconds)</p>
 <p><strong>Estimated memory usage:</strong>  203 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-variable-importance-classif-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
