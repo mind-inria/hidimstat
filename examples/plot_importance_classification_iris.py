@@ -34,7 +34,6 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVC
-import warnings
 
 from hidimstat import CPI, PermutationImportance
 
@@ -64,10 +63,7 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # function and use joblib to parallelize the computation.
 def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=None):
     model_c = clone(model)
-    # ignore the convergence warning of the fit
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=ConvergenceWarning)
-        model_c.fit(X[train_index], y[train_index])
+    model_c.fit(X[train_index], y[train_index])
     y_pred = model_c.predict(X[test_index])
 
     if isinstance(model_c, LogisticRegressionCV):
@@ -82,7 +78,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
     if vim_name == "CPI":
         vim = CPI(
             estimator=model_c,
-            imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            imputation_model_continuous=RidgeCV(alphas=np.logspace(-2, 2, 10)),
             n_permutations=50,
             random_state=0,
             method=method,
@@ -117,8 +113,8 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
 # combination, in parallel.
 
 models = [
-    LogisticRegressionCV(Cs=np.logspace(-3, 3, 10)),
-    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
+    LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-2, 2, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 groups = {ft: i for i, ft in enumerate(dataset.feature_names)}
