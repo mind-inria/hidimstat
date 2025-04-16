@@ -121,7 +121,7 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 
 
 #################################################################################
-# The Lasso selects many spurious variables that are not related to the outcome.
+# The Lasso selects many spurious variables that are not directly related to the outcome.
 # To mitigate this problem, we can use one of the statistically controlled variable
 # selection methods implemented in hidimstat. This ensures that the proportion of False
 # Discoveries is below a certain bound set by the user in all scenarios.
