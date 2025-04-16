@@ -44,9 +44,9 @@ plt.rcParams.update({"font.size": 12})
 
 
 # Number of variables
-n_clusters = 100
+n_clusters = 150
 # Correlation parameter
-rho = 0.5
+rho = 0.4
 # Ratio of number of variables with non-zero coefficients over total
 # coefficients
 sparsity = 0.1
