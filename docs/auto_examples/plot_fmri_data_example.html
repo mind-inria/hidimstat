@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=92db63ba"></script>
+    <script src="../_static/documentation_options.js?v=ff3d3534"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_fmri_data_example';</script>
@@ -533,17 +533,17 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.</p>
 
 [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
 [_chunk_report_]
-Downloaded 109699072 of 291168628 bytes (37.7%%,    1.7s remaining)
+Downloaded 129105920 of 291168628 bytes (44.3%%,    1.3s remaining)
 [_chunk_report_]
-Downloaded 219070464 of 291168628 bytes (75.2%%,    0.7s remaining)
-[fetch_single_file]  ...done. (3 seconds, 0 min)
+Downloaded 277938176 of 291168628 bytes (95.5%%,    0.1s remaining)
+[fetch_single_file]  ...done. (2 seconds, 0 min)
 
 [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
 [uncompress_file] .. done.
 
 /home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:84: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
   bg_img = mean_img(haxby_dataset.anat)
-/opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+/opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
   warnings.warn(
 </pre></div>
 </div>
@@ -623,7 +623,7 @@ and high-dimensional inference (c.f. References).</p>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
 Clustered inference {}
 hd_inference False {}
-/opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+/opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
   model = cd_fast.enet_coordinate_descent_gram(
 </pre></div>
 </div>
@@ -640,7 +640,7 @@ However you might benefit from clustering randomization taking
 </pre></div>
 </div>
 <div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>[Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   31.0s finished
+[Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   29.7s finished
 </pre></div>
 </div>
 </section>
@@ -741,7 +741,7 @@ called <cite>plot_map</cite> that wraps all these steps.</p>
 <li><img src="../_images/sphx_glr_plot_fmri_data_example_004.png" srcset="../_images/sphx_glr_plot_fmri_data_example_004.png" alt="plot fmri data example" class = "sphx-glr-multi-img"/></li>
 <li><img src="../_images/sphx_glr_plot_fmri_data_example_005.png" srcset="../_images/sphx_glr_plot_fmri_data_example_005.png" alt="plot fmri data example" class = "sphx-glr-multi-img"/></li>
 </ul>
-<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>/opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
   ims = self._map_show(img, type=&quot;imshow&quot;, threshold=threshold, **kwargs)
 </pre></div>
 </div>
@@ -763,8 +763,8 @@ spurious discoveries.</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 13.549 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  2597 MB</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 10.660 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  2748 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-fmri-data-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/931385a6992917f918857d6a3ee9f780/plot_fmri_data_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_fmri_data_example.ipynb</span></code></a></p>
