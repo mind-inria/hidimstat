@@ -78,7 +78,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
     if vim_name == "CPI":
         vim = CPI(
             estimator=model_c,
-            imputation_model_continuous=RidgeCV(alphas=np.logspace(-2, 2, 10)),
+            imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
             n_permutations=50,
             random_state=0,
             method=method,
@@ -113,8 +113,8 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
 # combination, in parallel.
 
 models = [
-    LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
-    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-2, 2, 10)}),
+    LogisticRegressionCV(Cs=np.logspace(-3, 3, 10), tol=1e-3, max_iter=1000),
+    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 groups = {ft: i for i, ft in enumerate(dataset.feature_names)}
