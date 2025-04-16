@@ -1,5 +1,5 @@
 """
-Model Agnostic Variable Selection when Linear Models Fail
+Variable Selection Under Model Misspecification
 =============================================================
 
 In this example, we illustrate the limitations of variable selection methods based on
