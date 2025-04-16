@@ -268,9 +268,9 @@ the null hypothesis (importance = 0.0).
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.395 seconds)
+   **Total running time of the script:** (0 minutes 1.500 seconds)
 
-**Estimated memory usage:**  215 MB
+**Estimated memory usage:**  216 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_conditional_vs_marginal_xor_data.py:
