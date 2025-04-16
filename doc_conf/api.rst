@@ -16,7 +16,6 @@ Functions
    :toctree: generated/
    :template: function.rst
 
-   aggregate_quantiles
    quantile_aggregation
    clustered_inference
    dcrt_zero
