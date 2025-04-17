@@ -40,9 +40,11 @@ from hidimstat.knockoffs import (
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 
-plt.rcParams.update({"font.size": 12})
 
-
+# number of repetitions of the methods
+runs = 20
+# Number of observations
+n_samples = 200
 # Number of variables
 n_clusters = 150
 # Correlation parameter
@@ -52,11 +54,15 @@ rho = 0.4
 sparsity = 0.1
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
-snr = 10
-seed = 45
+# signal noise ration
+snr = 5
+# number of repetitions for the bootstraps
 n_bootstraps = 25
-runs = 20
+# seed for the random generator
+seed = 45
+# number of jobs for repetition of the method
 n_jobs = None
+# verbosity of the joblib
 joblib_verbose = 0
 
 rng = check_random_state(seed)
@@ -66,10 +72,10 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=None):
+def single_run(n_samples, n_clusters, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
-        n_subjects, n_clusters, rho=rho, sparsity=sparsity, seed=seed, snr=snr
+        n_samples, n_clusters, rho=rho, sparsity=sparsity, seed=seed, snr=snr
     )
 
     # Use model-X Knockoffs [1]
@@ -107,7 +113,7 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
 
     # Use p-values aggregation [2]
     aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, gamma=0.3
+        test_scores, fdr=fdr, adaptive_aggregation=True
     )
 
     fdp_pval, power_pval = fdp_power(aggregated_ko_selection, non_zero_index)
@@ -125,7 +131,7 @@ def single_run(n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=No
 #######################################################################
 # Define the function for plotting the result
 # -------------------------------------------
-def plot_results(bounds, fdr, nsubjects, n_clusters, rho, power=False):
+def plot_results(bounds, fdr, n_samples, n_clusters, power=False):
     plt.figure(figsize=(5, 5), layout="constrained")
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
@@ -141,7 +147,7 @@ def plot_results(bounds, fdr, nsubjects, n_clusters, rho, power=False):
             rotation=45,
             ha="right",
         )
-        plt.title(f"FDR = {fdr}, n = {nsubjects}, p = {n_clusters}, rho = {rho}")
+        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_clusters}")
         plt.ylabel("Empirical Power")
 
     else:
@@ -152,7 +158,7 @@ def plot_results(bounds, fdr, nsubjects, n_clusters, rho, power=False):
             rotation=45,
             ha="right",
         )
-        plt.title(f"FDR = {fdr}, n = {nsubjects}, p = {n_clusters}, rho = {rho}")
+        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_clusters}")
         plt.ylabel("Empirical FDP")
         plt.legend(loc="best")
 
@@ -160,11 +166,11 @@ def plot_results(bounds, fdr, nsubjects, n_clusters, rho, power=False):
 #######################################################################
 # Define the function for evaluate the effect of the population
 # -------------------------------------------------------------
-def effect_population(n_subjects):
+def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
-            n_subjects, n_clusters, rho, sparsity, fdr, n_bootstraps, seed=seed
+            n_samples, n_clusters, rho, sparsity, fdr, n_bootstraps, snr, seed=seed
         )
         for seed in seed_list
     )
@@ -180,7 +186,7 @@ def effect_population(n_subjects):
         fdps_pval.append(fdp_pval)
         fdps_eval.append(fdp_eval)
 
-        powers_mx.append(fdp_mx)
+        powers_mx.append(power_mx)
         powers_pval.append(power_pval)
         powers_eval.append(power_eval)
 
@@ -189,17 +195,25 @@ def effect_population(n_subjects):
     fdps = [fdps_mx, fdps_pval, fdps_eval]
     powers = [powers_mx, powers_pval, powers_eval]
 
-    plot_results(fdps, fdr, n_subjects, n_clusters, rho)
-    plot_results(powers, fdr, n_subjects, n_clusters, rho, power=True)
-    plt.show()
+    plot_results(fdps, fdr, n_samples, n_clusters)
+    plot_results(powers, fdr, n_samples, n_clusters, power=True)
 
 
 #######################################################################
-# Limitation of the aggregation with p-value
-# -------------------------------------------
-effect_population(n_subjects=75)
+# Aggregation methods provide a more stable inference
+# ---------------------------------------------------
+effect_number_samples(n_samples=n_samples)
+# By repeating the model-X Knockoffs, we can see that instability
+# of the inference. Additionally, we can see that the p-values aggregation
+# is more stable but doesn't capture the correct variable of importance.
+
 
 #######################################################################
-# Limitation of the aggregation with e-values
-# -------------------------------------------
-effect_population(n_subjects=125)
+# Limitation of the e-values aggregation
+# ---------------------------------------
+effect_number_samples(n_samples=50)
+
+# When the number of samples is too low, the variable of importance
+# can't be inferred by this method.
+
+plt.show()
