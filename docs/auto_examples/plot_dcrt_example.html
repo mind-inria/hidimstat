@@ -42,13 +42,13 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=6fd178ea"></script>
+    <script src="../_static/documentation_options.js?v=51f57f9f"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_dcrt_example';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Knockoff aggregation on simulated data" href="plot_knockoff_aggregation.html" />
+    <link rel="next" title="Variable Selection Under Model Misspecification" href="plot_model_agnostic_importance.html" />
     <link rel="prev" title="Examples Gallery" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -334,10 +334,13 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_model_agnostic_importance.html">Variable Selection Under Model Misspecification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_conditional_vs_marginal_xor_data.html">Conditional vs Marginal Importance on the XOR dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_knockoff_aggregation.html">Knockoff aggregation on simulated data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_diabetes_variable_importance_example.html">Variable Importance on diabetes dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_importance_classification_iris.html">Measuring Individual and Group Variable Importance for Classification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_variable_importance_classif.html">Measuring variable importance in classification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
@@ -499,8 +502,8 @@ Processing: 10
 <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.show.html#matplotlib.pyplot.show" title="matplotlib.pyplot.show" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_dcrt_example_001.png" srcset="../_images/sphx_glr_plot_dcrt_example_001.png" alt="Type-I Error, Power" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 5.146 seconds)</p>
-<p><strong>Estimated memory usage:</strong>  215 MB</p>
+<img src="../_images/sphx_glr_plot_dcrt_example_001.png" srcset="../_images/sphx_glr_plot_dcrt_example_001.png" alt="Type-I Error, Power" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 4.924 seconds)</p>
+<p><strong>Estimated memory usage:</strong>  216 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-dcrt-example-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
 <p><a class="reference download internal" download="" href="../_downloads/642b61154cca48af8e3feb505b920e16/plot_dcrt_example.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_dcrt_example.ipynb</span></code></a></p>
@@ -536,11 +539,11 @@ Processing: 10
       </div>
     </a>
     <a class="right-next"
-       href="plot_knockoff_aggregation.html"
+       href="plot_model_agnostic_importance.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Knockoff aggregation on simulated data</p>
+        <p class="prev-next-title">Variable Selection Under Model Misspecification</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

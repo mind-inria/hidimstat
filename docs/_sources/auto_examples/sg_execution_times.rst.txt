@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**09:04.871** total execution time for 7 files **from auto_examples**:
+**09:12.221** total execution time for 10 files **from auto_examples**:
 
 .. container::
 
@@ -33,23 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``plot_knockoff_aggregation.py``)
-     - 04:53.566
-     - 364.9
+     - 04:53.791
+     - 354.6
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``plot_fmri_data_example.py``)
-     - 01:14.252
-     - 2708.9
-   * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
-     - 01:06.292
-     - 256.5
+     - 01:13.297
+     - 2959.4
    * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``plot_dcrt_example.py``)
-     - 01:05.146
-     - 215.1
+     - 01:04.924
+     - 215.5
+   * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
+     - 01:02.882
+     - 314.9
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``plot_variable_importance_classif.py``)
-     - 00:31.983
-     - 202.6
+     - 00:31.550
+     - 203.1
+   * - :ref:`sphx_glr_auto_examples_plot_importance_classification_iris.py` (``plot_importance_classification_iris.py``)
+     - 00:07.869
+     - 202.8
    * - :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py` (``plot_pitfalls_permutation_importance.py``)
-     - 00:07.321
-     - 220.6
+     - 00:07.372
+     - 221.9
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``plot_diabetes_variable_importance_example.py``)
-     - 00:06.310
-     - 204.9
+     - 00:06.186
+     - 203.2
+   * - :ref:`sphx_glr_auto_examples_plot_model_agnostic_importance.py` (``plot_model_agnostic_importance.py``)
+     - 00:02.910
+     - 214.9
+   * - :ref:`sphx_glr_auto_examples_plot_conditional_vs_marginal_xor_data.py` (``plot_conditional_vs_marginal_xor_data.py``)
+     - 00:01.441
+     - 207.2
