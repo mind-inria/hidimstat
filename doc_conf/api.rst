@@ -40,4 +40,4 @@ Classes
    BasePerturbation
    LOCO
    CPI
-   PermutationFeatureImportance
+   PFI
