@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import CPI
+from hidimstat import CPI, BasePerturbation
 
 
 def test_cpi(linear_scenario):
@@ -122,17 +122,28 @@ def test_raises_value_error(
         )
 
     # Not fitted imputation model with predict and importance methods
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
             method="predict",
         )
         cpi.predict(X)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
             method="predict",
         )
+        cpi.importance(X, y)
+
+    with pytest.raises(
+        ValueError, match="The estimators require to be fit before to use them"
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            method="predict",
+        )
+        BasePerturbation.fit(cpi, X, y)
         cpi.importance(X, y)
