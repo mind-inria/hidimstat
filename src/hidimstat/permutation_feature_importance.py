@@ -5,7 +5,7 @@ from sklearn.utils import check_random_state
 from hidimstat.base_perturbation import BasePerturbation
 
 
-class PermutationImportance(BasePerturbation):
+class PFI(BasePerturbation):
     def __init__(
         self,
         estimator,
@@ -16,7 +16,7 @@ class PermutationImportance(BasePerturbation):
         random_state: int = None,
     ):
         """
-        Permutation Importance algorithm as presented in
+        Permutation Feature Importance algorithm as presented in
         :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
         the importance is computed as the difference between the loss of the initial
         model and the loss of the model with the variable/group permuted.

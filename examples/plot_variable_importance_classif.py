@@ -10,8 +10,8 @@ opposed to linear models for instance, can capture non-linear relationships. The
 features are generated from a multivariate normal distribution with a Toeplitz
 correlation matrix. This second specificity of the problem is interesting to exemplify
 the benefits of the conditional permutation importance (CPI) method
-[:footcite:t:`Chamma_NeurIPS2023`] over the standard permutation importance (PI) method
-[:footcite:t:`breimanRandomForests2001`].
+[:footcite:t:`Chamma_NeurIPS2023`] over the standard permutation feature importance (PFI)
+method [:footcite:t:`breimanRandomForests2001`].
 
 References
 ----------
@@ -34,7 +34,7 @@ from sklearn.metrics import hinge_loss
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
 from sklearn.svm import SVC
 
-from hidimstat import CPI, PermutationImportance
+from hidimstat import CPI, PFI
 
 #############################################################################
 # Generate the data
@@ -123,14 +123,14 @@ axes[1].set_yticks(tck_ids, labels[tck_ids])
 # We use two different Support Vector Machine models, one with a linear kernel and
 # one with a polynomial kernel of degree 2, well specified to capture the non-linear
 # relationship between the features and the target variable. We then use the CPI and
-# PI methods to compute the variable importance. We use a 5-fold cross-validation to
+# PFI methods to compute the variable importance. We use a 5-fold cross-validation to
 # estimate the importance of the features.
 
 seed = 0
 cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=seed)
 importance_linear = []
 importance_non_linear = []
-important_pi = []
+important_pfi = []
 
 model_linear = RandomizedSearchCV(
     SVC(random_state=seed, kernel="linear"),
@@ -188,22 +188,22 @@ for train, test in cv.split(X, y):
     cpi_non_linear.fit(X[train], y[train])
     imp_cpi_non_linear = cpi_non_linear.importance(X[test], y[test])["importance"]
 
-    pi_non_linear = PermutationImportance(
+    pfi_non_linear = PFI(
         estimator=model_non_linear_c,
         n_permutations=50,
         n_jobs=5,
         random_state=seed,
         method="decision_function",
     )
-    pi_non_linear.fit(X[train], y[train])
-    imp_pi_non_linear = pi_non_linear.importance(X[test], y[test])["importance"]
+    pfi_non_linear.fit(X[train], y[train])
+    imp_pfi_non_linear = pfi_non_linear.importance(X[test], y[test])["importance"]
 
     importance_list.append(
         np.stack(
             [
                 imp_cpi_linear,
                 imp_cpi_non_linear,
-                imp_pi_non_linear,
+                imp_pfi_non_linear,
             ]
         )
     )
@@ -230,7 +230,7 @@ for j in range(n_features):
 # importance of the weight and height because of its lack of expressivity. Using a
 # polynomial kernel, the non-linear model captures the importance of the weight and
 # height. Finally, the CPI method controls for false positive discoveries contrarily
-# to the PI method which identifies spurious important features simply because of the
+# to the PFI method which identifies spurious important features simply because of the
 # correlation structure of the features.
 
 fig, ax = plt.subplots()
@@ -258,7 +258,7 @@ box1 = ax.boxplot(
     importance_arr[:, 2, :],
     positions=np.arange(1, n_features + 1) + 0.25,
     widths=0.2,
-    label="PI Poly",
+    label="PFI Poly",
     vert=False,
 )
 for item in ["whiskers", "fliers", "medians", "caps", "boxes"]:
