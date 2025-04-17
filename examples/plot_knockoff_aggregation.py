@@ -11,11 +11,6 @@ inference.
 This example exhibits the two aggregation procedures described
 by :footcite:t:`pmlr-v119-nguyen20a` and :footcite:t:`Ren_2023` to derandomize
 inference.
-
-References
-----------
-.. footbibliography::
-
 """
 
 #############################################################################
@@ -46,7 +41,7 @@ runs = 20
 # Number of observations
 n_samples = 200
 # Number of variables
-n_clusters = 150
+n_features = 150
 # Correlation parameter
 rho = 0.4
 # Ratio of number of variables with non-zero coefficients over total
@@ -55,7 +50,7 @@ sparsity = 0.1
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
 # signal noise ration
-snr = 5
+snr = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
 # seed for the random generator
@@ -72,10 +67,10 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_samples, n_clusters, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
+def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
-        n_samples, n_clusters, rho=rho, sparsity=sparsity, seed=seed, snr=snr
+        n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
     )
 
     # Use model-X Knockoffs [1]
@@ -131,7 +126,7 @@ def single_run(n_samples, n_clusters, rho, sparsity, snr, fdr, n_bootstraps, see
 #######################################################################
 # Define the function for plotting the result
 # -------------------------------------------
-def plot_results(bounds, fdr, n_samples, n_clusters, power=False):
+def plot_results(bounds, fdr, n_samples, n_features, power=False):
     plt.figure(figsize=(5, 5), layout="constrained")
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
@@ -147,7 +142,7 @@ def plot_results(bounds, fdr, n_samples, n_clusters, power=False):
             rotation=45,
             ha="right",
         )
-        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_clusters}")
+        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_features}")
         plt.ylabel("Empirical Power")
 
     else:
@@ -158,7 +153,7 @@ def plot_results(bounds, fdr, n_samples, n_clusters, power=False):
             rotation=45,
             ha="right",
         )
-        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_clusters}")
+        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_features}")
         plt.ylabel("Empirical FDP")
         plt.legend(loc="best")
 
@@ -170,7 +165,7 @@ def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
-            n_samples, n_clusters, rho, sparsity, fdr, n_bootstraps, snr, seed=seed
+            n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=seed
         )
         for seed in seed_list
     )
@@ -195,14 +190,17 @@ def effect_number_samples(n_samples):
     fdps = [fdps_mx, fdps_pval, fdps_eval]
     powers = [powers_mx, powers_pval, powers_eval]
 
-    plot_results(fdps, fdr, n_samples, n_clusters)
-    plot_results(powers, fdr, n_samples, n_clusters, power=True)
+    plot_results(fdps, fdr, n_samples, n_features)
+    plot_results(powers, fdr, n_samples, n_features, power=True)
+    plt.show()
 
 
 #######################################################################
 # Aggregation methods provide a more stable inference
 # ---------------------------------------------------
 effect_number_samples(n_samples=n_samples)
+
+#######################################################################
 # By repeating the model-X Knockoffs, we can see that instability
 # of the inference. Additionally, we can see that the p-values aggregation
 # is more stable but doesn't capture the correct variable of importance.
@@ -213,7 +211,11 @@ effect_number_samples(n_samples=n_samples)
 # ---------------------------------------
 effect_number_samples(n_samples=50)
 
+#######################################################################
 # When the number of samples is too low, the variable of importance
 # can't be inferred by this method.
 
-plt.show()
+#################################################################################
+# References
+# ---------------------------------------------------------------------------
+# .. footbibliography::
