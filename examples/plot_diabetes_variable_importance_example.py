@@ -55,7 +55,7 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat import CPI, LOCO, PermutationFeatureImportance
+from hidimstat import CPI, LOCO, PFI
 
 #############################################################################
 # Load the diabetes dataset
@@ -158,7 +158,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    pfi = PermutationFeatureImportance(
+    pfi = PFI(
         estimator=regressor_list[i],
         n_permutations=50,
         random_state=0,
