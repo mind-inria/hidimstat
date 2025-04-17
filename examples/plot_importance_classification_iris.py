@@ -29,7 +29,6 @@ from joblib import Parallel, delayed
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
 from sklearn.datasets import load_iris
-from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
