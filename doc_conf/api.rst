@@ -26,9 +26,7 @@ Functions
    ensemble_clustered_inference
    hd_inference
    model_x_knockoff
-   permutation_test
    reid
-   empirical_thresholding
 
 Classes
 =======
