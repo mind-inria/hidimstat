@@ -147,12 +147,13 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
         random_state=rng,
+        tol=1e-3,
+        max_iter=1000,
     ),
     n_bootstraps=1,
     random_state=0,
     preconfigure_estimator=None,
     fdr=fdr,
-    n_jobs=3,
 )
 
 # Count how many selected features are actually noise
@@ -235,3 +236,5 @@ plt.show()
 # References
 # ---------------------------------------------------------------------------
 # .. footbibliography::
+
+# %%
