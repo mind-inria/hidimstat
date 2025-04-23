@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   python3:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.13
     environment:
       - PYTHON_VERSION: "3.12"
       - OMP_NUM_THREADS: 2
@@ -35,13 +35,13 @@ jobs:
 
   deploy:
     docker:
-      - image: cimg/python:3.9
+      - image: cimg/python:3.13
     environment:
-      - USERNAME: "jeromedockes"
+      - USERNAME: "hidimstat-circleci"
       - ORGANIZATION: "hidimstat"
       - DOC_REPO: "hidimstat.github.io"
       - DOC_URL: ""
-      - EMAIL: "jerome@dockes.org"
+      - EMAIL: "hidimstat@circleci.com"
       - MINICONDA_PATH: ~/miniconda
       - CONDA_ENV_NAME: testenv
     steps:
