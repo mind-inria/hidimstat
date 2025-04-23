@@ -42,7 +42,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=a575145c"></script>
+    <script src="../_static/documentation_options.js?v=e11dc441"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/plot_importance_classification_iris';</script>
@@ -441,7 +441,7 @@ estimate this conditional distribution.</p></li>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV" title="sklearn.model_selection.GridSearchCV" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-class"><span class="n">GridSearchCV</span></a><span class="p">,</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold" title="sklearn.model_selection.KFold" class="sphx-glr-backref-module-sklearn-model_selection sphx-glr-backref-type-py-class"><span class="n">KFold</span></a>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.svm</span><span class="w"> </span><span class="kn">import</span> <a href="https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html#sklearn.svm.SVC" title="sklearn.svm.SVC" class="sphx-glr-backref-module-sklearn-svm sphx-glr-backref-type-py-class"><span class="n">SVC</span></a>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.CPI.html#hidimstat.CPI" title="hidimstat.CPI" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">CPI</span></a><span class="p">,</span> <a href="../generated/hidimstat.PermutationImportance.html#hidimstat.PermutationImportance" title="hidimstat.PermutationImportance" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">PermutationImportance</span></a>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hidimstat</span><span class="w"> </span><span class="kn">import</span> <a href="../generated/hidimstat.CPI.html#hidimstat.CPI" title="hidimstat.CPI" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">CPI</span></a><span class="p">,</span> <a href="../generated/hidimstat.PFI.html#hidimstat.PFI" title="hidimstat.PFI" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">PFI</span></a>
 </pre></div>
 </div>
 <section id="load-the-iris-dataset-and-add-a-spurious-feature">
@@ -491,7 +491,7 @@ function and use joblib to parallelize the computation.</p>
             <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">elif</span> <span class="n">vim_name</span> <span class="o">==</span> <span class="s2">&quot;PFI&quot;</span><span class="p">:</span>
-        <span class="n">vim</span> <span class="o">=</span> <a href="../generated/hidimstat.PermutationImportance.html#hidimstat.PermutationImportance" title="hidimstat.PermutationImportance" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">PermutationImportance</span></a><span class="p">(</span>
+        <span class="n">vim</span> <span class="o">=</span> <a href="../generated/hidimstat.PFI.html#hidimstat.PFI" title="hidimstat.PFI" class="sphx-glr-backref-module-hidimstat sphx-glr-backref-type-py-class"><span class="n">PFI</span></a><span class="p">(</span>
             <span class="n">estimator</span><span class="o">=</span><span class="n">model_c</span><span class="p">,</span>
             <span class="n">n_permutations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
             <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -671,7 +671,7 @@ importance of these feature groups. For instance, we can group ‘sepal width’
 <span class="n">plot_results</span><span class="p">(</span><a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="pandas.core.frame.DataFrame" class="sphx-glr-backref-module-pandas-core-frame sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">df_grouped</span></a><span class="p">,</span> <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="pandas.core.frame.DataFrame" class="sphx-glr-backref-module-pandas-core-frame sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">df_pval</span></a><span class="p">)</span>
 </pre></div>
 </div>
-<img src="../_images/sphx_glr_plot_importance_classification_iris_002.png" srcset="../_images/sphx_glr_plot_importance_classification_iris_002.png" alt="CPI, PFI" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 7.928 seconds)</p>
+<img src="../_images/sphx_glr_plot_importance_classification_iris_002.png" srcset="../_images/sphx_glr_plot_importance_classification_iris_002.png" alt="CPI, PFI" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 7.790 seconds)</p>
 <p><strong>Estimated memory usage:</strong>  203 MB</p>
 <div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-importance-classification-iris-py">
 <div class="sphx-glr-download sphx-glr-download-jupyter docutils container">

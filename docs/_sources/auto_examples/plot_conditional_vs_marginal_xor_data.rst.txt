@@ -268,7 +268,7 @@ the null hypothesis (importance = 0.0).
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.376 seconds)
+   **Total running time of the script:** (0 minutes 1.451 seconds)
 
 **Estimated memory usage:**  207 MB
 

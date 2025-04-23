@@ -57,7 +57,7 @@ To briefly summarize the two methods:
     from sklearn.model_selection import GridSearchCV, KFold
     from sklearn.svm import SVC
 
-    from hidimstat import CPI, PermutationImportance
+    from hidimstat import CPI, PFI
 
 
 
@@ -133,7 +133,7 @@ function and use joblib to parallelize the computation.
                 loss=loss,
             )
         elif vim_name == "PFI":
-            vim = PermutationImportance(
+            vim = PFI(
                 estimator=model_c,
                 n_permutations=50,
                 random_state=0,
@@ -389,7 +389,7 @@ importance of these feature groups. For instance, we can group 'sepal width' wit
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.928 seconds)
+   **Total running time of the script:** (0 minutes 7.790 seconds)
 
 **Estimated memory usage:**  203 MB
 

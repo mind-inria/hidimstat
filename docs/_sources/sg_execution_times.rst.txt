@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**09:17.697** total execution time for 10 files **from all galleries**:
+**09:08.682** total execution time for 10 files **from all galleries**:
 
 .. container::
 
@@ -33,32 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``../examples/plot_knockoff_aggregation.py``)
-     - 04:53.706
-     - 344.8
+     - 04:49.595
+     - 367.2
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``../examples/plot_fmri_data_example.py``)
-     - 01:17.988
-     - 2763.1
+     - 01:15.533
+     - 2655.0
    * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``../examples/plot_dcrt_example.py``)
-     - 01:04.691
-     - 215.5
+     - 01:05.159
+     - 215.3
    * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``../examples/plot_2D_simulation_example.py``)
-     - 01:03.994
-     - 256.7
+     - 01:01.778
+     - 256.9
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``../examples/plot_variable_importance_classif.py``)
-     - 00:31.357
+     - 00:30.886
      - 203.1
    * - :ref:`sphx_glr_auto_examples_plot_importance_classification_iris.py` (``../examples/plot_importance_classification_iris.py``)
-     - 00:07.928
-     - 202.9
+     - 00:07.790
+     - 203.0
    * - :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py` (``../examples/plot_pitfalls_permutation_importance.py``)
-     - 00:07.575
-     - 222.0
+     - 00:07.516
+     - 219.1
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``../examples/plot_diabetes_variable_importance_example.py``)
-     - 00:06.283
-     - 202.9
+     - 00:06.080
+     - 203.0
    * - :ref:`sphx_glr_auto_examples_plot_model_agnostic_importance.py` (``../examples/plot_model_agnostic_importance.py``)
-     - 00:02.798
-     - 214.4
+     - 00:02.895
+     - 214.5
    * - :ref:`sphx_glr_auto_examples_plot_conditional_vs_marginal_xor_data.py` (``../examples/plot_conditional_vs_marginal_xor_data.py``)
-     - 00:01.376
-     - 206.6
+     - 00:01.451
+     - 206.8
