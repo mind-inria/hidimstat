@@ -389,7 +389,7 @@ importance of these feature groups. For instance, we can group 'sepal width' wit
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.790 seconds)
+   **Total running time of the script:** (0 minutes 8.020 seconds)
 
 **Estimated memory usage:**  203 MB
 

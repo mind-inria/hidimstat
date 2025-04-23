@@ -275,9 +275,9 @@ References
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.895 seconds)
+   **Total running time of the script:** (0 minutes 3.186 seconds)
 
-**Estimated memory usage:**  214 MB
+**Estimated memory usage:**  215 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_model_agnostic_importance.py:
