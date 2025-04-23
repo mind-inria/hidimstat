@@ -45,7 +45,7 @@ feature_names = [str(name) for name in data.feature_names]
 
 #############################################################################
 # Selecting variables with the Logistic Lasso
-# ------------------------------------------
+# -----------------------------------------------------------
 # We want to select variables that are relevant to the outcome, i.e. tumor
 # charateristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
@@ -231,14 +231,12 @@ plt.show()
 ###############################################################################
 # We can clearly see that the knockoffs procedure is more conservative than the Lasso
 # and rejects the spurious features while many of them are selected by the Lasso. It is
-# also interesting to note that the variables with the highest KO statistic (worst
-# radius, worst area, mean concave points) are also the variables with the largest Lasso
-# coefficients.
+# also interesting to note that some of the selected variables (with the high KO
+# statistic (e.g., worst radius, worst area, mean concave points) are also variables
+# with the largest Lasso coefficients.
 
 
 #################################################################################
 # References
 # ---------------------------------------------------------------------------
 # .. footbibliography::
-
-# %%
