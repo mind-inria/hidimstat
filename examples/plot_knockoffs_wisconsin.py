@@ -9,7 +9,6 @@ We show how the Lasso is not robust to the presence of irrelevant variables, whi
 Knockoffs (KO) method is able to address this issue.
 """
 
-# %%
 import numpy as np
 import pandas as pd
 
@@ -43,7 +42,7 @@ n_train, p = X_train.shape
 n_test = X_test.shape[0]
 feature_names = [str(name) for name in data.feature_names]
 
-# %%
+
 #############################################################################
 # Selecting variables with the Lasso
 # ------------------------------------------
@@ -106,9 +105,9 @@ print(
     f"Accuracy of Lasso on test set with noise: {lasso_noisy.score(noisy_test, y_test):.3f}"
 )
 
-selected_logl1 = np.where(np.abs(lasso_noisy.coef_[0]) > 1e-6)[0]
-selected_mask = np.array(["rejected"] * len(lasso_noisy.coef_[0]))
-selected_mask[selected_logl1] = "selected"
+selected_mask = [
+    "selected" if np.abs(x) > 1e-6 else "rejected" for x in lasso_noisy.coef_[0]
+]
 df_lasso_noisy = pd.DataFrame(
     {
         "score": np.abs(lasso_noisy.coef_[0]),
@@ -117,7 +116,9 @@ df_lasso_noisy = pd.DataFrame(
     }
 )
 # Count how many selected features are actually noise
-num_false_discoveries = np.sum(selected_logl1 >= p)
+num_false_discoveries = np.sum(
+    np.array(selected_mask[p:]) == "selected"
+)  # Count the number of selected spurious variables
 print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 
 
