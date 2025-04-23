@@ -44,7 +44,7 @@ feature_names = [str(name) for name in data.feature_names]
 
 
 #############################################################################
-# Selecting variables with the Lasso
+# Selecting variables with the Logistic Lasso
 # ------------------------------------------
 # We want to select variables that are relevant to the outcome, i.e. tumor
 # charateristics that are associated with tumor malignance. We start off by applying a
