@@ -36,6 +36,23 @@ Examples Gallery
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate the limitations of variable selection methods based on linear models using the circles dataset. We first use the distilled conditional randomization test (d0CRT), which is based on linear models :footciteliu2022fast and then demonstrate how model-agnostic methods, such as Leave-One-Covariate-Out (LOCO), can identify important variables even when classes are not linearly separable.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_model_agnostic_importance_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_model_agnostic_importance.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Variable Selection Under Model Misspecification</div>
+    </div>
+
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="This example illustrates on XOR data that variables can be conditionally important even if they are not marginally important. The conditional importance is computed using the Conditional Permutation Importance (CPI) class and the marginal importance is computed using univariate models.">
 
 .. only:: html
@@ -121,7 +138,24 @@ Examples Gallery
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate how to measure variable importance in a classification context. The problem under consideration is a binary classification where the target variable is generated using a non-linear function of the features. Therefore illustrating the importance of model-agnostic variable importance methods, which, as opposed to linear models for instance, can capture non-linear relationships. The features are generated from a multivariate normal distribution with a Toeplitz correlation matrix. This second specificity of the problem is interesting to exemplify the benefits of the conditional permutation importance (CPI) method [:footciteChamma_NeurIPS2023] over the standard permutation importance (PI) method [:footcitebreimanRandomForests2001].">
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we show on the Iris dataset how to measure variable importance for classification tasks. We use two different variable importance methods: Conditional Permutation importance (CPI) and Permutation Feature Importance (PFI) with two different classifiers: Logistic Regression (LR) and Support Vector Classifier (SVC). We start by measuring the importance of individual variables and then show how to measure the importance of groups of variables.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_importance_classification_iris_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_plot_importance_classification_iris.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Measuring Individual and Group Variable Importance for Classification</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate how to measure variable importance in a classification context. The problem under consideration is a binary classification where the target variable is generated using a non-linear function of the features. Therefore illustrating the importance of model-agnostic variable importance methods, which, as opposed to linear models for instance, can capture non-linear relationships. The features are generated from a multivariate normal distribution with a Toeplitz correlation matrix. This second specificity of the problem is interesting to exemplify the benefits of the conditional permutation importance (CPI) method [:footciteChamma_NeurIPS2023] over the standard permutation feature importance (PFI) method [:footcitebreimanRandomForests2001].">
 
 .. only:: html
 
@@ -164,11 +198,13 @@ Examples Gallery
    :hidden:
 
    /auto_examples/plot_dcrt_example
+   /auto_examples/plot_model_agnostic_importance
    /auto_examples/plot_conditional_vs_marginal_xor_data
    /auto_examples/plot_knockoff_aggregation
    /auto_examples/plot_diabetes_variable_importance_example
    /auto_examples/plot_2D_simulation_example
    /auto_examples/plot_fmri_data_example
+   /auto_examples/plot_importance_classification_iris
    /auto_examples/plot_variable_importance_classif
    /auto_examples/plot_pitfalls_permutation_importance
 
