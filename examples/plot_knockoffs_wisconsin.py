@@ -97,7 +97,11 @@ noisy_test = np.concatenate(noises_test, axis=1)
 # of the outcome. We now apply the Lasso (with cross-validation to select the best
 # regularization parameter) to the noisy dataset and observe the results:
 lasso_noisy = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=rng
+    Cs=np.logspace(-3, 3, 10),
+    penalty="l1",
+    solver="liblinear",
+    random_state=rng,
+    n_jobs=1,
 )
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
