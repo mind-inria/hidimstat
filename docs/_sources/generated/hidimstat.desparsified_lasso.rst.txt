@@ -1,8 +1,0 @@
-﻿hidimstat.desparsified_lasso
-============================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: desparsified_lasso
-
-.. include:: hidimstat.desparsified_lasso.examples
