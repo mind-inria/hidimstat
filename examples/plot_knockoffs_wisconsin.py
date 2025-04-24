@@ -110,7 +110,7 @@ print(
 )
 
 selected_mask = [
-    "selected" if np.abs(x) > 1e-6 else "rejected" for x in lasso_noisy.coef_[0]
+    "selected" if np.abs(x) > 1e-6 else "not selected" for x in lasso_noisy.coef_[0]
 ]
 df_lasso_noisy = pd.DataFrame(
     {
