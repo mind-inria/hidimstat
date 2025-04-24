@@ -143,6 +143,7 @@ class CPI(BasePerturbation):
 
     def _check_fit(self):
         """Check if the imputation models are fitted."""
+        super()._check_fit()
         if len(self._list_imputation_models) == 0:
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_imputation_models:

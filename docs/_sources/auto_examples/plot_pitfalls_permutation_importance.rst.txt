@@ -48,7 +48,7 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
-    from hidimstat import CPI, PermutationImportance
+    from hidimstat import CPI, PFI
     from hidimstat.conditional_sampling import ConditionalSampler
 
     rng = np.random.RandomState(0)
@@ -63,7 +63,7 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
 .. GENERATED FROM PYTHON SOURCE LINES 34-39
 
 Load the California housing dataset and add a spurious feature
-------------------------------------------------------------------
+--------------------------------------------------------------
 The California housing dataset is a regression dataset with 8 features. We add a
 spurious feature that is a linear combination of 3 features plus some noise.
 The spurious feature does not provide any additional information about the target.
@@ -132,7 +132,7 @@ The spurious feature does not provide any additional information about the targe
 .. GENERATED FROM PYTHON SOURCE LINES 79-84
 
 Fit a predictive model
-----------------------------
+----------------------
 We fit a neural network model to the California housing dataset. PFI is a
 model-agnostic method, we therefore illustrate its behavior when using a neural
 network model.
@@ -188,7 +188,7 @@ network model.
 
 Measure the importance of variables using the PFI method
 --------------------------------------------------------
-We use the `PermutationImportance` class to compute the PFI in a cross-fitting
+We use the `PermutationFeatureImportance` class to compute the PFI in a cross-fitting
 way. We then derive a p-value from importance scores using a one-sample t-test.
 As shown in the figure below, the PFI method does not provide valid p-values for
 testing conditional importance, as it identifies the spurious feature as important.
@@ -206,7 +206,7 @@ testing conditional importance, as it identifies the spurious feature as importa
         model_c = fitted_estimators[i]
 
         # Compute permutation feature importance
-        pfi = PermutationImportance(
+        pfi = PFI(
             model_c,
             n_permutations=50,
             random_state=0,
@@ -215,7 +215,7 @@ testing conditional importance, as it identifies the spurious feature as importa
 
         permutation_importances.append(pfi.importance(X_test, y_test)["importance"])
     permutation_importances = np.stack(permutation_importances)
-    pval_pi = ttest_1samp(
+    pval_pfi = ttest_1samp(
         permutation_importances, 0.0, axis=0, alternative="greater"
     ).pvalue
 
@@ -232,7 +232,7 @@ testing conditional importance, as it identifies the spurious feature as importa
     )
     ax.set_xlabel("Permutation Importance")
     # Add asterisks for features with p-values below the threshold
-    for i, pval in enumerate(pval_pi):
+    for i, pval in enumerate(pval_pfi):
         if pval < pval_threshold:
             ax.scatter(
                 np.max(permutation_importances[:, i]) + 0.01,
@@ -272,8 +272,8 @@ important.
 .. GENERATED FROM PYTHON SOURCE LINES 182-189
 
 A valid alternative: Condional permutation importance
----------------------------------------------------
-The `ConditionalPermutationImportance` class computes permutations of the feature of
+-----------------------------------------------------
+The `ConditionalPermutationFeatureImportance` class computes permutations of the feature of
 interest while conditioning on the other features. In other words, it shuffles the
 intrinsic information of the feature of interest while leaving the information that is
 explained by the other features unchanged. This method is valid for testing conditional
@@ -309,10 +309,10 @@ importance. As shown below, it does not identify the spurious feature as importa
 
     df_pval = pd.DataFrame(
         {
-            "pval": np.concatenate([pval_pi, cpi_pval]),
-            "method": ["PFI"] * len(pval_pi) + ["CPI"] * len(cpi_pval),
+            "pval": np.concatenate([pval_pfi, cpi_pval]),
+            "method": ["PFI"] * len(pval_pfi) + ["CPI"] * len(cpi_pval),
             "variable": feature_names * 2,
-            "log_pval": -np.concatenate([np.log10(pval_pi), np.log10(cpi_pval)]),
+            "log_pval": -np.concatenate([np.log10(pval_pfi), np.log10(cpi_pval)]),
         }
     )
 
@@ -351,7 +351,7 @@ Contrary to PFI, CPI does not identify the spurious feature as important.
 .. GENERATED FROM PYTHON SOURCE LINES 243-253
 
 Extrapolation bias in PFI
-----------------------------
+-------------------------
 One of the main pitfalls of PFI is that it leads to extrapolation bias, i.e., it
 forces the model to predict from regions of the feature space that are not present in
 the training data. This can be seen on the california housing dataset, by comparing
@@ -464,9 +464,9 @@ the conditional distribution of the feature of interest.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 7.917 seconds)
+   **Total running time of the script:** (0 minutes 7.477 seconds)
 
-**Estimated memory usage:**  220 MB
+**Estimated memory usage:**  222 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_pitfalls_permutation_importance.py:

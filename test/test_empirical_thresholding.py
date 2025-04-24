@@ -6,9 +6,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from hidimstat.scenario import multivariate_1D_simulation
+from hidimstat._utils.scenario import multivariate_1D_simulation
 from hidimstat.empirical_thresholding import empirical_thresholding
-from hidimstat.stat_tools import pval_from_scale
+from hidimstat.statistical_tools.p_values import pval_from_scale
 
 from sklearn.linear_model import Lasso
 from sklearn.tree import DecisionTreeRegressor

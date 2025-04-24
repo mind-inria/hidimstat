@@ -92,8 +92,8 @@ Imports needed for this script
     from hidimstat.clustered_inference import clustered_inference
     from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
     from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
-    from hidimstat.scenario import multivariate_simulation
-    from hidimstat.stat_tools import zscore_from_pval
+    from hidimstat.statistical_tools.p_values import zscore_from_pval
+    from hidimstat._utils.scenario import multivariate_simulation
 
 
 
@@ -608,9 +608,9 @@ randomization.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 2.484 seconds)
+   **Total running time of the script:** (1 minutes 6.803 seconds)
 
-**Estimated memory usage:**  257 MB
+**Estimated memory usage:**  256 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_2D_simulation_example.py:
