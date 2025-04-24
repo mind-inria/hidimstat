@@ -169,14 +169,14 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 # Visualizing the results
 # ----------------------------------------------------
 # We can compare the selection sets obtained by the two methods. In addition to the
-# binary selection (selected or rejected), we can also visualize the the KO statistic
+# binary selection (selected or not), we can also visualize the the KO statistic
 # along with the selection threshold for the knockoffs and the absolute value of the
 # Lasso coefficients. We plot the 25 most important features according to the KO
 # statistic.
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-selected_mask = np.array(["rejected"] * len(test_scores))
+selected_mask = np.array(["not selected"] * len(test_scores))
 selected_mask[selected] = "selected"
 df_ko = pd.DataFrame(
     {
@@ -199,7 +199,7 @@ sns.scatterplot(
     y="variable",
     hue="selected",
     ax=ax,
-    palette={"selected": "tab:red", "rejected": "tab:gray"},
+    palette={"selected": "tab:red", "not selected": "tab:gray"},
 )
 ax.axvline(x=threshold, color="k", linestyle="--", label="Threshold")
 ax.legend()
@@ -214,7 +214,7 @@ sns.scatterplot(
     y="variable",
     hue="selected",
     ax=ax,
-    palette={"selected": "tab:red", "rejected": "tab:gray"},
+    palette={"selected": "tab:red", "not selected": "tab:gray"},
     legend=False,
 )
 ax.set_xlabel("$|\\hat{\\beta}|$")
