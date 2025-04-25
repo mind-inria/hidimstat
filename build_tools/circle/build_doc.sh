@@ -91,9 +91,14 @@ else
     make_args="html"
 fi
 
-# Install dependencies with uv
-# python -m venv .venv
-# source .venv/bin/activate
+# deactivate circleci virtualenv if it exist
+if [[ `type -t deactivate` ]]; then
+    deactivate
+fi
+
+# Install dependencies with miniconda
+python -m venv .venv
+source .venv/bin/activate
 pip install uv
 uv pip install -e ".[doc]"
 
