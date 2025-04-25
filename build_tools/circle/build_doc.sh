@@ -91,26 +91,11 @@ else
     make_args="html"
 fi
 
-# deactivate circleci virtualenv and setup a miniconda env instead
-if [[ `type -t deactivate` ]]; then
-    deactivate
-fi
-
-# Install dependencies with miniconda
-wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" -O miniconda.sh
-chmod +x miniconda.sh && bash ./miniconda.sh -b -p "miniconda"
-export PATH="miniconda/bin:$PATH"
-
-# Configure the conda environment and put it in the path using the
-# provided versions
-mamba create -n $CONDA_ENV_NAME --yes python="${PYTHON_VERSION:-*}" \
-      numpy="${NUMPY_VERSION:-*}" scipy="${SCIPY_VERSION:-*}" \
-      pytest coverage matplotlib="${MATPLOTLIB_VERSION:-*}" sphinx \
-      seaborn statsmodels pillow cython joblib pandas="${PANDAS_VERSION:-*}"
-
-source activate $CONDA_ENV_NAME
-
-pip install -e ".[doc]"
+# Install dependencies with uv
+# python -m venv .venv
+# source .venv/bin/activate
+pip install uv
+uv pip install -e ".[doc]"
 
 
 # The pipefail is requested to propagate exit code
