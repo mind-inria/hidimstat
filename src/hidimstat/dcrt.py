@@ -338,7 +338,7 @@ class D0CRT:
             or hasattr(self, "clf_x_residual")
             or hasattr(self, "clf_y_residual")
         ):
-            raise ValueError("The method requires to be fit before any analysis")
+            raise ValueError("The D0CRT requires to be fit before any analysis")
 
     def importance(
         self,
@@ -673,14 +673,14 @@ def _rf_distillation(
             n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
         clf_y.fit(X_minus_idx, y)
-        y_res = y - clf_y.predict(X_minus_idx)
+        y_residual = y - clf_y.predict(X_minus_idx)
     elif problem_type == "classification":
         clf_y = RandomForestClassifier(
             n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
         )
         clf_y.fit(X_minus_idx, y)
-        y_res = y - clf_y.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
-    return (X_residual, sigma2, y_res, clf_x_residual, clf_y)
+        y_residual = y - clf_y.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
+    return (X_residual, sigma2, y_residual, clf_x_residual, clf_y)
 
 
 def _fit_lasso(
