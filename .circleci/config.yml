@@ -5,7 +5,7 @@ jobs:
     docker:
       - image: cimg/python:3.13.2
     environment:
-      - PYTHON_VERSION: "3.13"
+      - PYTHON_VERSION: "3.13.2"
       - OMP_NUM_THREADS: 2
       - CONDA_ENV_NAME: testenv
     steps:
