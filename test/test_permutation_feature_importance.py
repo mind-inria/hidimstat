@@ -5,7 +5,7 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 import pytest
 
-from hidimstat import PermutationImportance
+from hidimstat import PFI
 
 
 def test_permutation_importance(linear_scenario):
@@ -19,7 +19,7 @@ def test_permutation_importance(linear_scenario):
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
 
-    pi = PermutationImportance(
+    pfi = PFI(
         estimator=regression_model,
         n_permutations=20,
         method="predict",
@@ -27,12 +27,12 @@ def test_permutation_importance(linear_scenario):
         n_jobs=1,
     )
 
-    pi.fit(
+    pfi.fit(
         X_train,
         y_train,
         groups=None,
     )
-    vim = pi.importance(X_test, y_test)
+    vim = pfi.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -49,21 +49,21 @@ def test_permutation_importance(linear_scenario):
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
     regression_model.fit(X_train_df, y_train)
-    pi = PermutationImportance(
+    pfi = PFI(
         estimator=regression_model,
         n_permutations=20,
         method="predict",
         random_state=0,
         n_jobs=1,
     )
-    pi.fit(
+    pfi.fit(
         X_train_df,
         y_train,
         groups=groups,
     )
     # warnings because we doesn't considere the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = pi.importance(X_test_df, y_test)
+        vim = pfi.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -74,7 +74,7 @@ def test_permutation_importance(linear_scenario):
     logistic_model = LogisticRegression()
     logistic_model.fit(X_train, y_train_clf)
 
-    pi_clf = PermutationImportance(
+    pfi_clf = PFI(
         estimator=logistic_model,
         n_permutations=20,
         method="predict_proba",
@@ -83,12 +83,12 @@ def test_permutation_importance(linear_scenario):
         loss=log_loss,
     )
 
-    pi_clf.fit(
+    pfi_clf.fit(
         X_train,
         y_train_clf,
         groups=None,
     )
-    vim_clf = pi_clf.importance(X_test, y_test_clf)
+    vim_clf = pfi_clf.importance(X_test, y_test_clf)
 
     importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (X.shape[1],)

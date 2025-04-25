@@ -171,22 +171,22 @@ You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
     [_add_readme_to_default_data_locations] Added README.md to /home/runner/nilearn_data
     [get_dataset_dir] Dataset created in /home/runner/nilearn_data/haxby2001
     [fetch_single_file] Downloading data from https://www.nitrc.org/frs/download.php/7868/mask.nii.gz ...
-    [fetch_single_file]  ...done. (0 seconds, 0 min)
+    [fetch_single_file]  ...done. (1 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/MD5SUMS ...
     [fetch_single_file]  ...done. (0 seconds, 0 min)
 
     [fetch_single_file] Downloading data from http://data.pymvpa.org/datasets/haxby2001/subj2-2010.01.14.tar.gz ...
-    [_chunk_report_]     Downloaded 128622592 of 291168628 bytes (44.2%%,    1.3s remaining)
-    [_chunk_report_]     Downloaded 282640384 of 291168628 bytes (97.1%%,    0.1s remaining)
-    [fetch_single_file]  ...done. (2 seconds, 0 min)
+    [_chunk_report_]     Downloaded 96616448 of 291168628 bytes (33.2%%,    2.0s remaining)
+    [_chunk_report_]     Downloaded 210960384 of 291168628 bytes (72.5%%,    0.8s remaining)
+    [fetch_single_file]  ...done. (3 seconds, 0 min)
 
     [uncompress_file] Extracting data from /home/runner/nilearn_data/haxby2001/9cabe068089e791ef0c5fe930fc20e30/subj2-2010.01.14.tar.gz...
     [uncompress_file] .. done.
 
     /home/runner/work/hidimstat/hidimstat/examples/plot_fmri_data_example.py:84: FutureWarning: From release 0.13.0 onwards, this function will, by default, copy the header of the input image to the output. Currently, the header is reset to the default Nifti1Header. To suppress this warning and use the new behavior, set `copy_header=True`.
       bg_img = mean_img(haxby_dataset.anat)
-    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
+    /opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/nilearn/image/resampling.py:489: UserWarning: The provided image has no sform in its header. Please check the provided file. Results may not be as expected.
       warnings.warn(
 
 
@@ -337,7 +337,7 @@ and high-dimensional inference (c.f. References).
     Clustered inference: n_clusters = 500, inference method = desparsified-lasso, seed = 0
     Clustered inference {}
     hd_inference False {}
-    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
+    /opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/sklearn/linear_model/_coordinate_descent.py:681: ConvergenceWarning: Objective did not converge. You might want to increase the number of iterations. Duality gap: 1.7422256933791083, tolerance: 0.21600000000000003
       model = cd_fast.enet_coordinate_descent_gram(
 
 
@@ -370,7 +370,7 @@ However you might benefit from clustering randomization taking
  .. code-block:: none
 
     [Parallel(n_jobs=2)]: Using backend LokyBackend with 2 concurrent workers.
-    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.5s finished
+    [Parallel(n_jobs=2)]: Done   5 out of   5 | elapsed:   32.3s finished
 
 
 
@@ -576,7 +576,7 @@ called `plot_map` that wraps all these steps.
 
  .. code-block:: none
 
-    /opt/hostedtoolcache/Python/3.12.9/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
+    /opt/hostedtoolcache/Python/3.12.10/x64/lib/python3.12/site-packages/nilearn/plotting/displays/_slicers.py:313: UserWarning: empty mask
       ims = self._map_show(img, type="imshow", threshold=threshold, **kwargs)
 
 
@@ -615,9 +615,9 @@ spurious discoveries.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (1 minutes 16.194 seconds)
+   **Total running time of the script:** (1 minutes 16.147 seconds)
 
-**Estimated memory usage:**  2953 MB
+**Estimated memory usage:**  2640 MB
 
 
 .. _sphx_glr_download_auto_examples_plot_fmri_data_example.py:

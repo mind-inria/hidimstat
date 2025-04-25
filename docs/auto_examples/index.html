@@ -42,14 +42,14 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
 
-    <script src="../_static/documentation_options.js?v=ef6c755c"></script>
+    <script src="../_static/documentation_options.js?v=aab76cd8"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'auto_examples/index';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners" href="plot_dcrt_example.html" />
-    <link rel="prev" title="hidimstat.PermutationImportance" href="../generated/hidimstat.PermutationImportance.html" />
+    <link rel="prev" title="hidimstat.PFI" href="../generated/hidimstat.PFI.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="" />
@@ -334,10 +334,13 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="plot_dcrt_example.html">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_model_agnostic_importance.html">Variable Selection Under Model Misspecification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_conditional_vs_marginal_xor_data.html">Conditional vs Marginal Importance on the XOR dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_knockoff_aggregation.html">Knockoff aggregation on simulated data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_diabetes_variable_importance_example.html">Variable Importance on diabetes dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_2D_simulation_example.html">Support recovery on simulated data (2D)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_fmri_data_example.html">Support recovery on fMRI data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_importance_classification_iris.html">Measuring Individual and Group Variable Importance for Classification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_variable_importance_classif.html">Measuring variable importance in classification</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot_pitfalls_permutation_importance.html">Pitfalls of Permutation Feature Importance (PFI) on the California Housing Dataset</a></li>
 </ul>
@@ -402,6 +405,12 @@
 <div class="sphx-glr-thumbnails"><div class="sphx-glr-thumbcontainer" tooltip="This example compares the performance of d0crt based on the lasso (1) and random forest (2) implementations. The number of repetitions is set to 10. The metrics used are the type-I error and the power"><img alt="" src="../_images/sphx_glr_plot_dcrt_example_thumb.png" />
 <p><a class="reference internal" href="plot_dcrt_example.html#sphx-glr-auto-examples-plot-dcrt-example-py"><span class="std std-ref">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</span></a></p>
   <div class="sphx-glr-thumbnail-title">Distilled Conditional Randomization Test (dCRT) using Lasso vs Random Forest learners</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate the limitations of variable selection methods based on linear models using the circles dataset. We first use the distilled conditional randomization test (d0CRT), which is based on linear models :footciteliu2022fast and then demonstrate how model-agnostic methods, such as Leave-One-Covariate-Out (LOCO), can identify important variables even when classes are not linearly separable."><img alt="" src="../_images/sphx_glr_plot_model_agnostic_importance_thumb.png" />
+<p><a class="reference internal" href="plot_model_agnostic_importance.html#sphx-glr-auto-examples-plot-model-agnostic-importance-py"><span class="std std-ref">Variable Selection Under Model Misspecification</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Variable Selection Under Model Misspecification</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="This example illustrates on XOR data that variables can be conditionally important even if they are not marginally important. The conditional importance is computed using the Conditional Permutation Importance (CPI) class and the marginal importance is computed using univariate models."><img alt="" src="../_images/sphx_glr_plot_conditional_vs_marginal_xor_data_thumb.png" />
+<p><a class="reference internal" href="plot_conditional_vs_marginal_xor_data.html#sphx-glr-auto-examples-plot-conditional-vs-marginal-xor-data-py"><span class="std std-ref">Conditional vs Marginal Importance on the XOR dataset</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Conditional vs Marginal Importance on the XOR dataset</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we show an example of variable selection using model-X Knockoffs introduced by :footcitecandes2018panning. A notable drawback of this procedure is the randomness associated with the knockoff generation process. This can result in unstable inference."><img alt="" src="../_images/sphx_glr_plot_knockoff_aggregation_thumb.png" />
 <p><a class="reference internal" href="plot_knockoff_aggregation.html#sphx-glr-auto-examples-plot-knockoff-aggregation-py"><span class="std std-ref">Knockoff aggregation on simulated data</span></a></p>
   <div class="sphx-glr-thumbnail-title">Knockoff aggregation on simulated data</div>
@@ -414,7 +423,10 @@
 </div><div class="sphx-glr-thumbcontainer" tooltip="This example compares several methods that estimate a decoder map support with statistical guarantees. More precisely, we aim at thresholding the weights of some estimated decoder maps according to the confidence we have that they are nonzero. Here, we work with the Haxby dataset and we focus on the &#x27;face vs house&#x27; contrast. Thus, we consider the labeled activation maps of a given subject and try produce a brain map that corresponds to the discriminative pattern that makes the decoding of the two conditions."><img alt="" src="../_images/sphx_glr_plot_fmri_data_example_thumb.png" />
 <p><a class="reference internal" href="plot_fmri_data_example.html#sphx-glr-auto-examples-plot-fmri-data-example-py"><span class="std std-ref">Support recovery on fMRI data</span></a></p>
   <div class="sphx-glr-thumbnail-title">Support recovery on fMRI data</div>
-</div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate how to measure variable importance in a classification context. The problem under consideration is a binary classification where the target variable is generated using a non-linear function of the features. Therefore illustrating the importance of model-agnostic variable importance methods, which, as opposed to linear models for instance, can capture non-linear relationships. The features are generated from a multivariate normal distribution with a Toeplitz correlation matrix. This second specificity of the problem is interesting to exemplify the benefits of the conditional permutation importance (CPI) method [:footciteChamma_NeurIPS2023] over the standard permutation importance (PI) method [:footcitebreimanRandomForests2001]."><img alt="" src="../_images/sphx_glr_plot_variable_importance_classif_thumb.png" />
+</div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we show on the Iris dataset how to measure variable importance for classification tasks. We use two different variable importance methods: Conditional Permutation importance (CPI) and Permutation Feature Importance (PFI) with two different classifiers: Logistic Regression (LR) and Support Vector Classifier (SVC). We start by measuring the importance of individual variables and then show how to measure the importance of groups of variables."><img alt="" src="../_images/sphx_glr_plot_importance_classification_iris_thumb.png" />
+<p><a class="reference internal" href="plot_importance_classification_iris.html#sphx-glr-auto-examples-plot-importance-classification-iris-py"><span class="std std-ref">Measuring Individual and Group Variable Importance for Classification</span></a></p>
+  <div class="sphx-glr-thumbnail-title">Measuring Individual and Group Variable Importance for Classification</div>
+</div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate how to measure variable importance in a classification context. The problem under consideration is a binary classification where the target variable is generated using a non-linear function of the features. Therefore illustrating the importance of model-agnostic variable importance methods, which, as opposed to linear models for instance, can capture non-linear relationships. The features are generated from a multivariate normal distribution with a Toeplitz correlation matrix. This second specificity of the problem is interesting to exemplify the benefits of the conditional permutation importance (CPI) method [:footciteChamma_NeurIPS2023] over the standard permutation feature importance (PFI) method [:footcitebreimanRandomForests2001]."><img alt="" src="../_images/sphx_glr_plot_variable_importance_classif_thumb.png" />
 <p><a class="reference internal" href="plot_variable_importance_classif.html#sphx-glr-auto-examples-plot-variable-importance-classif-py"><span class="std std-ref">Measuring variable importance in classification</span></a></p>
   <div class="sphx-glr-thumbnail-title">Measuring variable importance in classification</div>
 </div><div class="sphx-glr-thumbcontainer" tooltip="In this example, we illustrate the pitfalls of using permutation feature importance (PFI) on the California housing dataset. PFI measures the importance of a variable. However, it does not measure conditional importance and does not provide statistical control over the risk of making false discoveries, i.e., the risk of declaring a variable as important when it is not."><img alt="" src="../_images/sphx_glr_plot_pitfalls_permutation_importance_thumb.png" />
@@ -444,12 +456,12 @@
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="../generated/hidimstat.PermutationImportance.html"
+       href="../generated/hidimstat.PFI.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">hidimstat.PermutationImportance</p>
+        <p class="prev-next-title">hidimstat.PFI</p>
       </div>
     </a>
     <a class="right-next"

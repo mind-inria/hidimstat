@@ -16,8 +16,18 @@ from .knockoffs import (
 )
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
+<<<<<<< HEAD
 from .permutation_importance import PermutationImportance
 from .dcrt import d0crt, D0CRT
+||||||| 305da81
+from .permutation_importance import PermutationImportance
+from .statistical_tools.aggregation import quantile_aggregation
+from .dcrt import dcrt_zero, dcrt_pvalue
+=======
+from .permutation_feature_importance import PFI
+from .statistical_tools.aggregation import quantile_aggregation
+from .dcrt import dcrt_zero, dcrt_pvalue
+>>>>>>> main
 from .permutation_test import permutation_test, permutation_test_pval
 
 from .statistical_tools.aggregation import quantile_aggregation
@@ -28,7 +38,6 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "aggregate_quantiles",
     "quantile_aggregation",
     "clustered_inference",
     "d0crt",
@@ -52,5 +61,5 @@ __all__ = [
     "zscore_from_pval",
     "CPI",
     "LOCO",
-    "PermutationImportance",
+    "PFI",
 ]

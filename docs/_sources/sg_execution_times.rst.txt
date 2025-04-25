@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**09:19.689** total execution time for 7 files **from all galleries**:
+**09:23.973** total execution time for 10 files **from all galleries**:
 
 .. container::
 
@@ -33,23 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``../examples/plot_knockoff_aggregation.py``)
-     - 05:03.107
-     - 383.5
+     - 04:57.530
+     - 367.0
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``../examples/plot_fmri_data_example.py``)
-     - 01:16.194
-     - 2952.5
+     - 01:16.147
+     - 2640.5
    * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``../examples/plot_2D_simulation_example.py``)
-     - 01:08.502
-     - 294.1
+     - 01:06.803
+     - 256.5
    * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``../examples/plot_dcrt_example.py``)
-     - 01:05.098
-     - 215.2
+     - 01:05.618
+     - 215.0
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``../examples/plot_variable_importance_classif.py``)
-     - 00:32.627
-     - 203.2
+     - 00:31.449
+     - 202.9
+   * - :ref:`sphx_glr_auto_examples_plot_importance_classification_iris.py` (``../examples/plot_importance_classification_iris.py``)
+     - 00:08.020
+     - 202.6
    * - :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py` (``../examples/plot_pitfalls_permutation_importance.py``)
-     - 00:07.355
-     - 220.2
+     - 00:07.477
+     - 221.8
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``../examples/plot_diabetes_variable_importance_example.py``)
-     - 00:06.808
-     - 206.1
+     - 00:06.167
+     - 202.6
+   * - :ref:`sphx_glr_auto_examples_plot_model_agnostic_importance.py` (``../examples/plot_model_agnostic_importance.py``)
+     - 00:03.186
+     - 215.2
+   * - :ref:`sphx_glr_auto_examples_plot_conditional_vs_marginal_xor_data.py` (``../examples/plot_conditional_vs_marginal_xor_data.py``)
+     - 00:01.578
+     - 206.4
