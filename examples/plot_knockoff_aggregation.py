@@ -161,7 +161,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
 #######################################################################
 # Define the function for evaluate the effect of the population
 # -------------------------------------------------------------
-def effect_number_samples(n_samples):
+def effect_number_samples(n_samples, sparsity=sparsity):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
@@ -202,20 +202,32 @@ effect_number_samples(n_samples=n_samples)
 
 #######################################################################
 # By repeating the model-X Knockoffs, we can see that instability
-# of the inference. Additionally, we can see that the p-values aggregation
-# is more stable but doesn't capture the correct variable of importance.
-
+# of the inference. Additionally, we can see that the aggregation method
+# is more stable. However, the e-values aggregation doesn't capture the
+# correct variables of importance.
 
 #######################################################################
-# Limitation of the e-values aggregation
-# ---------------------------------------
+# Aggragation methods depends on your data
+# ----------------------------------------
+effect_number_samples(n_samples=n_samples, sparsity=0.1)
+
+#######################################################################
+# By changing the sparsity of the data, the quantile aggregation doesn't capture
+# the variables important but the e-values aggregation captures them.
+# Depending on the data that you analyse, the choice of the type aggregation
+# is important. However, the aggregation method is still stable and
+# the False Discovery Rate is still controlled.
+
+#######################################################################
+# Limitation of the aggregation methods
+# -------------------------------------
 effect_number_samples(n_samples=50)
 
 #######################################################################
-# When the number of samples is too low, the variable of importance
-# can't be inferred by this method.
+# One important point of this method is that they require enough samples to
+# estimate the distribution of each feature.
 
-#################################################################################
+#######################################################################
 # References
-# ---------------------------------------------------------------------------
+# ----------
 # .. footbibliography::
