@@ -46,7 +46,7 @@ n_features = 150
 rho = 0.4
 # Ratio of number of variables with non-zero coefficients over total
 # coefficients
-sparsity = 0.1
+sparsity = 0.2
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
 # signal noise ration
