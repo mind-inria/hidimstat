@@ -3,10 +3,8 @@ Support recovery on fMRI data
 =============================
 
 This example compares methods based on Desparsified Lasso (DL) that estimate
-a decoder map support with statistical guarantees. More precisely, we aim
-at thresholding the weights of some estimated decoder maps according to the
-confidence we have that they are nonzero. Here, we work with the Haxby dataset
-and we focus on the 'face vs house' contrast. Thus, we consider the labelled
+a decoder map support with statistical guarantees. Here, we work with the Haxby
+dataset and we focus on the 'face vs house' contrast. Thus, we consider the labelled
 activation maps of a given subject and try to produce a brain map that
 corresponds to the discriminative pattern that makes the decoding of the
 two conditions.
