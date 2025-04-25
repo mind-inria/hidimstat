@@ -37,8 +37,9 @@ from hidimstat._utils.scenario import multivariate_1D_simulation_AR
 #############################################################################
 # Data simulation
 # -----------------------
-# The comparison of the three methods relies on evaluating the False Discovery Proportion (FDP) and 
-# statistical power. Assessing these metrics requires knowledge of the actual data-generating process. 
+# The comparison of the three methods relies on evaluating the
+# False Discovery Proportion (FDP) and statistical power. Assessing these
+# metrics requires knowledge of the actual data-generating process.
 # We therefore use simulated data with the following parameters:
 
 # number of repetitions of the methods
