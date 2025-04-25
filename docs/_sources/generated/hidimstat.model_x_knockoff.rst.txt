@@ -1,8 +1,0 @@
-﻿hidimstat.model_x_knockoff
-==========================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: model_x_knockoff
-
-.. include:: hidimstat.model_x_knockoff.examples
