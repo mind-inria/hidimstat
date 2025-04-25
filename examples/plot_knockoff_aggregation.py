@@ -4,9 +4,9 @@ Knockoff aggregation on simulated data
 
 In this example, we show an example of variable selection using
 model-X Knockoffs introduced by :footcite:t:`candes2018panning`. A notable
-drawback of this procedure is the randomness associated with
-the knockoff generation process. This can result in unstable
-inference.
+drawback of this procedure is the randomness associated with generating
+knockoff variables. This can result in fluctuations of the statistical power
+and false discovery proportion, and consequently, unstable inference.
 
 This example exhibits the two aggregation procedures described
 by :footcite:t:`pmlr-v119-nguyen20a` and :footcite:t:`Ren_2023` to derandomize
@@ -106,7 +106,7 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
             random_state=seed,
         )
 
-    # Use p-values aggregation [2]
+    # Use p-values aggregation [3]
     aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
         test_scores, fdr=fdr, adaptive_aggregation=True
     )
@@ -203,17 +203,17 @@ effect_number_samples(n_samples=n_samples)
 #######################################################################
 # By repeating the model-X Knockoffs, we can see that instability
 # of the inference. Additionally, we can see that the aggregation method
-# is more stable. However, the e-values aggregation doesn't capture the
-# correct variables of importance.
+# is more stable. However, the e-values aggregation is more conservative,
+# i.e. the exepect variables of importance is not find.
 
 #######################################################################
-# Aggragation methods depends on your data
+# Aggregation methods depends on your data
 # ----------------------------------------
 effect_number_samples(n_samples=n_samples, sparsity=0.1)
 
 #######################################################################
-# By changing the sparsity of the data, the quantile aggregation doesn't capture
-# the variables important but the e-values aggregation captures them.
+# By changing the sparsity of the data, the quantile aggregation is more
+# conservative but the e-values aggregation captures them.
 # Depending on the data that you analyse, the choice of the type aggregation
 # is important. However, the aggregation method is still stable and
 # the False Discovery Rate is still controlled.
