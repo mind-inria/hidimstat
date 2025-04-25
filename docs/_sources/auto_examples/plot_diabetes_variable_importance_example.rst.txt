@@ -78,7 +78,7 @@ Imports needed for this script
     from sklearn.metrics import r2_score, root_mean_squared_error
     from sklearn.model_selection import KFold
 
-    from hidimstat import CPI, LOCO, PermutationImportance
+    from hidimstat import CPI, LOCO, PFI
 
 
 
@@ -323,21 +323,21 @@ Measure the importance of variables using the permutation method
 .. code-block:: Python
 
 
-    pi_importance_list = []
+    pfi_importance_list = []
 
     for i, (train_index, test_index) in enumerate(kf.split(X)):
         print(f"Fold {i}")
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
-        pi = PermutationImportance(
+        pfi = PFI(
             estimator=regressor_list[i],
             n_permutations=50,
             random_state=0,
             n_jobs=4,
         )
-        pi.fit(X_train, y_train)
-        importance = pi.importance(X_test, y_test)
-        pi_importance_list.append(importance)
+        pfi.fit(X_train, y_train)
+        importance = pfi.importance(X_test, y_test)
+        pfi_importance_list.append(importance)
 
 
 
@@ -428,20 +428,20 @@ Analyze the results
         for x in loco_importance_list
     ]
 
-    pi_vim_arr = np.array([x["importance"] for x in pi_importance_list])
-    pi_pval = compute_pval(pi_vim_arr)
+    pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
+    pfi_pval = compute_pval(pfi_vim_arr)
 
     vim += [
         pd.DataFrame(
             {
-                "var": np.arange(pi_vim_arr.shape[1]),
+                "var": np.arange(pfi_vim_arr.shape[1]),
                 "importance": x["importance"],
                 "fold": i,
-                "pval": pi_pval,
-                "method": "PI",
+                "pval": pfi_pval,
+                "method": "PFI",
             }
         )
-        for x in pi_importance_list
+        for x in pfi_importance_list
     ]
 
     fig, ax = plt.subplots()
@@ -490,7 +490,7 @@ Analyze the results
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 5.945 seconds)
+   **Total running time of the script:** (0 minutes 6.167 seconds)
 
 **Estimated memory usage:**  203 MB
 

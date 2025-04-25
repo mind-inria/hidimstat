@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**08:56.859** total execution time for 9 files **from auto_examples**:
+**09:23.973** total execution time for 10 files **from auto_examples**:
 
 .. container::
 
@@ -33,29 +33,32 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_plot_knockoff_aggregation.py` (``plot_knockoff_aggregation.py``)
-     - 04:50.756
-     - 366.6
+     - 04:57.530
+     - 367.0
    * - :ref:`sphx_glr_auto_examples_plot_fmri_data_example.py` (``plot_fmri_data_example.py``)
-     - 01:10.511
-     - 2619.1
-   * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``plot_dcrt_example.py``)
-     - 01:04.683
-     - 215.0
+     - 01:16.147
+     - 2640.5
    * - :ref:`sphx_glr_auto_examples_plot_2D_simulation_example.py` (``plot_2D_simulation_example.py``)
-     - 01:01.807
+     - 01:06.803
      - 256.5
+   * - :ref:`sphx_glr_auto_examples_plot_dcrt_example.py` (``plot_dcrt_example.py``)
+     - 01:05.618
+     - 215.0
    * - :ref:`sphx_glr_auto_examples_plot_variable_importance_classif.py` (``plot_variable_importance_classif.py``)
-     - 00:31.871
-     - 202.7
+     - 00:31.449
+     - 202.9
+   * - :ref:`sphx_glr_auto_examples_plot_importance_classification_iris.py` (``plot_importance_classification_iris.py``)
+     - 00:08.020
+     - 202.6
    * - :ref:`sphx_glr_auto_examples_plot_pitfalls_permutation_importance.py` (``plot_pitfalls_permutation_importance.py``)
-     - 00:07.098
+     - 00:07.477
      - 221.8
    * - :ref:`sphx_glr_auto_examples_plot_diabetes_variable_importance_example.py` (``plot_diabetes_variable_importance_example.py``)
-     - 00:05.945
-     - 202.7
+     - 00:06.167
+     - 202.6
    * - :ref:`sphx_glr_auto_examples_plot_model_agnostic_importance.py` (``plot_model_agnostic_importance.py``)
-     - 00:02.833
-     - 215.1
+     - 00:03.186
+     - 215.2
    * - :ref:`sphx_glr_auto_examples_plot_conditional_vs_marginal_xor_data.py` (``plot_conditional_vs_marginal_xor_data.py``)
-     - 00:01.353
+     - 00:01.578
      - 206.4
