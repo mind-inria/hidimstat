@@ -330,13 +330,13 @@ class D0CRT:
             If any of the required attributes are missing, indicating the model
             hasn't been fit.
         """
-        if not (
-            hasattr(self, "selection_features")
-            or hasattr(self, "X_residual")
-            or hasattr(self, "sigma2")
-            or hasattr(self, "y_residual")
-            or hasattr(self, "clf_x_residual")
-            or hasattr(self, "clf_y_residual")
+        if (
+            not hasattr(self, "selection_features")
+            or not hasattr(self, "X_residual")
+            or not hasattr(self, "sigma2")
+            or not hasattr(self, "y_residual")
+            or not hasattr(self, "clf_x_residual")
+            or not hasattr(self, "clf_y_residual")
         ):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
