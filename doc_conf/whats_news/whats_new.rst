@@ -9,7 +9,7 @@ Lastest modification
 ====================
 
 .. _lastest:
-.. include:: _lastest.rst
+.. include:: lastest.rst
 
 
 =======================
@@ -17,4 +17,4 @@ History of modification
 =======================
 
 .. _v1.0.0:
-.. include:: _v1.0.0.rst
+.. include:: v1.0.0.rst
