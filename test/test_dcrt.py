@@ -316,7 +316,7 @@ def test_exception_not_fitted():
         random_state=2024,
     )
     with pytest.raises(
-        ValueError, match="The method requires to be fit before any analysis"
+        ValueError, match="The D0CRT requires to be fit before any analysis"
     ):
         _, _ = d0crt.importance(scaled_statistics=True)
 
