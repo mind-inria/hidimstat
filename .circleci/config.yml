@@ -54,7 +54,12 @@ jobs:
       # deployed.
       - attach_workspace:
           at: doc_conf/_build/html
-      - run: ls -ltrh doc_conf/_build/html
+      - run:
+            command: |
+                cd ~
+                mkdir -p ~/.ssh
+                ssh-keyscan github.com >> ~/.ssh/known_hosts
+                ls -ltrh doc_conf/_build/html
       - deploy:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
