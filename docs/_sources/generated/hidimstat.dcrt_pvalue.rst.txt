@@ -1,8 +1,0 @@
-﻿hidimstat.dcrt_pvalue
-=====================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: dcrt_pvalue
-
-.. include:: hidimstat.dcrt_pvalue.examples
