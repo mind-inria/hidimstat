@@ -5,6 +5,7 @@ from .desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
+from .dcrt import d0crt, D0CRT
 from .conditional_permutation_importance import CPI
 from .empirical_thresholding import empirical_thresholding
 from .ensemble_clustered_inference import ensemble_clustered_inference
@@ -17,9 +18,9 @@ from .knockoffs import (
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_feature_importance import PFI
-from .statistical_tools.aggregation import quantile_aggregation
-from .dcrt import dcrt_zero, dcrt_pvalue
 from .permutation_test import permutation_test, permutation_test_pval
+
+from .statistical_tools.aggregation import quantile_aggregation
 
 try:
     from ._version import __version__
@@ -29,7 +30,8 @@ except ImportError:
 __all__ = [
     "quantile_aggregation",
     "clustered_inference",
-    "dcrt_zero",
+    "d0crt",
+    "D0CRT",
     "dcrt_pvalue",
     "desparsified_lasso",
     "desparsified_lasso_pvalue",
