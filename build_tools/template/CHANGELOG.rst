@@ -1,7 +1,7 @@
 .. _changes:
 
 =================================
-Version 1.1 (under devellopement)
+Version X.Y.Z (under devellopement)
 =================================
 
 HIGHLIGHTS
