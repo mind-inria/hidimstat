@@ -17,7 +17,7 @@ from .knockoffs import (
 )
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
-from .permutation_importance import PFI
+from .permutation_feature_importance import PFI
 from .permutation_test import permutation_test, permutation_test_pval
 
 from .statistical_tools.aggregation import quantile_aggregation
