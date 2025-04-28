@@ -106,7 +106,7 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         random_state=seed,
     )
 
-    # Use p-values aggregation [3]
+    # Use p-values aggregation [2]
     aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
         test_scores, fdr=fdr, adaptive_aggregation=True
     )
