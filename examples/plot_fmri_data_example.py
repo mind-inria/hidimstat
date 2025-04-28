@@ -121,7 +121,7 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # --------------------------------------------
 
 #############################################################################
-# First, we try to recover the discriminative parttern by computing
+# First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
 # of 5 G for memory. To handle this problem, the following methods use some
