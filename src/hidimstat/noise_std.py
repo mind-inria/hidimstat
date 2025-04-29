@@ -14,7 +14,7 @@ def reid(
     n_splits=5,
     n_jobs=1,
     seed=0,
-    group=False,
+    multioutput=False,
     stationary=True,
     method="median",
     order=1,
@@ -87,7 +87,7 @@ def reid(
 
     X_ = np.asarray(X)
     n_samples, n_features = X_.shape
-    if group:
+    if multioutput:
         n_times = y.shape[1]
 
     # check if max_iter is large enough
@@ -97,7 +97,7 @@ def reid(
 
     # use the cross-validation for define the best alpha of Lasso
     cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
-    Refit_CV = MultiTaskLassoCV if group else LassoCV
+    Refit_CV = MultiTaskLassoCV if multioutput else LassoCV
     clf_cv = Refit_CV(
         eps=epsilon,
         fit_intercept=False,
@@ -126,7 +126,7 @@ def reid(
     # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
-    if not group:
+    if not multioutput:
         return sigma_hat_raw, beta_hat
 
     ## Computation of the covariance matrix for group
