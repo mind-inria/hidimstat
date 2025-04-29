@@ -113,7 +113,7 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
 
     fdp_pval, power_pval = fdp_power(aggregated_ko_selection, non_zero_index)
 
-    # Use e-values aggregation [1]
+    # Use e-values aggregation [3]
     eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(
         test_scores, threshold, fdr=fdr
     )
@@ -161,7 +161,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
 #######################################################################
 # Define the function for evaluate the effect of the population
 # -------------------------------------------------------------
-def effect_number_samples(n_samples, sparsity=sparsity):
+def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
@@ -205,18 +205,6 @@ effect_number_samples(n_samples=n_samples)
 # of the inference. Additionally, we can see that the aggregation method
 # is more stable. However, the e-values aggregation is more conservative,
 # i.e. the exepect variables of importance is not find.
-
-#######################################################################
-# Aggregation methods depends on your data
-# ----------------------------------------
-effect_number_samples(n_samples=n_samples, sparsity=0.1)
-
-#######################################################################
-# By changing the sparsity of the data, the quantile aggregation is more
-# conservative but the e-values aggregation captures them.
-# Depending on the data that you analyse, the choice of the type aggregation
-# is important. However, the aggregation method is still stable and
-# the False Discovery Rate is still controlled.
 
 #######################################################################
 # Limitation of the aggregation methods
