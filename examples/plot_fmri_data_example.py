@@ -89,7 +89,7 @@ def preprocess_haxby(subject=2, memory=None):
     if haxby_dataset.anat[0] is None:
         bg_img = None
     else:
-        bg_img = mean_img(haxby_dataset.anat, copy_header=False)
+        bg_img = mean_img(haxby_dataset.anat)
 
     # Building target where '1' corresponds to 'face' and '-1' to 'house'
     y = np.asarray((conditions[condition_mask] == "face") * 2 - 1)
@@ -98,7 +98,7 @@ def preprocess_haxby(subject=2, memory=None):
     mask_img = haxby_dataset.mask
     masker = NiftiMasker(
         mask_img=mask_img,
-        standardize="zscore_sample",
+        standardize=True,
         smoothing_fwhm=None,
         memory=memory,
     )
