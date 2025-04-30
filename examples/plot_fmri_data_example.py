@@ -79,7 +79,6 @@ def preprocess_haxby(subject=2, memory=None):
 
     behavioral = pd.read_csv(haxby_dataset.session_target[0], sep=" ")
 
-    # conditions = pd.DataFrame.to_numpy(behavioral['labels'])
     conditions = behavioral["labels"].values
     session_label = behavioral["chunks"].values
 
@@ -99,7 +98,7 @@ def preprocess_haxby(subject=2, memory=None):
     mask_img = haxby_dataset.mask
     masker = NiftiMasker(
         mask_img=mask_img,
-        standardize="zscore_sample",
+        standardize="zscore",
         smoothing_fwhm=None,
         memory=memory,
     )
