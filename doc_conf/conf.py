@@ -118,6 +118,7 @@ autodoc_default_options = {
 matplotlib.use("agg")
 sphinx_gallery_conf = {
     "examples_dirs": ["../examples"],
+    "subsection_order": ["../examples/plot_fmri_data_example"],
     "gallery_dirs": ["auto_examples"],
     "reset_modules": ("matplotlib", "seaborn"),
     "plot_gallery": "True",
