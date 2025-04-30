@@ -118,8 +118,8 @@ autodoc_default_options = {
 matplotlib.use("agg")
 sphinx_gallery_conf = {
     "examples_dirs": ["../examples"],
-    "filename_pattern": "/plot_{fmri,knockoff}",
     "gallery_dirs": ["auto_examples"],
+    "reset_modules": ("matplotlib", "seaborn"),
     "plot_gallery": "True",
     "thumbnail_size": (160, 112),
     "min_reported_time": 1.0,
