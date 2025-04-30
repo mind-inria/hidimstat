@@ -1,8 +1,0 @@
-﻿hidimstat.empirical_thresholding
-================================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: empirical_thresholding
-
-.. include:: hidimstat.empirical_thresholding.examples

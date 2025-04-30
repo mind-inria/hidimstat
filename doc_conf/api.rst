@@ -24,7 +24,9 @@ Functions
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
-   hd_inference
+   ensemble_clustered_inference_pvalue
+   clustered_inference
+   clustered_inference_pvalue
    model_x_knockoff
    reid
 
@@ -38,4 +40,4 @@ Classes
    BasePerturbation
    LOCO
    CPI
-   PermutationImportance
+   PFI

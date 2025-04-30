@@ -1,8 +1,0 @@
-﻿hidimstat.quantile_aggregation
-==============================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: quantile_aggregation
-
-.. include:: hidimstat.quantile_aggregation.examples
