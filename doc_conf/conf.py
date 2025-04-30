@@ -125,7 +125,7 @@ sphinx_gallery_conf = {
     "min_reported_time": 1.0,
     "abort_on_example_error": False,
     "image_scrapers": ("matplotlib",),
-    "show_memory": True,
+    "show_memory": False,
     "doc_module": "hidimstat",
     "backreferences_dir": "generated",
     "reference_url": {
