@@ -31,15 +31,16 @@ import resource
 
 import numpy as np
 import pandas as pd
-from matplotlib.cm import get_cmap
+from matplotlib.pyplot import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
-from nilearn.input_data import NiftiMasker
+from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 from sklearn.utils import Bunch
+import warnings
 
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
@@ -53,7 +54,13 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso,
     desparsified_lasso_pvalue,
 )
-from hidimstat.statistical_tools.p_values import pval_from_scale, zscore_from_pval
+from hidimstat.statistical_tools.p_values import zscore_from_pval
+
+
+# Remmove warnings during loading data
+warnings.filterwarnings(
+    "ignore", message="The provided image has no sform in its header."
+)
 
 # Limit the ressoruce use for the example to 5 G.
 resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
@@ -83,7 +90,7 @@ def preprocess_haxby(subject=2, memory=None):
     if haxby_dataset.anat[0] is None:
         bg_img = None
     else:
-        bg_img = mean_img(haxby_dataset.anat)
+        bg_img = mean_img(haxby_dataset.anat, copy_header=True)
 
     # Building target where '1' corresponds to 'face' and '-1' to 'house'
     y = np.asarray((conditions[condition_mask] == "face") * 2 - 1)
@@ -91,7 +98,10 @@ def preprocess_haxby(subject=2, memory=None):
     # Loading mask
     mask_img = haxby_dataset.mask
     masker = NiftiMasker(
-        mask_img=mask_img, standardize=True, smoothing_fwhm=None, memory=memory
+        mask_img=mask_img,
+        standardize="zscore_sample",
+        smoothing_fwhm=None,
+        memory=memory,
     )
 
     # Computing masked data
@@ -152,7 +162,7 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X, y, ward, n_clusters, scaler_sampling=StandardScaler()
+    X, y, ward, n_clusters, scaler_sampling=StandardScaler(), tolerance=1e-2
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -175,6 +185,8 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         groups=groups,
         scaler_sampling=StandardScaler(),
         n_bootstraps=5,
+        max_iteration=6000,
+        tolerance=1e-2,
         n_jobs=2,
     )
 )
