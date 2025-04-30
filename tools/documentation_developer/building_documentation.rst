@@ -1,3 +1,5 @@
+.. _developer_documentation_build:
+
 Building the documentation
 --------------------------
 
