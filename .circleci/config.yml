@@ -10,11 +10,11 @@ jobs:
       - CONDA_ENV_NAME: testenv
     steps:
       - checkout
-      - run: ./tools/build_doc/circleci/checkout_merge_commit.sh
+      - run: ./tools/documentation/circleci/checkout_merge_commit.sh
       - restore_cache:
           key: saved-cache
       - run:
-          command: ./tools/build_doc/circleci/build_doc.sh
+          command: ./tools/documentation/circleci/build_doc.sh
           no_output_timeout: 40m
       - store_artifacts:
           path: doc_conf/_build/html
@@ -49,7 +49,7 @@ jobs:
           fingerprints:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
       - checkout
-      - run: ./tools/build_doc/circleci/checkout_merge_commit.sh
+      - run: ./tools/documentation/circleci/checkout_merge_commit.sh
       # Attach documentation generated in the 'python3' step so that it can be
       # deployed.
       - attach_workspace:
@@ -62,7 +62,7 @@ jobs:
       - deploy:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash tools/build_doc/circleci/push_doc.sh doc_conf/_build/html
+              bash tools/documentation/circleci/push_doc.sh doc_conf/_build/html
             fi
 
 workflows:
