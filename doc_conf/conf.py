@@ -118,16 +118,13 @@ autodoc_default_options = {
 matplotlib.use("agg")
 sphinx_gallery_conf = {
     "examples_dirs": ["../examples"],
-    "subsection_order": ["../examples/plot_fmri_data_example"],
     "gallery_dirs": ["auto_examples"],
-    "reset_modules": ("matplotlib", "seaborn"),
     "plot_gallery": "True",
     "thumbnail_size": (160, 112),
     "min_reported_time": 1.0,
     "abort_on_example_error": False,
     "image_scrapers": ("matplotlib",),
-    "show_memory": False,
-    "parallel": 2,
+    "show_memory": True,
     "doc_module": "hidimstat",
     "backreferences_dir": "generated",
     "reference_url": {

@@ -29,9 +29,6 @@ support (predictive regions) looks relevant.
 # ------------------------------
 import resource
 import warnings
-import gc
-
-gc.collect()
 
 import numpy as np
 import pandas as pd
@@ -67,7 +64,7 @@ warnings.filterwarnings(
 
 # Limit the ressoruce use for the example to 5 G.
 resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
-n_job = None
+n_job = 1
 
 
 #############################################################################
