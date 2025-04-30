@@ -98,7 +98,7 @@ def preprocess_haxby(subject=2, memory=None):
     mask_img = haxby_dataset.mask
     masker = NiftiMasker(
         mask_img=mask_img,
-        standardize=True,
+        standardize="zscore_sample",
         smoothing_fwhm=None,
         memory=memory,
     )
