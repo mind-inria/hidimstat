@@ -1,8 +1,0 @@
-﻿hidimstat.ensemble_clustered_inference
-======================================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: ensemble_clustered_inference
-
-.. include:: hidimstat.ensemble_clustered_inference.examples
