@@ -4,6 +4,10 @@ jobs:
   python3:
     docker:
       - image: cimg/python:3.13
+    environment:
+      - PYTHON_VERSION: "3.12"
+      - OMP_NUM_THREADS: 2
+      - CONDA_ENV_NAME: testenv
     steps:
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
