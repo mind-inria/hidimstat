@@ -28,6 +28,10 @@ support (predictive regions) looks relevant.
 # Imports needed for this script
 # ------------------------------
 import resource
+import warnings
+import gc
+
+gc.collect()
 
 import numpy as np
 import pandas as pd
@@ -40,7 +44,6 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
 from sklearn.utils import Bunch
-import warnings
 
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
