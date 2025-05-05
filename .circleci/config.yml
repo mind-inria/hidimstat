@@ -73,12 +73,12 @@ jobs:
       - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
     steps:
       - checkout
-      - run: 
+      - run:
         name: "unzip artifact"
         command: |
-          set -x -e
-          wget $GITHUB_ARTIFACT_URL
-          unzip pytest-results-all.zip -d reports
+            set -x -e
+            wget $GITHUB_ARTIFACT_URL
+            unzip pytest-results-all.zip -d reports
       - store_artifacts:
         path: reports/
         destination: html
@@ -92,7 +92,7 @@ workflows:
           requires:
             - python3
 
-  host_and_deploy_doc:
+  host_tests_report:
     # action trigger by updating the link og github
     when:
       not:
