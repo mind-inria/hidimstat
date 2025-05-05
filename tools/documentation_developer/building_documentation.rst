@@ -49,8 +49,8 @@ Debugging the documentation
 ---------------------------
 
 1. Docstring of functions:
-    For any errors or warnings in the doctrine, the best way to fix it 
-    is to copy the doctrine in a file and use the command `rst2html`.
+    For any errors or warnings in the doctring, the best way to fix it 
+    is to copy the doctring in a file and use the command `rst2html`.
     This command is provided by sphinx.
 2. Example error with sphinx gallery:
     If there is an error which appears when the documentation is generated and not 
