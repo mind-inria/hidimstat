@@ -4,7 +4,7 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat.utils import _check_vim_predict_method
+from hidimstat._utils.utils import _check_vim_predict_method
 
 
 class BasePerturbation(BaseEstimator):
@@ -25,13 +25,13 @@ class BasePerturbation(BaseEstimator):
         estimator : sklearn compatible estimator, optional
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
-            The function to compute the loss when comparing the perturbed model to the
-            original model.
+            The function to compute the loss when comparing the perturbed model
+            to the original model.
         n_permutations : int, default=50
-            This parameter is relevant only for PermutationImportance or CPI.
+            This parameter is relevant only for PFI or CPI.
             Specifies the number of times the variable group (residual for CPI) is
-            permuted. For each permutation, the perturbed model's loss is calculated and
-            averaged over all permutations.
+            permuted. For each permutation, the perturbed model's loss is calculated
+            and averaged over all permutations.
         method : str, default="predict"
             The method used for making predictions. This determines the predictions
             passed to the loss function. Supported methods are "predict",
@@ -81,7 +81,9 @@ class BasePerturbation(BaseEstimator):
                         ]
                     )
             else:
-                self._groups_ids = np.array(list(self.groups.values()), dtype=int)
+                self._groups_ids = [
+                    np.array(ids, dtype=int) for ids in list(self.groups.values())
+                ]
 
     def predict(self, X):
         """
@@ -108,7 +110,7 @@ class BasePerturbation(BaseEstimator):
         )
         return np.stack(out_list, axis=0)
 
-    def score(self, X, y):
+    def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
 
@@ -154,12 +156,21 @@ class BasePerturbation(BaseEstimator):
 
     def _check_fit(self):
         """Check that the estimator has been fitted if needed."""
-        pass
+        if (
+            self.n_groups is None
+            or not hasattr(self, "groups")
+            or not hasattr(self, "_groups_ids")
+        ):
+            raise ValueError(
+                "The estimator is not fitted. The fit method must be called"
+                " to set variable groups. If no grouping is needed,"
+                " call fit with groups=None"
+            )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
-        Compute the predictions after perturbation of the data for a given group of
-        variables. This function is parallelized.
+        Compute the predictions after perturbation of the data for a given
+        group of variables. This function is parallelized.
 
         Parameters
         ----------

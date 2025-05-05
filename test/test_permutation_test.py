@@ -8,7 +8,7 @@ from sklearn.svm import LinearSVR
 from sklearn.base import clone
 
 from hidimstat.permutation_test import permutation_test, permutation_test_pval
-from hidimstat.scenario import multivariate_1D_simulation
+from hidimstat._utils.scenario import multivariate_1D_simulation
 
 
 def test_permutation_test():

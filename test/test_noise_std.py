@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
 from hidimstat.noise_std import empirical_snr, reid
-from hidimstat.scenario import (
+from hidimstat._utils.scenario import (
     multivariate_1D_simulation,
     multivariate_temporal_simulation,
 )
@@ -85,19 +85,19 @@ def test_group_reid():
     )
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, group=True, tolerance=1e-3, max_iterance=1)
+    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = reid(X, Y, group=True, method="AR")
+    cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
 
-    cov_hat, _ = reid(X, Y, group=True, stationary=False)
+    cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
@@ -117,13 +117,13 @@ def test_group_reid():
         seed=1,
     )
 
-    cov_hat, _ = reid(X, Y, group=True)
+    cov_hat, _ = reid(X, Y, multioutput=True)
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
 
-    cov_hat, _ = reid(X, Y, group=True, method="AR")
+    cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
     error_ratio = cov_hat / cov
 
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
@@ -152,13 +152,13 @@ def test_reid_exception():
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):
-        _, _ = reid(X, y, method="test", group=True)
+        _, _ = reid(X, y, method="test", multioutput=True)
     with pytest.raises(
         ValueError, match="The AR method is not compatible with the non-stationary"
     ):
-        _, _ = reid(X, y, method="AR", stationary=False, group=True)
+        _, _ = reid(X, y, method="AR", stationary=False, multioutput=True)
     with pytest.raises(ValueError, match="The requested AR order is to high with"):
-        _, _ = reid(X, y, method="AR", order=1e4, group=True)
+        _, _ = reid(X, y, method="AR", order=1e4, multioutput=True)
 
 
 def test_empirical_snr():

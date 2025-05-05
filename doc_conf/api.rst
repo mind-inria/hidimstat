@@ -16,21 +16,21 @@ Functions
    :toctree: generated/
    :template: function.rst
 
-   aggregate_quantiles
+   quantile_aggregation
    clustered_inference
+   dcrt_zero
+   dcrt_pvalue
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
-   reid
-   hd_inference
-   knockoff_aggregation
+   ensemble_clustered_inference_pvalue
+   clustered_inference
+   clustered_inference_pvalue
    model_x_knockoff
    permutation_test
-   permutation_test_pval
    reid
    empirical_thresholding
-   zscore_from_pval
 
 Classes
 =======
@@ -42,4 +42,4 @@ Classes
    BasePerturbation
    LOCO
    CPI
-   PermutationImportance
+   PFI

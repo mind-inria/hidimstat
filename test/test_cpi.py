@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import CPI
+from hidimstat import CPI, BasePerturbation
 
 
 def test_cpi(linear_scenario):
@@ -37,7 +37,7 @@ def test_cpi(linear_scenario):
         groups=None,
         var_type="auto",
     )
-    vim = cpi.score(X_test, y_test)
+    vim = cpi.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -67,7 +67,9 @@ def test_cpi(linear_scenario):
         groups=groups,
         var_type="continuous",
     )
-    vim = cpi.score(X_test_df, y_test)
+    # warnings because we don't consider the name of columns of pandas
+    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
+        vim = cpi.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -93,7 +95,7 @@ def test_cpi(linear_scenario):
         groups=None,
         var_type=["continuous"] * X.shape[1],
     )
-    vim = cpi.score(X_test, y_test_clf)
+    vim = cpi.importance(X_test, y_test_clf)
 
 
 def test_raises_value_error(
@@ -119,18 +121,29 @@ def test_raises_value_error(
             method="predict",
         )
 
-    # Not fitted imputation model with predict and score methods
-    with pytest.raises(ValueError):
+    # Not fitted imputation model with predict and importance methods
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
             method="predict",
         )
         cpi.predict(X)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         cpi = CPI(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.score(X, y)
+        cpi.importance(X, y)
+
+    with pytest.raises(
+        ValueError, match="The estimators require to be fit before to use them"
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            method="predict",
+        )
+        BasePerturbation.fit(cpi, X, y)
+        cpi.importance(X, y)

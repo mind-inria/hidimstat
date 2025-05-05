@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import LOCO
+from hidimstat import LOCO, BasePerturbation
 
 
 def test_loco(linear_scenario):
@@ -31,7 +31,7 @@ def test_loco(linear_scenario):
         y_train,
         groups=None,
     )
-    vim = loco.score(X_test, y_test)
+    vim = loco.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -58,7 +58,9 @@ def test_loco(linear_scenario):
         y_train,
         groups=groups,
     )
-    vim = loco.score(X_test_df, y_test)
+    # warnings because we doesn't considere the name of columns of pandas
+    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
+        vim = loco.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -78,12 +80,13 @@ def test_loco(linear_scenario):
     loco_clf.fit(
         X_train,
         y_train_clf,
-        groups=None,
+        groups={"group_0": important_features, "the_group_1": non_important_features},
     )
-    vim_clf = loco_clf.score(X_test, y_test_clf)
+    vim_clf = loco_clf.importance(X_test, y_test_clf)
 
     importance_clf = vim_clf["importance"]
-    assert importance_clf.shape == (X.shape[1],)
+    assert importance_clf.shape == (2,)
+    assert importance[0].mean() > importance[1].mean()
 
 
 def test_raises_value_error(
@@ -98,18 +101,29 @@ def test_raises_value_error(
             method="predict",
         )
 
-    # Not fitted sub-model when calling score and predict
-    with pytest.raises(ValueError):
+    # Not fitted sub-model when calling importance and predict
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
         loco.predict(X)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
-        loco.score(X, y)
+        loco.importance(X, y)
+
+    with pytest.raises(
+        ValueError, match="The estimators require to be fit before to use them"
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        loco = LOCO(
+            estimator=fitted_model,
+            method="predict",
+        )
+        BasePerturbation.fit(loco, X, y)
+        loco.importance(X, y)

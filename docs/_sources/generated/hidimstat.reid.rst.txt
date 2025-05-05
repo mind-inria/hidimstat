@@ -1,8 +1,0 @@
-﻿hidimstat.reid
-==============
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: reid
-
-.. include:: hidimstat.reid.examples
