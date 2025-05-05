@@ -114,16 +114,21 @@ cd -
 set +o pipefail
 
 affected_doc_paths() {
+    # generate a list fo the file modified in the PR
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
+    # list of the modfied documentation files
     echo "$files" | grep ^doc_conf/.*\.rst | sed 's/^doc_conf\/\(.*\)\.rst$/\1.html/'
+    # list of the modified examples 
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/auto_\1.html/'
-    project_files=$(echo "$files" | grep '^hidimstat/')
+    # list of the modifed source file
+    project_files=$(echo "$files" | grep 'src/hidimstat/')
     if [ -n "$project_files" ]
     then
-        grep -hlR -f<(echo "$project_files" | sed 's/^/hidimstat\/blob\/[a-z0-9]*\//') doc_conf/_build/html/modules/generated | cut -d/ -f5-
+        grep -hlR -f<(echo "$project_files" | sed 's/src\/hidimstat\//hidimstat\./') doc_conf/_build/html/generated | cut -d/ -f4- 
     fi
 }
 
+# generate a html page which list the modified files
 if [ -n "$CI_PULL_REQUEST" ]
 then
     echo "The following documentation files may have been changed by PR #$CI_PULL_REQUEST:"
