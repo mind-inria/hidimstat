@@ -46,30 +46,28 @@ jobs:
 
   deploy-documentation:
     docker:
-      - image: cimg/python:3.13
+      - image: cimg/deploy:2025.01
     environment:
       - USERNAME: "hidimstat-circleci"
       - ORGANIZATION: "hidimstat"
       - DOC_REPO: "hidimstat.github.io"
       - DOC_URL: ""
       - EMAIL: "hidimstat@circleci.com"
-      - MINICONDA_PATH: ~/miniconda
-      - CONDA_ENV_NAME: testenv
     steps:
       - add_ssh_keys:
           fingerprints:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
-      - checkout
-      - run: ./build_tools/circle/checkout_merge_commit.sh
       # Attach documentation generated in the 'build-documentation' step so that it can be
       # deployed.
       - attach_workspace:
           at: doc_conf/_build/html
       - run:
-            command: |
-                mkdir -p ~/.ssh
-                ssh-keyscan github.com >> ~/.ssh/known_hosts
-                ls -ltrh doc_conf/_build/html
+          name: 
+            "add the ssh key and list the file in the documentation"
+          command: |
+              mkdir -p ~/.ssh
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              ls -ltrh doc_conf/_build/html
       - deploy:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
