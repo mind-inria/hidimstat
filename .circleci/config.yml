@@ -66,22 +66,22 @@ jobs:
             fi
       
   # download some data from github
-  host_docs:
+  host_tests_report:
     docker:
-      image: cimg/ubuntu-2204:current
+      - image: cimg/ubuntu-2204:current
     environment:
       - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
     steps:
-    - checkout
-    - run: 
-      name: "unzip artifact"
-      command: |
-        set -x -e
-        wget $GITHUB_ARTIFACT_URL
-        unzip pytest-results-all.zip -d reports
-    - store_artifacts:
-      path: reports/
-      destination: html
+      - checkout
+      - run: 
+        name: "unzip artifact"
+        command: |
+          set -x -e
+          wget $GITHUB_ARTIFACT_URL
+          unzip pytest-results-all.zip -d reports
+      - store_artifacts:
+        path: reports/
+        destination: html
 
 workflows:
   version: 2
