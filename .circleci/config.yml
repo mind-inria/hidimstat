@@ -77,9 +77,7 @@ jobs:
       - image: cimg/python:3.13
     steps:
       - checkout
-      - run:
-        name: "get data"
-        command: set -x -e
+      - run: ./build_tools/circle/checkout_merge_commit.sh
 
 workflows:
   version: 2
