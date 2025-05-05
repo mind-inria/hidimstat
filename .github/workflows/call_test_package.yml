@@ -50,7 +50,7 @@ jobs:
       if: ${{ success()}}
       shell: bash
       run: |
-        echo "SUCCESS" >> test-results-${{env.REPORT_NAME}}.md 
+        echo "tests passed" >> test-results-${{env.REPORT_NAME}}.md 
     
     # publish different reports (HTML, Mardown, Coverage)
     - name: Upload HTML test result

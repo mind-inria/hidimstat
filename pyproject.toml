@@ -103,7 +103,7 @@ addopts = [
     # pytest-randomly
     # "--randomly-dont-reset-seed", # turn off the rest of the random seed 
     # pytest-xdist option
-    "-n=auto",               # autoamtically define the number of process
+    "-n=auto",               # automatically define the number of process
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
