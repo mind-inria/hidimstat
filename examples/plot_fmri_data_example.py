@@ -1,27 +1,32 @@
 """
-Support recovery on fMRI data
+Support Recovery on fMRI Data
 =============================
 
-This example compares methods based on Desparsified Lasso (DL) that estimate
-a decoder map support with statistical guarantees. Here, we work with the Haxby
-dataset and we focus on the 'face vs house' contrast. Thus, we consider the labelled
-activation maps of a given subject and try to produce a brain map that
-corresponds to the discriminative pattern that makes the decoding of the
-two conditions.
+This example compares methods based on Desparsified Lasso (DL) to estimate
+voxel activation maps associated with behavior, specifically decoder map support.
+All methods presented here provide statistical guarantees.
 
-In this example, we show that in too high dimension (too many voxels),
-DL is not suitable due to memory issues. However, it's possible to overcome
-this limitation using aggregation methods based on the structure of the data
-(too much correlation between neighbouring voxels).
-We present two methods for aggregation features that offer statistical guarantees
-but with a (small) spatial tolerance on the shape of the support:
-clustered desparsified lasso (CLuDL) combines clustering (parcellation)
-and statistical inference ; ensemble of clustered desparsified lasso (EnCluDL)
-adds a randomization step over the choice of clustering.
+To demonstrate these methods, we use the Haxby dataset, focusing on the
+'face vs house' contrast. We analyze labeled activation maps from a single subject
+to produce a brain map showing the discriminative pattern between these two conditions.
 
-EnCluDL is powerful and does not depend on a unique clustering choice.
-As shown in :footcite:t:`chevalier2021decoding`, for several tasks, the estimated
-support (predictive regions) looks relevant.
+This example illustrates that in high-dimensional settings (many voxels),
+DL becomes impractical due to memory constraints. However, we can overcome
+this limitation using feature aggregation methods that leverage the data structure
+(high correlation between neighboring voxels).
+
+We introduce two feature aggregation methods that maintain statistical guarantees,
+though with a small spatial tolerance in support detection (i.e., they may identify
+null covariates "close" to non-null covariates):
+
+* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation)
+    with statistical inference
+* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization
+    to the clustering process
+
+EnCluDL is particularly powerful as it doesn't rely on a single clustering choice.
+As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
+predictive regions across various tasks.
 """
 
 #############################################################################
