@@ -81,10 +81,7 @@ jobs:
       - checkout
       - run:
         name: "get data"
-        command: |
-          set -x -e
-          wget $GITHUB_ARTIFACT_URL
-          unzip pytest-results-all.zip -d reports
+        command: set -x -e
 
 workflows:
   version: 2
