@@ -9,8 +9,8 @@ activation maps of a given subject and try to produce a brain map that
 corresponds to the discriminative pattern that makes the decoding of the
 two conditions.
 
-In this example, we show that in high dimensionality (too many voxels),
-DL is not suitable due to memory issues. However, it's possible to pass
+In this example, we show that in too high dimension (too many voxels),
+DL is not suitable due to memory issues. However, it's possible to overcome
 this limitation using aggregation methods based on the structure of the data
 (too much correlation between neighbouring voxels).
 We present two methods for aggregation features that offer statistical guarantees
