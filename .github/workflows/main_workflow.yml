@@ -34,18 +34,6 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  make_documentation:
-    name: Make_documentation
-    needs: [linter, tests]
-    uses: ./.github/workflows/call_build_docs.yml
-  
-  deploy_documentation:
-    name: 
-    needs: [make_documentation]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/call_deploy_on_main.yml
-
   # debugger:
   #   needs: linter 
   #   env: 
