@@ -74,7 +74,9 @@ jobs:
 
   host-tests-reports:
     docker:
-      - image: cimg/python:3.13
+      - image: ubuntu-2204:current
+    environment:
+      - GITHUB_ARTIFACT_URL: "test"
     steps:
       - checkout
       - run:
