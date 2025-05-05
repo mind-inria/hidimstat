@@ -22,12 +22,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: pytest-results-log-*-os-*
+      - name: gather reports
+        run: |
+          mkdir reports
+          mv */*.html reports
+          mv */*.txt reports
       - name: merge all the result and upload them
         id: upload_all
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results-all
-          path: pytest-results*
+          path: reports
           if-no-files-found: error
       - name: Trigger hosting job on circle ci
         run: |
@@ -39,7 +44,7 @@ jobs:
           # get the branch of the PR
           BRANCH=pull/$PULL_REQUEST_NUMBER/head
           # get URL for download artifact without identification
-          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}})"
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}})/reports.zip"
           # Send the information to circleci
           curl --request POST \
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \

@@ -64,6 +64,24 @@ jobs:
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
+      
+    # download some data from github
+    host_docs:
+        machine:
+            image: ubuntu-2204:current
+        environment:
+            GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+        steps:
+        -   checkout
+        -   run: 
+                name: "unzip artifact"
+                command: |
+                    set -x -e
+                    wget $GITHUB_ARTIFACT_URL
+                    unzip reports.zip -d reports
+        -   store_artifacts:
+                path: reports/
+                destination: html
 
 workflows:
   version: 2
@@ -73,3 +91,12 @@ workflows:
       - deploy:
           requires:
             - python3
+
+  host_and_deploy_doc:
+    # action trigger by updating the link og github
+    when:
+        not:
+            equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
+    # The jobs should run only when triggered by the workflow
+    jobs:
+        - host_docs
