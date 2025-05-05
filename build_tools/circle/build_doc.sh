@@ -25,13 +25,19 @@ source .venv/bin/activate
 # behavior is to quick build the documentation.
 
 get_build_type() {
-    # get the hash of the last commit
+    # Full build if it is not in a PR
+    if [ -z "$CI_PULL_REQUEST" ]
+    then
+        echo BUILD: not a pull request
+        return
+    fi
+    # get the hash of the last commit of the PR
     if [ -z "$CIRCLE_SHA1" ]
     then
         echo SKIP: undefined CIRCLE_SHA1
         return
     fi
-    # get the log of commit and detect marker: [doc skip], [doc quick], [doc build]
+    # get the log of commit and detect marker: [doc skip], [doc quick], [doc changed]
     commit_msg=$(git log --format=%B -n 1 $CIRCLE_SHA1)
     if [ -z "$commit_msg" ]
     then
@@ -48,38 +54,34 @@ get_build_type() {
         echo QUICK: [doc quick] marker found
         return
     fi
-    if [[ "$commit_msg" =~ \[doc\ build\] ]]
+    if [[ "$commit_msg" =~ \[doc\ change\] ]]
     then
-        echo BUILD: [doc build] marker found
+        # get the example difference between main and the actual commit
+        git_range="origin/main...$CIRCLE_SHA1"
+        git fetch origin main >&2 || (echo QUICK BUILD: failed to get changed filenames for $git_range; return)
+        filenames=$(git diff --name-only $git_range)
+        # case where there is no modifed file
+        if [ -z "$filenames" ]
+        then
+            echo QUICK BUILD: no changed filenames for $git_range
+            return
+        fi
+        # get the examples which have been modified
+        changed_examples=$(echo "$filenames" | grep -e ^examples/)
+        if [[ -n "$changed_examples" ]]
+        then
+            echo BUILD: detected examples/ filename modified in $git_range: $changed_examples
+            pattern=$(echo "$changed_examples" | paste -sd '|')
+            # pattern for examples to run is the last line of output
+            echo "$pattern"
+            return
+        fi
+        # case where there is no modified example 
+        echo QUICK BUILD: no examples/ filename modified in $git_range:
+        echo "$filenames"
         return
     fi
-    # detect if it's a pull request
-    if [ -z "$CI_PULL_REQUEST" ]
-    then
-        echo BUILD: not a pull request
-        return
-    fi
-    # get the example difference between main and the actual commit
-    git_range="origin/main...$CIRCLE_SHA1"
-    git fetch origin main >&2 || (echo QUICK BUILD: failed to get changed filenames for $git_range; return)
-    filenames=$(git diff --name-only $git_range)
-    if [ -z "$filenames" ]
-    then
-        echo QUICK BUILD: no changed filenames for $git_range
-        return
-    fi
-    # get the example which have been modified
-    changed_examples=$(echo "$filenames" | grep -e ^examples/)
-    if [[ -n "$changed_examples" ]]
-    then
-        echo BUILD: detected examples/ filename modified in $git_range: $changed_examples
-        pattern=$(echo "$changed_examples" | paste -sd '|')
-        # pattern for examples to run is the last line of output
-        echo "$pattern"
-        return
-    fi
-    echo QUICK BUILD: no examples/ filename modified in $git_range:
-    echo "$filenames"
+    echo BUILD: build all the example by default
 }
 
 build_type=$(get_build_type)
