@@ -17,7 +17,11 @@ jobs:
       - PYTHON_VERSION: "3.13"
     steps:
       - checkout
-      - run: ./build_tools/circle/checkout_merge_commit.sh
+      - run: 
+          name:
+            'Checkout to PR commit'
+          command: 
+            sh ./build_tools/circle/checkout_merge_commit.sh
       - restore_cache:
           key: saved-cache
       - run:
@@ -25,7 +29,7 @@ jobs:
           no_output_timeout: 40m
       - store_artifacts:
           path: doc_conf/_build/html
-          destination: doc_conf
+          destination: documentation
       - store_artifacts:
           path: ~/log.txt
           destination: log.txt
