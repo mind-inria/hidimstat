@@ -65,23 +65,23 @@ jobs:
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
       
-    # download some data from github
-    host_docs:
-        machine:
-            image: ubuntu-2204:current
-        environment:
-            GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
-        steps:
-        -   checkout
-        -   run: 
-                name: "unzip artifact"
-                command: |
-                    set -x -e
-                    wget $GITHUB_ARTIFACT_URL
-                    unzip reports.zip -d reports
-        -   store_artifacts:
-                path: reports/
-                destination: html
+  # download some data from github
+  host_docs:
+    machine:
+      image: ubuntu-2204:current
+    environment:
+      GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+    steps:
+    -   checkout
+    -   run: 
+        name: "unzip artifact"
+        command: |
+            set -x -e
+            wget $GITHUB_ARTIFACT_URL
+            unzip pytest-results-all.zip -d reports
+    -   store_artifacts:
+        path: reports/
+        destination: html
 
 workflows:
   version: 2

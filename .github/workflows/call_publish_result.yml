@@ -44,7 +44,7 @@ jobs:
           # get the branch of the PR
           BRANCH=pull/$PULL_REQUEST_NUMBER/head
           # get URL for download artifact without identification
-          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}})/reports.zip"
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
           # Send the information to circleci
           curl --request POST \
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
