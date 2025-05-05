@@ -44,13 +44,7 @@ jobs:
     # inline command for being compatible on linux and windows
     - name: Generate coverage report
       run: |
-        python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --md-report --md-report-output=test-results-${{env.REPORT_NAME}}.md --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    
-    - name: generate an empty mardown report if succeed
-      if: ${{ success()}}
-      shell: bash
-      run: |
-        echo "tests passed" >> test-results-${{env.REPORT_NAME}}.md 
+        python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, Mardown, Coverage)
     - name: Upload HTML test result
@@ -60,13 +54,6 @@ jobs:
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: report-${{env.REPORT_NAME}}.html
-        if-no-files-found: error
-    - name: Upload md test result 
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v4
-      with:
-        name: pytest-results-md-${{env.REPORT_NAME}}
-        path: test-results-${{env.REPORT_NAME}}.md 
         if-no-files-found: error
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}

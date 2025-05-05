@@ -8,52 +8,47 @@ on:
 permissions: {}
 
 jobs:
-  
-  merge_md_test_data:
-    # for more details
-    # https://github.com/thombashi/pytest-md-report
+  merge_and_upload_test_data:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
     steps:
-    # get report from previous job 
-    - name: Get data
-      uses: actions/download-artifact@v4
-      with:
-        pattern: pytest-results-md-*-os-*
-    # add manual link to render the HTML commit on the reporter_test branch
-    # the rendering is based on the trick propose here: 
-    # https://github.com/htmlpreview/htmlpreview.github.com
-    # TODO Determine the link to the circleci  
-    - name: Update mardown
-      shell: bash
-      run: |
-        for FOLDER in *;
-        do 
-        SUFFIX=$(echo $FOLDER | sed 's/pytest-results-md-//g');
-        #LINK=""
-        #echo -e "\n [HTML tests summary]($LINK)" >> ${FOLDER}/test-results-${SUFFIX}.md
-        done
-    # create a comment in the PR with the failling tests
-    # for more details: https://github.com/marocchino/sticky-pull-request-comment
-    - name: Render the report to the PR
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        header: test-report
-        recreate: true
-        path: ./pytest-results-md-3.13-os-macos-latest/test-results-3.13-os-macos-latest.md     #CHECK: need to be updated when new version are available
-    # create a comment in the summary with the failling tests
-    - name: Output reports to the job summary when tests fail
-      shell: bash
-      run: |
-        for folder in *;
-        do 
-          echo "<details><summary>Failed Test Report: $folder</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          cat $folder/*.md >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
-        done
+      # get reports from previous job 
+      - name: Get HTML reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytest-results-html-*-os-*
+      - name: Get time reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytest-results-log-*-os-*
+      - name: merge all the result and upload them
+        id: upload_all
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-all
+          path: pytest-results*
+          if-no-files-found: error
+      - name: Trigger hosting job on circle ci
+        run: |
+          #display command executed with argument
+          set -x -a
+          # get the number of the PR
+          # $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          # get the branch of the PR
+          BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          # get URL for download artifact without identification
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}})"
+          # Send the information to circleci
+          curl --request POST \
+          --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
+          --header "Circle-Token: ${{ secrets.CIRCLE_CI }}" \
+          --header "content-type: application/json" \
+          --header "x-attribution-actor-id: github_actions" \
+          --header "x-attribution-login: github_actions" \
+          --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\}
+
 
   merge_upload_coverage_data:
     runs-on: ubuntu-latest
