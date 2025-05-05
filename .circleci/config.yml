@@ -72,6 +72,20 @@ jobs:
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
 
+  host_tests_reports:
+    docker:
+      - image: cimg/python:3.13
+    environment:
+      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+    steps:
+      - checkout
+      - run:
+        name: "get data"
+        command: |
+          set -x -e
+          wget $GITHUB_ARTIFACT_URL
+          unzip pytest-results-all.zip -d reports
+
 workflows:
   version: 2
   build-doc-and-deploy:
@@ -88,4 +102,4 @@ workflows:
         equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
     # The jobs should run only when triggered by the workflow
     jobs:
-      - python3
+      - host_tests_reports
