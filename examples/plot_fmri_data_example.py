@@ -277,6 +277,9 @@ plot_map(
 )
 
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
+# Finally, calling plotting.show() is necessary to display the figure when
+# running as a script outside IPython
+show()
 
 #############################################################################
 # Analysis of the results
@@ -294,7 +297,6 @@ plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-show()
 
 #############################################################################
 # References
