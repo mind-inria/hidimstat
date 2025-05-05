@@ -1,13 +1,20 @@
 version: 2.1
 
+workflows:
+  version: 2
+  build-doc-and-deploy-documentation:
+    jobs:
+      - build-documentation
+      - deploy-documentation:
+          requires:
+            - build-documentation
+
 jobs:
-  python3:
+  build-documentation:
     docker:
-      - image: cimg/python:3.13
+      - image: cimg/python:3.13.2
     environment:
-      - PYTHON_VERSION: "3.12"
-      - OMP_NUM_THREADS: 2
-      - CONDA_ENV_NAME: testenv
+      - PYTHON_VERSION: "3.13"
     steps:
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
@@ -23,7 +30,7 @@ jobs:
           path: ~/log.txt
           destination: log.txt
       # Persists generated documentation so that it can be attached and deployed
-      # in the 'deploy' step.
+      # in the 'deploy-documentation' step.
       - persist_to_workspace:
           root: doc_conf/_build/html
           paths: .
@@ -33,7 +40,7 @@ jobs:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
 
-  deploy:
+  deploy-documentation:
     docker:
       - image: cimg/python:3.13
     environment:
@@ -50,7 +57,7 @@ jobs:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
       - checkout
       - run: ./build_tools/circle/checkout_merge_commit.sh
-      # Attach documentation generated in the 'python3' step so that it can be
+      # Attach documentation generated in the 'build-documentation' step so that it can be
       # deployed.
       - attach_workspace:
           at: doc_conf/_build/html
@@ -59,17 +66,8 @@ jobs:
                 mkdir -p ~/.ssh
                 ssh-keyscan github.com >> ~/.ssh/known_hosts
                 ls -ltrh doc_conf/_build/html
-      - deploy:
+      - deploy-documentation:
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
-
-workflows:
-  version: 2
-  build-doc-and-deploy:
-    jobs:
-      - python3
-      - deploy:
-          requires:
-            - python3

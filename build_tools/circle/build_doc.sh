@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
+
+# display all the command and associet argument when they are executed
 set -x
+# exit immediately if a command exits with a non-zero status.
 set -e
 
 # Decide what kind of documentation build to run, and run it.
@@ -18,11 +21,13 @@ set -e
 # behavior is to quick build the documentation.
 
 get_build_type() {
+    # get the hash of the last commit
     if [ -z "$CIRCLE_SHA1" ]
     then
         echo SKIP: undefined CIRCLE_SHA1
         return
     fi
+    # get the log of commit and detect marker: [doc skip], [doc quick], [doc build]
     commit_msg=$(git log --format=%B -n 1 $CIRCLE_SHA1)
     if [ -z "$commit_msg" ]
     then
@@ -44,11 +49,13 @@ get_build_type() {
         echo BUILD: [doc build] marker found
         return
     fi
+    # detect if it's a pull request
     if [ -z "$CI_PULL_REQUEST" ]
     then
         echo BUILD: not a pull request
         return
     fi
+    # get the example difference between main and the actual commit
     git_range="origin/main...$CIRCLE_SHA1"
     git fetch origin main >&2 || (echo QUICK BUILD: failed to get changed filenames for $git_range; return)
     filenames=$(git diff --name-only $git_range)
@@ -57,6 +64,7 @@ get_build_type() {
         echo QUICK BUILD: no changed filenames for $git_range
         return
     fi
+    # get the example which have been modified
     changed_examples=$(echo "$filenames" | grep -e ^examples/)
     if [[ -n "$changed_examples" ]]
     then
@@ -71,18 +79,21 @@ get_build_type() {
 }
 
 build_type=$(get_build_type)
+# Skip examples
 if [[ "$build_type" =~ ^SKIP ]]
 then
     exit 0
 fi
-
+# generate all the example if it's push on main or on a previous version
 if [[ "$CIRCLE_BRANCH" =~ ^main$|^[0-9]+\.[0-9]+\.X$ && -z "$CI_PULL_REQUEST" ]]
 then
     make_args="html"
 elif [[ "$build_type" =~ ^QUICK ]]
+# do not generate examples
 then
     make_args="html-noplot"
 elif [[ "$build_type" =~ ^'BUILD: detected examples' ]]
+# generate only example wich has been modified
 then
     # pattern for examples to run is the last line of output
     pattern=$(echo "$build_type" | tail -n 1)
@@ -91,30 +102,14 @@ else
     make_args="html"
 fi
 
-# deactivate circleci virtualenv and setup a miniconda env instead
-if [[ `type -t deactivate` ]]; then
-    deactivate
-fi
-
-# Install dependencies with miniconda
-wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" -O miniconda.sh
-chmod +x miniconda.sh && bash ./miniconda.sh -b -p "miniconda"
-export PATH="miniconda/bin:$PATH"
-
-# Configure the conda environment and put it in the path using the
-# provided versions
-mamba create -n $CONDA_ENV_NAME --yes python="${PYTHON_VERSION:-*}" \
-      numpy="${NUMPY_VERSION:-*}" scipy="${SCIPY_VERSION:-*}" \
-      pytest coverage matplotlib="${MATPLOTLIB_VERSION:-*}" sphinx \
-      seaborn statsmodels pillow cython joblib pandas="${PANDAS_VERSION:-*}"
-
-source activate $CONDA_ENV_NAME
-
-pip install -e ".[doc]"
+# create an virtual environement and install dependece with uv
+python -m venv .venv
+source .venv/bin/activate
+pip install uv
+uv pip install -e ".[doc]"
 
 # The pipefail is requested to propagate exit code
 set -o pipefail && cd doc_conf && make $make_args 2>&1 | tee ~/log.txt
-
 cd -
 set +o pipefail
 
