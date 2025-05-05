@@ -12,8 +12,8 @@ to produce a brain map showing the discriminative pattern between these two cond
 
 This example illustrates that in high-dimensional settings (many voxels),
 DL becomes impractical due to memory constraints. However, we can overcome
-this limitation using feature aggregation methods that leverage the data structure
-(high correlation between neighboring voxels).
+this limitation using feature aggregation methods that leverage the spatial structure
+of the data (high correlation between neighboring voxels).
 
 We introduce two feature aggregation methods that maintain statistical guarantees,
 though with a small spatial tolerance in support detection (i.e., they may identify
