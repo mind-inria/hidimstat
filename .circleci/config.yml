@@ -77,7 +77,13 @@ jobs:
       - image: cimg/python:3.13
     steps:
       - checkout
-      - run: ./build_tools/circle/checkout_merge_commit.sh
+      - run:
+            name: "get reports"
+            command: |
+              set -x -e
+              wget $GITHUB_ARTIFACT_URL
+              unzip pytest-results-all.zip -d reports
+
 
 workflows:
   version: 2
