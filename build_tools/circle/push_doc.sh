@@ -33,17 +33,21 @@ if [ ! -d $DOC_REPO ];
 then git clone "git@github.com:"$ORGANIZATION"/"$DOC_REPO".git";
 fi
 cd $DOC_REPO
-pwd
 
+# reset the documentation repository
 git checkout main
 git reset --hard origin/main
+# delete all the dcoumentation
 git rm -rf $dir/ && rm -rf $dir/
+# copy the new documentation
 cp -R $GENERATED_DOC_DIR $dir
+# commit the change
 git config --global user.email $EMAIL
 git config --global user.name $USERNAME
 git config --global push.default matching
 git add -f $dir/
 git commit -m "$MSG" $dir
+# push the modification
 git push
 
 echo $MSG
