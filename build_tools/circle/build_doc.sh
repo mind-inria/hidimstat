@@ -5,6 +5,10 @@ set -x
 # exit immediately if a command exits with a non-zero status.
 set -e
 
+# activate the environment for the creation of the documentation
+# see the file setup_virtual_environment
+source .venv/bin/activate
+
 # Decide what kind of documentation build to run, and run it.
 #
 # If the last commit message has a "[doc skip]" marker, do not build
@@ -101,12 +105,6 @@ then
 else
     make_args="html"
 fi
-
-# create an virtual environement and install dependece with uv
-python -m venv .venv
-source .venv/bin/activate
-pip install uv
-uv pip install -e ".[doc]"
 
 # The pipefail is requested to propagate exit code
 set -o pipefail && cd doc_conf && make $make_args 2>&1 | tee ~/log.txt
