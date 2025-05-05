@@ -92,11 +92,11 @@ workflows:
           requires:
             - python3
 
-  host_tests_report:
+  host_tests:
     # action trigger by updating the link og github
     when:
       not:
         equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
     # The jobs should run only when triggered by the workflow
     jobs:
-      - host_docs
+      - host_tests_report
