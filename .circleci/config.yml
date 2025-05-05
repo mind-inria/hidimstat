@@ -77,6 +77,6 @@ jobs:
       - run:
           name: "Deploy documentation"
           command: |
-            #if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
+            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
-            #fi
+            fi
