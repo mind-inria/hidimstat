@@ -67,21 +67,21 @@ jobs:
       
   # download some data from github
   host_docs:
-    machine:
-      image: ubuntu-2204:current
+    docker:
+      image: cimg/ubuntu-2204:current
     environment:
-      GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
     steps:
-    -   checkout
-    -   run: 
-        name: "unzip artifact"
-        command: |
-            set -x -e
-            wget $GITHUB_ARTIFACT_URL
-            unzip pytest-results-all.zip -d reports
-    -   store_artifacts:
-        path: reports/
-        destination: html
+    - checkout
+    - run: 
+      name: "unzip artifact"
+      command: |
+        set -x -e
+        wget $GITHUB_ARTIFACT_URL
+        unzip pytest-results-all.zip -d reports
+    - store_artifacts:
+      path: reports/
+      destination: html
 
 workflows:
   version: 2
@@ -95,8 +95,8 @@ workflows:
   host_and_deploy_doc:
     # action trigger by updating the link og github
     when:
-        not:
-            equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
+      not:
+        equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
     # The jobs should run only when triggered by the workflow
     jobs:
-        - host_docs
+      - host_docs
