@@ -72,11 +72,11 @@ jobs:
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
 
-  host_tests_reports:
+  host-tests-reports:
     docker:
       - image: cimg/python:3.13
     environment:
-      - GITHUB_ARTIFACT_URL: "test" 
+      GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
     steps:
       - checkout
       - run:
@@ -92,11 +92,11 @@ workflows:
           requires:
             - python3
 
-  host_tests:
+  host-tests:
     # action trigger by updating the link og github
     when:
       not:
         equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
     # The jobs should run only when triggered by the workflow
     jobs:
-      - host_tests_reports
+      - host-tests-reports
