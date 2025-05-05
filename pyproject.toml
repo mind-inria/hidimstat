@@ -64,7 +64,6 @@ test = [
     "pytest-cov >= 3.0,  < 7",
     "pytest-randomly",
     "pytest-xdist[psutil]",
-    "pytest-md-report",
     "pytest-html",
     "pytest-timeout",
     "pytest-durations"
@@ -97,7 +96,7 @@ pythonpath = "src"
 testpaths = "test"
 addopts = [
     "-ra",                   # short test summary info
-    "--import-mode=importlib", # btter control of importing packages
+    "--import-mode=importlib", # better control of importing packages
     "--showlocals",          # show local variable inn trackbacks
     "--strict-config",       # no warning from parsing pytest configuration file
     "--strict-markers",      # undefine markers will raise an error
@@ -112,9 +111,4 @@ markers = [
 # pytest-timeout
 timeout= 30          # on individual test should not take more than 10s
 session_timeout=1200 # all the tests should be run in 5 min
-# mardown report for github
-md_report_verbose = 0
-md_report_color = "auto"
-md_report_flavor = "gfm"
-md_report_exclude_outcomes=["passed","skipped","xpassed"]
 
