@@ -74,7 +74,8 @@ jobs:
               mkdir -p ~/.ssh
               ssh-keyscan github.com >> ~/.ssh/known_hosts
               ls -ltrh doc_conf/_build/html
-      - deploy:
+      - run:
+          name: "Deploy documentation"
           command: |
             #if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
