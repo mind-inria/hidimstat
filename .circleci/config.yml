@@ -73,10 +73,8 @@ jobs:
             fi
 
   host-tests-reports:
-    machine:
-      - image: ubuntu-2204:current
-    environment:
-      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+    docker:
+      - image: cimg/python:3.13
     steps:
       - checkout
       - run:
