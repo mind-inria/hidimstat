@@ -1,5 +1,12 @@
 version: 2.1
 
+parameters:
+    # Parameters required to trigger the execution of the "host_docs" job
+    GITHUB_RUN_URL:
+        type: string
+        default: none
+
+
 jobs:
   python3:
     docker:
