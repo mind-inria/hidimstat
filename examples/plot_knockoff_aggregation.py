@@ -62,7 +62,7 @@ n_bootstraps = 25
 # seed for the random generator
 seed = 45
 # number of jobs for repetition of the method
-n_jobs = None
+n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
 

@@ -28,9 +28,7 @@ Functions
    clustered_inference
    clustered_inference_pvalue
    model_x_knockoff
-   permutation_test
    reid
-   empirical_thresholding
 
 Classes
 =======

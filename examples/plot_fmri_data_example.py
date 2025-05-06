@@ -1,53 +1,50 @@
 """
-Support recovery on fMRI data
+Support Recovery on fMRI Data
 =============================
 
-This example compares several methods that estimate a decoder map support
-with statistical guarantees. More precisely, we aim at thresholding the
-weights of some estimated decoder maps according to the confidence we have
-that they are nonzero. Here, we work with the Haxby dataset and we focus on
-the 'face vs house' contrast. Thus, we consider the labeled activation maps
-of a given subject and try produce a brain map that corresponds to the
-discriminative pattern that makes the decoding of the two conditions.
+This example compares methods based on Desparsified Lasso (DL) to estimate
+voxel activation maps associated with behavior, specifically decoder map support.
+All methods presented here provide statistical guarantees.
 
-In this example, we show that standard statistical methods (i.e., method
-such as thresholding by permutation test the SVR or Ridge decoder or the
-algorithm introduced by :footcite:t:`gaonkar_deriving_2012`) are not powerful when applied on
-the uncompressed problem (i.e., the orignal problem in which the activation
-maps are not reduced using compression techniques such as parcellation).
-This is notably due to the high dimensionality (too many voxels) and
-structure of the data (too much correlation between neighboring voxels).
-We also present two methods that offer statistical guarantees but
-with a (small) spatial tolerance on the shape of the support:
-clustered desparsified lasso (CLuDL) combines clustering (parcellation)
-and statistical inference ; ensemble of clustered desparsified lasso (EnCluDL)
-adds a randomization step over the choice of clustering.
+To demonstrate these methods, we use the Haxby dataset, focusing on the
+'face vs house' contrast. We analyze labeled activation maps from a single subject
+to produce a brain map showing the discriminative pattern between these two conditions.
 
-EnCluDL is powerful and does not depend on a unique clustering choice.
-As shown in :footcite:t:`chevalier2021decoding`, for several tasks the estimated
-support (predictive regions) looks relevant.
+This example illustrates that in high-dimensional settings (many voxels),
+DL becomes impractical due to memory constraints. However, we can overcome
+this limitation using feature aggregation methods that leverage the spatial structure
+of the data (high correlation between neighboring voxels).
 
-References
-----------
-.. footbibliography::
+We introduce two feature aggregation methods that maintain statistical guarantees,
+though with a small spatial tolerance in support detection (i.e., they may identify
+null covariates "close" to non-null covariates):
 
+* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation)
+    with statistical inference
+* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization
+    to the clustering process
+
+EnCluDL is particularly powerful as it doesn't rely on a single clustering choice.
+As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
+predictive regions across various tasks.
 """
 
 #############################################################################
 # Imports needed for this script
 # ------------------------------
+import resource
+import warnings
+
 import numpy as np
 import pandas as pd
-from matplotlib.cm import get_cmap
+from matplotlib.pyplot import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
-from nilearn.input_data import NiftiMasker
+from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
-from sklearn.linear_model import Ridge
-from sklearn.svm import LinearSVR
 from sklearn.utils import Bunch
 
 from hidimstat.ensemble_clustered_inference import (
@@ -58,12 +55,21 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat.adaptative_permutation_threshold_SVR import ada_svr
-from hidimstat.empirical_thresholding import empirical_thresholding
-from hidimstat.permutation_test import permutation_test, permutation_test_pval
-from hidimstat.statistical_tools.p_values import pval_from_scale, zscore_from_pval
+from hidimstat.desparsified_lasso import (
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
+)
+from hidimstat.statistical_tools.p_values import zscore_from_pval
 
-n_job = None
+
+# Remmove warnings during loading data
+warnings.filterwarnings(
+    "ignore", message="The provided image has no sform in its header."
+)
+
+# Limit the ressoruce use for the example to 5 G.
+resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
+n_job = 1
 
 
 #############################################################################
@@ -78,7 +84,6 @@ def preprocess_haxby(subject=2, memory=None):
 
     behavioral = pd.read_csv(haxby_dataset.session_target[0], sep=" ")
 
-    # conditions = pd.DataFrame.to_numpy(behavioral['labels'])
     conditions = behavioral["labels"].values
     session_label = behavioral["chunks"].values
 
@@ -89,7 +94,7 @@ def preprocess_haxby(subject=2, memory=None):
     if haxby_dataset.anat[0] is None:
         bg_img = None
     else:
-        bg_img = mean_img(haxby_dataset.anat)
+        bg_img = mean_img(haxby_dataset.anat, copy_header=True)
 
     # Building target where '1' corresponds to 'face' and '-1' to 'house'
     y = np.asarray((conditions[condition_mask] == "face") * 2 - 1)
@@ -97,7 +102,10 @@ def preprocess_haxby(subject=2, memory=None):
     # Loading mask
     mask_img = haxby_dataset.mask
     masker = NiftiMasker(
-        mask_img=mask_img, standardize=True, smoothing_fwhm=None, memory=memory
+        mask_img=mask_img,
+        standardize="zscore_sample",
+        smoothing_fwhm=None,
+        memory=memory,
     )
 
     # Computing masked data
@@ -137,61 +145,28 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # --------------------------------------------
 
 #############################################################################
-# First, we try to recover the discriminative partern by computing
-# p-values from SVR decoder weights and a parametric approximation
-# of the distribution of these weights.
-beta_hat, scale = empirical_thresholding(
-    X,
-    y,
-    linear_estimator=LinearSVR(),
-)
-pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
-
-#############################################################################
-# Now, we compute p-values thanks to permutation tests applied to
-# 1/the weights of the SVR decoder or 2/the weights of the Ridge decoder.
-
-# To derive the p-values from the SVR decoder, you may change the next line by
-# `SVR_permutation_test_inference = True`. It should take around 15 minutes.
-
-SVR_permutation_test_inference = False
-if SVR_permutation_test_inference:
-    # It will be better to associate cross validation with the estimator
-    # but for a sake of time, this is not done.
-    estimator = LinearSVR()
-    weight_svr, weight_svr_distribution = permutation_test(
-        X, y, estimator, n_permutations=50
+# First, we try to recover the discriminative pattern by computing
+# p-values from desparsified lasso.
+# Due to the size of the X, it's not possible to use this method with a limit
+# of 5 G for memory. To handle this problem, the following methods use some
+# feature aggregation methods.
+try:
+    beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
+        X, y, noise_method="median", max_iteration=1000
     )
-    pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_pval(
-        weight_svr, weight_svr_distribution
+    pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
+        X.shape[0], beta_hat, sigma_hat, precision_diagonal
     )
-
-# Another method is to compute the p-values by permutation test from the
-# Ridge decoder. The solution provided by this method should be very close to
-# the previous one and the computation time is much shorter: around 20 seconds.
-# We computed the parameter from a cross valisation (alpha = 0.0215)
-# It will be better to use RidgeCV but for a sake of time, this is not done.
-estimator = Ridge()
-weight_ridge, weight_ridge_distribution = permutation_test(
-    X, y, estimator=estimator, n_permutations=200
-)
-pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = permutation_test_pval(
-    weight_ridge, weight_ridge_distribution
-)
-
-#############################################################################
-# Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).
-# Since the estimator they derive is obtained by approximating the hard margin
-# SVM formulation, we referred to this method as "ada-SVR" which stands for
-# "Adaptive Permutation Threshold SVR". The function is ``ada_svr``.
-beta_hat, scale = ada_svr(X, y)
-pval_ada_svr, _, one_minus_pval_ada_svr, _ = pval_from_scale(beta_hat, scale)
+except MemoryError as err:
+    pval_dl = None
+    one_minus_pval_dl = None
+    print("As expected, Desparsified Lasso uses too much memory.")
 
 #############################################################################
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X, y, ward, n_clusters, scaler_sampling=StandardScaler()
+    X, y, ward, n_clusters, scaler_sampling=StandardScaler(), tolerance=1e-2
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -214,6 +189,8 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         groups=groups,
         scaler_sampling=StandardScaler(),
         n_bootstraps=5,
+        max_iteration=6000,
+        tolerance=1e-2,
         n_jobs=2,
     )
 )
@@ -279,7 +256,6 @@ def plot_map(
     vmin=None,
     vmax=None,
 ):
-
     zscore_img = masker.inverse_transform(data)
     plot_stat_map(
         zscore_img,
@@ -294,36 +270,21 @@ def plot_map(
     )
 
 
-plot_map(
-    zscore_from_pval(pval_std_svr, one_minus_pval_std_svr),
-    zscore_threshold_no_clust,
-    title="SVR parametric threshold",
-)
-
-if SVR_permutation_test_inference:
+if pval_dl is not None:
     plot_map(
-        zscore_from_pval(pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test),
-        zscore_threshold_corr,
-        title="SVR permutation-test thresh.",
+        zscore_from_pval(pval_dl, one_minus_pval_dl),
+        zscore_threshold_no_clust,
+        "Desparsified Lasso",
     )
-
-plot_map(
-    zscore_from_pval(pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test),
-    zscore_threshold_corr,
-    title="Ridge permutation-test thresh.",
-)
-
-plot_map(
-    zscore_from_pval(pval_ada_svr, one_minus_pval_ada_svr),
-    zscore_threshold_no_clust,
-    title="SVR adaptive perm. tresh.",
-)
 
 plot_map(
     zscore_from_pval(pval_cdl, one_minus_pval_cdl), zscore_threshold_clust, "CluDL"
 )
 
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
+# Finally, calling plotting.show() is necessary to display the figure when
+# running as a script outside IPython
+show()
 
 #############################################################################
 # Analysis of the results
@@ -341,4 +302,8 @@ plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
-show()
+
+#############################################################################
+# References
+# ----------
+# .. footbibliography::
