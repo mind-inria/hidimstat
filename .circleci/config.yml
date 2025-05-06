@@ -3,9 +3,9 @@ version: 2.1
 jobs:
   python3:
     docker:
-      - image: cimg/python:3.13
+      - image: cimg/python:3.13.2
     environment:
-      - PYTHON_VERSION: "3.13"
+      - PYTHON_VERSION: "3.13.2"
       - OMP_NUM_THREADS: 2
       - CONDA_ENV_NAME: testenv
     steps:
@@ -20,8 +20,8 @@ jobs:
           path: doc_conf/_build/html
           destination: doc_conf
       - store_artifacts:
-          path: ~/log.txt
-          destination: log.txt
+          path: ~/output_sphinx.log
+          destination: log
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy' step.
       - persist_to_workspace:
