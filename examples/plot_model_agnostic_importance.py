@@ -18,7 +18,7 @@ model used, :math:`\mu_{-j}` the sub-model where the j-th variable is removed, a
 expressed as:
 
 .. math::
-    \psi_{j} = \mathbb{V}(y) \left[ \left[ 1 - \\frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)} \\right] - \left[ 1 - \\frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)} \\right] \\right]
+    \psi_{j} = \mathbb{V}(y) \left[ \left[ 1 - \frac{\mathbb{E}[(y - \mu(X))^2]}{\mathbb{V}(y)} \right] - \left[ 1 - \frac{\mathbb{E}[(y - \mu_{-j}(X^{-j}))^2]}{\mathbb{V}(y)} \right] \right]
 
 where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 """
