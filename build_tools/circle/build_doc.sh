@@ -111,7 +111,9 @@ fi
 # The pipefail is requested to propagate exit code
 set -o pipefail && cd doc_conf && make $make_args 2>&1 | tee ~/log.txt
 cd -
+
 set +o pipefail
+
 
 affected_doc_paths() {
     # generate a list fo the file modified in the PR

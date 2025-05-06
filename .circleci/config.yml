@@ -35,8 +35,8 @@ jobs:
           path: doc_conf/_build/html
           destination: documentation
       - store_artifacts:
-          path: ~/log.txt
-          destination: log.txt
+          path: ~/output_sphinx.log
+          destination: log
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy-documentation' step.
       - persist_to_workspace:
