@@ -15,7 +15,7 @@ from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
-def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=10):
+def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
     """
     Configure the estimator for Model-X knockoffs.
 
