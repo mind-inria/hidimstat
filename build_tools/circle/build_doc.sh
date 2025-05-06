@@ -137,6 +137,6 @@ then
     (
     echo '<html><body><ul>'
     echo "$affected" | sed 's|.*|<li><a href="&">&</a></li>|'
-    echo '</ul><p>General: <a href="index.html">Home</a> | <a href="modules/classes.html">API Reference</a> | <a href="auto_examples/index.html">Examples</a></p></body></html>'
+    echo '</ul><p>General: <a href="index.html">Home</a> | <a href="api.html">API Reference</a> | <a href="auto_examples/index.html">Examples</a></p></body></html>'
     ) > 'doc_conf/_build/html/_changed.html'
 fi
