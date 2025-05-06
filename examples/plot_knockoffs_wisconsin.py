@@ -156,6 +156,7 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
     ),
     n_bootstraps=1,
     random_state=0,
+    tol_gauss=1e-15,
     preconfigure_estimator=None,
     fdr=fdr,
 )
