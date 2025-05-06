@@ -34,7 +34,7 @@ from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVC
 
-from hidimstat import CPI, PermutationImportance
+from hidimstat import CPI, PFI
 
 ########################################################################
 # Load the iris dataset and add a spurious feature
@@ -84,7 +84,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
             loss=loss,
         )
     elif vim_name == "PFI":
-        vim = PermutationImportance(
+        vim = PFI(
             estimator=model_c,
             n_permutations=50,
             random_state=0,

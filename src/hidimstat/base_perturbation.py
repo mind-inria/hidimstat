@@ -28,7 +28,7 @@ class BasePerturbation(BaseEstimator):
             The function to compute the loss when comparing the perturbed model
             to the original model.
         n_permutations : int, default=50
-            This parameter is relevant only for PermutationImportance or CPI.
+            This parameter is relevant only for PFI or CPI.
             Specifies the number of times the variable group (residual for CPI) is
             permuted. For each permutation, the perturbed model's loss is calculated
             and averaged over all permutations.
