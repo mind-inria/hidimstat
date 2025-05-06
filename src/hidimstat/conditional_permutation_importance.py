@@ -136,7 +136,7 @@ class CPI(BasePerturbation):
     def _joblib_fit_one_group(self, estimator, X, groups_ids):
         """Fit a single imputation model, for a single group of variables. This method
         is parallelized."""
-        X_j = np.squeeze(X[:, groups_ids].copy(), 1)
+        X_j = X[:, groups_ids].copy()
         X_minus_j = np.delete(X, groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
