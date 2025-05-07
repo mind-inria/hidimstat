@@ -92,10 +92,20 @@ jobs:
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
-
+  wait-action:
+    docker:
+      - image: cimg/base
+    steps:
+      - run:
+        name: "wait"
+        command: sleep 10
+    
 
 workflows:
   version: 2
+  wait:
+    jobs:
+      - wait-action
   build-doc-and-deploy:
     # action trigger by updating the link of github
     when:
