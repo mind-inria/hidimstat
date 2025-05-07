@@ -6,10 +6,10 @@ on:
   # Allows you to run this workflow from another workflow
   workflow_call:
     inputs:
-      commit_PR_sha:
+      commit_event_sha:
         required: true
         type: string
-      commit_merge_sha:
+      commit_PR_sha:
         required: true
         type: string
 
@@ -25,11 +25,13 @@ jobs:
         steps:
           - name: Checkout code
             uses: actions/checkout@v2
+            with:
+              ref: ${{ inputs.commit_PR_sha }}
     
           - name: Get commit message
             id: get_commit_message
             run: |
-              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_PR_sha }})"
-              echo "${{ inputs.commit_merge_sha }}"
-              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_PR_sha }})" >> $GITHUB_OUTPUT
+              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{  inputs.commit_event_sha }})"
+              echo "${{ inputs.commit_PR_sha }}"
+              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_event_sha }})" >> $GITHUB_OUTPUT
     
