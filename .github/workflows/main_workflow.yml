@@ -29,13 +29,13 @@ jobs:
   tests:
     name: tests
     needs: [linter, get_information]
-    if: ${{ !contains(needs.get_information.outputs.COMMIT_MSG, '[skip test]') }}
+    if: ${{ !contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
     uses: ./.github/workflows/call_test_package.yml
   
   no_tests:
     name: no_tests
     needs: [linter, get_information]
-    if: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip test]') }}
+    if: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
     uses: ./.github/workflows/call_no_test.yml
   
   tests_publish:
