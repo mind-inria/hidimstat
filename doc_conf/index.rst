@@ -5,7 +5,7 @@
 
 HiDimStat: High-dimensional statistical inference tool for Python
 =================================================================
-|Build| |codecov| |codestyle|
+|Build| |CircleCI/Documentation| |codecov| |codestyle|
 
 The HiDimStat package provides statistical inference methods to solve the
 problem of support recovery in the context of high-dimensional and
