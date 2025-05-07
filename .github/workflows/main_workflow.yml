@@ -80,12 +80,17 @@ jobs:
         id: condition_publish
         run: |
           echo "COND=$COND"
-          echo "CONDITION_PUBLISH=$COND" >> $GITHUB_OUTPUT
+          if $COND
+          then 
+            echo "CONDITION_PUBLISH='PUBLISH'" >> $GITHUB_OUTPUT
+          else
+            echo "CONDITION_PUBLISH='NO PUBLISH'" >> $GITHUB_OUTPUT
+          fi
   
   tests_publish:
     name: tests_publish
     needs: [condition]
-    if: ${{ always() && needs.condition.outputs.CONDITION_PUBLISH == 'true' }}    
+    if: ${{ needs.condition.outputs.CONDITION_PUBLISH == 'PUBLISH' }}    
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
