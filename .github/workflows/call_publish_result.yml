@@ -52,14 +52,14 @@ jobs:
           --header "content-type: application/json" \
           --header "x-attribution-actor-id: github_actions" \
           --header "x-attribution-login: github_actions" \
-          --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > log.txt
-          if [ $(cat log.txt | grep '"id"' | wc -l) == 1 ]
+          --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
+          # if there is no "id" in result_post, this mean that there is an error
+          if [ $(cat result_post.txt | grep '"id"' | wc -l) == 1 ]
           then
             exit 0
           else 
             exit 1
           fi
-          # TODO add error if not permission
           # TODO add circleci link
           # TODO add an index in the repository
           # TODO check to add it to the documentation 
