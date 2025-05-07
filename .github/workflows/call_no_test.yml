@@ -9,7 +9,7 @@ on:
 permissions: {}
 
 jobs:
-  empty-retport:
+  empty-report:
     runs-on: ubuntu-latest
     steps:
       - name: create an empty report
