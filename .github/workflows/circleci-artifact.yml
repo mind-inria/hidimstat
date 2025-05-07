@@ -23,17 +23,17 @@ jobs:
           circleci-jobs: python3
           job-title: Check the rendered docs here!
     
-    circleci_artifact_tests_reports:
-      runs-on: ubuntu-latest
-      # For testing this action on a fork, remove the "github.repository =="" condition.
-      if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: python3'"
-      name: Run CircleCI artifacts reports
-      steps:
-        - name: GitHub Action step
-          uses: larsoner/circleci-artifacts-redirector-action@master
-          with:
-            repo-token: ${{ secrets.GITHUB_TOKEN }}
-            api-token: ${{ secrets.CIRCLE_CI }}
-            artifact-path: 0/doc_conf/html/test_reports/index.html
-            circleci-jobs: get-tests-reports
-            job-title: Check the rendered docs here!
+  circleci_artifact_tests_reports:
+    runs-on: ubuntu-latest
+    # For testing this action on a fork, remove the "github.repository =="" condition.
+    if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: python3'"
+    name: Run CircleCI artifacts reports
+    steps:
+      - name: GitHub Action step
+        uses: larsoner/circleci-artifacts-redirector-action@master
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          api-token: ${{ secrets.CIRCLE_CI }}
+          artifact-path: 0/doc_conf/test_reports/index.html
+          circleci-jobs: get-tests-reports
+          job-title: Check the reports of the tests here!
