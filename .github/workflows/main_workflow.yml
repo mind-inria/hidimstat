@@ -36,6 +36,7 @@ jobs:
         # return an empty message when the event is not from a PR
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
             echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
           else
             echo "COMMIT_MSG=" >> $GITHUB_OUTPUT
@@ -70,13 +71,31 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  # debugger:
-  #   needs: linter 
-  #   env: 
-  #     STATE_LINTER: ${{ needs.linter.result }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: print output
-  #       run: 
-  #         echo "Linter "$STATE_LINTER
-  #   if: ${{ always() }}
+  debugger:
+    needs: [tests, no_tests, get_information] 
+    env: 
+      STATE_TEST: ${{ needs.tests.result }}
+      STATE_NO_TEST: ${{ needs.tests.result }}
+      MESSAGE: ${{ needs.get_information.outputs.COMMIT_MSG }}
+      COND1: |
+        (needs.tests.result != 'cancelled'
+        && needs.no_tests.result != 'cancelled'
+        && github.event.pull_request.draft == false)
+      COND2: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ' }}
+      COND: |
+        (needs.tests.result != 'cancelled'
+        && needs.no_tests.result != 'cancelled'
+        && github.event.pull_request.draft == false)
+        || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: print output
+        run: 
+          echo "TEST "$STATE_TEST
+          echo "NO TEST "$STATE_NO_TEST
+          echo "MESSAGE "$MESSAGE
+          echo "contains "${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
+          echo "cond1 "$COND1
+          echo "cond2 "$COND2
+          echo "cond "$COND
+    if: ${{ always() }}
