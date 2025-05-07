@@ -13,7 +13,7 @@ jobs:
     permissions:
       pull-requests: write
     env:
-      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_LIONEL }}
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI }}
     steps:
       # get reports from previous job 
       - name: Get HTML reports

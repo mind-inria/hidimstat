@@ -42,7 +42,7 @@ jobs:
 
   get-tests-reports:
     docker:
-      - image: ubuntu-2204:current
+      - image: cimg/base:2025.05
     environment:
       - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
     steps:
