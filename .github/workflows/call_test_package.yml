@@ -6,6 +6,13 @@ name: Tests
 on:
   # Allows you to run this workflow from another workflow
   workflow_call:
+    inputs:
+      skip_test:
+        description: 'check if the tests are skkiped or not'
+        required: true
+        type: boolean
+        default: false
+
 
 # disable all the permission for the workflow
 permissions: {}
@@ -44,8 +51,15 @@ jobs:
     # inline command for being compatible on linux and windows
     - name: Generate coverage report
       run: |
-        python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    
+        if ${{ inputs.skip_test }}
+        then
+          (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
+          touch log-${{env.REPORT_NAME}}.txt
+          mkdir cov
+          touch cov/cov-${{env.REPORT_NAME}}.xml
+        else
+          python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+        fi
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}

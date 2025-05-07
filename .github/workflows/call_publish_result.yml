@@ -80,8 +80,16 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: cov-results-3.13-os-macos-latest  #CHECK: need to be updated when new version are available
+    # check the size of the file for not pushing empty file
+    - name: Check file size
+      id: check_size
+      run: |
+          FILE_SIZE=$(stat -c%s "cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml")
+          echo "File size is $FILE_SIZE bytes"
+          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
+      if: ${{ env.FILE_SIZE > 1 }}
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
