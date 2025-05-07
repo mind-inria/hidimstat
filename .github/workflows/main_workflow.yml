@@ -85,7 +85,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [condition]
-    if: ${{ ! needs.condition.outputs.CONDITION_PUBLISH }}    
+    if: ${{ needs.condition.outputs.CONDITION_PUBLISH == 'true' }}    
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
