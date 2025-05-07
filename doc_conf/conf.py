@@ -37,6 +37,7 @@ extensions = [
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
     "sphinx_gallery.gen_gallery",
+    "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
 ]
