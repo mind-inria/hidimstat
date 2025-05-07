@@ -29,6 +29,7 @@ jobs:
           - name: Get commit message
             id: get_commit_message
             run: |
-              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_sha }})"
-              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_sha }})" >> $GITHUB_OUTPUT
+              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_PR_sha }})"
+              echo "${{ inputs.commit_merge_sha }}"
+              echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ inputs.commit_PR_sha }})" >> $GITHUB_OUTPUT
     
