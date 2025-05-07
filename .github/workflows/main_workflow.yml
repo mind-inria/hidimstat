@@ -21,7 +21,8 @@ jobs:
     name: Get Information
     uses: ./.github/workflows/call_get_info.yml
     with:
-      commit_sha: ${{ github.event.pull_request.head.sha  || github.sha }}
+      commit_PR_sha: ${{ github.event.pull_request.head.sha }}
+      commit_merge_sha: ${{ github.sha }}
 
   linter:
     name: Linter
