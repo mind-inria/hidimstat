@@ -161,7 +161,7 @@ For Knockoffs Inference:
 .. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml/badge.svg?branch=main
    :target: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml)
   
-.. |CircleCI/Documentation| immage:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
+.. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
    :target: https://circleci.com/gh/mind-inria/hidimstat
 
 .. |codecov| image:: https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS
