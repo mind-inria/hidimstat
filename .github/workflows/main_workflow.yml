@@ -63,8 +63,7 @@ jobs:
     name: tests_publish
     needs: [tests, no_tests, get_information]
     if: |
-      ${{ always() 
-          && ( (needs.tests.result != 'cancelled' 
+      ${{ ( (needs.tests.result != 'cancelled' 
                 && needs.tests.result != 'failure'
                 && needs.no_tests.result != 'cancelled' 
                 && github.event.pull_request.draft == false) 
