@@ -97,8 +97,8 @@ jobs:
       - image: cimg/base
     steps:
       - run:
-        name: "wait"
-        command: sleep 10
+            name: "wait"
+            command: sleep 10
     
 
 workflows:
