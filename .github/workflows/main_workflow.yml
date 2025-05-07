@@ -50,14 +50,13 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  debugger:
-    needs: get_information 
-    env: 
-      MESSAGE: ${{ needs.get_information.outputs.COMMIT_MSG }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: print output
-        run: 
-          echo "commit" $MESSAGE
-    if: ${{ always() }} 
-    
+  # debugger:
+  #   needs: linter 
+  #   env: 
+  #     STATE_LINTER: ${{ needs.linter.result }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: print output
+  #       run: 
+  #         echo "Linter "$STATE_LINTER
+  #   if: ${{ always() }}
