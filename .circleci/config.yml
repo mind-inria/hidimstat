@@ -93,6 +93,7 @@ jobs:
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
+
   wait-action:
     docker:
       - image: cimg/base:2025.05
