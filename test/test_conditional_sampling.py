@@ -18,7 +18,7 @@ def test_continuous_case():
     """Test sampling from the conditional distribution of a continuous variable."""
     n = 1000
     np.random.seed(40)
-    sampler, _, _ = ConditionalSampler(
+    sampler = ConditionalSampler(
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
         data_type="continuous",
         random_state=0,
