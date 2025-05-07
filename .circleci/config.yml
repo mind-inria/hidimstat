@@ -94,7 +94,7 @@ jobs:
             fi
   wait-action:
     docker:
-      - image: cimg/base
+      - image: cimg/base:2025.05
     steps:
       - run:
             name: "wait"
