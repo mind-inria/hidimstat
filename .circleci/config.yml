@@ -40,6 +40,27 @@ jobs:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
 
+  get-tests-reports:
+    docker:
+      - image: ubuntu-2204:current
+    environment:
+      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+    steps:
+      - checkout
+      - run:
+            name: "get reports"
+            command: |
+              set -x -e
+              wget $GITHUB_ARTIFACT_URL
+              unzip pytest-results-all.zip -d test_reports
+              mv test_reports doc_conf/_build/html/test_reports
+      - store_artifacts:
+          path: doc_conf/_build/html/test_reports
+          destination: doc_conf/test_reports
+      - persist_to_workspace:
+          root: doc_conf/_build/html/test_reports
+          paths: .
+
   deploy:
     docker:
       - image: cimg/python:3.13
@@ -72,35 +93,18 @@ jobs:
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
 
-  host-tests-reports:
-    docker:
-      - image: ubuntu-2204:current
-    environment:
-      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
-    steps:
-      - checkout
-      - run:
-            name: "get reports"
-            command: |
-              set -x -e
-              wget $GITHUB_ARTIFACT_URL
-              unzip pytest-results-all.zip -d reports
-
 
 workflows:
   version: 2
   build-doc-and-deploy:
-    jobs:
-      - python3
-      - deploy:
-          requires:
-            - python3
-
-  host-tests:
-    # action trigger by updating the link og github
+    # action trigger by updating the link of github
     when:
       not:
         equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
-    # The jobs should run only when triggered by the workflow
     jobs:
-      - host-tests-reports
+      - python3
+      - get-tests-reports
+      - deploy:
+          requires:
+            - get-tests-reports
+            - python3
