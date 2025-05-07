@@ -62,7 +62,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [tests, no_tests, get_information]
-    if: ${{ ((needs.tests.result != 'cancelled' && needs.tests.result != 'failure' && needs.no_tests.result != 'cancelled' && github.event.pull_request.draft == false) || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') ) }}
+    if: fromJSON( ${{ ((needs.tests.result != 'cancelled' && needs.tests.result != 'failure' && needs.no_tests.result != 'cancelled' && github.event.pull_request.draft == false) || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') ) }})
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
