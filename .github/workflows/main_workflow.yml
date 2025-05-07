@@ -59,35 +59,44 @@ jobs:
     if: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
     uses: ./.github/workflows/call_no_test.yml
   
+  condition:
+    name: condition publishing
+    runs-on: ubuntu-latest
+    outputs:
+      CONDITION_PUBLISH: ${{ steps.condition_publish.outputs.CONDITION_PUBLISH }}
+    needs: [tests, no_tests, get_information]
+    env: 
+      COND: |
+          ${{ (needs.tests.result != 'cancelled' 
+               && needs.tests.result != 'failure' 
+               && needs.no_tests.result != 'cancelled' 
+               && github.event.pull_request.draft == false
+              )
+              || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
+          }}
+    if: ${{ always() }}
+    steps:
+      - name: print condition
+        id: condition_publish
+        run: 
+          echo "COND=$COND"
+          echo "CONDITION_PUBLISH=$COND" >> $GITHUB_OUTPUT
+  
   tests_publish:
     name: tests_publish
-    needs: [tests, no_tests, get_information]
-    if: ${{ always() }} && ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
+    needs: [condition]
+    if: ${{ needs.condition.outputs.CONDITION_PUBLISH }}    
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  debugger:
-    needs: [tests, no_tests, get_information] 
-    env: 
-      STATE_TESTS: ${{ needs.tests.result }}
-      STATE_TESTS_NO: ${{ needs.no_tests.result }}
-      STATE_DRAFT: ${{ github.event.pull_request.draft }}
-      COND1: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
-      COND2: | 
-            ${{ (needs.tests.result != 'cancelled' 
-                && needs.tests.result != 'failure'
-                && needs.no_tests.result != 'cancelled' 
-                && github.event.pull_request.draft == false) }}
-      COND: fromJSON( ${{ (((needs.tests.result != 'cancelled' && needs.tests.result != 'failure') && needs.no_tests.result != 'cancelled' && github.event.pull_request.draft == false) || contains(needs.get_information.outputs.COMMIT_MSG, '[doc '))}})
-    runs-on: ubuntu-latest
-    steps:
-      - name: print output
-        run: 
-          echo "TEST "$STATE_TESTS
-          echo "TEST NO "$STATE_TESTS_NO
-          echo "DRAFT "$STATE_DRAFT
-          echo "COND1 "$COND1
-          echo "COND2 "$COND2
-          echo "COND "$COND
-    if: ${{ always() }}
+  # debugger:
+  #   needs: linter 
+  #   env: 
+  #     STATE_LINTER: ${{ needs.linter.result }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: print output
+  #       run: 
+  #         echo "Linter "$STATE_LINTER
+  #   if: ${{ always() }}
