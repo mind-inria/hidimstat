@@ -90,13 +90,15 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  # debugger:
-  #   needs: linter 
-  #   env: 
-  #     STATE_LINTER: ${{ needs.linter.result }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: print output
-  #       run: 
-  #         echo "Linter "$STATE_LINTER
-  #   if: ${{ always() }}
+  debugger:
+    needs: condition 
+    runs-on: ubuntu-latest
+    steps:
+      - name: print output
+        run: 
+          echo ${{ needs.condition.outputs.CONDITION_PUBLISH }} 
+          if ${{ needs.condition.outputs.CONDITION_PUBLISH }}
+          then 
+          echo "true cond"
+          fi
+    if: ${{ always() }}
