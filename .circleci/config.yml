@@ -53,13 +53,12 @@ jobs:
               set -x -e
               wget $GITHUB_ARTIFACT_URL
               unzip pytest-results-all.zip -d test_reports
-              mkdir -p doc_conf/_build/html
               mv test_reports doc_conf/_build/html
       - store_artifacts:
           path: doc_conf/_build/html/test_reports
           destination: doc_conf/test_reports
       - persist_to_workspace:
-          root: doc_conf/_build/html/test_reports
+          root: doc_conf/_build/html/
           paths: .
 
   deploy:
