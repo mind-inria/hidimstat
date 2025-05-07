@@ -52,7 +52,7 @@ jobs:
     # inline command for being compatible on linux and windows
     - name: Generate coverage report
       run: |
-        if [ ${{ inputs.skip_test }} ]
+        if ( ${{ inputs.skip_test }} )
         then
           (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
           touch log-${{env.REPORT_NAME}}.txt
