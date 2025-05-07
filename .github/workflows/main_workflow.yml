@@ -90,7 +90,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [condition]
-    if: ${{ needs.condition.outputs.CONDITION_PUBLISH}} == 'PUBLISH'
+    if: ${{ 'PUBLISH' == 'PUBLISH' }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: print output
-        run: 
+        run: |
           echo ${{ needs.condition.outputs.CONDITION_PUBLISH }} 
           if ${{ needs.condition.outputs.CONDITION_PUBLISH }}
           then 
