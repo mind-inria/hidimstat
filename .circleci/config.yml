@@ -6,7 +6,6 @@ parameters:
         type: string
         default: none
 
-
 jobs:
   python3:
     docker:
@@ -23,6 +22,7 @@ jobs:
       - run:
           command: ./build_tools/circle/build_doc.sh
           no_output_timeout: 40m
+      # store the documentation for see it in a PR
       - store_artifacts:
           path: doc_conf/_build/html
           destination: doc_conf
@@ -55,9 +55,11 @@ jobs:
               unzip pytest-results-all.zip -d test_reports
               mkdir -p doc_conf/_build/html
               mv test_reports doc_conf/_build/html
+      # store the reports to display for a PR
       - store_artifacts:
           path: doc_conf/_build/html/test_reports
           destination: doc_conf/test_reports
+      # store the reports for adding them to the documentation
       - persist_to_workspace:
           root: doc_conf/_build/html/
           paths: .
@@ -94,6 +96,7 @@ jobs:
             bash build_tools/circle/push_doc.sh doc_conf/_build/html
             fi
 
+  # this action is only to avoid any error
   wait-action:
     docker:
       - image: cimg/base:2025.05
@@ -101,7 +104,6 @@ jobs:
       - run:
             name: "wait"
             command: sleep 10
-    
 
 workflows:
   version: 2
