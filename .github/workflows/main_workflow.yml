@@ -19,10 +19,27 @@ concurrency:
 jobs:
   get_information:
     name: Get Information
-    uses: ./.github/workflows/call_get_info.yml
-    with:
-      commit_event_sha: ${{ github.event.head.sha }}
-      commit_PR_sha: ${{ github.event.pull_request.head.sha }}
+    # information is: commit message for PR
+    runs-on: ubuntu-latest
+    outputs:
+      COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 3 
+          # require to get the previous commit for getting their messages
+          # in a PR the last commit is the commit merge with main
+
+      - name: Get commit message
+        id: get_commit_message
+        # return an empty message when the event is not from a PR
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
+          else
+            echo "COMMIT_MSG=" >> $GITHUB_OUTPUT
+          fi
 
   linter:
     name: Linter
