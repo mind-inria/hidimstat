@@ -74,13 +74,34 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
 
-  # debugger:
-  #   needs: linter 
-  #   env: 
-  #     STATE_LINTER: ${{ needs.linter.result }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: print output
-  #       run: 
-  #         echo "Linter "$STATE_LINTER
-  #   if: ${{ always() }}
+  debugger:
+    needs: [tests, no_tests, get_information] 
+    env: 
+      STATE_TESTS: ${{ needs.tests.result }}
+      STATE_TESTS_NO: ${{ needs.no_tests.result }}
+      STATE_DRAFT: ${{ github.event.pull_request.draft }}
+      COND1: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
+      COND2: | 
+            ${{ (needs.tests.result != 'cancelled' 
+                && needs.tests.result != 'failure'
+                && needs.no_tests.result != 'cancelled' 
+                && github.event.pull_request.draft == false) }}
+      COND: |
+            ${{ 1
+                && ( (needs.tests.result != 'cancelled' 
+                && needs.tests.result != 'failure'
+                && needs.no_tests.result != 'cancelled' 
+                && github.event.pull_request.draft == false) 
+              || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') )
+              }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: print output
+        run: 
+          echo "TEST "$STATE_TESTS
+          echo "TEST NO "$STATE_TESTS_NO
+          echo "DRAFT "$STATE_DRAFT
+          echo "COND1 "$COND1
+          echo "COND2 "$COND2
+          echo "COND "$COND
+    if: ${{ always() }}
