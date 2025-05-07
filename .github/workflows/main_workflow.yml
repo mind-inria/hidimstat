@@ -62,7 +62,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [tests, no_tests, get_information]
-    if: always() && ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
+    if: ${{ always() }} && ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
