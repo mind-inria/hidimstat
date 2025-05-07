@@ -31,7 +31,7 @@ jobs:
           mv */*.txt reports
           (
           echo '<html><body><p>List TESTs Reports:</p><ul>'
-          echo "$(ls reports)" | sed 's|'"'.*'"'|<li><a href="&">&</a></li>|'
+          echo "$(ls reports)" | sed 's|.*|<li><a href="&">&</a></li>|'
           echo '</ul></body></html>'
           ) > index.html
           mv index.html reports
