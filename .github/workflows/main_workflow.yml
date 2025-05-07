@@ -90,7 +90,7 @@ jobs:
   tests_publish:
     name: tests_publish
     needs: [condition]
-    if: ${{always()}} && ${{ 'PUBLISH' != 'PUBLISH' }}
+    if: always() && (${{ 'PUBLISH' != 'PUBLISH' }})
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
