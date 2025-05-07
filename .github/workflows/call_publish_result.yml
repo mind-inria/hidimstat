@@ -24,7 +24,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: pytest-results-log-*-os-*
-      - name: gather reports
+      # put all the reports in one folder and add an index
+      - name: gather reports and add an index
         run: |
           mkdir reports
           mv */*.html reports
@@ -35,7 +36,7 @@ jobs:
           echo '</ul></body></html>'
           ) > index.html
           mv index.html reports
-      - name: merge all the result and upload them
+      - name: upload the reports
         id: upload_all
         uses: actions/upload-artifact@v4
         with:
@@ -61,8 +62,9 @@ jobs:
           --header "x-attribution-actor-id: github_actions" \
           --header "x-attribution-login: github_actions" \
           --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
-          # if there is no "id" in result_post, this mean that there is an error
+          # display result for debugging
           cat result_post.txt
+          # if there is no "id" in result_post, this mean that there is an error
           if [ $(cat result_post.txt | grep '"id"' | wc -l) == 1 ]
           then
             exit 0
