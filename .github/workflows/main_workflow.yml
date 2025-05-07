@@ -63,11 +63,13 @@ jobs:
     name: tests_publish
     needs: [tests, no_tests, get_information]
     if: |
-      ${{ ( (needs.tests.result != 'cancelled' 
+      ${{( (needs.tests.result != 'cancelled' 
                 && needs.tests.result != 'failure'
                 && needs.no_tests.result != 'cancelled' 
                 && github.event.pull_request.draft == false) 
-              || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') )
+            || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') 
+          ) 
+          && always()
         }}
     permissions:
       pull-requests: write
