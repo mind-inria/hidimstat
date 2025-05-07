@@ -17,14 +17,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  get_information:
+    name: Get Information
+    uses: ./.github/workflows/call_get_info.yml
+
   linter:
     name: Linter
+    needs: [get_information]
     uses: ./.github/workflows/call_black.yml
   
   tests:
     name: tests
-    needs: [linter]
+    needs: [linter, get_information]
+    if: ${{ !contains(needs.get_information.outputs.COMMIT_MSG, '[skip test]') }}
     uses: ./.github/workflows/call_test_package.yml
+  
+  no_tests:
+    name: no_tests
+    needs: [linter, get_information]
+    if: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip test]') }}
+    uses: ./.github/workflows/call_no_test.yml
   
   tests_publish:
     name: tests_publish

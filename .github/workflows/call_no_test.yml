@@ -1,0 +1,27 @@
+# Worflow for skipping the tests
+name: No-Tests
+
+on:
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+
+# disable all the permission for the workflow
+permissions: {}
+
+jobs:
+  empty-retport:
+    runs-on: ubuntu-latest
+    steps:
+      - name: create an empty report
+        run: |
+          (
+          echo '<html><body><p>NO TESTS</p></body></html>'
+          ) > report-no-test.html
+      
+        # publish empty HTML reports
+      - name: Upload HTML empty result
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-html-no-test-os-none
+          path: report-no-test.html
+          if-no-files-found: error

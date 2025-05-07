@@ -46,7 +46,7 @@ jobs:
       run: |
         python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
-    # publish different reports (HTML, Mardown, Coverage)
+    # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
