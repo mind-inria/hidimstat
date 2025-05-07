@@ -81,7 +81,7 @@ jobs:
         (needs.tests.result != 'cancelled'
         && needs.no_tests.result != 'cancelled'
         && github.event.pull_request.draft == false)
-      COND2: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ' }}
+      COND2: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
       COND: |
         (needs.tests.result != 'cancelled'
         && needs.no_tests.result != 'cancelled'
