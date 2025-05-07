@@ -72,7 +72,7 @@ jobs:
             exit 1
           fi
 
-  merge_upload_coverage_data:
+  upload_coverage_data:
     runs-on: ubuntu-latest
     steps:
     # get coverage only for 1 job 
