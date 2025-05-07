@@ -20,6 +20,8 @@ jobs:
   get_information:
     name: Get Information
     uses: ./.github/workflows/call_get_info.yml
+    with:
+      commit_sha: ${{ github.sha }}
 
   linter:
     name: Linter
