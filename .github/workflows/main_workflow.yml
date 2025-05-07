@@ -78,7 +78,7 @@ jobs:
     steps:
       - name: print condition
         id: condition_publish
-        run: 
+        run: |
           echo "COND=$COND"
           echo "CONDITION_PUBLISH=$COND" >> $GITHUB_OUTPUT
   
