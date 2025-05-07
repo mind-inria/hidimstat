@@ -3,12 +3,17 @@ name: Publish Tests
 on:
   # Allows you to run this workflow from another workflow
   workflow_call:
+    inputs:
+      CONDITION_PUBLISHING:
+        required: true
+        type: boolean
 
 # disable all the permission for the workflow
 permissions: {}
 
 jobs:
   merge_and_upload_test_data:
+    if: ${{ inputs.CONDITION_PUBLISHING }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -73,6 +78,7 @@ jobs:
           fi
 
   merge_upload_coverage_data:
+    if: ${{ inputs.CONDITION_PUBLISHING }}
     runs-on: ubuntu-latest
     steps:
     # get coverage only for 1 job 

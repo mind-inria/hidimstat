@@ -59,36 +59,14 @@ jobs:
     if: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
     uses: ./.github/workflows/call_no_test.yml
   
-  condition:
-    name: condition publishing
-    runs-on: ubuntu-latest
-    outputs:
-      CONDITION_PUBLISH: ${{ steps.condition_publish.outputs.CONDITION_PUBLISH }}
-    needs: [tests, no_tests, get_information]
-    env: 
-      COND: |
-          ${{ (needs.tests.result != 'cancelled' 
-               && needs.tests.result != 'failure' 
-               && needs.no_tests.result != 'cancelled' 
-               && github.event.pull_request.draft == false
-              )
-              || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
-          }}
-    if: ${{ always() }}
-    steps:
-      - name: print condition
-        id: condition_publish
-        run: |
-          echo "COND=$COND"
-          echo "CONDITION_PUBLISH=$COND" >> $GITHUB_OUTPUT
-  
   tests_publish:
     name: tests_publish
-    needs: [condition]
-    if: ${{ needs.condition.outputs.CONDITION_PUBLISH }}    
+    if: ${{ always() }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/call_publish_result.yml
+    with:
+      CONDITION_PUBLISHING: ${{ (needs.tests.result != 'cancelled' && needs.tests.result != 'failure' && needs.no_tests.result != 'cancelled' && github.event.pull_request.draft == false) || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') }}
 
   # debugger:
   #   needs: linter 
