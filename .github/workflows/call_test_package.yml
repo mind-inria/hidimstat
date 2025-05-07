@@ -33,8 +33,19 @@ jobs:
     steps:
     # Checkout to the branch for getting the right code
     - uses: actions/checkout@v4
+
+      # skip tests
+    - name: Skip the tests
+      if: ${{ inputs.skip_test }}
+      run: |
+        (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
+        touch log-${{env.REPORT_NAME}}.txt
+        mkdir cov
+        touch cov/cov-${{env.REPORT_NAME}}.xml
+
     # Install python
     - name: Set up Python ${{ matrix.python-version }}
+      if: ${{ ! inputs.skip_test }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -50,17 +61,11 @@ jobs:
     # option for html report: --self-contained-html --html=report-...
     # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
     # inline command for being compatible on linux and windows
-    - name: Generate coverage report
+    - name: Run pytest
+      if: ${{ ! inputs.skip_test }}
       run: |
-        if ( ${{ inputs.skip_test }} )
-        then
-          (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
-          touch log-${{env.REPORT_NAME}}.txt
-          mkdir cov
-          touch cov/cov-${{env.REPORT_NAME}}.xml
-        else
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-        fi
+    
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}

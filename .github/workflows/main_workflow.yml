@@ -52,7 +52,7 @@ jobs:
     needs: [linter, get_information]
     uses: ./.github/workflows/call_test_package.yml
     with: 
-      skip_test: ${{ !contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
 
   tests_publish:
     name: tests_publish
