@@ -35,6 +35,7 @@ For a major revision, a new branch should be create from scratch or from a commi
 For a modification of a previous release, the modification should be pushed on the branch associate to it.
       # TODO difficulty for fixing error in multiple release
       # TODO for each fix of a bug require a release in order to have the documentation in coherence with the release
+      # TODO check to use the script release/build_packages.py
 
 0. [Check if today is a good day for releasing](https://shouldideploy.today/)
 
