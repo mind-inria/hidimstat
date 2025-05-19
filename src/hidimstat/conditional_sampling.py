@@ -105,6 +105,8 @@ class ConditionalSampler:
                 self.model = MultiOutputRegressor(self.model)
             self.multioutput_ = True
         else:
+            if y.ndim > 1:
+                y = y.ravel()
             self.multioutput_ = False
         if self.model is None:
             raise AttributeError(f"No model was provided for {self.data_type} data")

@@ -236,7 +236,7 @@ fig, ax = plt.subplots()
 df_plot = pd.concat(vim)
 df_plot["pval"] = -np.log10(df_plot["pval"])
 methods = df_plot["method"].unique()
-colors = plt.cm.get_cmap("tab10", 10)
+colors = plt.get_cmap("tab10", 10)
 
 for i, method in enumerate(methods):
     subset = df_plot[df_plot["method"] == method]
@@ -252,5 +252,6 @@ ax.legend(title="Method")
 ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
 ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
 ax.set_xlabel("Variable")
+ax.set_xticks(range(len(diabetes.feature_names)))
 ax.set_xticklabels(diabetes.feature_names)
 plt.show()
