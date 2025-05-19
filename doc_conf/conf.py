@@ -79,6 +79,12 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
+    "switcher": {
+        "json_url": (
+            "https://raw.githubusercontent.com/mind_inria/hidimstat/main/doc_conf/version.json"
+        ),
+        "version_match": release,
+    },
 }
 html_title = "HiDimStat"
 html_context = {
