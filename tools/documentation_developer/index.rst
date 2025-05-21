@@ -7,7 +7,7 @@ Developer Documentation
 Documentation:
 ==============
 :ref:`developer_documentation_build`.
-
+:ref:`developer_documentation_CI`.
 
 
 .. toctree::

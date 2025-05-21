@@ -1,3 +1,5 @@
+.. _developer_documentation_CI:
+
 Continuous Integration (CI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After creating your PR, CI tools will run proceed to run all the tests on all
