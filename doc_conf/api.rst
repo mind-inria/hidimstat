@@ -18,6 +18,7 @@ Functions
 
    quantile_aggregation
    clustered_inference
+   clustered_inference_pvalue
    dcrt_zero
    dcrt_pvalue
    desparsified_lasso
@@ -25,8 +26,6 @@ Functions
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
-   clustered_inference
-   clustered_inference_pvalue
    model_x_knockoff
    reid
 

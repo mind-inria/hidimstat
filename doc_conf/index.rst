@@ -182,3 +182,4 @@ References
 
   api
   auto_examples/index
+  dev/index
