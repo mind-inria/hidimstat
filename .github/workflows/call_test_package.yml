@@ -62,7 +62,7 @@ jobs:
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
         python -m venv .venv
-        .venv\scripts\activate.bat
+        .venv\Scripts\activate.bat
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
     
@@ -80,7 +80,7 @@ jobs:
     - name: Run pytest  Windows
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
-          .venv\scripts\activate.bat
+          .venv\Scripts\activate.bat
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, duration, Coverage)
