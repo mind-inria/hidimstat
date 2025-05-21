@@ -61,10 +61,10 @@ jobs:
     - name: Install the dependance Windows
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
-        python -m venv .venv
-        .venv\Scripts/pip.exe install --upgrade uv pip
+        .venv\Scripts\python.exe -m venv .venv
+        .venv\Scripts\python.exe -m pip install --upgrade uv pip
         dir .venv\Scripts\
-        uv pip install -e ".[test]"
+        .venv\Scripts\uv pip install -e ".[test]"
     
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
