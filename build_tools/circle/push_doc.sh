@@ -37,7 +37,7 @@ cd $DOC_REPO
 # reset the documentation repository
 git checkout main
 git reset --hard origin/main
-# delete all the dcoumentation
+# delete all the documentation
 git rm -rf $dir/ && rm -rf $dir/
 # copy the new documentation
 cp -R $GENERATED_DOC_DIR $dir
