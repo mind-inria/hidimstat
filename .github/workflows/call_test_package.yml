@@ -62,12 +62,8 @@ jobs:
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
         python -m venv .venv
+        .venv\Scripts/pip.exe install --upgrade uv pip
         dir .venv\Scripts\
-        pip -V
-        .venv\Scripts\activate.bat
-        .venv\Scripts/pip.exe -V
-        pip -V
-        pip install --upgrade uv pip
         uv pip install -e ".[test]"
     
     # Run the tests with coverage and report add this end
@@ -84,10 +80,7 @@ jobs:
     - name: Run pytest  Windows
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
-          pip -V
-          .venv\Scripts\activate.bat
-          pip -V
-          python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+          .venv\Scripts/python.exe -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
