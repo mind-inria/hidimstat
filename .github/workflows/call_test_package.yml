@@ -54,7 +54,12 @@ jobs:
       if: ${{ ! inputs.skip_test }}
       run: |
         python -m venv .venv
-        source .venv/bin/activate
+        if {{ startsWith(matrix.os, 'windows') }}
+        then 
+          .venv\scripts\activate.bat
+        else
+          source .venv/bin/activate
+
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
     # Run the tests with coverage and report add this end
@@ -66,7 +71,11 @@ jobs:
     - name: Run pytest
       if: ${{ ! inputs.skip_test }}
       run: |
-          source .venv/bin/activate
+          if {{ startsWith(matrix.os, 'windows') }}
+          then 
+            .venv\scripts\activate.bat
+          else
+            source .venv/bin/activate
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, duration, Coverage)
