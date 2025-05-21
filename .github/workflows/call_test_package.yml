@@ -54,11 +54,12 @@ jobs:
       if: ${{ ! inputs.skip_test }}
       run: |
         python -m venv .venv
-        if [ '${{ matrix.os }}' == 'windows'* ]
-        then 
+        IF [ '${{ matrix.os }}' == 'windows'* ]
+        THEN 
           .venv\scripts\activate.bat
-        else
+        ELSE
           source .venv/bin/activate
+        FI
 
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
@@ -71,11 +72,13 @@ jobs:
     - name: Run pytest
       if: ${{ ! inputs.skip_test }}
       run: |
-          if [ '${{ matrix.os }}' == 'windows'* ]
-          then 
+          FI [ '${{ matrix.os }}' == 'windows'* ]
+          THEN 
             .venv\scripts\activate.bat
-          else
+          ELSE
             source .venv/bin/activate
+          FI
+
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, duration, Coverage)
