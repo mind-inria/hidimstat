@@ -64,7 +64,7 @@ jobs:
         python -m venv .venv
         .venv\Scripts\python.exe -m pip install --upgrade uv pip
         dir .venv\Scripts\
-        .venv\Scripts\uv pip install -e ".[test]"
+        .venv\Scripts\uv.exe pip install -e ".[test]"
     
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
