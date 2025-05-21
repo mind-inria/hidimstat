@@ -54,7 +54,7 @@ jobs:
       if: ${{ ! inputs.skip_test }}
       run: |
         python -m venv .venv
-        if startsWith(${{ matrix.os }}, 'windows')
+        if startsWith('${{ matrix.os }}', 'windows')
         then 
           .venv\scripts\activate.bat
         else
@@ -71,7 +71,7 @@ jobs:
     - name: Run pytest
       if: ${{ ! inputs.skip_test }}
       run: |
-          if startsWith(${{ matrix.os }}, 'windows') }}
+          if startsWith('${{ matrix.os }}', 'windows') }}
           then 
             .venv\scripts\activate.bat
           else
