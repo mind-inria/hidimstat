@@ -61,7 +61,7 @@ jobs:
     - name: Install the dependance Windows
       if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
       run: |
-        .venv\Scripts\python.exe -m venv .venv
+        python -m venv .venv
         .venv\Scripts\python.exe -m pip install --upgrade uv pip
         dir .venv\Scripts\
         .venv\Scripts\uv pip install -e ".[test]"
