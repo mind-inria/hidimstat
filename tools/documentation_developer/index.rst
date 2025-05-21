@@ -6,8 +6,11 @@ Developer Documentation
 
 Documentation:
 ==============
-:ref:`developer_documentation_build`.
-:ref:`developer_documentation_CI`.
+Details for making the documentation:
+:ref:`developer_documentation_build`
+
+The usage of the CI for the generation of the documentation:
+:ref:`developer_documentation_CI`
 
 
 .. toctree::
