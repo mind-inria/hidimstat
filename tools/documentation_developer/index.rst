@@ -4,13 +4,8 @@
 Developer Documentation
 =======================
 
-Documentation:
-==============
-Details for making the documentation:
-:ref:`developer_documentation_build`
-
-The usage of the CI for the generation of the documentation:
-:ref:`developer_documentation_CI`
+- :ref:`Continuous Integration<developer_documentation_CI>`
+- :ref:`Building the documentation<developer_documentation_build>`
 
 
 .. toctree::
