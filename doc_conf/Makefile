@@ -2,13 +2,23 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -j auto -W -n
+SPHINXOPTS    = -j auto -W --keep-going -n
+# -j/--jobs:		    N processes in parallel (auto=number of CPUs)
+# -W/--fail-on-warning: Turn warnings into errors.
+# --keep-going:         Runs sphinx-build to completion and exits  
+#			    		with exit status 1 if errors are encountered.
+# -n/--nitpicky:	    This generates warnings for all missing references.
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 
 GITHUB_PAGES_BRANCH = gh-pages
 OUTPUTDIR = _build/html
+
+# add an option for selecting the example to run
+ifneq ($(EXAMPLES_PATTERN),)
+    EXAMPLES_PATTERN_OPTS := -D sphinx_gallery_conf.filename_pattern="$(EXAMPLES_PATTERN)"
+endif
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -18,9 +28,11 @@ endif
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(EXAMPLES_PATTERN_OPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+
+all: html-noplot
 
 .PHONY: help
 help:

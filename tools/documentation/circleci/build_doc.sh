@@ -118,7 +118,7 @@ set +o pipefail
 affected_doc_paths() {
     # generate a list fo the file modified in the PR
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
-    # list of the modfied documentation files
+    # list of the modified documentation files
     echo "$files" | grep ^doc_conf/.*\.rst | sed 's/^doc_conf\/\(.*\)\.rst$/\1.html/'
     # list of the modified examples 
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/auto_\1.html/'

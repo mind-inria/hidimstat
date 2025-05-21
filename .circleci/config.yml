@@ -21,22 +21,24 @@ jobs:
           name:
             'Checkout to PR commit'
           command: 
-            sh ./build_tools/circle/checkout_merge_commit.sh
+            bash ./tools/documentation/circleci/checkout_merge_commit.sh
       - restore_cache:
           key: saved-cache
       - run:
           name: "Create the environment for building the documentation"
-          command: ./build_tools/circle/setup_virtual_environment.sh
+          command: 
+            bash ./tools/documentation/circleci/setup_virtual_environment.sh
       - run:
           name: "Build documentation"
-          command: ./build_tools/circle/build_doc.sh
+          command: 
+            bash ./tools/documentation/circleci/build_doc.sh
           no_output_timeout: 40m
       - store_artifacts:
           path: doc_conf/_build/html
           destination: documentation
       - store_artifacts:
           path: ~/output_sphinx.log
-          destination: log
+          destination: log.txt
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy-documentation' step.
       - persist_to_workspace:
@@ -78,5 +80,5 @@ jobs:
           name: "Deploy documentation"
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-            bash build_tools/circle/push_doc.sh doc_conf/_build/html
+              bash ./tools/documentation/circleci/push_doc.sh doc_conf/_build/html
             fi
