@@ -63,7 +63,9 @@ jobs:
       run: |
         python -m venv .venv
         dir .venv\Scripts\
+        pip -V
         .venv\Scripts\activate.bat
+        .venv\Scripts/pip.exe -V
         pip -V
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
