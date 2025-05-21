@@ -54,12 +54,12 @@ jobs:
       if: ${{ ! inputs.skip_test }}
       run: |
         python -m venv .venv
-        IF [ '${{ matrix.os }}' == 'windows'* ]
-        THEN 
+        if [ '${{ matrix.os }}' == 'windows'* ]
+        then 
           .venv\scripts\activate.bat
-        ELSE
+        else
           source .venv/bin/activate
-        FI
+        fi
 
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
@@ -72,12 +72,12 @@ jobs:
     - name: Run pytest
       if: ${{ ! inputs.skip_test }}
       run: |
-          FI [ '${{ matrix.os }}' == 'windows'* ]
-          THEN 
+          if [ '${{ matrix.os }}' == 'windows'* ]
+          then 
             .venv\scripts\activate.bat
-          ELSE
+          else
             source .venv/bin/activate
-          FI
+          fi
 
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
