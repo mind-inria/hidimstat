@@ -14,3 +14,4 @@ Documentation:
   :hidden:
   
   building_documentation
+  CI_documentation
