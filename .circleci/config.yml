@@ -1,75 +1,84 @@
 version: 2.1
 
+workflows:
+  version: 2
+  build-doc-and-deploy-documentation:
+    jobs:
+      - build-documentation
+      - deploy-documentation:
+          requires:
+            - build-documentation
+
 jobs:
-  python3:
+  build-documentation:
     docker:
       - image: cimg/python:3.13.2
     environment:
-      - PYTHON_VERSION: "3.13.2"
-      - OMP_NUM_THREADS: 2
-      - CONDA_ENV_NAME: testenv
+      - PYTHON_VERSION: "3.13"
     steps:
       - checkout
-      - run: ./tools/documentation/circleci/checkout_merge_commit.sh
+      - run: 
+          name:
+            'Checkout to PR commit'
+          command: 
+            sh ./tools/documentation/circleci/checkout_merge_commit.sh
       - restore_cache:
           key: saved-cache
       - run:
-          command: ./tools/documentation/circleci/build_doc.sh
+          name: "Create the environment for building the documentation"
+          command: 
+            sh ./tools/documentation/circleci/setup_virtual_environment.sh
+      - run:
+          name: "Build documentation"
+          command: 
+            sh ./tools/documentation/circleci/build_doc.sh
           no_output_timeout: 40m
       - store_artifacts:
           path: doc_conf/_build/html
-          destination: doc_conf
+          destination: documentation
       - store_artifacts:
           path: ~/output_sphinx.log
           destination: log.txt
       # Persists generated documentation so that it can be attached and deployed
-      # in the 'deploy' step.
+      # in the 'deploy-documentation' step.
       - persist_to_workspace:
           root: doc_conf/_build/html
           paths: .
       - save_cache:
+          # cache some library
           key: saved-cache
           paths:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
 
-  deploy:
+  deploy-documentation:
     docker:
-      - image: cimg/python:3.13
+      - image: cimg/deploy:2025.01
     environment:
       - USERNAME: "hidimstat-circleci"
       - ORGANIZATION: "hidimstat"
       - DOC_REPO: "hidimstat.github.io"
       - DOC_URL: ""
       - EMAIL: "hidimstat@circleci.com"
-      - MINICONDA_PATH: ~/miniconda
-      - CONDA_ENV_NAME: testenv
     steps:
+      - checkout
       - add_ssh_keys:
           fingerprints:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
-      - checkout
-      - run: ./tools/documentation/circleci/checkout_merge_commit.sh
-      # Attach documentation generated in the 'python3' step so that it can be
+      # Attach documentation generated in the 'build-documentation' step so that it can be
       # deployed.
       - attach_workspace:
           at: doc_conf/_build/html
       - run:
-            command: |
-                mkdir -p ~/.ssh
-                ssh-keyscan github.com >> ~/.ssh/known_hosts
-                ls -ltrh doc_conf/_build/html
-      - deploy:
+          name: 
+            "Add the ssh key and list the file in the documentation"
+          command: |
+              mkdir -p ~/.ssh
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              ls -ltrh doc_conf/_build/html
+      - run:
+          name: "Deploy documentation"
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash tools/documentation/circleci/push_doc.sh doc_conf/_build/html
+              bash ./tools/documentation/circleci/push_doc.sh doc_conf/_build/html
             fi
-
-workflows:
-  version: 2
-  build-doc-and-deploy:
-    jobs:
-      - python3
-      - deploy:
-          requires:
-            - python3
