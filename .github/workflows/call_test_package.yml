@@ -49,20 +49,23 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    
     # Install dependency for running the tests
     - name: Install the dependance
-      if: ${{ ! inputs.skip_test }}
+      if: ${{ ! inputs.skip_test }} && ! startsWith(${{ matrix.os }}, 'windows')
       run: |
         python -m venv .venv
-        if [ '${{ matrix.os }}' == 'windows'* ]
-        then 
-          .venv\scripts\activate.bat
-        else
-          source .venv/bin/activate
-        fi
-
+        source .venv/bin/activate
         pip install --upgrade uv pip
         uv pip install -e ".[test]"
+    - name: Install the dependance Windows
+      if: ${{ ! inputs.skip_test }} && ! startsWith(${{ matrix.os }}, 'windows')
+      run: |
+        python -m venv .venv
+        .venv\scripts\activate.bat
+        pip install --upgrade uv pip
+        uv pip install -e ".[test]"
+    
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
     # option for mardown report: --md-report --md-report-output= ...
@@ -72,13 +75,12 @@ jobs:
     - name: Run pytest
       if: ${{ ! inputs.skip_test }}
       run: |
-          if [ '${{ matrix.os }}' == 'windows'* ]
-          then 
-            .venv\scripts\activate.bat
-          else
-            source .venv/bin/activate
-          fi
-
+          source .venv/bin/activate
+          python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+    - name: Run pytest  Windows
+      if: ${{ ! inputs.skip_test }}
+      run: |
+          .venv\scripts\activate.bat
           python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
     
     # publish different reports (HTML, duration, Coverage)
