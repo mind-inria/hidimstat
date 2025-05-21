@@ -55,7 +55,7 @@ jobs:
       run: |
         python -m venv .venv
         source .venv/bin/activate
-        pip install uv
+        pip install --upgrade uv pip
         uv pip install -e ".[test]"
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
