@@ -10,19 +10,27 @@ configurations supported by hidimstat.
 - **CircleCI**:
   Builds and verifies the project documentation.
 
-If any of the following markers appears in the commit message, the following
+If any of the following markers appear in the committed message, the following
 actions are taken.
 
     ====================== ===================
     Commit Message Marker  Action Taken by CI
     ---------------------- -------------------
+    [skip tests]           The tests are not run
     [doc skip]             Docs are not built
     [doc quick]            Docs built, but excludes example gallery plots
-    [doc change]           Docs built including only example which has been directly modified
+    [doc change]           Docs built, including only example, which has been directly modified
     ====================== ===================
 
-Note that by default the documentation is built with all the example are modified.
+There is a dependence on the different parts of the CI. You need to pass the
+static analysis by the linter (Black) before that the example is running.
+The documentation is built only if the tests are succeeding.
+
+Note that, by default, the documentation is built with all the examples are modified.
+
+For more details, the GitHub Action creates an event on the CircleCI pipeline, which
+ trigger the building of the documentation and the deployment of the documentation.
 
 CI is testing all possible configurations supported by hidimstat, so tests may fail
 with configurations different from what you are developing with. See with the 
-mainteners to identify the cause of this failure. 
+maintainers to identify the cause of this failure. 
