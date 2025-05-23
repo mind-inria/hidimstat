@@ -5,13 +5,20 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 from hidimstat import LOCO, BasePerturbation
 
 
-def test_loco(linear_scenario):
+def test_loco():
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, beta = linear_scenario
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
 
@@ -89,11 +96,15 @@ def test_loco(linear_scenario):
     assert importance[0].mean() > importance[1].mean()
 
 
-def test_raises_value_error(
-    linear_scenario,
-):
+def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
-    X, y, _ = linear_scenario
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
     # Not fitted estimator
     with pytest.raises(NotFittedError):
         loco = LOCO(
@@ -102,14 +113,14 @@ def test_raises_value_error(
         )
 
     # Not fitted sub-model when calling importance and predict
-    with pytest.raises(ValueError, match="The estimator is not fitted."):
+    with pytest.raises(ValueError, match="The method is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
         loco.predict(X)
-    with pytest.raises(ValueError, match="The estimator is not fitted."):
+    with pytest.raises(ValueError, match="The method is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
