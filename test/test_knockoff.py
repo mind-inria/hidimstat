@@ -5,7 +5,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_quantile,
 )
 from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
-from hidimstat._utils.scenario import multivariate_1D_simulation_AR
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 import numpy as np
 import pytest
@@ -23,7 +23,9 @@ def test_knockoff_bootstrap_quantile():
     snr = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, _, non_zero_index, _, _ = multivariate_simulation_autoregressive(
+        n, p, snr=snr, seed=0
+    )
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=n_bootstraps, random_state=None, fdr=fdr
@@ -50,7 +52,9 @@ def test_knockoff_bootstrap_e_values():
     snr = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, _, non_zero_index, _, _ = multivariate_simulation_autoregressive(
+        n, p, snr=snr, seed=0
+    )
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=n_bootstraps, random_state=None, fdr=fdr / 2
@@ -84,7 +88,9 @@ def test_invariant_with_bootstrap():
     p = 100
     snr = 5
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, _, non_zero_index, _, _ = multivariate_simulation_autoregressive(
+        n, p, snr=snr, seed=0
+    )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     (
         selected_bootstrap,
@@ -110,7 +116,9 @@ def test_knockoff_exception():
     n = 500
     p = 100
     snr = 5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, _, non_zero_index, _, _ = multivariate_simulation_autoregressive(
+        n, p, snr=snr, seed=0
+    )
 
     # Checking wrong type for random_state
     with pytest.raises(Exception):
@@ -127,7 +135,10 @@ def test_model_x_knockoff():
     fdr = 0.2
     n = 300
     p = 300
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    support_size = 18
+    X, y, _, non_zero, _, _ = multivariate_simulation_autoregressive(
+        n, p, support_size=support_size, seed=seed
+    )
     selected, test_score, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=1, random_state=seed + 1, fdr=fdr
     )
@@ -145,7 +156,7 @@ def test_model_x_knockoff_estimator():
     fdr = 0.2
     n = 300
     p = 300
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, _, non_zero, _, _ = multivariate_simulation_autoregressive(n, p, seed=seed)
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X,
         y,
@@ -194,7 +205,7 @@ def test_estimate_distribution():
     fdr = 0.1
     n = 100
     p = 50
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, _, non_zero, _, _ = multivariate_simulation_autoregressive(n, p, seed=seed)
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X,
         y,
@@ -225,7 +236,7 @@ def test_gaussian_knockoff_equi():
     seed = 42
     n = 100
     p = 50
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, _, non_zero, _, _ = multivariate_simulation_autoregressive(n, p, seed=seed)
     mu = X.mean(axis=0)
     sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
 
