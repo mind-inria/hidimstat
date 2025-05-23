@@ -3,6 +3,7 @@ Test the scenario module
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal, assert_equal
 
 from hidimstat._utils.scenario import (
@@ -11,14 +12,13 @@ from hidimstat._utils.scenario import (
 )
 
 
-def test_multivariate_simulation():
-    """Test if the data has expected shape, if the input parameters
-    are close to their empirical estimators, if the support has the
-    expected size (from simple geometry) and if the noise model is
-    the generative model. First test concerns a simulation with a 2D
-    structure, second test concerns a simulation with a 3D structure."""
-
-    # Test 1
+def test_multivariate_simulation_2D():
+    """Test concerns a simulation with a 2D
+    if the data has expected shape,
+    if the input parameters are close to their empirical estimators,
+    if the support has the expected size (from simple geometry)
+    and if the noise model is the generative model.
+    """
     n_samples = 100
     shape = (12, 12)
     roi_size = 2
@@ -38,139 +38,305 @@ def test_multivariate_simulation():
     sigma_hat = np.std(noise)
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
-    assert_almost_equal(sigma_hat, sigma, decimal=1)
-    assert_almost_equal(rho_hat, rho_expected, decimal=2)
+    # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1]))
     assert_equal(X_.shape, (n_samples, shape[0], shape[1]))
-    assert_equal(np.count_nonzero(beta), 4 * (roi_size**2))
+    # check if the input parameters are close to their empirical estimators
+    assert_almost_equal(sigma_hat, sigma, decimal=1)
+    assert_almost_equal(rho_hat, rho_expected, decimal=2)
     assert_equal(y, np.dot(X, beta) + noise)
+    # check if the support has the expected size (from simple geometry)
+    assert_equal(np.count_nonzero(beta), 4 * (roi_size**2))
 
-    # Test 2
+
+def test_multivariate_simulation_3D():
+    """Test concerns a simulation with a 3D
+    if the data has expected shape,
+    if the input parameters are close to their empirical estimators,
+    if the support has the expected size (from simple geometry)
+    and if the noise model is the generative model.
+    """
+    n_samples = 100
     shape = (12, 12, 12)
     roi_size = 2
+    sigma = 1.0
+    smooth_X = 1.0
+    rho_expected = 0.8
 
-    X, y, beta, noise, _, _ = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
+        sigma=sigma,
+        smooth_X=smooth_X,
         seed=0,
     )
 
+    sigma_hat = np.std(noise)
+    rho_hat = np.corrcoef(X[:, 100], X[:, 101])[0, 1]
+
+    # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1] * shape[2]))
+    assert_equal(X_.shape, (n_samples, shape[0], shape[1], shape[2]))
+    # check if the input parameters are close to their empirical estimators
+    assert_almost_equal(sigma_hat, sigma, decimal=1)
+    assert_almost_equal(rho_hat, rho_expected, decimal=2)
+    assert_equal(y, np.dot(X, beta) + noise)
+    # check if the support has the expected size (from simple geometry)
     assert_equal(np.count_nonzero(beta), 5 * (roi_size**3))
 
 
-def test_multivariate_1D_simulation():
-    """Test if the data has expected shape, if the input parameters
-    are close to their empirical estimators, if the support size is
-    correct and if the noise model is the generative model. The
-    first test concerns a simulation with a 1D spatial structure,
-    the second test concerns a simulation with a random structure"""
+def test_multivariate_simulation_edge_cases():
+    """Test edge cases and invalid inputs for multivariate_simulation"""
 
-    n_samples = 100
-    n_features = 500
-    support_size = 10
-    rho = 0.7
-    sigma = 3.0
-
-    # Test 1
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        sigma_noise=sigma,
-        rho=rho,
-        shuffle=False,
-        seed=42,
+    # Test minimum valid shape and roi_size
+    X, y, beta, noise, X_, w = multivariate_simulation(
+        n_samples=2, shape=(2, 2), roi_size=1, seed=42
     )
-    noise = noise_mag * eps
+    assert_equal(X.shape, (2, 4))
+    assert_equal(w.shape, (2, 2, 5))
 
-    sigma_hat = np.std(eps)
+    # Test 3D minimum case
+    X, y, beta, noise, X_, w = multivariate_simulation(
+        n_samples=2, shape=(2, 2, 2), roi_size=1, seed=42
+    )
+    assert_equal(X.shape, (2, 8))
+    assert_equal(w.shape, (2, 2, 2, 5))
+
+    # Test roi_size equal to shape dimension
+    X, y, beta, noise, X_, w = multivariate_simulation(
+        n_samples=10, shape=(4, 4), roi_size=4, seed=42
+    )
+    # all the corner are full
+    for i in range(4):
+        assert np.all(w[:, :, i].sum() == 16)  # Full coverage of corners
+    # only the background is empty
+    assert np.all(w[:, :, 4].sum() == 0)  # Full coverage of corners
+
+    # Test invalid inputs
+    # Invalid shape dimension
+    with pytest.raises(ValueError, match="only 2D and 3D are supported"):
+        multivariate_simulation(shape=(2,))
+
+    with pytest.raises(ValueError, match="only 2D and 3D are supported"):
+        multivariate_simulation(shape=(2, 2, 2, 2))
+
+    # ROI size larger than shape
+    with pytest.raises(AssertionError, match="roi_size should be lower than"):
+        multivariate_simulation(shape=(4, 4), roi_size=5)
+
+    # Invalid n_samples
+    with pytest.raises(AssertionError, match="n_samples must be positive"):
+        multivariate_simulation(n_samples=0)
+
+
+def test_multivariate_simulation_reproducibility():
+    """Test reproducibility with same seed"""
+
+    params = {"n_samples": 10, "shape": (6, 6), "roi_size": 2, "seed": 42}
+
+    X1, y1, beta1, noise1, X1_, w1 = multivariate_simulation(**params)
+    X2, y2, beta2, noise2, X2_, w2 = multivariate_simulation(**params)
+
+    assert_equal(X1, X2)
+    assert_equal(y1, y2)
+    assert_equal(beta1, beta2)
+    assert_equal(noise1, noise2)
+    assert_equal(w1, w2)
+
+
+def test_multivariate_simulation_weights():
+    """Test weight map generation and properties"""
+
+    # 2D weights
+    shape = (6, 6)
+    roi_size = 2
+    _, _, _, _, _, w = multivariate_simulation(shape=shape, roi_size=roi_size)
+
+    # Test ROI locations
+    assert np.all(w[0:roi_size, 0:roi_size, 0] == 1.0)  # Upper left
+    assert np.all(w[-roi_size:, -roi_size:, 1] == 1.0)  # Lower right
+    assert np.all(w[0:roi_size, -roi_size:, 2] == 1.0)  # Upper right
+    assert np.all(w[-roi_size:, 0:roi_size, 3] == 1.0)  # Lower left
+    assert np.all(w[:, :, 4] == 0.0)  # Background
+
+    # 3D weights
+    shape = (6, 6, 6)
+    _, _, _, _, _, w = multivariate_simulation(shape=shape, roi_size=roi_size)
+
+    # Test center ROI location
+    center_slice = w[2:4, 2:4, 2:4, 4]
+    assert np.all(center_slice == 1.0)
+
+    # Test corner ROI signs
+    assert np.all(w[0:roi_size, 0:roi_size, 0:roi_size, 0] == -1.0)
+    assert np.all(w[-roi_size:, -roi_size:, 0:roi_size, 1] == 1.0)
+
+
+@pytest.mark.parametrize(
+    "n_samples,n_features,n_times,support_size,rho,rho_noise,sigma,seed,shuffle",
+    [
+        # Test case: Basic correlation test
+        (100, 500, None, 10, 0.7, None, 3.0, 0, False),
+        # Test case: No correlation test
+        (100, 500, None, 10, 0.0, None, 3.0, 1, False),
+        # Test case: No correlation test
+        (100, 500, None, 10, 0.0, None, 3.0, 2, True),
+        # Test case: Temporal simulation with noise, no shuffle
+        (30, 50, 10, 2, 0.95, 0.9, 3.0, 3, False),
+        # Test case: Temporal simulation with noise, no shuffle
+        (30, 50, 10, 2, 0.0, 0.9, 3.0, 7, False),
+        # Test case: Temporal simulation with noise, with shuffle
+        (30, 50, 10, 2, 0.0, 0.9, 3.0, 5, True),
+    ],
+    ids=[
+        "basic_correlation",
+        "no_correlation",
+        "no_correlation_with_shuffle",
+        "temporal_correlation",
+        "temporal_no_shuffle",
+        "temporal_with_shuffle",
+    ],
+)
+def test_multivariate_simulation_autoregressive_all(
+    n_samples, n_features, n_times, support_size, rho, rho_noise, sigma, seed, shuffle
+):
+    """Test multivariate autoregressive simulation with various configurations"""
+
+    # Create simulation
+    params = {
+        "n_samples": n_samples,
+        "n_features": n_features,
+        "support_size": support_size,
+        "sigma_noise": sigma,
+        "rho": rho,
+        "seed": seed,
+        "shuffle": shuffle,
+    }
+
+    if n_times is not None:
+        params.update(
+            {
+                "n_times": n_times,
+                "rho_noise_time": rho_noise,
+            }
+        )
+
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+        **params
+    )
+    # assertion on the shape of the data
+    assert X.shape == (n_samples, n_features)
+    assert y.shape[0] == n_samples
+    assert beta.shape[0] == n_features
+    assert non_zero.size == np.unique(non_zero).size
+
+    # Common assertions
+    sigma_hat = np.std(eps) if n_times is None else np.std(eps[:, -1])
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
     assert_almost_equal(sigma_hat, sigma, decimal=0)
     assert_almost_equal(rho_hat, rho, decimal=1)
     assert_equal(X.shape, (n_samples, n_features))
-    assert_equal(np.count_nonzero(beta), support_size)
-    assert_equal(y, np.dot(X, beta) + noise)
 
-    # Test 2
+    if n_times is None:
+        # Non-temporal case
+        assert_equal(np.count_nonzero(beta), support_size)
+        assert_equal(y, np.dot(X, beta) + noise_mag * eps)
+    else:
+        # assertion on the shape of the data
+        assert beta.shape[1] == n_times
+        assert y.shape[1] == n_times
+        # Temporal case
+        noise = noise_mag * eps
+        assert_equal(y.shape, (n_samples, n_times))
+        assert_equal(np.count_nonzero(beta), support_size * n_times)
+        assert_equal(y, np.dot(X, beta) + noise)
+
+        # Additional temporal assertions
+        if rho_noise is not None:
+            rho_noise_hat = np.corrcoef(noise[:, -1], noise[:, -2])[0, 1]
+            assert_almost_equal(rho_noise_hat, rho_noise, decimal=1)
+
+
+def test_multivariate_simulation_autoregressive_zero_support():
+    """Test autoregressive simulation with zero support size."""
     X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
-        n_samples=100, n_features=500, rho=0.0
+        n_samples=50, n_features=100, support_size=0, seed=42
     )
-    rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
-    assert_almost_equal(rho_hat, 0, decimal=1)
+    assert_equal(np.count_nonzero(beta), 0)
+    assert_equal(non_zero.size, 0)
 
 
-def test_multivariate_temporal_simulation():
-    """Test if the data has expected shape, if the input parameters
-    are close to their empirical estimators, if the support size is
-    correct and if the noise model is the generative model. The
-    first test concerns a simulation with a 1D spatial structure
-    and a temporal structure, the second test concerns a simulation
-    with a random spatial structure and a temporal structure."""
-
-    n_samples = 30
-    n_features = 50
-    n_times = 10
-    support_size = 2
-    sigma = 3.0
-    rho_noise = 0.9
-    rho_data = 0.95
-
-    # Test 1
-    X, Y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_times=n_times,
-        support_size=support_size,
-        rho=rho_data,
-        sigma_noise=sigma,
-        rho_noise_time=rho_noise,
+def test_multivariate_simulation_autoregressive_zero_snr():
+    """Test autoregressive simulation with zero SNR."""
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+        n_samples=50, n_features=100, snr=0.0, seed=42
     )
-    noise = noise_mag * eps
+    assert_equal(noise_mag, 0.0)
+    assert_equal(y, np.dot(X, beta))
 
-    sigma_hat = np.std(eps[:, -1])
-    rho_noise_hat = np.corrcoef(noise[:, -1], noise[:, -2])[0, 1]
 
-    assert_almost_equal(sigma_hat, sigma, decimal=0)
-    assert_almost_equal(rho_noise_hat, rho_noise, decimal=1)
-    assert_equal(X.shape, (n_samples, n_features))
-    assert_equal(Y.shape, (n_samples, n_times))
-    assert_equal(np.count_nonzero(beta), support_size * n_times)
-    assert_equal(Y, np.dot(X, beta) + noise)
-
-    # Test 2
-    X, Y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_times=n_times,
-        rho=rho_data,
-        support_size=support_size,
-        sigma_noise=sigma,
-        rho_noise_time=rho_noise,
-        shuffle=False,
+def test_multivariate_simulation_autoregressive_minimal():
+    """Test autoregressive simulation with minimal dimensions."""
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+        n_samples=2, n_features=2, n_times=2, support_size=1, seed=42
     )
-    noise = noise_mag * eps
-
-    rho_data_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
-    assert_almost_equal(rho_data_hat, rho_data, decimal=1)
-    assert_equal(Y, np.dot(X, beta) + noise)
-
-
-def test_simu_data():
-    """Test multivariate 1D simulation AR"""
-    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
-        n_samples=100, n_features=200, seed=42
-    )
-
-    assert X.shape == (100, 200)
-    assert y.size == 100
+    assert_equal(X.shape, (2, 2))
+    assert_equal(y.shape, (2, 2))
+    assert_equal(beta.shape, (2, 2))
+    assert_equal(non_zero.size, 1)
 
 
-def test_non_zero_index():
-    """Test to make sure non-null variable indices are sampled without replacement"""
-    X, y, _, non_zero, _, _ = multivariate_simulation_autoregressive(
-        10, 10, support_size=10, seed=0
-    )
-    assert non_zero.size == np.unique(non_zero).size
+def test_multivariate_simulation_ar_support_size():
+    """Test support_size validation."""
+    with pytest.raises(
+        AssertionError, match="support_size cannot be larger than n_features"
+    ):
+        multivariate_simulation_autoregressive(
+            n_samples=10, n_features=5, support_size=10, seed=42
+        )
+
+
+def test_multivariate_simulation_ar_rho():
+    """Test rho validation."""
+    with pytest.raises(AssertionError, match="rho must be between 0 and 1"):
+        multivariate_simulation_autoregressive(
+            n_samples=10, n_features=20, rho=1.5, seed=42
+        )
+
+
+def test_multivariate_simulation_ar_rho_noise():
+    """Test rho_noise_time validation."""
+    with pytest.raises(AssertionError, match="rho_noise_time must be between 0 and 1"):
+        multivariate_simulation_autoregressive(
+            n_samples=10, n_features=20, n_times=5, rho_noise_time=1.2, seed=42
+        )
+
+
+def test_multivariate_simulation_ar_snr():
+    """Test snr validation."""
+    with pytest.raises(AssertionError, match="snr must be positive"):
+        multivariate_simulation_autoregressive(
+            n_samples=10, n_features=20, snr=-1.0, seed=42
+        )
+
+
+def test_multivariate_simulation_ar_n_samples():
+    """Test n_samples validation."""
+    with pytest.raises(AssertionError, match="n_samples must be positive"):
+        multivariate_simulation_autoregressive(n_samples=0, n_features=20, seed=42)
+
+
+def test_multivariate_simulation_ar_n_features():
+    """Test n_features validation."""
+    with pytest.raises(AssertionError, match="n_features must be positive"):
+        multivariate_simulation_autoregressive(n_samples=10, n_features=0, seed=42)
+
+
+def test_multivariate_simulation_ar_n_times():
+    """Test n_times validation."""
+    with pytest.raises(AssertionError, match="n_times must be positive"):
+        multivariate_simulation_autoregressive(
+            n_samples=10, n_features=20, n_times=0, seed=42
+        )

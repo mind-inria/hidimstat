@@ -34,6 +34,12 @@ def _generate_2D_weight(shape, roi_size):
 
         Create a 2D weight map with four ROIs
     """
+    assert (
+        roi_size <= shape[0]
+    ), "roi_size should be lower than the first shape of the array"
+    assert (
+        roi_size <= shape[1]
+    ), "roi_size should be lower than the second shape of the array"
 
     w = np.zeros(shape + (5,))
     w[0:roi_size, 0:roi_size, 0] = 1.0
@@ -74,6 +80,15 @@ def _generate_3D_weight(shape, roi_size):
             - Channel 3: Back-left-bottom ROI weights (1.0)
             - Channel 4: Center ROI weights (1.0)
     """
+    assert (
+        roi_size <= shape[0]
+    ), "roi_size should be lower than the first shape of the array"
+    assert (
+        roi_size <= shape[1]
+    ), "roi_size should be lower than the second shape of the array"
+    assert (
+        roi_size <= shape[2]
+    ), "roi_size should be lower than the third shape of the array"
 
     w = np.zeros(shape + (5,))
     w[0:roi_size, 0:roi_size, 0:roi_size, 0] = -1.0
@@ -131,6 +146,7 @@ def multivariate_simulation(
     w : ndarray of shape shape + (5,)
         Weight map with 5 channels for different ROIs.
     """
+    assert n_samples > 0, "n_samples must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
@@ -140,7 +156,7 @@ def multivariate_simulation(
     elif len(shape) == 3:
         w = _generate_3D_weight(shape, roi_size)
     else:
-        raise ValueError(f"Shape {shape} not supported")
+        raise ValueError(f"Shape {shape} not supported, only 2D and 3D are supported")
 
     beta = w.sum(-1).ravel()
     X_ = rng.standard_normal((n_samples,) + shape)
@@ -165,7 +181,7 @@ def multivariate_simulation_autoregressive(
     support_size=10,
     rho=0.25,
     value=1.0,
-    snr=2.0,
+    snr=10.0,
     sigma_noise=1.0,
     rho_noise_time=0.0,
     shuffle=False,
@@ -214,6 +230,15 @@ def multivariate_simulation_autoregressive(
     eps : ndarray of shape (n_samples,) or (n_samples, n_times)
         Noise vector/matrix with optional temporal correlation.
     """
+    assert n_samples > 0.0, "n_samples must be positive"
+    assert n_features > 0.0, "n_features must be positive"
+    assert n_times is None or n_times > 0.0, "n_times must be positive"
+    assert support_size <= n_features, "support_size cannot be larger than n_features"
+    assert rho >= 0.0 and rho <= 1.0, "rho must be between 0 and 1"
+    assert (
+        rho_noise_time >= 0.0 and rho_noise_time <= 1.0
+    ), "rho_noise_time must be between 0 and 1"
+    assert snr >= 0.0, "snr must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
@@ -246,7 +271,7 @@ def multivariate_simulation_autoregressive(
     if support_size == 0:
         noise_mag = snr
     elif snr != 0.0:
-        # TODO cehck the equation for the snr ?????
+        # TODO check the equation for the snr ?????
         noise_mag = snr * np.linalg.norm(eps) / np.linalg.norm(prod_temp)
     else:
         noise_mag = 0.0
