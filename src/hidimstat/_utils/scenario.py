@@ -166,9 +166,10 @@ def multivariate_simulation_autoregressive(
     rho=0.25,
     value=1.0,
     snr=2.0,
+    sigma_noise=1.0,
     rho_noise_time=0.0,
     shuffle=False,
-    seed=None
+    seed=None,
 ):
     """
     Generate data with Toeplitz covariance structure and optional temporal correlation.
@@ -176,40 +177,42 @@ def multivariate_simulation_autoregressive(
     Parameters
     ----------
     n_samples : int
-        Number of samples
+        Number of samples.
     n_features : int
-        Number of features/variables 
+        Number of features/variables.
     n_times : int or None, default=None
-        Number of time points. None means single timepoint.
+        Number of time points. If None, generates single timepoint data.
     support_size : int, default=10
-        Number of non-zero coefficients
+        Number of non-zero coefficients in beta.
     rho : float, default=0.25
-        Feature correlation coefficient
+        Feature correlation coefficient for Toeplitz covariance matrix.
     value : float, default=1.0
-        Value of non-zero coefficients
+        Value assigned to non-zero coefficients in beta.
     snr : float, default=2.0
-        Signal-to-noise ratio
+        Signal-to-noise ratio. Controls noise scaling.
+    sigma_noise : float, default=1.0
+        Standard deviation of the noise.
     rho_noise_time : float, default=0.0
-        Temporal noise correlation coefficient
-    shuffle : bool, default=True
-        Whether to shuffle features
+        Temporal noise correlation coefficient.
+    shuffle : bool, default=False
+        Whether to shuffle features randomly.
     seed : int or None, default=None
-        Random seed
+        Random seed for reproducibility.
 
     Returns
     -------
-    X : ndarray, shape (n_samples, n_features)
-        Design matrix
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Target vector/matrix 
-    beta_true : ndarray, shape (n_features,) or (n_features, n_times)
-        True coefficients
+    X : ndarray of shape (n_samples, n_features)
+        Design matrix with Toeplitz covariance structure.
+    y : ndarray of shape (n_samples,) or (n_samples, n_times)
+        Target vector/matrix, generated as y = X @ beta + noise.
+    beta_true : ndarray of shape (n_features,) or (n_features, n_times)
+        True coefficient vector/matrix with support_size non-zero elements.
     non_zero : ndarray
-        Indices of non-zero coefficients
+        Indices of non-zero coefficients in beta_true.
     noise_mag : float
-        Noise magnitude scaling factor
-    eps : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Noise vector/matrix
+        Applied noise magnitude scaling factor.
+    eps : ndarray of shape (n_samples,) or (n_samples, n_times)
+        Noise vector/matrix with optional temporal correlation.
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)
@@ -228,13 +231,17 @@ def multivariate_simulation_autoregressive(
     if n_times is None:
         beta_true = np.zeros(n_features)
         beta_true[non_zero] = value
-        eps = rng.standard_normal(size=n_samples)
+        eps = sigma_noise * rng.standard_normal(size=n_samples)
     else:
         beta_true = np.zeros((n_features, n_times))
         beta_true[non_zero, :] = value
         # possibility to generate correlated noise
-        sigma_time = toeplitz(rho_noise_time ** np.arange(0, n_times))  # covariance matrix of X
-        eps = rng.multivariate_normal(np.zeros(n_times), sigma_time, size=(n_samples))
+        sigma_time = toeplitz(
+            rho_noise_time ** np.arange(0, n_times)
+        )  # covariance matrix of X
+        eps = sigma_noise * rng.multivariate_normal(
+            np.zeros(n_times), sigma_time, size=(n_samples)
+        )
     prod_temp = np.dot(X, beta_true)
     if snr != 0.0:
         noise_mag = np.linalg.norm(prod_temp) / (snr * np.linalg.norm(eps))
