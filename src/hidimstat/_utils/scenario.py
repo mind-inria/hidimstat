@@ -3,70 +3,6 @@ from scipy import ndimage
 from scipy.linalg import toeplitz
 
 
-def multivariate_1D_simulation(
-    n_samples=100,
-    n_features=500,
-    support_size=10,
-    sigma=1.0,
-    rho=0.0,
-    shuffle=True,
-    seed=0,
-):
-    """
-    Generate 1D data with Toeplitz design matrix.
-
-    Parameters
-    ----------
-    n_samples : int, default=100
-        Number of samples.
-    n_features : int, default=500
-        Number of features.
-    support_size : int, default=10
-        Size of the support (number of non-zero coefficients).
-    sigma : float, default=1.0
-        Standard deviation of the additive White Gaussian noise.
-    rho : float, default=0.0
-        Level of correlation between neighboring features. Must be between 0 and 1.
-    shuffle : bool, default=True
-        If True, randomly shuffle the features to break 1D data structure.
-    seed : int, default=0
-        Random seed for reproducibility.
-
-    Returns
-    -------
-    X : ndarray of shape (n_samples, n_features)
-        Design matrix with Toeplitz correlation structure.
-    y : ndarray of shape (n_samples,)
-        Target vector y = X @ beta + noise.
-    beta : ndarray of shape (n_features,)
-        Parameter vector with support_size non-zero entries equal to 1.
-    noise : ndarray of shape (n_samples,)
-        Additive white Gaussian noise vector.
-    """
-    # Setup seed generator
-    rng = np.random.default_rng(seed)
-
-    # generate random data for each samples
-    X = np.zeros((n_samples, n_features))
-    X[:, 0] = rng.standard_normal(n_samples)
-    for i in np.arange(1, n_features):
-        rand_vector = ((1 - rho**2) ** 0.5) * rng.standard_normal(n_samples)
-        X[:, i] = rho * X[:, i - 1] + rand_vector
-
-    if shuffle:
-        rng.shuffle(X.T)
-
-    # generate the vector of variable of importances
-    beta = np.zeros(n_features)
-    beta[0:support_size] = 1.0
-
-    # generate the simulated regression data
-    noise = sigma * rng.standard_normal(n_samples)
-    y = np.dot(X, beta) + noise
-
-    return X, y, beta, noise
-
-
 def _generate_2D_weight(shape, roi_size):
     """
     Create a 2D weight map with four ROIs (Regions of Interest) in the corners.
@@ -203,6 +139,8 @@ def multivariate_simulation(
         w = _generate_2D_weight(shape, roi_size)
     elif len(shape) == 3:
         w = _generate_3D_weight(shape, roi_size)
+    else:
+        raise ValueError(f"Shape {shape} not supported")
 
     beta = w.sum(-1).ravel()
     X_ = rng.standard_normal((n_samples,) + shape)
@@ -220,134 +158,89 @@ def multivariate_simulation(
     return X, y, beta, noise, X_, w
 
 
-def multivariate_temporal_simulation(
-    n_samples=100,
-    n_features=500,
-    n_times=30,
+def multivariate_simulation_autoregressive(
+    n_samples,
+    n_features,
+    n_times=None,
     support_size=10,
-    sigma=1.0,
-    rho_noise=0.0,
-    rho_data=0.0,
-    shuffle=True,
-    seed=0,
+    rho=0.25,
+    value=1.0,
+    snr=2.0,
+    rho_noise_time=0.0,
+    shuffle=False,
+    seed=None
 ):
     """
-    Generate 1D temporal data with constant design matrix.
-
-    Parameters
-    ----------
-    n_samples : int, default=100
-        Number of samples.
-    n_features : int, default=500
-        Number of features.
-    n_times : int, default=30
-        Number of time points.
-    support_size : int, default=10
-        Size of the row support (number of non-zero coefficient rows).
-    sigma : float, default=1.0
-        Standard deviation of the additive white Gaussian noise.
-    rho_noise : float, default=0.0
-        Level of temporal autocorrelation in the noise. Must be between 0 and 1.
-    rho_data : float, default=0.0
-        Level of correlation between neighboring features. Must be between 0 and 1.
-    shuffle : bool, default=True
-        If True, randomly shuffle the features to break 1D data structure.
-    seed : int, default=0
-        Random seed for reproducibility.
-
-    Returns
-    -------
-    X : ndarray of shape (n_samples, n_features)
-        Design matrix with Toeplitz correlation structure.
-    Y : ndarray of shape (n_samples, n_times)
-        Target matrix Y = X @ beta + noise.
-    beta : ndarray of shape (n_features, n_times)
-        Parameter matrix with first support_size rows equal to 1.
-    noise : ndarray of shape (n_samples, n_times)
-        Temporally correlated Gaussian noise matrix.
-    """
-
-    rng = np.random.default_rng(seed)
-
-    X = np.zeros((n_samples, n_features))
-    X[:, 0] = rng.standard_normal(n_samples)
-
-    for i in np.arange(1, n_features):
-        rand_vector = ((1 - rho_data**2) ** 0.5) * rng.standard_normal(n_samples)
-        X[:, i] = rho_data * X[:, i - 1] + rand_vector
-
-    if shuffle:
-        rng.shuffle(X.T)
-
-    beta = np.zeros((n_features, n_times))
-    beta[0:support_size, :] = 1.0
-
-    noise = np.zeros((n_samples, n_times))
-    noise[:, 0] = rng.standard_normal(n_samples)
-
-    for i in range(1, n_times):
-        rand_vector = ((1 - rho_noise**2) ** 0.5) * rng.standard_normal(n_samples)
-        noise[:, i] = rho_noise * noise[:, i - 1] + rand_vector
-
-    noise = sigma * noise
-
-    Y = np.dot(X, beta) + noise
-
-    return X, Y, beta, noise
-
-
-def multivariate_1D_simulation_AR(
-    n_samples, n_features, rho=0.25, snr=2.0, sparsity=0.06, sigma=1.0, seed=None
-):
-    """
-    Function to simulate data follow an autoregressive structure with Toeplitz
-    covariance matrix
+    Generate data with Toeplitz covariance structure and optional temporal correlation.
 
     Parameters
     ----------
     n_samples : int
-        number of observations
+        Number of samples
     n_features : int
-        number of variables
-    sparsity : float
-        ratio of number of variables with non-zero coefficients over total
-        coefficients
-    rho : float
-        Level of correlation between neighboring features.
-    effect : float
-        signal magnitude, value of non-null coefficients
-    seed : None or Int
-        random seed for generator
+        Number of features/variables 
+    n_times : int or None, default=None
+        Number of time points. None means single timepoint.
+    support_size : int, default=10
+        Number of non-zero coefficients
+    rho : float, default=0.25
+        Feature correlation coefficient
+    value : float, default=1.0
+        Value of non-zero coefficients
+    snr : float, default=2.0
+        Signal-to-noise ratio
+    rho_noise_time : float, default=0.0
+        Temporal noise correlation coefficient
+    shuffle : bool, default=True
+        Whether to shuffle features
+    seed : int or None, default=None
+        Random seed
 
     Returns
     -------
     X : ndarray, shape (n_samples, n_features)
-        Design matrix resulted from simulation
-    y : ndarray, shape (n_samples, )
-        Response vector resulted from simulation
-    beta_true : ndarray, shape (n_samples, )
-        Vector of true coefficient value
-    non_zero : ndarray, shape (n_samples, )
-        Vector of non zero coefficients index
+        Design matrix
+    y : ndarray, shape (n_samples,) or (n_samples, n_times)
+        Target vector/matrix 
+    beta_true : ndarray, shape (n_features,) or (n_features, n_times)
+        True coefficients
+    non_zero : ndarray
+        Indices of non-zero coefficients
+    noise_mag : float
+        Noise magnitude scaling factor
+    eps : ndarray, shape (n_samples,) or (n_samples, n_times)
+        Noise vector/matrix
     """
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
-    # Number of non-null
-    k = int(sparsity * n_features)
-
     # Generate the variables from a multivariate normal distribution
     mu = np.zeros(n_features)
-    Sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
-    X = rng.multivariate_normal(mu, Sigma, size=(n_samples))
+    sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
+    X = rng.multivariate_normal(mu, sigma, size=(n_samples))
+
+    # suffle the samples
+    if shuffle:
+        rng.shuffle(X.T)
 
     # Generate the response from a linear model
-    non_zero = rng.choice(n_features, k, replace=False)
-    beta_true = np.zeros(n_features)
-    beta_true[non_zero] = sigma
-    eps = rng.standard_normal(size=n_samples)
+    non_zero = rng.choice(n_features, support_size, replace=False)
+    if n_times is None:
+        beta_true = np.zeros(n_features)
+        beta_true[non_zero] = value
+        eps = rng.standard_normal(size=n_samples)
+    else:
+        beta_true = np.zeros((n_features, n_times))
+        beta_true[non_zero, :] = value
+        # possibility to generate correlated noise
+        sigma_time = toeplitz(rho_noise_time ** np.arange(0, n_times))  # covariance matrix of X
+        eps = rng.multivariate_normal(np.zeros(n_times), sigma_time, size=(n_samples))
     prod_temp = np.dot(X, beta_true)
-    noise_mag = np.linalg.norm(prod_temp) / (snr * np.linalg.norm(eps))
+    if snr != 0.0:
+        noise_mag = np.linalg.norm(prod_temp) / (snr * np.linalg.norm(eps))
+    else:
+        noise_mag = 0.0
+
     y = prod_temp + noise_mag * eps
 
-    return X, y, beta_true, non_zero
+    return X, y, beta_true, non_zero, noise_mag, eps
