@@ -8,15 +8,11 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
 from hidimstat.noise_std import empirical_snr, reid
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
-)
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
-def test_reid():
-    """Estimating noise standard deviation in two scenarios.
-    First scenario: no structure and a support of size 2.
+def test_reid_first_exp():
+    """Estimating noise standard deviation when no structure and a support of size 2.
     Second scenario: no structure and an empty support."""
 
     n_samples, n_features = 50, 30
@@ -26,11 +22,11 @@ def test_reid():
     # ##########
     support_size = 2
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         seed=0,
     )
 
@@ -40,15 +36,22 @@ def test_reid():
 
     assert_almost_equal(sigma_hat / expected, 1.0, decimal=0)
 
+
+def test_reid_second_exp():
+    """Estimating noise standard deviation when no structure and an empty support."""
+    n_samples, n_features = 50, 30
+    sigma = 2.0
+
     # Second expe
     # ###########
     support_size = 0
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
+        rho=0.0,
         seed=1,
     )
 
@@ -58,10 +61,9 @@ def test_reid():
     assert_almost_equal(sigma_hat / expected, 1.0, decimal=1)
 
 
-def test_group_reid():
-    """Estimating (temporal) noise covariance matrix in two scenarios.
-    First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support."""
+def test_group_reid_first_senario():
+    """Estimating (temporal) noise covariance matrix in two scenarios
+    with no data structure and a support of size 2."""
 
     n_samples = 30
     n_features = 50
@@ -75,13 +77,14 @@ def test_group_reid():
     # ##########
     support_size = 2
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, Y, beta, non_zeros, noise_mag, noise = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        sigma_noise=sigma,
+        rho_noise_time=rho,
+        rho=0.0,
     )
 
     # max_iter=1 to get a better coverage
@@ -103,17 +106,28 @@ def test_group_reid():
     assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
     assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
 
+
+def test_group_reid_second_senario():
+    """Estimating (temporal) noise covariance matrix in two scenarios
+    with no data structure and an empty support."""
+    n_samples = 30
+    n_features = 50
+    n_times = 10
+    sigma = 1.0
+    rho = 0.9
+    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
+    cov = np.outer(sigma, sigma) * corr
     # Second expe
     # ###########
     support_size = 0
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, Y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        sigma_noise=sigma,
+        rho_noise_time=rho,
         seed=1,
     )
 
@@ -141,13 +155,13 @@ def test_reid_exception():
     # ##########
     support_size = 2
 
-    X, y, beta, noise = multivariate_temporal_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        sigma_noise=sigma,
+        rho_noise_time=rho,
     )
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
@@ -168,13 +182,14 @@ def test_empirical_snr():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    sigma = 2.0
+    snr = 2.0
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, non_zeros, noise_mag, noise = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        snr=snr,
+        sigma_noise=2.0,
         seed=0,
     )
 

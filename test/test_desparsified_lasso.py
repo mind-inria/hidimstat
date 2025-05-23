@@ -12,10 +12,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
-)
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
 def test_desparsified_lasso():
@@ -28,11 +25,11 @@ def test_desparsified_lasso():
     sigma = 0.1
     rho = 0.0
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         rho=rho,
         shuffle=False,
         seed=2,
@@ -79,13 +76,13 @@ def test_desparsified_group_lasso():
     corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
     cov = np.outer(sigma, sigma) * corr
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, Y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        sigma_noise=sigma,
+        rho_noise_time=rho,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(

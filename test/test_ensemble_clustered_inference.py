@@ -16,10 +16,7 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
-)
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
 # Scenario 1: data with no temporal dimension
@@ -42,11 +39,11 @@ def test_clustered_inference_no_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
+    X_init, y, _, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         rho=rho,
         shuffle=False,
         seed=2,
@@ -99,14 +96,14 @@ def test_clustered_inference_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho_noise,
-        rho_data=rho_data,
+        sigma_noise=sigma,
+        rho_noise_time=rho_noise,
+        rho=rho_data,
         shuffle=False,
     )
 
@@ -116,7 +113,7 @@ def test_clustered_inference_temporal():
     )
 
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X, Y, ward, n_clusters, scaler_sampling=StandardScaler()
+        X, y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -162,11 +159,11 @@ def test_clustered_inference_no_temporal_groups():
     X_ = []
     y_ = []
     for i in range(n_groups):
-        X_init, y, beta, epsilon = multivariate_1D_simulation(
+        X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
-            sigma=sigma,
+            sigma_noise=sigma,
             rho=rho,
             shuffle=False,
             seed=2 + i,
@@ -219,11 +216,11 @@ def test_ensemble_clustered_inference():
     sigma = 5.0
     rho = 0.95
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
+    X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         rho=rho,
         shuffle=False,
         seed=0,
@@ -288,14 +285,14 @@ def test_ensemble_clustered_inference_temporal_data():
     extended_support = support_size + margin_size
     n_bootstraps = 4
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho_noise,
-        rho_data=rho_data,
+        sigma_noise=sigma,
+        rho_noise_time=rho_noise,
+        rho=rho_data,
         shuffle=False,
     )
 
@@ -307,7 +304,7 @@ def test_ensemble_clustered_inference_temporal_data():
     list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
         ensemble_clustered_inference(
             X,
-            Y,
+            y,
             ward,
             n_clusters,
             scaler_sampling=StandardScaler(),
