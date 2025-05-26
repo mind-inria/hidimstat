@@ -58,11 +58,10 @@ mvs.fit(X, y)
 score_mvs = mvs.importance() # vector of n_features 
 selection_mvs = mvs.selection(FDP=0.1) # binary vector of n_features
 
-# ---------------------------------------------------------------------------
-
+#############################################################################
 # API 26 Mai 
 # ================
-from hidimstat_mock.v1 import PFI, LOCO, D0CRT, Knockoff
+from hidimstat_mock.v2 import PFI, LOCO, D0CRT, Knockoff
 ###############################################################################
 # Variable Importance:
 # --------------------
@@ -101,5 +100,5 @@ selection_vi, pvalue_ivs = ivs.selection(None, None, 0.1) # binary vector of n_f
 mvs = Knockoff()
 mvs.fit(X, y)
 # REMOVED: score_mvs = mvs.importance(None, None) # vector of n_features 
-selection_mvs, _ = mvs.selection(None, None, FDP=0.1) # binary vector of n_features
+selection_mvs, ?_? = mvs.selection(None, None, FDP=0.1) # binary vector of n_features
 # WARNING: knoclkoff doesn't have p-values?
