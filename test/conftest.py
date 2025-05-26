@@ -7,9 +7,11 @@ from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 def data_generator(
     n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time
 ):
-    """Generate simulated data for testing.
+    """
+    Generate simulated data for testing.
 
-    Args:
+    Parameters:
+    ----------
         n_samples (int): Number of samples
         n_features (int): Number of features
         support_size (int): Number of important features
