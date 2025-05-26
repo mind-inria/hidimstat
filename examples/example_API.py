@@ -1,5 +1,8 @@
 """
 Different API
+=============
+
+example of API
 """
 import numpy as np
 from scipy.stats import ttest_1samp
@@ -12,6 +15,7 @@ from sklearn.model_selection import KFold
 rng = np.random.RandomState(0)
 X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
 
+###############################################################################
 # API post sprint
 # ================
 from hidimstat_mock.v1 import PFI, LOCO, D0CRT, Knockoff
