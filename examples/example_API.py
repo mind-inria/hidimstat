@@ -26,7 +26,7 @@ importances_vi = vi.importance() # vector of n_features
 selection_vi = vi.selection(10) # binary vector of n_features
 ###############################################################################
 # Controlled Variable Importance:
-# --------------------
+# -------------------------------
 # Variable importance, p-value and selection using LOCO
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 importances_cvi = []
@@ -74,7 +74,7 @@ importances_vi = vi.importance(None, None) # vector of n_features
 # REMOVED: selection_vi = vi.selection(10) # binary vector of n_features
 ###############################################################################
 # Controlled Variable Importance:
-# --------------------
+# -------------------------------
 # Variable importance, p-value and selection using LOCO
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 importances_cvi = []
@@ -101,4 +101,5 @@ selection_vi, pvalue_ivs = ivs.selection(None, None, 0.1) # binary vector of n_f
 mvs = Knockoff()
 mvs.fit(X, y)
 # REMOVED: score_mvs = mvs.importance(None, None) # vector of n_features 
-selection_mvs, ?pvalue_mvs? = mvs.selection(None, None, FDP=0.1) # binary vector of n_features
+selection_mvs, _ = mvs.selection(None, None, FDP=0.1) # binary vector of n_features
+# WARNING: knoclkoff doesn't have p-values?
