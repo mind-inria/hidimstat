@@ -10,23 +10,35 @@ def data_generator(
     """
     Generate simulated data for testing.
 
-    Parameters:
+    Parameters
     ----------
-        n_samples (int): Number of samples
-        n_features (int): Number of features
-        support_size (int): Number of important features
-        rho (float): Correlation coefficient between features
-        seed (int): Random seed for reproducibility
-        value (float): Value for non-zero coefficients
-        snr (float): Signal-to-noise ratio
-        rho_noise_time (float): Time correlation in noise
+    n_samples : int
+        Number of samples in the dataset.
+    n_features : int
+        Number of features in the dataset.
+    support_size : int
+        Number of important features (features with non-zero coefficients).
+    rho : float
+        Correlation coefficient between features.
+    seed : int
+        Random seed for reproducibility.
+    value : float
+        Value to be used for non-zero coefficients.
+    snr : float
+        Signal-to-noise ratio.
+    rho_noise_time : float
+        Time correlation coefficient in the noise component.
 
-    Returns:
-        tuple: Returns (X, y, important_features, not_important_features) where
-              X is the feature matrix,
-              y is the target vector,
-              important_features are indices of non-zero coefficients,
-              not_important_features are indices of zero coefficients
+    Returns
+    -------
+    X : ndarray of shape (n_samples, n_features)
+        Feature matrix.
+    y : ndarray of shape (n_samples,)
+        Target vector.
+    important_features : ndarray
+        Indices of features with non-zero coefficients.
+    not_important_features : ndarray
+        Indices of features with zero coefficients.
     """
     X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
