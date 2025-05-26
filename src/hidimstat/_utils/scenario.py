@@ -225,7 +225,7 @@ def multivariate_simulation_autoregressive(
         True coefficient vector/matrix with support_size non-zero elements.
     non_zero : ndarray
         Indices of non-zero coefficients in beta_true.
-    noise_mag : float
+    noise_factor : float
         Applied noise magnitude scaling factor.
     eps : ndarray of shape (n_samples,) or (n_samples, n_times)
         Noise vector/matrix with optional temporal correlation.
