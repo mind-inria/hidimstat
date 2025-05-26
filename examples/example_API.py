@@ -4,6 +4,7 @@ Different API
 
 example of API
 """
+
 import numpy as np
 from scipy.stats import ttest_1samp
 from sklearn.datasets import make_circles
@@ -16,8 +17,8 @@ rng = np.random.RandomState(0)
 X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
 
 ###############################################################################
-# API post sprint
-# ================
+# 1:API post sprint
+# ==================
 from hidimstat_mock.v1 import PFI, LOCO, D0CRT, Knockoff
 ###############################################################################
 # Variable Importance:
@@ -63,7 +64,7 @@ score_mvs = mvs.importance() # vector of n_features
 selection_mvs = mvs.selection(FDP=0.1) # binary vector of n_features
 
 #############################################################################
-# API 26 Mai 
+# 2:API 26 Mai 
 # ================
 from hidimstat_mock.v2 import PFI, LOCO, D0CRT, Knockoff
 ###############################################################################
