@@ -14,7 +14,6 @@ jobs:
       pull-requests: write
     env:
       TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
-      TOKEN_CIRCLECI_2: ${{ secrets.CIRCLE_CI }}
     steps:
       - name: Test secret
         run: echo $TOKEN_CIRCLECI ' 2 ' $TOKEN_CIRCLECI_2
