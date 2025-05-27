@@ -13,7 +13,7 @@ jobs:
     permissions:
       pull-requests: write
     env:
-      TOKEN_CIRCLECI: 
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
     steps:
       # get reports from previous job 
       - name: Get HTML reports
@@ -51,7 +51,12 @@ jobs:
           # $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
-          BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          if [ $PULL_REQUEST_NUMBER == "main" ] 
+          then 
+            BRANCH=main
+          else
+            BRANCH=pull/$PULL_REQUEST_NUMBER
+          fi
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
           # Send the information to circleci
