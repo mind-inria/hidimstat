@@ -1,0 +1,97 @@
+name: Publish Tests
+
+on:
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+
+# disable all the permission for the workflow
+permissions: {}
+
+jobs:
+  merge_and_upload_test_data:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI }}
+    steps:
+      # get reports from previous job 
+      - name: Get HTML reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytest-results-html-*-os-*
+      - name: Get time reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytest-results-log-*-os-*
+      # put all the reports in one folder and add an index
+      - name: gather reports and add an index
+        run: |
+          mkdir reports
+          mv */*.html reports
+          mv */*.txt reports
+          (
+          echo '<html><body><p>List TESTs Reports:</p><ul>'
+          echo "$(ls reports)" | sed 's|.*|<li><a href="&">&</a></li>|'
+          echo '</ul></body></html>'
+          ) > index.html
+          mv index.html reports
+      - name: upload the reports
+        id: upload_all
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-all
+          path: reports
+          if-no-files-found: error
+      - name: Trigger hosting job on circle ci
+        run: |
+          #display command executed with argument
+          set -x -a
+          # get the number of the PR
+          # $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          # get the branch of the PR
+          BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          # get URL for download artifact without identification
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
+          # Send the information to circleci
+          curl --request POST \
+          --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
+          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header "content-type: application/json" \
+          --header "x-attribution-actor-id: github_actions" \
+          --header "x-attribution-login: github_actions" \
+          --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
+          # display result for debugging
+          cat result_post.txt
+          # if there is no "id" in result_post, this mean that there is an error
+          if [ $(cat result_post.txt | grep '"id"' | wc -l) == 1 ]
+          then
+            exit 0
+          else 
+            exit 1
+          fi
+
+  upload_coverage_data:
+    runs-on: ubuntu-latest
+    steps:
+    # get coverage only for 1 job 
+    - name: Get data
+      uses: actions/download-artifact@v4
+      with:
+        pattern: cov-results-3.13-os-macos-latest  #CHECK: need to be updated when new version are available
+    # check the size of the file for not pushing empty file
+    - name: Check file size
+      id: check_size
+      run: |
+          FILE_SIZE=$(stat -c%s "cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml")
+          echo "File size is $FILE_SIZE bytes"
+          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
+    # Upload coverage report for Codecov
+    - name: Upload coverage reports to Codecov
+      if: ${{ env.FILE_SIZE > 1 }}
+      uses: codecov/codecov-action@v5.4.3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        files: cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml    #CHECK: need to be updated when new version are available
