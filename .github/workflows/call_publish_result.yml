@@ -15,6 +15,8 @@ jobs:
     env:
       TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
     steps:
+      - name: Test secret
+        run: echo $TOKEN_CIRCLECI ' 2 ' $TOKEN_CIRCLECI_2
       # get reports from previous job 
       - name: Get HTML reports
         uses: actions/download-artifact@v4
@@ -51,13 +53,18 @@ jobs:
           # $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
-          BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          if [ $PULL_REQUEST_NUMBER == "main" ] 
+          then 
+            BRANCH=main
+          else
+            BRANCH=pull/$PULL_REQUEST_NUMBER
+          fi
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
           # Send the information to circleci
           curl --request POST \
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
-          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header "Circle-Token: ${{ secrets.CIRCLE_CI_WRITE }}" \
           --header "content-type: application/json" \
           --header "x-attribution-actor-id: github_actions" \
           --header "x-attribution-login: github_actions" \
