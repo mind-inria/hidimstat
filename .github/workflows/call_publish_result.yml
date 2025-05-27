@@ -62,7 +62,7 @@ jobs:
           # Send the information to circleci
           curl --request POST \
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
-          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header "Circle-Token: ${{ secrets.CIRCLE_CI_WRITE }}" \
           --header "content-type: application/json" \
           --header "x-attribution-actor-id: github_actions" \
           --header "x-attribution-login: github_actions" \
