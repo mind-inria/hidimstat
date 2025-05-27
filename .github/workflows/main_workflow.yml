@@ -63,6 +63,9 @@ jobs:
         }}
     permissions:
       pull-requests: write
+    secrets:
+      CIRCLE_CI_WRITE: ${{ secrets.CIRCLE_CI_WRITE }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     uses: ./.github/workflows/call_publish_result.yml
 
  # debugger:
