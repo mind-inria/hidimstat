@@ -44,28 +44,17 @@ jobs:
         touch cov/cov-${{env.REPORT_NAME}}.xml
 
     # Install python
-    - name: Set up Python ${{ matrix.python-version }}
-      if: ${{ ! inputs.skip_test }}
-      uses: actions/setup-python@v5
+    - name: Install the latest version of uv and the right verion of python
+      uses: astral-sh/setup-uv@v6
       with:
-        python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
     
     # Install dependency for running the tests
     - name: Install the dependance
-      if: ${{ !inputs.skip_test && !startsWith(matrix.os, 'windows') }}
       run: |
-        python -m venv .venv
-        source .venv/bin/activate
-        pip install --upgrade uv pip
         uv pip install -e ".[test]"
-    - name: Install the dependance Windows
-      if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
-      run: |
-        python -m venv .venv
-        .venv\Scripts\python.exe -m pip install --upgrade uv pip
-        dir .venv\Scripts\
-        .venv\Scripts\uv.exe pip install -e ".[test]"
-    
+  
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
     # option for mardown report: --md-report --md-report-output= ...
@@ -73,15 +62,9 @@ jobs:
     # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
     # inline command for being compatible on linux and windows
     - name: Run pytest
-      if: ${{ !inputs.skip_test && !startsWith(matrix.os, 'windows') }}
       run: |
-          source .venv/bin/activate
-          python -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    - name: Run pytest  Windows
-      if: ${{ !inputs.skip_test && startsWith(matrix.os, 'windows') }}
-      run: |
-          .venv\Scripts/python.exe -m pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
-    
+          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
