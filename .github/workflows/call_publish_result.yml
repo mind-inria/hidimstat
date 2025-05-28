@@ -112,5 +112,5 @@ jobs:
         verbose: true
         env_vars: OS,PYTHON
         directory:
-        files: cov-results-${PYTHON}-os-${OS}/cov-${PYTHON}-os-${OS}.xml    #CHECK: need to be updated when new version are available
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
         fail_ci_if_error: true
