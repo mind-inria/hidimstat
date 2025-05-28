@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
@@ -60,7 +60,6 @@ class CPI(BasePerturbation):
         ----------
         .. footbibliography::
         """
-
         super().__init__(
             estimator=estimator,
             loss=loss,
@@ -68,6 +67,15 @@ class CPI(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
         )
+
+        # check the validity of the inputs
+        assert imputation_model_continuous is None or issubclass(
+            imputation_model_continuous.__class__, BaseEstimator
+        ), "Continous imputation model invalid"
+        assert imputation_model_categorical is None or issubclass(
+            imputation_model_categorical.__class__, BaseEstimator
+        ), "Categorial imputation model invalid"
+
         self._list_imputation_models = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
@@ -141,11 +149,34 @@ class CPI(BasePerturbation):
         estimator.fit(X_minus_j, X_j)
         return estimator
 
-    def _check_fit(self):
-        """Check if the imputation models are fitted."""
-        super()._check_fit()
+    def _check_fit(self, X):
+        """
+        Check if the perturbation method and imputation models have been properly fitted.
+
+        This method verifies that both the base perturbation method and the imputation
+        models have been fitted by checking required attributes and validating the input
+        dimensions.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate against the fitted model.
+
+        Raises
+        ------
+        ValueError
+            If the method has not been fitted (i.e., if n_groups, groups,
+            or _groups_ids attributes are missing) or if imputation models
+            are not fitted.
+        AssertionError
+            If the number of features in X does not match the total number
+            of features in the grouped variables.
+        """
+        super()._check_fit(X)
         if len(self._list_imputation_models) == 0:
-            raise ValueError("The estimators require to be fit before to use them")
+            raise ValueError(
+                "The imputation models require to be fit before to use them"
+            )
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
