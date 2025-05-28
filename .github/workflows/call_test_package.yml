@@ -45,7 +45,7 @@ jobs:
 
     # Install python
     - name: Install the latest version of uv and the right verion of python
-      if:  ${{ !inputs.skip_test }}
+      if:  ${{ inputs.skip_test == false }}
       uses: astral-sh/setup-uv@v6
       with:
           python-version: ${{ matrix.python-version }}
@@ -53,7 +53,7 @@ jobs:
     
     # Install dependency for running the tests
     - name: Install the dependance
-      if: ${{ !inputs.skip_test }}
+      if: ${{ inputs.skip_test == false }}
       run: |
         uv pip install -e ".[test]"
   
@@ -64,7 +64,7 @@ jobs:
     # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
     # inline command for being compatible on linux and windows
     - name: Run pytest
-      if: ${{ !inputs.skip_test }}
+      if: ${{ inputs.skip_test == false }}
       run: |
           uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
 
