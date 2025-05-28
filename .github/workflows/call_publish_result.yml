@@ -73,7 +73,7 @@ jobs:
           # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
           # this is not apply also for dependabot
           if [ $(cat result_post.txt | grep '"id"' | wc -l) == 1 \
-               || ( ${{ github.event.pull_request.head.repo.full_name != github.repository }} \
+               || ( ${{ ! github.event.pull_request.head.repo.fork }} \
                   && github.actor == 'dependabot[bot]') ]
           then
             exit 0
