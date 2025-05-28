@@ -99,6 +99,7 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
+        path: hidimstat
         pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
     # check the size of the file for not pushing empty file
     - name: Check file size
@@ -115,6 +116,5 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
         #env_vars: OS,PYTHON
-        directory: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
-        files: cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        directory: ./cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
         fail_ci_if_error: true
