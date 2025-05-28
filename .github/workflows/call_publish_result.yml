@@ -91,7 +91,7 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: cov-results-${PYTHON}-os-${OS}  #CHECK: need to be updated when new version are available
+        pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
     # check the size of the file for not pushing empty file
     - name: Check file size
       id: check_size
