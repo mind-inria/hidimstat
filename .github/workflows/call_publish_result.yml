@@ -72,13 +72,17 @@ jobs:
           # if there is no "id" in result_post, this mean that there is an error
           # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
           # this is not apply also for dependabot
-          if [[ $(cat result_post.txt | grep '"id"' | wc -l) == 1 \
-               || ( ${{ github.event.pull_request.head.repo.fork }} \
-                  && ${{ github.actor == 'dependabot[bot]'}} ) ]]
+          if [[ $(cat result_post.txt | grep '"id"' | wc -l) == 1 ]]
           then
             exit 0
           else 
-            exit 1
+            if [[ ${{ github.event.pull_request.head.repo.fork }} \
+              && ${{ github.actor == 'dependabot[bot]'}}  ]]
+            then
+              exit 0
+            else
+              exit 1
+            fi
           fi
 
   upload_coverage_data:
@@ -110,7 +114,6 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        env_vars: OS,PYTHON
-        directory:
+        #env_vars: OS,PYTHON
         files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
         fail_ci_if_error: true
