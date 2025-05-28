@@ -70,7 +70,11 @@ jobs:
           # display result for debugging
           cat result_post.txt
           # if there is no "id" in result_post, this mean that there is an error
-          if [ $(cat result_post.txt | grep '"id"' | wc -l) == 1 ]
+          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
+          # this is not apply also for dependabot
+          if [[ $(cat result_post.txt | grep '"id"' | wc -l) == 1 \
+               || ( ${{ github.event.pull_request.head.repo.fork }} \
+                  && ${{ github.actor == 'dependabot[bot]'}} ) ]]
           then
             exit 0
           else 
@@ -79,17 +83,24 @@ jobs:
 
   upload_coverage_data:
     runs-on: ubuntu-latest
+    # name for files
+    env:
+      OS: 'macos-latest'
+      PYTHON: '3.13'
     steps:
+    # initialize the reposititory
+    - uses: actions/checkout@v4
+    
     # get coverage only for 1 job 
     - name: Get data
       uses: actions/download-artifact@v4
       with:
-        pattern: cov-results-3.13-os-macos-latest  #CHECK: need to be updated when new version are available
+        pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
     # check the size of the file for not pushing empty file
     - name: Check file size
       id: check_size
       run: |
-          FILE_SIZE=$(stat -c%s "cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml")
+          FILE_SIZE=$(stat -c%s "cov-results-${PYTHON}-os-${OS}/cov-${PYTHON}-os-${OS}.xml")
           echo "File size is $FILE_SIZE bytes"
           echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
     # Upload coverage report for Codecov
@@ -99,4 +110,7 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        files: cov-results-3.13-os-macos-latest/cov-3.13-os-macos-latest.xml    #CHECK: need to be updated when new version are available
+        env_vars: OS,PYTHON
+        directory:
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        fail_ci_if_error: true
