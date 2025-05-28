@@ -74,7 +74,7 @@ jobs:
           # this is not apply also for dependabot
           if [[ $(cat result_post.txt | grep '"id"' | wc -l) == 1 \
                || ( ${{ ! github.event.pull_request.head.repo.fork }} \
-                  && github.actor == 'dependabot[bot]') ]]
+                  && ${{ github.actor == 'dependabot[bot]' }} ) ]]
             then
               exit 0
             else
