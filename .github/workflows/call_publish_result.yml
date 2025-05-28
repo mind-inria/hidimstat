@@ -115,5 +115,5 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
         #env_vars: OS,PYTHON
-        directory: ./cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
         fail_ci_if_error: true
