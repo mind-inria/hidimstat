@@ -25,7 +25,7 @@ jobs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 3 
           # require to get the previous commit for getting their messages
