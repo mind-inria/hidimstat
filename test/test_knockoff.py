@@ -168,7 +168,7 @@ def test_model_x_knockoff_estimator():
     )
     fdp, power = fdp_power(selected, non_zero)
 
-    assert fdp <= 0.2
+    assert fdp <= fdr
     assert power > 0.7
 
 
