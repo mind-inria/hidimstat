@@ -124,7 +124,7 @@ def reid(
     # avoid dividing by 0
     size_support = min(size_support, n_samples - 1)
 
-    # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
+    # estimate the noise standard deviation (eq. 3 in `reid2016study`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
     if not multioutput:
@@ -255,6 +255,6 @@ def empirical_snr(X, y, beta, noise=None):
 
     # compute signal-to-noise ratio
     # TODO why variance over variance ???? it should norm over norm ????
-    snr_hat = np.var(signal) / np.var(noise)
+    snr_hat = np.linalg.norm(signal) / np.linalg.norm(noise)
 
     return snr_hat
