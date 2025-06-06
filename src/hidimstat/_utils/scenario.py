@@ -271,8 +271,7 @@ def multivariate_simulation_autoregressive(
     if support_size == 0:
         noise_mag = snr
     elif snr != 0.0:
-        # TODO check the equation for the snr ?????
-        noise_mag = snr * np.linalg.norm(eps) / np.linalg.norm(prod_temp)
+        noise_mag = np.linalg.norm(prod_temp) / (np.linalg.norm(eps) * np.sqrt(snr))
     else:
         noise_mag = 0.0
 
