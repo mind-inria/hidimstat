@@ -255,6 +255,6 @@ def empirical_snr(X, y, beta, noise=None):
 
     # compute signal-to-noise ratio
     # TODO why variance over variance ???? it should norm over norm ????
-    snr_hat = np.linalg.norm(signal) / np.linalg.norm(noise)
+    snr_hat = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
 
     return snr_hat

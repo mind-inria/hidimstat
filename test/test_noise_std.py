@@ -22,7 +22,7 @@ def test_reid_first_exp():
     # ##########
     support_size = 2
 
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -155,7 +155,7 @@ def test_reid_exception():
     # ##########
     support_size = 2
 
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -182,18 +182,42 @@ def test_empirical_snr():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    snr = 2.0
+    sigma = 2.0
+    snr_expected = 0.5
 
-    X, y, beta, non_zeros, noise_mag, noise = multivariate_simulation_autoregressive(
+    X, y, beta, _, noise_mag, eps = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        snr=snr,
-        sigma_noise=2.0,
+        sigma_noise=sigma,
+        snr=snr_expected,
         seed=0,
     )
 
     snr = empirical_snr(X, y, beta)
-    expected = 2.0
 
-    assert_almost_equal(snr, expected, decimal=0)
+    assert_almost_equal(snr, snr_expected, decimal=2)
+
+
+def test_empirical_snr_2():
+    """Computing empirical signal to noise ratio from the target `y`,
+    the data `X` and the true parameter vector `beta` in a simple
+    scenario with a 1D data structure."""
+
+    n_samples, n_features = 30, 30
+    support_size = 10
+    sigma = 2.0
+    snr_expected = 10.0
+
+    X, y, beta, _, noise_mag, eps = multivariate_simulation_autoregressive(
+        n_samples=n_samples,
+        n_features=n_features,
+        support_size=support_size,
+        sigma_noise=sigma,
+        snr=snr_expected,
+        seed=0,
+    )
+
+    snr = empirical_snr(X, y, beta)
+
+    assert_almost_equal(snr, snr_expected, decimal=0)
