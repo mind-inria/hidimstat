@@ -113,12 +113,12 @@ def reid(
     residual = clf_cv.predict(X_) - y
 
     # get the number of non-zero coefficients
+    # we considere that the tolerance * coefficients_.max()
     coefficients_ = (
         np.sum(np.abs(beta_hat), axis=0)
         if len(beta_hat.shape) > 1
         else np.abs(beta_hat)
     )
-    # TODO the selection of coefficient is strange?????????????????????????
     size_support = np.sum(coefficients_ > tolerance * coefficients_.max())
 
     # avoid dividing by 0
@@ -254,7 +254,6 @@ def empirical_snr(X, y, beta, noise=None):
         noise = y - signal
 
     # compute signal-to-noise ratio
-    # TODO why variance over variance ???? it should norm over norm ????
     snr_hat = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
 
     return snr_hat
