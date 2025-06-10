@@ -47,7 +47,6 @@ As of now in the `examples` folder there are three Python scripts that illustrat
   - ``plot_2D_simulation_example.py`` handles a simulated dataset with a 2D
 spatial structure,
   - ``plot_fmri_data_example.py`` solves the decoding problem on Haxby fMRI dataset,
-  - ``plot_meg_data_example.py`` tackles the source localization problem on several
 MEG/EEG datasets.
 
 ```bash
