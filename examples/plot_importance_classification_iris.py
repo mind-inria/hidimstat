@@ -116,7 +116,7 @@ models = [
     GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
-groups = {ft: i for i, ft in enumerate(dataset.feature_names)}
+groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
         X, y, model, train_index, test_index, vim_name=vim_name, groups=groups
