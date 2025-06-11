@@ -185,6 +185,7 @@ def multivariate_simulation_autoregressive(
     sigma_noise=1.0,
     rho_noise_time=0.0,
     shuffle=False,
+    continue_support=False,
     seed=None,
 ):
     """
@@ -212,6 +213,9 @@ def multivariate_simulation_autoregressive(
         Temporal noise correlation coefficient.
     shuffle : bool, default=False
         Whether to shuffle features randomly.
+    continue_support: bool, default=False
+        If True, places non-zero coefficients continuously at the start of beta.
+        If False, randomly distributes them throughout beta.
     seed : int or None, default=None
         Random seed for reproducibility.
 
@@ -254,7 +258,10 @@ def multivariate_simulation_autoregressive(
         rng.shuffle(X.T)
 
     # Generate the response from a linear model
-    non_zero = rng.choice(n_features, support_size, replace=False)
+    if continue_support:
+        non_zero = range(support_size)
+    else:
+        non_zero = rng.choice(n_features, support_size, replace=False)
     if n_times is None:
         beta_true = np.zeros(n_features)
         beta_true[non_zero] = value

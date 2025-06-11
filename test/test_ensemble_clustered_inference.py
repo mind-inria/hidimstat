@@ -39,13 +39,14 @@ def test_clustered_inference_no_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, _, _, _, _ = multivariate_simulation_autoregressive(
+    X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
         sigma_noise=sigma,
         rho=rho,
         shuffle=False,
+        continue_support=True,
         seed=2,
     )
 
@@ -96,7 +97,7 @@ def test_clustered_inference_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -105,6 +106,7 @@ def test_clustered_inference_temporal():
         rho_noise_time=rho_noise,
         rho=rho_data,
         shuffle=False,
+        continue_support=True,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
@@ -166,6 +168,7 @@ def test_clustered_inference_no_temporal_groups():
             sigma_noise=sigma,
             rho=rho,
             shuffle=False,
+            continue_support=True,
             seed=2 + i,
         )
         X_.append(X_init)
@@ -223,6 +226,7 @@ def test_ensemble_clustered_inference():
         sigma_noise=sigma,
         rho=rho,
         shuffle=False,
+        continue_support=True,
         seed=0,
     )
 
@@ -294,6 +298,7 @@ def test_ensemble_clustered_inference_temporal_data():
         rho_noise_time=rho_noise,
         rho=rho_data,
         shuffle=False,
+        continue_support=True,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
