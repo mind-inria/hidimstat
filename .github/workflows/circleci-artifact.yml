@@ -26,7 +26,7 @@ jobs:
   circleci_artifact_tests_reports:
     runs-on: ubuntu-latest
     # For testing this action on a fork, remove the "github.repository =="" condition.
-    if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: python3'"
+    if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: build-documentation'"
     name: Run CircleCI artifacts reports
     steps:
       - name: GitHub Action step
