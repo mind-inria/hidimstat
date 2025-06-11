@@ -189,7 +189,7 @@ def multivariate_simulation_autoregressive(
     seed=None,
 ):
     """
-    Generate data with Toeplitz covariance structure and optional temporal correlation.
+    Generate a linear simulation with a Toeplitz covariance structure and optional temporal correlation.
 
     Parameters
     ----------
