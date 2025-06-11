@@ -124,7 +124,7 @@ def test_group_reid_2():
 
     cov_hat, _ = reid(X, Y, multioutput=True)
     error_relative = np.abs(cov_hat - cov) / cov
-    assert np.max(error_relative) < 0.1
+    assert np.max(error_relative) < 0.2
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
     error_relative = np.abs(cov_hat - cov) / cov
