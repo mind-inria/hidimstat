@@ -119,7 +119,28 @@ def test_cpi_linear_data_exact(data_generator, cpi_n_permutation, cpi_seed):
 
 
 parameter_partial = [
-    ("high level noise", 150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0),
+    (
+        "high dimension with correlated features and noise",
+        150,
+        200,
+        10,
+        0.2,
+        42,
+        1.0,
+        10.0,
+        0.0,
+    ),
+    (
+        "high dimension with correlated features and correlated noise",
+        150,
+        200,
+        10,
+        0.2,
+        42,
+        1.0,
+        10.0,
+        0.2,
+    ),
 ]
 
 
@@ -128,8 +149,36 @@ parameter_partial = [
     zip(*(list(zip(*parameter_partial))[1:])),
     ids=list(zip(*parameter_partial))[0],
 )
+@pytest.mark.parametrize("cpi_n_permutation, cpi_seed", [(10, 0)], ids=["default_cpi"])
+def test_cpi_linear_data_partial(data_generator, cpi_n_permutation, cpi_seed):
+    """Tests the method on linear cases with noise and correlation"""
+    X, y, important_features, _ = data_generator
+    importance = configure_linear_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
+    # check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # check that important features have the highest importance scores
+    min_rank = 0
+    importance_sort = np.flip(np.argsort(importance))
+    for index in important_features:
+        rank = np.where(importance_sort == index)[0]
+        if rank > min_rank:
+            min_rank = rank
+    # accept missing ranking of 5 elements
+    assert min_rank < 15
+
+
+parameter_bad_detection = [
+    ("high level noise", 150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0),
+]
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    zip(*(list(zip(*parameter_bad_detection))[1:])),
+    ids=list(zip(*parameter_bad_detection))[0],
+)
 @pytest.mark.parametrize("cpi_n_permutation, cpi_seed", [(20, 0)], ids=["default_cpi"])
-def test_cpi_linear_partial_fail(data_generator, cpi_n_permutation, cpi_seed):
+def test_cpi_linear_fail(data_generator, cpi_n_permutation, cpi_seed):
     """Tests when the method doesn't identify all important features"""
     X, y, important_features, not_important_features = data_generator
     importance = configure_linear_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
