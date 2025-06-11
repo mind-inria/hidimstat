@@ -107,6 +107,8 @@ def test_clustered_inference_temporal():
         rho=rho_data,
         shuffle=False,
         continue_support=True,
+        snr=50.0,
+        seed=10,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)

@@ -32,11 +32,11 @@ def test_desparsified_lasso():
         sigma_noise=sigma,
         rho=rho,
         shuffle=False,
-        seed=2,
+        snr=50.0,
+        seed=10,
     )
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta) * 0.5
+    expected_pval_corr[np.where(beta)] = 0.0
 
     beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
@@ -83,6 +83,8 @@ def test_desparsified_group_lasso():
         support_size=support_size,
         sigma_noise=sigma,
         rho_noise_time=rho,
+        snr=500.0,
+        seed=10,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
@@ -92,9 +94,8 @@ def test_desparsified_group_lasso():
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )
 
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta[:, 0]) * 0.5
+    expected_pval_corr[np.where(beta[:, 0])] = 0.0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
