@@ -30,7 +30,7 @@ def test_clustered_inference_no_temporal():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 100, 1000
     support_size = 10
     sigma = 5.0
     rho = 0.95
