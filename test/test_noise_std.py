@@ -32,7 +32,7 @@ def test_reid():
     )
 
     # max_iter=1 to get a better coverage
-    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=200)
+    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
     expected_sigma = sigma * noise_mag
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.1
@@ -83,7 +83,7 @@ def test_group_reid():
     cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=300)
+    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
