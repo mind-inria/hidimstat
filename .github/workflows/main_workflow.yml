@@ -2,7 +2,11 @@
 
 name: 'Main_workflow'
 on:
-  pull_request:
+  pull_request_target:
+    # Using 'pull_request_target' instead of 'pull_request':
+    # 1. Uses configuration from the main branch
+    # 2. Provides access to secrets from the main repository
+    # 3. Prevents using potentially malicious workflow from forked PRs
     branches: main
   # allows to push on branches
   push:
