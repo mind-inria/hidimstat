@@ -48,8 +48,8 @@ jobs:
           #display command executed with argument
           set -x -a
           # get the number of the PR
-          # $(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
           if [ $PULL_REQUEST_NUMBER == "main" ] 
           then 
