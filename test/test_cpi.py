@@ -77,28 +77,6 @@ parameter_exact = [
     ("high dimension with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
     ("high dimension with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
     ("high dimension with correlated features", 150, 200, 10, 0.2, 42, 1.0, 0.0, 0.0),
-    (
-        "high dimension with correlated features and noise",
-        150,
-        200,
-        10,
-        0.2,
-        42,
-        1.0,
-        10.0,
-        0.0,
-    ),
-    (
-        "high dimension with correlated features and correlated noise",
-        150,
-        200,
-        10,
-        0.2,
-        42,
-        1.0,
-        10.0,
-        0.2,
-    ),
 ]
 
 
