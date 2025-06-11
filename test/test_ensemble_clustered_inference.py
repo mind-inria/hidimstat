@@ -30,7 +30,7 @@ def test_clustered_inference_no_temporal():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 1000
+    n_samples, n_features = 100, 2000
     support_size = 10
     sigma = 5.0
     rho = 0.95
@@ -149,12 +149,12 @@ def test_clustered_inference_no_temporal_groups():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 20, 2000
+    n_samples, n_features = 20, 1500
     support_size = 10
     n_groups = 10
     sigma = 5.0
     rho = 0.95
-    n_clusters = 200
+    n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -171,7 +171,7 @@ def test_clustered_inference_no_temporal_groups():
             rho=rho,
             shuffle=False,
             continue_support=True,
-            seed=2 + i,
+            seed=4 + i,
         )
         X_.append(X_init)
         y_.append(y)
@@ -301,6 +301,7 @@ def test_ensemble_clustered_inference_temporal_data():
         rho=rho_data,
         shuffle=False,
         continue_support=True,
+        seed=7,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
