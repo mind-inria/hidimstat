@@ -51,7 +51,7 @@ jobs:
           PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
-          if [ $PULL_REQUEST_NUMBER == "main" ] 
+          if [ $PULL_REQUEST_NUMBER == "null" ] 
           then 
             BRANCH=main
           else
