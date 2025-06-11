@@ -244,8 +244,10 @@ def multivariate_simulation_autoregressive(
 
     # Generate the variables from a multivariate normal distribution
     mu = np.zeros(n_features)
-    sigma = toeplitz(rho ** np.arange(0, n_features))  # covariance matrix of X
-    X = rng.multivariate_normal(mu, sigma, size=(n_samples))
+    covariance_features = toeplitz(
+        rho ** np.arange(0, n_features)
+    )  # covariance matrix of X
+    X = rng.multivariate_normal(mu, covariance_features, size=(n_samples))
 
     # suffle the samples
     if shuffle:
@@ -261,11 +263,11 @@ def multivariate_simulation_autoregressive(
         beta_true = np.zeros((n_features, n_times))
         beta_true[non_zero, :] = value
         # possibility to generate correlated noise
-        sigma_time = toeplitz(
+        covariance_temporal = toeplitz(
             rho_noise_time ** np.arange(0, n_times)
-        )  # covariance matrix of X
+        )  # covariance matrix of time
         eps = sigma_noise * rng.multivariate_normal(
-            np.zeros(n_times), sigma_time, size=(n_samples)
+            np.zeros(n_times), covariance_temporal, size=(n_samples)
         )
     prod_temp = np.dot(X, beta_true)
     if support_size == 0:
@@ -277,4 +279,11 @@ def multivariate_simulation_autoregressive(
 
     y = prod_temp + noise_mag * eps
 
-    return X, y, beta_true, non_zero, noise_mag, eps
+    return (
+        X,
+        y,
+        beta_true,
+        non_zero,
+        noise_mag,
+        eps,
+    )
