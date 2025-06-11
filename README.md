@@ -1,5 +1,5 @@
 # HiDimStat: High-dimensional statistical inference tool for Python
-[![Build](https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml/badge.svg?branch=main)](https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml) [![CircleCI/Documentation](https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield)](https://circleci.com/gh/mind-inria/hidimstat) [![codecov](https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS)](https://codecov.io/github/mind-inria/hidimstat) [![CodeStyle](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Build](https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main)](https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml) [![CircleCI/Documentation](https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield)](https://circleci.com/gh/mind-inria/hidimstat) [![codecov](https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS)](https://codecov.io/github/mind-inria/hidimstat) [![CodeStyle](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 The HiDimStat package provides statistical inference methods to solve the problem of support recovery in the context of high-dimensional and spatially structured data.
 
@@ -47,7 +47,6 @@ As of now in the `examples` folder there are three Python scripts that illustrat
   - ``plot_2D_simulation_example.py`` handles a simulated dataset with a 2D
 spatial structure,
   - ``plot_fmri_data_example.py`` solves the decoding problem on Haxby fMRI dataset,
-  - ``plot_meg_data_example.py`` tackles the source localization problem on several
 MEG/EEG datasets.
 
 ```bash
