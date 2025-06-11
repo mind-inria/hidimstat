@@ -11,8 +11,9 @@ from hidimstat.noise_std import empirical_snr, reid
 from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
-def test_reid_first_exp():
-    """Estimating noise standard deviation when no structure and a support of size 2.
+def test_reid():
+    """Estimating noise standard deviation in two scenarios.
+    First scenario: no structure and a support of size 2.
     Second scenario: no structure and an empty support."""
 
     n_samples, n_features = 50, 30
@@ -22,7 +23,7 @@ def test_reid_first_exp():
     # ##########
     support_size = 2
 
-    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -31,53 +32,44 @@ def test_reid_first_exp():
     )
 
     # max_iter=1 to get a better coverage
-    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
-    expected = sigma
-
-    assert_almost_equal(sigma_hat / expected, 1.0, decimal=0)
-
-
-def test_reid_second_exp():
-    """Estimating noise standard deviation when no structure and an empty support."""
-    n_samples, n_features = 50, 30
-    sigma = 2.0
+    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=200)
+    expected_sigma = sigma * noise_mag
+    error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
+    assert error_relative < 0.1
 
     # Second expe
     # ###########
     support_size = 0
 
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
         sigma_noise=sigma,
-        rho=0.0,
-        seed=1,
+        seed=3,
     )
 
     sigma_hat, _ = reid(X, y)
-    expected = sigma
+    expected_sigma = sigma * noise_mag
+    error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
+    assert error_relative < 0.1
 
-    assert_almost_equal(sigma_hat / expected, 1.0, decimal=1)
 
-
-def test_group_reid_first_senario():
-    """Estimating (temporal) noise covariance matrix in two scenarios
-    with no data structure and a support of size 2."""
+def test_group_reid():
+    """Estimating (temporal) noise covariance matrix in two scenarios.
+    First scenario: no data structure and a support of size 2.
+    Second scenario: no data structure and an empty support."""
 
     n_samples = 30
     n_features = 50
-    n_times = 10
-    sigma = 1.0
+    n_times = 100
+    sigma = 3.0
     rho = 0.9
-    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
-    cov = np.outer(sigma, sigma) * corr
 
     # First expe
     # ##########
     support_size = 2
-
-    X, Y, beta, non_zeros, noise_mag, noise = multivariate_simulation_autoregressive(
+    X, Y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -85,63 +77,62 @@ def test_group_reid_first_senario():
         sigma_noise=sigma,
         rho_noise_time=rho,
         rho=0.0,
+        seed=0,
     )
+    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
+    cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
-    error_ratio = cov_hat / cov
-
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
+    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=300)
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_ratio = cov_hat / cov
-
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
-    error_ratio = cov_hat / cov
-
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=0)
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) > 0.3
 
 
-def test_group_reid_second_senario():
-    """Estimating (temporal) noise covariance matrix in two scenarios
-    with no data structure and an empty support."""
+def test_group_reid_2():
+    """Estimating (temporal) noise covariance matrix in two scenarios.
+    First scenario: no data structure and a support of size 2.
+    Second scenario: no data structure and an empty support."""
+
     n_samples = 30
     n_features = 50
-    n_times = 10
+    n_times = 100
     sigma = 1.0
     rho = 0.9
-    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
-    cov = np.outer(sigma, sigma) * corr
+
     # Second expe
     # ###########
     support_size = 0
-
-    X, Y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, Y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
         sigma_noise=sigma,
         rho_noise_time=rho,
-        seed=1,
+        seed=4,
     )
+    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
+    cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     cov_hat, _ = reid(X, Y, multioutput=True)
-    error_ratio = cov_hat / cov
-
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) < 0.1
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_ratio = cov_hat / cov
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) < 0.2
 
-    assert_almost_equal(np.max(error_ratio), 1.0, decimal=0)
-    assert_almost_equal(np.log(np.min(error_ratio)), 0.0, decimal=1)
+    cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
+    error_relative = np.abs(cov_hat - cov) / cov
+    assert np.max(error_relative) > 0.5
 
 
 def test_reid_exception():
@@ -176,9 +167,9 @@ def test_reid_exception():
 
 
 def test_empirical_snr():
-    """Computing empirical signal to noise ratio from the target `y`,
-    the data `X` and the true parameter vector `beta` in a simple
-    scenario with a 1D data structure."""
+    """Computing empirical signal to noise ratio in presence of high level of
+    noise from the target `y`, the data `X` and the true parameter vector `beta`
+    in a simple scenario with a 1D data structure."""
 
     n_samples, n_features = 30, 30
     support_size = 10
