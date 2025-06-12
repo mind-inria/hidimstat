@@ -60,8 +60,9 @@ jobs:
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
           # Send the information to circleci
-          http_response=$(curl --request POST \ 
-          --output result_post.txt\
+          http_response=$(curl --request POST \
+          --output result_post.txt \
+          --write-out "%{response_code}" \
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline/run \
           --header "Circle-Token: $TOKEN_CIRCLECI" \
           --header 'content-type: application/json' \
