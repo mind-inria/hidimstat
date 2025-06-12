@@ -3,6 +3,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
+import warnings
 
 from hidimstat._utils.utils import _check_vim_predict_method
 
@@ -193,7 +194,8 @@ class BasePerturbation(BaseEstimator):
         count = 0
         for group_id in self.groups.values():
             count += len(group_id)
-        assert X.shape[1] == count, "Number of features does not match"
+        if X.shape[1] != count:
+            warnings.warn("Not all features will has a importance score.")
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
