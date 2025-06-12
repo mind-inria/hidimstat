@@ -1,0 +1,18 @@
+# For more information see: https://black.readthedocs.io/en/stable/integrations/github_actions.html
+name: Lint
+
+on: 
+  # Allows you to run this workflow from another workflow
+  workflow_call
+
+# disable all the permission for the workflow
+permissions: {}
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: psf/black@stable
+        with:
+          jupyter: true
