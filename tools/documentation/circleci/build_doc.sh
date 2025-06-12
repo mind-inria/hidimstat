@@ -24,6 +24,11 @@ source .venv/bin/activate
 # If the inspection of the current commit fails for any reason, the default
 # behavior is to quick build the documentation.
 
+# check that the workflow is done on a Pull Request
+if [ $(echo $CIRCLE_BRANCH | cut -d'/' -f 1) == 'pull' ]
+then CI_PULL_REQUEST="PR"
+fi
+
 get_build_type() {
     # Full build if it is not in a PR
     if [ -z "$CI_PULL_REQUEST" ]
