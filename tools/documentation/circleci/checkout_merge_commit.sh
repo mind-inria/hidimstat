@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Set the environment variable
+if [ $(echo $CIRCLE_BRANCH | cut -d'/' -f 1) == 'pull' ]
+then 
+CIRCLE_PR_NUMBER=echo $CIRCLE_BRANCH | cut -d'/' -f 2
+fi
 
 # Add `main` branch to the update list.
 # Otherwise CircleCI will give us a cached one.
