@@ -60,13 +60,14 @@ jobs:
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
           # Send the information to circleci
-          curl --request POST \
+          http_response=$(curl --request POST 
+          --output result_post.txt\
           --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline/run \
           --header "Circle-Token: $TOKEN_CIRCLECI" \
           --header 'content-type: application/json' \
           --header 'x-attribution-actor-id: github_actions' \
           --header 'x-attribution-login: github_actions' \
-          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
+          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\})
           # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
           # definition_id is the id of the pipeline of hidimstat
           # display result for debugging
@@ -74,7 +75,7 @@ jobs:
           # if there is no "id" in result_post, this mean that there is an error
           # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
           # this is not apply also for dependabot
-          if [[ $(cat result_post.txt | grep '"id"' | wc -l) == 1 \
+          if [[ $http_response != '201' \
                || ( ${{ ! github.event.pull_request.head.repo.fork }} \
                   && ${{ github.actor == 'dependabot[bot]' }} ) ]]
             then
