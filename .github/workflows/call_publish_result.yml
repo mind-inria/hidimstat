@@ -66,10 +66,7 @@ jobs:
           --header 'content-type: application/json' \
           --header 'x-attribution-actor-id: github_actions' \
           --header 'x-attribution-login: github_actions' \
-          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\", \
-                  \"config\":\{\"branch\":$BRANCH\"\},\
-                  \"checkout\":\{\"branch\":\"$BRANCH\"\},\
-                  \"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
+          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\} > result_post.txt
           # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
           # definition_id is the id of the pipeline of hidimstat
           # display result for debugging
