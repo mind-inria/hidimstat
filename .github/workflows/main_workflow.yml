@@ -8,8 +8,6 @@ on:
     # 2. Provides access to secrets from the main repository
     # 3. Prevents using potentially malicious workflow from forked PRs
     branches: main
-  pull_request:
-    branches: main
   # allows to push on branches
   push:
     branches: main
