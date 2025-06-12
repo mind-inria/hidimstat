@@ -68,7 +68,7 @@ jobs:
           --header 'content-type: application/json' \
           --header 'x-attribution-actor-id: github_actions' \
           --header 'x-attribution-login: github_actions' \
-          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\})
+          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":\"$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\})
           # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
           # definition_id is the id of the pipeline of hidimstat
           # display result for debugging
@@ -76,7 +76,7 @@ jobs:
           # if there is no "id" in result_post, this mean that there is an error
           # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
           # this is not apply also for dependabot
-          if [[ $http_response != '201' \
+          if [[ $http_response == '201' \
                || ( ${{ ! github.event.pull_request.head.repo.fork }} \
                   && ${{ github.actor == 'dependabot[bot]' }} ) ]]
             then
