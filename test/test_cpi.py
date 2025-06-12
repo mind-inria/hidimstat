@@ -492,3 +492,20 @@ class TestCPIExceptions:
         invalid_groups = ["group1", "group2"]  # Should be dictionary
         with pytest.raises(ValueError, match="groups needs to be a dictionnary"):
             cpi.fit(X, groups=invalid_groups, var_type="auto")
+
+    def test_groups_warning(self, data_generator):
+        """Test if a subgroup raise a warning"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+        )
+        subgroups = {"group1": [0, 1], "group2": [2, 3]}
+        cpi.fit(X, y, groups=subgroups, var_type="auto")
+
+        with pytest.warns(
+            UserWarning, match="Not all features will has a importance score."
+        ):
+            cpi.importance(X, y)
