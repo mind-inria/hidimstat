@@ -31,7 +31,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_pvalue,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-from hidimstat._utils.scenario import multivariate_1D_simulation_AR
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
 #############################################################################
@@ -75,9 +75,15 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
     # Generate data
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(
-        n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
+    X, y, beta_true, _, _, _ = multivariate_simulation_autoregressive(
+        n_samples,
+        n_features,
+        rho=rho,
+        support_size=int(n_features * sparsity),
+        snr=snr,
+        seed=seed,
     )
+    non_zero_index = np.where(beta_true)[0]
 
     # Use model-X Knockoffs [1]
     selected, test_scores, threshold, X_tildes = model_x_knockoff(

@@ -12,10 +12,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
-)
+from hidimstat._utils.scenario import multivariate_simulation_autoregressive
 
 
 def test_desparsified_lasso():
@@ -28,18 +25,18 @@ def test_desparsified_lasso():
     sigma = 0.1
     rho = 0.0
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         rho=rho,
         shuffle=False,
-        seed=2,
+        snr=50.0,
+        seed=10,
     )
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta) * 0.5
+    expected_pval_corr[np.where(beta)] = 0.0
 
     beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
@@ -79,13 +76,15 @@ def test_desparsified_group_lasso():
     corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
     cov = np.outer(sigma, sigma) * corr
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, Y, beta, _, _, _ = multivariate_simulation_autoregressive(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        sigma_noise=sigma,
+        rho_noise_time=rho,
+        snr=500.0,
+        seed=10,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
@@ -95,9 +94,8 @@ def test_desparsified_group_lasso():
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )
 
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta[:, 0]) * 0.5
+    expected_pval_corr[np.where(beta[:, 0])] = 0.0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
