@@ -279,10 +279,13 @@ def multivariate_simulation_autoregressive(
     prod_temp = np.dot(X, beta_true)
     if support_size == 0:
         noise_mag = snr
+    elif np.isinf(snr):
+        noise_mag = 0.0
     elif snr != 0.0:
         noise_mag = np.linalg.norm(prod_temp) / (np.linalg.norm(eps) * np.sqrt(snr))
     else:
-        noise_mag = 0.0
+        prod_temp = np.zeros_like(prod_temp)
+        noise_mag = 1
 
     y = prod_temp + noise_mag * eps
 
