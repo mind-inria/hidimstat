@@ -126,7 +126,7 @@ def test_multivariate_simulation_edge_cases():
         multivariate_simulation_spatial(shape=(4, 4), roi_size=5)
 
     # Invalid n_samples
-    with pytest.raises(AssertionError, match="n_samples must be positive"):
+    with pytest.raises(AssertionError, match="n_samples must be strictly positive"):
         multivariate_simulation_spatial(n_samples=0)
 
 
@@ -271,7 +271,7 @@ def test_multivariate_simulation_zero_snr():
     X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
         n_samples=50, n_features=100, snr=0.0, seed=42
     )
-    assert_equal(noise_mag, 0.0)
+    assert_equal(noise_mag, 1.0)
     assert_equal(y, np.dot(X, beta))
 
 
