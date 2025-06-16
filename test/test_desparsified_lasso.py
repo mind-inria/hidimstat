@@ -36,7 +36,7 @@ def test_desparsified_lasso():
         seed=10,
     )
     expected_pval_corr = np.ones_like(beta) * 0.5
-    expected_pval_corr[np.where(beta)] = 0.0
+    expected_pval_corr[beta != 0] = 0.0
 
     beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
@@ -95,7 +95,7 @@ def test_desparsified_group_lasso():
     )
 
     expected_pval_corr = np.ones_like(beta[:, 0]) * 0.5
-    expected_pval_corr[np.where(beta[:, 0])] = 0.0
+    expected_pval_corr[beta[:, 0] != 0] = 0.0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)

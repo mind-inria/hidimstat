@@ -175,7 +175,7 @@ class CPI(BasePerturbation):
         super()._check_fit(X)
         if len(self._list_imputation_models) == 0:
             raise ValueError(
-                "The imputation models require to be fit before to use them"
+                "The imputation models require to be fitted before being used."
             )
         for m in self._list_imputation_models:
             check_is_fitted(m.model)

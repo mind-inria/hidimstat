@@ -146,7 +146,7 @@ def multivariate_simulation(
     w : ndarray of shape shape + (5,)
         Weight map with 5 channels for different ROIs.
     """
-    assert n_samples > 0, "n_samples must be positive"
+    assert n_samples > 0, "n_samples must be strictly positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
@@ -179,13 +179,13 @@ def multivariate_simulation_autoregressive(
     n_features,
     n_times=None,
     support_size=10,
-    rho=0.25,
+    rho=0,
     value=1.0,
     snr=10.0,
     sigma_noise=1.0,
     rho_noise_time=0.0,
     shuffle=False,
-    continue_support=False,
+    continuous_support=False,
     seed=None,
 ):
     """
@@ -201,7 +201,7 @@ def multivariate_simulation_autoregressive(
         Number of time points. If None, generates single timepoint data.
     support_size : int, default=10
         Number of non-zero coefficients in beta.
-    rho : float, default=0.25
+    rho : float, default=0
         Feature correlation coefficient for Toeplitz covariance matrix.
     value : float, default=1.0
         Value assigned to non-zero coefficients in beta.
@@ -213,7 +213,7 @@ def multivariate_simulation_autoregressive(
         Temporal noise correlation coefficient.
     shuffle : bool, default=False
         Whether to shuffle features randomly.
-    continue_support: bool, default=False
+    continuous_support: bool, default=False
         If True, places non-zero coefficients continuously at the start of beta.
         If False, randomly distributes them throughout beta.
     seed : int or None, default=None
@@ -234,11 +234,11 @@ def multivariate_simulation_autoregressive(
     eps : ndarray of shape (n_samples,) or (n_samples, n_times)
         Noise vector/matrix with optional temporal correlation.
     """
-    assert n_samples > 0.0, "n_samples must be positive"
-    assert n_features > 0.0, "n_features must be positive"
+    assert n_samples > 0, "n_samples must be positive"
+    assert n_features > 0, "n_features must be positive"
     assert n_times is None or n_times > 0.0, "n_times must be positive"
     assert support_size <= n_features, "support_size cannot be larger than n_features"
-    assert rho >= 0.0 and rho <= 1.0, "rho must be between 0 and 1"
+    assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
     assert (
         rho_noise_time >= 0.0 and rho_noise_time <= 1.0
     ), "rho_noise_time must be between 0 and 1"
@@ -253,7 +253,7 @@ def multivariate_simulation_autoregressive(
     )  # covariance matrix of X
     X = rng.multivariate_normal(mu, covariance_features, size=(n_samples))
 
-    # suffle the samples
+    # Optionally shuffle the samples
     if shuffle:
         rng.shuffle(X.T)
 
