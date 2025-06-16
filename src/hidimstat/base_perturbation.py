@@ -187,7 +187,7 @@ class BasePerturbation(BaseEstimator):
             or not hasattr(self, "_groups_ids")
         ):
             raise ValueError(
-                "The method is not fitted. The fit method must be called"
+                "The class is not fitted. The fit method must be called"
                 " to set variable groups. If no grouping is needed,"
                 " call fit with groups=None"
             )
