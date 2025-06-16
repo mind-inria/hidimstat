@@ -15,7 +15,7 @@ the power
 import matplotlib.pyplot as plt
 import numpy as np
 from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 plt.rcParams.update({"font.size": 21})
 
@@ -43,7 +43,7 @@ for sim_ind in range(10):
     # Nominal false positive rate
     alpha = 5e-2
 
-    X, y, beta_true, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta_true, _, _, _ = multivariate_simulation(
         n_samples=n,
         n_features=p,
         support_size=n_signal,

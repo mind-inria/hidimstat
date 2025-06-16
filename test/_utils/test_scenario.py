@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal, assert_equal
 
 from hidimstat._utils.scenario import (
     multivariate_simulation_spatial,
-    multivariate_simulation_autoregressive,
+    multivariate_simulation,
 )
 
 
@@ -198,7 +198,7 @@ def test_multivariate_simulation_weights():
         "temporal_with_shuffle",
     ],
 )
-def test_multivariate_simulation_autoregressive_all(
+def test_multivariate_simulation_all(
     n_samples, n_features, n_times, support_size, rho, rho_noise, sigma, seed, shuffle
 ):
     """Test multivariate autoregressive simulation with various configurations"""
@@ -222,9 +222,7 @@ def test_multivariate_simulation_autoregressive_all(
             }
         )
 
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
-        **params
-    )
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(**params)
     # assertion on the shape of the data
     assert X.shape == (n_samples, n_features)
     assert y.shape[0] == n_samples
@@ -259,27 +257,27 @@ def test_multivariate_simulation_autoregressive_all(
             assert_almost_equal(rho_noise_hat, rho_noise, decimal=1)
 
 
-def test_multivariate_simulation_autoregressive_zero_support():
+def test_multivariate_simulation_zero_support():
     """Test autoregressive simulation with zero support size."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
         n_samples=50, n_features=100, support_size=0, seed=42
     )
     assert_equal(np.count_nonzero(beta), 0)
     assert_equal(non_zero.size, 0)
 
 
-def test_multivariate_simulation_autoregressive_zero_snr():
+def test_multivariate_simulation_zero_snr():
     """Test autoregressive simulation with zero SNR."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
         n_samples=50, n_features=100, snr=0.0, seed=42
     )
     assert_equal(noise_mag, 0.0)
     assert_equal(y, np.dot(X, beta))
 
 
-def test_multivariate_simulation_autoregressive_minimal():
+def test_multivariate_simulation_minimal():
     """Test autoregressive simulation with minimal dimensions."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation_autoregressive(
+    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
         n_samples=2, n_features=2, n_times=2, support_size=1, seed=42
     )
     assert_equal(X.shape, (2, 2))
@@ -293,23 +291,19 @@ def test_multivariate_simulation_ar_support_size():
     with pytest.raises(
         AssertionError, match="support_size cannot be larger than n_features"
     ):
-        multivariate_simulation_autoregressive(
-            n_samples=10, n_features=5, support_size=10, seed=42
-        )
+        multivariate_simulation(n_samples=10, n_features=5, support_size=10, seed=42)
 
 
 def test_multivariate_simulation_ar_rho():
     """Test rho validation."""
     with pytest.raises(AssertionError, match="rho must be between 0 and 1"):
-        multivariate_simulation_autoregressive(
-            n_samples=10, n_features=20, rho=1.5, seed=42
-        )
+        multivariate_simulation(n_samples=10, n_features=20, rho=1.5, seed=42)
 
 
 def test_multivariate_simulation_ar_rho_noise():
     """Test rho_noise_time validation."""
     with pytest.raises(AssertionError, match="rho_noise_time must be between 0 and 1"):
-        multivariate_simulation_autoregressive(
+        multivariate_simulation(
             n_samples=10, n_features=20, n_times=5, rho_noise_time=1.2, seed=42
         )
 
@@ -317,26 +311,22 @@ def test_multivariate_simulation_ar_rho_noise():
 def test_multivariate_simulation_ar_snr():
     """Test snr validation."""
     with pytest.raises(AssertionError, match="snr must be positive"):
-        multivariate_simulation_autoregressive(
-            n_samples=10, n_features=20, snr=-1.0, seed=42
-        )
+        multivariate_simulation(n_samples=10, n_features=20, snr=-1.0, seed=42)
 
 
 def test_multivariate_simulation_ar_n_samples():
     """Test n_samples validation."""
     with pytest.raises(AssertionError, match="n_samples must be positive"):
-        multivariate_simulation_autoregressive(n_samples=0, n_features=20, seed=42)
+        multivariate_simulation(n_samples=0, n_features=20, seed=42)
 
 
 def test_multivariate_simulation_ar_n_features():
     """Test n_features validation."""
     with pytest.raises(AssertionError, match="n_features must be positive"):
-        multivariate_simulation_autoregressive(n_samples=10, n_features=0, seed=42)
+        multivariate_simulation(n_samples=10, n_features=0, seed=42)
 
 
 def test_multivariate_simulation_ar_n_times():
     """Test n_times validation."""
     with pytest.raises(AssertionError, match="n_times must be positive"):
-        multivariate_simulation_autoregressive(
-            n_samples=10, n_features=20, n_times=0, seed=42
-        )
+        multivariate_simulation(n_samples=10, n_features=20, n_times=0, seed=42)

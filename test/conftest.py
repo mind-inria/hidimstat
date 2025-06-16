@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def data_generator(
     not_important_features : ndarray
         Indices of features with zero coefficients.
     """
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,

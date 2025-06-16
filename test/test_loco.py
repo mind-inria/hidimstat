@@ -5,14 +5,14 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 from hidimstat import LOCO, BasePerturbation
 
 
 def test_loco():
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
@@ -98,7 +98,7 @@ def test_loco():
 
 def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,

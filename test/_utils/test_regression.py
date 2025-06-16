@@ -1,6 +1,6 @@
 import numpy as np
 from hidimstat._utils.regression import _alpha_max
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 seed = 42
 
@@ -10,9 +10,7 @@ def test_alpha_max():
     n = 500
     p = 100
     snr = 5
-    X, y, beta_true, _, _, _ = multivariate_simulation_autoregressive(
-        n, p, snr=snr, seed=0
-    )
+    X, y, beta_true, _, _, _ = multivariate_simulation(n, p, snr=snr, seed=0)
     max_alpha = _alpha_max(X, y)
     max_alpha_noise = _alpha_max(X, y, use_noise_estimate=True)
     # Assert alpha_max is positive

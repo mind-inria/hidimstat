@@ -16,7 +16,7 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 # Scenario 1: data with no temporal dimension
@@ -39,7 +39,7 @@ def test_clustered_inference_no_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X_init, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -97,7 +97,7 @@ def test_clustered_inference_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -163,7 +163,7 @@ def test_clustered_inference_no_temporal_groups():
     X_ = []
     y_ = []
     for i in range(n_groups):
-        X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+        X_init, y, beta, _, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
@@ -221,7 +221,7 @@ def test_ensemble_clustered_inference():
     sigma = 5.0
     rho = 0.95
 
-    X_init, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X_init, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -291,7 +291,7 @@ def test_ensemble_clustered_inference_temporal_data():
     extended_support = support_size + margin_size
     n_bootstraps = 4
 
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,

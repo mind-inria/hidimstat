@@ -6,12 +6,12 @@ from sklearn.model_selection import train_test_split
 import pytest
 
 from hidimstat import PFI
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def test_permutation_importance():
     """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,

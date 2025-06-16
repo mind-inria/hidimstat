@@ -8,7 +8,7 @@ from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
 from hidimstat.noise_std import empirical_snr, reid
-from hidimstat._utils.scenario import multivariate_simulation_autoregressive
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def test_reid():
@@ -23,7 +23,7 @@ def test_reid():
     # ##########
     support_size = 2
 
-    X, y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -41,7 +41,7 @@ def test_reid():
     # ###########
     support_size = 0
 
-    X, y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -69,7 +69,7 @@ def test_group_reid():
     # First expe
     # ##########
     support_size = 2
-    X, Y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
+    X, Y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -110,7 +110,7 @@ def test_group_reid_2():
     # Second expe
     # ###########
     support_size = 0
-    X, Y, _, _, noise_mag, _ = multivariate_simulation_autoregressive(
+    X, Y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -146,7 +146,7 @@ def test_reid_exception():
     # ##########
     support_size = 2
 
-    X, y, _, _, _, _ = multivariate_simulation_autoregressive(
+    X, y, _, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
@@ -176,7 +176,7 @@ def test_empirical_snr():
     sigma = 2.0
     snr_expected = 0.5
 
-    X, y, beta, _, noise_mag, eps = multivariate_simulation_autoregressive(
+    X, y, beta, _, noise_mag, eps = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -200,7 +200,7 @@ def test_empirical_snr_2():
     sigma = 2.0
     snr_expected = 10.0
 
-    X, y, beta, _, noise_mag, eps = multivariate_simulation_autoregressive(
+    X, y, beta, _, noise_mag, eps = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
