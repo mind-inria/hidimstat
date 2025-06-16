@@ -73,10 +73,10 @@ def configure_linear_categorial_cpi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cpi on different type of data
 parameter_exact = [
-    ("high dimension", 150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0),
-    ("high dimension with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("high dimension with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("high dimension with correlated features", 150, 200, 10, 0.2, 42, 1.0, 0.0, 0.0),
+    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -97,26 +97,16 @@ def test_cpi_linear_data_exact(data_generator, cpi_n_permutation, cpi_seed):
 
 
 parameter_partial = [
+    ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 42, 1, 10, 0),
     (
-        "high dimension with correlated features and noise",
+        "HiDim with correlated features and correlated noise",
         150,
         200,
         10,
         0.2,
         42,
         1.0,
-        10.0,
-        0.0,
-    ),
-    (
-        "high dimension with correlated features and correlated noise",
-        150,
-        200,
         10,
-        0.2,
-        42,
-        1.0,
-        10.0,
         0.2,
     ),
 ]
@@ -178,7 +168,7 @@ def test_cpi_linear_fail(data_generator, cpi_n_permutation, cpi_seed):
 ## Test specific options of cpi
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_cpi_group(data_generator):
@@ -382,7 +372,7 @@ class TestCPIExceptions:
             method="predict",
         )
 
-        with pytest.raises(ValueError, match="The method is not fitted."):
+        with pytest.raises(ValueError, match="The class is not fitted."):
             cpi.predict(X)
 
     def test_unfitted_importance(self, data_generator):
@@ -394,7 +384,7 @@ class TestCPIExceptions:
             method="predict",
         )
 
-        with pytest.raises(ValueError, match="The method is not fitted."):
+        with pytest.raises(ValueError, match="The class is not fitted."):
             cpi.importance(X, y)
 
     def test_unfitted_base_perturbation(self, data_generator):
@@ -409,7 +399,7 @@ class TestCPIExceptions:
 
         with pytest.raises(
             ValueError,
-            match="The imputation models require to be fit before to use them",
+            match="The imputation models require to be fitted before being used.",
         ):
             cpi.importance(X, y)
 
@@ -450,7 +440,9 @@ class TestCPIExceptions:
         )
         cpi.fit(X, groups=None, var_type="auto")
 
-        with pytest.raises(AssertionError, match="Number of features does not match"):
+        with pytest.warns(
+            UserWarning, match="Not all features will has a importance score."
+        ):
             cpi.importance(X[:, :-1], y)
 
     def test_invalid_var_type(self, data_generator):
