@@ -195,7 +195,7 @@ class BasePerturbation(BaseEstimator):
         for group_id in self.groups.values():
             for id_columns in group_id:
                 assert (
-                    id_columns > X.shape[1]
+                    id_columns < X.shape[1]
                 ), "X doesn't correspond to the fitting data."
             count += len(group_id)
         if X.shape[1] > count:
