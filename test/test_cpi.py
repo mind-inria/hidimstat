@@ -441,7 +441,7 @@ class TestCPIExceptions:
         cpi.fit(X, groups=None, var_type="auto")
 
         with pytest.raises(
-            AssertionError, match="X doesn't correspond to the fitting data."
+            AssertionError, match="X does not correspond to the fitting data."
         ):
             cpi.importance(X[:, :-1], y)
 

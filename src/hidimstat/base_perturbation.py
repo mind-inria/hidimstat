@@ -193,10 +193,10 @@ class BasePerturbation(BaseEstimator):
             )
         count = 0
         for group_id in self.groups.values():
-            for id_columns in group_id:
-                assert (
-                    id_columns < X.shape[1]
-                ), "X doesn't correspond to the fitting data."
+            if type(group_id[0]) is int:
+                assert np.any(
+                    np.array(group_id, dtype=int) < X.shape[1]
+                ), "X does not correspond to the fitting data."
             count += len(group_id)
         if X.shape[1] > count:
             warnings.warn("Not all features will has a importance score.")
