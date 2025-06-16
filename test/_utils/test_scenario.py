@@ -272,7 +272,7 @@ def test_multivariate_simulation_zero_snr():
         n_samples=50, n_features=100, snr=0.0, seed=42
     )
     assert_equal(noise_mag, 1.0)
-    assert_equal(y, np.dot(X, beta))
+    assert_equal(y, eps)
 
 
 def test_multivariate_simulation_minimal():
