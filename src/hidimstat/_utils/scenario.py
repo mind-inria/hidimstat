@@ -258,7 +258,7 @@ def multivariate_simulation(
         rng.shuffle(X.T)
 
     # Generate the response from a linear model
-    if continue_support:
+    if continuous_support:
         non_zero = range(support_size)
     else:
         non_zero = rng.choice(n_features, support_size, replace=False)
