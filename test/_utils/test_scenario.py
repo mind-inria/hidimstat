@@ -296,13 +296,13 @@ def test_multivariate_simulation_ar_support_size():
 
 def test_multivariate_simulation_ar_rho():
     """Test rho validation."""
-    with pytest.raises(AssertionError, match="rho must be between 0 and 1"):
+    with pytest.raises(AssertionError, match="rho must be between -1 and 1"):
         multivariate_simulation(n_samples=10, n_features=20, rho=1.5, seed=42)
 
 
 def test_multivariate_simulation_ar_rho_noise():
     """Test rho_noise_time validation."""
-    with pytest.raises(AssertionError, match="rho_noise_time must be between 0 and 1"):
+    with pytest.raises(AssertionError, match="rho_noise_time must be between -1 and 1"):
         multivariate_simulation(
             n_samples=10, n_features=20, n_times=5, rho_noise_time=1.2, seed=42
         )
