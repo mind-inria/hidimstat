@@ -27,6 +27,7 @@ def test_reid():
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
+        rho=0.25,
         sigma_noise=sigma,
         seed=0,
     )
@@ -114,6 +115,7 @@ def test_group_reid_2():
         n_samples=n_samples,
         n_features=n_features,
         n_times=n_times,
+        rho=0.25,
         support_size=support_size,
         sigma_noise=sigma,
         rho_noise_time=rho,
