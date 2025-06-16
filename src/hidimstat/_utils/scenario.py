@@ -277,7 +277,9 @@ def multivariate_simulation(
             np.zeros(n_times), covariance_temporal, size=(n_samples)
         )
     prod_temp = np.dot(X, beta_true)
-    if support_size == 0 or np.isinf(snr):
+    if support_size == 0:
+        noise_mag = 1.0
+    elif np.isinf(snr):
         noise_mag = 0.0
     elif snr != 0.0:
         noise_mag = np.linalg.norm(prod_temp) / (np.linalg.norm(eps) * np.sqrt(snr))
