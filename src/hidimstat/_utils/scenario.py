@@ -240,8 +240,8 @@ def multivariate_simulation(
     assert support_size <= n_features, "support_size cannot be larger than n_features"
     assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
     assert (
-        rho_noise_time >= 0.0 and rho_noise_time <= 1.0
-    ), "rho_noise_time must be between 0 and 1"
+        rho_noise_time >= -1.0 and rho_noise_time <= 1.0
+    ), "rho_noise_time must be between -1 and 1"
     assert snr >= 0.0, "snr must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
