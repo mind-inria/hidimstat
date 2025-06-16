@@ -46,7 +46,7 @@ def test_clustered_inference_no_temporal():
         sigma_noise=sigma,
         rho=rho,
         shuffle=False,
-        continuous_spport=True,
+        continuous_support=True,
         seed=2,
     )
 
@@ -106,7 +106,7 @@ def test_clustered_inference_temporal():
         rho_noise_time=rho_noise,
         rho=rho_data,
         shuffle=False,
-        continuous_spport=True,
+        continuous_support=True,
         snr=50.0,
         seed=10,
     )
@@ -170,7 +170,7 @@ def test_clustered_inference_no_temporal_groups():
             sigma_noise=sigma,
             rho=rho,
             shuffle=False,
-            continuous_spport=True,
+            continuous_support=True,
             seed=4 + i,
         )
         X_.append(X_init)
@@ -228,7 +228,7 @@ def test_ensemble_clustered_inference():
         sigma_noise=sigma,
         rho=rho,
         shuffle=False,
-        continuous_spport=True,
+        continuous_support=True,
         seed=0,
     )
 
@@ -300,7 +300,7 @@ def test_ensemble_clustered_inference_temporal_data():
         rho_noise_time=rho_noise,
         rho=rho_data,
         shuffle=False,
-        continuous_spport=True,
+        continuous_support=True,
         seed=7,
     )
 
