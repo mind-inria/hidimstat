@@ -193,8 +193,12 @@ class BasePerturbation(BaseEstimator):
             )
         count = 0
         for group_id in self.groups.values():
+            for id_columns in group_id:
+                assert (
+                    id_columns > X.shape[1]
+                ), "X doesn't correspond to the fitting data."
             count += len(group_id)
-        if X.shape[1] != count:
+        if X.shape[1] > count:
             warnings.warn("Not all features will has a importance score.")
 
     def _joblib_predict_one_group(self, X, group_id, group_key):

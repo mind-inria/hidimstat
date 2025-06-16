@@ -440,8 +440,8 @@ class TestCPIExceptions:
         )
         cpi.fit(X, groups=None, var_type="auto")
 
-        with pytest.warns(
-            UserWarning, match="Not all features will has a importance score."
+        with pytest.raises(
+            AssertionError, match="X doesn't correspond to the fitting data."
         ):
             cpi.importance(X[:, :-1], y)
 
