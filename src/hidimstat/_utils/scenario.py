@@ -174,7 +174,7 @@ def multivariate_simulation(
     return X, y, beta, noise, X_, w
 
 
-def multivariate_simulation_autoregressive(
+def multivariate_simulation(
     n_samples,
     n_features,
     n_times=None,
