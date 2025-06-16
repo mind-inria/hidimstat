@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_equal
 
 from hidimstat._utils.scenario import (
-    multivariate_simulation,
+    multivariate_simulation_spatial,
     multivariate_simulation_autoregressive,
 )
 
@@ -26,7 +26,7 @@ def test_multivariate_simulation_2D():
     smooth_X = 1.0
     rho_expected = 0.8
 
-    X, y, beta, noise, X_, w = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
@@ -63,7 +63,7 @@ def test_multivariate_simulation_3D():
     smooth_X = 1.0
     rho_expected = 0.8
 
-    X, y, beta, noise, X_, w = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
@@ -90,21 +90,21 @@ def test_multivariate_simulation_edge_cases():
     """Test edge cases and invalid inputs for multivariate_simulation"""
 
     # Test minimum valid shape and roi_size
-    X, y, beta, noise, X_, w = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
         n_samples=2, shape=(2, 2), roi_size=1, seed=42
     )
     assert_equal(X.shape, (2, 4))
     assert_equal(w.shape, (2, 2, 5))
 
     # Test 3D minimum case
-    X, y, beta, noise, X_, w = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
         n_samples=2, shape=(2, 2, 2), roi_size=1, seed=42
     )
     assert_equal(X.shape, (2, 8))
     assert_equal(w.shape, (2, 2, 2, 5))
 
     # Test roi_size equal to shape dimension
-    X, y, beta, noise, X_, w = multivariate_simulation(
+    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
         n_samples=10, shape=(4, 4), roi_size=4, seed=42
     )
     # all the corner are full
@@ -116,18 +116,18 @@ def test_multivariate_simulation_edge_cases():
     # Test invalid inputs
     # Invalid shape dimension
     with pytest.raises(ValueError, match="only 2D and 3D are supported"):
-        multivariate_simulation(shape=(2,))
+        multivariate_simulation_spatial(shape=(2,))
 
     with pytest.raises(ValueError, match="only 2D and 3D are supported"):
-        multivariate_simulation(shape=(2, 2, 2, 2))
+        multivariate_simulation_spatial(shape=(2, 2, 2, 2))
 
     # ROI size larger than shape
     with pytest.raises(AssertionError, match="roi_size should be lower than"):
-        multivariate_simulation(shape=(4, 4), roi_size=5)
+        multivariate_simulation_spatial(shape=(4, 4), roi_size=5)
 
     # Invalid n_samples
     with pytest.raises(AssertionError, match="n_samples must be positive"):
-        multivariate_simulation(n_samples=0)
+        multivariate_simulation_spatial(n_samples=0)
 
 
 def test_multivariate_simulation_reproducibility():
@@ -135,8 +135,8 @@ def test_multivariate_simulation_reproducibility():
 
     params = {"n_samples": 10, "shape": (6, 6), "roi_size": 2, "seed": 42}
 
-    X1, y1, beta1, noise1, X1_, w1 = multivariate_simulation(**params)
-    X2, y2, beta2, noise2, X2_, w2 = multivariate_simulation(**params)
+    X1, y1, beta1, noise1, X1_, w1 = multivariate_simulation_spatial(**params)
+    X2, y2, beta2, noise2, X2_, w2 = multivariate_simulation_spatial(**params)
 
     assert_equal(X1, X2)
     assert_equal(y1, y2)
@@ -151,7 +151,7 @@ def test_multivariate_simulation_weights():
     # 2D weights
     shape = (6, 6)
     roi_size = 2
-    _, _, _, _, _, w = multivariate_simulation(shape=shape, roi_size=roi_size)
+    _, _, _, _, _, w = multivariate_simulation_spatial(shape=shape, roi_size=roi_size)
 
     # Test ROI locations
     assert np.all(w[0:roi_size, 0:roi_size, 0] == 1.0)  # Upper left
@@ -162,7 +162,7 @@ def test_multivariate_simulation_weights():
 
     # 3D weights
     shape = (6, 6, 6)
-    _, _, _, _, _, w = multivariate_simulation(shape=shape, roi_size=roi_size)
+    _, _, _, _, _, w = multivariate_simulation_spatial(shape=shape, roi_size=roi_size)
 
     # Test center ROI location
     center_slice = w[2:4, 2:4, 2:4, 4]

@@ -104,7 +104,7 @@ def _generate_3D_weight(shape, roi_size):
     return w
 
 
-def multivariate_simulation(
+def multivariate_simulation_spatial(
     n_samples=100,
     shape=(12, 12),
     roi_size=2,
