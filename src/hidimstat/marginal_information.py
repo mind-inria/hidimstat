@@ -16,7 +16,7 @@ class MarginalImportance(BaseEstimator):
         method: str = "predict",
         n_jobs: int = 1,
     ):
-        """
+        """Marginal Information Variable Importance.
 
         Parameters
         ----------
@@ -25,11 +25,6 @@ class MarginalImportance(BaseEstimator):
         loss : callable, default=root_mean_squared_error
             The function to compute the loss when comparing the perturbed model
             to the original model.
-        n_permutations : int, default=50
-            This parameter is relevant only for PFI or CPI.
-            Specifies the number of times the variable group (residual for CPI) is
-            permuted. For each permutation, the perturbed model's loss is calculated
-            and averaged over all permutations.
         method : str, default="predict"
             The method used for making predictions. This determines the predictions
             passed to the loss function. Supported methods are "predict",
@@ -49,18 +44,23 @@ class MarginalImportance(BaseEstimator):
         self._list_univariate_model = []
 
     def fit(self, X, y, groups=None):
-        """
+        """Fit the marginal information variable importance model.
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features)
             The input samples.
-        y: array-like of shape (n_samples,)
-            Not used, only present for consistency with the sklearn API.
-        groups: dict, optional
-            A dictionary where the keys are the group names and the values are the
-            list of column names corresponding to each group. If None, the groups are
-            identified based on the columns of X.
+        y : array-like of shape (n_samples,)
+            The target values.
+        groups : dict, optional
+            A dictionary where the keys are group identifiers and the values are lists
+            of feature indices or names for each group. If None, each feature is
+            treated as its own group.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         """
         X_ = np.asarray(X)
         y_ = np.asarray(y)
@@ -103,13 +103,15 @@ class MarginalImportance(BaseEstimator):
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features)
             The input samples.
+        y : array-like of shape (n_samples,)
+            The target values.
 
         Returns
         -------
-        out: array-like of shape (n_groups, n_permutations, n_samples)
-            The predictions after perturbation of the data for each group of variables.
+        out : array-like of shape (n_groups, n_samples)
+            The predictions for each group of variables.
         """
         self._check_fit()
         X_ = np.asarray(X)
@@ -124,23 +126,25 @@ class MarginalImportance(BaseEstimator):
 
     def importance(self, X, y):
         """
-        Compute the importance scores for each group of covariates.
+        Compute the marginal importance scores for each group of variables.
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features)
             The input samples.
-        y: array-like of shape (n_samples,)
+        y : array-like of shape (n_samples,)
             The target values.
 
         Returns
         -------
-        out_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss': a dictionary containing the loss of the perturbed model
-            for each group.
-            - 'importance': the importance scores for each group.
+        out_dict : dict
+            A dictionary containing:
+            - 'loss_reference' : float
+            Loss of the original model predictions
+            - 'loss' : dict
+            Losses for each group's univariate predictions
+            - 'importance' : ndarray of shape (n_groups,)
+            Marginal importance scores for each variable group
         """
         ###########################################
         # same as base permutation
@@ -170,7 +174,21 @@ class MarginalImportance(BaseEstimator):
         ######################################
 
     def _check_fit(self):
-        """Check that the estimator has been fitted if needed."""
+        """Check that the estimator has been fitted if needed.
+
+        Checks if the estimator instance has the required attributes to ensure it has been properly fitted.
+        Specifically verifies:
+        - n_groups is set
+        - groups attribute exists
+        - _groups_ids attribute exists
+        - _list_univariate_model is not empty
+
+        Raises
+        ------
+        ValueError
+            If any of the required attributes are missing, indicating the estimator has not been fitted
+
+        """
         if (
             self.n_groups is None
             or not hasattr(self, "groups")
@@ -184,31 +202,43 @@ class MarginalImportance(BaseEstimator):
             )
 
     def _joblib_predict_one_group(self, X, y, index_group, group_ids):
-        """
+        """Helper function to predict for a single group.
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features)
             The input samples.
-        group_id: int
-            The index of the group of variables.
-        group_key: str, int
-            The key of the group of variables. (parameter use for debugging)
+        y : array-like of shape (n_samples,)
+            The target values.
+        index_group : int
+            The index of the group in _list_univariate_model.
+        group_ids : array-like
+            The indices of features belonging to this group.
+
+        Returns
+        -------
+        float
+            The prediction score for this group.
         """
         univariate_model = self._list_univariate_model[index_group]
         return univariate_model.score(X[:, group_ids].reshape(-1, 1), y)
 
     def _joblib_fit_one_group(self, X, y, group_ids):
-        """
+        """Helper function to fit a univariate model for a single group.
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features)
             The input samples.
-        group_id: int
-            The index of the group of variables.
-        group_key: str, int
-            The key of the group of variables. (parameter use for debugging)
+        y : array-like of shape (n_samples,)
+            The target values.
+        group_ids : array-like
+            The indices of features belonging to this group.
+
+        Returns
+        -------
+        object
+            The fitted univariate model for this group.
         """
         univariate_model = clone(self.estimator)
         univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
