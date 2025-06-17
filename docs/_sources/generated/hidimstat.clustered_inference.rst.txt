@@ -1,8 +1,0 @@
-﻿hidimstat.clustered_inference
-=============================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: clustered_inference
-
-.. include:: hidimstat.clustered_inference.examples
