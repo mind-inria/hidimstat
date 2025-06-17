@@ -201,6 +201,27 @@ class MarginalImportance(BaseEstimator):
                 " call fit with groups=None"
             )
 
+    def _joblib_fit_one_group(self, X, y, group_ids):
+        """Helper function to fit a univariate model for a single group.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples.
+        y : array-like of shape (n_samples,)
+            The target values.
+        group_ids : array-like
+            The indices of features belonging to this group.
+
+        Returns
+        -------
+        object
+            The fitted univariate model for this group.
+        """
+        univariate_model = clone(self.estimator)
+        univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
+        return univariate_model
+
     def _joblib_predict_one_group(self, X, y, index_group, group_ids):
         """Helper function to predict for a single group.
 
@@ -222,24 +243,3 @@ class MarginalImportance(BaseEstimator):
         """
         univariate_model = self._list_univariate_model[index_group]
         return univariate_model.score(X[:, group_ids].reshape(-1, 1), y)
-
-    def _joblib_fit_one_group(self, X, y, group_ids):
-        """Helper function to fit a univariate model for a single group.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The input samples.
-        y : array-like of shape (n_samples,)
-            The target values.
-        group_ids : array-like
-            The indices of features belonging to this group.
-
-        Returns
-        -------
-        object
-            The fitted univariate model for this group.
-        """
-        univariate_model = clone(self.estimator)
-        univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
-        return univariate_model
