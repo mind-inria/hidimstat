@@ -113,7 +113,8 @@ def reid(
     residual = clf_cv.predict(X_) - y
 
     # get the number of non-zero coefficients
-    # we considere that the tolerance * coefficients_.max()
+    # we consider that the coefficient with a value under
+    # tolerance * coefficients_.max() is null
     coefficients_ = (
         np.sum(np.abs(beta_hat), axis=0)
         if len(beta_hat.shape) > 1
