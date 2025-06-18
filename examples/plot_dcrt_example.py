@@ -52,8 +52,6 @@ for sim_ind in range(10):
         shuffle=True,
         seed=sim_ind,
     )
-    index_support = np.where(beta_true)[0]
-    index_no_support = np.where(beta_true - 1)[0]
 
     # Applying a reLu function on the outcome y to get non-linear relationships
     y = np.maximum(0.0, y)
@@ -64,9 +62,9 @@ for sim_ind in range(10):
         selection_features, X_res, sigma2, y_res
     )
     typeI_error["Lasso"].append(
-        sum(pvals_lasso[index_no_support] < alpha) / (p - n_signal)
+        sum(pvals_lasso[np.logical_not(beta_true)] < alpha) / (p - n_signal)
     )
-    power["Lasso"].append(sum(pvals_lasso[index_support] < alpha) / (n_signal))
+    power["Lasso"].append(sum(pvals_lasso[beta_true] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
     selection_features, X_res, sigma2, y_res = dcrt_zero(
@@ -76,9 +74,9 @@ for sim_ind in range(10):
         selection_features, X_res, sigma2, y_res
     )
     typeI_error["Forest"].append(
-        sum(pvals_forest[index_no_support] < alpha) / (p - n_signal)
+        sum(pvals_forest[np.logical_not(beta_true)] < alpha) / (p - n_signal)
     )
-    power["Forest"].append(sum(pvals_forest[index_support] < alpha) / (n_signal))
+    power["Forest"].append(sum(pvals_forest[beta_true] < alpha) / (n_signal))
 
 #############################################################################
 # Plotting the comparison

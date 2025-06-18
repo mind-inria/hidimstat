@@ -263,11 +263,11 @@ def multivariate_simulation(
     else:
         non_zero = rng.choice(n_features, support_size, replace=False)
     if n_times is None:
-        beta_true = np.zeros(n_features)
+        beta_true = np.zeros(n_features, dtype=bool)
         beta_true[non_zero] = value
         eps = sigma_noise * rng.standard_normal(size=n_samples)
     else:
-        beta_true = np.zeros((n_features, n_times))
+        beta_true = np.zeros((n_features, n_times), dtype=bool)
         beta_true[non_zero, :] = value
         # possibility to generate correlated noise
         covariance_temporal = toeplitz(
