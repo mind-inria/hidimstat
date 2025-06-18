@@ -265,7 +265,7 @@ def test_cpi_classication(data_generator):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial"
     [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
