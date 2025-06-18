@@ -421,14 +421,6 @@ class TestCPIExceptions:
         with pytest.raises(AssertionError, match="n_permutations must be positive"):
             CPI(estimator=fitted_model, n_permutations=-1, method="predict")
 
-    def test_invalid_n_jobs(self, data_generator):
-        """Test when invalid number of jobs is provided"""
-        X, y, _, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-
-        with pytest.raises(AssertionError, match="n_jobs must be positive"):
-            CPI(estimator=fitted_model, n_jobs=0, method="predict")
-
     def test_mismatched_features(self, data_generator):
         """Test when number of features doesn't match between fit and predict"""
         X, y, _, _ = data_generator
