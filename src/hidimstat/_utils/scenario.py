@@ -210,7 +210,7 @@ def multivariate_simulation(
     sigma_noise : float, default=1.0
         Standard deviation of the noise.
     rho_noise_time : float, default=0.0
-        Temporal noise correlation coefficient.
+        Serial correlation coefficient of the noise.
     shuffle : bool, default=False
         Whether to shuffle features randomly.
     continuous_support: bool, default=False
