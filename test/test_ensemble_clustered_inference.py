@@ -90,7 +90,7 @@ def test_clustered_inference_temporal():
     n_samples, n_features, n_times = 200, 2000, 10
     support_size = 10
     sigma = 5.0
-    rho_noise = 0.9
+    rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 150
     margin_size = 5
@@ -103,7 +103,7 @@ def test_clustered_inference_temporal():
         n_times=n_times,
         support_size=support_size,
         sigma_noise=sigma,
-        rho_noise_time=rho_noise,
+        rho_serial=rho_serial,
         rho=rho_data,
         shuffle=False,
         continuous_support=True,
@@ -283,7 +283,7 @@ def test_ensemble_clustered_inference_temporal_data():
     n_samples, n_features, n_times = 200, 2000, 10
     support_size = 10
     sigma = 5.0
-    rho_noise = 0.9
+    rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 200
     margin_size = 5
@@ -297,7 +297,7 @@ def test_ensemble_clustered_inference_temporal_data():
         n_times=n_times,
         support_size=support_size,
         sigma_noise=sigma,
-        rho_noise_time=rho_noise,
+        rho_serial=rho_serial,
         rho=rho_data,
         shuffle=False,
         continuous_support=True,

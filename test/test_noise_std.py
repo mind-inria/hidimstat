@@ -65,7 +65,7 @@ def test_group_reid():
     n_features = 50
     n_times = 100
     sigma = 3.0
-    rho = 0.9
+    rho_serial = 0.9
 
     # First expe
     # ##########
@@ -76,7 +76,7 @@ def test_group_reid():
         n_times=n_times,
         support_size=support_size,
         sigma_noise=sigma,
-        rho_noise_time=rho,
+        rho_serial=rho_serial,
         rho=0.0,
         seed=0,
     )
@@ -106,7 +106,7 @@ def test_group_reid_2():
     n_features = 50
     n_times = 100
     sigma = 1.0
-    rho = 0.9
+    rho_serial = 0.9
 
     # Second expe
     # ###########
@@ -118,7 +118,7 @@ def test_group_reid_2():
         rho=0.25,
         support_size=support_size,
         sigma_noise=sigma,
-        rho_noise_time=rho,
+        rho_serial=rho_serial,
         seed=4,
     )
     corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
@@ -142,7 +142,7 @@ def test_reid_exception():
     n_samples, n_features = 50, 30
     n_times = 10
     sigma = 1.0
-    rho = 0.9
+    rho_serial = 0.9
 
     # First expe
     # ##########
@@ -154,7 +154,7 @@ def test_reid_exception():
         n_times=n_times,
         support_size=support_size,
         sigma_noise=sigma,
-        rho_noise_time=rho,
+        rho_serial=rho_serial,
     )
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"

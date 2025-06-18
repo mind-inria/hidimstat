@@ -81,7 +81,7 @@ parameter_exact = [
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial",
     zip(*(list(zip(*parameter_exact))[1:])),
     ids=list(zip(*parameter_exact))[0],
 )
@@ -113,7 +113,7 @@ parameter_partial = [
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
     zip(*(list(zip(*parameter_partial))[1:])),
     ids=list(zip(*parameter_partial))[0],
 )
@@ -141,7 +141,7 @@ parameter_bad_detection = [
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
     zip(*(list(zip(*parameter_bad_detection))[1:])),
     ids=list(zip(*parameter_bad_detection))[0],
 )
@@ -167,7 +167,7 @@ def test_cpi_linear_fail(data_generator, cpi_n_permutation, cpi_seed):
 ##############################################################################
 ## Test specific options of cpi
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial",
     [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
@@ -214,7 +214,7 @@ def test_cpi_group(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial",
     zip(*(list(zip(*parameter_exact))[1:])),
     ids=list(zip(*parameter_exact))[0],
 )
@@ -265,7 +265,7 @@ def test_cpi_classication(data_generator):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
     [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
@@ -310,7 +310,7 @@ class TestCPIClass:
         assert cpi.n_groups == 2
 
     def test_cpi_categorical(
-        self, n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time
+        self, n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
     ):
         """Test CPI with categorical variables"""
         rng = np.random.default_rng(seed)
@@ -337,7 +337,7 @@ class TestCPIClass:
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, snr, rho_noise_time",
+    "n_samples, n_features, support_size, rho, seed, value, snr, rho_serial",
     [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )

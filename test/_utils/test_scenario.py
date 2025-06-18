@@ -218,7 +218,7 @@ def test_multivariate_simulation_all(
         params.update(
             {
                 "n_times": n_times,
-                "rho_noise_time": rho_noise,
+                "rho_serial": rho_noise,
             }
         )
 
@@ -301,10 +301,10 @@ def test_multivariate_simulation_ar_rho():
 
 
 def test_multivariate_simulation_ar_rho_noise():
-    """Test rho_noise_time validation."""
-    with pytest.raises(AssertionError, match="rho_noise_time must be between -1 and 1"):
+    """Test rho_serial validation."""
+    with pytest.raises(AssertionError, match="rho_serial must be between -1 and 1"):
         multivariate_simulation(
-            n_samples=10, n_features=20, n_times=5, rho_noise_time=1.2, seed=42
+            n_samples=10, n_features=20, n_times=5, rho_serial=1.2, seed=42
         )
 
 

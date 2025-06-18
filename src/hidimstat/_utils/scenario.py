@@ -183,7 +183,7 @@ def multivariate_simulation(
     value=1.0,
     snr=10.0,
     sigma_noise=1.0,
-    rho_noise_time=0.0,
+    rho_serial=0.0,
     shuffle=False,
     continuous_support=False,
     seed=None,
@@ -209,7 +209,7 @@ def multivariate_simulation(
         Signal-to-noise ratio. Controls noise scaling.
     sigma_noise : float, default=1.0
         Standard deviation of the noise.
-    rho_noise_time : float, default=0.0
+    rho_serial : float, default=0.0
         Serial correlation coefficient of the noise.
     shuffle : bool, default=False
         Whether to shuffle features randomly.
@@ -240,8 +240,8 @@ def multivariate_simulation(
     assert support_size <= n_features, "support_size cannot be larger than n_features"
     assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
     assert (
-        rho_noise_time >= -1.0 and rho_noise_time <= 1.0
-    ), "rho_noise_time must be between -1 and 1"
+        rho_serial >= -1.0 and rho_serial <= 1.0
+    ), "rho_serial must be between -1 and 1"
     assert snr >= 0.0, "snr must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
@@ -271,7 +271,7 @@ def multivariate_simulation(
         beta_true[non_zero, :] = value
         # possibility to generate correlated noise
         covariance_temporal = toeplitz(
-            rho_noise_time ** np.arange(0, n_times)
+            rho_serial ** np.arange(0, n_times)
         )  # covariance matrix of time
         eps = sigma_noise * rng.multivariate_normal(
             np.zeros(n_times), covariance_temporal, size=(n_samples)
