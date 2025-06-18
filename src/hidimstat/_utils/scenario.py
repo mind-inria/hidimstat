@@ -205,14 +205,15 @@ def multivariate_simulation(
         Feature correlation coefficient for Toeplitz covariance matrix.
     value : float, default=1.0
         Value assigned to non-zero coefficients in beta.
-    snr : float, default=2.0
+    snr : float, default=10.0
         Signal-to-noise ratio. Controls noise scaling.
     sigma_noise : float, default=1.0
         Standard deviation of the noise.
     rho_serial : float, default=0.0
         Serial correlation coefficient of the noise.
     shuffle : bool, default=False
-        Whether to shuffle features randomly.
+        Whether to shuffle features randomly to avoid to have correlated
+        adjacent correlated features.
     continuous_support: bool, default=False
         If True, places non-zero coefficients continuously at the start of beta.
         If False, randomly distributes them throughout beta.
