@@ -263,6 +263,8 @@ def multivariate_simulation(
         non_zero = range(support_size)
     else:
         non_zero = rng.choice(n_features, support_size, replace=False)
+
+    # Generate the support and the noise of the data for the prediction.
     if n_times is None:
         beta_true = np.zeros(n_features, dtype=bool)
         beta_true[non_zero] = value
@@ -278,6 +280,8 @@ def multivariate_simulation(
             np.zeros(n_times), covariance_temporal, size=(n_samples)
         )
     prod_temp = np.dot(X, beta_true)
+
+    # Scale the noise for respecting signal-noise-ratio.
     if support_size == 0:
         noise_mag = 1.0
     elif np.isinf(snr):
