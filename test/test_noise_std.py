@@ -80,7 +80,7 @@ def test_group_reid():
         rho=0.0,
         seed=0,
     )
-    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_times - 1), n_times))
     cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     # max_iter=1 to get a better coverage
@@ -121,7 +121,7 @@ def test_group_reid_2():
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_times - 1), n_times))
     cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     cov_hat, _ = reid(X, Y, multioutput=True)
