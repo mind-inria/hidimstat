@@ -1,5 +1,39 @@
 # HiDimStat: High-dimensional statistical inference tool for Python
-[![Build](https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main)](https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml) [![CircleCI/Documentation](https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield)](https://circleci.com/gh/mind-inria/hidimstat) [![codecov](https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS)](https://codecov.io/github/mind-inria/hidimstat) [![CodeStyle](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+<!-- Add the different badge -->
+|Linter&Tests| |CircleCI/Documentation| |CodeCov|
+|PyPi| |PyPi format| |PyPi_download| |Latest release| |PythonVersion|
+|GitHub contributors| |GitHub contributors| |License| |Black|
+
+<!-- Reference to the CI status -->
+.. |Linter&Tests| image:: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main
+    :target: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml?query=branch%3Amain
+.. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
+    :target: https://circleci.com/gh/mind-inria/hidimstat?branch=main
+.. |CodeCov| image:: https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS
+    :target: https://codecov.io/github/mind-inria/hidimstat
+
+<!-- distribution python -->
+.. |PyPi| image:: https://img.shields.io/pypi/v/hidimstat.svg
+    :target: https://pypi.org/project/hidimstat/
+.. |PyPi_download| image:: https://img.shields.io/pypi/dm/hidimstat
+    :target: https://pypi.org/project/hidimstat/
+.. |PyPi format| image:: https://img.shields.io/pypi/format/hidimstat
+    :target: https://pypi.org/project/hidimstat/
+.. |PythonVersion| image:: https://img.shields.io/pypi/pyversions/hidimstat.svg?color=informational
+    :target: https://pypi.org/project/hidimstat/
+.. |Latest release| image::https://img.shields.io/github/release/mind-inria/hidimstat.svg?color=brightgreen&label=latest%20release
+  :target: https://github.com/mind-inria/hidimstat/releases
+
+<!-- Additional badge -->
+.. |GitHub contributors| image:: https://img.shields.io/github/contributors/mind-inria/hidimstat.svg?logo=github
+  :target: https://github.com/mind-inria/hidimstat
+.. |GitHub commit activity| image:: https://img.shields.io/github/commit-activity/y/mind-inria/hidimstat.svg?logo=github&color=%23ff6633
+  :target: https://github.com/mind-inria/hidimstat
+.. |License| image::https://img.shields.io/github/license/mind-inria/hidimstat
+    :target: https://opensource.org/license/bsd-3-clause
+.. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+    :target: https://github.com/psf/black
 
 The HiDimStat package provides statistical inference methods to solve the problem of support recovery in the context of high-dimensional and spatially structured data.
 
@@ -8,8 +42,6 @@ The HiDimStat package provides statistical inference methods to solve the proble
 We recommend using HiDimStat with Python 3.12. For installation, we recommend using `conda` for python environment management. You can do so by running the following commands from the terminal
 
 ```bash
-conda create -n hidimstat python=3.12
-conda activate hidimstat
 pip install hidimstat
 ```
 
