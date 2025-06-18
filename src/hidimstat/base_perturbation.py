@@ -43,7 +43,6 @@ class BasePerturbation(BaseEstimator):
         """
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
-        assert n_jobs > 0, "n_jobs must be positive"
         self.estimator = estimator
         self.loss = loss
         _check_vim_predict_method(method)
