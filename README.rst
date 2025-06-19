@@ -45,12 +45,17 @@ HiDimStat: High-dimensional statistical inference tool for Python
 The HiDimStat package provides statistical inference methods to solve the problem
 of support recovery in the context of high-dimensional and spatially structured data.
 
-If you like the package, spread the word and ⭐ this repository!
+If you like the package, spread the word and ⭐ our `official repository  <https://github.com/mind-inria/hidimstat>`_!
 
 Visit your website, https://hidimstat.github.io/, for more information.
 
-Find the important variables of your data based on 
-`our examples <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
+Find the important variables in your data using 
+`our examples. <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
+
+..
+  Add short citation when this will be ready
+  If you use HiDimStat for your published research, we kindly ask you to :ref:`cite<citation>` our article:
+  short reference
 
 
 Installation
@@ -185,6 +190,11 @@ For Knockoffs Inference:
 * Candès, E., Fan, Y., Janson, L., & Lv, J. (2018). **Panning for gold: Model-X
   knockoffs for high dimensional controlled variable selection**. *Journal of the
   Royal Statistical Society Series B*, 80(3), 551-577.
+
+..
+  Citation
+  ========
+  :ref:'citation'
 
 License
 =======
