@@ -8,7 +8,9 @@ The HiDimStat package provides statistical inference methods to solve the proble
   Add the different badge
 
 |Linter&Tests| |CircleCI/Documentation| |CodeCov|
+
 |PyPi| |PyPi format| |PyPi_download| |Latest release| |PythonVersion|
+
 |GitHub contributors| |GitHub commit activity| |License| |Black|
 
 ..
