@@ -63,7 +63,7 @@ def test_group_reid():
 
     n_samples = 30
     n_features = 50
-    n_times = 100
+    n_target = 100
     sigma = 3.0
     rho_serial = 0.9
 
@@ -73,14 +73,14 @@ def test_group_reid():
     X, Y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,
         rho=0.0,
         seed=0,
     )
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_times - 1), n_times))
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     # max_iter=1 to get a better coverage
@@ -104,7 +104,7 @@ def test_group_reid_2():
 
     n_samples = 30
     n_features = 50
-    n_times = 100
+    n_target = 100
     sigma = 1.0
     rho_serial = 0.9
 
@@ -114,14 +114,14 @@ def test_group_reid_2():
     X, Y, _, _, noise_mag, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         rho=0.25,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_times - 1), n_times))
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     cov_hat, _ = reid(X, Y, multioutput=True)
@@ -140,7 +140,7 @@ def test_group_reid_2():
 def test_reid_exception():
     "Test for testing the exceptions on the arguments of reid function"
     n_samples, n_features = 50, 30
-    n_times = 10
+    n_target = 10
     sigma = 1.0
     rho_serial = 0.9
 
@@ -151,7 +151,7 @@ def test_reid_exception():
     X, y, _, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,

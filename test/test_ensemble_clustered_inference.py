@@ -87,7 +87,7 @@ def test_clustered_inference_temporal():
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
     """
-    n_samples, n_features, n_times = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
     sigma = 5.0
     rho_serial = 0.9
@@ -100,7 +100,7 @@ def test_clustered_inference_temporal():
     X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,
@@ -280,7 +280,7 @@ def test_ensemble_clustered_inference_temporal_data():
     "Test with temporal data"
     # Scenario 2: temporal data
     # #########################
-    n_samples, n_features, n_times = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
     sigma = 5.0
     rho_serial = 0.9
@@ -294,7 +294,7 @@ def test_ensemble_clustered_inference_temporal_data():
     X, y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,

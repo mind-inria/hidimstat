@@ -69,17 +69,17 @@ def test_desparsified_group_lasso():
 
     n_samples = 50
     n_features = 100
-    n_times = 10
+    n_target = 10
     support_size = 2
     sigma = 0.1
     rho_serial = 0.9
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_times - 1), n_times))
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = np.outer(sigma, sigma) * corr
 
     X, Y, beta, _, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
         sigma_noise=sigma,
         rho_serial=rho_serial,

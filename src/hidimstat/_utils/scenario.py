@@ -177,7 +177,7 @@ def multivariate_simulation_spatial(
 def multivariate_simulation(
     n_samples,
     n_features,
-    n_times=None,
+    n_targets=None,
     support_size=10,
     rho=0,
     value=1.0,
@@ -197,8 +197,9 @@ def multivariate_simulation(
         Number of samples.
     n_features : int
         Number of features/variables.
-    n_times : int or None, default=None
-        Number of time points. If None, generates single timepoint data.
+    n_targets : int or None, default=None
+        Number of targets/time points. If None, generates univariate target data.
+        If integer > 0, generates multivariate target data.
     support_size : int, default=10
         Number of non-zero coefficients in beta.
     rho : float, default=0
@@ -224,20 +225,20 @@ def multivariate_simulation(
     -------
     X : ndarray of shape (n_samples, n_features)
         Design matrix with Toeplitz covariance structure.
-    y : ndarray of shape (n_samples,) or (n_samples, n_times)
+    y : ndarray of shape (n_samples,) or (n_samples, n_target)
         Target vector/matrix, generated as y = X @ beta + noise.
-    beta_true : ndarray of shape (n_features,) or (n_features, n_times)
+    beta_true : ndarray of shape (n_features,) or (n_features, n_target)
         True coefficient vector/matrix with support_size non-zero elements.
     non_zero : ndarray
         Indices of non-zero coefficients in beta_true.
     noise_factor : float
         Applied noise magnitude scaling factor.
-    eps : ndarray of shape (n_samples,) or (n_samples, n_times)
+    eps : ndarray of shape (n_samples,) or (n_samples, n_target)
         Noise vector/matrix with optional temporal correlation.
     """
     assert n_samples > 0, "n_samples must be positive"
     assert n_features > 0, "n_features must be positive"
-    assert n_times is None or n_times > 0.0, "n_times must be positive"
+    assert n_targets is None or n_targets > 0.0, "n_target must be positive"
     assert support_size <= n_features, "support_size cannot be larger than n_features"
     assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
     assert (
@@ -265,19 +266,19 @@ def multivariate_simulation(
         non_zero = rng.choice(n_features, support_size, replace=False)
 
     # Generate the support and the noise of the data for the prediction.
-    if n_times is None:
+    if n_targets is None:
         beta_true = np.zeros(n_features, dtype=bool)
         beta_true[non_zero] = value
         eps = sigma_noise * rng.standard_normal(size=n_samples)
     else:
-        beta_true = np.zeros((n_features, n_times), dtype=bool)
+        beta_true = np.zeros((n_features, n_targets), dtype=bool)
         beta_true[non_zero, :] = value
         # possibility to generate correlated noise
         covariance_temporal = toeplitz(
-            rho_serial ** np.arange(0, n_times)
+            rho_serial ** np.arange(0, n_targets)
         )  # covariance matrix of time
         eps = sigma_noise * rng.multivariate_normal(
-            np.zeros(n_times), covariance_temporal, size=(n_samples)
+            np.zeros(n_targets), covariance_temporal, size=(n_samples)
         )
     prod_temp = np.dot(X, beta_true)
 
