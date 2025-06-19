@@ -1,9 +1,6 @@
 *****************************************************************
 HiDimStat: High-dimensional statistical inference tool for Python
 *****************************************************************
-
-The HiDimStat package provides statistical inference methods to solve the problem of support recovery in the context of high-dimensional and spatially structured data.
-
 ..
   Add the different badge
 
@@ -43,6 +40,17 @@ The HiDimStat package provides statistical inference methods to solve the proble
     :target: https://opensource.org/license/bsd-3-clause
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
+
+
+The HiDimStat package provides statistical inference methods to solve the problem
+of support recovery in the context of high-dimensional and spatially structured data.
+
+If you like the package, spread the word and ⭐ this repository!
+
+Visit your website, https://hidimstat.github.io/, for more information.
+
+Find the important variables of your data based on 
+`our examples <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
 
 
 Installation
