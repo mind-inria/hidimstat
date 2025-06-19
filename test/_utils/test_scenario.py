@@ -174,7 +174,7 @@ def test_multivariate_simulation_weights():
 
 
 @pytest.mark.parametrize(
-    "n_samples,n_features,n_target,support_size,rho,rho_noise,sigma,seed,shuffle",
+    "n_samples,n_features,n_targets,support_size,rho,rho_noise,sigma,seed,shuffle",
     [
         # Test case: Basic correlation test
         (100, 500, None, 10, 0.7, None, 3.0, 0, False),
@@ -199,7 +199,7 @@ def test_multivariate_simulation_weights():
     ],
 )
 def test_multivariate_simulation_all(
-    n_samples, n_features, n_target, support_size, rho, rho_noise, sigma, seed, shuffle
+    n_samples, n_features, n_targets, support_size, rho, rho_noise, sigma, seed, shuffle
 ):
     """Test multivariate autoregressive simulation with various configurations"""
 
@@ -214,10 +214,10 @@ def test_multivariate_simulation_all(
         "shuffle": shuffle,
     }
 
-    if n_target is not None:
+    if n_targets is not None:
         params.update(
             {
-                "n_targett": n_targettts,
+                "n_targets": n_targets,
                 "rho_serial": rho_noise,
             }
         )
@@ -230,25 +230,25 @@ def test_multivariate_simulation_all(
     assert non_zero.size == np.unique(non_zero).size
 
     # Common assertions
-    sigma_hat = np.std(eps) if n_targett is None else np.std(eps[:, -1])
+    sigma_hat = np.std(eps) if n_targets is None else np.std(eps[:, -1])
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
     assert_almost_equal(sigma_hat, sigma, decimal=0)
     assert_almost_equal(rho_hat, rho, decimal=1)
     assert_equal(X.shape, (n_samples, n_features))
 
-    if n_target is None:
+    if n_targets is None:
         # Non-temporal case
         assert_equal(np.count_nonzero(beta), support_size)
         assert_equal(y, np.dot(X, beta) + noise_mag * eps)
     else:
         # assertion on the shape of the data
-        assert beta.shape[1] == n_target
-        assert y.shape[1] == n_target
+        assert beta.shape[1] == n_targets
+        assert y.shape[1] == n_targets
         # Temporal case
         noise = noise_mag * eps
-        assert_equal(y.shape, (n_samples, n_target))
-        assert_equal(np.count_nonzero(beta), support_size * n_target)
+        assert_equal(y.shape, (n_samples, n_targets))
+        assert_equal(np.count_nonzero(beta), support_size * n_targets)
         assert_equal(y, np.dot(X, beta) + noise)
 
         # Additional temporal assertions
