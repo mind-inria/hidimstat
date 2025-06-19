@@ -49,13 +49,18 @@ If you like the package, spread the word and ⭐ our `official repository  <http
 
 Visit your website, https://hidimstat.github.io/, for more information.
 
-Find the important variables in your data using 
-`our examples. <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
-
 ..
   Add short citation when this will be ready
   If you use HiDimStat for your published research, we kindly ask you to :ref:`cite<citation>` our article:
   short reference
+
+Find the important variables in your data using 
+`our examples. <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
+
+If you have any problems, please report them to the github issue tracker 
+(https://github.com/mind-inria/hidimstat/issues) or contribute to the library 
+by opening a Pull Request.
+
 
 
 Installation
