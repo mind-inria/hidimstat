@@ -134,13 +134,46 @@ If you want to contribute directly to the library, then check the
 `how to contribute <https://hidimstat.github.io/dev/How-to-Contribute/>`_ page 
 son the website for more information.
 
-Quick start for devellopement
+Quick start for developement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Source code
+"""""""""""
+
+You can check the latest sources with the command::
+
+    git clone https://github.com/mind-inria/hidimstat.git
 
 
-For testing HiDimStat, it require  ``pytest`` and the following extension: 
+Tests suite
+"""""""""""
+For testing, we recommand you to install the dependencies test with pip:
+    pip install hidimstat[test]
+  
+This will install ``pytest`` and its following extension: 
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
 ``pytest-timeout``, ``pytest-durations``
+
+After this installation, you can launch the test suite:
+    pytest hidimstat
+
+Examples
+""""""""
+| For launching the example, we recommand you to install the dependencies of 
+ examples with pip:
+|    pip install hidimstat[example]
+
+| After this installation, you can run any example in the folder `example <https://github.com/mind-inria/hidimstat/tree/main/examples>`_ .
+| Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/>`_.
+
+Documentation
+"""""""""""""
+| The documentation is build with sphinx. We recommand you to install the 
+ dependencies of documentation with pip:
+|    pip install hidimstat[doc]
+
+| After this installation, you can make the documentation from the source using 
+ the Makefile in doc_conf.
+|    make html
 
 Contact us
 ----------
