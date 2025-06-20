@@ -49,8 +49,9 @@ doc = [
     "sphinx-prompt          >= 1.0.0",
     "seaborn",
 ]
-plotting = [
+example = [
     "matplotlib>=3.9.0",
+    "seaborn"
 ]
 style = [
     "black  >= 24.4.2", 
