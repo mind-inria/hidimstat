@@ -45,9 +45,9 @@
 .. |MatplotlibMinVersion| replace:: 3.9.0
 .. |SeabornMinVersion| replace:: 0.9.0
 
-*****************************************************************
+=================================================================
 HiDimStat: High-dimensional statistical inference tool for Python
-*****************************************************************
+=================================================================
 
 .. # Add the different badge
 
@@ -84,7 +84,7 @@ Installation
 ------------
 
 Dependencies
-~~~~~~~~~~~~
+^^^^^^^^^^^^
 
 .. # Add dependency of the project
    Need to match with pyproject.toml
@@ -104,14 +104,10 @@ HiDimStat plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
 For running the examples Matplotlib >= |MatplotlibMinVersion| and seaborn >=
 |SeabornMinVersion| is required.
 
-=======
 
-For testing HiDimStat, it require  ``pytest`` and the following extension: 
-``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
-``pytest-timeout``, ``pytest-durations``
 
 User installation
-~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^
 
 .. # Add the instruction for installation
    TODO add conda when it will be accessible
@@ -137,6 +133,14 @@ you can create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`
 If you want to contribute directly to the library, then check the 
 `how to contribute <https://hidimstat.github.io/dev/How-to-Contribute/>`_ page 
 son the website for more information.
+
+Quick start for devellopement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+For testing HiDimStat, it require  ``pytest`` and the following extension: 
+``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
+``pytest-timeout``, ``pytest-durations``
 
 Contact us
 ----------
