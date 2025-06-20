@@ -77,9 +77,8 @@ Visit your website, https://hidimstat.github.io/, for more information.
 Find your important variables in your data with the help of 
 `our examples <https://hidimstat.github.io/dev/auto_examples/index.html>`_.
 
-If you have any problems, please report them to the github issue tracker 
-(https://github.com/mind-inria/hidimstat/issues) or contribute to the library 
-by opening a Pull Request.
+If you have any problems, please report them to the `github issue tracker <https://github.com/mind-inria/hidimstat/issues>`_ 
+or contribute to the library by opening a pull request.
 
 Installation
 ------------
@@ -166,12 +165,18 @@ contributors:
 .. |avatar JP| image:: https://avatars.githubusercontent.com/u/56166877?v=4 
   :target: https://github.com/jpaillard
 
+Citation
+--------
+
+If you use a HiDimStat method for your research, you'll find the associated 
+reference paper in the method description, and we recommend that you cite it.
+
 ..
-  Citation
-  ========
-  :ref:'citation'
   TODO add the section for citing the library once a zenodo repository is made
   or a paper is published.
+
+If you publish a paper using HiDimStat, please contact us or open an issue! 
+We would love to hear about your work and help you promote it.
 
 License
 -------
