@@ -110,7 +110,7 @@ User installation
   TODO add conda when it will be accessible
 
 HiDimStat can easily be installed via ``pip``. For more installation information,
-see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.::
+see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
 
    pip install -U hidimstat 
 
@@ -149,12 +149,12 @@ This will install ``pytest`` and the following extensions:
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
 ``pytest-timeout``, ``pytest-durations``
 
-After this installation, you can launch the test suite:
+After this installation, you can launch the test suite::
    pytest hidimstat
 
 Examples
 """"""""
-| To run the examples, we recommend you install the example dependencies with pip:
+| To run the examples, we recommend you install the example dependencies with pip::
 |    pip install hidimstat[example]
 
 | After this installation, you can run any example in the `examples <https://github.com/mind-inria/hidimstat/tree/main/examples>`_ folder.
@@ -163,11 +163,11 @@ Examples
 Documentation
 """""""""""""
 | The documentation is built with Sphinx. We recommend you install the 
- documentation dependencies with pip:
+ documentation dependencies with pip::
 |    pip install hidimstat[doc]
 
 | After this installation, you can build the documentation from the source using 
- the Makefile in doc_conf.
+ the Makefile in doc_conf::
 |    make html
 
 Contact us
