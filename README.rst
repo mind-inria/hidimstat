@@ -1,3 +1,9 @@
+
+.. # define a hard line break for HTML
+.. |br| raw:: html
+
+   <br />
+
 ..
   Add the reference for the badges
 ..
@@ -62,7 +68,8 @@ HiDimStat: High-dimensional statistical inference tool for Python
 The HiDimStat package provides statistical inference methods to solve the problem
 of support recovery in the context of high-dimensional and spatially structured data.
 
-If you like the package, spread the word and ⭐ our `official repository  <https://github.com/mind-inria/hidimstat>`_!
+If you like the package, spread the word and ⭐ our `official repository 
+<https://github.com/mind-inria/hidimstat>`_!
 
 Visit your website, https://hidimstat.github.io/, for more information.
 
@@ -128,12 +135,29 @@ If you want to contribute directly to the library, then check the
 `how to contribute <https://hidimstat.github.io/dev/How-to-Contribute/>`_ page 
 son the website for more information.
 
-References
+Contact us
 ----------
 
-The algorithms developed in this package have been detailed in several 
-conference/journal articles that can be downloaded at 
-https://mind-inria.github.io/research.html.
+Actually, this library is supported by the `INRIA <https://www.inria.fr/en>`_ 
+team `MIND <https://www.inria.fr/fr/mind>`_. |br|
+If you want to report a problem or suggest an enhancement, we had love for you 
+to `open an issue <https://github.com/mind-inria/hidimstat/issues/new>`_ at 
+this GitHub repository because then we can get right on it. |br|
+For a less formal discussion or exchanging ideas, you can contact the main 
+contributors:
+
++------------------+------------------+------------------+
+|   Lionel Kusch   | Bertrand Thirion |  Joseph Paillard |
++------------------+------------------+------------------+
+|    |avatar LK|   |   |avatar BT|    |    |avatar JP|   |
++------------------+------------------+------------------+
+
+.. |avatar LK| image:: https://avatars.githubusercontent.com/u/17182418?v=4 
+  :target: https://github.com/lionelkusch
+.. |avatar BT| image:: https://avatars.githubusercontent.com/u/234454?v=4
+  :target: https://github.com/bthirion
+.. |avatar JP| image:: https://avatars.githubusercontent.com/u/56166877?v=4 
+  :target: https://github.com/jpaillard
 
 Main references
 ~~~~~~~~~~~~~~~
