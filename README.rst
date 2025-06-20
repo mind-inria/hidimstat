@@ -113,23 +113,20 @@ see the `installation instructions <https://hidimstat.github.io/dev/index.html#i
 
     pip install -U hidimstat 
 
-Documentation & Examples
-------------------------
+Contribute
+----------
 
-All the documentation of HiDimStat is available at
- https://mind-inria.github.io/hidimstat/.
+The best way to support the development of HiDimStat is to spread the word!
 
-As of now in the ```examples``` folder there are three Python scripts that 
-illustrate how to use the main HiDimStat functions. In each script we handle 
-a different kind of dataset:
+HiDimStat wants to be supported by an active community and we welcome 
+contributions to our code and documentation.
 
-* ``plot_2D_simulation_example.py`` handles a simulated dataset with
-  a 2D spatial structure,
-* ``plot_fmri_data_example.py`` solves the decoding problem on 
-  Haxby fMRI dataset, MEG/EEG datasets.
+For bug reports, feature requests, documentation improvements, or other issues, 
+you can create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`_.
 
-For example run the following command in terminal::
-  python plot_2D_simulation_example.py
+If you want to contribute directly to the library, then check the 
+`how to contribute <https://hidimstat.github.io/dev/How-to-Contribute/>`_ page 
+son the website for more information.
 
 References
 ----------
