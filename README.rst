@@ -132,7 +132,7 @@ If you want to contribute directly to the library, check the
 on the website for more information.
 
 Quick start for development
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Source code
 """""""""""
 
