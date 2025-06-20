@@ -99,8 +99,8 @@ HiDimStat requires:
 
 HiDimStat's plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
 
-To run the examples, Matplotlib >= |MatplotlibMinVersion| and seaborn >=
-|SeabornMinVersion| are required.
+To run the examples, Matplotlib (>= |MatplotlibMinVersion|) and seaborn (>=
+|SeabornMinVersion|) are required.
 
 User installation
 ^^^^^^^^^^^^^^^^^
@@ -109,7 +109,7 @@ User installation
   TODO add conda when it will be accessible
 
 HiDimStat can easily be installed via ``pip``. For more installation information,
-see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
+see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_::
 
    pip install -U hidimstat 
 
@@ -141,7 +141,8 @@ You can check out the latest sources with the command::
 
 Test suite
 """""""""""
-For testing, we recommend you install the test dependencies with pip:
+
+For testing, we recommend you install the test dependencies with pip::
    pip install hidimstat[test]
   
 This will install ``pytest`` and the following extensions: 
@@ -153,6 +154,7 @@ After this installation, you can launch the test suite::
 
 Examples
 """"""""
+
 To run the examples, we recommend you install the example dependencies with pip::
     pip install hidimstat[example]
 
@@ -164,6 +166,7 @@ For running the examples, it's necessary to install Matplotlib >= |MatplotlibMin
 
 Documentation
 """""""""""""
+
 The documentation is built with Sphinx. We recommend you install the 
  documentation dependencies with pip::
     pip install hidimstat[doc]
