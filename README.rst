@@ -97,9 +97,8 @@ HiDimStat requires:
 - Scikit-learn (>= |SklearnMinVersion|)
 - SciPy (>= |SciPyMinVersion|)
 
-=======
-
 HiDimStat's plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
+
 To run the examples, Matplotlib >= |MatplotlibMinVersion| and seaborn >=
 |SeabornMinVersion| are required.
 
@@ -154,21 +153,24 @@ After this installation, you can launch the test suite::
 
 Examples
 """"""""
-| To run the examples, we recommend you install the example dependencies with pip::
-|    pip install hidimstat[example]
+To run the examples, we recommend you install the example dependencies with pip::
+    pip install hidimstat[example]
+
+For running the examples, it's necessary to install Matplotlib >= |MatplotlibMinVersion| and seaborn >=
+|SeabornMinVersion|.
 
 | After this installation, you can run any example in the `examples <https://github.com/mind-inria/hidimstat/tree/main/examples>`_ folder.
 | Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/>`_.
 
 Documentation
 """""""""""""
-| The documentation is built with Sphinx. We recommend you install the 
+The documentation is built with Sphinx. We recommend you install the 
  documentation dependencies with pip::
-|    pip install hidimstat[doc]
+    pip install hidimstat[doc]
 
-| After this installation, you can build the documentation from the source using 
+After this installation, you can build the documentation from the source using 
  the Makefile in doc_conf::
-|    make html
+    make html
 
 Contact us
 ----------
