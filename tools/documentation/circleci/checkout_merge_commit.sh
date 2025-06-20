@@ -3,7 +3,7 @@
 # Set the environment variable
 if [ $(echo $CIRCLE_BRANCH | cut -d'/' -f 1) == 'pull' ]
 then 
-CIRCLE_PR_NUMBER=echo $CIRCLE_BRANCH | cut -d'/' -f 2
+CIRCLE_PR_NUMBER=$(echo $CIRCLE_BRANCH | cut -d'/' -f 2)
 fi
 
 # Add `main` branch to the update list.
