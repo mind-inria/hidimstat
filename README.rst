@@ -1,21 +1,18 @@
 
-.. # define a hard line break for HTML
+.. ## define a hard line break for HTML
 .. |br| raw:: html
 
    <br />
 
-..
-  Add the reference for the badges
-..
-  Reference to the CI status
+.. # Add the reference for the badges
+.. ## Reference to the CI status
 .. |Linter&Tests| image:: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main
     :target: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml?query=branch%3Amain
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
     :target: https://circleci.com/gh/mind-inria/hidimstat?branch=main
 .. |CodeCov| image:: https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS
     :target: https://codecov.io/github/mind-inria/hidimstat
-..
-  Distribution python
+.. ## Distribution python
 .. |PyPi| image:: https://img.shields.io/pypi/v/hidimstat.svg
     :target: https://pypi.org/project/hidimstat/
 .. |PyPi_download| image:: https://img.shields.io/pypi/dm/hidimstat
@@ -26,8 +23,7 @@
     :target: https://pypi.org/project/hidimstat/
 .. |Latest release| image:: https://img.shields.io/github/release/mind-inria/hidimstat.svg?color=brightgreen&label=latest%20release
   :target: https://github.com/mind-inria/hidimstat/releases
-..
-  Additional badge
+.. ## Additional badge
 .. |GitHub contributors| image:: https://img.shields.io/github/contributors/mind-inria/hidimstat.svg?logo=github
   :target: https://github.com/mind-inria/hidimstat
 .. |GitHub commit activity| image:: https://img.shields.io/github/commit-activity/y/mind-inria/hidimstat.svg?logo=github&color=%23ff6633
@@ -37,17 +33,15 @@
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
-..
-  Add minimal dependecy of the main packages
-  This need to update in same time that pyproject.toml
+.. # Add minimal dependecy of the main packages
+   ## This need to update in same time that pyproject.toml
 .. |PythonMinVersion| replace:: 3.9
 .. |JoblibMinVersion| replace:: 1.2
 .. |NumPyMinVersion| replace:: 1.25
 .. |PandasMinVersion| replace:: 2.0
 .. |SklearnMinVersion| replace:: 1.4
 .. |SciPyMinVersion| replace:: 1.6
-..
-  for plotting and for examples
+.. ## for plotting and for examples
 .. |MatplotlibMinVersion| replace:: 3.9.0
 .. |SeabornMinVersion| replace:: 0.9.0
 
@@ -55,8 +49,7 @@
 HiDimStat: High-dimensional statistical inference tool for Python
 *****************************************************************
 
-..
-  Add the different badge
+.. # Add the different badge
 
 |Linter&Tests| |CircleCI/Documentation| |CodeCov|
 
@@ -64,9 +57,12 @@ HiDimStat: High-dimensional statistical inference tool for Python
 
 |GitHub contributors| |GitHub commit activity| |License| |Black|
 
+.. # Short description of the library
 
 The HiDimStat package provides statistical inference methods to solve the problem
 of support recovery in the context of high-dimensional and spatially structured data.
+
+.. # Add usefull links
 
 If you like the package, spread the word and ⭐ our `official repository 
 <https://github.com/mind-inria/hidimstat>`_!
@@ -74,7 +70,7 @@ If you like the package, spread the word and ⭐ our `official repository
 Visit your website, https://hidimstat.github.io/, for more information.
 
 ..
-  Add short citation when this will be ready
+  ## TODO: Add short citation when this will be ready
   If you use HiDimStat for your published research, we kindly ask you to :ref:`cite<citation>` our article:
   short reference
 
@@ -90,6 +86,9 @@ Installation
 
 Dependencies
 ~~~~~~~~~~~~
+
+.. # Add dependency of the project
+   Need to match with pyproject.toml
 
 HiDimStat requires:
 
@@ -115,6 +114,9 @@ For testing HiDimStat, it require  ``pytest`` and the following extension:
 User installation
 ~~~~~~~~~~~~~~~~~
 
+.. # Add the instruction for installation
+   TODO add conda when it will be accessible
+
 HiDimStat can easily be installed via ``pip``. For more installation information,
 see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.::
 
@@ -122,6 +124,8 @@ see the `installation instructions <https://hidimstat.github.io/dev/index.html#i
 
 Contribute
 ----------
+
+.. # Add short discription for contribution to the library
 
 The best way to support the development of HiDimStat is to spread the word!
 
@@ -137,6 +141,9 @@ son the website for more information.
 
 Contact us
 ----------
+
+.. # Add a way to contact mainteners 
+   TODO this need to be updated when there will a change of mainteners
 
 Actually, this library is supported by the `INRIA <https://www.inria.fr/en>`_ 
 team `MIND <https://www.inria.fr/fr/mind>`_. |br|
