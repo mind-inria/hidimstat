@@ -140,7 +140,7 @@ You can check out the latest sources with the command::
    git clone https://github.com/mind-inria/hidimstat.git
 
 Test suite
-"""""""""""
+""""""""""
 
 For testing, we recommend you install the test dependencies with pip::
    pip install hidimstat[test]
