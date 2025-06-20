@@ -1,15 +1,5 @@
-*****************************************************************
-HiDimStat: High-dimensional statistical inference tool for Python
-*****************************************************************
 ..
-  Add the different badge
-
-|Linter&Tests| |CircleCI/Documentation| |CodeCov|
-
-|PyPi| |PyPi format| |PyPi_download| |Latest release| |PythonVersion|
-
-|GitHub contributors| |GitHub commit activity| |License| |Black|
-
+  Add the reference for the badges
 ..
   Reference to the CI status
 .. |Linter&Tests| image:: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main
@@ -41,6 +31,33 @@ HiDimStat: High-dimensional statistical inference tool for Python
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
 
+..
+  Add minimal dependecy of the main packages
+  This need to update in same time that pyproject.toml
+.. |PythonMinVersion| replace:: 3.9
+.. |JoblibMinVersion| replace:: 1.2
+.. |NumPyMinVersion| replace:: 1.25
+.. |PandasMinVersion| replace:: 2.0
+.. |SklearnMinVersion| replace:: 1.4
+.. |SciPyMinVersion| replace:: 1.6
+..
+  for plotting and for examples
+.. |MatplotlibMinVersion| replace:: 3.9.0
+.. |SeabornMinVersion| replace:: 0.9.0
+
+*****************************************************************
+HiDimStat: High-dimensional statistical inference tool for Python
+*****************************************************************
+
+..
+  Add the different badge
+
+|Linter&Tests| |CircleCI/Documentation| |CodeCov|
+
+|PyPi| |PyPi format| |PyPi_download| |Latest release| |PythonVersion|
+
+|GitHub contributors| |GitHub commit activity| |License| |Black|
+
 
 The HiDimStat package provides statistical inference methods to solve the problem
 of support recovery in the context of high-dimensional and spatially structured data.
@@ -54,51 +71,50 @@ Visit your website, https://hidimstat.github.io/, for more information.
   If you use HiDimStat for your published research, we kindly ask you to :ref:`cite<citation>` our article:
   short reference
 
-Find the important variables in your data using 
-`our examples. <https://hidimstat.github.io/dev/auto_examples/index.html>`_ .
+Find your important variables in your data with the help of 
+`our examples <https://hidimstat.github.io/dev/auto_examples/index.html>`_.
 
 If you have any problems, please report them to the github issue tracker 
 (https://github.com/mind-inria/hidimstat/issues) or contribute to the library 
 by opening a Pull Request.
 
-
-
 Installation
-============
-
-We recommend using HiDimStat with Python 3.12. For installation, we recommend 
-using ``conda`` for python environment management. You can do so by running the 
-following commands from the terminal::
-  
-  pip install hidimstat
-
-
-Or if you want the latest version available 
-(for example to contribute to the development of this project)::
-
-  pip install -U git+https://github.com/mind-inria/hidimstat.git
-
-or::
-
-  git clone https://github.com/mind-inria/hidimstat.git
-  cd hidimstat
-  pip install -e .
-
+------------
 
 Dependencies
-============
+~~~~~~~~~~~~
 
-- joblib
-- numpy
-- panda
-- scipy
-- scikit-learn
+HiDimStat requires:
 
-To run examples it is neccessary to install `matplotlib`, and to run tests it
-is also needed to install ``pytest``.
+- Python (>= |PythonMinVersion|)
+- joblib (>= |JoblibMinVersion|)
+- NumPy (>= |NumPyMinVersion|)
+- Pandas (>= |PandasMinVersion|)
+- Scikit-learn (>= |SklearnMinVersion|)
+- SciPy (>= |SciPyMinVersion|)
+
+=======
+
+HiDimStat plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
+For running the examples Matplotlib >= |MatplotlibMinVersion| and seaborn >=
+|SeabornMinVersion| is required.
+
+=======
+
+For testing HiDimStat, it require  ``pytest`` and the following extension: 
+``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
+``pytest-timeout``, ``pytest-durations``
+
+User installation
+~~~~~~~~~~~~~~~~~
+
+HiDimStat can easily be installed via ``pip``. For more installation information,
+see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.::
+
+    pip install -U hidimstat 
 
 Documentation & Examples
-========================
+------------------------
 
 All the documentation of HiDimStat is available at
  https://mind-inria.github.io/hidimstat/.
@@ -116,14 +132,14 @@ For example run the following command in terminal::
   python plot_2D_simulation_example.py
 
 References
-==========
+----------
 
 The algorithms developed in this package have been detailed in several 
 conference/journal articles that can be downloaded at 
 https://mind-inria.github.io/research.html.
 
 Main references
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 Ensemble of Clustered desparsified Lasso (ECDL):
 
