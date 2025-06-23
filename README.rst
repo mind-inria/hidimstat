@@ -195,7 +195,7 @@ For less formal discussions or to exchange ideas, you can contact the main
 contributors:
 
 +-------------------+-------------------+-------------------+-------------------+
-|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero-lobo |
+|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |
 +-------------------+-------------------+-------------------+-------------------+
 |    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |
 +-------------------+-------------------+-------------------+-------------------+
