@@ -273,12 +273,14 @@ def plot_map(
 if pval_dl is not None:
     plot_map(
         zscore_from_pval(pval_dl, one_minus_pval_dl),
-        zscore_threshold_no_clust,
+        float(zscore_threshold_no_clust),
         "Desparsified Lasso",
     )
 
 plot_map(
-    zscore_from_pval(pval_cdl, one_minus_pval_cdl), zscore_threshold_clust, "CluDL"
+    zscore_from_pval(pval_cdl, one_minus_pval_cdl),
+    float(zscore_threshold_clust),
+    "CluDL",
 )
 
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
