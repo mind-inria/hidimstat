@@ -105,11 +105,13 @@ def _generate_3D_weight(shape, roi_size):
 
 
 def multivariate_simulation_spatial(
-    n_samples=100,
-    shape=(12, 12),
+    n_samples,
+    spatial_dim=(12, 12),
+    n_target=None,
     roi_size=2,
-    sigma=1.0,
-    smooth_X=1.0,
+    sigma_noise=1.0,
+    snr=100.0,
+    rho=1.0,
     seed=0,
 ):
     """
@@ -147,31 +149,37 @@ def multivariate_simulation_spatial(
         Weight map with 5 channels for different ROIs.
     """
     assert n_samples > 0, "n_samples must be strictly positive"
-    # Setup seed generator
-    rng = np.random.default_rng(seed)
+    assert np.all(np.array(spatial_dim) > 0), "spatila dimension must be positive"
 
     # generate the support of the data
-    if len(shape) == 2:
-        w = _generate_2D_weight(shape, roi_size)
-    elif len(shape) == 3:
-        w = _generate_3D_weight(shape, roi_size)
+    if len(spatial_dim) == 2:
+        w = _generate_2D_weight(spatial_dim, roi_size)
+    elif len(spatial_dim) == 3:
+        w = _generate_3D_weight(spatial_dim, roi_size)
     else:
-        raise ValueError(f"Shape {shape} not supported, only 2D and 3D are supported")
+        raise ValueError(
+            f"Shape {spatial_dim} not supported, only 2D and 3D are supported"
+        )
 
-    beta = w.sum(-1).ravel()
-    X_ = rng.standard_normal((n_samples,) + shape)
-    X = []
-    for i in np.arange(n_samples):
-        Xi = ndimage.gaussian_filter(X_[i], smooth_X)
-        X.append(Xi.ravel())
+    beta = w.sum(-1)
 
-    X = np.asarray(X)
-    X_ = X.reshape((n_samples,) + shape)
+    (X, y, beta_true, noise) = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=np.prod(spatial_dim),
+        n_targets=n_target,
+        sigma_noise=sigma_noise,
+        snr=snr,
+        rho=rho,
+        beta=beta.ravel(),
+        seed=seed,
+    )
 
-    noise = sigma * rng.standard_normal(n_samples)
-    y = np.dot(X, beta) + noise
-
-    return X, y, beta, noise, X_, w
+    return (
+        X.reshape((n_samples,) + spatial_dim),
+        y,
+        beta_true.reshape(spatial_dim),
+        noise,
+    )
 
 
 def multivariate_simulation(
@@ -180,10 +188,11 @@ def multivariate_simulation(
     n_targets=None,
     support_size=10,
     rho=0,
-    value=1.0,
     snr=10.0,
     sigma_noise=1.0,
     rho_serial=0.0,
+    value=1.0,
+    beta=None,
     shuffle=False,
     continuous_support=False,
     seed=None,
@@ -239,7 +248,9 @@ def multivariate_simulation(
     assert n_samples > 0, "n_samples must be positive"
     assert n_features > 0, "n_features must be positive"
     assert n_targets is None or n_targets > 0.0, "n_target must be positive"
-    assert support_size <= n_features, "support_size cannot be larger than n_features"
+    assert (
+        support_size <= n_features or beta is not None
+    ), "support_size cannot be larger than n_features"
     assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
     assert (
         rho_serial >= -1.0 and rho_serial <= 1.0
@@ -259,20 +270,27 @@ def multivariate_simulation(
     if shuffle:
         rng.shuffle(X.T)
 
-    # Generate the response from a linear model
-    if continuous_support:
-        non_zero = range(support_size)
+    # Generate the support of the data
+    if beta is None:
+        # Generate the response from a linear model
+        if continuous_support:
+            non_zero = range(support_size)
+        else:
+            non_zero = rng.choice(n_features, support_size, replace=False)
+        if n_targets is None:
+            beta_true = np.zeros(n_features, dtype=bool)
+            beta_true[non_zero] = value
+        else:
+            beta_true = np.zeros((n_features, n_targets), dtype=bool)
+            beta_true[non_zero, :] = value
     else:
-        non_zero = rng.choice(n_features, support_size, replace=False)
+        assert np.all(beta.shape == X.shape[1:])
+        beta_true = beta
 
-    # Generate the support and the noise of the data for the prediction.
+    # Generate the noise of the data for the prediction.
     if n_targets is None:
-        beta_true = np.zeros(n_features, dtype=bool)
-        beta_true[non_zero] = value
         eps = sigma_noise * rng.standard_normal(size=n_samples)
     else:
-        beta_true = np.zeros((n_features, n_targets), dtype=bool)
-        beta_true[non_zero, :] = value
         # possibility to generate correlated noise
         covariance_temporal = toeplitz(
             rho_serial ** np.arange(0, n_targets)
@@ -292,14 +310,8 @@ def multivariate_simulation(
     else:
         prod_temp = np.zeros_like(prod_temp)
         noise_mag = 1
+    noise = noise_mag * eps
 
-    y = prod_temp + noise_mag * eps
+    y = prod_temp + noise
 
-    return (
-        X,
-        y,
-        beta_true,
-        non_zero,
-        noise_mag,
-        eps,
-    )
+    return X, y, beta_true, noise
