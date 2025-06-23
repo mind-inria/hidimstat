@@ -191,12 +191,12 @@ class BasePerturbation(BaseEstimator):
                 " call fit with groups=None"
             )
         count = 0
-        for group_id in self.groups.values():
-            if type(group_id[0]) is int:
-                assert np.any(
-                    np.array(group_id, dtype=int) < X.shape[1]
+        for index_variables in self.groups.values():
+            if type(index_variables[0]) is int:
+                assert np.all(
+                    np.array(index_variables, dtype=int) < X.shape[1]
                 ), "X does not correspond to the fitting data."
-            count += len(group_id)
+            count += len(index_variables)
         if X.shape[1] > count:
             warnings.warn("Not all features will has a importance score.")
 
