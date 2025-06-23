@@ -49,8 +49,14 @@ doc = [
     "sphinx-prompt          >= 1.0.0",
     "seaborn",
 ]
-example = ["matplotlib>=3.9.0", "seaborn"]
-style = ["black  >= 24.4.2", "isort  >= 5.13.2"]
+example = [
+    "matplotlib>=3.9.0",
+    "seaborn"
+]
+style = [
+    "black  >= 24.4.2", 
+    "isort  >= 5.13.2"
+]
 # For running unit and docstring tests
 test = [
     "iniconfig  >= 0.1,  < 3",
