@@ -168,7 +168,7 @@ shape = (40, 40)
 n_features = shape[1] * shape[0]
 roi_size = 4  # size of the edge of the four predictive regions
 sigma = 2.0  # noise standard deviation
-smooth_X = 0.5  # level of spatial smoothing introduced by the Gaussian filter
+rho = 0.5  # level of "spatial correlation"
 snr = 50.0
 
 # generating the data
@@ -177,7 +177,7 @@ X_init, y, beta, noise = multivariate_simulation_spatial(
     shape,
     roi_size=roi_size,
     sigma_noise=sigma,
-    rho=smooth_X,
+    rho=rho,
     snr=snr,
     seed=1,
 )
