@@ -206,7 +206,7 @@ contributors:
   :target: https://github.com/bthirion
 .. |avatar JP| image:: https://avatars.githubusercontent.com/u/56166877?v=4 
   :target: https://github.com/jpaillard
-.. |avatar AE| image:: https://avatars.githubusercontent.com/u/79699169?v=4 
+.. |avatar AR| image:: https://avatars.githubusercontent.com/u/79699169?v=4 
   :target: https://github.com/AngelReyero
 
 Citation
