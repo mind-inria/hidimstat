@@ -194,11 +194,11 @@ this GitHub repository so we can address it quickly. |br|
 For less formal discussions or to exchange ideas, you can contact the main 
 contributors:
 
-+------------------+------------------+------------------+
-|   Lionel Kusch   | Bertrand Thirion |  Joseph Paillard |
-+------------------+------------------+------------------+
-|    |avatar LK|   |   |avatar BT|    |    |avatar JP|   |
-+------------------+------------------+------------------+
++-------------------+-------------------+-------------------+-------------------+
+|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero-lobo |
++-------------------+-------------------+-------------------+-------------------+
+|    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |
++-------------------+-------------------+-------------------+-------------------+
 
 .. |avatar LK| image:: https://avatars.githubusercontent.com/u/17182418?v=4 
   :target: https://github.com/lionelkusch
@@ -206,6 +206,8 @@ contributors:
   :target: https://github.com/bthirion
 .. |avatar JP| image:: https://avatars.githubusercontent.com/u/56166877?v=4 
   :target: https://github.com/jpaillard
+.. |avatar AE| image:: https://avatars.githubusercontent.com/u/79699169?v=4 
+  :target: https://github.com/AngelReyero
 
 Citation
 --------
