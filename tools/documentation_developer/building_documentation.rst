@@ -10,11 +10,11 @@ new sphinx warnings by building the documentation locally and try to fix them.**
 
     pip install .[doc]
 
-To build the documentation, you need to be in the ``doc_conf`` folder:
+To build the documentation, you need to be in the ``docsolder:
 
 .. prompt:: bash
 
-    cd doc_conf
+    cd docs
 
 In the vast majority of cases, you only need to generate the web site without
 the example gallery (equivalent to ``make html-noplot``):

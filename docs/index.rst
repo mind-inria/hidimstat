@@ -72,7 +72,7 @@ To build the documentation you will need to run:
 .. code-block::
 
     pip install -U .[doc]
-    cd doc_conf
+    cd docs
     make html
 
 
