@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 
 import matplotlib
-from _utils.utils import linkcode_resolve
+from utils import linkcode_resolve
 
 from hidimstat import __version__
 
@@ -43,7 +43,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["./_utils/_templates"]
+templates_path = ["./_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
@@ -62,8 +62,8 @@ language = "en"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["./_utils/_static"]
-html_logo = "./_utils/_static/logo.png"
+html_static_path = ["./_static"]
+html_logo = "./_static/logo.png"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
@@ -92,7 +92,7 @@ html_context = {
 source_suffix = [".rst", ".md"]
 
 # sphinxcontrib-bibtex
-bibtex_bibfiles = ["./_utils/references.bib"]
+bibtex_bibfiles = ["./references.bib"]
 bibtex_style = "unsrt"
 bibtex_reference_style = "author_year"
 bibtex_footbibliography_header = ""
@@ -126,7 +126,7 @@ sphinx_gallery_conf = {
     "abort_on_example_error": False,
     "image_scrapers": ("matplotlib",),
     "doc_module": "hidimstat",
-    "backreferences_dir": "../_build/reference",
+    "backreferences_dir": "../_build/generated/",
     "parallel": True,
     "show_memory": False,  # can't show memory if it's in parallel
     "reference_url": {

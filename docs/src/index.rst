@@ -173,7 +173,7 @@ For Knockoffs Inference:
 
 References
 ----------
-.. bibliography:: references.bib
+.. bibliography:: ../tools/references.bib
 
   
 .. toctree::
@@ -181,5 +181,5 @@ References
   :maxdepth: 1
 
   api
-  auto_examples/index
+  generated/auto_examples/index
   dev/index

@@ -10,7 +10,7 @@ new sphinx warnings by building the documentation locally and try to fix them.**
 
     pip install .[doc]
 
-To build the documentation, you need to be in the ``docsolder:
+To build the documentation, you need to be in the `docs` folder:
 
 .. prompt:: bash
 
