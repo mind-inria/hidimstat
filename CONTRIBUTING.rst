@@ -1,3 +1,7 @@
+.. ## for plotting and for examples 
+    #TODO Need to be updated if it's necessary
+.. |MatplotlibMinVersion| replace:: 3.9.0
+.. |SeabornMinVersion| replace:: 0.9.0
 
 Quick start for contributing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

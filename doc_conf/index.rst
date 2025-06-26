@@ -181,6 +181,6 @@ References
   :maxdepth: 1
 
   api
-  CONTRIBUTING
+  dev/CONTRIBUTING
   auto_examples/index
   dev/index
