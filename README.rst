@@ -215,12 +215,6 @@ reference paper in the method description, and we recommend that you cite it.
 If you publish a paper using HiDimStat, please contact us or open an issue! 
 We would love to hear about your work and help you promote it.
 
-License
--------
-
-This project is licensed under the 
-`BSD 3-Clause License <https://github.com/mind-inria/hidimstat?tab=BSD-3-Clause-1-ov-file>`_.
-
 Acknowledgments
 ---------------
 
