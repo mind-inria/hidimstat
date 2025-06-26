@@ -10,10 +10,13 @@ SPHINXOPTS    = -j auto -W --keep-going -n
 # -n/--nitpicky:	    This generates warnings for all missing references.
 SPHINXBUILD   = sphinx-build
 PAPER         =
-BUILDDIR      = _build
+BUILDDIR      = ./_build
 
 GITHUB_PAGES_BRANCH = gh-pages
-OUTPUTDIR = _build/html
+SOURCEDIR = ./src
+OUTPUTDIR = ./_build/html
+
+# move to source dir before any operation
 
 # add an option for selecting the example to run
 ifneq ($(EXAMPLES_PATTERN),)
@@ -28,7 +31,7 @@ endif
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(EXAMPLES_PATTERN_OPTS) .
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(EXAMPLES_PATTERN_OPTS)
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
@@ -56,12 +59,10 @@ help:
 
 clean:
 	rm -rf $(BUILDDIR)/*
-	rm -rf auto_examples/
-	rm -rf generated/*
-	rm -rf modules/*
+	rm -rf $(SOURCEDIR)/generated/*
 
 html-noplot:
-	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
