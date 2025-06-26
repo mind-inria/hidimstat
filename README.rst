@@ -16,17 +16,10 @@
    :target: https://pypi.org/project/hidimstat/
 .. |PyPi_download| image:: https://img.shields.io/pypi/dm/hidimstat
    :target: https://pypi.org/project/hidimstat/
-.. |PyPi format| image:: https://img.shields.io/pypi/format/hidimstat
-   :target: https://pypi.org/project/hidimstat/
 .. |PythonVersion| image:: https://img.shields.io/pypi/pyversions/hidimstat.svg?color=informational
    :target: https://pypi.org/project/hidimstat/
 .. |Latest release| image:: https://img.shields.io/github/release/mind-inria/hidimstat.svg?color=brightgreen&label=latest%20release
-  :target: https://github.com/mind-inria/hidimstat/releases
 .. ## Additional badge
-.. |GitHub contributors| image:: https://img.shields.io/github/contributors/mind-inria/hidimstat.svg?logo=github
-  :target: https://github.com/mind-inria/hidimstat
-.. |GitHub commit activity| image:: https://img.shields.io/github/commit-activity/y/mind-inria/hidimstat.svg?logo=github&color=%23ff6633
-  :target: https://github.com/mind-inria/hidimstat
 .. |License| image:: https://img.shields.io/github/license/mind-inria/hidimstat
    :target: https://opensource.org/license/bsd-3-clause
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
@@ -50,11 +43,11 @@ HiDimStat: High-dimensional statistical inference tool for Python
 
 .. # Add the different badge
 
-|Linter&Tests| |CircleCI/Documentation| |CodeCov|
+|Linter&Tests| |CircleCI/Documentation| |CodeCov| |Black|
 
-|PyPi| |PyPi format| |PyPi_download| |Latest release| |PythonVersion|
+|PyPi| |PyPi_download| |PythonVersion| |Latest release|
 
-|GitHub contributors| |GitHub commit activity| |License| |Black|
+|License| 
 
 .. # Short description of the library
 
