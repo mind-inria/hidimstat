@@ -44,3 +44,5 @@ The documentation is built with Sphinx. We recommend you install the documentati
 
 After this installation, you can build the documentation from the source using the Makefile in doc_conf::
     make html
+
+``For more information``, look at the `developer documentation <https://hidimstat.github.io/dev/dev/index.html>`_
