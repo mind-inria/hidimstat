@@ -171,7 +171,7 @@ sigma = 2.0  # noise standard deviation
 smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 
 # generating the data
-X_init, y, beta, epsilon, _, _ = multivariate_simulation_spatial(
+X_init, y, beta, epsilon = multivariate_simulation_spatial(
     n_samples, shape, roi_size, sigma, smooth_X, seed=1
 )
 

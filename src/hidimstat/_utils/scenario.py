@@ -108,7 +108,7 @@ def multivariate_simulation_spatial(
     n_samples=100,
     shape=(12, 12),
     roi_size=2,
-    sigma=1.0,
+    sigma_noise=1.0,
     smooth_X=1.0,
     seed=0,
 ):
@@ -124,7 +124,7 @@ def multivariate_simulation_spatial(
         or (n_x, n_y, n_z) for 3D data.
     roi_size : int, default=2
         Size of the edge of the ROIs (Regions of Interest).
-    sigma : float, default=1.0
+    sigma_noise : float, default=1.0
         Standard deviation of the additive white Gaussian noise.
     smooth_X : float, default=1.0
         Level of data smoothing using a Gaussian filter.
@@ -150,6 +150,17 @@ def multivariate_simulation_spatial(
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
+    # Generate the variables from normal distribution
+    X_ = rng.standard_normal((n_samples,) + shape)
+    ## Create local correlation
+    X = []
+    for i in np.arange(n_samples):
+        Xi = ndimage.gaussian_filter(X_[i], smooth_X)
+        X.append(Xi.ravel())
+    X = np.asarray(X)
+
+    # Generate the support and the noise of the data for the prediction.
+    noise = sigma_noise * rng.standard_normal(n_samples)
     # generate the support of the data
     if len(shape) == 2:
         w = _generate_2D_weight(shape, roi_size)
@@ -157,21 +168,11 @@ def multivariate_simulation_spatial(
         w = _generate_3D_weight(shape, roi_size)
     else:
         raise ValueError(f"Shape {shape} not supported, only 2D and 3D are supported")
-
     beta = w.sum(-1).ravel()
-    X_ = rng.standard_normal((n_samples,) + shape)
-    X = []
-    for i in np.arange(n_samples):
-        Xi = ndimage.gaussian_filter(X_[i], smooth_X)
-        X.append(Xi.ravel())
 
-    X = np.asarray(X)
-    X_ = X.reshape((n_samples,) + shape)
-
-    noise = sigma * rng.standard_normal(n_samples)
     y = np.dot(X, beta) + noise
 
-    return X, y, beta, noise, X_, w
+    return X, y, beta, noise
 
 
 def multivariate_simulation(

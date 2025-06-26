@@ -7,8 +7,10 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_equal
 
 from hidimstat._utils.scenario import (
-    multivariate_simulation_spatial,
     multivariate_simulation,
+    multivariate_simulation_spatial,
+    _generate_2D_weight,
+    _generate_3D_weight,
 )
 
 
@@ -26,11 +28,11 @@ def test_multivariate_simulation_2D():
     smooth_X = 1.0
     rho_expected = 0.8
 
-    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
+    X, y, beta, noise = multivariate_simulation_spatial(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         smooth_X=smooth_X,
         seed=0,
     )
@@ -40,7 +42,6 @@ def test_multivariate_simulation_2D():
 
     # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1]))
-    assert_equal(X_.shape, (n_samples, shape[0], shape[1]))
     # check if the input parameters are close to their empirical estimators
     assert_almost_equal(sigma_hat, sigma, decimal=1)
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
@@ -63,11 +64,11 @@ def test_multivariate_simulation_3D():
     smooth_X = 1.0
     rho_expected = 0.8
 
-    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
+    X, y, beta, noise = multivariate_simulation_spatial(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        sigma=sigma,
+        sigma_noise=sigma,
         smooth_X=smooth_X,
         seed=0,
     )
@@ -77,7 +78,6 @@ def test_multivariate_simulation_3D():
 
     # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1] * shape[2]))
-    assert_equal(X_.shape, (n_samples, shape[0], shape[1], shape[2]))
     # check if the input parameters are close to their empirical estimators
     assert_almost_equal(sigma_hat, sigma, decimal=1)
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
@@ -86,34 +86,41 @@ def test_multivariate_simulation_3D():
     assert_equal(np.count_nonzero(beta), 5 * (roi_size**3))
 
 
-def test_multivariate_simulation_edge_cases():
-    """Test edge cases and invalid inputs for multivariate_simulation"""
-
-    # Test minimum valid shape and roi_size
-    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
+def test_multivariate_simulation_edge_cases_2D():
+    """Test minimum valid shape and roi_size"""
+    w = _generate_2D_weight(shape=(2, 2), roi_size=1)
+    assert_equal(w.shape, (2, 2, 5))
+    X, y, beta, noise = multivariate_simulation_spatial(
         n_samples=2, shape=(2, 2), roi_size=1, seed=42
     )
     assert_equal(X.shape, (2, 4))
-    assert_equal(w.shape, (2, 2, 5))
 
-    # Test 3D minimum case
-    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
+
+def test_multivariate_simulation_edge_cases_3D():
+    """Test 3D minimum case"""
+    w = _generate_3D_weight(shape=(2, 2, 2), roi_size=1)
+    assert_equal(w.shape, (2, 2, 2, 5))
+    X, y, beta, noise = multivariate_simulation_spatial(
         n_samples=2, shape=(2, 2, 2), roi_size=1, seed=42
     )
     assert_equal(X.shape, (2, 8))
-    assert_equal(w.shape, (2, 2, 2, 5))
 
-    # Test roi_size equal to shape dimension
-    X, y, beta, noise, X_, w = multivariate_simulation_spatial(
-        n_samples=10, shape=(4, 4), roi_size=4, seed=42
-    )
+
+def test_multivariate_simulation_edge_cases_roi_full():
+    """Test roi_size equal to shape dimension"""
+    w = _generate_2D_weight(shape=(4, 4), roi_size=4)
     # all the corner are full
     for i in range(4):
         assert np.all(w[:, :, i].sum() == 16)  # Full coverage of corners
     # only the background is empty
     assert np.all(w[:, :, 4].sum() == 0)  # Full coverage of corners
+    X, y, beta, noise = multivariate_simulation_spatial(
+        n_samples=10, shape=(4, 4), roi_size=4, seed=42
+    )
 
-    # Test invalid inputs
+
+def test_multivariate_simulation_invalid():
+    """Test invalid inputs"""
     # Invalid shape dimension
     with pytest.raises(ValueError, match="only 2D and 3D are supported"):
         multivariate_simulation_spatial(shape=(2,))
@@ -135,23 +142,22 @@ def test_multivariate_simulation_reproducibility():
 
     params = {"n_samples": 10, "shape": (6, 6), "roi_size": 2, "seed": 42}
 
-    X1, y1, beta1, noise1, X1_, w1 = multivariate_simulation_spatial(**params)
-    X2, y2, beta2, noise2, X2_, w2 = multivariate_simulation_spatial(**params)
+    X1, y1, beta1, noise1 = multivariate_simulation_spatial(**params)
+    X2, y2, beta2, noise2 = multivariate_simulation_spatial(**params)
 
     assert_equal(X1, X2)
     assert_equal(y1, y2)
     assert_equal(beta1, beta2)
     assert_equal(noise1, noise2)
-    assert_equal(w1, w2)
 
 
-def test_multivariate_simulation_weights():
+def test_multivariate_simulation_weights_2D():
     """Test weight map generation and properties"""
 
     # 2D weights
     shape = (6, 6)
     roi_size = 2
-    _, _, _, _, _, w = multivariate_simulation_spatial(shape=shape, roi_size=roi_size)
+    w = _generate_2D_weight(shape=shape, roi_size=roi_size)
 
     # Test ROI locations
     assert np.all(w[0:roi_size, 0:roi_size, 0] == 1.0)  # Upper left
@@ -160,9 +166,12 @@ def test_multivariate_simulation_weights():
     assert np.all(w[-roi_size:, 0:roi_size, 3] == 1.0)  # Lower left
     assert np.all(w[:, :, 4] == 0.0)  # Background
 
+
+def test_multivariate_simulation_weights_3D():
     # 3D weights
     shape = (6, 6, 6)
-    _, _, _, _, _, w = multivariate_simulation_spatial(shape=shape, roi_size=roi_size)
+    roi_size = 2
+    w = _generate_3D_weight(shape=shape, roi_size=roi_size)
 
     # Test center ROI location
     center_slice = w[2:4, 2:4, 2:4, 4]
