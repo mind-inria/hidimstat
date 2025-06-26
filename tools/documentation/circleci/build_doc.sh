@@ -124,7 +124,7 @@ affected_doc_paths() {
     # generate a list fo the file modified in the PR
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
     # list of the modified documentation files
-    echo "$files" | grep ^docs/.*\.rst | sed 's/^docs\/\(.*\)\.rst$/\1.html/'
+    echo "$files" | grep ^docs/src/.*\.rst | sed 's/^docs\/src\/\(.*\)\.rst$/\1.html/'
     # list of the modified examples 
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/auto_\1.html/'
     # list of the modifed source file
