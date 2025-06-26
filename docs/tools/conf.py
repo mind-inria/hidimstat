@@ -119,14 +119,14 @@ autodoc_default_options = {
 matplotlib.use("agg")
 sphinx_gallery_conf = {
     "examples_dirs": ["../../examples"],
-    "gallery_dirs": ["../_build/auto_examples"],
+    "gallery_dirs": ["./generated/gallery/examples"],
     "plot_gallery": "True",
     "thumbnail_size": (160, 112),
     "min_reported_time": 1.0,
     "abort_on_example_error": False,
     "image_scrapers": ("matplotlib",),
     "doc_module": "hidimstat",
-    "backreferences_dir": "../_build/generated/",
+    "backreferences_dir": "./generated/gallery/backreference/",
     "parallel": True,
     "show_memory": False,  # can't show memory if it's in parallel
     "reference_url": {

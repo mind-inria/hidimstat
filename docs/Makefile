@@ -58,8 +58,9 @@ help:
 .PHONY: clean
 
 clean:
-	rm -rf $(BUILDDIR)/*
-	rm -rf $(SOURCEDIR)/generated/*
+	rm -rfv $(BUILDDIR)/*
+	rm -rfv $(SOURCEDIR)/generated/*
+	rm -rfv $(SOURCEDIR)/sg_execution_times.rst
 
 html-noplot:
 	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
