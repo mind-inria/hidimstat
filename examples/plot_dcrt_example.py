@@ -37,7 +37,7 @@ for sim_ind in range(10):
     # Number of relevant variables
     n_signal = 2
     # Signal-to-noise ratio
-    snr = 4
+    signal_noise_ratio = 4
     # Correlation coefficient
     rho = 0.8
     # Nominal false positive rate
@@ -48,7 +48,7 @@ for sim_ind in range(10):
         n_features=p,
         support_size=n_signal,
         rho=rho,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         shuffle=True,
         seed=sim_ind,
     )

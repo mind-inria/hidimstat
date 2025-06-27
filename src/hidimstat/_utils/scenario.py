@@ -182,7 +182,7 @@ def multivariate_simulation(
     support_size=10,
     rho=0,
     value=1.0,
-    snr=10.0,
+    signal_noise_ratio=10.0,
     rho_serial=0.0,
     shuffle=False,
     continuous_support=False,
@@ -206,7 +206,7 @@ def multivariate_simulation(
         Feature correlation coefficient for Toeplitz covariance matrix.
     value : float, default=1.0
         Value assigned to non-zero coefficients in beta.
-    snr : float, default=10.0
+    signal_noise_ratio : float, default=10.0
         Signal-to-noise ratio. Controls noise scaling.
     sigma_noise : float, default=1.0
         Standard deviation of the noise.
@@ -244,7 +244,7 @@ def multivariate_simulation(
     assert (
         rho_serial >= -1.0 and rho_serial <= 1.0
     ), "rho_serial must be between -1 and 1"
-    assert snr >= 0.0, "snr must be positive"
+    assert signal_noise_ratio >= 0.0, "signal_noise_ratio must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
@@ -285,10 +285,12 @@ def multivariate_simulation(
     # Scale the noise for respecting signal-noise-ratio.
     if support_size == 0:
         noise_mag = 1.0
-    elif np.isinf(snr):
+    elif np.isinf(signal_noise_ratio):
         noise_mag = 0.0
-    elif snr != 0.0:
-        noise_mag = np.linalg.norm(prod_temp) / (np.linalg.norm(eps) * np.sqrt(snr))
+    elif signal_noise_ratio != 0.0:
+        noise_mag = np.linalg.norm(prod_temp) / (
+            np.linalg.norm(eps) * np.sqrt(signal_noise_ratio)
+        )
     else:
         prod_temp = np.zeros_like(prod_temp)
         noise_mag = 1

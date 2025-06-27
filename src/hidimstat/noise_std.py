@@ -238,7 +238,7 @@ def empirical_snr(X, y, beta, noise=None):
 
     Returns
     -------
-    snr_hat : float
+    signal_noise_ratio_hat : float
         Empirical SNR computed as var(signal) / var(noise).
 
     Notes
@@ -255,6 +255,6 @@ def empirical_snr(X, y, beta, noise=None):
         noise = y - signal
 
     # compute signal-to-noise ratio
-    snr_hat = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
+    signal_noise_ratio_hat = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
 
-    return snr_hat
+    return signal_noise_ratio_hat

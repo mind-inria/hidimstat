@@ -17,7 +17,7 @@ def test_reid():
     Second scenario: no structure and an empty support."""
 
     n_samples, n_features = 50, 30
-    snr = 2.0
+    signal_noise_ratio = 2.0
 
     # First expe
     # ##########
@@ -28,13 +28,13 @@ def test_reid():
         n_features=n_features,
         support_size=support_size,
         rho=0.25,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         seed=0,
     )
 
     # max_iter=1 to get a better coverage
     sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
-    expected_sigma = snr
+    expected_sigma = signal_noise_ratio
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.5
 
@@ -46,12 +46,12 @@ def test_reid():
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         seed=2,
     )
 
     sigma_hat, _ = reid(X, y)
-    expected_sigma = snr
+    expected_sigma = signal_noise_ratio
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.5
 
@@ -64,7 +64,7 @@ def test_group_reid():
     n_samples = 30
     n_features = 50
     n_target = 100
-    snr = 3.0
+    signal_noise_ratio = 3.0
     rho_serial = 0.9
 
     # First expe
@@ -75,7 +75,7 @@ def test_group_reid():
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         rho_serial=rho_serial,
         rho=0.0,
         seed=0,
@@ -104,7 +104,7 @@ def test_group_reid_2():
     n_samples = 30
     n_features = 50
     n_target = 100
-    snr = 1.0
+    signal_noise_ratio = 1.0
     rho_serial = 0.9
 
     # Second expe
@@ -116,7 +116,7 @@ def test_group_reid_2():
         n_targets=n_target,
         rho=0.25,
         support_size=support_size,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         rho_serial=rho_serial,
         seed=4,
     )
@@ -140,7 +140,7 @@ def test_reid_exception():
     "Test for testing the exceptions on the arguments of reid function"
     n_samples, n_features = 50, 30
     n_target = 10
-    snr = 1.0
+    signal_noise_ratio = 1.0
     rho_serial = 0.9
 
     # First expe
@@ -152,7 +152,7 @@ def test_reid_exception():
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         rho_serial=rho_serial,
     )
     with pytest.raises(
@@ -174,19 +174,19 @@ def test_empirical_snr():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    snr_expected = 0.5
+    signal_noise_ratio_expected = 0.5
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        snr=snr_expected,
+        signal_noise_ratio=signal_noise_ratio_expected,
         seed=0,
     )
 
-    snr = empirical_snr(X, y, beta)
+    signal_noise_ratio = empirical_snr(X, y, beta)
 
-    assert_almost_equal(snr, snr_expected, decimal=2)
+    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=2)
 
 
 def test_empirical_snr_2():
@@ -196,16 +196,16 @@ def test_empirical_snr_2():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    snr_expected = 10.0
+    signal_noise_ratio_expected = 10.0
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        snr=snr_expected,
+        signal_noise_ratio=signal_noise_ratio_expected,
         seed=0,
     )
 
-    snr = empirical_snr(X, y, beta)
+    signal_noise_ratio = empirical_snr(X, y, beta)
 
-    assert_almost_equal(snr, snr_expected, decimal=0)
+    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=0)

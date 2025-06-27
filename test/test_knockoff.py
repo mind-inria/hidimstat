@@ -20,10 +20,12 @@ def test_knockoff_bootstrap_quantile():
     """Test bootstrap knockoof with quantile aggregation"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, beta, noise = multivariate_simulation(n, p, snr=snr, seed=0)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
     non_zero_index = np.where(beta)[0]
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
@@ -48,10 +50,12 @@ def test_knockoff_bootstrap_e_values():
     """Test bootstrap Knockoff with e-values"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, beta, noise = multivariate_simulation(n, p, snr=snr, seed=0)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
     non_zero_index = np.where(beta)[0]
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
@@ -84,10 +88,11 @@ def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     fdr = 0.5
-    X, y, beta, noise = multivariate_simulation(n, p, snr=snr, seed=0)
-    non_zero_index = np.where(beta)[0]
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     (
         selected_bootstrap,
@@ -112,8 +117,10 @@ def test_knockoff_exception():
     """Test exception raise by Knockoff"""
     n = 500
     p = 100
-    snr = 5
-    X, y, beta, noise = multivariate_simulation(n, p, snr=snr, seed=0)
+    signal_noise_ratio = 5
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
     non_zero_index = np.where(beta)[0]
 
     # Checking wrong type for random_state

@@ -5,7 +5,14 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 @pytest.fixture
 def data_generator(
-    n_samples, n_features, support_size, rho, seed, value, snr, rho_serial
+    n_samples,
+    n_features,
+    support_size,
+    rho,
+    seed,
+    value,
+    signal_noise_ratio,
+    rho_serial,
 ):
     """
     Generate simulated data for testing.
@@ -24,7 +31,7 @@ def data_generator(
         Random seed for reproducibility.
     value : float
         Value to be used for non-zero coefficients.
-    snr : float
+    signal_noise_ratio : float
         Signal-to-noise ratio.
     rho_serial : float
         Time correlation coefficient in the noise component.
@@ -46,7 +53,7 @@ def data_generator(
         support_size=support_size,
         rho=rho,
         value=value,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         rho_serial=rho_serial,
         shuffle=False,
         seed=seed,

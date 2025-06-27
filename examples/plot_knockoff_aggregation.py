@@ -56,7 +56,7 @@ sparsity = 0.2
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
 # signal noise ration
-snr = 10
+signal_noise_ratio = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
 # seed for the random generator
@@ -73,14 +73,23 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
+def single_run(
+    n_samples,
+    n_features,
+    rho,
+    sparsity,
+    signal_noise_ratio,
+    fdr,
+    n_bootstraps,
+    seed=None,
+):
     # Generate data
     X, y, beta_true, noise = multivariate_simulation(
         n_samples,
         n_features,
         rho=rho,
         support_size=int(n_features * sparsity),
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         seed=seed,
     )
     non_zero_index = np.where(beta_true)[0]
@@ -171,7 +180,14 @@ def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
-            n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=seed
+            n_samples,
+            n_features,
+            rho,
+            sparsity,
+            signal_noise_ratio,
+            fdr,
+            n_bootstraps,
+            seed=seed,
         )
         for seed in seed_list
     )

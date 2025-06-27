@@ -200,7 +200,7 @@ def test_multivariate_simulation_weights_3D():
 
 
 @pytest.mark.parametrize(
-    "n_samples,n_features,n_targets,support_size,rho,rho_noise,snr,seed,shuffle",
+    "n_samples,n_features,n_targets,support_size,rho,rho_noise,signal_noise_ratio,seed,shuffle",
     [
         # Test case: Basic correlation test
         (100, 500, None, 10, 0.7, None, 3.0, 0, False),
@@ -225,7 +225,15 @@ def test_multivariate_simulation_weights_3D():
     ],
 )
 def test_multivariate_simulation_all(
-    n_samples, n_features, n_targets, support_size, rho, rho_noise, snr, seed, shuffle
+    n_samples,
+    n_features,
+    n_targets,
+    support_size,
+    rho,
+    rho_noise,
+    signal_noise_ratio,
+    seed,
+    shuffle,
 ):
     """Test multivariate autoregressive simulation with various configurations"""
 
@@ -237,7 +245,7 @@ def test_multivariate_simulation_all(
         "rho": rho,
         "seed": seed,
         "shuffle": shuffle,
-        "snr": snr,
+        "signal_noise_ratio": signal_noise_ratio,
     }
 
     if n_targets is not None:
@@ -255,13 +263,13 @@ def test_multivariate_simulation_all(
     assert beta.shape[0] == n_features
 
     # Common assertions
-    snr_estimated = np.linalg.norm(y - noise) / np.linalg.norm(noise)
+    signal_noise_ratio_estimated = np.linalg.norm(y - noise) / np.linalg.norm(noise)
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
-    assert_almost_equal(snr_estimated, snr, decimal=0)
+    assert_almost_equal(signal_noise_ratio_estimated, signal_noise_ratio, decimal=0)
     if n_targets is None:
         sigma_hat = np.std(noise)
-        assert_almost_equal(sigma_hat, snr, decimal=0)
+        assert_almost_equal(sigma_hat, signal_noise_ratio, decimal=0)
     assert_almost_equal(rho_hat, rho, decimal=1)
     assert_equal(X.shape, (n_samples, n_features))
 
@@ -292,10 +300,10 @@ def test_multivariate_simulation_zero_support():
     assert_equal(np.count_nonzero(beta), 0)
 
 
-def test_multivariate_simulation_zero_snr():
+def test_multivariate_simulation_zero_signal_noise_ratio():
     """Test autoregressive simulation with zero SNR."""
     X, y, beta, noise = multivariate_simulation(
-        n_samples=50, n_features=100, snr=0.0, seed=42
+        n_samples=50, n_features=100, signal_noise_ratio=0.0, seed=42
     )
     assert_equal(y, noise)
     assert_almost_equal(np.std(y - noise), 0.0)
@@ -335,9 +343,11 @@ def test_multivariate_simulation_ar_rho_noise():
 
 
 def test_multivariate_simulation_ar_snr():
-    """Test snr validation."""
-    with pytest.raises(AssertionError, match="snr must be positive"):
-        multivariate_simulation(n_samples=10, n_features=20, snr=-1.0, seed=42)
+    """Test signal noise ratio (signal_noise_ratio) validation."""
+    with pytest.raises(AssertionError, match="signal_noise_ratio must be positive"):
+        multivariate_simulation(
+            n_samples=10, n_features=20, signal_noise_ratio=-1.0, seed=42
+        )
 
 
 def test_multivariate_simulation_ar_n_samples():

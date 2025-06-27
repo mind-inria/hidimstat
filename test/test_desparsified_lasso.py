@@ -22,14 +22,14 @@ def test_desparsified_lasso():
 
     n_samples, n_features = 52, 50
     support_size = 1
-    snr = 50
+    signal_noise_ratio = 50
     rho = 0.0
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
         seed=10,
@@ -70,7 +70,7 @@ def test_desparsified_group_lasso():
     n_features = 100
     n_target = 10
     support_size = 2
-    snr = 5000
+    signal_noise_ratio = 5000
     rho_serial = 0.9
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
 
@@ -80,7 +80,7 @@ def test_desparsified_group_lasso():
         n_targets=n_target,
         support_size=support_size,
         rho_serial=rho_serial,
-        snr=snr,
+        signal_noise_ratio=signal_noise_ratio,
         seed=10,
     )
 
