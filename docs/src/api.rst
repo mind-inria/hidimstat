@@ -13,7 +13,7 @@ Functions
 =========
 
 .. autosummary::
-   :toctree: ./generated/api/functiion/
+   :toctree: ./generated/api/function/
    :template: function.rst
 
    quantile_aggregation
