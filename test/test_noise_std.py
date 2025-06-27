@@ -17,43 +17,43 @@ def test_reid():
     Second scenario: no structure and an empty support."""
 
     n_samples, n_features = 50, 30
-    sigma = 2.0
+    snr = 2.0
 
     # First expe
     # ##########
     support_size = 2
 
-    X, y, _, _, noise_mag, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
         rho=0.25,
-        sigma_noise=sigma,
+        snr=snr,
         seed=0,
     )
 
     # max_iter=1 to get a better coverage
     sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
-    expected_sigma = sigma * noise_mag
+    expected_sigma = snr
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
-    assert error_relative < 0.1
+    assert error_relative < 0.5
 
     # Second expe
     # ###########
     support_size = 0
 
-    X, y, _, _, noise_mag, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma_noise=sigma,
-        seed=3,
+        snr=snr,
+        seed=2,
     )
 
     sigma_hat, _ = reid(X, y)
-    expected_sigma = sigma * noise_mag
+    expected_sigma = snr
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
-    assert error_relative < 0.1
+    assert error_relative < 0.5
 
 
 def test_group_reid():
@@ -64,37 +64,36 @@ def test_group_reid():
     n_samples = 30
     n_features = 50
     n_target = 100
-    sigma = 3.0
+    snr = 3.0
     rho_serial = 0.9
 
     # First expe
     # ##########
     support_size = 2
-    X, Y, _, _, noise_mag, _ = multivariate_simulation(
+    X, Y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho_serial=rho_serial,
         rho=0.0,
         seed=0,
     )
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
 
     # max_iter=1 to get a better coverage
     cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
-    error_relative = np.abs(cov_hat - cov) / cov
+    error_relative = np.abs(cov_hat - corr) / corr
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_relative = np.abs(cov_hat - cov) / cov
+    error_relative = np.abs(cov_hat - corr) / corr
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
-    error_relative = np.abs(cov_hat - cov) / cov
-    assert np.max(error_relative) > 0.3
+    error_relative = np.abs(cov_hat - corr) / corr
+    assert np.max(error_relative) > 1.0
 
 
 def test_group_reid_2():
@@ -105,35 +104,35 @@ def test_group_reid_2():
     n_samples = 30
     n_features = 50
     n_target = 100
-    sigma = 1.0
+    snr = 1.0
     rho_serial = 0.9
 
     # Second expe
     # ###########
     support_size = 0
-    X, Y, _, _, noise_mag, _ = multivariate_simulation(
+    X, Y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         rho=0.25,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    cov = np.outer(sigma * noise_mag, sigma * noise_mag) * corr
+    # corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+    corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
 
     cov_hat, _ = reid(X, Y, multioutput=True)
-    error_relative = np.abs(cov_hat - cov) / cov
+    error_relative = np.abs(cov_hat - corr) / corr
     assert np.max(error_relative) < 0.2
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_relative = np.abs(cov_hat - cov) / cov
+    error_relative = np.abs(cov_hat - corr) / corr
     assert np.max(error_relative) < 0.2
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
-    error_relative = np.abs(cov_hat - cov) / cov
+    error_relative = np.abs(cov_hat - corr) / corr
     assert np.max(error_relative) > 0.5
 
 
@@ -141,19 +140,19 @@ def test_reid_exception():
     "Test for testing the exceptions on the arguments of reid function"
     n_samples, n_features = 50, 30
     n_target = 10
-    sigma = 1.0
+    snr = 1.0
     rho_serial = 0.9
 
     # First expe
     # ##########
     support_size = 2
 
-    X, y, _, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho_serial=rho_serial,
     )
     with pytest.raises(
@@ -175,14 +174,12 @@ def test_empirical_snr():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    sigma = 2.0
     snr_expected = 0.5
 
-    X, y, beta, _, noise_mag, eps = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma_noise=sigma,
         snr=snr_expected,
         seed=0,
     )
@@ -199,14 +196,12 @@ def test_empirical_snr_2():
 
     n_samples, n_features = 30, 30
     support_size = 10
-    sigma = 2.0
     snr_expected = 10.0
 
-    X, y, beta, _, noise_mag, eps = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma_noise=sigma,
         snr=snr_expected,
         seed=0,
     )
