@@ -217,10 +217,10 @@ def test_multivariate_simulation_all(
         "n_samples": n_samples,
         "n_features": n_features,
         "support_size": support_size,
-        "sigma_noise": sigma,
         "rho": rho,
         "seed": seed,
         "shuffle": shuffle,
+        "snr": sigma,
     }
 
     if n_targets is not None:
@@ -231,31 +231,32 @@ def test_multivariate_simulation_all(
             }
         )
 
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(**params)
+    X, y, beta, noise = multivariate_simulation(**params)
     # assertion on the shape of the data
     assert X.shape == (n_samples, n_features)
     assert y.shape[0] == n_samples
     assert beta.shape[0] == n_features
-    assert non_zero.size == np.unique(non_zero).size
 
     # Common assertions
-    sigma_hat = np.std(eps) if n_targets is None else np.std(eps[:, -1])
+    snr_estimated = np.linalg.norm(y - noise) / np.linalg.norm(noise)
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
-    assert_almost_equal(sigma_hat, sigma, decimal=0)
+    assert_almost_equal(snr_estimated, sigma, decimal=0)
+    if n_targets is None:
+        sigma_hat = np.std(noise)
+        assert_almost_equal(sigma_hat, sigma, decimal=0)
     assert_almost_equal(rho_hat, rho, decimal=1)
     assert_equal(X.shape, (n_samples, n_features))
 
     if n_targets is None:
         # Non-temporal case
         assert_equal(np.count_nonzero(beta), support_size)
-        assert_equal(y, np.dot(X, beta) + noise_mag * eps)
+        assert_equal(y, np.dot(X, beta) + noise)
     else:
         # assertion on the shape of the data
         assert beta.shape[1] == n_targets
         assert y.shape[1] == n_targets
         # Temporal case
-        noise = noise_mag * eps
         assert_equal(y.shape, (n_samples, n_targets))
         assert_equal(np.count_nonzero(beta), support_size * n_targets)
         assert_equal(y, np.dot(X, beta) + noise)
@@ -268,31 +269,30 @@ def test_multivariate_simulation_all(
 
 def test_multivariate_simulation_zero_support():
     """Test autoregressive simulation with zero support size."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=50, n_features=100, support_size=0, seed=42
     )
     assert_equal(np.count_nonzero(beta), 0)
-    assert_equal(non_zero.size, 0)
 
 
 def test_multivariate_simulation_zero_snr():
     """Test autoregressive simulation with zero SNR."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=50, n_features=100, snr=0.0, seed=42
     )
-    assert_equal(noise_mag, 1.0)
-    assert_equal(y, eps)
+    assert_equal(y, noise)
+    assert_almost_equal(np.std(y - noise), 0.0)
 
 
 def test_multivariate_simulation_minimal():
     """Test autoregressive simulation with minimal dimensions."""
-    X, y, beta, non_zero, noise_mag, eps = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=2, n_features=2, n_targets=2, support_size=1, seed=42
     )
     assert_equal(X.shape, (2, 2))
     assert_equal(y.shape, (2, 2))
     assert_equal(beta.shape, (2, 2))
-    assert_equal(non_zero.size, 1)
+    assert_equal(beta, [[True, True], [False, False]])
 
 
 def test_multivariate_simulation_ar_support_size():

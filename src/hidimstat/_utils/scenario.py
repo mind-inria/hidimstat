@@ -183,7 +183,6 @@ def multivariate_simulation(
     rho=0,
     value=1.0,
     snr=10.0,
-    sigma_noise=1.0,
     rho_serial=0.0,
     shuffle=False,
     continuous_support=False,
@@ -270,7 +269,7 @@ def multivariate_simulation(
     if n_targets is None:
         beta_true = np.zeros(n_features, dtype=bool)
         beta_true[non_zero] = value
-        eps = sigma_noise * rng.standard_normal(size=n_samples)
+        eps = rng.standard_normal(size=n_samples)
     else:
         beta_true = np.zeros((n_features, n_targets), dtype=bool)
         beta_true[non_zero, :] = value
@@ -278,7 +277,7 @@ def multivariate_simulation(
         covariance_temporal = toeplitz(
             rho_serial ** np.arange(0, n_targets)
         )  # covariance matrix of time
-        eps = sigma_noise * rng.multivariate_normal(
+        eps = rng.multivariate_normal(
             np.zeros(n_targets), covariance_temporal, size=(n_samples)
         )
     prod_temp = np.dot(X, beta_true)
@@ -293,14 +292,8 @@ def multivariate_simulation(
     else:
         prod_temp = np.zeros_like(prod_temp)
         noise_mag = 1
+    noise = noise_mag * eps
 
-    y = prod_temp + noise_mag * eps
+    y = prod_temp + noise
 
-    return (
-        X,
-        y,
-        beta_true,
-        non_zero,
-        noise_mag,
-        eps,
-    )
+    return X, y, beta_true, noise
