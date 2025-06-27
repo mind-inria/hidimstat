@@ -49,7 +49,7 @@ n_samples = 200
 # Number of variables
 n_features = 150
 # Correlation parameter
-rho = 0.4
+rho = 0.5
 # Ratio of number of variables with non-zero coefficients over total
 # coefficients
 sparsity = 0.2
@@ -75,7 +75,7 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
     # Generate data
-    X, y, beta_true, _, _, _ = multivariate_simulation(
+    X, y, beta_true, noise = multivariate_simulation(
         n_samples,
         n_features,
         rho=rho,

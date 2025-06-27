@@ -43,7 +43,7 @@ for sim_ind in range(10):
     # Nominal false positive rate
     alpha = 5e-2
 
-    X, y, beta_true, _, _, _ = multivariate_simulation(
+    X, y, beta_true, noise = multivariate_simulation(
         n_samples=n,
         n_features=p,
         support_size=n_signal,
