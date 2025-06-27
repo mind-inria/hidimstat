@@ -11,7 +11,7 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 def test_permutation_importance():
     """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,

@@ -12,7 +12,7 @@ from hidimstat import LOCO, BasePerturbation
 
 def test_loco():
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, beta, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
@@ -98,7 +98,7 @@ def test_loco():
 
 def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
-    X, y, beta, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,

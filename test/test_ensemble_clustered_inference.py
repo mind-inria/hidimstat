@@ -32,18 +32,18 @@ def test_clustered_inference_no_temporal():
 
     n_samples, n_features = 100, 2000
     support_size = 10
-    sigma = 5.0
+    snr = 5.0
     rho = 0.95
     n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, _, _, _ = multivariate_simulation(
+    X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho=rho,
         shuffle=False,
         continuous_support=True,
@@ -89,7 +89,7 @@ def test_clustered_inference_temporal():
     """
     n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
-    sigma = 5.0
+    snr = 50.0
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 150
@@ -97,17 +97,16 @@ def test_clustered_inference_temporal():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X, y, beta, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho_serial=rho_serial,
         rho=rho_data,
         shuffle=False,
         continuous_support=True,
-        snr=50.0,
         seed=10,
     )
 
@@ -152,7 +151,7 @@ def test_clustered_inference_no_temporal_groups():
     n_samples, n_features = 20, 1500
     support_size = 10
     n_groups = 10
-    sigma = 5.0
+    snr = 5.0
     rho = 0.95
     n_clusters = 150
     margin_size = 5
@@ -163,11 +162,11 @@ def test_clustered_inference_no_temporal_groups():
     X_ = []
     y_ = []
     for i in range(n_groups):
-        X_init, y, beta, _, _, _ = multivariate_simulation(
+        X_init, y, beta, noise = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
-            sigma_noise=sigma,
+            snr=snr,
             rho=rho,
             shuffle=False,
             continuous_support=True,
@@ -218,14 +217,14 @@ def test_ensemble_clustered_inference():
     # ###########################################
     n_samples, n_features = 200, 2000
     support_size = 10
-    sigma = 5.0
+    snr = 5.0
     rho = 0.95
 
-    X_init, y, beta, _, _, _ = multivariate_simulation(
+    X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho=rho,
         shuffle=False,
         continuous_support=True,
@@ -282,7 +281,7 @@ def test_ensemble_clustered_inference_temporal_data():
     # #########################
     n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
-    sigma = 5.0
+    snr = 5.0
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 200
@@ -291,12 +290,12 @@ def test_ensemble_clustered_inference_temporal_data():
     extended_support = support_size + margin_size
     n_bootstraps = 4
 
-    X, y, beta, _, _, _ = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
-        sigma_noise=sigma,
+        snr=snr,
         rho_serial=rho_serial,
         rho=rho_data,
         shuffle=False,
