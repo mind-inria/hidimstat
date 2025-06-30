@@ -19,11 +19,12 @@ You should create a `GitHub issue <https://github.com/mind-inria/hidimstat/issue
    What to know before you begin
    -----------------------------
    
-   To understand the purpose and goals behind skrub, please read our
+   To understand the purpose and goals behind HiDimStat, please read our
    :ref:`vision statement <vision>`. 
 
-    If you're interested in the research behind skrub,
+    If you're interested in the research behind HiDimStat,
     we encourage you to explore these papers:
+    ADD REFERENCES
 
 Reporting bugs
 --------------
@@ -37,7 +38,7 @@ please:
    - If **open**, leave a 👍 on the original message to signal that others are affected.
    - If closed, check for one of the following:
       - A **merged pull request** may indicate the bug is fixed. Update your
-        skrub version or note if the fix is pending a release.
+        HiDimStat version or note if the fix is pending a release.
       - A **wontfix label** or reasoning may be provided if the issue was
         closed without a fix.
 2. If the issue does not exist, `create a new one <https://github.com/mind-inria/hidimstat/issues/new>`_.
@@ -51,12 +52,12 @@ To help us resolve the issue quickly, please include:
 - A **summary of the expected result**.
 - Any **additional details** where the bug might occur or doesn't occur unexpectedly.
 - A **code snippet** that reproduces the issue, if applicable.
-- **Version information** for Python, hidimstat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
+- **Version information** for Python, HiDimStat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
 
 Suggesting enhancements
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have an idea for improving hidimstat, whether it's a small fix
+If you have an idea for improving HiDimStat, whether it's a small fix
 or a new feature, first:
 
 - **Check if it has been proposed or implemented** by reviewing
@@ -217,7 +218,7 @@ Run your tests with the ``--cov`` and ``--cov-report`` arguments:
 
 .. code:: sh
 
-   pytest -vsl tests/test_amazing_method.py --cov=skrub --cov-report=html
+   pytest -vsl tests/test_amazing_method.py --cov=. --cov-report=html
 
 This will create the folder ``htmlcov``: by opening
 ``htmlcov/index.html`` it is possible to check what lines are covered in
@@ -232,7 +233,7 @@ each file.
 
    .. code:: sh
 
-      pytest skrub/path/to/file
+      pytest src/hidimstat/path/to/file
 
 
 .. ADD THIS SECTION WHEN THERE WILL BE PRECOMMIT CONFIGURATION FILE
@@ -240,7 +241,7 @@ each file.
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    Formatting the code well helps with code development and maintenance,
-   which why is hidimstat requires that the last commits of a pull request follow
+   which why is HiDimStat requires that the last commits of a pull request follow
    a specific set of formatting rules to ensure code quality.
 
    Luckily, these checks are performed automatically by the ``pre-commit``
@@ -255,16 +256,16 @@ Submitting your code
 
 Once you have pushed your commits to your remote repository, you can submit
 a PR by clicking the "Compare & pull request" button on GitHub,
-targeting the skrub repository.
+targeting the HiDimStat repository.
 
 
 Continuous Integration (CI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 After creating your PR, CI tools will run proceed to run all the tests on all
-configurations supported by hidimstat.
+configurations supported by HiDimStat.
 
 - **Github Actions**:
-  Used for testing hidimstat across various platforms (Linux, macOS, Windows)
+  Used for testing HiDimStat across various platforms (Linux, macOS, Windows)
   and dependencies.
 - **CircleCI**:
   Builds and verifies the project documentation.
@@ -290,7 +291,7 @@ Building the documentation
 introduced any new Sphinx warnings by building the documentation locally
 and addressing any issues.**
 
-First, make sure you have properly installed the development version of hidimstat.
+First, make sure you have properly installed the development version of HiDimStat.
 You can follow the :ref:`installation <installing_from_source>` from source section, if needed.
 
 To build the documentation, you need to be in the ``docs`` folder:
