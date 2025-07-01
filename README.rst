@@ -103,8 +103,9 @@ User installation
 
 HiDimStat can easily be installed via ``pip``. For more installation information,
 see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
-::
-  pip install -U hidimstat 
+
+.. code::sh
+    pip install -U hidimstat 
 
 Contribute
 ----------
@@ -122,6 +123,8 @@ you can create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`
 If you want to contribute directly to the library, check the 
 `how to contribute <https://hidimstat.github.io/dev/how_to_contribute.html/>`_ page 
 on the website for more information.
+
+: _contact_us:
 
 Contact us
 ----------

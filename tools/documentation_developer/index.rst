@@ -20,3 +20,4 @@ You need more information, look here:
   installing_from_source
   building_documentation
   CI_documentation
+  ../README.rst

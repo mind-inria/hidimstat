@@ -28,6 +28,7 @@ git_root_url = "https://github.com/mind-inria/hidimstat"
 # We avoid duplicating the information, but we do not use symlinks to be
 # able to build the docs on Windows
 shutil.copyfile("../CONTRIBUTING.rst", "./dev/CONTRIBUTING.rst")
+shutil.copyfile("../README.rst", "./README.rst")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
