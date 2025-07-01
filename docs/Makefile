@@ -61,6 +61,8 @@ clean:
 	rm -rfv $(BUILDDIR)/*
 	rm -rfv $(SOURCEDIR)/generated/*
 	rm -rfv $(SOURCEDIR)/sg_execution_times.rst
+	rm -rfv $(SOURCEDIR)/README.rst
+	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTING.rst
 
 html-noplot:
 	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
