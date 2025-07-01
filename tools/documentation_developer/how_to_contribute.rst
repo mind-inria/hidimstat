@@ -1,7 +1,9 @@
 .. _how_to_contribute_hidimstat:
 
 ..
-  Inspired by:  https://skrub-data.org/stable/CONTRIBUTING.html
+  Inspired by:  
+    https://skrub-data.org/stable/CONTRIBUTING.html
+    https://nilearn.github.io/stable/development.html
 
 How to contribute to HiDimStat?
 ###############################
@@ -154,7 +156,7 @@ the new issue.
    git push --set-upstream origin my-branch-name-eg-fix-issue-123
 
 At this point, if you visit again the `pull requests
-page <https://github.com/mind-inria/hidimstat/pulls>`__ github should show a
+page <https://github.com/mind-inria/hidimstat/pulls>`_ github should show a
 banner asking if you want to open a pull request from your new branch.
 
 
@@ -177,6 +179,31 @@ When contributing, keep these project goals in mind:
 - **Document public API components**:
     - Document all public functions, methods, variables, and class signatures.
     - The public API refers to all components available for import and use by library users. Anything that doesn't begin with an underscore is considered part of the public API.
+
+Coding Style
+^^^^^^^^^^^^
+
+The coding syle is ch
+
+Coding Style
+------------
+
+The HiDimStat codebase follows `PEP8 <https://peps.python.org/pep-0008/>`__ styling.
+
+
+The main conventions we enforce are :
+
+- line length < 80
+- spaces around operators
+- meaningful variable names
+- function names are underscore separated (e.g., ``a_nice_function``) and as short as possible
+- public functions exposed in their parent module's init file
+- private function names preceded with a "_" and very explicit
+- classes in CamelCase
+- 2 empty lines between functions or classes
+
+You can check that any code you may have edited follows these conventions
+by running `black <https://black.readthedocs.io/en/stable/>`__.
 
 
 Testing the code
@@ -260,7 +287,7 @@ each file.
    a specific set of formatting rules to ensure code quality.
 
    Luckily, these checks are performed automatically by the ``pre-commit``
-   tool (`pre-commit docs <https://pre-commit.com>`__) before any commit
+   tool (`pre-commit docs <https://pre-commit.com>`_) before any commit
    can be pushed. Something worth noting is that if the ``pre-commit``
    hooks format some files, the commit will be canceled: you will have to
    stage the changes made by ``pre-commit`` and commit again.
@@ -294,9 +321,10 @@ Community consensus is key in the integration process. Expect a minimum
 of 1 to 3 reviews depending on the size of the change before we consider
 merging the PR.
 
+.. _quick_start_build_doc:
 
 Building the documentation
-**************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ..
   Inspired by: https://github.com/scikit-learn/scikit-learn/blob/main/doc/developers/contributing.rst
@@ -321,28 +349,96 @@ run the following command:
 
     make html
 
-The documentation will be generated in the ``_build/html/`` directory
-and are viewable in a web browser, for instance by opening the local
-``_build/html/index.html`` file.
+For more information, look at the page `Building the documentation<developer_documentation_build>`
 
-Running all the examples can take a while, so if you only want to generate
-specific examples, you can use the following command with a regex pattern:
-
-.. code:: bash
-
-    make html EXAMPLES_PATTERN=your_regex_goes_here make html
-
-This is especially helpful when you're only modifying or checking a few examples.
-
+Documentation
+*************
 
 Editing the API reference documentation
-***************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To add a new entry to the :ref:`API reference documentation<api_documentation>` or change its
 content, head to ``docs/src/api_reference.py``. This data is then used by ``docs/tools/conf.py``
 to render templates located at ``doc/tools/_templates/*.rst``.
 
-
 Note that **all public functions and classes must be documented in the API
 reference**, hence when adding a public function or class, a new entry must be
 added, as detailed just above.
+
+Docstring style
+^^^^^^^^^^^^^^^
+
+Each function and class must come with a “docstring” at the top of the function code,
+using a forating close to the `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`__ formatting.
+The docstring must summarize what the function does and document every parameter.
+
+If an argument takes in a default value, it should be described
+with the type definition of that argument.
+
+See the examples below:
+
+.. code-block:: python
+
+      def good(x, y=1, z=None):
+          """Show how parameters are documented.
+
+          Parameters
+          ----------
+          x : int
+                X
+
+          y : int, default=1
+                Note that "default=1" is preferred to "Defaults to 1".
+
+          z : str, default=None
+
+          """
+
+
+      def bad(x, y=1, z=None):
+          """Show how parameters should not be documented.
+
+          Parameters
+          ----------
+          x :
+              The type of X is not described
+
+          y : int
+              The default value of y is not described.
+
+          z : str
+              Defaults=None.
+              The default value should be described after the type.
+          """
+
+Additionally, we consider it best practice to write modular functions;
+i.e., functions should preferably be relatively short and do *one* thing.
+This is also useful for writing unit tests.
+
+Writing small functions is not always possible, and we do not recommend 
+trying to reorganize larger, but well-tested, older functions in the codebase, 
+unless there is a strong reason to do so (e.g., when adding a new feature).
+
+Documentaiton style
+^^^^^^^^^^^^^^^^^^^
+
+Documentation must be understandable by people from different backgrounds.
+The “narrative” documentation should be an introduction to the concepts of
+the library.
+It includes very little code and should first help the user figure out which
+parts of the library he needs and then how to use it.
+It must be full of links, of easily-understandable titles, colorful boxes and
+figures.
+
+Examples take a hands-on approach focused on a generic usecase from which users
+will be able to adapt code to solve their own problems.
+They include plain text for explanations, python code and its output and
+most importantly figures to depict its results.
+Each example should take only one or two minutes to run.
+
+To build our documentation, we are using
+`sphinx <https://www.sphinx-doc.org/en/master/usage/quickstart.html>`__ for the
+main documentation and
+`sphinx-gallery <https://sphinx-gallery.github.io/stable/index.html>`__ for the
+example tutorials. If you want to work on those, check out next section to
+learn how to use those tools to :ref:`build documentation<quick_start_build_doc>`.
