@@ -7,6 +7,20 @@
 
 Quick start for contributing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. Adding it when there will a Code of Conduct
+   Please note that it's very important to us that we maintain a positive and supportive
+   environment for everyone who wants to participate. When you join us we ask that you follow
+   our [code of conduct](https://github.com/mind-inria/hidimstat/CODE_OF_CONDUCT.rst)
+   in all interactions both on and offline.
+
+The contribution of this project will be done using Git and GitHub platform. 
+If you are new to GitHub and want to learn how to fork this repo, make your own 
+additions, and include those additions in the master version of this project, 
+check out this `great tutorial <https://hackerbits.com/how-to-contribute-to-an-open-source-project-on-github-davide-coppola/>`__.
+If you want to know about git, you can have look at this `tutorial <https://git-scm.com/docs/gittutorial>`__.
+
+
 Source code
 """""""""""
 

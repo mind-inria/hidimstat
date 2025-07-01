@@ -153,6 +153,107 @@ We do not expect community members to be experts in all changes included in `pul
 and we encourage you to concentrate on those code changes that you feel comfortable with.
 As always, more eyes on a code change means that the code is more likely to work in a wide variety of contexts!
 
+.. _code_review:
+
+Code Review Guidelines
+^^^^^^^^^^^^^^^^^^^^^^
+
+Reviewing code contributed to the project as PRs is a crucial component of
+hidimstat development. We encourage anyone to start reviewing code of other
+developers. The code review process is often highly educational for everybody
+involved. This is particularly appropriate if it is a feature you would like to
+use, and so can respond critically about whether the PR meets your needs. While
+each pull request needs to be signed off by two core developers, you can speed
+up this process by providing your feedback.
+
+.. note::
+
+  The difference between an objective improvement and a subjective nit isn't
+  always clear. Reviewers should recall that code review is primarily about
+  reducing risk in the project. When reviewing code, one should aim at
+  preventing situations which may require a bug fix, a deprecation, or a
+  retraction. Regarding docs: typos, grammar issues and disambiguations are
+  better addressed immediately.
+
+Important aspects to be covered in any code review
+--------------------------------------------------
+
+  Here are a few important aspects that need to be covered in any code review,
+  from high-level questions to a more detailed check-list.
+
+  - Do we want this in the library? Is it likely to be used? Do you, as
+    a HiDimStat user, like the change and intend to use it? Is it in
+    the scope of HiDimStat? Will the cost of maintaining a new
+    feature be worth its benefits?
+
+  - Is the code consistent with the API of HiDimStat? Are public
+    functions/classes/parameters well named and intuitively designed?
+
+  - Are all public functions/classes and their parameters, return types, and
+    stored attributes named according to HiDimStat conventions and documented clearly?
+
+  - Is any new functionality described in the user-guide and illustrated with examples?
+
+  - Is every public function/class tested? Are a reasonable set of
+    parameters, their values, value types, and combinations tested? Do
+    the tests validate that the code is correct, i.e. doing what the
+    documentation says it does? If the change is a bug-fix, is a
+    non-regression test included? Look at `this
+    <https://jeffknupp.com/blog/2013/12/09/improve-your-python-understanding-unit-testing>`__
+    to get started with testing in Python.
+
+  - Do the tests pass in the continuous integration build? If
+    appropriate, help the contributor understand why tests failed.
+
+  - Do the tests cover every line of code (see the coverage report in the build
+    log)? If not, are the lines missing coverage good exceptions?
+
+  - Is the code easy to read and low on redundancy? Should variable names be
+    improved for clarity or consistency? Should comments be added? Should comments
+    be removed as unhelpful or extraneous?
+
+  - Could the code easily be rewritten to run much more efficiently for
+    relevant settings?
+
+  - Is the code backwards compatible with previous versions? (or is a
+    deprecation cycle necessary?)
+
+  - Will the new code add any dependencies on other libraries? (this is
+    unlikely to be accepted)
+
+  - Does the documentation render properly (see the
+    :ref:`Documentation<contribution_documentation>` section for more details), and are the plots
+    instructive?
+
+Communication Guidelines
+------------------------
+
+  Reviewing open pull requests (PRs) helps move the project forward. It is a
+  great way to get familiar with the codebase and should motivate the
+  contributor to keep involved in the project. [1]_
+
+  - Every PR, good or bad, is an act of generosity. Opening with a positive
+    comment will help the author feel rewarded, and your subsequent remarks may
+    be heard more clearly. You may feel good also.
+  - Begin if possible with the large issues, so the author knows they've been
+    understood. Resist the temptation to immediately go line by line, or to open
+    with small pervasive issues.
+  - Do not let perfect be the enemy of the good. If you find yourself making
+    many small suggestions that don't fall into the :ref:`code_review`, consider
+    the following approaches:
+
+    - refrain from submitting these;
+    - prefix them as "Nit" so that the contributor knows it's OK not to address;
+    - follow up in a subsequent PR, out of courtesy, you may want to let the
+      original contributor know.
+
+  - Do not rush, take the time to make your comments clear and justify your
+    suggestions.
+  - You are the face of the project. Bad days occur to everyone, in that
+    occasion you deserve a break: try to take your time and stay offline.
+
+  .. [1] Adapted from the numpy `communication guidelines
+        <https://numpy.org/devdocs/dev/reviewer_guidelines.html#communication-guidelines>`_.
 
 .. _writing-your-first-pull-request:
 
@@ -216,11 +317,6 @@ When contributing, keep these project goals in mind:
 Coding Style
 ^^^^^^^^^^^^
 
-The coding syle is ch
-
-Coding Style
-------------
-
 The HiDimStat codebase follows `PEP8 <https://peps.python.org/pep-0008/>`__ styling.
 
 
@@ -234,6 +330,8 @@ The main conventions we enforce are :
 - private function names preceded with a "_" and very explicit
 - classes in CamelCase
 - 2 empty lines between functions or classes
+- 4 spaces instead of tabs per indentation level
+- 
 
 You can check that any code you may have edited follows these conventions
 by running `black <https://black.readthedocs.io/en/stable/>`__.
@@ -376,7 +474,6 @@ merging the PR.
 
 Building the documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 ..
   Inspired by: https://github.com/scikit-learn/scikit-learn/blob/main/doc/developers/contributing.rst
 
@@ -401,6 +498,8 @@ run the following command:
     make html
 
 For more information, look at the page `Building the documentation<developer_documentation_build>`
+
+.. _contribution_documentation:
 
 Documentation
 *************
