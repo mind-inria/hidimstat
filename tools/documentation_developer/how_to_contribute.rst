@@ -4,12 +4,43 @@
   Inspired by:  
     https://skrub-data.org/stable/CONTRIBUTING.html
     https://nilearn.github.io/stable/development.html
+    https://scikit-learn.org/stable/developers/contributing.html
+
 
 How to contribute to HiDimStat?
 ###############################
 First off, thanks for taking the time to contribute!
 
-Below are some guidelines to help you get started.
+There are many ways to contribute to HiDimStat, with the most common ones
+being contribution of code or documentation to the project. Improving the
+documentation is no less important than improving the library itself.  If you
+find a typo in the documentation, or have made improvements, do not hesitate to
+create a GitHub issue or preferably submit a GitHub pull request.
+Full documentation can be found under the docs/ directory.
+
+But there are many other ways to help. In particular helping to
+improve, triage, and investigate issues` and
+:ref:`reviewing other developers' pull requests <review_pull_request>` are very
+valuable contributions that decrease the burden on the project
+maintainers.
+
+Another way to contribute is to report issues you're facing, and give a "thumbs
+up" on issues that others reported and that are relevant to you.  It also helps
+us if you spread the word: reference the project from your blog and articles,
+link to it from your website, or simply star to say "I use it":
+
+.. raw:: html
+
+  <p>
+    <object
+      data="https://img.shields.io/github/stars/mind-inria/hidimstat?style=for-the-badge&logo=github"
+      type="image/svg+xml">
+    </object>
+  </p>
+
+In case a contribution/issue involves changes to the API principles
+or changes to dependencies or supported versions, it must be backed by an issue 
+on the topic, see the section :ref:`Suggesting enhancement<suggesting_enhancements>`.
 
 Have a question?
 ****************
@@ -55,6 +86,8 @@ To help us resolve the issue quickly, please include:
 - Any **additional details** where the bug might occur or doesn't occur unexpectedly.
 - A **code snippet** that reproduces the issue, if applicable.
 - **Version information** for Python, HiDimStat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
+
+.. _suggesting_enhancements:
 
 Suggesting enhancements
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -299,6 +332,24 @@ Once you have pushed your commits to your remote repository, you can submit
 a PR by clicking the "Compare & pull request" button on GitHub,
 targeting the HiDimStat repository.
 
+.. _commit_markers:
+
+Commit message markers
+^^^^^^^^^^^^^^^^^^^^^^
+
+Please note that if one of the following markers appears in the latest commit
+message, the following actions are taken.
+
+.. This should be in coherence with the CI_documentation
+
+====================== ===================
+Commit Message Marker  Action Taken by CI
+---------------------- -------------------
+[skip tests]           The tests are not run
+[doc skip]             Docs are not built
+[doc quick]            Docs built, but excludes example gallery plots
+[doc change]           Docs built, including only example, which has been directly modified
+====================== ===================
 
 Continuous Integration (CI)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -419,7 +470,7 @@ Writing small functions is not always possible, and we do not recommend
 trying to reorganize larger, but well-tested, older functions in the codebase, 
 unless there is a strong reason to do so (e.g., when adding a new feature).
 
-Documentaiton style
+Documentation style
 ^^^^^^^^^^^^^^^^^^^
 
 Documentation must be understandable by people from different backgrounds.
@@ -442,3 +493,13 @@ main documentation and
 `sphinx-gallery <https://sphinx-gallery.github.io/stable/index.html>`__ for the
 example tutorials. If you want to work on those, check out next section to
 learn how to use those tools to :ref:`build documentation<quick_start_build_doc>`.
+
+
+Bibliography reference
+^^^^^^^^^^^^^^^^^^^^^^
+
+All the bibliography references are included in the file references.bib in tools.
+This file contains the reference under the format of `bibtext <https://www.bibtex.com/g/bibtex-format/>`__.
+There are ordered by alphabetic order of the name of the first authors and the years.
+It's recommended to provide the reference to the paper and not the associate 
+preprint for all implemented methods.
