@@ -70,7 +70,7 @@ Clone your forked repo to your local machine:
     git clone https://github.com/<YOUR_USERNAME>/hidimstat
     cd hidimstat
 
-Next, add the *upstream* remote (i.e. the official skrub repository). This allows you
+Next, add the *upstream* remote (i.e. the official HiDimStat repository). This allows you
 to pull the latest changes from the main repository:
 
 .. code:: console
@@ -103,10 +103,11 @@ You can set up a virtual environment with Conda, or with python's ``venv``:
 .. ADD WHEN CONDA WILL POSSIBLE
    - With `conda <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`__:
    .. code:: console
-       conda create -n env_skrub python=3.13
-       conda activate env_skrub
+       conda create -n env_hidimstat python=3.13
+       conda activate env_hidimstat
 
 - With `venv <https://docs.python.org/3/library/venv.html>`__:
+
 .. code:: console
 
     python -m venv env_hidimstat

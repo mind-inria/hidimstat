@@ -17,5 +17,6 @@ You need more information, look here:
   :hidden:
   
   how_to_contribute
+  installing_from_source
   building_documentation
   CI_documentation

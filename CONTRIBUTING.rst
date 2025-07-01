@@ -1,4 +1,5 @@
-.. _quickstart_reference
+.. _quickstart_reference:
+
 .. ## for plotting and for examples 
     #TODO Need to be updated if it's necessary
 .. |MatplotlibMinVersion| replace:: 3.9.0

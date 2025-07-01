@@ -4,20 +4,20 @@
   Inspired by:  https://skrub-data.org/stable/CONTRIBUTING.html
 
 How to contribute to HiDimStat?
-===============================
+###############################
 First off, thanks for taking the time to contribute!
 
 Below are some guidelines to help you get started.
 
 Have a question?
-----------------
+****************
 
 You should create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`_.
 
 .. ADD THIS SECTION ONCE THERE WILL BE A VISION
    OR A PAPER ASSOCITE TO IT
    What to know before you begin
-   -----------------------------
+   *****************************
    
    To understand the purpose and goals behind HiDimStat, please read our
    :ref:`vision statement <vision>`. 
@@ -27,7 +27,7 @@ You should create a `GitHub issue <https://github.com/mind-inria/hidimstat/issue
     ADD REFERENCES
 
 Reporting bugs
---------------
+**************
 
 Using the library is the best way to discover bugs and limitations. If you find one,
 please:
@@ -44,7 +44,7 @@ please:
 2. If the issue does not exist, `create a new one <https://github.com/mind-inria/hidimstat/issues/new>`_.
 
 How to submit a bug report?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To help us resolve the issue quickly, please include:
 
@@ -55,7 +55,7 @@ To help us resolve the issue quickly, please include:
 - **Version information** for Python, HiDimStat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
 
 Suggesting enhancements
-~~~~~~~~~~~~~~~~~~~~~~~
+----------------------~
 
 If you have an idea for improving HiDimStat, whether it's a small fix
 or a new feature, first:
@@ -66,7 +66,7 @@ or a new feature, first:
   with your proposal before writing any code.
 
 How to submit an enhancement proposal?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When proposing an enhancement:
 
@@ -107,7 +107,7 @@ feature your package in the official repository.
 .. _writing-your-first-pull-request:
 
 Writing your first Pull Request
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------~
 
 A short summary can be find :ref:`here <quickstart_reference>`. 
 
@@ -165,7 +165,7 @@ When contributing, keep these project goals in mind:
 
 
 Testing the code
-~~~~~~~~~~~~~~~~
+----------------
 
 Tests for files in a given folder should be located in the folder named ``tests`` 
 with a tree structure that reflects the source folder. For example, the tests 
@@ -207,7 +207,7 @@ that your change did not break code elsewhere:
 Finally, sync your changes with the remote repository and wait for CI to run.
 
 Checking coverage on the local machine
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------
 
 Checking coverage is one of the operations that is performed after
 submitting the code. As this operation may take a long time online, it
@@ -226,7 +226,7 @@ each file.
 
 .. ADD THIS SECTION WHEN THERE WILL BE DOCTRING TESTS
    Updating doctests
-   ~~~~~~~~~~~~~~~~~
+   -----------------
 
    If you alter the default behavior of an object, then this might affect
    the docstrings. Check for possible problems by running
@@ -238,7 +238,7 @@ each file.
 
 .. ADD THIS SECTION WHEN THERE WILL BE PRECOMMIT CONFIGURATION FILE
    Formatting and pre-commit checks
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   --------------------------------
 
    Formatting the code well helps with code development and maintenance,
    which why is HiDimStat requires that the last commits of a pull request follow
@@ -260,7 +260,7 @@ targeting the HiDimStat repository.
 
 
 Continuous Integration (CI)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 After creating your PR, CI tools will run proceed to run all the tests on all
 configurations supported by HiDimStat.
 
@@ -282,7 +282,7 @@ merging the PR.
 
 
 Building the documentation
---------------------------
+**************************
 
 ..
   Inspired by: https://github.com/scikit-learn/scikit-learn/blob/main/doc/developers/contributing.rst
@@ -322,13 +322,12 @@ This is especially helpful when you're only modifying or checking a few examples
 
 
 Editing the API reference documentation
----------------------------------------
+***************************************
 
 To add a new entry to the :ref:`API reference documentation<api_documentation>` or change its
 content, head to ``docs/src/api_reference.py``. This data is then used by ``docs/tools/conf.py``
 to render templates located at ``doc/tools/_templates/*.rst``.
 
-|
 
 Note that **all public functions and classes must be documented in the API
 reference**, hence when adding a public function or class, a new entry must be
