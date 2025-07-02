@@ -1,4 +1,4 @@
-: _repository_structure:
+.. _repository_structure:
 
 ====================
 Repository Structure

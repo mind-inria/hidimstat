@@ -124,7 +124,7 @@ If you want to contribute directly to the library, check the
 `how to contribute <https://hidimstat.github.io/dev/how_to_contribute.html/>`_ page 
 on the website for more information.
 
-: _contact_us:
+.. _contact_us:
 
 Contact us
 ----------
