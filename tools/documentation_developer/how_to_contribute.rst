@@ -146,10 +146,10 @@ Review Pull Requests
 Any addition to the HiDimStat's code base has to be reviewed and approved
 by several people including at least one :ref:`core_devs<contact_us>`.
 This can put a heavy burden on :ref:`core_devs<contact_us>` when a lot of
-`pull requests <mind-inria/hidimstat/pulls>`__ are opened at the same time.
-We welcome help in reviewing `pull requests <mind-inria/hidimstat/pulls>`__ from any
+`pull requests <https://github.com/mind-inria/hidimstat/pulls>`__ are opened at the same time.
+We welcome help in reviewing `pull requests <https://github.com/mind-inria/hidimstat/pulls>`__ from any
 community member.
-We do not expect community members to be experts in all changes included in `pull requests <mind-inria/hidimstat/pulls>`__,
+We do not expect community members to be experts in all changes included in `pull requests <https://github.com/mind-inria/hidimstat/pulls>`__,
 and we encourage you to concentrate on those code changes that you feel comfortable with.
 As always, more eyes on a code change means that the code is more likely to work in a wide variety of contexts!
 
