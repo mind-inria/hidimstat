@@ -497,7 +497,7 @@ run the following command:
 
     make html
 
-For more information, look at the page `Building the documentation<developer_documentation_build>`
+For more information, look at the page :ref:`Building the documentation<developer_documentation_build>`
 
 .. _contribution_documentation:
 
