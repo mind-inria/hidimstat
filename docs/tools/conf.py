@@ -87,7 +87,8 @@ html_theme_options = {
         },
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
-    "header_links_before_dropdown": 4,
+    "header_links_before_dropdown": 2,
+    "header_dropdown_text": "Contributing / More",
 }
 html_title = "HiDimStat"
 html_context = {
