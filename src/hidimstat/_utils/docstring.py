@@ -77,26 +77,20 @@ def _reindent(string):
 
 def _aggregate_docstring(list_docstring, returns_docstring):
     """
-    Combine multiple docstrings into a single docstring.
-
-    This function takes a list of docstrings, parses each one, and combines them into
-    a single coherent docstring. It keeps the summary from the first docstring,
-    combines all parameter sections, and uses the return section from the last docstring.
+    Combine multiple numpy-style docstrings into a single docstring.
 
     Parameters
     ----------
-    list_docstring : list
-        List of docstrings to be combined. Each docstring should follow
-        numpy docstring format.
+    list_docstring : list of str
+        List of docstrings to be combined, each following numpy docstring format.
+    returns_docstring : list of str
+        The Returns section lines to append at the end.
 
     Returns
     -------
-    doctring: str
-        A combined docstring containing:
-        - Summary from first docstring
-        - Combined parameters from all docstrings
-        - Returns section from last docstring
-        The returned docstring is properly reindented.
+    str
+        Combined docstring with summary from the first docstring, all parameter sections merged,
+        and the Returns section from the last docstring. The result is properly reindented.
     """
     list_line = []
     for index, docstring in enumerate(list_docstring):
@@ -111,5 +105,5 @@ def _aggregate_docstring(list_docstring, returns_docstring):
         # add paraemter after remove the title section
         final_docstring += list_line[i]["Parameters"][2:]
     # the last return
-    final_docstring += returns_docstring
+    final_docstring += [returns_docstring]
     return _reindent(final_docstring)

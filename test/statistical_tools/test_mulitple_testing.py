@@ -89,9 +89,10 @@ def test_aggregate_docstring():
     doc_fixed_quantile = "\n    Quantile aggregation function based on :cite:meinshausen2009p\n\n    Parameters\n    ----------\n    pvals : 2D ndarray (n_sampling*2, n_test)\n        p-valueur\n\n Returns\n    -------\n    1D ndarray (n_tests, )\n        Vector of aggregated p-values\n\n    References\n    ----------\n    .. footbibliography::\n    "
     doc_adaptive_quantile = "\n    Adaptive version of quantile aggregation method based on :cite:meinshausen2009p\n\n    Parameters\n    ----------\n    pvals : 2D ndarray (n_sampling*2, n_test)\n        p-value\n\n    Returns\n    -------\n    2D ndarray (n_tests, )\n        Vector of aggregated p-values\n\n    References\n    ----------\n    .. footbibliography::\n    "
     final_doc = _aggregate_docstring(
-        [doc_quantile, None, doc_fixed_quantile, doc_adaptive_quantile]
+        [doc_quantile, None, doc_fixed_quantile, doc_adaptive_quantile],
+        "Returns\n    -------\n    3D ndarray (n_tests, )\n        Vector of aggregated p-values\n",
     )
     assert (
         final_doc
-        == "Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\nThe function aggregates multiple p-values into a single p-value while controlling\nParameters\n----------\npvals : ndarray of shape (n_sampling*2, n_test)\nMatrix of p-values to aggregate. Each row represents a sampling instance.\npvals : 2D ndarray (n_sampling*2, n_test)\np-valueur\npvals : 2D ndarray (n_sampling*2, n_test)\np-value\nReturns\n-------\n2D ndarray (n_tests, )\nVector of aggregated p-values"
+        == "Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\nThe function aggregates multiple p-values into a single p-value while controlling\nParameters\n----------\npvals : ndarray of shape (n_sampling*2, n_test)\nMatrix of p-values to aggregate. Each row represents a sampling instance.\npvals : 2D ndarray (n_sampling*2, n_test)\np-valueur\npvals : 2D ndarray (n_sampling*2, n_test)\np-value\nReturns\n-------\n3D ndarray (n_tests, )\nVector of aggregated p-values"
     )
