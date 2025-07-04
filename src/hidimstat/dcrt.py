@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.base import clone
@@ -8,9 +9,10 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
-class D0CRT:
+class D0CRT(BaseVariableImportance):
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
@@ -342,7 +344,8 @@ class D0CRT:
 
     def importance(
         self,
-        fpr=0.05,
+        X=None,
+        y=None,
         scaled_statistics=False,
     ):
         """
@@ -353,8 +356,6 @@ class D0CRT:
 
         Parameters
         ----------
-        fdr : float, default=0.05
-            Target false positive rate level (0 < fdr < 1)
         scaled_statistics : bool, default=False
             Whether to standardize test statistics before computing p-values
 
@@ -370,6 +371,11 @@ class D0CRT:
         The function computes test statistics as correlations between residuals,
         optionally scales them, and converts to p-values using a Gaussian null.
         """
+        if X is not None:
+            warnings.warn("X won't be used")
+        if y is not None:
+            warnings.warn("y won't be used")
+
         self._check_fit()
         n_features = self.selection_features.shape[0]
         n_samples = self.X_residual.shape[1]
@@ -392,11 +398,36 @@ class D0CRT:
         self.ts = np.zeros(n_features)
         self.ts[self.selection_features] = ts_selected_variables
 
-        self.pvals = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
+        self.importances_ = self.pvalues_
 
-        self.selected_variables = np.where(self.pvals <= fpr)[0]
+        return self.importances_
 
-        return self.selected_variables, self.pvals
+    def fit_importance(self, X, y, cv=None, scaled_statistics=False):
+        """
+        Fits the model to the data and computes feature importance.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data.
+        y : array-like of shape (n_samples,)
+            The target values.
+        cv : None or int, optional (default=None)
+            Cross-validation parameter. Currently not used;
+            a warning will be issued if provided.
+        scaled_statistics : bool, optional (default=False)
+            Whether to use scaled statistics when computing importance.
+
+        Returns
+        -------
+        importance : array-like
+            The computed feature importance scores.
+        """
+        if cv is not None:
+            warnings.warn("cv won't be used")
+        self.fit(X, y)
+        return self.importance(scaled_statistics=scaled_statistics)
 
 
 def _x_distillation_lasso(
@@ -757,6 +788,7 @@ def _fit_lasso(
 def d0crt(
     X,
     y,
+    cv=None,
     estimated_coef=None,
     sigma_X=None,
     params_lasso_screening={
@@ -783,8 +815,11 @@ def d0crt(
     n_tree=100,
     problem_type="regression",
     random_state=2022,
-    fpr=0.05,
     scaled_statistics=False,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
 ):
     methods = D0CRT(
         estimated_coef=estimated_coef,
@@ -804,14 +839,32 @@ def d0crt(
         problem_type=problem_type,
         random_state=random_state,
     )
-    methods.fit(X, y)
-    return methods.importance(
-        fpr=fpr,
-        scaled_statistics=scaled_statistics,
+    methods.fit_importance(X, y, cv=cv, scaled_statistics=scaled_statistics)
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
     )
+    return selection, methods.importances_, methods.pvalues_
 
 
 # use the docstring of the class for the function
 d0crt.__doc__ = _aggregate_docstring(
-    [D0CRT.__doc__, D0CRT.__init__.__doc__, D0CRT.fit.__doc__, D0CRT.importance.__doc__]
+    [
+        D0CRT.__doc__,
+        D0CRT.__init__.__doc__,
+        D0CRT.fit_importance.__doc__,
+        D0CRT.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection: binary array-like of shape (n_features)
+        Binary array of the seleted features
+    importance : array-like of shape (n_features)
+        The computed feature importance scores.
+    pvalues : array-like of shape (n_features)
+        The computed significant of feature for the prediction.
+    """,
 )

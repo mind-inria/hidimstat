@@ -13,6 +13,7 @@ class BaseVariableImportance(BaseEstimator):
         super().__init__()
         self.importances_ = None
         self.pvalues_ = None
+        self.selections_ = None
 
     def selection(
         self, k_best=None, percentile=None, threshold=None, threshold_pvalue=None
@@ -50,7 +51,7 @@ class BaseVariableImportance(BaseEstimator):
             ), "percentille needs to be between 0 and 100"
         if threshold_pvalue is not None:
             assert (
-                0 < threshold_pvalue and threshold_pvalue > 100
+                0 < threshold_pvalue and threshold_pvalue < 1
             ), "threshold needs to be between 0 and 1"
 
         # base on SelectKBest of Scikit-Learn
@@ -94,17 +95,17 @@ class BaseVariableImportance(BaseEstimator):
         else:
             mask_threshold_pvalue = np.ones(self.importances_.shape, dtype=bool)
 
-        selection = (
+        self.selections_ = (
             mask_k_best & mask_percentile & mask_threshold & mask_threshold_pvalue
         )
 
-        return selection
+        return self.selections_
 
     def _check_importance(self):
         """
         Check if the importance was computed
         """
-        if self.importances_ is not None or self.pvalues_ is not None:
+        if self.importances_ is None or self.pvalues_ is None:
             raise ValueError(
                 "The importances need to be called before to call this method"
             )
