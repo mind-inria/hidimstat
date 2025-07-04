@@ -34,6 +34,7 @@ Classes
    :toctree: generated/
    :template: class.rst
    
+   BaseVariableImportance
    BasePerturbation
    LOCO
    CPI

@@ -39,23 +39,23 @@ class BaseVariableImportance(BaseEstimator):
         self, k_best=None, percentile=None, threshold=None, threshold_pvalue=None
     ):
         """
-        Selection of the variable importance
+        Selects features based on variable importance.
 
         Parameters
         ----------
         k_best : int, optional, default=None
-            Selection of the k best of features
+            Selects the top k features based on importance scores.
         percentile : float, optional, default=None
-            Selection of percentile of features
-        threshold : _type_, optional, default=None
-            Selection of the features which has higher importance that the threshold
-        threshold_pvalue : _type_, optional, default=None
-            Selection of the features which has higher pvalue that the threshold
+            Selects features based on a specified percentile of importance scores.
+        threshold : float, optional, default=None
+            Selects features with importance scores above the specified threshold.
+        threshold_pvalue : float, optional, default=None
+            Selects features with p-values below the specified threshold.
 
         Returns
         -------
-        selection: binary array-like of shape (n_features)
-            Binary array of the seleted features
+        selection : array-like of shape (n_features,)
+            Binary array indicating the selected features.
         """
         self._check_importance()
         if k_best is not None:
@@ -68,11 +68,11 @@ class BaseVariableImportance(BaseEstimator):
         if percentile is not None:
             assert (
                 0 < percentile and percentile < 100
-            ), "percentille needs to be between 0 and 100"
+            ), "percentile needs to be between 0 and 100"
         if threshold_pvalue is not None:
             assert (
                 0 < threshold_pvalue and threshold_pvalue < 1
-            ), "threshold needs to be between 0 and 1"
+            ), "threshold_pvalue needs to be between 0 and 1"
 
         # base on SelectKBest of Scikit-Learn
         if k_best == "all":
@@ -123,9 +123,9 @@ class BaseVariableImportance(BaseEstimator):
 
     def _check_importance(self):
         """
-        Check if the importance was computed
+        Checks if the importance scores and p-values have been computed.
         """
         if self.importances_ is None or self.pvalues_ is None:
             raise ValueError(
-                "The importances need to be called before to call this method"
+                "The importances need to be called before calling this method"
             )
