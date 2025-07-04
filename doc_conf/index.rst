@@ -158,8 +158,8 @@ For Knockoffs Inference:
   knockoffs for high dimensional controlled variable selection. Journal of the
   Royal Statistical Society Series B, 80(3), 551-577.
 
-.. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml/badge.svg?branch=main
-   :target: https://github.com/mind-inria/hidimstat/actions/workflows/build_package.yml)
+.. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main
+   :target: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml?branch=main
   
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
    :target: https://circleci.com/gh/mind-inria/hidimstat
