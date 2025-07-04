@@ -6,6 +6,7 @@ import pytest
 import numpy as np
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_regression, make_classification
+from sklearn.model_selection import KFold
 from hidimstat.dcrt import d0crt, D0CRT, _lasso_distillation_residual
 
 
@@ -321,6 +322,25 @@ def test_exception_not_fitted():
         ValueError, match="The D0CRT requires to be fit before any analysis"
     ):
         _, _ = d0crt.importance(scaled_statistics=True)
+
+
+def test_warning_not_used_parameters():
+    """Test if an exception is raise when the methosd is not fitted"""
+    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    d0crt = D0CRT(
+        screening=False,
+        statistic="random_forest",
+        problem_type="classification",
+        random_state=2024,
+    )
+    d0crt.fit(X, y)
+    with pytest.warns(UserWarning, match="X won't be used"):
+        _ = d0crt.importance(X=X)
+    with pytest.warns(UserWarning, match="y won't be used"):
+        _ = d0crt.importance(y=y)
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    with pytest.warns(UserWarning, match="cv won't be used"):
+        _ = d0crt.fit_importance(X, y, cv=cv)
 
 
 def test_exception_lasso_distillation_residual():
