@@ -75,7 +75,7 @@ def _reindent(string):
     return "\n".join(l.strip() for l in new_string.strip().split("\n"))
 
 
-def _aggregate_docstring(list_docstring):
+def _aggregate_docstring(list_docstring, returns_docstring):
     """
     Combine multiple docstrings into a single docstring.
 
@@ -111,5 +111,5 @@ def _aggregate_docstring(list_docstring):
         # add paraemter after remove the title section
         final_docstring += list_line[i]["Parameters"][2:]
     # the last return
-    final_docstring += list_line[-1]["Returns"]
+    final_docstring += returns_docstring
     return _reindent(final_docstring)
