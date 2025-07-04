@@ -66,8 +66,8 @@ plt.show()
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
 d0crt = D0CRT(problem_type="classification", screening=False)
-d0crt.fit(X, y)
-_, pval_dcrt = d0crt.importance(fpr=0.05)
+d0crt.fit_importance(X, y)
+pval_dcrt = d0crt.pvalues_
 
 ################################################################################
 # Compute p-values using LOCO
