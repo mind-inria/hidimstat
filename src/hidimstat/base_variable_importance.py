@@ -6,7 +6,27 @@ import numpy as np
 
 class BaseVariableImportance(BaseEstimator):
     """
-    Class of the base for methods of variable of importance
+    Base class for variable importance methods.
+
+    This class provides a foundation for implementing variable importance methods,
+    including feature selection based on importance scores and p-values.
+
+    Attributes
+    ----------
+    importances_ : array-like of shape (n_features,), default=None
+        The computed importance scores for each feature.
+    pvalues_ : array-like of shape (n_features,), default=None
+        The computed p-values for each feature.
+    selections_ : array-like of shape (n_features,), default=None
+        Binary mask indicating selected features.
+
+    Methods
+    -------
+    selection(k_best=None, percentile=None, threshold=None, threshold_pvalue=None)
+        Selects features based on importance scores and/or p-values using various criteria.
+
+    _check_importance()
+        Checks if importance scores and p-values have been computed.
     """
 
     def __init__(self):
