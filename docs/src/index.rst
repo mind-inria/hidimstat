@@ -72,7 +72,7 @@ To build the documentation you will need to run:
 .. code-block::
 
     pip install -U .[doc]
-    cd doc_conf
+    cd docs
     make html
 
 
@@ -173,7 +173,7 @@ For Knockoffs Inference:
 
 References
 ----------
-.. bibliography:: references.bib
+.. bibliography:: ../tools/references.bib
 
   
 .. toctree::
@@ -181,6 +181,5 @@ References
   :maxdepth: 1
 
   api
-  dev/CONTRIBUTING
-  auto_examples/index
+  generated/gallery/examples/index
   dev/index
