@@ -53,7 +53,11 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
     assert len(d0crt_screening.ts) == 10
 
     # Checking with scaled statistics
-    pvalue_no_screening = d0crt_no_screening.importance(scaled_statistics=True)
+    d0crt_no_screening = D0CRT(
+        screening=False, statistic="residual", random_state=2024, scaled_statistics=True
+    )
+    d0crt_no_screening.fit_importance(X, y)
+    pvalue_no_screening = d0crt_no_screening.importance()
     sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
     assert len(sv_no_screening) <= 10
     assert len(pvalue_no_screening) == 10
@@ -154,9 +158,13 @@ def test_dcrt_lasso_center():
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     d0crt = D0CRT(
-        centered=False, screening=False, statistic="residual", random_state=2024
+        centered=False,
+        screening=False,
+        statistic="residual",
+        random_state=2024,
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -168,8 +176,14 @@ def test_dcrt_lasso_refit():
     This function tests the dcrt function using the Lasso learner
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
-    d0crt = D0CRT(refit=True, fit_y=True, statistic="residual", random_state=2024)
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    d0crt = D0CRT(
+        refit=True,
+        fit_y=True,
+        statistic="residual",
+        random_state=2024,
+        scaled_statistics=True,
+    )
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -211,8 +225,9 @@ def test_dcrt_distillation_x_different():
             "alpha_max_fraction": 0.5,
             "fit_intercept": False,
         },
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert np.sum(d0crt.selection_features) <= 10
     assert len(sv) <= 10
@@ -235,8 +250,9 @@ def test_dcrt_distillation_y_different():
             "alpha_max_fraction": 0.5,
             "fit_intercept": False,
         },
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert np.sum(d0crt.selection_features) <= 10
     assert len(sv) <= 10
@@ -261,8 +277,9 @@ def test_dcrt_lasso_fit_with_no_cv():
         screening=False,
         statistic="residual",
         random_state=2026,
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert np.sum(d0crt.selection_features) <= 10
     assert len(sv) <= 10
@@ -281,8 +298,9 @@ def test_dcrt_RF_regression():
         statistic="random_forest",
         problem_type="regression",
         random_state=2024,
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert np.sum(d0crt.selection_features) <= 10
     assert len(sv) <= 10
@@ -300,8 +318,9 @@ def test_dcrt_RF_classification():
         statistic="random_forest",
         problem_type="classification",
         random_state=2024,
+        scaled_statistics=True,
     )
-    pvalue = d0crt.fit_importance(X, y, scaled_statistics=True)
+    pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
     assert np.sum(d0crt.selection_features) <= 10
     assert len(sv) <= 10
@@ -317,11 +336,12 @@ def test_exception_not_fitted():
         statistic="random_forest",
         problem_type="classification",
         random_state=2024,
+        scaled_statistics=True,
     )
     with pytest.raises(
         ValueError, match="The D0CRT requires to be fit before any analysis"
     ):
-        _, _ = d0crt.importance(scaled_statistics=True)
+        _, _ = d0crt.importance()
 
 
 def test_warning_not_used_parameters():

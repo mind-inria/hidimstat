@@ -158,7 +158,7 @@ class D0CRT(BaseVariableImportance):
         self.fit_y = fit_y
         self.n_tree = n_tree
         self.problem_type = problem_type
-        self.scaled_statistic = scaled_statistics
+        self.scaled_statistics = scaled_statistics
         self.random_state = random_state
 
     def fit(self, X, y):
@@ -844,8 +844,9 @@ def d0crt(
         n_tree=n_tree,
         problem_type=problem_type,
         random_state=random_state,
+        scaled_statistics=scaled_statistics,
     )
-    methods.fit_importance(X, y, cv=cv, scaled_statistics=scaled_statistics)
+    methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(
         k_best=k_best,
         percentile=percentile,
