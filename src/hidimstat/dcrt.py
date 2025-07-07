@@ -364,8 +364,10 @@ class D0CRT(BaseVariableImportance):
         X : array-like of shape (n_samples, n_features), default=None
             (not used) Testing data matrix where n_samples is the number of samples
             and n_features is the number of features.
+            A warning will be issued if provided.
         y : array-like of shape (n_samples,), default=None
             (not used) Target values of testing dataset.
+            A warning will be issued if provided.
 
         Returns
         -------
@@ -420,8 +422,8 @@ class D0CRT(BaseVariableImportance):
         y : array-like of shape (n_samples,)
             The target values.
         cv : None or int, optional (default=None)
-            Cross-validation parameter. Currently not used;
-            a warning will be issued if provided.
+            (not used) Cross-validation parameter.
+            A warning will be issued if provided.
 
         Returns
         -------
