@@ -65,6 +65,8 @@ class D0CRT(BaseVariableImportance):
         Number of trees for random forest when statistic='random_forest'
     problem_type : {'regression', 'classification'}, default='regression'
         Type of prediction problem when using random forest
+    scaled_statistics : bool, optional (default=False)
+        Whether to use scaled statistics when computing importance.
     random_state : int, default=2022
         Random seed for reproducibility
 
@@ -138,6 +140,7 @@ class D0CRT(BaseVariableImportance):
         fit_y=False,
         n_tree=100,
         problem_type="regression",
+        scaled_statistics=False,
         random_state=2022,
     ):
         self.estimated_coef = estimated_coef
@@ -155,6 +158,7 @@ class D0CRT(BaseVariableImportance):
         self.fit_y = fit_y
         self.n_tree = n_tree
         self.problem_type = problem_type
+        self.scaled_statistic = scaled_statistics
         self.random_state = random_state
 
     def fit(self, X, y):
@@ -348,7 +352,6 @@ class D0CRT(BaseVariableImportance):
         self,
         X=None,
         y=None,
-        scaled_statistics=False,
     ):
         """
         Calculate p-values and identify significant features using the dCRT test
@@ -358,15 +361,16 @@ class D0CRT(BaseVariableImportance):
 
         Parameters
         ----------
-        scaled_statistics : bool, default=False
-            Whether to standardize test statistics before computing p-values
+        X : array-like of shape (n_samples, n_features), default=None
+            (not used) Testing data matrix where n_samples is the number of samples
+            and n_features is the number of features.
+        y : array-like of shape (n_samples,), default=None
+            (not used) Target values of testing dataset.
 
         Returns
         -------
-        selected_variables : ndarray
-            Indices of features deemed significant
-        pvals : ndarray of shape (n_features,)
-            P-values for all features (including unselected ones)
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for all features
 
         Notes
         -----
@@ -391,7 +395,7 @@ class D0CRT(BaseVariableImportance):
             for i in range(self.X_residual.shape[0])
         ]
 
-        if scaled_statistics:
+        if self.scaled_statistics:
             ts_selected_variables = (
                 ts_selected_variables - np.mean(ts_selected_variables)
             ) / np.std(ts_selected_variables)
@@ -405,7 +409,7 @@ class D0CRT(BaseVariableImportance):
 
         return self.importances_
 
-    def fit_importance(self, X, y, cv=None, scaled_statistics=False):
+    def fit_importance(self, X, y, cv=None):
         """
         Fits the model to the data and computes feature importance.
 
@@ -418,8 +422,6 @@ class D0CRT(BaseVariableImportance):
         cv : None or int, optional (default=None)
             Cross-validation parameter. Currently not used;
             a warning will be issued if provided.
-        scaled_statistics : bool, optional (default=False)
-            Whether to use scaled statistics when computing importance.
 
         Returns
         -------
@@ -429,7 +431,7 @@ class D0CRT(BaseVariableImportance):
         if cv is not None:
             warnings.warn("cv won't be used")
         self.fit(X, y)
-        return self.importance(scaled_statistics=scaled_statistics)
+        return self.importance()
 
 
 def _x_distillation_lasso(
