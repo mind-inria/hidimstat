@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 3 
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
           # require to get the previous commit for getting their messages
           # in a PR the last commit is the commit merge with main
 
