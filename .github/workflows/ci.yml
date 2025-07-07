@@ -1,6 +1,6 @@
 # Management of the action do made during a pull request
 
-name: 'Main_workflow'
+name: 'CI'
 on:
   pull_request_target:
     # Using 'pull_request_target' instead of 'pull_request':
@@ -41,7 +41,7 @@ jobs:
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
             echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
             echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
             echo "$EOF" >> $GITHUB_OUTPUT
