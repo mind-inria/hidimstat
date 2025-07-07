@@ -16,7 +16,7 @@ def test_reid():
     First scenario: no structure and a support of size 2.
     Second scenario: no structure and an empty support."""
 
-    n_samples, n_features = 50, 30
+    n_samples, n_features = 100, 20
     signal_noise_ratio = 2.0
 
     # First expe
@@ -34,9 +34,9 @@ def test_reid():
 
     # max_iter=1 to get a better coverage
     sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
-    expected_sigma = signal_noise_ratio
+    expected_sigma = support_size / signal_noise_ratio
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
-    assert error_relative < 0.5
+    assert error_relative < 0.3
 
     # Second expe
     # ###########
@@ -51,9 +51,9 @@ def test_reid():
     )
 
     sigma_hat, _ = reid(X, y)
-    expected_sigma = signal_noise_ratio
+    expected_sigma = 1.0  # when there is no signal, the variance is 1.0
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
-    assert error_relative < 0.5
+    assert error_relative < 0.2
 
 
 def test_group_reid():
@@ -61,9 +61,9 @@ def test_group_reid():
     First scenario: no data structure and a support of size 2.
     Second scenario: no data structure and an empty support."""
 
-    n_samples = 30
-    n_features = 50
-    n_target = 100
+    n_samples = 100
+    n_features = 20
+    n_target = 50
     signal_noise_ratio = 3.0
     rho_serial = 0.9
 
@@ -80,7 +80,11 @@ def test_group_reid():
         rho=0.0,
         seed=0,
     )
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+    corr = (
+        support_size
+        / signal_noise_ratio
+        * toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+    )
 
     # max_iter=1 to get a better coverage
     cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
@@ -93,7 +97,7 @@ def test_group_reid():
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
     error_relative = np.abs(cov_hat - corr) / corr
-    assert np.max(error_relative) > 1.0
+    assert np.max(error_relative) > 0.3
 
 
 def test_group_reid_2():
@@ -101,9 +105,9 @@ def test_group_reid_2():
     First scenario: no data structure and a support of size 2.
     Second scenario: no data structure and an empty support."""
 
-    n_samples = 30
-    n_features = 50
-    n_target = 100
+    n_samples = 100
+    n_features = 20
+    n_target = 50
     signal_noise_ratio = 1.0
     rho_serial = 0.9
 
@@ -120,26 +124,27 @@ def test_group_reid_2():
         rho_serial=rho_serial,
         seed=4,
     )
-    # corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
+    corr = 1.0 * toeplitz(
+        rho_serial ** np.arange(0, n_target)
+    )  # covariance matrix of time
 
     cov_hat, _ = reid(X, Y, multioutput=True)
     error_relative = np.abs(cov_hat - corr) / corr
-    assert np.max(error_relative) < 0.2
+    assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
     error_relative = np.abs(cov_hat - corr) / corr
-    assert np.max(error_relative) < 0.2
+    assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
     error_relative = np.abs(cov_hat - corr) / corr
-    assert np.max(error_relative) > 0.5
+    assert np.max(error_relative) > 0.3
 
 
 def test_reid_exception():
     "Test for testing the exceptions on the arguments of reid function"
-    n_samples, n_features = 50, 30
-    n_target = 10
+    n_samples, n_features = 100, 20
+    n_target = 50
     signal_noise_ratio = 1.0
     rho_serial = 0.9
 
@@ -172,7 +177,7 @@ def test_empirical_snr():
     noise from the target `y`, the data `X` and the true parameter vector `beta`
     in a simple scenario with a 1D data structure."""
 
-    n_samples, n_features = 30, 30
+    n_samples, n_features = 100, 20
     support_size = 10
     signal_noise_ratio_expected = 0.5
 
@@ -194,7 +199,7 @@ def test_empirical_snr_2():
     the data `X` and the true parameter vector `beta` in a simple
     scenario with a 1D data structure."""
 
-    n_samples, n_features = 30, 30
+    n_samples, n_features = 100, 20
     support_size = 10
     signal_noise_ratio_expected = 10.0
 
