@@ -50,7 +50,7 @@ jobs:
           no_output_timeout: 40m
       # store the documentation for see it in a PR
       - store_artifacts:
-          path: doc_conf/_build/html
+          path: docs/_build/html
           destination: documentation
       - store_artifacts:
           path: ~/output_sphinx.log
@@ -58,7 +58,7 @@ jobs:
       # Persists generated documentation so that it can be attached and deployed
       # in the 'deploy-documentation' step.
       - persist_to_workspace:
-          root: doc_conf/_build/html
+          root: docs/_build/html
           paths: .
       - save_cache:
           # cache some library
@@ -80,15 +80,15 @@ jobs:
               set -x -e
               wget $GITHUB_ARTIFACT_URL
               unzip pytest-results-all.zip -d test_reports
-              mkdir -p doc_conf/_build/html
-              mv test_reports doc_conf/_build/html
+              mkdir -p docs/_build/html
+              mv test_reports docs/_build/html
       # store the reports to display for a PR
       - store_artifacts:
-          path: doc_conf/_build/html/test_reports
-          destination: doc_conf/test_reports
+          path: docs/_build/html/test_reports
+          destination: documentation/test_reports
       # store the reports for adding them to the documentation
       - persist_to_workspace:
-          root: doc_conf/_build/html/
+          root: docs/_build/html/
           paths: .
 
   deploy-documentation:
@@ -108,19 +108,19 @@ jobs:
       # Attach documentation generated in the 'build-documentation' step so that it can be
       # deployed.
       - attach_workspace:
-          at: doc_conf/_build/html
+          at: docs/_build/html
       - run:
           name: 
             "Add the ssh key and list the file in the documentation"
           command: |
               mkdir -p ~/.ssh
               ssh-keyscan github.com >> ~/.ssh/known_hosts
-              ls -ltrh doc_conf/_build/html
+              ls -ltrh docs/_build/html
       - run:
           name: "Deploy documentation"
           command: |
             if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
-              bash ./tools/documentation/circleci/push_doc.sh doc_conf/_build/html
+              bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
             fi
 
   # this action is only to avoid any error

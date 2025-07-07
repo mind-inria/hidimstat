@@ -34,7 +34,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           api-token: ${{ secrets.CIRCLE_CI }}
-          artifact-path: 0/doc_conf/test_reports/index.html
+          artifact-path: 0/documentation/test_reports/index.html
           circleci-jobs: get-tests-reports
           job-title: Check the reports of the tests here!
 

@@ -72,7 +72,7 @@ To build the documentation you will need to run:
 .. code-block::
 
     pip install -U .[doc]
-    cd doc_conf
+    cd docs
     make html
 
 
@@ -158,8 +158,8 @@ For Knockoffs Inference:
   knockoffs for high dimensional controlled variable selection. Journal of the
   Royal Statistical Society Series B, 80(3), 551-577.
 
-.. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml/badge.svg?branch=main
-   :target: https://github.com/mind-inria/hidimstat/actions/workflows/main_workflow.yml?branch=main
+.. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml/badge.svg?branch=main
+   :target: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml?branch=main
   
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
    :target: https://circleci.com/gh/mind-inria/hidimstat
@@ -173,7 +173,7 @@ For Knockoffs Inference:
 
 References
 ----------
-.. bibliography:: references.bib
+.. bibliography:: ../tools/references.bib
 
   
 .. toctree::
@@ -181,5 +181,5 @@ References
   :maxdepth: 1
 
   api
-  auto_examples/index
+  generated/gallery/examples/index
   dev/index
