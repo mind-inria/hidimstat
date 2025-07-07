@@ -13,7 +13,7 @@ Functions
 =========
 
 .. autosummary::
-   :toctree: generated/
+   :toctree: ./generated/api/function/
    :template: function.rst
 
    quantile_aggregation
@@ -33,7 +33,7 @@ Classes
 =======
 
 .. autosummary::
-   :toctree: generated/
+   :toctree: ./generated/api/class/
    :template: class.rst
    
    BasePerturbation

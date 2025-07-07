@@ -19,7 +19,7 @@ maintainers = [
     { name = "Bertrand Thirion", email = "bertrand.thirion@inria.fr" },
 ]
 description = "High-dimensional statistical inference tools for Python"
-readme = "README.md"
+readme = "README.rst"
 classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
@@ -49,8 +49,14 @@ doc = [
     "sphinx-prompt          >= 1.0.0",
     "seaborn",
 ]
-plotting = ["matplotlib>=3.9.0"]
-style = ["black  >= 24.4.2", "isort  >= 5.13.2"]
+example = [
+    "matplotlib>=3.9.0",
+    "seaborn"
+]
+style = [
+    "black  >= 24.4.2", 
+    "isort  >= 5.13.2"
+]
 # For running unit and docstring tests
 test = [
     "iniconfig  >= 0.1,  < 3",
@@ -109,9 +115,9 @@ markers = [
 timeout = 60           # on individual test should not take more than 10s
 session_timeout = 1200 # all the tests should be run in 5 min
 
-
 [tool.pytest_env]
 OPENBLAS_NUM_THREADS = 1
 BLIS_NUM_THREADS = 1
 MKL_NUM_THREADS = 1
 OMP_NUM_THREADS = 1
+
