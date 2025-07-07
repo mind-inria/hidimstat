@@ -85,7 +85,7 @@ jobs:
       # store the reports to display for a PR
       - store_artifacts:
           path: docs/_build/html/test_reports
-          destination: docs/test_reports
+          destination: documentation/test_reports
       # store the reports for adding them to the documentation
       - persist_to_workspace:
           root: docs/_build/html/
