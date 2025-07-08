@@ -34,12 +34,21 @@ Classes
    :toctree: ./generated/api/class/
    :template: class.rst
    
-   BaseVariableImportance
-   BasePerturbation
    LOCO
    CPI
    PFI
    D0CRT
+
+Base Classes
+============
+.. autosummary::
+   :toctree: ./generated/api/base/
+   :template: class.rst
+
+   BaseVariableImportance
+   BaseVariableImportanceGroup
+   BasePerturbation
+
 
 Marginal Importance
 ===================
