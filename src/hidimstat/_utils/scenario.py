@@ -208,8 +208,6 @@ def multivariate_simulation(
         Value assigned to non-zero coefficients in beta.
     signal_noise_ratio : float, default=10.0
         Signal-to-noise ratio. Controls noise scaling.
-    sigma_noise : float, default=1.0
-        Standard deviation of the noise.
     rho_serial : float, default=0.0
         Serial correlation coefficient of the noise.
     shuffle : bool, default=False
