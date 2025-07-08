@@ -399,7 +399,7 @@ This will create the folder ``htmlcov``: by opening
 ``htmlcov/index.html`` it is possible to check what lines are covered in
 each file.
 
-.. ADD THIS SECTION WHEN THERE WILL BE DOCSTRING TESTS
+.. ADD THIS SECTION WHEN THERE WILL BE TESTS on EXAMPLES
 
    Updating doctests
    ^^^^^^^^^^^^^^^^^
