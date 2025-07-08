@@ -34,12 +34,9 @@ def _generate_2D_weight(shape, roi_size):
 
         Create a 2D weight map with four ROIs
     """
-    assert (
-        roi_size <= shape[0]
-    ), "roi_size should be lower than the first shape of the array"
-    assert (
-        roi_size <= shape[1]
-    ), "roi_size should be lower than the second shape of the array"
+    assert roi_size <= np.min(
+        shape
+    ), f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
 
     w = np.zeros(shape + (5,))
     w[0:roi_size, 0:roi_size, 0] = 1.0
@@ -80,15 +77,9 @@ def _generate_3D_weight(shape, roi_size):
             - Channel 3: Back-left-bottom ROI weights (1.0)
             - Channel 4: Center ROI weights (1.0)
     """
-    assert (
-        roi_size <= shape[0]
-    ), "roi_size should be lower than the first shape of the array"
-    assert (
-        roi_size <= shape[1]
-    ), "roi_size should be lower than the second shape of the array"
-    assert (
-        roi_size <= shape[2]
-    ), "roi_size should be lower than the third shape of the array"
+    assert roi_size <= np.min(
+        shape
+    ), f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
 
     w = np.zeros(shape + (5,))
     w[0:roi_size, 0:roi_size, 0:roi_size, 0] = -1.0
