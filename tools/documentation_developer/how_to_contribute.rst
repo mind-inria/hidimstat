@@ -345,7 +345,7 @@ Testing the code
 Tests for files in a given folder should be located in the folder named ``tests`` 
 with a tree structure that reflects the source folder. For example, the tests 
 for the functions in `src/hidimstat/statistical_tools/p_values.py` are in 
-`test\statistical_tools\test_p_values.py`. 
+`test/statistical_tools/test_p_values.py`. 
 
 Tests should check all functionalities of the code that you are going to
 add. If needed, additional tests should be added to verify that other
