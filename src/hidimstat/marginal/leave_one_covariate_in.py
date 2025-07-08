@@ -5,10 +5,13 @@ from sklearn.metrics import root_mean_squared_error
 from typing import override
 
 from hidimstat._utils.utils import _check_vim_predict_method
-from hidimstat.base_variable_importance import BaseVariableImportanceGroup
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    VariableImportanceGroup,
+)
 
 
-class LeaveOneCovariateIn(BaseVariableImportanceGroup):
+class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceGroup):
     def __init__(
         self,
         estimator,

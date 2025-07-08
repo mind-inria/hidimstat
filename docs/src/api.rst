@@ -47,8 +47,8 @@ Base Classes
    :template: class.rst
 
    BaseVariableImportance
-   BaseVariableImportanceGroup
    BasePerturbation
+   VariableImportanceGroup
 
 
 Marginal Importance

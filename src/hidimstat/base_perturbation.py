@@ -4,10 +4,13 @@ from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.utils import _check_vim_predict_method
-from hidimstat.base_variable_importance import BaseVariableImportanceGroup
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    VariableImportanceGroup,
+)
 
 
-class BasePerturbation(BaseVariableImportanceGroup):
+class BasePerturbation(BaseVariableImportance, VariableImportanceGroup):
     def __init__(
         self,
         estimator,
