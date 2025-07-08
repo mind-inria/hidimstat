@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted, clone
+from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
-class MarginalImportance(BaseEstimator):
+class LeaveOneCovariateIn(BaseVariableImportance):
     def __init__(
         self,
         estimator,
@@ -33,6 +34,7 @@ class MarginalImportance(BaseEstimator):
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
         """
+        super().__init__()
         check_is_fitted(estimator)
         self.estimator = estimator
         self.loss = loss
