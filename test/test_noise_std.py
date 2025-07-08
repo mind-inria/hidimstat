@@ -80,23 +80,20 @@ def test_group_reid():
         rho=0.0,
         seed=0,
     )
-    corr = (
-        support_size
-        / signal_noise_ratio
-        * toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    )
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+    cov = support_size / signal_noise_ratio * corr
 
     # max_iter=1 to get a better coverage
     cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 
 
@@ -124,20 +121,19 @@ def test_group_reid_2():
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = 1.0 * toeplitz(
-        rho_serial ** np.arange(0, n_target)
-    )  # covariance matrix of time
+    corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
+    cov = 1.0 * corr
 
     cov_hat, _ = reid(X, Y, multioutput=True)
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
     cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
-    error_relative = np.abs(cov_hat - corr) / corr
+    error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 
 
