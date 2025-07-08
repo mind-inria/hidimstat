@@ -12,11 +12,11 @@ import numpy as np
 import seaborn as sns
 from sklearn.base import clone
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import hinge_loss
+from sklearn.metrics import hinge_loss, accuracy_score
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.svm import SVC
 
-from hidimstat import CPI
+from hidimstat import CPI, LOCI
 
 #############################################################################
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel. The decision function of
@@ -61,7 +61,7 @@ ax.legend(
     title="Class",
 )
 ax.set_title("Decision function of SVC with RBF kernel")
-plt.show()
+# plt.show()
 
 
 ##############################################################################
@@ -82,21 +82,9 @@ plt.show()
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 clf = SVC(kernel="rbf", random_state=0)
 # Compute marginal importance using univariate models
-marginal_scores = []
-for i in range(X.shape[1]):
-    feat_scores = []
-    for train_index, test_index in cv.split(X):
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = Y[train_index], Y[test_index]
-
-        X_train_univariate = X_train[:, i].reshape(-1, 1)
-        X_test_univariate = X_test[:, i].reshape(-1, 1)
-
-        univariate_model = clone(clf)
-        univariate_model.fit(X_train_univariate, y_train)
-
-        feat_scores.append(univariate_model.score(X_test_univariate, y_test))
-    marginal_scores.append(feat_scores)
+loci = LOCI(estimator=clone(clf).fit(X, Y), loss=accuracy_score)
+mean_importances = loci.fit_importance(X, Y, cv=cv)
+marginal_importances = loci.importances_
 
 ###########################################################################
 
@@ -129,7 +117,7 @@ importances = np.array(importances).T
 fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
 sns.boxplot(
-    data=np.array(marginal_scores).T,
+    data=marginal_importances,
     orient="h",
     ax=axes[0],
     fill=False,

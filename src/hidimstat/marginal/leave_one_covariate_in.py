@@ -17,7 +17,7 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         method: str = "predict",
         n_jobs: int = 1,
     ):
-        """Marginal Information Variable Importance.
+        """Leave One Covariate In.
 
         Parameters
         ----------
@@ -71,7 +71,7 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         # Parallelize the computation of the importance scores for each group
         self._list_univariate_model = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_group)(X_, y_, groups_ids)
-            for groups_ids in self._groups_ids.values()
+            for groups_ids in self._groups_ids
         )
 
     def predict(self, X):
@@ -97,9 +97,9 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(X_, group_id, groups_ids)
-            for group_id, groups_ids in enumerate(self._groups_ids.values())
+            for group_id, groups_ids in enumerate(self._groups_ids)
         )
-        return np.stack(out_list, axis=0)
+        return np.array(out_list)
 
     def importance(self, X, y):
         """
@@ -131,9 +131,38 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         y_pred = self.predict(X)
         self.importances_ = []
         for y_pred_j in y_pred:
-            self.importances_.append(self.loss(y, y_pred_j) - self.loss_reference_)
+            self.importances_.append(self.loss(y, y_pred_j))
         self.pvalues_ = None  # estimated pvlaue for method
         return self.importances_
+
+    def fit_importance(self, X, y, cv=None):
+        """
+        Fits the model to the data and computes feature importance.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data.
+        y : array-like of shape (n_samples,)
+            The target values.
+        cv : None or int, optional (default=None)
+            (not used) Cross-validation parameter.
+            A warning will be issued if provided.
+
+        Returns
+        -------
+        importance : array-like
+            The computed feature importance scores.
+        """
+        marginal_scores = []
+        for train_index, test_index in cv.split(X):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+            self.fit(X_train, y_train)
+            marginal_scores.append(self.importance(X_test, y_test))
+        self.importances_ = np.array(marginal_scores)
+        self.pvalues_ = None
+        return np.mean(self.importances_)
 
     def _joblib_fit_one_group(self, X, y, group_ids):
         """Helper function to fit a univariate model for a single group.
@@ -175,4 +204,4 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         y_pred_loci = getattr(self._list_univariate_model[index_group], self.method)(
             X[:, group_ids].reshape(-1, 1)
         )
-        return [y_pred_loci]
+        return y_pred_loci
