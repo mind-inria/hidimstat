@@ -147,7 +147,7 @@ class BaseVariableImportanceGroup(BaseVariableImportance):
         self.groups = None
         self._groups_ids = None
 
-    def fit(self, X, y=None, groups=None):
+    def fit(self, X, y, groups=None):
         """Base fit method for methods using groups. Identifies the groups.
 
         Parameters

@@ -1,19 +1,19 @@
 import numpy as np
 import pandas as pd
+import warnings
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.utils import _check_vim_predict_method
-from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.base_variable_importance import BaseVariableImportanceGroup
 
 
-class LeaveOneCovariateIn(BaseVariableImportance):
+class LeaveOneCovariateIn(BaseVariableImportanceGroup):
     def __init__(
         self,
         estimator,
         loss: callable = root_mean_squared_error,
-        n_permutations: int = 50,
         method: str = "predict",
         n_jobs: int = 1,
     ):
@@ -41,9 +41,9 @@ class LeaveOneCovariateIn(BaseVariableImportance):
         _check_vim_predict_method(method)
         self.method = method
         self.n_jobs = n_jobs
-        self.n_permutations = n_permutations
         self.n_groups = None
         self._list_univariate_model = []
+        self.loss_reference_ = None
 
     def fit(self, X, y, groups=None):
         """Fit the marginal information variable importance model.
@@ -64,41 +64,17 @@ class LeaveOneCovariateIn(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
+        super().fit(X, y, groups)
         X_ = np.asarray(X)
         y_ = np.asarray(y)
-
-        ###########################################
-        # same as base permutation
-        if groups is None:
-            self.n_groups = X_.shape[1]
-            self.groups = {j: [j] for j in range(self.n_groups)}
-            self._groups_ids = np.array(list(self.groups.values()), dtype=int)
-        else:
-            self.n_groups = len(groups)
-            self.groups = groups
-            if isinstance(X_, pd.DataFrame):
-                self._groups_ids = []
-                for group_key in self.groups.keys():
-                    self._groups_ids.append(
-                        [
-                            i
-                            for i, col in enumerate(X_.columns)
-                            if col in self.groups[group_key]
-                        ]
-                    )
-            else:
-                self._groups_ids = [
-                    np.array(ids, dtype=int) for ids in list(self.groups.values())
-                ]
-        ###########################################
 
         # Parallelize the computation of the importance scores for each group
         self._list_univariate_model = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_group)(X_, y_, groups_ids)
-            for groups_ids in self._groups_id.values()
+            for groups_ids in self._groups_ids.values()
         )
 
-    def predict(self, X, y):
+    def predict(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
         variables.
@@ -115,13 +91,12 @@ class LeaveOneCovariateIn(BaseVariableImportance):
         out : array-like of shape (n_groups, n_samples)
             The predictions for each group of variables.
         """
-        self._check_fit()
+        self._check_fit(X)
         X_ = np.asarray(X)
-        y_ = np.asarray(y)
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X_, y_, group_id, groups_ids)
+            delayed(self._joblib_predict_one_group)(X_, group_id, groups_ids)
             for group_id, groups_ids in enumerate(self._groups_ids.values())
         )
         return np.stack(out_list, axis=0)
@@ -148,60 +123,17 @@ class LeaveOneCovariateIn(BaseVariableImportance):
             - 'importance' : ndarray of shape (n_groups,)
             Marginal importance scores for each variable group
         """
-        ###########################################
-        # same as base permutation
-        self._check_fit()
-
-        out_dict = dict()
+        self._check_fit(X)
 
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y, y_pred)
-        out_dict["loss_reference"] = loss_reference
+        self.loss_reference_ = self.loss(y, y_pred)
 
-        y_pred = self.predict(X, y)
-        out_dict["loss"] = dict()
-        for j, y_pred_j in enumerate(y_pred):
-            list_loss = []
-            for y_pred_perm in y_pred_j:
-                list_loss.append(self.loss(y, y_pred_perm))
-            out_dict["loss"][j] = np.array(list_loss)
-
-        out_dict["importance"] = np.array(
-            [
-                np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_groups)
-            ]
-        )
-        return out_dict
-        ######################################
-
-    def _check_fit(self):
-        """Check that the estimator has been fitted if needed.
-
-        Checks if the estimator instance has the required attributes to ensure it has been properly fitted.
-        Specifically verifies:
-        - n_groups is set
-        - groups attribute exists
-        - _groups_ids attribute exists
-        - _list_univariate_model is not empty
-
-        Raises
-        ------
-        ValueError
-            If any of the required attributes are missing, indicating the estimator has not been fitted
-
-        """
-        if (
-            self.n_groups is None
-            or not hasattr(self, "groups")
-            or not hasattr(self, "_groups_ids")
-            or len(self._list_univariate_model) == 0
-        ):
-            raise ValueError(
-                "The estimator is not fitted. The fit method must be called"
-                " to set variable groups. If no grouping is needed,"
-                " call fit with groups=None"
-            )
+        y_pred = self.predict(X)
+        self.importances_ = []
+        for y_pred_j in y_pred:
+            self.importances_.append(self.loss(y, y_pred_j) - self.loss_reference_)
+        self.pvalues_ = None  # estimated pvlaue for method
+        return self.importances_
 
     def _joblib_fit_one_group(self, X, y, group_ids):
         """Helper function to fit a univariate model for a single group.
@@ -221,18 +153,15 @@ class LeaveOneCovariateIn(BaseVariableImportance):
             The fitted univariate model for this group.
         """
         univariate_model = clone(self.estimator)
-        univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
-        return univariate_model
+        return univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
 
-    def _joblib_predict_one_group(self, X, y, index_group, group_ids):
+    def _joblib_predict_one_group(self, X, index_group, group_ids):
         """Helper function to predict for a single group.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             The input samples.
-        y : array-like of shape (n_samples,)
-            The target values.
         index_group : int
             The index of the group in _list_univariate_model.
         group_ids : array-like
@@ -243,5 +172,7 @@ class LeaveOneCovariateIn(BaseVariableImportance):
         float
             The prediction score for this group.
         """
-        univariate_model = self._list_univariate_model[index_group]
-        return univariate_model.score(X[:, group_ids].reshape(-1, 1), y)
+        y_pred_loci = getattr(self._list_univariate_model[index_group], self.method)(
+            X[:, group_ids].reshape(-1, 1)
+        )
+        return [y_pred_loci]
