@@ -498,6 +498,7 @@ class TestCPIExceptions:
         cpi.fit(X, y, groups=subgroups, var_type="auto")
 
         with pytest.warns(
-            UserWarning, match="Not all features will has a importance score."
+            UserWarning,
+            match="The importance will be computed only for features in the groups.",
         ):
             cpi.importance(X, y)
