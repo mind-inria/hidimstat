@@ -135,7 +135,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceGroup):
         y_pred = self.predict(X)
         self.importances_ = []
         for y_pred_j in y_pred:
-            self.importances_.append(self.loss(y, y_pred_j))
+            self.importances_.append(self.loss(y, y_pred_j) - self.loss_reference_)
         self.pvalues_ = None  # estimated pvlaue for method
         return self.importances_
 
