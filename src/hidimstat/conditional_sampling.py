@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.base import MultiOutputMixin, check_is_fitted
+from sklearn.base import MultiOutputMixin, check_is_fitted, BaseEstimator
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
 
@@ -69,6 +69,13 @@ class ConditionalSampler:
             when `data_type` is "auto".
 
         """
+        # check the validity of the inputs
+        assert model_regression is None or issubclass(
+            model_regression.__class__, BaseEstimator
+        ), "Regression model invalid"
+        assert model_categorical is None or issubclass(
+            model_categorical.__class__, BaseEstimator
+        ), "Categorial model invalid"
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
