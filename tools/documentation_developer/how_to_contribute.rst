@@ -470,7 +470,7 @@ Integration
 -----------
 
 Community consensus is key in the integration process. Expect a minimum
-of 1 to 3 reviews depending on the size of the change before we consider
+of 2 to 3 reviews depending on the size of the change before we consider
 merging the PR.
 
 .. _quick_start_build_doc:
