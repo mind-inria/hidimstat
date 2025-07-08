@@ -134,11 +134,27 @@ class BaseVariableImportance(BaseEstimator):
 
 class BaseVariableImportanceGroup(BaseVariableImportance):
     """
-    BAsic class for managing methods using groups
+    Base class for variable importance methods using feature groups.
 
-    Parameters
+    This class extends `BaseVariableImportance` to support variable importance
+    methods that operate on groups of features, enabling group-wise selection
+    and importance evaluation.
+
+    Attributes
     ----------
+    n_groups : int, default=None
+        The number of feature groups.
+    groups : dict, default=None
+        A dictionary mapping group names or indices to lists of feature indices or names.
+    _groups_ids : array-like of shape (n_groups,), default=None
+        Internal representation of group indices for each group.
 
+    Methods
+    -------
+    fit(X, y=None, groups=None)
+        Identifies and stores feature groups based on input or provided grouping.
+    _check_fit(X)
+        Checks if the class has been fitted and validates group-feature correspondence.
     """
 
     def __init__(self):
