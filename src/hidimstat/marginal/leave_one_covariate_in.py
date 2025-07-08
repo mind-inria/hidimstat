@@ -1,9 +1,8 @@
 import numpy as np
-import pandas as pd
-import warnings
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
+from typing import override
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import BaseVariableImportanceGroup
@@ -41,10 +40,12 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         _check_vim_predict_method(method)
         self.method = method
         self.n_jobs = n_jobs
+        # generated attributes
         self.n_groups = None
         self._list_univariate_model = []
         self.loss_reference_ = None
 
+    @override
     def fit(self, X, y, groups=None):
         """Fit the marginal information variable importance model.
 
@@ -135,7 +136,7 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         self.pvalues_ = None  # estimated pvlaue for method
         return self.importances_
 
-    def fit_importance(self, X, y, cv=None):
+    def fit_importance(self, X, y, cv, groups=None):
         """
         Fits the model to the data and computes feature importance.
 
@@ -145,9 +146,12 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
             The input data.
         y : array-like of shape (n_samples,)
             The target values.
-        cv : None or int, optional (default=None)
-            (not used) Cross-validation parameter.
-            A warning will be issued if provided.
+        cv :
+            Cross-validation parameter.
+        groups : dict, optional
+            A dictionary where the keys are group identifiers and the values are lists
+            of feature indices or names for each group. If None, each feature is
+            treated as its own group.
 
         Returns
         -------
@@ -159,7 +163,7 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         for train_index, test_index in cv.split(X):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
-            self.fit(X_train, y_train)
+            self.fit(X_train, y_train, groups=groups)
             self.importance(X_test, y_test)
             save_value_attributes.append(
                 [getattr(self, attribute) for attribute in list_attribute_saved]
@@ -191,7 +195,7 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
             The fitted univariate model for this group.
         """
         univariate_model = clone(self.estimator)
-        return univariate_model.fit(X[:, group_ids].reshape(-1, 1), y)
+        return univariate_model.fit(X[:, group_ids].reshape(-1, len(group_ids)), y)
 
     def _joblib_predict_one_group(self, X, index_group, group_ids):
         """Helper function to predict for a single group.
@@ -211,6 +215,6 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
             The prediction score for this group.
         """
         y_pred_loci = getattr(self._list_univariate_model[index_group], self.method)(
-            X[:, group_ids].reshape(-1, 1)
+            X[:, group_ids].reshape(-1, len(group_ids))
         )
         return y_pred_loci
