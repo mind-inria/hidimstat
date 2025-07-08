@@ -1,4 +1,7 @@
-from .base_variable_importance import BaseVariableImportance
+from .base_variable_importance import (
+    BaseVariableImportance,
+    BaseVariableImportanceGroup,
+)
 from .base_perturbation import BasePerturbation
 from .ensemble_clustered_inference import (
     clustered_inference,
@@ -27,6 +30,9 @@ from .permutation_feature_importance import PFI
 
 from .statistical_tools.aggregation import quantile_aggregation
 
+# marginal methods
+from .marginal.leave_one_covariate_in import LeaveOneCovariateIn as LOCI
+
 try:
     from ._version import __version__
 except ImportError:
@@ -51,4 +57,6 @@ __all__ = [
     "CPI",
     "LOCO",
     "PFI",
+    # marginal methods
+    "LOCI",
 ]
