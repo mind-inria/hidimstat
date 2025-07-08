@@ -400,7 +400,7 @@ This will create the folder ``htmlcov``: by opening
 each file.
 
 .. ADD THIS SECTION WHEN THERE WILL BE DOCSTRING TESTS
-``` (I don't think there will be any in a near future)
+
    Updating doctests
    ^^^^^^^^^^^^^^^^^
 
