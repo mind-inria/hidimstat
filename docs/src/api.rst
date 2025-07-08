@@ -41,6 +41,7 @@ Classes
 
 Base Classes
 ============
+
 .. autosummary::
    :toctree: ./generated/api/base/
    :template: class.rst
@@ -57,3 +58,4 @@ Marginal Importance
    :template: class.rst
 
    LOCI
+   LeaveOneCovariateIn

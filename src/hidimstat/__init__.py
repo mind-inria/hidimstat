@@ -31,7 +31,8 @@ from .permutation_feature_importance import PFI
 from .statistical_tools.aggregation import quantile_aggregation
 
 # marginal methods
-from .marginal.leave_one_covariate_in import LeaveOneCovariateIn as LOCI
+from .marginal import LeaveOneCovariateIn  # for having documentation
+from .marginal import LeaveOneCovariateIn as LOCI
 
 try:
     from ._version import __version__
