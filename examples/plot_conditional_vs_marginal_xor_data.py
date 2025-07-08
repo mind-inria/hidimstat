@@ -84,7 +84,7 @@ clf = SVC(kernel="rbf", random_state=0)
 # Compute marginal importance using univariate models
 loci = LOCI(estimator=clone(clf).fit(X, Y), loss=accuracy_score)
 mean_importances = loci.fit_importance(X, Y, cv=cv)
-marginal_importances = loci.importances_
+marginal_importances = np.array(loci.importances_)
 
 ###########################################################################
 

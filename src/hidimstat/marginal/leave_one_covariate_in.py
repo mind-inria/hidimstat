@@ -154,15 +154,24 @@ class LeaveOneCovariateIn(BaseVariableImportanceGroup):
         importance : array-like
             The computed feature importance scores.
         """
-        marginal_scores = []
+        list_attribute_saved = ["importances_", "pvalues_", "_list_univariate_model"]
+        save_value_attributes = []
         for train_index, test_index in cv.split(X):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             self.fit(X_train, y_train)
-            marginal_scores.append(self.importance(X_test, y_test))
-        self.importances_ = np.array(marginal_scores)
-        self.pvalues_ = None
-        return np.mean(self.importances_)
+            self.importance(X_test, y_test)
+            save_value_attributes.append(
+                [getattr(self, attribute) for attribute in list_attribute_saved]
+            )
+        # create an array of attributes:
+        for attribute in list_attribute_saved:
+            setattr(self, attribute, [])
+        for value_attribute in save_value_attributes:
+            for attribute, value in zip(list_attribute_saved, value_attribute):
+                getattr(self, attribute).append(value)
+
+        return np.mean(self.importances_, axis=0)
 
     def _joblib_fit_one_group(self, X, y, group_ids):
         """Helper function to fit a univariate model for a single group.
