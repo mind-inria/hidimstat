@@ -85,7 +85,9 @@ To help us resolve the issue quickly, please include:
 - A **summary of the expected result**.
 - Any **additional details** where the bug might occur or doesn't occur unexpectedly.
 - A **code snippet** that reproduces the issue, if applicable.
-- **Version information** for Python, HiDimStat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
+- | **Version information** for Python, HiDimStat, and relevant dependencies (e.g., scikit-learn, numpy, pandas).
+  | You can get it through your package manager. 
+    For example with ``pip``, the command ``pip list`` provides all the versions of your packages.
 
 .. _suggesting_enhancements:
 
