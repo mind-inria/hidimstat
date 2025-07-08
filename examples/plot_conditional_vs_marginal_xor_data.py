@@ -61,7 +61,7 @@ ax.legend(
     title="Class",
 )
 ax.set_title("Decision function of SVC with RBF kernel")
-# plt.show()
+plt.show()
 
 
 ##############################################################################
@@ -82,7 +82,7 @@ ax.set_title("Decision function of SVC with RBF kernel")
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 clf = SVC(kernel="rbf", random_state=0)
 # Compute marginal importance using univariate models
-loci = LOCI(estimator=clone(clf).fit(X, Y), loss=accuracy_score)
+loci = LOCI(estimator=clone(clf).fit(X, Y), method="decision_function", loss=hinge_loss)
 mean_importances = loci.fit_importance(X, Y, cv=cv)
 marginal_importances = np.array(loci.importances_)
 
