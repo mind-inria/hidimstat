@@ -198,7 +198,9 @@ class BasePerturbation(BaseEstimator):
                 ), "X does not correspond to the fitting data."
             count += len(index_variables)
         if X.shape[1] > count:
-            warnings.warn("Not all features will has a importance score.")
+            warnings.warn(
+                "The importance will be computed only for features in the groups."
+            )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
