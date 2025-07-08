@@ -397,7 +397,8 @@ This will create the folder ``htmlcov``: by opening
 ``htmlcov/index.html`` it is possible to check what lines are covered in
 each file.
 
-.. ADD THIS SECTION WHEN THERE WILL BE DOCTRING TESTS
+.. ADD THIS SECTION WHEN THERE WILL BE DOCSTRING TESTS
+``` (I don't think there will be any in a near future)
    Updating doctests
    ^^^^^^^^^^^^^^^^^
 
@@ -414,7 +415,7 @@ each file.
    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    Formatting the code well helps with code development and maintenance,
-   which why is HiDimStat requires that the last commits of a pull request follow
+   which is why HiDimStat requires that the last commits of a pull request follow
    a specific set of formatting rules to ensure code quality.
 
    Luckily, these checks are performed automatically by the ``pre-commit``
@@ -519,7 +520,7 @@ Docstring style
 ^^^^^^^^^^^^^^^
 
 Each function and class must come with a “docstring” at the top of the function code,
-using a forating close to the `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`__ formatting.
+using a formatting close to the `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`__ formatting.
 The docstring must summarize what the function does and document every parameter.
 
 If an argument takes in a default value, it should be described
