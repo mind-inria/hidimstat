@@ -72,7 +72,7 @@ class D0CRT(BaseVariableImportance):
 
     Attributes
     ----------
-    coef_X_full : ndarray of shape (n_features,)
+    coefficient : ndarray of shape (n_features,)
         Estimated feature coefficients
     clf_x_residual : list of estimators of length n_features
         Fitted models for X distillation (Lasso or None if using sigma_X)
@@ -224,19 +224,19 @@ class D0CRT(BaseVariableImportance):
                     self.params_lasso_distillation_x["alpha"] = alpha_screening
                 if self.params_lasso_distillation_y is not None:
                     self.params_lasso_distillation_y["alpha"] = alpha_screening
-                self.coef_X_full = np.ravel(self.clf_screening.coef_)
+                self.coefficient_ = np.ravel(self.clf_screening.coef_)
             else:
-                self.coef_X_full = self.estimated_coef
+                self.coefficient_ = self.estimated_coef
                 self.screening_threshold = 100  # remove the screening process
             # noisy estimated coefficients is set to 0.0
             self.non_selection = np.where(
-                np.abs(self.coef_X_full)
+                np.abs(self.coefficient_)
                 <= np.percentile(
-                    np.abs(self.coef_X_full), 100 - self.screening_threshold
+                    np.abs(self.coefficient_), 100 - self.screening_threshold
                 )
             )[0]
             # optimisation to reduce the number of elements different to zeros
-            self.coef_X_full[self.non_selection] = 0.0
+            self.coefficient_[self.non_selection] = 0.0
             # select the variables for the screening
             if self.screening:
                 selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
@@ -259,14 +259,14 @@ class D0CRT(BaseVariableImportance):
             ):
                 self.clf_refit = clone(self.clf_screening)
                 self.clf_refit.fit(X_[:, selection_set], y_)
-                self.coef_X_full[selection_set] = np.ravel(self.clf_refit.coef_)
+                self.coefficient_[selection_set] = np.ravel(self.clf_refit.coef_)
             # For distillation of X use least_square loss
             results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
                 delayed(_lasso_distillation_residual)(
                     X_,
                     y_,
                     idx,
-                    coefficient=self.coef_X_full,
+                    coefficient=self.coefficient_,
                     sigma_X=self.sigma_X,
                     params_lasso_distillation_x=(
                         self.params_lasso_distillation_x
@@ -617,7 +617,7 @@ def _lasso_distillation_residual(
         coefficient_minus_idx = np.delete(np.copy(coefficient), idx)
         clf_y = None
     else:
-        raise ValueError("Either fit_y is true or coeff_full must be provided.")
+        raise ValueError("Either fit_y is true or coefficient must be provided.")
 
     # compute the residuals
     y_residual = y - X_minus_idx.dot(coefficient_minus_idx)
