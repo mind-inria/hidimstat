@@ -266,7 +266,7 @@ class D0CRT(BaseVariableImportance):
                     X_,
                     y_,
                     idx,
-                    coef_full=self.coef_X_full,
+                    coefficient=self.coef_X_full,
                     sigma_X=self.sigma_X,
                     params_lasso_distillation_x=(
                         self.params_lasso_distillation_x
@@ -521,7 +521,7 @@ def _lasso_distillation_residual(
     X,
     y,
     idx,
-    coef_full=None,
+    coefficient=None,
     sigma_X=None,
     n_jobs=1,
     fit_y=False,
@@ -554,14 +554,14 @@ def _lasso_distillation_residual(
         The target values.
     idx : int
         Index of the variable to be tested.
-    coef_full : array-like of shape (n_features,), default=None
+    coefficient : array-like of shape (n_features,), default=None
         Pre-computed coefficients for y prediction. If None, computed via Lasso.
     sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
         The covariance matrix of X.
     n_jobs : int, default=1
         Number of CPUs to use.
     fit_y : bool, default=False
-        Whether to fit y using Lasso when coef_full is None.
+        Whether to fit y using Lasso when coefficient is None.
     random_state : int, default=42
         Random seed for reproducibility.
     params_lasso_distillation_x : dict
@@ -584,7 +584,7 @@ def _lasso_distillation_residual(
     clf_x_residual : Lasso or None
         The fitted Lasso model for X distillation, or None if sigma_X was used.
     clf_y : Lasso or None
-        The fitted Lasso model for y distillation, or None if coef_full was provided.
+        The fitted Lasso model for y distillation, or None if coefficient was provided.
 
     References
     ----------
@@ -612,15 +612,15 @@ def _lasso_distillation_residual(
             random_state=random_state,
             **params_lasso_distillation_y,
         )
-        coef_minus_idx = clf_y.coef_
-    elif coef_full is not None:
-        coef_minus_idx = np.delete(np.copy(coef_full), idx)
+        coefficient_minus_idx = clf_y.coef_
+    elif coefficient is not None:
+        coefficient_minus_idx = np.delete(np.copy(coefficient), idx)
         clf_y = None
     else:
         raise ValueError("Either fit_y is true or coeff_full must be provided.")
 
     # compute the residuals
-    y_residual = y - X_minus_idx.dot(coef_minus_idx)
+    y_residual = y - X_minus_idx.dot(coefficient_minus_idx)
 
     return X_residual, sigma2, y_residual, clf_x_residual, clf_y
 
