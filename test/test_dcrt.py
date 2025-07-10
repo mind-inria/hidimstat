@@ -369,7 +369,7 @@ def test_exception_lasso_distillation_residual():
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     with pytest.raises(
-        ValueError, match="Either fit_y is true or coeff_full must be provided."
+        ValueError, match="Either fit_y is true or coefficient must be provided."
     ):
         _lasso_distillation_residual(X, y, 0)
 
