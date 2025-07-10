@@ -80,16 +80,12 @@ class D0CRT(BaseVariableImportance):
         Fitted models for y distillation (Lasso/RandomForest or None if using estimated_coef)
     clf_screening_ : LassoCV or Lasso
         Fitted screening model if estimated_coef=None
+    non_selection_ : ndarray
+        Indices of features not selected after screening.
     selection_features_ : ndarray of shape (n_features,)
         Boolean mask indicating selected features after screening
-    sigma2 : ndarray of shape (n_selected_features,)
-        Estimated residual variances for selected features
-    ts : ndarray of shape (n_features,)
+    ts_ : ndarray of shape (n_features,)
         Test statistics following standard normal distribution
-    X_residual : ndarray of shape (n_selected_features, n_samples)
-        Residuals from X distillation for selected features
-    y_residual : ndarray of shape (n_selected_features, n_samples)
-        Residuals from y distillation for selected features
 
     Notes
     -----
@@ -218,7 +214,7 @@ class D0CRT(BaseVariableImportance):
             if self.estimated_coef is None:
                 # base on the Theorem 2 of `liu2022fast`, the rule of screening
                 # is based on a cross-validated lasso
-                self.clf_screening, alpha_screening = _fit_lasso(
+                self.clf_screening_, alpha_screening = _fit_lasso(
                     X_,
                     y_,
                     n_jobs=self.n_jobs,
@@ -236,7 +232,7 @@ class D0CRT(BaseVariableImportance):
                 self.coefficient_ = self.estimated_coef
                 self.screening_threshold = 100  # remove the screening process
             # noisy estimated coefficients is set to 0.0
-            self.non_selection = np.where(
+            self.non_selection_ = np.where(
                 np.abs(self.coefficient_)
                 <= np.percentile(
                     np.abs(self.coefficient_), 100 - self.screening_threshold
@@ -248,15 +244,12 @@ class D0CRT(BaseVariableImportance):
             if self.screening:
                 selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
                 if selection_set.size == 0:
-                    self.selection_features = np.array([])
-                    self.X_residual = np.array([])
-                    self.sigma2 = np.array([])
-                    self.y_residual = np.array([])
-                    self.clf_x_residual = np.array([])
-                    self.clf_y_residual = np.array([])
+                    self.selection_features_ = np.array([])
+                    self.clf_x_residual_ = np.array([])
+                    self.clf_y_residual_ = np.array([])
                     return self
             else:
-                self.non_selection = []
+                self.non_selection_ = []
                 selection_set = np.arange(n_features)
             # Refit the model with the estimated support set
             if (
@@ -264,9 +257,9 @@ class D0CRT(BaseVariableImportance):
                 and self.estimated_coef is None
                 and selection_set.size < n_features
             ):
-                self.clf_refit = clone(self.clf_screening)
-                self.clf_refit.fit(X_[:, selection_set], y_)
-                self.coefficient_[selection_set] = np.ravel(self.clf_refit.coef_)
+                self.clf_refit_ = clone(self.clf_screening)
+                self.clf_refit_.fit(X_[:, selection_set], y_)
+                self.coefficient_[selection_set] = np.ravel(self.clf_refit_.coef_)
             # For distillation of X use least_square loss
             results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
                 delayed(_lasso_distillation_residual)(
@@ -293,7 +286,7 @@ class D0CRT(BaseVariableImportance):
             )
         elif self.statistic == "random_forest":
             selection_set = range(n_features)
-            self.non_selection = []
+            self.non_selection_ = []
             # For distillation of X use least_square loss
             results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
                 delayed(_rf_distillation)(
@@ -321,8 +314,8 @@ class D0CRT(BaseVariableImportance):
         X_residual = np.array([result[0] for result in results])
         sigma2 = np.array([result[1] for result in results])
         y_residual = np.array([result[2] for result in results])
-        self.clf_x_residual = np.array([result[3] for result in results])
-        self.clf_y_residual = np.array([result[4] for result in results])
+        self.clf_x_residual_ = np.array([result[3] for result in results])
+        self.clf_y_residual_ = np.array([result[4] for result in results])
 
         # By assumming X|Z following a normal law, the exact p-value can be
         # computed with the following equation (see section 2.5 in `liu2022fast`)
@@ -339,10 +332,10 @@ class D0CRT(BaseVariableImportance):
             ) / np.std(ts_selected_variables)
 
         # get the results
-        self.ts = np.zeros(n_features)
-        self.ts[selection_features] = ts_selected_variables
+        self.ts_ = np.zeros(n_features)
+        self.ts_[selection_features] = ts_selected_variables
 
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts_)), 1)
         self.importances_ = self.pvalues_
 
         return self
