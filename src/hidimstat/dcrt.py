@@ -82,8 +82,6 @@ class D0CRT(BaseVariableImportance):
         Fitted screening model if estimated_coef=None
     non_selection_ : ndarray
         Indices of features not selected after screening.
-    selection_features_ : ndarray of shape (n_features,)
-        Boolean mask indicating selected features after screening
     ts_ : ndarray of shape (n_features,)
         Test statistics following standard normal distribution
 
@@ -227,7 +225,7 @@ class D0CRT(BaseVariableImportance):
                     self.params_lasso_distillation_x["alpha"] = alpha_screening
                 if self.params_lasso_distillation_y is not None:
                     self.params_lasso_distillation_y["alpha"] = alpha_screening
-                self.coefficient_ = np.ravel(self.clf_screening.coef_)
+                self.coefficient_ = np.ravel(self.clf_screening_.coef_)
             else:
                 self.coefficient_ = self.estimated_coef
                 self.screening_threshold = 100  # remove the screening process
@@ -239,12 +237,11 @@ class D0CRT(BaseVariableImportance):
                 )
             )[0]
             # optimisation to reduce the number of elements different to zeros
-            self.coefficient_[self.non_selection] = 0.0
+            self.coefficient_[self.non_selection_] = 0.0
             # select the variables for the screening
             if self.screening:
-                selection_set = np.setdiff1d(np.arange(n_features), self.non_selection)
+                selection_set = np.setdiff1d(np.arange(n_features), self.non_selection_)
                 if selection_set.size == 0:
-                    self.selection_features_ = np.array([])
                     self.clf_x_residual_ = np.array([])
                     self.clf_y_residual_ = np.array([])
                     return self
@@ -257,7 +254,7 @@ class D0CRT(BaseVariableImportance):
                 and self.estimated_coef is None
                 and selection_set.size < n_features
             ):
-                self.clf_refit_ = clone(self.clf_screening)
+                self.clf_refit_ = clone(self.clf_screening_)
                 self.clf_refit_.fit(X_[:, selection_set], y_)
                 self.coefficient_[selection_set] = np.ravel(self.clf_refit_.coef_)
             # For distillation of X use least_square loss
@@ -310,7 +307,7 @@ class D0CRT(BaseVariableImportance):
             raise ValueError(f"{self.statistic} statistic is not supported.")
         # contatenate result
         selection_features = np.ones((n_features,), dtype=bool)
-        selection_features[self.non_selection] = 0
+        selection_features[self.non_selection_] = 0
         X_residual = np.array([result[0] for result in results])
         sigma2 = np.array([result[1] for result in results])
         y_residual = np.array([result[2] for result in results])
@@ -360,7 +357,7 @@ class D0CRT(BaseVariableImportance):
             If any of the required attributes are missing, indicating the model
             hasn't been fit.
         """
-        if not hasattr(self, "clf_x_residual") or not hasattr(self, "clf_y_residual"):
+        if not hasattr(self, "clf_x_residual_") or not hasattr(self, "clf_y_residual_"):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
     def importance(
