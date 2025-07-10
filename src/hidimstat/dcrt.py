@@ -166,6 +166,10 @@ class D0CRT(BaseVariableImportance):
         Fit the dCRT model.
         Based on the paper by :footcite:t:`liu2022fast` for fast conditional
         randomization testing.
+        Calculate p-values and identify significant features using the dCRT test
+        statistics. This function processes the results from dCRT to identify
+        statistically significant features while controlling for false discoveries.
+        It assumes test statistics follow a Gaussian distribution.
 
         Parameters
         ----------
@@ -193,6 +197,9 @@ class D0CRT(BaseVariableImportance):
         based on their LASSO coefficients. Features with coefficients below the
         threshold percentile are set to zero.
 
+        The function computes test statistics as correlations between residuals,
+        optionally scales them, and converts to p-values using a Gaussian null.
+
         References
         ----------
         .. footbibliography::
@@ -203,7 +210,7 @@ class D0CRT(BaseVariableImportance):
             X_ = X
 
         y_ = y  # avoid modifying the original y
-        _, n_features = X_.shape
+        n_samples, n_features = X_.shape
 
         ## Distillation & calculate
         if self.statistic == "residual":
@@ -309,13 +316,35 @@ class D0CRT(BaseVariableImportance):
         else:
             raise ValueError(f"{self.statistic} statistic is not supported.")
         # contatenate result
-        self.selection_features = np.ones((n_features,), dtype=bool)
-        self.selection_features[self.non_selection] = 0
-        self.X_residual = np.array([result[0] for result in results])
-        self.sigma2 = np.array([result[1] for result in results])
-        self.y_residual = np.array([result[2] for result in results])
+        selection_features = np.ones((n_features,), dtype=bool)
+        selection_features[self.non_selection] = 0
+        X_residual = np.array([result[0] for result in results])
+        sigma2 = np.array([result[1] for result in results])
+        y_residual = np.array([result[2] for result in results])
         self.clf_x_residual = np.array([result[3] for result in results])
         self.clf_y_residual = np.array([result[4] for result in results])
+
+        # By assumming X|Z following a normal law, the exact p-value can be
+        # computed with the following equation (see section 2.5 in `liu2022fast`)
+        # based on the residuals of y and x.
+        ts_selected_variables = [
+            np.dot(y_residual[i], X_residual[i])
+            / np.sqrt(n_samples * sigma2[i] * np.mean(y_residual[i] ** 2))
+            for i in range(X_residual.shape[0])
+        ]
+
+        if self.scaled_statistics:
+            ts_selected_variables = (
+                ts_selected_variables - np.mean(ts_selected_variables)
+            ) / np.std(ts_selected_variables)
+
+        # get the results
+        self.ts = np.zeros(n_features)
+        self.ts[selection_features] = ts_selected_variables
+
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
+        self.importances_ = self.pvalues_
+
         return self
 
     def _check_fit(self):
@@ -354,10 +383,7 @@ class D0CRT(BaseVariableImportance):
         y=None,
     ):
         """
-        Calculate p-values and identify significant features using the dCRT test
-        statistics. This function processes the results from dCRT to identify
-        statistically significant features while controlling for false discoveries.
-        It assumes test statistics follow a Gaussian distribution.
+        Return the importance value computed.
 
         Parameters
         ----------
@@ -376,8 +402,6 @@ class D0CRT(BaseVariableImportance):
 
         Notes
         -----
-        The function computes test statistics as correlations between residuals,
-        optionally scales them, and converts to p-values using a Gaussian null.
         """
         if X is not None:
             warnings.warn("X won't be used")
@@ -385,30 +409,6 @@ class D0CRT(BaseVariableImportance):
             warnings.warn("y won't be used")
 
         self._check_fit()
-        n_features = self.selection_features.shape[0]
-        n_samples = self.X_residual.shape[1]
-
-        # By assumming X|Z following a normal law, the exact p-value can be
-        # computed with the following equation (see section 2.5 in `liu2022fast`)
-        # based on the residuals of y and x.
-        ts_selected_variables = [
-            np.dot(self.y_residual[i], self.X_residual[i])
-            / np.sqrt(n_samples * self.sigma2[i] * np.mean(self.y_residual[i] ** 2))
-            for i in range(self.X_residual.shape[0])
-        ]
-
-        if self.scaled_statistics:
-            ts_selected_variables = (
-                ts_selected_variables - np.mean(ts_selected_variables)
-            ) / np.std(ts_selected_variables)
-
-        # get the results
-        self.ts = np.zeros(n_features)
-        self.ts[self.selection_features] = ts_selected_variables
-
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts)), 1)
-        self.importances_ = self.pvalues_
-
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
