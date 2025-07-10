@@ -72,15 +72,15 @@ class D0CRT(BaseVariableImportance):
 
     Attributes
     ----------
-    coefficient : ndarray of shape (n_features,)
+    coefficient_ : ndarray of shape (n_features,)
         Estimated feature coefficients
-    clf_x_residual : list of estimators of length n_features
+    clf_x_residual_ : list of estimators of length n_features
         Fitted models for X distillation (Lasso or None if using sigma_X)
-    clf_y_residual : list of estimators of length n_features
+    clf_y_residual_ : list of estimators of length n_features
         Fitted models for y distillation (Lasso/RandomForest or None if using estimated_coef)
-    clf_screening : LassoCV or Lasso
+    clf_screening_ : LassoCV or Lasso
         Fitted screening model if estimated_coef=None
-    selection_features : ndarray of shape (n_features,)
+    selection_features_ : ndarray of shape (n_features,)
         Boolean mask indicating selected features after screening
     sigma2 : ndarray of shape (n_selected_features,)
         Estimated residual variances for selected features
@@ -367,14 +367,7 @@ class D0CRT(BaseVariableImportance):
             If any of the required attributes are missing, indicating the model
             hasn't been fit.
         """
-        if (
-            not hasattr(self, "selection_features")
-            or not hasattr(self, "X_residual")
-            or not hasattr(self, "sigma2")
-            or not hasattr(self, "y_residual")
-            or not hasattr(self, "clf_x_residual")
-            or not hasattr(self, "clf_y_residual")
-        ):
+        if not hasattr(self, "clf_x_residual") or not hasattr(self, "clf_y_residual"):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
     def importance(
