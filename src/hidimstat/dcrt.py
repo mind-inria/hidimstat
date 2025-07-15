@@ -3,104 +3,103 @@ import warnings
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.base import clone
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.utils import _check_vim_predict_method
 
 
 class D0CRT(BaseVariableImportance):
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
-    A faster version of the Conditional Randomization Test :footcite:t:`candes2018panning`
-    using the distillation process from :footcite:t:`liu2022fast`. Based on original
-    implementation at: https://github.com/moleibobliu/Distillation-CRT/
+    This class provides a fast implementation of the Conditional Randomization Test :footcite:t:`candes2018panning`
+    using the distillation process from :footcite:t:`liu2022fast`. The approach accelerates variable selection
+    by combining Lasso-based screening and residual-based test statistics. Based on the original implementation at:
+    https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
     ----------
+    estimator : sklearn estimator
+        The base estimator used for distillation and prediction (e.g., Lasso, LassoCV).
+    method : str, default="predict"
+        Method of the estimator to use for predictions ("predict", "predict_proba", etc.).
     estimated_coef : array-like of shape (n_features,) or None, default=None
-        Pre-computed feature coefficients
+        Pre-computed feature coefficients. If None, coefficients are estimated via Lasso.
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
-        Covariance matrix of X
+        Covariance matrix of X. If None, Lasso is used for X distillation.
     params_lasso_screening : dict
         Parameters for variable screening Lasso:
-        - alpha : float or None - L1 regularization strength. If None, determined by CV
-        - n_alphas : int - Number of alphas for cross-validation (default: 10)
-        - alphas : array-like or None - List of alpha values to try in CV (default: None)
-        - alpha_max_fraction : float - Scale factor for alpha_max (default: 0.5)
-        - cv : int - Cross-validation folds (default: 5)
-        - tol : float - Convergence tolerance (default: 1e-6)
-        - max_iter : int - Maximum iterations (default: 1000)
-        - fit_intercept : bool - Whether to fit intercept (default: False)
-        - selection : {'cyclic'} - Feature selection method (default: 'cyclic')
+        - alpha : float or None - L1 regularization strength. If None, determined by CV.
+        - n_alphas : int - Number of alphas for cross-validation (default: 10).
+        - alphas : array-like or None - List of alpha values to try in CV (default: None).
+        - alpha_max_fraction : float - Scale factor for alpha_max (default: 0.5).
+        - cv : int - Cross-validation folds (default: 5).
+        - tol : float - Convergence tolerance (default: 1e-6).
+        - max_iter : int - Maximum iterations (default: 1000).
+        - fit_intercept : bool - Whether to fit intercept (default: False).
+        - selection : {'cyclic'} - Feature selection method (default: 'cyclic').
     params_lasso_distillation_x : dict or None, default=None
-        Parameters for X distillation Lasso. If None, uses params_lasso_screening
+        Parameters for X distillation Lasso. If None, uses params_lasso_screening.
     params_lasso_distillation_y : dict or None, default=None
-        Parameters for y distillation Lasso. If None, uses params_lasso_screening
+        Parameters for y distillation Lasso. If None, uses params_lasso_screening.
     refit : bool, default=False
-        Whether to refit model on selected features
+        Whether to refit the model on selected features after screening.
     screening : bool, default=True
-        Whether to perform variable screening step based on Lasso coefficients
+        Whether to perform variable screening step based on Lasso coefficients.
     screening_threshold : float, default=10
-        Percentile threshold for screening (0-100), larger values lead to
-        the inclusion of more variables at the screening stage
+        Percentile threshold for screening (0-100).
+        Larger values include more variables at screening.
         (screening_threshold=100 keeps all variables).
-    statistic : {'residual', 'random_forest'}, default='residual'
-        Method for computing test statistics:
-        - 'residual': Uses Lasso regression residuals (faster, better for linear relationships)
-        - 'random_forest': Uses Random Forest predictions (captures non-linear relationships)
     centered : bool, default=True
-        Whether to center and scale features using StandardScaler
+        Whether to center and scale features using StandardScaler.
     n_jobs : int, default=1
-        Number of parallel jobs
+        Number of parallel jobs.
     joblib_verbose : int, default=0
-        Verbosity level for parallel jobs
+        Verbosity level for parallel jobs.
     fit_y : bool, default=False
-        Whether to fit y using selected features instead of using estimated_coef
-    n_tree : int, default=100
-        Number of trees for random forest when statistic='random_forest'
-    problem_type : {'regression', 'classification'}, default='regression'
-        Type of prediction problem when using random forest
-    scaled_statistics : bool, optional (default=False)
+        Whether to fit y using selected features instead of using estimated_coef.
+    scaled_statistics : bool, default=False
         Whether to use scaled statistics when computing importance.
     random_state : int, default=2022
-        Random seed for reproducibility
+        Random seed for reproducibility.
 
     Attributes
     ----------
     coefficient_ : ndarray of shape (n_features,)
-        Estimated feature coefficients
-    clf_x_residual_ : list of estimators of length n_features
-        Fitted models for X distillation (Lasso or None if using sigma_X)
-    clf_y_residual_ : list of estimators of length n_features
-        Fitted models for y distillation (Lasso/RandomForest or None if using estimated_coef)
+        Estimated feature coefficients after screening/refitting during fit method.
+    clf_x_ : list of estimators of length n_features
+        Fitted models for X distillation (Lasso or None if using sigma_X).
+    clf_y_ : list of estimators of length n_features
+        Fitted models for y distillation (Lasso or None if using estimated_coef).
     clf_screening_ : LassoCV or Lasso
-        Fitted screening model if estimated_coef=None
+        Fitted screening model if estimated_coef is None.
     non_selection_ : ndarray
         Indices of features not selected after screening.
     ts_ : ndarray of shape (n_features,)
-        Test statistics following standard normal distribution
+        Test statistics following standard normal distribution.
+    pvalues_ : ndarray of shape (n_features,)
+        Computed p-values for each feature.
+    importances_ : ndarray of shape (n_features,)
+        Importance scores for each feature.
 
     Notes
     -----
-    The implementation follows Liu et al. (2022) which introduces distillation to
+    The implementation follows Liu et al. (2022), introducing distillation to
     speed up conditional randomization testing. Key steps:
-    1. Optional screening using Lasso coefficients to reduce dimensionality
-    2. Distillation to estimate conditional distributions
-    3. Test statistic computation using residual correlations or random forests
-    4. P-value calculation assuming Gaussian null distribution
+    1. Optional screening using Lasso coefficients to reduce dimensionality.
+    2. Distillation to estimate conditional distributions.
+    3. Test statistic computation using residual correlations.
+    4. P-value calculation assuming Gaussian null distribution.
 
     See Also
     --------
-    sklearn.linear_model.Lasso : Basic Lasso regression
-    sklearn.linear_model.LassoCV : Lasso with cross-validation
-    sklearn.ensemble.RandomForestRegressor : Random forest for regression
-    sklearn.ensemble.RandomForestClassifier : Random forest for classification
-    sklearn.preprocessing.StandardScaler : Feature standardization
+    sklearn.linear_model.Lasso : Basic Lasso regression.
+    sklearn.linear_model.LassoCV : Lasso with cross-validation.
+    sklearn.preprocessing.StandardScaler : Feature standardization.
 
     References
     ----------
@@ -109,6 +108,8 @@ class D0CRT(BaseVariableImportance):
 
     def __init__(
         self,
+        estimator,
+        method: str = "predict",
         estimated_coef=None,
         sigma_X=None,
         params_lasso_screening={
@@ -123,47 +124,41 @@ class D0CRT(BaseVariableImportance):
             "selection": "cyclic",
         },
         params_lasso_distillation_x=None,
-        params_lasso_distillation_y=None,
         refit=False,
         screening=True,
         screening_threshold=10,
-        statistic="residual",
         centered=True,
         n_jobs=1,
         joblib_verbose=0,
         fit_y=False,
-        n_tree=100,
-        problem_type="regression",
         scaled_statistics=False,
         random_state=2022,
     ):
+        self.estimator = estimator
+        _check_vim_predict_method(method)
         self.estimated_coef = estimated_coef
+        self.method = method
         self.sigma_X = sigma_X
         self.params_lasso_screening = params_lasso_screening
         self.params_lasso_distillation_x = params_lasso_distillation_x
-        self.params_lasso_distillation_y = params_lasso_distillation_y
         self.refit = refit
         self.screening = screening
         self.screening_threshold = screening_threshold
-        self.statistic = statistic
         self.centered = centered
         self.n_jobs = n_jobs
         self.joblib_verbose = joblib_verbose
         self.fit_y = fit_y
-        self.n_tree = n_tree
-        self.problem_type = problem_type
         self.scaled_statistics = scaled_statistics
         self.random_state = random_state
 
     def fit(self, X, y):
         """
         Fit the dCRT model.
-        Based on the paper by :footcite:t:`liu2022fast` for fast conditional
-        randomization testing.
-        Calculate p-values and identify significant features using the dCRT test
-        statistics. This function processes the results from dCRT to identify
-        statistically significant features while controlling for false discoveries.
-        It assumes test statistics follow a Gaussian distribution.
+
+        This method fits the distilled Conditional Randomization Test (dCRT) model
+        as described in :footcite:t:`liu2022fast`. It performs optional feature
+        screening using Lasso, computes coefficients, and prepares the model for
+        importance and p-value computation.
 
         Parameters
         ----------
@@ -176,23 +171,23 @@ class D0CRT(BaseVariableImportance):
         Returns
         -------
         self : object
-            Returns the instance itself.
+            Returns the fitted instance.
 
         Notes
         -----
         The method follows these main steps:
-        1. Optional data centering using StandardScaler
-        2. Variable screening using LASSO (if not provided with estimated coefficients)
-        3. Feature selection based on coefficient magnitudes
-        4. Model refitting on selected features (if refit=True)
-        5. Distillation process using either residual or random forest statistics
+        1. Optional data centering using StandardScaler.
+        2. Variable screening using Lasso (if estimated coefficients are not provided).
+        3. Feature selection based on coefficient magnitudes.
+        4. Optional model refitting on selected features (if refit=True).
+        5. Distillation process for each feature using Lasso or covariance-based regression.
 
         The screening threshold determines which features are considered significant
-        based on their LASSO coefficients. Features with coefficients below the
+        based on their Lasso coefficients. Features with coefficients below the
         threshold percentile are set to zero.
 
-        The function computes test statistics as correlations between residuals,
-        optionally scales them, and converts to p-values using a Gaussian null.
+        The function prepares the model for subsequent computation of test statistics,
+        importance scores, and p-values.
 
         References
         ----------
@@ -204,27 +199,28 @@ class D0CRT(BaseVariableImportance):
             X_ = X
 
         y_ = y  # avoid modifying the original y
-        n_samples, n_features = X_.shape
+        _, n_features = X_.shape
 
         ## Distillation & calculate
-        if self.statistic == "residual":
+        if isinstance(self.estimator, Lasso) or isinstance(self.estimator, LassoCV):
             ## Screening of variables for accelarate dCRT
             if self.estimated_coef is None:
                 # base on the Theorem 2 of `liu2022fast`, the rule of screening
                 # is based on a cross-validated lasso
-                self.clf_screening_, alpha_screening = _fit_lasso(
+                self.clf_screening_ = _fit_lasso(
                     X_,
                     y_,
                     n_jobs=self.n_jobs,
-                    random_state=self.random_state,
                     **self.params_lasso_screening,
                 )
+                if hasattr(self.clf_screening_, "alpha_"):
+                    alpha_screening = self.clf_screening_.alpha_
+                else:
+                    alpha_screening = self.clf_screening_.alpha
                 # update the alpha value from the estiamtor on all values
                 self.params_lasso_screening["alpha"] = alpha_screening
                 if self.params_lasso_distillation_x is not None:
                     self.params_lasso_distillation_x["alpha"] = alpha_screening
-                if self.params_lasso_distillation_y is not None:
-                    self.params_lasso_distillation_y["alpha"] = alpha_screening
                 self.coefficient_ = np.ravel(self.clf_screening_.coef_)
             else:
                 self.coefficient_ = self.estimated_coef
@@ -242,8 +238,8 @@ class D0CRT(BaseVariableImportance):
             if self.screening:
                 selection_set = np.setdiff1d(np.arange(n_features), self.non_selection_)
                 if selection_set.size == 0:
-                    self.clf_x_residual_ = np.array([])
-                    self.clf_y_residual_ = np.array([])
+                    self.clf_x_ = np.array([])
+                    self.clf_y_ = np.array([])
                     return self
             else:
                 self.non_selection_ = []
@@ -257,83 +253,31 @@ class D0CRT(BaseVariableImportance):
                 self.clf_refit_ = clone(self.clf_screening_)
                 self.clf_refit_.fit(X_[:, selection_set], y_)
                 self.coefficient_[selection_set] = np.ravel(self.clf_refit_.coef_)
-            # For distillation of X use least_square loss
-            results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
-                delayed(_lasso_distillation_residual)(
-                    X_,
-                    y_,
-                    idx,
-                    coefficient=self.coefficient_,
-                    sigma_X=self.sigma_X,
-                    params_lasso_distillation_x=(
-                        self.params_lasso_distillation_x
-                        if self.params_lasso_distillation_x is not None
-                        else self.params_lasso_screening
-                    ),
-                    params_lasso_distillation_y=(
-                        self.params_lasso_distillation_y
-                        if self.params_lasso_distillation_y is not None
-                        else self.params_lasso_screening
-                    ),
-                    fit_y=self.fit_y,
-                    n_jobs=1,  # the function is already called in parallel
-                    random_state=self.random_state,
-                )
-                for idx in selection_set
-            )
-        elif self.statistic == "random_forest":
+        else:
             selection_set = range(n_features)
             self.non_selection_ = []
-            # For distillation of X use least_square loss
-            results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
-                delayed(_rf_distillation)(
-                    X_,
-                    y_,
-                    idx,
-                    sigma_X=self.sigma_X,
-                    n_tree=self.n_tree,
-                    problem_type=self.problem_type,
-                    n_jobs=1,  # the function is already called in parallel
-                    random_state=self.random_state,
-                    params_lasso_distillation_x=(
-                        self.params_lasso_distillation_x
-                        if self.params_lasso_distillation_y is not None
-                        else self.params_lasso_screening
-                    ),
-                )
-                for idx in selection_set
+            self.coefficient_ = None
+
+        results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
+            delayed(_joblib_fit)(
+                idx,
+                X_,
+                y_,
+                self.estimator,
+                sigma_X=self.sigma_X is None,
+                fit_y=self.fit_y,
+                params_lasso_distillation_x=(
+                    self.params_lasso_distillation_x
+                    if self.params_lasso_distillation_x is not None
+                    else self.params_lasso_screening
+                ),
             )
-        else:
-            raise ValueError(f"{self.statistic} statistic is not supported.")
-        # contatenate result
-        selection_features = np.ones((n_features,), dtype=bool)
-        selection_features[self.non_selection_] = 0
-        X_residual = np.array([result[0] for result in results])
-        sigma2 = np.array([result[1] for result in results])
-        y_residual = np.array([result[2] for result in results])
-        self.clf_x_residual_ = np.array([result[3] for result in results])
-        self.clf_y_residual_ = np.array([result[4] for result in results])
-
-        # By assumming X|Z following a normal law, the exact p-value can be
-        # computed with the following equation (see section 2.5 in `liu2022fast`)
-        # based on the residuals of y and x.
-        ts_selected_variables = [
-            np.dot(y_residual[i], X_residual[i])
-            / np.sqrt(n_samples * sigma2[i] * np.mean(y_residual[i] ** 2))
-            for i in range(X_residual.shape[0])
-        ]
-
-        if self.scaled_statistics:
-            ts_selected_variables = (
-                ts_selected_variables - np.mean(ts_selected_variables)
-            ) / np.std(ts_selected_variables)
-
-        # get the results
-        self.ts_ = np.zeros(n_features)
-        self.ts_[selection_features] = ts_selected_variables
-
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts_)), 1)
-        self.importances_ = self.pvalues_
+            for idx in selection_set
+        )
+        self.clf_x_ = [result[0] for result in results]
+        self.clf_y_ = [result[1] for result in results]
+        if self.fit_y:
+            self.coefficient_ = np.array([result[2] for result in results])
 
         return self
 
@@ -357,41 +301,113 @@ class D0CRT(BaseVariableImportance):
             If any of the required attributes are missing, indicating the model
             hasn't been fit.
         """
-        if not hasattr(self, "clf_x_residual_") or not hasattr(self, "clf_y_residual_"):
+        if (
+            not hasattr(self, "clf_x_")
+            or not hasattr(self, "clf_y_")
+            or not hasattr(self, "coefficient_")
+            or not hasattr(self, "non_selection_")
+        ):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
     def importance(
         self,
-        X=None,
-        y=None,
+        X,
+        y,
     ):
         """
-        Return the importance value computed.
+        Compute and return feature importance scores.
+
+        This method computes the importance scores for all features using the fitted dCRT model.
+        It uses the distillation process and residuals to calculate test statistics and p-values
+        for each feature, following the procedure described in :footcite:t:`liu2022fast`.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features), default=None
-            (not used) Testing data matrix where n_samples is the number of samples
-            and n_features is the number of features.
-            A warning will be issued if provided.
-        y : array-like of shape (n_samples,), default=None
-            (not used) Target values of testing dataset.
-            A warning will be issued if provided.
+        X : array-like of shape (n_samples, n_features)
+            Input data matrix. Used for consistency checks and residual computation.
+        y : array-like of shape (n_samples,)
+            Target values. Used for residual computation.
 
         Returns
         -------
         importances_ : ndarray of shape (n_features,)
-            Importance scores for all features
+            Importance scores for all features.
 
         Notes
         -----
-        """
-        if X is not None:
-            warnings.warn("X won't be used")
-        if y is not None:
-            warnings.warn("y won't be used")
+        The importance scores are based on the test statistics computed from the
+        correlation between the residuals of y and the residuals of each feature X_j,
+        after distillation. The resulting p-values are stored in `self.pvalues_` and
+        the importance scores in `self.importances_`.
 
+        References
+        ----------
+        .. footbibliography::
+        """
         self._check_fit()
+
+        y_ = y  # avoid modifying the original y
+
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        n_samples, n_features = X_.shape
+        selection_features = np.setdiff1d(np.arange(n_features), self.non_selection_)
+
+        list_job = []
+        for index, (idx, clf_y, clf_x) in enumerate(
+            zip(selection_features, self.clf_y_, self.clf_x_)
+        ):
+            if self.coefficient_ is not None:
+                if self.fit_y:
+                    coefficient_minus_idx = self.coefficient_[index]
+                else:
+                    coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
+            else:
+                coefficient_minus_idx = None
+
+            list_job.append(
+                delayed(_joblib_distill)(
+                    idx=idx,
+                    X=X_,
+                    y=y_,
+                    clf_y=clf_y,
+                    clf_x=clf_x,
+                    method=self.method,
+                    sigma_X=self.sigma_X,
+                    coefficient_minus_idx=coefficient_minus_idx,
+                )
+            )
+
+        results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(list_job)
+
+        # contatenate result
+        X_residual = np.array([result[0] for result in results])
+        sigma2 = np.array([result[1] for result in results])
+        y_residual = np.array([result[2] for result in results])
+
+        # By assumming X|Z following a normal law, the exact p-value can be
+        # computed with the following equation (see section 2.5 in `liu2022fast`)
+        # based on the residuals of y and x.
+        ts_selected_variables = [
+            np.dot(y_residual[i], X_residual[i])
+            / np.sqrt(n_samples * sigma2[i] * np.mean(y_residual[i] ** 2))
+            for i in range(X_residual.shape[0])
+        ]
+
+        if self.scaled_statistics:
+            ts_selected_variables = (
+                ts_selected_variables - np.mean(ts_selected_variables)
+            ) / np.std(ts_selected_variables)
+
+        # get the results
+        self.ts_ = np.zeros(n_features)
+        self.ts_[selection_features] = ts_selected_variables
+
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts_)), 1)
+        self.importances_ = self.pvalues_
+
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
@@ -416,106 +432,19 @@ class D0CRT(BaseVariableImportance):
         if cv is not None:
             warnings.warn("cv won't be used")
         self.fit(X, y)
-        return self.importance()
+        return self.importance(X, y)
 
 
-def _x_distillation_lasso(
-    X,
+def _joblib_fit(
     idx,
-    sigma_X=None,
-    n_jobs=1,
-    random_state=0,
-    params_lasso_distillation_x=None,
-):
-    """
-    Distill variable X[:, idx] using Lasso regression on remaining variables.
-
-    This function implements the distillation process to estimate the conditional
-    distribution of X[:, idx] given the remaining variables, using either Lasso
-    regression or a known covariance matrix.
-
-    Parameters
-    ----------
-    X : {array-like, sparse matrix} of shape (n_samples, n_features)
-        The input samples.
-    idx : int
-        Index of the variable to be distilled.
-    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
-        The covariance matrix of X. If provided, used instead of Lasso regression.
-    n_jobs : int, default=1
-        Number of CPUs to use for cross-validation.
-    random_state : int, default=0
-        Random seed for reproducibility.
-    params_lasso_distillation_x : dict or None, default=None
-        Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int, default=0 - Number of alphas for cross-validation.
-        - alphas : array-like, default=None - List of alpha values to try in CV.
-        - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
-
-    Returns
-    -------
-    X_res : ndarray of shape (n_samples,)
-        The residuals after distillation.
-    sigma2 : float
-        The estimated variance of the residuals.
-    clf : estimator or None
-        The fitted Lasso model, or None if sigma_X was used.
-    """
-    n_samples = X.shape[0]
-    X_minus_idx = np.delete(np.copy(X), idx, 1)
-
-    if sigma_X is None:
-        # Distill X with least square loss
-        # configure Lasso and determine the alpha
-        clf, alpha = _fit_lasso(
-            X_minus_idx,
-            X[:, idx],
-            n_jobs=n_jobs,
-            random_state=random_state,
-            **params_lasso_distillation_x,
-        )
-
-        # get the residuals
-        X_res = X[:, idx] - clf.predict(X_minus_idx)
-        # compute the variance of the residuals
-        # In the original paper and implementation, the term:
-        #  alpha * np.linalg.norm(clf.coef_, ord=1)
-        # is not present and has been added without any reference actually
-        sigma2 = np.linalg.norm(X_res) ** 2 / n_samples + alpha * np.linalg.norm(
-            clf.coef_, ord=1
-        )
-
-    else:
-        clf = None
-        # Distill X with sigma_X
-        sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
-        b = sigma_temp[:, idx]
-        A = np.delete(np.copy(sigma_temp), idx, 1)
-        coefs_X = np.linalg.solve(A, b)
-        X_res = X[:, idx] - np.dot(X_minus_idx, coefs_X)
-        sigma2 = sigma_X[idx, idx] - np.dot(
-            np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
-        )
-    return X_res, sigma2, clf
-
-
-def _lasso_distillation_residual(
     X,
     y,
-    idx,
-    coefficient=None,
-    sigma_X=None,
-    n_jobs=1,
+    estimator,
+    sigma_X=False,
     fit_y=False,
-    random_state=42,
     params_lasso_distillation_x={
-        "alpha": None,
-        "n_alphas": 10,
-        "alphas": None,
-        "alpha_max_fraction": 0.5,
-    },
-    params_lasso_distillation_y={
+        "n_jobs": 1,
+        "random_state": 44,
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
@@ -523,51 +452,40 @@ def _lasso_distillation_residual(
     },
 ):
     """
-    Standard Lasso Distillation for least squares regression.
+    Standard Lasso distillation for least squares regression.
 
-    This function implements the distillation process following :footcite:t:`liu2022fast`
-    section 2.3. It distills both X[:, idx] and y to compute test statistics.
-    It's based on least square loss regression.
+    This function fits a Lasso model (or other estimator) to predict X[:, idx]
+    from the remaining features, and optionally fits a model to predict y from
+    the remaining features.
+    Used as a helper for parallel feature-wise distillation in dCRT.
 
     Parameters
     ----------
-    X : {array-like, sparse matrix} of shape (n_samples, n_features)
-        The input samples.
-    y : array-like of shape (n_samples,)
-        The target values.
     idx : int
         Index of the variable to be tested.
-    coefficient : array-like of shape (n_features,), default=None
-        Pre-computed coefficients for y prediction. If None, computed via Lasso.
-    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
-        The covariance matrix of X.
-    n_jobs : int, default=1
-        Number of CPUs to use.
+    X : array-like of shape (n_samples, n_features)
+        The input data matrix.
+    y : array-like of shape (n_samples,)
+        The target values.
+    estimator : sklearn estimator
+        The estimator used for distillation and prediction.
+    sigma_X : bool, default=False
+        If True, use Lasso for X distillation; if False, skip X distillation.
     fit_y : bool, default=False
         Whether to fit y using Lasso when coefficient is None.
-    random_state : int, default=42
-        Random seed for reproducibility.
-    params_lasso_distillation_x : dict
-        Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int, default=0 - Number of alphas for cross-validation.
-        - alphas : array-like, default=None - List of alpha values to try in CV.
-        - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
-    params_lasso_distillation_y : dict
-        Same as params_lasso_distillation_x.
+    params_lasso_distillation_x : dict, optional
+        Parameters for Lasso estimation or cross-validated Lasso for X distillation.
+        (for details see the description of parameter *params_lasso_screening*
+        of DOCRT)
 
     Returns
     -------
-    X_residual : ndarray of shape (n_samples,)
-        The residuals after X distillation.
-    sigma2 : float
-        The estimated variance of the residuals.
-    y_residual : ndarray of shape (n_samples,)
-        The residuals after y distillation.
-    clf_x_residual : Lasso or None
-        The fitted Lasso model for X distillation, or None if sigma_X was used.
-    clf_y : Lasso or None
-        The fitted Lasso model for y distillation, or None if coefficient was provided.
+    clf_x : estimator or None
+        Fitted Lasso model for X distillation, or None if not used.
+    clf_y : estimator or None
+        Fitted estimator for y distillation, or None if not used.
+    coefficient_minus_idx : array-like or None
+        Estimated coefficients for y prediction, or None if not computed.
 
     References
     ----------
@@ -576,131 +494,117 @@ def _lasso_distillation_residual(
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_residual, sigma2, clf_x_residual = _x_distillation_lasso(
-        X,
-        idx,
-        sigma_X,
-        n_jobs=n_jobs,
-        random_state=random_state + 2,  # avoid the same seed as the main function
-        params_lasso_distillation_x=params_lasso_distillation_x,
-    )
-
-    # Distill Y - calculate residual
-    # get the coefficients
-    if fit_y:
-        clf_y, alpha_null = _fit_lasso(
+    # configure Lasso and determine the alpha
+    if sigma_X:
+        clf_x = _fit_lasso(
             X_minus_idx,
-            y,
-            n_jobs=n_jobs,
-            random_state=random_state,
-            **params_lasso_distillation_y,
+            X[:, idx],
+            n_jobs=1,
+            **params_lasso_distillation_x,
         )
-        coefficient_minus_idx = clf_y.coef_
-    elif coefficient is not None:
-        coefficient_minus_idx = np.delete(np.copy(coefficient), idx)
-        clf_y = None
     else:
-        raise ValueError("Either fit_y is true or coefficient must be provided.")
+        clf_x = None
 
-    # compute the residuals
-    y_residual = y - X_minus_idx.dot(coefficient_minus_idx)
+    if (isinstance(estimator, Lasso) or isinstance(estimator, LassoCV)) and not fit_y:
+        clf_y = None
+        coefficient_minus_idx = None
+    else:
+        clf_y = clone(estimator)
+        clf_y.fit(X_minus_idx, y)
+        if fit_y:
+            coefficient_minus_idx = clf_y.coef_
+        else:
+            coefficient_minus_idx = None
+    return clf_x, clf_y, coefficient_minus_idx
 
-    return X_residual, sigma2, y_residual, clf_x_residual, clf_y
 
-
-def _rf_distillation(
-    X,
-    y,
-    idx,
-    sigma_X=None,
-    n_jobs=1,
-    problem_type="regression",
-    n_tree=100,
-    random_state=42,
-    params_lasso_distillation_x={
-        "alpha": None,
-        "n_alphas": 10,
-        "alphas": None,
-        "alpha_max_fraction": 0.5,
-    },
+def _joblib_distill(
+    idx, X, y, clf_y, clf_x, method, sigma_X=None, coefficient_minus_idx=None
 ):
     """
-    Random Forest based distillation for both regression and classification.
+    Distill the values of X and y for a single feature using least squares regression.
 
-    This function implements the distillation process using Random Forest for y
-    and Lasso for X[:, idx]. It supports both regression and binary classification
-    problems.
+    This function implements the distillation process for a single feature, following
+    section 2.3 of :footcite:t:`liu2022fast`. It computes the residuals for X[:, idx]
+    and y after regressing out the effect of the other features, using either Lasso-based
+    or covariance-based regression.
 
     Parameters
     ----------
+    idx : int
+        Index of the variable to be tested.
     X : {array-like, sparse matrix} of shape (n_samples, n_features)
         The input samples.
     y : array-like of shape (n_samples,)
-        The target values (class labels or regression targets).
-    idx : int
-        Index of the variable to be tested.
-    sigma_X : {array-like, sparse matrix} of shape (n_features, n_features), default=None
-        The covariance matrix of X.
-    n_jobs : int, default=1
-        Number of CPUs to use.
-    problem_type : {'regression', 'classification'}, default='regression'
-        The type of prediction problem.
-    n_tree : int, default=100
-        Number of trees in the Random Forest.
-    random_state : int, default=42
-        Random seed for reproducibility.
-    params_lasso_distillation_x : dict
-        Parameters for main Lasso estimation or crossvalidation Lasso, including:
-        - alpha : float - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int, default=0 - Number of alphas for cross-validation.
-        - alphas : array-like, default=None - List of alpha values to try in CV.
-        - alpha_max_fraction : float, default=0.5 - Scale factor for alpha_max.
+        The target values.
+    clf_y : sklearn compatible estimator
+        The estimator to use for the prediction of y.
+    clf_x : sklearn compatible estimator
+        The estimator to use for the prediction of X minus one features.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict", "predict_proba",
+        "decision_function", "transform".
+    sigma_X : array-like of shape (n_features, n_features) or None, default=None
+        Covariance matrix of X. If provided, covariance-based regression is used for X.
+    coefficient_minus_idx : ndarray of shape (n_features,) or None
+        Estimated feature coefficients for y prediction, or None if not computed.
 
     Returns
     -------
     X_residual : ndarray of shape (n_samples,)
-        The residuals after X distillation.
+        Residuals after X distillation.
     sigma2 : float
-        The estimated variance of the residuals.
+        Estimated residual variance for X[:, idx].
     y_residual : ndarray of shape (n_samples,)
-        The residuals after y distillation.
-    clf_x_residual : Lasso or None
-        The fitted Lasso model for X distillation, or None if sigma_X was used.
-    clf_y : RandomForestRegressor or RandomForestClassifier
-        The fitted Random Forest model for y distillation.
-    Notes
-    -----
-    For classification, the function uses probability predictions from
-    RandomForestClassifier and assumes binary classification (uses class 1
-    probability only).
+        Residuals after y distillation.
+
+    References
+    ----------
+    .. footbibliography::
     """
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
-    X_residual, sigma2, clf_x_residual = _x_distillation_lasso(
-        X,
-        idx,
-        sigma_X,
-        n_jobs=n_jobs,
-        random_state=random_state + 2,  # avoid the same seed as the main function
-        params_lasso_distillation_x=params_lasso_distillation_x,
-    )
+    if sigma_X is None:
+        n_samples = X.shape[0]
+        if hasattr(clf_x, "alpha_"):
+            alpha = clf_x.alpha_
+        else:
+            alpha = clf_x.alpha
+        # get the residuals
+        X_residual = X[:, idx] - clf_x.predict(X_minus_idx)
+        # compute the variance of the residuals
+        # In the original paper and implementation, the term:
+        #  alpha * np.linalg.norm(clf.coef_, ord=1)
+        # is not present and has been added without any reference actually
+        sigma2 = np.linalg.norm(X_residual) ** 2 / n_samples + alpha * np.linalg.norm(
+            clf_x.coef_, ord=1
+        )
+    else:
+        # Distill X with sigma_X
+        sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
+        b = sigma_temp[:, idx]
+        A = np.delete(np.copy(sigma_temp), idx, 1)
+        coefs_X = np.linalg.solve(A, b)
+        X_residual = X[:, idx] - np.dot(X_minus_idx, coefs_X)
+        sigma2 = sigma_X[idx, idx] - np.dot(
+            np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
+        )
 
-    # Distill Y
-    # get the residuals
-    if problem_type == "regression":
-        clf_y = RandomForestRegressor(
-            n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
-        )
-        clf_y.fit(X_minus_idx, y)
-        y_residual = y - clf_y.predict(X_minus_idx)
-    elif problem_type == "classification":
-        clf_y = RandomForestClassifier(
-            n_estimators=n_tree, random_state=random_state, n_jobs=n_jobs
-        )
-        clf_y.fit(X_minus_idx, y)
-        y_residual = y - clf_y.predict_proba(X_minus_idx)[:, 1]  # IIABDFI
-    return (X_residual, sigma2, y_residual, clf_x_residual, clf_y)
+    # Distill Y - calculate residual
+    if coefficient_minus_idx is not None:
+        # get the coefficients
+        # compute the residuals
+        y_residual = y - X_minus_idx.dot(coefficient_minus_idx.T)
+    else:
+        # get the residuals
+        y_pred = getattr(clf_y, method)(X_minus_idx)
+        if y_pred.ndim == 1:
+            y_residual = y - y_pred
+        else:
+            y_residual = y - y_pred[:, 1]  # IIABDFI
+
+    return X_residual, sigma2, y_residual
 
 
 def _fit_lasso(
@@ -711,45 +615,42 @@ def _fit_lasso(
     alphas,
     n_alphas,
     alpha_max_fraction,
-    random_state,
     **params,
 ):
     """
-    Fits a LASSO regression model with optional cross-validation for alpha selection.
+    Fit a LASSO regression model with optional cross-validation for alpha selection.
 
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features)
-        Training data
+        Training data.
     y : array-like of shape (n_samples,)
-        Target values
+        Target values.
     n_jobs : int
-        Number of CPUs for cross-validation
-    alpha : float
-        Constant that multiplies the L1 term. If None and alphas/n_alphas not provided,
+        Number of CPUs to use for cross-validation.
+    alpha : float or None
+        Regularization strength. If None and alphas/n_alphas not provided,
         alpha is set to alpha_max_fraction * alpha_max.
-    alphas : array-like
-        List of alphas where to compute the models. If None and n_alphas > 0,
+    alphas : array-like or None
+        List of alphas to use for model fitting. If None and n_alphas > 0,
         alphas are set automatically.
     n_alphas : int
         Number of alphas along the regularization path. Ignored if alphas is provided.
     alpha_max_fraction : float
         Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
     random_state : int, RandomState instance or None
-        Random seed for reproducibility
+        Random seed for reproducibility.
     **params : dict
-        Additional parameters for Lasso/LassoCV
+        Additional parameters for Lasso or LassoCV.
 
     Returns
     -------
     clf : estimator
-        Fitted Lasso/LassoCV model
-    alpha : float
-        Selected alpha value
+        Fitted Lasso or LassoCV model.
 
     Notes
     -----
-    Uses cross-validation to select the best alpha if alphas or n_alphas provided.
+    Uses cross-validation to select the best alpha if alphas or n_alphas are provided.
     Otherwise, uses a single alpha value either provided or computed from alpha_max_fraction.
     """
     if alphas is not None or n_alphas > 0:
@@ -757,27 +658,26 @@ def _fit_lasso(
             n_alphas=n_alphas,
             alphas=alphas,
             n_jobs=n_jobs,
-            random_state=random_state,
             **params,
         )
         clf.fit(X, y)
-        alpha = clf.alpha_
     else:
         if alpha is None:
             alpha = alpha_max_fraction * _alpha_max(X, y)
         clf = Lasso(
             alpha=alpha,
-            random_state=random_state,
             **params,
         )
         clf.fit(X, y)
-    return clf, alpha
+    return clf
 
 
 def d0crt(
+    estimator,
     X,
     y,
     cv=None,
+    method="predict",
     estimated_coef=None,
     sigma_X=None,
     params_lasso_screening={
@@ -792,17 +692,13 @@ def d0crt(
         "selection": "cyclic",
     },
     params_lasso_distillation_x=None,
-    params_lasso_distillation_y=None,
     refit=False,
     screening=True,
     screening_threshold=1e-1,
-    statistic="residual",
     centered=True,
     n_jobs=1,
     joblib_verbose=0,
     fit_y=False,
-    n_tree=100,
-    problem_type="regression",
     random_state=2022,
     scaled_statistics=False,
     k_best=None,
@@ -811,23 +707,21 @@ def d0crt(
     threshold_pvalue=None,
 ):
     methods = D0CRT(
+        estimator=estimator,
+        method=method,
         estimated_coef=estimated_coef,
         sigma_X=sigma_X,
         params_lasso_screening=params_lasso_screening,
         params_lasso_distillation_x=params_lasso_distillation_x,
-        params_lasso_distillation_y=params_lasso_distillation_y,
         refit=refit,
         screening=screening,
         screening_threshold=screening_threshold,
-        statistic=statistic,
         centered=centered,
         n_jobs=n_jobs,
         joblib_verbose=joblib_verbose,
         fit_y=fit_y,
-        n_tree=n_tree,
-        problem_type=problem_type,
-        random_state=random_state,
         scaled_statistics=scaled_statistics,
+        random_state=random_state,
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(
