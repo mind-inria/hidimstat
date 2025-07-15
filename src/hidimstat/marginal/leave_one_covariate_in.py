@@ -129,13 +129,23 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceGroup):
         """
         self._check_fit(X)
 
-        y_pred = getattr(self.estimator, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
-
         y_pred = self.predict(X)
+
+        # reference to a dummy model
+        if len(y_pred[0].shape) == 1 or y_pred[0].shape[1] == 1:
+            # Regression: take the average value as reference
+            y_ref = np.mean(y) * np.ones_like(y_pred[0])
+            self.loss_reference_ = self.loss(y, y_ref)
+        else:
+            # Classification: take the most frequent value
+            values, counts = np.unique(y, return_counts=True)
+            y_ref = np.zeros_like(y_pred[0])
+            y_ref[:, np.argmax(counts)] = 1.0
+            self.loss_reference_ = self.loss(y, y_ref)
+
         self.importances_ = []
         for y_pred_j in y_pred:
-            self.importances_.append(self.loss(y, y_pred_j) - self.loss_reference_)
+            self.importances_.append(self.loss_reference_ - self.loss(y, y_pred_j))
         self.pvalues_ = None  # estimated pvlaue for method
         return self.importances_
 

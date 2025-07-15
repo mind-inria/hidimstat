@@ -85,7 +85,7 @@ def test_loci_linear_data_exact(data_generator):
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
-    assert np.all([int(i) in important_features for i in np.argsort(importance)[:1]])
+    assert np.all([int(i) in important_features for i in np.argsort(importance)[-1:]])
 
 
 parameter_bad_detection = [
@@ -107,7 +107,7 @@ def test_loci_linear_data_fail(data_generator):
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
     assert np.any(
-        [int(i) not in important_features for i in np.argsort(importance)[:1]]
+        [int(i) not in important_features for i in np.argsort(importance)[-1:]]
     )
 
 
@@ -148,7 +148,7 @@ def test_loci_classication(data_generator):
     # Check that important features have higher mean importance scores
     assert (
         importance[important_features].mean()
-        < importance[not_important_features].mean()
+        > importance[not_important_features].mean()
     )
 
 
@@ -192,7 +192,7 @@ def test_loci_group(data_generator):
     assert importance.shape == (2,)
     # Verify that important feature group has higher score
     # than non-important feature group
-    assert importance[0] < importance[1]
+    assert importance[0] > importance[1]
 
 
 ##############################################################################
@@ -260,7 +260,7 @@ class TestLOCIClass:
 
         importances = loci.fit_importance(X, y, cv=KFold())
         assert len(importances) == 3
-        assert np.all(importances >= 0)
+        assert np.all(importances < 0)  # no informative, worse than dummy model
 
 
 ##############################################################################
