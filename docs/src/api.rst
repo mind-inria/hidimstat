@@ -34,9 +34,30 @@ Classes
    :toctree: ./generated/api/class/
    :template: class.rst
    
-   BaseVariableImportance
-   BasePerturbation
    LOCO
    CPI
    PFI
    D0CRT
+
+Base Classes
+============
+
+.. autosummary::
+   :toctree: ./generated/api/base/
+   :template: class.rst
+
+   BaseVariableImportance
+   BasePerturbation
+   AdapterScikitLearn
+
+
+Marginal Importance
+===================
+.. autosummary::
+   :toctree: ./generated/api/marginal
+   :template: class.rst
+
+   ANOVA
+   AnalysisOfVariance
+   UnivariateLinearRegressionTests
+   MutualInformation

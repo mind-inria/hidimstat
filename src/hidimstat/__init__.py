@@ -27,6 +27,15 @@ from .permutation_feature_importance import PFI
 
 from .statistical_tools.aggregation import quantile_aggregation
 
+# marginal methods
+from .marginal import (
+    AdapterScikitLearn,  # for documentation
+    AnalysisOfVariance,  # for documentation
+    UnivariateLinearRegressionTests,
+    MutualInformation,
+)
+from .marginal import AnalysisOfVariance as ANOVA
+
 try:
     from ._version import __version__
 except ImportError:
@@ -34,6 +43,9 @@ except ImportError:
 
 __all__ = [
     "quantile_aggregation",
+    "ANOVA",
+    "UnivariateLinearRegressionTests",
+    "MutualInformation",
     "clustered_inference",
     "clustered_inference_pvalue",
     "ensemble_clustered_inference",
