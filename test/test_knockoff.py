@@ -5,7 +5,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_quantile,
 )
 from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
-from hidimstat._utils.scenario import multivariate_1D_simulation_AR
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 import numpy as np
 import pytest
@@ -20,10 +20,13 @@ def test_knockoff_bootstrap_quantile():
     """Test bootstrap knockoof with quantile aggregation"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
+    non_zero_index = np.where(beta)[0]
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=n_bootstraps, random_state=None, fdr=fdr
@@ -47,10 +50,13 @@ def test_knockoff_bootstrap_e_values():
     """Test bootstrap Knockoff with e-values"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     n_bootstraps = 25
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
+    non_zero_index = np.where(beta)[0]
 
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=n_bootstraps, random_state=None, fdr=fdr / 2
@@ -82,9 +88,11 @@ def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
     n = 500
     p = 100
-    snr = 5
+    signal_noise_ratio = 5
     fdr = 0.5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     (
         selected_bootstrap,
@@ -109,8 +117,11 @@ def test_knockoff_exception():
     """Test exception raise by Knockoff"""
     n = 500
     p = 100
-    snr = 5
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(n, p, snr=snr, seed=0)
+    signal_noise_ratio = 5
+    X, y, beta, noise = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=0
+    )
+    non_zero_index = np.where(beta)[0]
 
     # Checking wrong type for random_state
     with pytest.raises(Exception):
@@ -127,7 +138,11 @@ def test_model_x_knockoff():
     fdr = 0.2
     n = 300
     p = 300
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    support_size = 18
+    X, y, beta, noise = multivariate_simulation(
+        n, p, support_size=support_size, seed=seed
+    )
+    non_zero = np.where(beta)[0]
     selected, test_score, threshold, X_tildes = model_x_knockoff(
         X, y, n_bootstraps=1, random_state=seed + 1, fdr=fdr
     )
@@ -145,7 +160,8 @@ def test_model_x_knockoff_estimator():
     fdr = 0.2
     n = 300
     p = 300
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    non_zero = np.where(beta)[0]
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X,
         y,
@@ -157,7 +173,7 @@ def test_model_x_knockoff_estimator():
     )
     fdp, power = fdp_power(selected, non_zero)
 
-    assert fdp <= 0.2
+    assert fdp <= fdr
     assert power > 0.7
 
 
@@ -194,7 +210,8 @@ def test_estimate_distribution():
     fdr = 0.1
     n = 100
     p = 50
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    non_zero = np.where(beta)[0]
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
         X,
         y,
@@ -225,7 +242,8 @@ def test_gaussian_knockoff_equi():
     seed = 42
     n = 100
     p = 50
-    X, y, _, non_zero = multivariate_1D_simulation_AR(n, p, seed=seed)
+    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    non_zero = np.where(beta)[0]
     mu = X.mean(axis=0)
     sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
 
