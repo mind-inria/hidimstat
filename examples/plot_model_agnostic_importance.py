@@ -35,7 +35,7 @@ from sklearn.metrics import hinge_loss, log_loss
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
-from hidimstat import LOCO, dcrt_pvalue, dcrt_zero
+from hidimstat import LOCO, D0CRT
 
 #############################################################################
 # Generate data where classes are not linearly separable
@@ -65,17 +65,9 @@ plt.show()
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
-selection_features, X_residual, sigma2, y_res = dcrt_zero(
-    X, y, problem_type="classification", screening=False
-)
-_, pval_dcrt, _ = dcrt_pvalue(
-    selection_features=selection_features,
-    X_res=X_residual,
-    y_res=y_res,
-    sigma2=sigma2,
-    fdr=0.05,
-)
-
+d0crt = D0CRT(problem_type="classification", screening=False)
+d0crt.fit_importance(X, y)
+pval_dcrt = d0crt.pvalues_
 
 ################################################################################
 # Compute p-values using LOCO

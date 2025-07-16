@@ -6,11 +6,18 @@ from sklearn.model_selection import train_test_split
 import pytest
 
 from hidimstat import PFI
+from hidimstat._utils.scenario import multivariate_simulation
 
 
-def test_permutation_importance(linear_scenario):
+def test_permutation_importance():
     """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta = linear_scenario
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
 
