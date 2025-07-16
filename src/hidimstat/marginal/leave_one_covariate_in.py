@@ -19,7 +19,9 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceGroup):
         method: str = "predict",
         n_jobs: int = 1,
     ):
-        """Leave One Covariate In.
+        """
+        Leave One Covariate In.
+        For more details, see the section 7.2 of :footcite:t:`ewald2024guide`.
 
         Parameters
         ----------
