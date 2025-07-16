@@ -20,21 +20,27 @@ class AdapterScikitLearn(BaseVariableImportance):
 
     Notes
     -----
-    Subclasses should implement the `fit` method.
+    Subclasses should implement the `importance` methods.
     """
 
     def fit(self, X=None, y=None):
         """
         Fit the feature selection model to the data.
-        Do nothing because there is no need of fitting
+
+        This method does nothing because fitting is not required for these
+        scikit-learn feature selection methods.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
+        X : array-like of shape (n_samples, n_features), optional
             (not used) Input data matrix.
-        y : array-like of shape (n_samples,)
+        y : array-like of shape (n_samples,), optional
             (not used) Target values.
 
+        Returns
+        -------
+        self : object
+            Returns self.
         """
         if X is not None:
             warnings.warn("X won't be used")
@@ -45,6 +51,9 @@ class AdapterScikitLearn(BaseVariableImportance):
     def importance(self, X, y):
         """
         Return the computed feature importances.
+
+        This method should be implemented by subclasses to compute feature
+        importances for the given data.
 
         Parameters
         ----------
@@ -63,6 +72,9 @@ class AdapterScikitLearn(BaseVariableImportance):
     def fit_importance(self, X, y, cv=None):
         """
         Fit the model and compute feature importances.
+
+        This method fits the model (if necessary) and computes feature
+        importances for the given data.
 
         Parameters
         ----------
@@ -88,17 +100,17 @@ class AnalysisOfVariance(AdapterScikitLearn):
     """
     Analysis of Variance (ANOVA) :footcite:t:`fisher1970statistical` feature
     selection for classification tasks.
-    For short summary of this method, you can read this paper
-    :footcite:t:`larson2008analysis`.
 
-    Uses scikit-learn's f_classif to compute F-statistics and p-values for each feature.
+    This class uses scikit-learn's f_classif to compute F-statistics and p-values
+    for each feature. For a short summary of this method, see
+    :footcite:t:`larson2008analysis`.
 
     Attributes
     ----------
     importances_ : ndarray
-        P-values for each feature.
+        1 - p-values for each feature (higher is more important).
     pvalues_ : ndarray
-        P-values for each feature.
+        1 - p-values for each feature.
     f_statitstic_ : ndarray
         F-statistics for each feature.
 
@@ -113,7 +125,7 @@ class AnalysisOfVariance(AdapterScikitLearn):
     @override
     def importance(self, X, y):
         """
-        Fit the ANOVA model to the data.
+        Compute ANOVA F-statistics and p-values for each feature.
 
         Parameters
         ----------
@@ -125,11 +137,16 @@ class AnalysisOfVariance(AdapterScikitLearn):
         Sets
         ----
         importances_ : ndarray
-            P-values for each feature.
+            1 - p-values for each feature.
         pvalues_ : ndarray
-            P-values for each feature.
+            1 - p-values for each feature.
         f_statitstic_ : ndarray
             F-statistics for each feature.
+
+        Returns
+        -------
+        importances_ : ndarray
+            1 - p-values for each feature.
         """
         f_statistic, p_values = f_classif(X, y)
         # Test the opposite hypothese to the anova
@@ -143,7 +160,9 @@ class AnalysisOfVariance(AdapterScikitLearn):
 class UnivariateLinearRegressionTests(AdapterScikitLearn):
     """
     Univariate linear regression F-test for regression tasks.
-    This test is also known as Chow test :footcite:t:`chow1960tests`
+
+    This test is also known as the Chow test :footcite:t:`chow1960tests`.
+    Uses scikit-learn's f_regression to compute F-statistics and p-values for each feature.
 
     Parameters
     ----------
@@ -155,9 +174,9 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
     Attributes
     ----------
     importances_ : ndarray
-        P-values for each feature.
+        1 - p-values for each feature.
     pvalues_ : ndarray
-        P-values for each feature.
+        1 - p-values for each feature.
     f_statitstic_ : ndarray
         F-statistics for each feature.
 
@@ -175,7 +194,7 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
     @override
     def importance(self, X, y):
         """
-        Fit the univariate linear regression F-test model to the data.
+        Compute univariate linear regression F-statistics and p-values for each feature.
 
         Parameters
         ----------
@@ -187,11 +206,16 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
         Sets
         ----
         importances_ : ndarray
-            P-values for each feature.
+            1 - p-values for each feature.
         pvalues_ : ndarray
-            P-values for each feature.
+            1 - p-values for each feature.
         f_statitstic_ : ndarray
             F-statistics for each feature.
+
+        Returns
+        -------
+        importances_ : ndarray
+            1 - p-values for each feature.
         """
         f_statistic, p_values = f_regression(
             X, y, center=self.center, force_finite=self.force_finite
@@ -207,9 +231,9 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
 class MutualInformation(AdapterScikitLearn):
     """
     Mutual information feature selection for regression or classification.
-    This method was introduce by Shannon :footcite:t:`shannon1948mathematical`
-    but for an introduction, you can look the section 2.4 of this book
-    :footcite:t:`cover1999elements` .
+
+    This method was introduced by Shannon :footcite:t:`shannon1948mathematical`.
+    For an introduction, see section 2.4 of :footcite:t:`cover1999elements`.
 
     Parameters
     ----------
@@ -256,7 +280,7 @@ class MutualInformation(AdapterScikitLearn):
     @override
     def importance(self, X, y):
         """
-        Fit the mutual information model to the data.
+        Compute mutual information scores for each feature.
 
         Parameters
         ----------
@@ -271,6 +295,11 @@ class MutualInformation(AdapterScikitLearn):
             Mutual information scores for each feature.
         pvalues_ : None
             P-values are not computed for mutual information.
+
+        Returns
+        -------
+        importances_ : ndarray
+            Mutual information scores for each feature.
         """
         if self.problem_type == "regression":
             mutual_information = mutual_info_regression(
