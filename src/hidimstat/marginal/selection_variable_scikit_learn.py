@@ -86,9 +86,25 @@ class AdapterScikitLearn(BaseVariableImportance):
 
 class AnalysisOfVariance(AdapterScikitLearn):
     """
-    Analysis of Variance (ANOVA) feature selection for classification tasks.
+    Analysis of Variance (ANOVA) :footcite:t:`fisher1970statistical` feature
+    selection for classification tasks.
+    For short summary of this method, you can read this paper
+    :footcite:t:`larson2008analysis`.
 
     Uses scikit-learn's f_classif to compute F-statistics and p-values for each feature.
+
+    Attributes
+    ----------
+    importances_ : ndarray
+        P-values for each feature.
+    pvalues_ : ndarray
+        P-values for each feature.
+    f_statitstic_ : ndarray
+        F-statistics for each feature.
+
+    Notes
+    -----
+    See sklearn.feature_selection.f_classif
     """
 
     def __init__(self):
@@ -127,6 +143,7 @@ class AnalysisOfVariance(AdapterScikitLearn):
 class UnivariateLinearRegressionTests(AdapterScikitLearn):
     """
     Univariate linear regression F-test for regression tasks.
+    This test is also known as Chow test :footcite:t:`chow1960tests`
 
     Parameters
     ----------
@@ -134,6 +151,19 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
         If True, center the data before computing F-statistics.
     force_finite : bool, default=True
         If True, replace NaNs and infs in the output with finite numbers.
+
+    Attributes
+    ----------
+    importances_ : ndarray
+        P-values for each feature.
+    pvalues_ : ndarray
+        P-values for each feature.
+    f_statitstic_ : ndarray
+        F-statistics for each feature.
+
+    Notes
+    -----
+    See sklearn.feature_selection.f_regression
     """
 
     def __init__(self, center=True, force_finite=True):
@@ -177,7 +207,9 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
 class MutualInformation(AdapterScikitLearn):
     """
     Mutual information feature selection for regression or classification.
-    #TODO add citaton + link to scikitleatn documentation
+    This method was introduce by Shannon :footcite:t:`shannon1948mathematical`
+    but for an introduction, you can look the section 2.4 of this book
+    :footcite:t:`cover1999elements` .
 
     Parameters
     ----------
@@ -191,6 +223,18 @@ class MutualInformation(AdapterScikitLearn):
         Random seed for reproducibility.
     n_jobs : int, default=1
         Number of parallel jobs.
+
+    Attributes
+    ----------
+    importances_ : ndarray
+        Mutual information scores for each feature.
+    pvalues_ : None
+        P-values are not computed for mutual information.
+
+    Notes
+    -----
+    See sklearn.feature_selection.mutual_info_regression
+    See sklearn.feature_selection.mutual_info_classification
     """
 
     def __init__(
