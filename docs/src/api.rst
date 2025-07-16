@@ -19,8 +19,6 @@ Functions
    quantile_aggregation
    clustered_inference
    clustered_inference_pvalue
-   dcrt_zero
-   dcrt_pvalue
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
@@ -36,7 +34,9 @@ Classes
    :toctree: ./generated/api/class/
    :template: class.rst
    
+   BaseVariableImportance
    BasePerturbation
    LOCO
    CPI
    PFI
+   D0CRT

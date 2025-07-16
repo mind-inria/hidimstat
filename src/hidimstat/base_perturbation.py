@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
-class BasePerturbation(BaseEstimator):
+class BasePerturbation(BaseVariableImportance):
     def __init__(
         self,
         estimator,

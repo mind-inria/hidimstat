@@ -35,7 +35,7 @@ from sklearn.metrics import hinge_loss, log_loss
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
-from hidimstat import LOCO, dcrt_pvalue, dcrt_zero
+from hidimstat import LOCO, D0CRT
 
 #############################################################################
 # Generate data where classes are not linearly separable
@@ -57,6 +57,11 @@ ax.set_xlabel("X1")
 ax.set_ylabel("X2")
 plt.show()
 
+###############################################################################
+# Define a linear and a non-linear estimator
+# ------------------------------------------
+non_linear_model = SVC(kernel="rbf", random_state=0)
+linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 
 ###############################################################################
 # Compute p-values using d0CRT
@@ -65,17 +70,13 @@ plt.show()
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
-selection_features, X_residual, sigma2, y_res = dcrt_zero(
-    X, y, problem_type="classification", screening=False
-)
-_, pval_dcrt, _ = dcrt_pvalue(
-    selection_features=selection_features,
-    X_res=X_residual,
-    y_res=y_res,
-    sigma2=sigma2,
-    fdr=0.05,
-)
+d0crt_linear = D0CRT(estimator=clone(linear_model), screening=False)
+d0crt_linear.fit_importance(X, y)
+pval_dcrt_linear = d0crt_linear.pvalues_
 
+d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening=False)
+d0crt_non_linear.fit_importance(X, y)
+pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 
 ################################################################################
 # Compute p-values using LOCO
@@ -86,8 +87,6 @@ _, pval_dcrt, _ = dcrt_pvalue(
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
-non_linear_model = SVC(kernel="rbf", random_state=0)
-linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 
 importances_linear = []
 importances_non_linear = []
@@ -126,9 +125,14 @@ _, pval_non_linear = ttest_1samp(
 
 df_pval = pd.DataFrame(
     {
-        "pval": np.hstack([pval_dcrt, pval_linear, pval_non_linear]),
-        "method": ["d0CRT"] * 2 + ["LOCO-linear"] * 2 + ["LOCO-non-linear"] * 2,
-        "Feature": ["X1", "X2"] * 3,
+        "pval": np.hstack(
+            [pval_dcrt_linear, pval_dcrt_non_linear, pval_linear, pval_non_linear]
+        ),
+        "method": ["d0CRT-linear"] * 2
+        + ["d0CRT-non-linear"] * 2
+        + ["LOCO-linear"] * 2
+        + ["LOCO-non-linear"] * 2,
+        "Feature": ["X1", "X2"] * 4,
     }
 )
 df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
