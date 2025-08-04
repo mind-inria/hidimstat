@@ -97,7 +97,7 @@ minversion = "8.0"
 pythonpath = "src"
 testpaths = "test"
 addopts = [
-    "-ra",                     # short test summary info
+    "-rA",                     # short test summary info
     "--import-mode=importlib", # better control of importing packages
     "--showlocals",            # show local variable inn trackbacks
     "--strict-config",         # no warning from parsing pytest configuration file
