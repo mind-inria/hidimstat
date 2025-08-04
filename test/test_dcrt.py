@@ -37,8 +37,8 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
     sv_screening = d0crt_screening.selection(threshold_pvalue=0.05)
-    assert np.where(d0crt_no_screening.ts_ != 0)[0].shape[0] <= 10
-    assert np.where(d0crt_screening.ts_ != 0)[0].shape[0] <= 10
+    assert np.sum(d0crt_no_screening.ts_ != 0) <= 10
+    assert np.sum(d0crt_screening.ts_ != 0) <= 10
     assert len(sv_no_screening) <= 10
     assert len(pvalue_no_screening) == 10
     assert len(d0crt_no_screening.ts_) == 10
@@ -269,7 +269,7 @@ def test_dcrt_lasso_fit_with_no_cv():
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
-    assert np.where(d0crt.ts_ != 0)[0].shape[0] <= 10
+    assert np.sum(d0crt.ts_ != 0) <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.ts_) == 10
@@ -317,7 +317,7 @@ def test_dcrt_RF_classification():
 
 
 def test_exception_not_fitted():
-    """Test if an exception is raise when the methosd is not fitted"""
+    """Test if an exception is raised when the method is not fitted"""
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
@@ -333,7 +333,7 @@ def test_exception_not_fitted():
 
 
 def test_warning_not_used_parameters():
-    """Test if an exception is raise when the methosd is not fitted"""
+    """Test if an exception is raised when the method is not fitted"""
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
@@ -348,7 +348,7 @@ def test_warning_not_used_parameters():
 
 
 def test_function_d0crt():
-    """Test the function dcrt"""
+    """Test the d0crt function"""
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
     sv, importances, pvalues = d0crt(LassoCV(n_jobs=1), X, y)
     assert len(sv) <= 10
