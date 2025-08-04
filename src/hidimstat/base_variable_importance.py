@@ -40,7 +40,7 @@ class BaseVariableImportance(BaseEstimator):
     ):
         """
         Selects features based on variable importance.
-        In case several arguments are different from None, 
+        In case several arguments are different from None,
         the returned  selection is the conjunction of all of them.
 
         Parameters
