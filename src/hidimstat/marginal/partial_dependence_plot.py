@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from tqdm import tqdm
 from typing import override
 import warnings
 
@@ -7,7 +8,7 @@ import numpy as np
 from scipy import sparse
 from scipy.stats.mstats import mquantiles
 from sklearn.base import is_classifier, is_regressor
-from sklearn.utils import _safe_indexing, check_array
+from sklearn.utils import _safe_indexing, check_array, check_random_state
 from sklearn.utils._indexing import (
     _determine_key_type,
     _get_column_indices,
@@ -15,7 +16,6 @@ from sklearn.utils._indexing import (
 )
 from sklearn.utils._response import _get_response_values
 from sklearn.utils.validation import _check_sample_weight, check_is_fitted
-from sklearn.utils.extmath import cartesian
 from sklearn.inspection._pd_utils import _check_feature_names, _get_feature_index
 from sklearn.inspection._partial_dependence import _grid_from_X
 
@@ -178,13 +178,10 @@ def _grid_from_X(
                 right=True,
             )
         indexes.append(np.clip(digitize, 0, None))
-
-        print(values[-1], values[-1].shape, np.unique(axis).shape)
-        print(indexes[-1], indexes[-1].shape, np.unique(indexes[-1]).shape)
     return values, indexes
 
 
-def _partial_dependence_brute(est, grid, features, X, method, cross_features, n_jobs):
+def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
     """Calculate partial dependence via the brute force method.
 
     The brute method explicitly averages the predictions of an estimator over a
@@ -249,38 +246,10 @@ def _partial_dependence_brute(est, grid, features, X, method, cross_features, n_
         method = (
             "predict" if is_regressor(est) else ["predict_proba", "decision_function"]
         )
-    if cross_features:
-        predictions = Parallel(n_jobs=n_jobs)(
-            delayed(_joblib_get_predictions_cross)(new_values, features, X, est, method)
-            for new_values in cartesian(grid)
-        )
-        n_samples = X.shape[0]
-
-        # reshape to (n_targets, n_instances, n_points) where n_targets is:
-        # - 1 for non-multioutput regression and binary classification (shape is
-        #   already correct in those cases)
-        # - n_tasks for multi-output regression
-        # - n_classes for multiclass classification.
-        predictions = np.array(predictions).T
-        if is_regressor(est) and predictions.ndim == 2:
-            # non-multioutput regression, shape is (n_instances, n_points,)
-            predictions = predictions.reshape(n_samples, -1)
-        elif is_classifier(est) and predictions.shape[0] == 2:
-            # Binary classification, shape is (2, n_instances, n_points).
-            # we output the effect of **positive** class
-            predictions = predictions[1]
-            predictions = predictions.reshape(n_samples, -1)
-
-        # reshape predictions to
-        # (n_outputs, n_instances, n_values_feature_0, n_values_feature_1, ...)
-        predictions = predictions.reshape(
-            -1, n_samples, *[val.shape[0] for val in grid]
-        )
-    else:
-        predictions = Parallel(n_jobs=n_jobs)(
-            delayed(_joblib_get_predictions)(variable, values, X, est, method)
-            for variable, values in zip(features, grid)
-        )
+    predictions = Parallel(n_jobs=n_jobs)(
+        delayed(_joblib_get_predictions)(variable, values, X, est, method)
+        for variable, values in tqdm(zip(features, grid))
+    )
     return predictions
 
 
@@ -296,24 +265,6 @@ def _joblib_get_predictions(variable, values, X, est, method):
         # (n_points, 1) for binary classification (positive class already selected)
         # (n_points, n_classes) for multiclass classification
         pred, _ = _get_response_values(est, X, response_method=method)
-
-        predictions.append(pred)
-    return predictions
-
-
-def _joblib_get_predictions_cross(new_values, features, X, est, method):
-    predictions = []
-    for i, variable in enumerate(features):
-        _safe_assign(X, new_values[i], column_indexer=variable)
-
-        # Note: predictions is of shape
-        # (n_points,) for non-multioutput regressors
-        # (n_points, n_tasks) for multioutput regressors
-        # (n_points, 1) for the regressors in cross_decomposition (I think)
-        # (n_points, 1) for binary classification (positive class already selected)
-        # (n_points, n_classes) for multiclass classification
-        pred, _ = _get_response_values(est, X, response_method=method)
-
         predictions.append(pred)
     return predictions
 
@@ -332,7 +283,6 @@ class PartialDependancePlot(BaseVariableImportance):
         grid_resolution=100,
         custom_values=None,
         resolution_statistique=False,
-        cross_features=False,
     ):
         super().__init__()
         check_is_fitted(estimator)
@@ -359,7 +309,6 @@ class PartialDependancePlot(BaseVariableImportance):
         self.grid_resolution = grid_resolution
         self.custom_values = custom_values
         self.resolution_statistique = resolution_statistique
-        self.cross_features = cross_features
 
     @override
     def fit(self, X=None, y=None):
@@ -379,6 +328,7 @@ class PartialDependancePlot(BaseVariableImportance):
             X_ = check_array(X, ensure_all_finite="allow-nan", dtype=object)
         else:
             X_ = X
+        self.feature_names = _check_feature_names(X, self.feature_names)
 
         if self.sample_weight is not None:
             self.sample_weight = _check_sample_weight(self.sample_weight, X)
@@ -392,7 +342,7 @@ class PartialDependancePlot(BaseVariableImportance):
                     "all features must be in [0, {}]".format(X.shape[1] - 1)
                 )
 
-        features_indices = np.asarray(
+        self.features_indices = np.asarray(
             _get_column_indices(X_, self.features), dtype=np.intp, order="C"
         ).ravel()
 
@@ -400,7 +350,7 @@ class PartialDependancePlot(BaseVariableImportance):
 
         n_features = X_.shape[1]
         if self.categorical_features is None:
-            is_categorical = [False] * len(features_indices)
+            is_categorical = [False] * len(self.features_indices)
         else:
             categorical_features = np.asarray(self.categorical_features)
             if categorical_features.size == 0:
@@ -426,7 +376,7 @@ class PartialDependancePlot(BaseVariableImportance):
                     for cat in categorical_features
                 ]
                 is_categorical = [
-                    idx in categorical_features_idx for idx in features_indices
+                    idx in categorical_features_idx for idx in self.features_indices
                 ]
             else:
                 raise ValueError(
@@ -439,7 +389,7 @@ class PartialDependancePlot(BaseVariableImportance):
             self.features = [self.features]
 
         for feature_idx, feature, is_cat in zip(
-            features_indices, self.features, is_categorical
+            self.features_indices, self.features, is_categorical
         ):
             if is_cat:
                 continue
@@ -454,7 +404,7 @@ class PartialDependancePlot(BaseVariableImportance):
                     "to floating point dtypes ahead of time to avoid problems. "
                 )
 
-        X_subset = _safe_indexing(X_, features_indices, axis=1)
+        X_subset = _safe_indexing(X_, self.features_indices, axis=1)
 
         custom_values_for_X_subset = {
             index: custom_values.get(feature)
@@ -473,10 +423,9 @@ class PartialDependancePlot(BaseVariableImportance):
         self.ices_ = _partial_dependence_brute(
             self.estimator,
             self.values_,
-            features_indices,
+            self.features_indices,
             X_,
             self.method,
-            self.cross_features,
             self.n_jobs,
         )
 
@@ -496,12 +445,6 @@ class PartialDependancePlot(BaseVariableImportance):
             # reshape to (1, n_points) for consistency with
             # _partial_dependence_recursion
             averaged_predictions = averaged_predictions.reshape(1, -1)
-        if self.cross_features:
-            # reshape averaged_predictions to
-            # (n_outputs, n_values_feature_0, n_values_feature_1, ...)
-            averaged_predictions = averaged_predictions.reshape(
-                -1, *[val.shape[0] for val in self.values_]
-            )
 
         self.importances_ = np.mean(averaged_predictions, axis=0)
         self.pvalues_ = None
@@ -515,7 +458,16 @@ class PartialDependancePlot(BaseVariableImportance):
         self.fit()
         return self.importance(X)
 
-    def plot(self, feature_id, ax=None, X=None, **kwargs):
+    def plot(
+        self,
+        feature_id,
+        ax=None,
+        X=None,
+        nbins=5,
+        percentage_ice=1.0,
+        random_state=None,
+        **kwargs,
+    ):
         """
         base on https://github.com/blent-ai/ALEPython/blob/dev/src/alepython/ale.py#L159
 
@@ -533,28 +485,26 @@ class PartialDependancePlot(BaseVariableImportance):
         Exception
             _description_
         """
-        self._check_importance()
         try:
             import seaborn as sns
             import matplotlib.pyplot as plt
         except ImportError:
             raise Exception("You need to install seabor for using this functionnality")
+        assert (
+            percentage_ice <= 1.0 and percentage_ice >= 0.0
+        ), "percentage of ice need to be 0 and 1"
+        self._check_importance()
+
+        rng = check_random_state(random_state)
+        # subsample ice
+        ice_lines_idx = rng.choice(
+            len(self.ices_[feature_id][0]),
+            int(len(self.ices_[feature_id][0]) * percentage_ice),
+            replace=False,
+        )
         # centers = np.array(self.values_[1:] + self.values_[:-1]) / 2
         if ax is None:
             fig, ax = plt.subplots()
-        # plot pdp
-        ax.plot(
-            self.values_[feature_id],
-            np.average(self.ices_[feature_id], axis=1, weights=self.sample_weight),
-            **kwargs,
-        )
-        # plot ice
-        # TODO need to be in ligh grey
-        # ax.plot(cartesian(self.values_), self.ices_[feature_id])
-        ax.grid(True, linestyle="-", alpha=0.4)
-        # add distribution of value
-        if X is not None:
-            sns.rugplot(X[feature_id], ax=ax, alpha=0.2)
         # add the percentage of the quantiles distributions
         dtype = type(self.values_[feature_id][0])
         if dtype in np._core._type_aliases.allTypes.values() and (
@@ -562,7 +512,43 @@ class PartialDependancePlot(BaseVariableImportance):
             or np.isdtype(dtype, "integral")
             or np.isdtype(dtype, "numeric")
         ):
-            _ax_quantiles(ax, self.values_[feature_id])
+            # plot ice
+            ax.plot(
+                np.array(self.values_[feature_id]),
+                np.array(self.ices_[feature_id])[:, ice_lines_idx],
+                color="lightblue",
+                alpha=0.5,
+                linewidth=0.5,
+            )
+            # plot pdp
+            ax.plot(
+                self.values_[feature_id],
+                np.average(
+                    self.ices_[feature_id],
+                    axis=1,
+                    weights=self.sample_weight,
+                ),
+                color="black",
+                **kwargs,
+            )
+            if X is not None:
+                data = (_safe_indexing(X, self.features_indices[feature_id], axis=1),)
+                _ax_quantiles(
+                    ax,
+                    np.unique(
+                        np.quantile(
+                            data, np.linspace(0, 1, nbins), interpolation="lower"
+                        )
+                    ),
+                )
+                # add distribution of value
+                sns.rugplot(data, ax=ax, alpha=0.2, legend=False)
+        else:
+            ax.boxplot(self.ices_[feature_id])
+            ax.set_xticks(np.arange(len(self.values_[feature_id])) + 1)
+            ax.set_xticklabels(self.values_[feature_id])
+        ax.set_xlabel(self.feature_names[feature_id])
+        ax.grid(True, linestyle="-", alpha=0.4)
         return ax
 
 
@@ -617,6 +603,8 @@ def _ax_quantiles(ax, quantiles, twin="x"):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
     X = [[0, 0, 2], [1, 0, 0]]
 
     y = [0, 1]
@@ -630,3 +618,5 @@ if __name__ == "__main__":
     )
     pdp.fit()
     pdp.importance(X=X)
+    pdp.plot(feature_id=0)
+    plt.show()
