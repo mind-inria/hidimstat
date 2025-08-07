@@ -105,12 +105,13 @@ def _grid_from_X(
     # TODO: we should handle missing values (i.e. `np.nan`) specifically and store them
     # in a different Bunch attribute.
     for feature_idx, is_cat in enumerate(is_categorical):
+        data = _safe_indexing(X, feature_idx, axis=1)
         if feature_idx in custom_values:
             # Use values in the custom range
             axis = custom_values[feature_idx]
         else:
             try:
-                uniques = np.unique(_safe_indexing(X, feature_idx, axis=1))
+                uniques = np.unique(data)
             except TypeError as exc:
                 # `np.unique` will fail in the presence of `np.nan` and `str` categories
                 # due to sorting. Temporary, we reraise an error explaining the problem.
@@ -131,7 +132,7 @@ def _grid_from_X(
                 if resolution_statistique:
                     axis = np.unique(
                         mquantiles(
-                            _safe_indexing(X, feature_idx, axis=1),
+                            data,
                             prob=np.linspace(0.0, 1.0, grid_resolution + 1),
                             axis=0,
                         )
@@ -153,27 +154,14 @@ def _grid_from_X(
                         endpoint=True,
                     )
         values.append(axis)
-        dtype = _safe_indexing(X, feature_idx, axis=1).dtype
-        if dtype in np._core._type_aliases.allTypes.values() and (
-            np.isdtype(dtype, "bool")
-            or np.isdtype(dtype, "integral")
-            or np.isdtype(dtype, "numeric")
-        ):
+        if not is_cat:
             digitize = (
-                np.digitize(_safe_indexing(X, feature_idx, axis=1), axis, right=True)
-                - 1
+                np.digitize(data, axis, right=True) - 1
             )  # correction of the number of classes
         else:
-            string_to_num = {
-                s: i
-                for i, s in enumerate(
-                    sorted(set(_safe_indexing(X, feature_idx, axis=1)))
-                )
-            }
+            string_to_num = {s: i for i, s in enumerate(sorted(set(data)))}
             digitize = np.digitize(
-                np.array(
-                    [string_to_num[s] for s in _safe_indexing(X, feature_idx, axis=1)]
-                ),
+                np.array([string_to_num[s] for s in data]),
                 [string_to_num[s] for s in axis],
                 right=True,
             )
@@ -328,7 +316,6 @@ class PartialDependancePlot(BaseVariableImportance):
             X_ = check_array(X, ensure_all_finite="allow-nan", dtype=object)
         else:
             X_ = X
-        self.feature_names = _check_feature_names(X, self.feature_names)
 
         if self.sample_weight is not None:
             self.sample_weight = _check_sample_weight(self.sample_weight, X)
@@ -346,11 +333,11 @@ class PartialDependancePlot(BaseVariableImportance):
             _get_column_indices(X_, self.features), dtype=np.intp, order="C"
         ).ravel()
 
-        feature_names = _check_feature_names(X_, self.feature_names)
+        self.feature_names = _check_feature_names(X_, self.feature_names)
 
         n_features = X_.shape[1]
         if self.categorical_features is None:
-            is_categorical = [False] * len(self.features_indices)
+            self.is_categorical = [False] * len(self.features_indices)
         else:
             categorical_features = np.asarray(self.categorical_features)
             if categorical_features.size == 0:
@@ -368,14 +355,16 @@ class PartialDependancePlot(BaseVariableImportance):
                         f"{categorical_features.size} elements while `X` contains "
                         f"{n_features} features."
                     )
-                is_categorical = [categorical_features[idx] for idx in features_indices]
+                self.is_categorical = [
+                    categorical_features[idx] for idx in self.features_indices
+                ]
             elif categorical_features.dtype.kind in ("i", "O", "U"):
                 # categorical features provided as a list of indices or feature names
                 categorical_features_idx = [
-                    _get_feature_index(cat, feature_names=feature_names)
+                    _get_feature_index(cat, feature_names=self.feature_names)
                     for cat in categorical_features
                 ]
-                is_categorical = [
+                self.is_categorical = [
                     idx in categorical_features_idx for idx in self.features_indices
                 ]
             else:
@@ -389,7 +378,7 @@ class PartialDependancePlot(BaseVariableImportance):
             self.features = [self.features]
 
         for feature_idx, feature, is_cat in zip(
-            self.features_indices, self.features, is_categorical
+            self.features_indices, self.features, self.is_categorical
         ):
             if is_cat:
                 continue
@@ -414,7 +403,7 @@ class PartialDependancePlot(BaseVariableImportance):
         self.values_, _ = _grid_from_X(
             X_subset,
             self.percentiles,
-            is_categorical,
+            self.is_categorical,
             self.grid_resolution,
             custom_values_for_X_subset,
             self.resolution_statistique,
@@ -446,7 +435,28 @@ class PartialDependancePlot(BaseVariableImportance):
             # _partial_dependence_recursion
             averaged_predictions = averaged_predictions.reshape(1, -1)
 
-        self.importances_ = np.mean(averaged_predictions, axis=0)
+        # compute importance from equation 4 of greenwell2018simple
+        self.importances_ = np.zeros_like(self.is_categorical)
+        # importance for continous variable
+        self.importances_[np.logical_not(self.is_categorical)] = np.sqrt(
+            np.sum(
+                (
+                    averaged_predictions[:, np.logical_not(self.is_categorical)]
+                    - np.mean(
+                        averaged_predictions[:, np.logical_not(self.is_categorical)],
+                        axis=0,
+                    )
+                )
+                ** 2,
+                axis=0,
+            )
+            / (averaged_predictions.shape[0] - 1)
+        )
+        # importance for categoritcal features
+        self.importances_[self.is_categorical] = (
+            np.max(averaged_predictions[:, self.is_categorical], axis=0)
+            - np.min(averaged_predictions[:, self.is_categorical], axis=0)
+        ) / 4
         self.pvalues_ = None
         return self.importances_
 
@@ -469,7 +479,9 @@ class PartialDependancePlot(BaseVariableImportance):
         **kwargs,
     ):
         """
-        base on https://github.com/blent-ai/ALEPython/blob/dev/src/alepython/ale.py#L159
+        base on
+        https://github.com/blent-ai/ALEPython/blob/dev/src/alepython/ale.py#L159
+        https://github.com/scikit-learn/scikit-learn/blob/c5497b7f7eacfaff061cf68e09bcd48aa93d4d6b/sklearn/inspection/_plot/partial_dependence.py#L27
 
         Parameters
         ----------
@@ -506,12 +518,7 @@ class PartialDependancePlot(BaseVariableImportance):
         if ax is None:
             fig, ax = plt.subplots()
         # add the percentage of the quantiles distributions
-        dtype = type(self.values_[feature_id][0])
-        if dtype in np._core._type_aliases.allTypes.values() and (
-            np.isdtype(dtype, "bool")
-            or np.isdtype(dtype, "integral")
-            or np.isdtype(dtype, "numeric")
-        ):
+        if not self.is_categorical[feature_id]:
             # plot ice
             ax.plot(
                 np.array(self.values_[feature_id]),
@@ -600,23 +607,3 @@ def _ax_quantiles(ax, quantiles, twin="x"):
     getattr(ax_mod, "set_{twin}lim".format(twin=twin))(
         getattr(ax, "get_{twin}lim".format(twin=twin))()
     )
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    X = [[0, 0, 2], [1, 0, 0]]
-
-    y = [0, 1]
-
-    from sklearn.ensemble import GradientBoostingClassifier
-
-    gb = GradientBoostingClassifier(random_state=0).fit(X, y)
-
-    pdp = PartialDependancePlot(
-        estimator=gb, features=[0], percentiles=(0, 1), grid_resolution=2
-    )
-    pdp.fit()
-    pdp.importance(X=X)
-    pdp.plot(feature_id=0)
-    plt.show()
