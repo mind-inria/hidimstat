@@ -269,13 +269,16 @@ class PartialDependancePlot(BaseVariableImportance):
     """
     Partial Dependence Plot (PDP):footcite:t:`friedman2001greedy` for analyzing
     feature effects on model predictions. This is based on individual conditional
-    expectation introduce by :footcite:t:`goldstein2015peeking`.
+    expectation (ICE) :footcite:t:`goldstein2015peeking`.
 
     PDP shows the average model prediction across different values of target features,
     while marginalizing over the values of all other features. It helps understand
-    how features affect predictions on average.
+    how features affect predictions on average. ICE curves show predictions for
+    individual samples as the feature value changes.
 
-    The importance is computed based on the proposition of :footcite:t:`greenwell2018simple`
+    Feature importance scores are computed following :footcite:t:`greenwell2018simple`:
+    - For continuous features: standard deviation of PDP curve
+    - For categorical features: range of PDP values divided by 4
 
     Parameters
     ----------
@@ -332,12 +335,12 @@ class PartialDependancePlot(BaseVariableImportance):
 
     resolution_statistique : bool, default=False
         If True, uses quantile-based grid points instead of evenly spaced points.
-        Can better capture feature distribution but may be less intuitive.
+        Can better capture feature distribution.
 
     Attributes
     ----------
-    importances_ : ndarray
-        Computed feature importance scores
+    importances_ : ndarray of shape (n_features,)
+        Computed feature importance scores based on PDP variance
 
     ices_ : list of arrays
         Individual Conditional Expectation curves for each feature
@@ -419,24 +422,21 @@ class PartialDependancePlot(BaseVariableImportance):
             warnings.warn("y won't be used")
         return self
 
-    def importance(self, X, y=None):
+    def _set_enviroment_importance(self, X_):
         """
-        Calculate partial dependence importance scores for each feature.
+        Set up environment variables needed for importance calculation.
 
         Parameters
         ----------
-        X : array-like of shape (n_samples, n_features)
-            Data to compute partial dependence on. Must have same features
-            as training data.
-
-        y : array-like of shape (n_samples,)
-            (not used) Target values. Kept for API compatibility.
+        X_ : array-like of shape (n_samples, n_features)
+            Input data on which to compute feature importance.
 
         Returns
         -------
-        ndarray of shape (n_features,)
-            Importance scores for each feature based on partial dependence.
-            Higher values indicate greater importance.
+        tuple
+            Contains:
+            - X_subset : array-like, subset of X_ with only target features
+            - custom_values_for_X_subset : dict, custom values for target features
 
         Raises
         ------
@@ -451,16 +451,6 @@ class PartialDependancePlot(BaseVariableImportance):
         ValueError
             If features contain integer data.
         """
-        if y is not None:
-            warnings.warn("y won't be used")
-
-        # Use check_array only on lists and other non-array-likes / sparse. Do not
-        # convert DataFrame into a NumPy array.
-        if not (hasattr(X, "__array__") or sparse.issparse(X)):
-            X_ = check_array(X, ensure_all_finite="allow-nan", dtype=object)
-        else:
-            X_ = X
-
         if self.sample_weight is not None:
             self.sample_weight = _check_sample_weight(self.sample_weight, X)
 
@@ -544,6 +534,50 @@ class PartialDependancePlot(BaseVariableImportance):
             for index, feature in enumerate(self.features)
             if feature in custom_values
         }
+        return X_subset, custom_values_for_X_subset
+
+    def importance(self, X, y=None):
+        """
+        Calculate partial dependence importance scores for each feature.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to compute partial dependence on. Must have same features
+            as training data.
+
+        y : array-like of shape (n_samples,)
+            (not used) Target values. Kept for API compatibility.
+
+        Returns
+        -------
+        ndarray of shape (n_features,)
+            Importance scores for each feature based on partial dependence.
+            Higher values indicate greater importance.
+
+        Raises
+        ------
+        ValueError
+            If features indices are negative.
+        ValueError
+            If categorical_features is empty list.
+        ValueError
+            If categorical_features boolean mask has wrong length.
+        ValueError
+            If categorical_features has invalid dtype.
+        ValueError
+            If features contain integer data.
+        """
+        if y is not None:
+            warnings.warn("y won't be used")
+        # Use check_array only on lists and other non-array-likes / sparse. Do not
+        # convert DataFrame into a NumPy array.
+        if not (hasattr(X, "__array__") or sparse.issparse(X)):
+            X_ = check_array(X, ensure_all_finite="allow-nan", dtype=object)
+        else:
+            X_ = X
+        X_subset, custom_values_for_X_subset = self._set_enviroment_importance(X_)
+
         self.values_, _ = _grid_from_X(
             X_subset,
             self.percentiles,
