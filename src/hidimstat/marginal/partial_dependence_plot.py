@@ -32,45 +32,48 @@ def _grid_from_X(
     custom_values,
     resolution_statistique=False,
 ):
-    """Generate a grid of points based on the percentiles of X.
-
-    The grid is a cartesian product between the columns of ``values``. The
-    ith column of ``values`` consists in ``grid_resolution`` equally-spaced
-    quantile of the distribution of jth column of X.
-
-    If ``grid_resolution`` is bigger than the number of unique values in the
-    j-th column of X or if the feature is a categorical feature (by inspecting
-    `is_categorical`) , then those unique values will be used instead.
+    """
+    Generate a grid of points based on the percentiles of X.
 
     Parameters
     ----------
     X : array-like of shape (n_samples, n_target_features)
-        The data.
+        The data from which to generate the grid.
+
+    percentiles : tuple of float (p1, p2)
+        The lower and upper percentiles to use for the grid boundaries.
+        Must satisfy 0 <= p1 < p2 <= 1.
 
     is_categorical : list of bool
-        For each feature, tells whether it is categorical or not. If a feature
-        is categorical, then the values used will be the unique ones
-        (i.e. categories) instead of the percentiles.
+        For each feature, indicates whether it is categorical or not.
+        For categorical features, unique values are used instead of percentiles.
 
     grid_resolution : int
-        The number of equally spaced points to be placed on the grid for each
-        feature.
+        Number of equally spaced points for the grid.
+        Must be greater than 1.
 
-    custom_values: dict
-        Mapping from column index of X to an array-like of values where
-        the partial dependence should be calculated for that feature
+    custom_values : dict
+        Mapping from column index of X to array-like of custom values
+        to use for that feature instead of the generated grid.
+
+    resolution_statistique : bool, default=False
+        If True, uses quantiles for grid points instead of equally spaced points
+        between percentile boundaries.
 
     Returns
     -------
-    grid : ndarray of shape (n_points, n_target_features)
-        A value for each feature at each point in the grid. ``n_points`` is
-        always ``<= grid_resolution ** X.shape[1]``.
-
     values : list of 1d ndarrays
-        The values with which the grid has been created. The size of each
-        array ``values[j]`` is either ``grid_resolution``, the number of
-        unique values in ``X[:, j]``, if j is not in ``custom_range``.
-        If j is in ``custom_range``, then it is the length of ``custom_range[j]``.
+        List containing the unique grid values for each feature.
+        Each array has length <= grid_resolution.
+
+    indexes : list of 1d ndarrays
+        For each feature, contains the indices mapping each sample in X
+        to its position in the grid.
+
+    Notes
+    -----
+    Based on scikit-learn's _grid_from_X implementation:
+    https://github.com/scikit-learn/scikit-learn/blob/c5497b7f7eacfaff061cf68e09bcd48aa93d4d6b/sklearn/inspection/_partial_dependence.py#L40
     """
     if not isinstance(percentiles, Iterable) or len(percentiles) != 2:
         raise ValueError("'percentiles' must be a sequence of 2 elements.")
@@ -138,9 +141,7 @@ def _grid_from_X(
                         )
                     )
                 else:
-                    emp_percentiles = mquantiles(
-                        _safe_indexing(X, feature_idx, axis=1), prob=percentiles, axis=0
-                    )
+                    emp_percentiles = mquantiles(data, prob=percentiles, axis=0)
                     if np.allclose(emp_percentiles[0], emp_percentiles[1]):
                         raise ValueError(
                             "percentiles are too close to each other, "
@@ -155,10 +156,10 @@ def _grid_from_X(
                     )
         values.append(axis)
         if not is_cat:
-            digitize = (
-                np.digitize(data, axis, right=True) - 1
-            )  # correction of the number of classes
+            # -1 is for correction of the number of classes
+            digitize = np.digitize(data, axis, right=True) - 1
         else:
+            # convert the object in string if it's necesarry
             string_to_num = {s: i for i, s in enumerate(sorted(set(data)))}
             digitize = np.digitize(
                 np.array([string_to_num[s] for s in data]),
@@ -170,63 +171,46 @@ def _grid_from_X(
 
 
 def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
-    """Calculate partial dependence via the brute force method.
+    """
+    Calculate partial dependence using the brute force method.
 
-    The brute method explicitly averages the predictions of an estimator over a
-    grid of feature values.
-
-    For each `grid` value, all the samples from `X` have their variables of
-    interest replaced by that specific `grid` value. The predictions are then made
-    and averaged across the samples.
-
-    This method is slower than the `'recursion'`
-    (:func:`~sklearn.inspection._partial_dependence._partial_dependence_recursion`)
-    version for estimators with this second option. However, with the `'brute'`
-    force method, the average will be done with the given `X` and not the `X`
-    used during training, as it is done in the `'recursion'` version. Therefore
-    the average can always accept `sample_weight` (even when the estimator was
-    fitted without).
+    For each value in `grid`, replaces the target features with that value for all samples
+    in X, makes predictions, and averages them. This computes the mean model response
+    across the data distribution for each grid point.
 
     Parameters
     ----------
     est : BaseEstimator
-        A fitted estimator object implementing :term:`predict`,
-        :term:`predict_proba`, or :term:`decision_function`.
-        Multioutput-multiclass classifiers are not supported.
+        A fitted estimator implementing predict, predict_proba, or decision_function.
+        Multioutput-multiclass classifiers not supported.
 
-    grid : array-like of shape (n_points, n_target_features)
-        The grid of feature values for which the partial dependence is calculated.
-        Note that `n_points` is the number of points in the grid and `n_target_features`
-        is the number of features you are doing partial dependence at.
+    grid : list of 1d arrays
+        List containing grid values for each target feature. Each array contains the
+        values where partial dependence will be evaluated.
 
-    features : array-like of {int, str}
-        The feature (e.g. `[0]`) or pair of interacting features
-        (e.g. `[(0, 1)]`) for which the partial dependency should be computed.
+    features : array-like of int
+        Indices of the features for which to compute partial dependence.
 
     X : array-like of shape (n_samples, n_features)
-        `X` is used to generate values for the complement features. That is, for
-        each value in `grid`, the method will average the prediction of each
-        sample from `X` having that grid value for `features`.
+        Training data used to compute predictions.
 
-    method : {'auto', 'predict_proba', 'decision_function'}, \
-            default='auto'
-        Specifies whether to use :term:`predict_proba` or
-        :term:`decision_function` as the target response. For regressors
-        this parameter is ignored and the response is always the output of
-        :term:`predict`. By default, :term:`predict_proba` is tried first
-        and we revert to :term:`decision_function` if it doesn't exist.
+    method : {'auto', 'predict_proba', 'decision_function'}, default='auto'
+        Method to get model predictions:
+        - 'auto': uses predict_proba if available, otherwise decision_function
+        - 'predict_proba': uses predict_proba
+        - 'decision_function': uses decision_function
+        For regressors, always uses predict.
+
+    n_jobs : int
+        Number of parallel jobs to run.
 
     Returns
     -------
-    predictions : array-like
-        The predictions for the given `grid` of features values over the samples
-        from `X`. For non-multioutput regression and binary classification the
-        shape is `(n_instances, n_points)` and for multi-output regression and
-        multiclass classification the shape is `(n_targets, n_instances, n_points)`,
-        where `n_targets` is the number of targets (`n_tasks` for multi-output
-        regression, and `n_classes` for multiclass classification), `n_instances`
-        is the number of instances in `X`, and `n_points` is the number of points
-        in the `grid`.
+    list of arrays
+        List containing arrays of predictions for each feature, averaged over X.
+        For each feature:
+        - Shape (n_grid_points, n_samples) for regression/binary classification
+        - Shape (n_grid_points, n_samples, n_classes) for multiclass
     """
     predictions = []
 
@@ -242,6 +226,30 @@ def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
 
 
 def _joblib_get_predictions(variable, values, X, est, method):
+    """
+    Helper function to get predictions for a single feature for parallel processing.
+
+    Parameters
+    ----------
+    variable : int
+        Index of the feature for which to get predictions.
+    values : array-like
+        Grid values for the target feature.
+    X : array-like of shape (n_samples, n_features)
+        Training data used to compute predictions.
+    est : BaseEstimator
+        A fitted estimator implementing predict, predict_proba, or decision_function.
+    method : str or list of str
+        Method to get model predictions: 'predict', 'predict_proba', or 'decision_function'.
+
+    Returns
+    -------
+    list of array
+        List of predictions for each grid point, each with shape:
+        - (n_samples,) for regression
+        - (n_samples, 1) for binary classification
+        - (n_samples, n_classes) for multiclass
+    """
     predictions = []
     for new_values in values:
         _safe_assign(X, new_values, column_indexer=variable)
@@ -258,6 +266,94 @@ def _joblib_get_predictions(variable, values, X, est, method):
 
 
 class PartialDependancePlot(BaseVariableImportance):
+    """
+    Partial Dependence Plot (PDP):footcite:t:`friedman2001greedy` for analyzing
+    feature effects on model predictions. This is based on individual conditional
+    expectation introduce by :footcite:t:`goldstein2015peeking`.
+
+    PDP shows the average model prediction across different values of target features,
+    while marginalizing over the values of all other features. It helps understand
+    how features affect predictions on average.
+
+    The importance is computed based on the proposition of :footcite:t:`greenwell2018simple`
+
+    Parameters
+    ----------
+    estimator : BaseEstimator
+        A fitted estimator object implementing predict, predict_proba, or
+        decision_function. Must be a regressor or binary/multiclass classifier.
+        Multioutput-multiclass classifiers are not supported.
+
+    features : array-like of {int, str}
+        Features for which to compute partial dependence. Can be:
+        - Single feature: int or str
+        - Multiple features: list of int or str
+        Feature indices or names must match training data.
+
+    method : {'auto', 'predict_proba', 'decision_function'}, default='auto'
+        Method for getting predictions:
+        - 'auto': tries predict_proba first, falls back to decision_function
+        - 'predict_proba': uses predicted probabilities
+        - 'decision_function': uses decision function scores
+        Ignored for regressors which always use predict.
+
+    n_jobs : int, default=1
+        Number of CPU cores to use for parallel processing.
+        -1 means using all processors.
+
+    sample_weight : array-like of shape (n_samples,), default=None
+        Sample weights for computing weighted averages of predictions.
+        If None, samples are weighted equally.
+
+    categorical_features : array-like, default=None
+        Specifies categorical features. Can be:
+        - None: no categorical features
+        - boolean array: mask indicating categorical features
+        - array of int/str: indices/names of categorical features
+
+    feature_names : array-like of str, default=None
+        Names of features in the training data.
+        If None, uses array indices for NumPy arrays or column names for pandas.
+
+    percentiles : tuple of float, default=(0.05, 0.95)
+        Lower and upper percentiles for grid boundaries.
+        Used for continuous features if custom_values not provided.
+        Must be in [0, 1].
+
+    grid_resolution : int, default=100
+        Number of grid points for continuous features.
+        Higher values give more granular curves but increase computation time.
+        Ignored if custom_values provided.
+
+    custom_values : dict, default=None
+        Custom grid values for features. Dictionary mapping feature index/name
+        to array of values to evaluate.
+        Overrides percentiles and grid_resolution for specified features.
+
+    resolution_statistique : bool, default=False
+        If True, uses quantile-based grid points instead of evenly spaced points.
+        Can better capture feature distribution but may be less intuitive.
+
+    Attributes
+    ----------
+    importances_ : ndarray
+        Computed feature importance scores
+
+    ices_ : list of arrays
+        Individual Conditional Expectation curves for each feature
+
+    values_ : list of arrays
+        Grid values used for each feature
+
+    See Also
+    --------
+    sklearn.inspection.partial_dependence : Similar functionality in scikit-learn
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
     def __init__(
         self,
         estimator,
@@ -300,6 +396,23 @@ class PartialDependancePlot(BaseVariableImportance):
 
     @override
     def fit(self, X=None, y=None):
+        """
+        Fits the PartialDependencePlot model. This method has no effect as PDP
+        only needs a fitted estimator.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            (Not used) Training data. Not used, present here for API consistency.
+
+        y : array-like of shape (n_samples,)
+            (Not used) Target values. Not used, present here for API consistency.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
         if X is not None:
             warnings.warn("X won't be used")
         if y is not None:
@@ -307,6 +420,37 @@ class PartialDependancePlot(BaseVariableImportance):
         return self
 
     def importance(self, X, y=None):
+        """
+        Calculate partial dependence importance scores for each feature.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to compute partial dependence on. Must have same features
+            as training data.
+
+        y : array-like of shape (n_samples,)
+            (not used) Target values. Kept for API compatibility.
+
+        Returns
+        -------
+        ndarray of shape (n_features,)
+            Importance scores for each feature based on partial dependence.
+            Higher values indicate greater importance.
+
+        Raises
+        ------
+        ValueError
+            If features indices are negative.
+        ValueError
+            If categorical_features is empty list.
+        ValueError
+            If categorical_features boolean mask has wrong length.
+        ValueError
+            If categorical_features has invalid dtype.
+        ValueError
+            If features contain integer data.
+        """
         if y is not None:
             warnings.warn("y won't be used")
 
@@ -458,9 +602,31 @@ class PartialDependancePlot(BaseVariableImportance):
             - np.min(averaged_predictions[:, self.is_categorical], axis=0)
         ) / 4
         self.pvalues_ = None
+
         return self.importances_
 
     def fit_importance(self, X, y=None, cv=None):
+        """
+        Convenience method to fit and calculate importance scores in one step.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Data to compute partial dependence on. Must have same features
+            as training data.
+
+        y : array-like of shape (n_samples,), default=None
+            Not used, kept for API compatibility.
+
+        cv : object, default=None
+            Not used, kept for API compatibility.
+
+        Returns
+        -------
+        ndarray of shape (n_features,)
+            Importance scores for each feature based on partial dependence.
+            Higher values indicate greater importance.
+        """
         if y is not None:
             warnings.warn("y won't be used")
         if cv is not None:
@@ -479,23 +645,53 @@ class PartialDependancePlot(BaseVariableImportance):
         **kwargs,
     ):
         """
-        base on
-        https://github.com/blent-ai/ALEPython/blob/dev/src/alepython/ale.py#L159
-        https://github.com/scikit-learn/scikit-learn/blob/c5497b7f7eacfaff061cf68e09bcd48aa93d4d6b/sklearn/inspection/_plot/partial_dependence.py#L27
+        Plot partial dependence and ICE curves for a given feature.
 
         Parameters
         ----------
-        feature_id : _type_
-            _description_
-        ax : _type_
-            _description_
-        X : _type_, optional
-            _description_, by default None
+        feature_id : int
+            Index of the feature to plot from the features used to compute PDP.
+
+        ax : matplotlib.axes.Axes, default=None
+            Pre-existing axes for the plot. If None, generates new figure and axes.
+
+        X : array-like, default=None
+            Training data used to compute the quantiles and feature distribution.
+            If provided, adds rugplot and quantile indicators to visualization.
+
+        nbins : int, default=5
+            Number of bins/quantiles to show in the plot when X is provided.
+
+        percentage_ice : float, default=1.0
+            Proportion of ICE curves to plot, between 0 and 1.
+            Lower values reduce visual clutter.
+
+        random_state : int or RandomState, default=None
+            Controls random sampling of ICE curves when percentage_ice < 1.
+
+        **kwargs : dict
+            Additional keyword arguments passed to plot function.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
 
         Raises
         ------
         Exception
-            _description_
+            If seaborn is not installed.
+
+        Notes
+        -----
+        For continuous features:
+        - Blue lines show individual ICE curves
+        - Black line shows averaged PDP curve
+        - Rug plot shows data distribution
+        - Top axis shows percentile values
+
+        For categorical features:
+        - Box plot shows distribution of predictions per category
         """
         try:
             import seaborn as sns
@@ -560,22 +756,30 @@ class PartialDependancePlot(BaseVariableImportance):
 
 
 def _ax_quantiles(ax, quantiles, twin="x"):
-    """Plot quantiles of a feature onto axis.
+    """
+    Add quantile percentage labels on a twin axis.
 
     Parameters
     ----------
     ax : matplotlib.axes.Axes
-        Axis to modify.
+        The matplotlib axis to add quantile labels to.
     quantiles : array-like
-        Quantiles to plot.
-    twin : {'x', 'y'}, optional
-        Select the axis for which to plot quantiles.
+        The quantile values to label.
+    twin : {'x', 'y'}, default='x'
+        Which axis to add the twin axis and labels to:
+        - 'x': Add labels on top x-axis
+        - 'y': Add labels on right y-axis
 
     Raises
     ------
     ValueError
-        If `twin` is not one of 'x' or 'y'.
+        If twin is not 'x' or 'y'.
 
+    Notes
+    -----
+    Creates a twin axis with percentage labels (0-100%) corresponding to the
+    quantile values. Useful for showing the distribution of data alongside
+    the actual values.
     """
     if twin not in ("x", "y"):
         raise ValueError("'twin' should be one of 'x' or 'y'.")
