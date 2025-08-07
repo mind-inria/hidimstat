@@ -261,7 +261,9 @@ def _joblib_get_predictions(variable, values, X, est, method):
         # (n_points, 1) for binary classification (positive class already selected)
         # (n_points, n_classes) for multiclass classification
         pred, _ = _get_response_values(est, X, response_method=method)
-        predictions.append(pred)
+        if len(pred.shape) > 1 and pred.shape[1] > 1:
+            pred = np.max(pred, axis=1)
+        predictions.append(np.squeeze(pred))
     return predictions
 
 
@@ -287,7 +289,7 @@ class PartialDependancePlot(BaseVariableImportance):
         decision_function. Must be a regressor or binary/multiclass classifier.
         Multioutput-multiclass classifiers are not supported.
 
-    features : array-like of {int, str}
+    features : array-like of {int, str}, default=None
         Features for which to compute partial dependence. Can be:
         - Single feature: int or str
         - Multiple features: list of int or str
@@ -360,7 +362,7 @@ class PartialDependancePlot(BaseVariableImportance):
     def __init__(
         self,
         estimator,
-        features,
+        features=None,
         method: str = "auto",
         n_jobs: int = 1,
         sample_weight=None,
@@ -382,9 +384,10 @@ class PartialDependancePlot(BaseVariableImportance):
         ):
             raise ValueError("Multiclass-multioutput estimators are not supported")
 
-        if is_regressor(self.estimator) and method != "auto":
+        if is_regressor(self.estimator) and (method != "auto" and method != "predict"):
             raise ValueError(
-                "The method parameter is ignored for regressors and " "must be 'auto'."
+                "The method parameter is ignored for regressors and "
+                "must be 'auto' or 'predict'."
             )
         self.features = features
         self.method = method
@@ -452,7 +455,7 @@ class PartialDependancePlot(BaseVariableImportance):
             If features contain integer data.
         """
         if self.sample_weight is not None:
-            self.sample_weight = _check_sample_weight(self.sample_weight, X)
+            self.sample_weight = _check_sample_weight(self.sample_weight, X_)
 
         if _determine_key_type(self.features, accept_slice=False) == "int":
             # _get_column_indices() supports negative indexing. Here, we limit
@@ -460,9 +463,11 @@ class PartialDependancePlot(BaseVariableImportance):
             # by _get_column_indices()
             if np.any(np.less(self.features, 0)):
                 raise ValueError(
-                    "all features must be in [0, {}]".format(X.shape[1] - 1)
+                    "all features must be in [0, {}]".format(X_.shape[1] - 1)
                 )
 
+        if self.features is None:
+            self.features = list(range(X_.shape[1]))
         self.features_indices = np.asarray(
             _get_column_indices(X_, self.features), dtype=np.intp, order="C"
         ).ravel()
@@ -596,45 +601,42 @@ class PartialDependancePlot(BaseVariableImportance):
             self.n_jobs,
         )
 
-        averaged_predictions = []
-        for ice in self.ices_:
-            # average over samples
-            averaged_predictions.append(
-                np.average(ice, axis=0, weights=self.sample_weight)
-            )
-        # reshape averaged_predictions to (n_targets, n_points) where n_targets is:
-        # - 1 for non-multioutput regression and binary classification (shape is
-        #   already correct in those cases)
-        # - n_tasks for multi-output regression
-        # - n_classes for multiclass classification.
-        averaged_predictions = np.array(averaged_predictions).T
-        if averaged_predictions.ndim == 1:
-            # reshape to (1, n_points) for consistency with
-            # _partial_dependence_recursion
-            averaged_predictions = averaged_predictions.reshape(1, -1)
+        averaged_predictions_continious = []
+        averaged_predictions_categorie = []
+        # average over samples
+        for index, ice in enumerate(self.ices_):
+            if not self.is_categorical[index]:
+                averaged_predictions_continious.append(
+                    np.average(ice, axis=1, weights=self.sample_weight)
+                )
+            else:
+                averaged_predictions_categorie.append(
+                    np.average(ice, axis=1, weights=self.sample_weight)
+                )
 
         # compute importance from equation 4 of greenwell2018simple
-        self.importances_ = np.zeros_like(self.is_categorical)
+        self.importances_ = np.zeros_like(self.is_categorical, dtype=float)
         # importance for continous variable
-        self.importances_[np.logical_not(self.is_categorical)] = np.sqrt(
-            np.sum(
-                (
-                    averaged_predictions[:, np.logical_not(self.is_categorical)]
-                    - np.mean(
-                        averaged_predictions[:, np.logical_not(self.is_categorical)],
-                        axis=0,
+        if len(averaged_predictions_continious) > 0:
+            self.importances_[np.logical_not(self.is_categorical)] = np.sqrt(
+                np.sum(
+                    (
+                        averaged_predictions_continious
+                        - np.expand_dims(
+                            np.mean(averaged_predictions_continious, axis=1), 1
+                        )
                     )
+                    ** 2,
+                    axis=1,
                 )
-                ** 2,
-                axis=0,
+                / (len(averaged_predictions_continious[0]) - 1)
             )
-            / (averaged_predictions.shape[0] - 1)
-        )
         # importance for categoritcal features
-        self.importances_[self.is_categorical] = (
-            np.max(averaged_predictions[:, self.is_categorical], axis=0)
-            - np.min(averaged_predictions[:, self.is_categorical], axis=0)
-        ) / 4
+        if len(averaged_predictions_categorie) > 0:
+            self.importances_[self.is_categorical] = (
+                np.max(averaged_predictions_categorie, axis=1)
+                - np.min(averaged_predictions_categorie, axis=1)
+            ) / 4
         self.pvalues_ = None
 
         return self.importances_
