@@ -618,25 +618,27 @@ class PartialDependancePlot(BaseVariableImportance):
         self.importances_ = np.zeros_like(self.is_categorical, dtype=float)
         # importance for continous variable
         if len(averaged_predictions_continious) > 0:
-            self.importances_[np.logical_not(self.is_categorical)] = np.sqrt(
-                np.sum(
-                    (
-                        averaged_predictions_continious
-                        - np.expand_dims(
-                            np.mean(averaged_predictions_continious, axis=1), 1
+            importance_continious = []
+            for averaged_prediction in averaged_predictions_continious:
+                importance_continious.append(
+                    np.sqrt(
+                        np.sum(
+                            (averaged_prediction - np.mean(averaged_prediction)) ** 2
                         )
+                        / (len(averaged_prediction) - 1)
                     )
-                    ** 2,
-                    axis=1,
                 )
-                / (len(averaged_predictions_continious[0]) - 1)
+            self.importances_[np.logical_not(self.is_categorical)] = (
+                importance_continious
             )
         # importance for categoritcal features
         if len(averaged_predictions_categorie) > 0:
-            self.importances_[self.is_categorical] = (
-                np.max(averaged_predictions_categorie, axis=1)
-                - np.min(averaged_predictions_categorie, axis=1)
-            ) / 4
+            importance_categories = []
+            for averaged_prediction in averaged_predictions_categorie:
+                importance_categories.append(
+                    (np.max(averaged_prediction) - np.min(averaged_prediction)) / 4
+                )
+            self.importances_[self.is_categorical] = importance_categories
         self.pvalues_ = None
 
         return self.importances_

@@ -177,7 +177,13 @@ class TestPDPClass:
         """Test PDP with categorical variables"""
         rng = np.random.default_rng(seed)
         X_cont = rng.random((n_samples, 2))
-        X_cat = rng.integers(low=0, high=3, size=(n_samples, 1))
+        X_cat = np.concatenate(
+            [
+                rng.integers(low=0, high=3, size=(n_samples, 1)),
+                rng.integers(low=0, high=5, size=(n_samples, 1)),
+            ],
+            axis=1,
+        )
         X = np.hstack([X_cont, X_cat])
         categories_features = np.ones(X.shape[1], dtype=bool)
         categories_features[: X_cont.shape[1]] = False
@@ -187,7 +193,7 @@ class TestPDPClass:
         pdp = PDP(estimator=fitted_model, categorical_features=categories_features)
 
         importances = pdp.fit_importance(X)
-        assert len(importances) == 3
+        assert len(importances) == 4
         assert np.all(importances < 0.1)  # no informative, worse than dummy model
 
 
