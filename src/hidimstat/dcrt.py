@@ -180,7 +180,7 @@ class D0CRT(BaseVariableImportance):
         2. Variable screening using Lasso (if estimated coefficients are not provided).
         3. Feature selection based on coefficient magnitudes.
         4. Optional model refitting on selected features (if refit=True).
-        5. Distillation process for each feature using Lasso or covariance-based regression.
+        5. Fit the model for the futur distillation
 
         The screening threshold determines which features are considered significant
         based on their Lasso coefficients. Features with coefficients below the
@@ -201,7 +201,7 @@ class D0CRT(BaseVariableImportance):
         y_ = y  # avoid modifying the original y
         _, n_features = X_.shape
 
-        ## Distillation & calculate
+        # screening process
         if isinstance(self.estimator, Lasso) or isinstance(self.estimator, LassoCV):
             ## Screening of variables for accelarate dCRT
             if self.estimated_coef is None:
@@ -258,6 +258,7 @@ class D0CRT(BaseVariableImportance):
             self.non_selection_ = []
             self.coefficient_ = None
 
+        ## fit models
         results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
             delayed(_joblib_fit)(
                 idx,
@@ -355,6 +356,7 @@ class D0CRT(BaseVariableImportance):
         n_samples, n_features = X_.shape
         selection_features = np.setdiff1d(np.arange(n_features), self.non_selection_)
 
+        ## Distillation & calculate
         list_job = []
         for index, (idx, clf_y, clf_x) in enumerate(
             zip(selection_features, self.clf_y_, self.clf_x_)
