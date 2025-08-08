@@ -66,6 +66,7 @@ test = [
     "pytest-env",
     "pytest-mpl",
     "tqdm",
+    "seaborn",
 ]
 
 [project.urls]
