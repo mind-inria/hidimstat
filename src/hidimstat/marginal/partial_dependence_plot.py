@@ -777,9 +777,7 @@ class PartialDependancePlot(BaseVariableImportance):
                 _ax_quantiles(
                     ax,
                     np.unique(
-                        np.quantile(
-                            data, np.linspace(0, 1, nbins), interpolation="lower"
-                        )
+                        np.quantile(data, np.linspace(0, 1, nbins), method="lower")
                     ),
                 )
                 # add distribution of value
