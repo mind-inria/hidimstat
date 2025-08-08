@@ -65,6 +65,7 @@ test = [
     "pytest-durations",
     "pytest-env",
     "pytest-mpl",
+    "tqdm",
 ]
 
 [project.urls]
