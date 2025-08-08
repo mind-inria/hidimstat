@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from copy import deepcopy
 from tqdm import tqdm
 from typing import override
 import warnings
@@ -573,14 +574,16 @@ class PartialDependancePlot(BaseVariableImportance):
         ValueError
             If features contain integer data.
         """
+        if self.importances_ is not None:
+            raise ValueError("Partial Dependance Plot already fitted")
         if y is not None:
             warnings.warn("y won't be used")
         # Use check_array only on lists and other non-array-likes / sparse. Do not
         # convert DataFrame into a NumPy array.
         if not (hasattr(X, "__array__") or sparse.issparse(X)):
-            X_ = check_array(X, ensure_all_finite="allow-nan", dtype=object)
+            X_ = deepcopy(check_array(X, ensure_all_finite="allow-nan", dtype=object))
         else:
-            X_ = X
+            X_ = deepcopy(X)
         X_subset, custom_values_for_X_subset = self._set_enviroment_importance(X_)
 
         self.values_, _ = _grid_from_X(
