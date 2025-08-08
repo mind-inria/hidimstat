@@ -5,7 +5,6 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeClassifier
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.multioutput import MultiOutputClassifier
-from sklearn.base import clone
 
 from hidimstat import PDP
 
@@ -168,8 +167,7 @@ def test_plot_pdp():
     fitted_model = LinearRegression().fit(X, y)
 
     pdp = PDP(estimator=fitted_model, categorical_features=categories_features)
-
-    importances = pdp.fit_importance(X)
+    pdp.fit_importance(X)
 
     fig, axs = plt.subplots(ncols=2, nrows=2, figsize=(9, 8), constrained_layout=True)
     for i in range(4):
@@ -199,8 +197,7 @@ def test_plot_pdp_not_fig():
     fitted_model = LinearRegression().fit(X, y)
 
     pdp = PDP(estimator=fitted_model, categorical_features=categories_features)
-
-    importances = pdp.fit_importance(X)
+    pdp.fit_importance(X)
 
     ax = pdp.plot(feature_id=0, X=X)
     return ax.get_figure()
