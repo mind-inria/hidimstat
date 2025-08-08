@@ -625,6 +625,7 @@ class TestPDPExceptions:
         ):
             pdp.importance(X=X)
 
+    @pytest.mark.skipif(not seaborn_installed(), reason="seaborn is not installed")
     def test_unfitted_importance(self, data_generator):
         """Test plot before fitting"""
         X, y, _, _ = data_generator
