@@ -24,7 +24,7 @@ class D0CRT(BaseVariableImportance):
     Parameters
     ----------
     estimator : sklearn estimator
-        The base estimator used for distillation and prediction (e.g., Lasso, LassoCV).
+        The base estimator used for y-distillation and prediction (e.g., Lasso, LassoCV).
     method : str, default="predict"
         Method of the estimator to use for predictions ("predict", "predict_proba", etc.).
     estimated_coef : array-like of shape (n_features,) or None, default=None
