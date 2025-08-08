@@ -197,7 +197,8 @@ class D0CRT(BaseVariableImportance):
             X_ = StandardScaler().fit_transform(X)
         else:
             X_ = X
-
+if (self.estimated_coef is not None) and self.screening:
+   warnings.warn("Precomputed coefficients were provided, so cross-validation screening will be skipped.")
         y_ = y  # avoid modifying the original y
         _, n_features = X_.shape
 
