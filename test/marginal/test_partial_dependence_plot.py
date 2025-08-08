@@ -27,10 +27,9 @@ def configure_linear_categorial_pdp(X, y):
     Notes
     -----
     The function performs the following steps:
-    1. Splits data into training and test sets
-    2. Fits a linear regression model on training data
-    3. Configures PDP with linear regression
-    4. Calculates feature importance using the test set
+    1. Fits a linear regression model on training data
+    2. Configures PDP with linear regression
+    3. Calculates feature importance using the test set
     The PDP method is a marginal methods scoring with linear
     regression as the base model.
     """
@@ -159,9 +158,11 @@ class TestPDPClass:
         pdp = PDP(
             estimator=fitted_model,
         )
-
-        # Test fit with auto var_type
+        # Test importance
         pdp.importance(X)
+        assert len(pdp.importances_) > 0
+        assert len(pdp.ices_) > 0
+        assert pdp.pvalues_ is None
 
     def test_pdp_categorical(
         self,
