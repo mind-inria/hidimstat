@@ -46,7 +46,7 @@ def configure_linear_categorial_loci(X, y):
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
 
-    # instantiate CPI model with linear regression imputer
+    # instantiate LOCI model with linear regression imputer
     loci = LOCI(
         estimator=regression_model,
         method="predict",
@@ -205,7 +205,7 @@ class TestLOCIClass:
     """Test the element of the class"""
 
     def test_loci_init(self, data_generator):
-        """Test CPI initialization"""
+        """Test LOCI initialization"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
         loci = LOCI(
@@ -246,7 +246,7 @@ class TestLOCIClass:
         signal_noise_ratio,
         rho_serial,
     ):
-        """Test CPI with categorical variables"""
+        """Test LOCI with categorical variables"""
         rng = np.random.default_rng(seed)
         X_cont = rng.random((n_samples, 2))
         X_cat = rng.integers(low=0, high=3, size=(n_samples, 1))
