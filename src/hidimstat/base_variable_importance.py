@@ -127,7 +127,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         Checks if the importance scores and p-values have been computed.
         """
-        if self.importances_ is None or self.pvalues_ is None:
+        if self.importances_ is None:
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
