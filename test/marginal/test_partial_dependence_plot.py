@@ -441,7 +441,9 @@ class TestPDPExceptions:
         pdp = PDP(estimator=fitted_model)
         pdp.fit_importance(X=X)
 
-        with pytest.raises(ValueError, match="Partial Dependance Plot already fitted"):
+        with pytest.raises(
+            AssertionError, match="Partial Dependance Plot already fitted"
+        ):
             pdp.importance(X=X)
 
     def test_fit_warning(self, data_generator):
@@ -481,7 +483,7 @@ class TestPDPExceptions:
         pdp = PDP(estimator=fitted_model, percentiles=[2, 3, 4])
 
         with pytest.raises(
-            ValueError, match="'percentiles' must be a sequence of 2 elements."
+            AssertionError, match="'percentiles' must be a sequence of 2 elements."
         ):
             pdp.importance(X=X)
 
@@ -492,7 +494,7 @@ class TestPDPExceptions:
         pdp = PDP(estimator=fitted_model, percentiles=[2, 3])
 
         with pytest.raises(
-            ValueError, match=r"'percentiles' values must be in \[0, 1\]."
+            AssertionError, match=r"'percentiles' values must be in \[0, 1\]."
         ):
             pdp.importance(X=X)
 
@@ -503,7 +505,7 @@ class TestPDPExceptions:
         pdp = PDP(estimator=fitted_model, percentiles=[0.7, 0.3])
 
         with pytest.raises(
-            ValueError,
+            AssertionError,
             match=r"percentiles\[0\] must be strictly less than percentiles\[1\].",
         ):
             pdp.importance(X=X)
@@ -562,7 +564,7 @@ class TestPDPExceptions:
         pdp = PDP(estimator=fitted_model, grid_resolution=-10)
 
         with pytest.raises(
-            ValueError, match="'grid_resolution' must be strictly greater than 1."
+            AssertionError, match="'grid_resolution' must be strictly greater than 1."
         ):
             pdp.importance(X=X)
 

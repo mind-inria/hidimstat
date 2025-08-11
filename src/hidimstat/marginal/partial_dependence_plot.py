@@ -76,15 +76,16 @@ def _grid_from_X(
     Based on scikit-learn's _grid_from_X implementation:
     https://github.com/scikit-learn/scikit-learn/blob/c5497b7f7eacfaff061cf68e09bcd48aa93d4d6b/sklearn/inspection/_partial_dependence.py#L40
     """
-    if not isinstance(percentiles, Iterable) or len(percentiles) != 2:
-        raise ValueError("'percentiles' must be a sequence of 2 elements.")
-    if not all(0 <= x <= 1 for x in percentiles):
-        raise ValueError("'percentiles' values must be in [0, 1].")
-    if percentiles[0] >= percentiles[1]:
-        raise ValueError("percentiles[0] must be strictly less than percentiles[1].")
-
-    if grid_resolution <= 1:
-        raise ValueError("'grid_resolution' must be strictly greater than 1.")
+    assert (
+        isinstance(percentiles, Iterable) and len(percentiles) == 2
+    ), "'percentiles' must be a sequence of 2 elements."
+    assert all(
+        0 <= x <= 1 for x in percentiles
+    ), "'percentiles' values must be in [0, 1]."
+    assert (
+        percentiles[0] < percentiles[1]
+    ), "percentiles[0] must be strictly less than percentiles[1]."
+    assert grid_resolution > 1, "'grid_resolution' must be strictly greater than 1."
 
     def _convert_custom_values(values):
         # Convert custom types such that object types are always used for string arrays
@@ -574,8 +575,8 @@ class PartialDependancePlot(BaseVariableImportance):
         ValueError
             If features contain integer data.
         """
-        if self.importances_ is not None:
-            raise ValueError("Partial Dependance Plot already fitted")
+        assert self.importances_ is None, "Partial Dependance Plot already fitted"
+
         if y is not None:
             warnings.warn("y won't be used")
         # Use check_array only on lists and other non-array-likes / sparse. Do not
@@ -820,8 +821,7 @@ def _ax_quantiles(ax, quantiles, twin="x"):
     quantile values. Useful for showing the distribution of data alongside
     the actual values.
     """
-    if twin not in ("x", "y"):
-        raise ValueError("'twin' should be one of 'x' or 'y'.")
+    assert twin in ("x", "y"), "'twin' should be one of 'x' or 'y'."
 
     # Duplicate the 'opposite' axis so we can define a distinct set of ticks for the
     # desired axis (`twin`).
