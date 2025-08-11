@@ -272,7 +272,7 @@ pdp = PartialDependancePlot(
     **features_info,
     **common_params,
 )
-pdp.fit().importance(X=X_train)
+pdp.fit_importance(X=X_train)
 # plot the figure
 fig, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 8), constrained_layout=True)
 for i, ax in enumerate(axs.ravel()):
@@ -333,7 +333,7 @@ pdp = PartialDependancePlot(
     **features_info,
     **common_params,
 )
-pdp.fit().importance(X=X_train)
+pdp.fit_importance(X=X_train)
 for i, ax in enumerate(axs.ravel()):
     _ = pdp.plot(feature_id=i, ax=ax, X=X_train)
 print(f"done in {time() - tic:.3f}s")
@@ -393,7 +393,7 @@ pdp = PartialDependancePlot(
     **common_params,
 )
 # plot the figure
-pdp.fit().importance(X=X_train)
+pdp.fit_importance(X=X_train)
 for i, ax in enumerate(axs.ravel()):
     _ = pdp.plot(feature_id=i, ax=ax, X=X_train)
 print(f"done in {time() - tic:.3f}s")
@@ -429,7 +429,7 @@ pdp = PartialDependancePlot(
     **features_info,
     **common_params,
 )
-pdp.fit().importance(X=X_train)
+pdp.fit_importance(X=X_train)
 for i, ax in enumerate(axs.ravel()):
     _ = pdp.plot(feature_id=i, ax=ax, X=X_train)
 _ = fig.suptitle("ICE and PDP representations", fontsize=16)
@@ -466,7 +466,7 @@ pdp = PartialDependancePlot(
     # all other features are evaluated based on the data
     custom_values={"temp": np.linspace(0, 40, 10)},
 )
-pdp.fit().importance(X=X_train)
+pdp.fit_importance(X=X_train)
 for i, ax in enumerate(axs.ravel()):
     _ = pdp.plot(feature_id=i, ax=ax, X=X_train)
 print(f"done in {time() - tic:.3f}s")
