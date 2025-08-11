@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from copy import deepcopy
 from tqdm import tqdm
-from typing import override
 import warnings
 
 from joblib import Parallel, delayed
@@ -402,7 +401,6 @@ class PartialDependancePlot(BaseVariableImportance):
         self.custom_values = custom_values
         self.resolution_statistique = resolution_statistique
 
-    @override
     def fit(self, X=None, y=None):
         """
         Fits the PartialDependencePlot model. This method has no effect as PDP
