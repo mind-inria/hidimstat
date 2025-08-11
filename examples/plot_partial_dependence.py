@@ -1,10 +1,9 @@
 """
-This example is a modiyed version of the the exampel propose by scikitlearn:
-https://scikit-learn.org/1.7/auto_examples/inspection/plot_partial_dependence.html
-
-===============================================================
 Partial Dependence and Individual Conditional Expectation Plots
 ===============================================================
+
+This example is a modiyed version of the the exampel propose by scikitlearn:
+https://scikit-learn.org/1.7/auto_examples/inspection/plot_partial_dependence.html
 
 Partial dependence plots show the dependence between the target function [2]_
 and a set of features of interest, marginalizing over the values of all other
@@ -31,7 +30,7 @@ bike sharing dataset. The example is inspired by [1]_.
 .. [2] For classification you can think of it as the regression score before
        the link function.
 
-.. [3] :arxiv:`Goldstein, A., Kapelner, A., Bleich, J., and Pitkin, E. (2015).
+.. [3] `Goldstein, A., Kapelner, A., Bleich, J., and Pitkin, E. (2015).
        "Peeking Inside the Black Box: Visualizing Statistical Learning With Plots of
        Individual Conditional Expectation". Journal of Computational and
        Graphical Statistics, 24(1): 44-65 <1309.6392>`
