@@ -387,7 +387,7 @@ features_info = {
     # "centered": True,
 }
 
-display = PartialDependancePlot(
+pdp = PartialDependancePlot(
     hgbdt_model,
     **features_info,
     **common_params,
@@ -424,7 +424,7 @@ print(f"Test R2 score: {hgbdt_model_without_interactions.score(X_test, y_test):.
 fig, axs = plt.subplots(ncols=2, figsize=(6, 4), sharey=True, constrained_layout=True)
 
 # features_info["centered"] = False
-display = PartialDependancePlot(
+pdp = PartialDependancePlot(
     hgbdt_model_without_interactions,
     **features_info,
     **common_params,
