@@ -1,13 +1,16 @@
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    VariableImportanceGroup,
+)
 
 
-class BasePerturbation(BaseEstimator):
+class BasePerturbation(BaseVariableImportance, VariableImportanceGroup):
     def __init__(
         self,
         estimator,
@@ -40,50 +43,15 @@ class BasePerturbation(BaseEstimator):
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
         """
+        super().__init__()
         check_is_fitted(estimator)
+        assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
         _check_vim_predict_method(method)
         self.method = method
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
-        self.n_groups = None
-
-    def fit(self, X, y=None, groups=None):
-        """Base fit method for perturbation-based methods. Identifies the groups.
-
-        Parameters
-        ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        y: array-like of shape (n_samples,)
-            Not used, only present for consistency with the sklearn API.
-        groups: dict, optional
-            A dictionary where the keys are the group names and the values are the
-            list of column names corresponding to each group. If None, the groups are
-            identified based on the columns of X.
-        """
-        if groups is None:
-            self.n_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self.n_groups)}
-            self._groups_ids = np.array(list(self.groups.values()), dtype=int)
-        else:
-            self.n_groups = len(groups)
-            self.groups = groups
-            if isinstance(X, pd.DataFrame):
-                self._groups_ids = []
-                for group_key in self.groups.keys():
-                    self._groups_ids.append(
-                        [
-                            i
-                            for i, col in enumerate(X.columns)
-                            if col in self.groups[group_key]
-                        ]
-                    )
-            else:
-                self._groups_ids = [
-                    np.array(ids, dtype=int) for ids in list(self.groups.values())
-                ]
 
     def predict(self, X):
         """
@@ -100,7 +68,7 @@ class BasePerturbation(BaseEstimator):
         out: array-like of shape (n_groups, n_permutations, n_samples)
             The predictions after perturbation of the data for each group of variables.
         """
-        self._check_fit()
+        self._check_fit(X)
         X_ = np.asarray(X)
 
         # Parallelize the computation of the importance scores for each group
@@ -130,7 +98,7 @@ class BasePerturbation(BaseEstimator):
             for each group.
             - 'importance': the importance scores for each group.
         """
-        self._check_fit()
+        self._check_fit(X)
 
         out_dict = dict()
 
@@ -153,19 +121,6 @@ class BasePerturbation(BaseEstimator):
             ]
         )
         return out_dict
-
-    def _check_fit(self):
-        """Check that the estimator has been fitted if needed."""
-        if (
-            self.n_groups is None
-            or not hasattr(self, "groups")
-            or not hasattr(self, "_groups_ids")
-        ):
-            raise ValueError(
-                "The estimator is not fitted. The fit method must be called"
-                " to set variable groups. If no grouping is needed,"
-                " call fit with groups=None"
-            )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
