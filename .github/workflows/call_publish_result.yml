@@ -101,6 +101,7 @@ jobs:
       uses: actions/download-artifact@v5
       with:
         pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
+        path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
     # check the size of the file for not pushing empty file
     - name: Check file size
       id: check_size
