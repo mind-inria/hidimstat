@@ -785,10 +785,32 @@ class PartialDependancePlot(BaseVariableImportance):
                 # add distribution of value
                 sns.rugplot(data, ax=ax, alpha=0.2, legend=False)
         else:
-            ax.boxplot(self.ices_[feature_id])
-            ax.set_xticks(np.arange(len(self.values_[feature_id])) + 1)
-            ax.set_xticklabels(self.values_[feature_id])
-        ax.set_xlabel(self.feature_names[feature_id])
+            ax.boxplot(
+                self.ices_[feature_id],
+                positions=np.arange(len(self.values_[feature_id])),
+            )
+            ax.set_xticks(np.arange(len(self.values_[feature_id])))
+            ax.set_xticklabels(
+                self.values_[feature_id], rotation=90, fontdict={"fontsize": 8}
+            )
+            if X is not None:
+                # add an histogram of the number of element by categoris
+                # in bottom of the figure
+                ax_histx = ax.inset_axes([0, -0.45, 1, 0.2], sharex=ax)
+                ax_histx.hist(
+                    _safe_indexing(X, self.features_indices[feature_id], axis=1),
+                    histtype="bar",
+                    bins=np.arange(len(self.values_[feature_id]) + 1),
+                    align="left",
+                    rwidth=0.5,
+                )
+                ax_histx.set_xlim(ax.get_xlim())
+                ax_histx.set_xticklabels(
+                    self.values_[feature_id], rotation=90, fontdict={"fontsize": 8}
+                )
+                ax_histx.set_xlabel(self.feature_names[feature_id])
+            else:
+                ax.set_xlabel(self.feature_names[feature_id])
         ax.grid(True, linestyle="-", alpha=0.4)
         return ax
 
