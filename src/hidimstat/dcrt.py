@@ -216,7 +216,7 @@ class D0CRT(BaseVariableImportance):
                     alpha_screening = self.clf_screening_.alpha_
                 else:
                     alpha_screening = self.clf_screening_.alpha
-                # update the alpha value from the estiamtor on all values
+                # update the alpha value from the estimator on all values
                 self.params_lasso_screening["alpha"] = alpha_screening
                 if self.params_lasso_distillation_x is not None:
                     self.params_lasso_distillation_x["alpha"] = alpha_screening
