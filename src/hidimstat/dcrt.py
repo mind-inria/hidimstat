@@ -235,14 +235,13 @@ class D0CRT(BaseVariableImportance):
             self.coefficient_[self.non_selection_] = 0.0
             # select the variables for the screening
             if self.screening:
-                selection_set = np.logical_not(self.non_selection_)
-                if np.sum(selection_set) == 0:
+                if np.sum(self.non_selection_) == n_features:
                     self.clf_x_ = np.array([])
                     self.clf_y_ = np.array([])
                     return self
             else:
                 self.non_selection_ = np.zeros_like(np.arange(n_features), dtype=bool)
-                selection_set = np.logical_not(self.non_selection_)
+            selection_set = np.logical_not(self.non_selection_)
             # Refit the model with the estimated support set
             if (
                 self.refit
