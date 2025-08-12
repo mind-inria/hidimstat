@@ -26,28 +26,29 @@ def lasso_statistic(
     n_alphas=0,
 ):
     """
-    Compute Lasso statistique
+    Compute Lasso statistic using feature coefficients.
 
     Parameters
     ----------
-    X : 2D ndarray (n_samples, n_features)
-        The original design matrix.
-    y : 1D ndarray (n_samples, )
-        The target vector.
-    lasso : Lasso estimator, default=LassoCV( n_jobs=None, verbose=0, max_iter=200000, cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-6)
-        The Linear estimator use as stastical tests
+    X : array-like of shape (n_samples, n_features)
+        The input data matrix.
+    y : array-like of shape (n_samples,)
+        The target values.
+    lasso : estimator, default=LassoCV(n_jobs=None, verbose=0, max_iter=200000, cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-6)
+        The Lasso estimator to use for computing the test statistic.
     n_alphas : int, default=0
-        THe number of alpha to test for preconfiguration of Lasso
+        Number of alpha values to test for Lasso regularization path.
+        If 0, uses the default alpha sequence from the estimator.
 
     Returns
     -------
-    statistical test for each features, i.e. lasso coefficients
-
+    coef : ndarray
+        Lasso coefficients for each feature.
 
     Raises
     ------
     TypeError
-        Should an implementation of Lasso estimator
+        If the provided estimator does not have coef_ attribute or is not linear.
     """
     if n_alphas != 0:
         alpha_max = np.max(np.dot(X.T, y)) / (X.shape[1])
@@ -67,36 +68,44 @@ class CRT(BaseVariableImportance):
     """
     Implements conditional randomization test (CRT).
 
-    The Conditional Randomization Test :footcite:t:`candes2018panning`.
+    The Conditional Randomization Test :footcite:t:`candes2018panning` is a method
+    for statistical variable importance testing.
 
     Parameters
     ----------
-    estimator : sklearn.linear_model.LassoCV
-        The Lasso estimator to configure.
+    generator : object, default=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True))
+        Generator object for simulating null distributions
+    statistical_test : callable, default=lasso_statistic
+        Function that computes test statistic
+    n_permutation : int, default=10
+        Number of permutations for the test
     n_jobs : int, default=1
         Number of parallel jobs
+    memory : str or object, default=None
+        Used for caching
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs
     problem_type : {'regression', 'classification'}, default='regression'
-        Type of prediction problem when using random forest
+        Type of prediction problem
     random_state : int, default=2022
         Random seed for reproducibility
 
     Attributes
     ----------
-
+    importances_ : ndarray of shape (n_features,)
+        Feature importance scores
+    pvalues_ : ndarray of shape (n_features,)
+        P-values for each feature
 
     Notes
     -----
-    The implementation follows Liu et al. (2022) which introduces distillation to
-    speed up conditional randomization testing. Key steps:
-    1. Optional screening using Lasso coefficients to reduce dimensionality
-    2. Distillation to estimate conditional distributions
-    3. Test statistic computation using residual correlations or random forests
-    4. P-value calculation assuming Gaussian null distribution
+    The CRT tests feature importance by comparing observed test statistics against
+    a conditional null distribution generated through simulation.
 
     See Also
     --------
+    GaussianGenerator : Generator for Gaussian null distributions
+    lasso_statistic : Default test statistic using Lasso coefficients
 
     References
     ----------
@@ -125,15 +134,15 @@ class CRT(BaseVariableImportance):
 
     def fit(self, X, y=None):
         """
-        Fit generator.
+        Fit the CRT model by training the generator.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data matrix where n_samples is the number of samples and
             n_features is the number of features.
-        y : array-like of shape (n_samples,)
-            Target values.
+        y : array-like of shape (n_samples,), default=None
+            Target values. Not used in this method.
 
         Returns
         -------
@@ -142,10 +151,8 @@ class CRT(BaseVariableImportance):
 
         Notes
         -----
-
-        References
-        ----------
-        .. footbibliography::
+        The fit method only trains the generator component. The target values y
+        are not used in this step.
         """
         if y is not None:
             warnings.warn("y won't be used")
@@ -163,22 +170,28 @@ class CRT(BaseVariableImportance):
 
     def importance(self, X, y):
         """
-        Calculate p-values and identify significant features using the CRT test
-        statistics. This function processes the results from CRT to identify
-        statistically significant features while controlling for false discoveries.
+        Calculate p-values and identify significant features using the CRT test statistics.
 
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features), default=None
-            Testing data matrix where n_samples is the number of samples
-            and n_features is the number of features.
-        y : array-like of shape (n_samples,), default=None
-            Target values of testing dataset.
+        This function processes the results from Conditional Randomization Test (CRT) to identify
+        statistically significant features. It computes p-values by comparing a reference test
+        statistic to test statistics from permuted data.
 
-        Returns
-        -------
-        importances_ : ndarray of shape (n_features,)
-            Importance scores for all features
+        X : array-like of shape (n_samples, n_features)
+        y : array-like of shape (n_samples,)
+
+            Array of importance scores (p-values) for each feature. Lower p-values indicate
+            higher importance. Values range from 0 to 1.
+
+        Notes
+        -----
+        The p-values are calculated using the formula:
+        (1 + #(T_perm >= T_obs)) / (n_permutations + 1)
+        where T_perm are the test statistics from permuted data and T_obs is the
+        reference test statistic.
+
+        See Also
+        --------
+        statistical_test : Method that computes the test statistic used in this function.
         """
         self._check_fit()
         reference_value = self.statistical_test(X, y)
@@ -199,17 +212,30 @@ class CRT(BaseVariableImportance):
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            The input data.
+            The input data matrix where n_samples is the number of samples and
+            n_features is the number of features.
         y : array-like of shape (n_samples,)
             The target values.
-        cv : None or int, optional (default=None)
-            (not used) Cross-validation parameter.
+        cv : None or cross-validation generator, default=None
+            Cross-validation parameter. Not used in this method.
             A warning will be issued if provided.
 
         Returns
         -------
-        importance : array-like
-            The computed feature importance scores.
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores (p-values) for each feature.
+            Lower values indicate higher importance. Values range from 0 to 1.
+
+        Notes
+        -----
+        This method combines the fit and importance computation steps.
+        It first fits the generator to X and then computes importance scores
+        by comparing observed test statistics against permuted ones.
+
+        See Also
+        --------
+        fit : Method for fitting the generator only
+        importance : Method for computing importance scores only
         """
         if cv is not None:
             warnings.warn("cv won't be used")
