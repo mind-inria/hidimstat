@@ -14,7 +14,7 @@ on:
         default: false
 
 
-# disable all the permission for the workflow
+# disable all the permissions for the workflow
 permissions: {}
 
 jobs:
