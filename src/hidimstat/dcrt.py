@@ -228,37 +228,34 @@ class D0CRT(BaseVariableImportance):
                 self.coefficient_ = self.estimated_coef
                 self.screening_threshold = 100  # remove the screening process
             # noisy estimated coefficients is set to 0.0
-            self.non_selection_ = np.where(
-                np.abs(self.coefficient_)
-                <= np.percentile(
-                    np.abs(self.coefficient_), 100 - self.screening_threshold
-                )
-            )[0]
+            self.non_selection_ = np.abs(self.coefficient_) <= np.percentile(
+                np.abs(self.coefficient_), 100 - self.screening_threshold
+            )
             # optimisation to reduce the number of elements different to zeros
             self.coefficient_[self.non_selection_] = 0.0
             # select the variables for the screening
             if self.screening:
-                selection_set = np.setdiff1d(np.arange(n_features), self.non_selection_)
-                if selection_set.size == 0:
+                selection_set = np.logical_not(self.non_selection_)
+                if np.sum(selection_set) == 0:
                     self.clf_x_ = np.array([])
                     self.clf_y_ = np.array([])
                     return self
             else:
-                self.non_selection_ = []
-                selection_set = np.arange(n_features)
+                self.non_selection_ = np.zeros_like(np.arange(n_features), dtype=bool)
+                selection_set = np.logical_not(self.non_selection_)
             # Refit the model with the estimated support set
             if (
                 self.refit
                 and self.estimated_coef is None
-                and selection_set.size < n_features
+                and np.sum(selection_set) < n_features
             ):
                 self.clf_refit_ = clone(self.clf_screening_)
                 self.clf_refit_.fit(X_[:, selection_set], y_)
                 self.coefficient_[selection_set] = np.ravel(self.clf_refit_.coef_)
         else:
-            selection_set = range(n_features)
-            self.non_selection_ = []
             self.coefficient_ = None
+            self.non_selection_ = np.zeros_like(np.arange(n_features), dtype=bool)
+            selection_set = np.logical_not(self.non_selection_)
 
         ## fit models
         results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
@@ -275,7 +272,7 @@ class D0CRT(BaseVariableImportance):
                     else self.params_lasso_screening
                 ),
             )
-            for idx in selection_set
+            for idx in np.where(selection_set)[0]
         )
         self.clf_x_ = [result[0] for result in results]
         self.clf_y_ = [result[1] for result in results]
