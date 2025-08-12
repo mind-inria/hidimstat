@@ -3,6 +3,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted
 from sklearn.metrics import root_mean_squared_error
+import warnings
 
 from hidimstat._utils.utils import _check_vim_predict_method
 
@@ -41,6 +42,7 @@ class BasePerturbation(BaseEstimator):
             variables or groups of variables.
         """
         check_is_fitted(estimator)
+        assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
         _check_vim_predict_method(method)
@@ -67,7 +69,7 @@ class BasePerturbation(BaseEstimator):
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
             self._groups_ids = np.array(list(self.groups.values()), dtype=int)
-        else:
+        elif isinstance(groups, dict):
             self.n_groups = len(groups)
             self.groups = groups
             if isinstance(X, pd.DataFrame):
@@ -84,6 +86,8 @@ class BasePerturbation(BaseEstimator):
                 self._groups_ids = [
                     np.array(ids, dtype=int) for ids in list(self.groups.values())
                 ]
+        else:
+            raise ValueError("groups needs to be a dictionnary")
 
     def predict(self, X):
         """
@@ -100,7 +104,7 @@ class BasePerturbation(BaseEstimator):
         out: array-like of shape (n_groups, n_permutations, n_samples)
             The predictions after perturbation of the data for each group of variables.
         """
-        self._check_fit()
+        self._check_fit(X)
         X_ = np.asarray(X)
 
         # Parallelize the computation of the importance scores for each group
@@ -130,7 +134,7 @@ class BasePerturbation(BaseEstimator):
             for each group.
             - 'importance': the importance scores for each group.
         """
-        self._check_fit()
+        self._check_fit(X)
 
         out_dict = dict()
 
@@ -154,17 +158,48 @@ class BasePerturbation(BaseEstimator):
         )
         return out_dict
 
-    def _check_fit(self):
-        """Check that the estimator has been fitted if needed."""
+    def _check_fit(self, X):
+        """
+        Check if the perturbation method has been properly fitted.
+
+        This method verifies that the perturbation method has been fitted by checking
+        if required attributes are set and if the number of features matches
+        the grouped variables.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate against the fitted model.
+
+        Raises
+        ------
+        ValueError
+            If the method has not been fitted (i.e., if n_groups, groups,
+            or _groups_ids attributes are missing).
+        AssertionError
+            If the number of features in X does not match the total number
+            of features in the grouped variables.
+        """
         if (
             self.n_groups is None
             or not hasattr(self, "groups")
             or not hasattr(self, "_groups_ids")
         ):
             raise ValueError(
-                "The estimator is not fitted. The fit method must be called"
+                "The class is not fitted. The fit method must be called"
                 " to set variable groups. If no grouping is needed,"
                 " call fit with groups=None"
+            )
+        count = 0
+        for index_variables in self.groups.values():
+            if type(index_variables[0]) is int:
+                assert np.all(
+                    np.array(index_variables, dtype=int) < X.shape[1]
+                ), "X does not correspond to the fitting data."
+            count += len(index_variables)
+        if X.shape[1] > count:
+            warnings.warn(
+                "The importance will be computed only for features in the groups."
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
