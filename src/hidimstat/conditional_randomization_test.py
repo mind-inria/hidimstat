@@ -69,7 +69,7 @@ class CRT(BaseVariableImportance):
     Implements conditional randomization test (CRT).
 
     The Conditional Randomization Test :footcite:t:`candes2018panning` is a method
-    for statistical variable importance testing.
+    for statistical variable importance testing (see algorithm 2).
 
     Parameters
     ----------
@@ -199,6 +199,7 @@ class CRT(BaseVariableImportance):
         for k in range(self.n_permutation):
             tests.append(self.statistical_test(self.generator.simulate(), y))
 
+        # see equation of p-value in algorithm 2
         self.pvalues_ = (1 + np.sum(reference_value >= np.array(tests), axis=0)) / (
             self.n_permutation + 1
         )
