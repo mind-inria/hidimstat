@@ -36,6 +36,7 @@ Classes
    
    BaseVariableImportance
    BasePerturbation
+   CRT
    LOCO
    CPI
    PFI

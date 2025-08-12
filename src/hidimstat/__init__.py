@@ -15,6 +15,7 @@ from .desparsified_lasso import (
 )
 from .dcrt import d0crt, D0CRT
 from .conditional_permutation_importance import CPI
+from .conditional_randomization_test import CRT
 from .knockoffs import (
     model_x_knockoff,
     model_x_knockoff_pvalue,
@@ -38,6 +39,7 @@ __all__ = [
     "clustered_inference_pvalue",
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
+    "CRT",
     "d0crt",
     "D0CRT",
     "desparsified_lasso",
