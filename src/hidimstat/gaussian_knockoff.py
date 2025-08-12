@@ -1,123 +1,151 @@
 import warnings
 
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import check_random_state
 
 
-def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
+class GaussianGenerator:
     """
-    Generate second-order knockoff variables using the equi-correlated method.
+    Generator for second-order Gaussian variables using the equi-correlated method.
 
-    This function generates knockoff variables for a given design matrix X,
-    using the equi-correlated method described in :footcite:t:`barber2015controlling`
-    and :footcite:t:`candes2018panning`. The function takes as input the design matrix
-    X, the vector of empirical mean values mu, and the empirical covariance
-    matrix sigma. It returns the knockoff variables X_tilde.
-
-    The original implementation can be found at
-    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_gaussian.R
+    Creates synthetic variables that preserve the covariance structure of the original
+    variables while ensuring conditional independence between the original and synthetic data.
 
     Parameters
     ----------
-    X: 2D ndarray (n_samples, n_features)
-        The original design matrix.
+    cov_estimator : object
+        Estimator for computing the covariance matrix. Must implement fit and
+        have a covariance_ attribute after fitting.
 
-    mu : 1D ndarray (n_features, )
-        A vector of empirical mean values.
+    random_state : int or None, default=None
+        Random seed for generating synthetic data.
 
-    sigma : 2D ndarray (n_samples, n_features)
-        The empirical covariance matrix.
+    centered : bool, default=False
+        Whether to center and scale the input data before generating synthetic variables.
 
-    seed : int, optional
-        A random seed for generating the uniform noise used to create
-        the knockoff variables.
+    tol : float, default=1e-14
+        Tolerance for numerical stability in matrix computations.
 
-    tol : float, default=1.e-14
-        A tolerance value used for numerical stability in the calculation
-        of the Cholesky decomposition.
+    Attributes
+    ----------
+    mu_tilde_ : ndarray of shape (n_samples, n_features)
+        Mean matrix for generating synthetic variables.
 
-    Returns
-    -------
-    X_tilde : 2D ndarray (n_samples, n_features)
-        The knockoff variables.
-
-    mu_tilde : 2D ndarray (n_samples, n_features)
-        The mean matrix used for generating knockoffs.
-
-    sigma_tilde_decompose : 2D ndarray (n_features, n_features)
-        The Cholesky decomposition of the covariance matrix.
+    sigma_tilde_decompose_ : ndarray of shape (n_features, n_features)
+        Cholesky decomposition of the synthetic covariance matrix.
 
     References
     ----------
     .. footbibliography::
     """
-    n_samples, n_features = X.shape
 
-    # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+    def __init__(self, cov_estimator, random_state=None, centered=False, tol=1e-14):
+        self.cov_estimator = cov_estimator
+        self.centered = centered
+        self.tol = tol
+        if isinstance(random_state, (int, np.int32, np.int64)):
+            self.rng = check_random_state(random_state)
+        elif random_state is None:
+            self.rng = check_random_state(0)
+        else:
+            raise TypeError("Wrong type for random_state")
 
-    diag_s = np.diag(_s_equi(sigma, tol=tol))
+    def fit(self, X):
+        """
+        Fit the Gaussian synthetic variable generator.
 
-    sigma_inv_s = np.linalg.solve(sigma, diag_s)
+        This method estimates the parameters needed to generate Gaussian synthetic variables
+        based on the input data. It follows a methodology for creating second-order
+        synthetic variables that preserve the covariance structure.
 
-    # First part on the RHS of equation 1.4 in barber2015controlling
-    mu_tilde = X - np.dot(X - mu, sigma_inv_s)
-    # To calculate the Cholesky decomposition later on
-    sigma_tilde = 2 * diag_s - diag_s.dot(sigma_inv_s)
-    # test is the matrix is positive definite
-    while not np.all(np.linalg.eigvalsh(sigma_tilde) > tol):
-        sigma_tilde += 1e-10 * np.eye(n_features)
-        warnings.warn(
-            "The conditional covariance matrix for knockoffs is not positive "
-            "definite. Adding minor positive value to the matrix.",
-            UserWarning,
-        )
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples used to estimate the parameters for synthetic variable generation.
+            The data is assumed to follow a Gaussian distribution.
 
-    # Equation 1.4 in barber2015controlling
-    sigma_tilde_decompose = np.linalg.cholesky(sigma_tilde)
-    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
 
-    return X_tilde, mu_tilde, sigma_tilde_decompose
+        Notes
+        -----
+        The method implements the following steps:
+        1. Centers and scales the data if specified
+        2. Estimates mean and covariance of input data
+        3. Computes parameters for synthetic variable generation
+        """
+        _, n_features = X.shape
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
 
+        # estimation of X distribution
+        # original implementation:
+        # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
+        mu = X_.mean(axis=0)
+        sigma = self.cov_estimator.fit(X_).covariance_
 
-def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
-    """
-    Generate additional knockoff variables using pre-computed values.
+        diag_s = np.diag(_s_equi(sigma, tol=self.tol))
 
-    This function generates additional knockoff variables using pre-computed
-    values returned by the gaussian_knockoff_generation function
-    with repeat=True. It takes as input mu_tilde and sigma_tilde_decompose,
-    which were returned by gaussian_knockoff_generation, and a random seed.
-    It returns the new knockoff variables X_tilde.
+        sigma_inv_s = np.linalg.solve(sigma, diag_s)
 
-    Parameters
-    ----------
-    mu_tilde : 2D ndarray (n_samples, n_features)
-        The matrix of means used to generate the knockoff variables,
-        returned by gaussian_knockoff_generation.
+        # First part on the RHS of equation 1.4 in barber2015controlling
+        self.mu_tilde_ = X - np.dot(X - mu, sigma_inv_s)
+        # To calculate the Cholesky decomposition later on
+        sigma_tilde = 2 * diag_s - diag_s.dot(sigma_inv_s)
+        # test is the matrix is positive definite
+        while not np.all(np.linalg.eigvalsh(sigma_tilde) > self.tol):
+            sigma_tilde += 1e-10 * np.eye(n_features)
+            warnings.warn(
+                "The conditional covariance matrix for knockoffs is not positive "
+                "definite. Adding minor positive value to the matrix.",
+                UserWarning,
+            )
 
-    sigma_tilde_decompose : 2D ndarray (n_features, n_features)
-        The Cholesky decomposition of the covariance matrix used
-        to generate the knockoff variables,returned by
-        gaussian_knockoff_generation.
+        self.sigma_tilde_decompose_ = np.linalg.cholesky(sigma_tilde)
 
-    seed : int
-        A random seed for generating the uniform noise used to create
-        the knockoff variables.
+        return self
 
-    Returns
-    -------
-    X_tilde : 2D ndarray (n_samples, n_features)
-        The knockoff variables.
-    """
-    n_samples, n_features = mu_tilde.shape
+    def _check_fit(self):
+        """
+        Check if the model has been fit before performing analysis.
 
-    # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+        Raises
+        ------
+        ValueError
+            If any of the required attributes are missing, indicating the model
+            hasn't been fit before generating synthetic variables.
+        """
+        if not hasattr(self, "mu_tilde_") or not hasattr(
+            self, "sigma_tilde_decompose_"
+        ):
+            raise ValueError("The GaussianGenerator requires to be fit before simulate")
 
-    X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
-    return X_tilde
+    def simulate(self):
+        """
+        Generate synthetic variables.
+
+        This function generates synthetic variables that preserve the covariance structure
+        of the original data while ensuring conditional independence.
+
+        Returns
+        -------
+        X_tilde : 2D ndarray (n_samples, n_features)
+            The synthetic variables.
+        """
+        self._check_fit()
+        n_samples, n_features = self.mu_tilde_.shape
+
+        # create a uniform noise for all the data
+        u_tilde = self.rng.randn(n_samples, n_features)
+
+        # Equation 1.4 in barber2015controlling
+        X_tilde = self.mu_tilde_ + np.dot(u_tilde, self.sigma_tilde_decompose_)
+        return X_tilde
 
 
 def _s_equi(sigma, tol=1e-14):
