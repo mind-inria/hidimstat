@@ -13,7 +13,7 @@ from hidimstat import CPI, BasePerturbation
 
 def configure_linear_categorial_cpi(X, y, n_permutation, seed):
     """
-    Configure Conditional Predictive Impact (CPI) model with linear regression
+    Configure Conditional Permutation Importance (CPI) model with linear regression
     for feature importance analysis.
     Parameters
     ----------
