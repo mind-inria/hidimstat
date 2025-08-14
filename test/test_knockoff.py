@@ -1,8 +1,4 @@
-# from hidimstat.knockoffs import ModelXKnockoff
-
-from hidimstat.conditional_randomization_test import (
-    CRT as ModelXKnockoff,
-)
+from hidimstat.knockoffs import ModelXKnockoff
 from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat._utils.scenario import multivariate_simulation
