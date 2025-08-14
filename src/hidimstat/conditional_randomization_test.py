@@ -1,70 +1,20 @@
+from copy import deepcopy
+from itertools import product
 import warnings
 
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
 from sklearn.utils.validation import check_memory
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
+from tqdm import tqdm
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.gaussian_knockoff import (
-    GaussianGenerator,
-)
-from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
+from hidimstat.statistical_tools.lasso_test import lasso_statistic
+from hidimstat.base_variable_importance import BaseVariableImportance, SelectionFDR
 
 
-def lasso_statistic(
-    X,
-    y,
-    lasso=LassoCV(
-        n_jobs=None,
-        verbose=0,
-        max_iter=200000,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-6,
-    ),
-    n_alphas=0,
-):
-    """
-    Compute Lasso statistic using feature coefficients.
-
-    Parameters
-    ----------
-    X : array-like of shape (n_samples, n_features)
-        The input data matrix.
-    y : array-like of shape (n_samples,)
-        The target values.
-    lasso : estimator, default=LassoCV(n_jobs=None, verbose=0, max_iter=200000, cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-6)
-        The Lasso estimator to use for computing the test statistic.
-    n_alphas : int, default=0
-        Number of alpha values to test for Lasso regularization path.
-        If 0, uses the default alpha sequence from the estimator.
-
-    Returns
-    -------
-    coef : ndarray
-        Lasso coefficients for each feature.
-
-    Raises
-    ------
-    TypeError
-        If the provided estimator does not have coef_ attribute or is not linear.
-    """
-    if n_alphas != 0:
-        alpha_max = np.max(np.dot(X.T, y)) / (X.shape[1])
-        alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
-        lasso.alphas = alphas
-    lasso.fit(X, y)
-    if hasattr(lasso, "coef_"):
-        coef = np.ravel(lasso.coef_)
-    elif hasattr(lasso, "best_estimator_") and hasattr(lasso.best_estimator_, "coef_"):
-        coef = np.ravel(lasso.best_estimator_.coef_)  # for CV object
-    else:
-        raise TypeError("estimator should be linear")
-    return coef
-
-
-class CRT(BaseVariableImportance):
+class CRT(BaseVariableImportance, SelectionFDR):
     """
     Implements conditional randomization test (CRT).
 
@@ -87,8 +37,6 @@ class CRT(BaseVariableImportance):
         Verbosity level for parallel jobs
     problem_type : {'regression', 'classification'}, default='regression'
         Type of prediction problem
-    random_state : int, default=2022
-        Random seed for reproducibility
 
     Attributes
     ----------
@@ -116,20 +64,18 @@ class CRT(BaseVariableImportance):
         self,
         generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
         statistical_test=lasso_statistic,
-        n_permutation=10,
+        n_sampling=10,
         n_jobs=1,
         memory=None,
         joblib_verbose=0,
         problem_type="regression",
-        random_state=2022,
     ):
         self.generator = generator
-        self.n_permutation = n_permutation
+        self.n_sampling = n_sampling
         self.n_jobs = n_jobs
-        memory = check_memory(memory)
+        self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
         self.problem_type = problem_type
-        self.random_state = random_state
         self.statistical_test = statistical_test
 
     def fit(self, X, y=None):
@@ -195,15 +141,33 @@ class CRT(BaseVariableImportance):
         """
         self._check_fit()
         reference_value = self.statistical_test(X, y)
-        tests = []
-        for k in range(self.n_permutation):
-            tests.append(self.statistical_test(self.generator.simulate(), y))
 
-        # see equation of p-value in algorithm 2
-        self.pvalues_ = (1 + np.sum(reference_value >= np.array(tests), axis=0)) / (
-            self.n_permutation + 1
+        parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
+        X_samples = []
+        for i in range(self.n_sampling):
+            X_samples.append(self.generator.simulate())
+
+        self.test_scores_ = np.array(
+            parallel(
+                delayed(joblib_statitistic_test)(
+                    index, X, X_sample, y, self.statistical_test
+                )
+                for X_sample, index in tqdm(product(X_samples, range(X.shape[1])))
+            )
         )
-        self.importances_ = self.pvalues_
+        self.test_scores_ = reference_value - np.array(self.test_scores_).reshape(
+            self.n_sampling, -1
+        )
+
+        self.importances_ = np.mean(np.abs(self.test_scores_), axis=0)
+        # see equation of p-value in algorithm 2
+        self.pvalues_ = (
+            1
+            + np.sum(
+                self.test_scores_ >= 0,
+                axis=0,
+            )
+        ) / (self.n_sampling + 1)
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
@@ -245,27 +209,51 @@ class CRT(BaseVariableImportance):
         return self.importance(X, y)
 
 
+def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
+    """Compute test statistic for a single feature with permuted data.
+
+    Parameters
+    ----------
+    index : int
+        Index of the feature to test
+    X : array-like of shape (n_samples, n_features)
+        Original input data matrix
+    X_sample : array-like of shape (n_samples, n_features)
+        Permuted data matrix
+    y : array-like of shape (n_samples,)
+        Target values
+    statistic_test : callable
+        Function that computes the test statistic
+
+    Returns
+    -------
+    float
+        Test statistic value for the specified feature
+    """
+    X_tmp = deepcopy(X)
+    X_tmp[:, index] = deepcopy(X_sample[:, index])
+    return statistic_test(X_tmp, y)[index]
+
+
 def crt(
     X,
     y,
     generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
     statistical_test=lasso_statistic,
-    n_permutation=10,
+    n_sampling=10,
     n_jobs=1,
     memory=None,
     joblib_verbose=0,
     problem_type="regression",
-    random_state=2022,
 ):
     crt = CRT(
         generator=generator,
         statistical_test=statistical_test,
-        n_permutation=n_permutation,
+        n_sampling=n_sampling,
         n_jobs=n_jobs,
         memory=memory,
         joblib_verbose=joblib_verbose,
         problem_type=problem_type,
-        random_state=random_state,
     )
     return crt.fit_importance(X, y)
 
