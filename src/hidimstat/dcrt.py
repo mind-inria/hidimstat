@@ -9,10 +9,10 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.base_variable_importance import BaseVariableImportance, SelectionBase
 
 
-class D0CRT(BaseVariableImportance):
+class D0CRT(BaseVariableImportance, SelectionBase):
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
