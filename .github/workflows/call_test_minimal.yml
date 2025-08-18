@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Tests
+name: Tests Minimal
 
 on:
   # Allows you to run this workflow from another workflow
@@ -14,7 +14,7 @@ on:
         default: false
 
 
-# disable all the permission for the workflow
+# disable all the permissions for the workflow
 permissions: {}
 
 jobs:
@@ -23,8 +23,8 @@ jobs:
     strategy:
       fail-fast: true  # if on job fail all the other jobs are cancelled
       matrix:
-        python-version: ["3.13", "3.12"] #CHECK: not forget to add new version of python
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ["3.9"] #CHECK: not forget to add new version of python
+        os: [ubuntu-latest]
     
     # name for files
     env:
@@ -57,7 +57,8 @@ jobs:
     - name: Install the dependance
       if: ${{ inputs.skip_test == false }}
       run: |
-        uv pip install -e ".[test]"
+        sudo apt-get install -y libfreetype6-dev
+        uv pip install --reinstall --upgrade --resolution lowest-direct -e ".[test]"
   
     # Run the tests with coverage and report add this end
     # option for the coverage: --cov=. --cov-report=xml:... 
