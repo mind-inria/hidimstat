@@ -346,7 +346,7 @@ class D0CRT(BaseVariableImportance):
         else:
             X_ = X
         n_samples, n_features = X_.shape
-        selection_features = np.setdiff1d(np.arange(n_features), self.non_selection_)
+        selection_features = np.arange(n_features)[np.logical_not(self.non_selection_)]
 
         ## Distillation & calculate
         list_job = []
