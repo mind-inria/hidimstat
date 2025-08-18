@@ -16,15 +16,18 @@ class D0CRT(BaseVariableImportance):
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 
-    This class provides a fast implementation of the Conditional Randomization Test :footcite:t:`candes2018panning`
-    using the distillation process from :footcite:t:`liu2022fast`. The approach accelerates variable selection
-    by combining Lasso-based screening and residual-based test statistics. Based on the original implementation at:
+    This class provides a fast implementation of the Conditional Randomization
+    Test :footcite:t:`candes2018panning` using the distillation process
+    from :footcite:t:`liu2022fast`. The approach accelerates variable selection
+    by combining Lasso-based screening and residual-based test statistics.
+    Based on the original implementation at:
     https://github.com/moleibobliu/Distillation-CRT/
 
     Parameters
     ----------
     estimator : sklearn estimator
-        The base estimator used for y-distillation and prediction (e.g., Lasso, LassoCV).
+        The base estimator used for y-distillation and prediction
+        (e.g., Lasso, RandomForest, ...).
     method : str, default="predict"
         Method of the estimator to use for predictions ("predict", "predict_proba", etc.).
     estimated_coef : array-like of shape (n_features,) or None, default=None
@@ -44,8 +47,6 @@ class D0CRT(BaseVariableImportance):
         - selection : {'cyclic'} - Feature selection method (default: 'cyclic').
     params_lasso_distillation_x : dict or None, default=None
         Parameters for X distillation Lasso. If None, uses params_lasso_screening.
-    params_lasso_distillation_y : dict or None, default=None
-        Parameters for y distillation Lasso. If None, uses params_lasso_screening.
     refit : bool, default=False
         Whether to refit the model on selected features after screening.
     screening : bool, default=True
@@ -93,12 +94,6 @@ class D0CRT(BaseVariableImportance):
     2. Distillation to estimate conditional distributions.
     3. Test statistic computation using residual correlations.
     4. P-value calculation assuming Gaussian null distribution.
-
-    See Also
-    --------
-    sklearn.linear_model.Lasso : Basic Lasso regression.
-    sklearn.linear_model.LassoCV : Lasso with cross-validation.
-    sklearn.preprocessing.StandardScaler : Feature standardization.
 
     References
     ----------
@@ -154,7 +149,7 @@ class D0CRT(BaseVariableImportance):
         """
         Fit the dCRT model.
 
-        This method fits the distilled Conditional Randomization Test (dCRT) model
+        This method fits the Distilled Conditional Randomization Test (DCRT) model
         as described in :footcite:t:`liu2022fast`. It performs optional feature
         screening using Lasso, computes coefficients, and prepares the model for
         importance and p-value computation.
@@ -162,8 +157,7 @@ class D0CRT(BaseVariableImportance):
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            Training data matrix where n_samples is the number of samples and
-            n_features is the number of features.
+            Training data matrix.
         y : array-like of shape (n_samples,)
             Target values.
 
@@ -174,19 +168,16 @@ class D0CRT(BaseVariableImportance):
 
         Notes
         -----
-        The method follows these main steps:
-        1. Optional data centering using StandardScaler.
-        2. Variable screening using Lasso (if estimated coefficients are not provided).
-        3. Feature selection based on coefficient magnitudes.
-        4. Optional model refitting on selected features (if refit=True).
-        5. Fit the model for the futur distillation
+        Main steps:
+        1. Optional data centering with StandardScaler
+        2. Lasso screening of variables (if no estimated coefficients provided)
+        3. Feature selection based on coefficient magnitudes
+        4. Model refitting on selected features (if refit=True)
+        5. Fit model for future distillation
 
-        The screening threshold determines which features are considered significant
-        based on their Lasso coefficients. Features with coefficients below the
-        threshold percentile are set to zero.
-
-        The function prepares the model for subsequent computation of test statistics,
-        importance scores, and p-values.
+        The screening threshold controls which features are kept based on their
+        Lasso coefficients. Features with coefficients below the threshold are
+        set to zero.
 
         References
         ----------
@@ -286,12 +277,10 @@ class D0CRT(BaseVariableImportance):
         This private method verifies that all necessary attributes have been set
         during the fitting process.
         These attributes include:
-        - selection_features
-        - X_residual
-        - sigma2
-        - y_residual
-        - clf_x_residual
-        - clf_y_residual
+        - clf_x_
+        - clf_y_
+        - coefficient_
+        - non_selection_
 
         Raises
         ------
@@ -313,34 +302,37 @@ class D0CRT(BaseVariableImportance):
         y,
     ):
         """
-        Compute and return feature importance scores.
+        Compute feature importance scores using distilled CRT.
 
-        This method computes the importance scores for all features using the fitted dCRT model.
-        It uses the distillation process and residuals to calculate test statistics and p-values
-        for each feature, following the procedure described in :footcite:t:`liu2022fast`.
+        Calculates test statistics and p-values for each feature using residual
+        correlations after the distillation process.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            Input data matrix. Used for consistency checks and residual computation.
+            Input data matrix.
         y : array-like of shape (n_samples,)
-            Target values. Used for residual computation.
+            Target values.
 
         Returns
         -------
         importances_ : ndarray of shape (n_features,)
-            Importance scores for all features.
+            Test statistics/importance scores for each feature. For unselected features,
+            the score is set to 0.
+
+        Attributes
+        ----------
+        importances_ : same as return value
+        pvalues_ : ndarray of shape (n_features,)
+            Two-sided p-values for each feature under Gaussian null.
 
         Notes
         -----
-        The importance scores are based on the test statistics computed from the
-        correlation between the residuals of y and the residuals of each feature X_j,
-        after distillation. The resulting p-values are stored in `self.pvalues_` and
-        the importance scores in `self.importances_`.
-
-        References
-        ----------
-        .. footbibliography::
+        For each selected feature j:
+        1. Computes residuals from regressing X_j on other features
+        2. Computes residuals from regressing y on other features
+        3. Calculates test statistic from correlation of residuals
+        4. Computes p-value assuming standard normal distribution
         """
         self._check_fit()
 
@@ -405,8 +397,8 @@ class D0CRT(BaseVariableImportance):
         test_statistic = np.zeros(n_features)
         test_statistic[selection_features] = test_statistic_selected_variables
 
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
         self.importances_ = test_statistic
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
 
         return self.importances_
 
@@ -414,20 +406,28 @@ class D0CRT(BaseVariableImportance):
         """
         Fits the model to the data and computes feature importance.
 
+        A convenience method that combines fit() and importance() into a single call.
+        First fits the dCRT model to the data, then calculates importance scores.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
-            The input data.
+            Training data matrix.
         y : array-like of shape (n_samples,)
-            The target values.
+            Target values.
         cv : None or int, optional (default=None)
-            (not used) Cross-validation parameter.
-            A warning will be issued if provided.
+            Not used. Included for compatibility. A warning will be issued if provided.
 
         Returns
         -------
-        importance : array-like
-            The computed feature importance scores.
+        importance : ndarray of shape (n_features,)
+            Feature importance scores/test statistics.
+            For features not selected during screening, scores are set to 0.
+
+        Notes
+        -----
+        Also sets the importances_ and pvalues_ attributes on the instance.
+        See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
             warnings.warn("cv won't be used")
