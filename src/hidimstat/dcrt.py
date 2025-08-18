@@ -79,12 +79,11 @@ class D0CRT(BaseVariableImportance):
         Fitted screening model if estimated_coef is None.
     non_selection_ : ndarray
         Indices of features not selected after screening.
-    ts_ : ndarray of shape (n_features,)
-        Test statistics following standard normal distribution.
     pvalues_ : ndarray of shape (n_features,)
         Computed p-values for each feature.
     importances_ : ndarray of shape (n_features,)
         Importance scores for each feature.
+        Test statistics following standard normal distribution.
 
     Notes
     -----
@@ -390,23 +389,24 @@ class D0CRT(BaseVariableImportance):
         # By assumming X|Z following a normal law, the exact p-value can be
         # computed with the following equation (see section 2.5 in `liu2022fast`)
         # based on the residuals of y and x.
-        ts_selected_variables = [
+        test_statistic_selected_variables = [
             np.dot(y_residual[i], X_residual[i])
             / np.sqrt(n_samples * sigma2[i] * np.mean(y_residual[i] ** 2))
             for i in range(X_residual.shape[0])
         ]
 
         if self.scaled_statistics:
-            ts_selected_variables = (
-                ts_selected_variables - np.mean(ts_selected_variables)
-            ) / np.std(ts_selected_variables)
+            test_statistic_selected_variables = (
+                test_statistic_selected_variables
+                - np.mean(test_statistic_selected_variables)
+            ) / np.std(test_statistic_selected_variables)
 
         # get the results
-        self.ts_ = np.zeros(n_features)
-        self.ts_[selection_features] = ts_selected_variables
+        test_statistic = np.zeros(n_features)
+        test_statistic[selection_features] = test_statistic_selected_variables
 
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(self.ts_)), 1)
-        self.importances_ = self.pvalues_
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
+        self.importances_ = test_statistic
 
         return self.importances_
 
