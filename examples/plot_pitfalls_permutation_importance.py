@@ -66,12 +66,10 @@ sns.heatmap(
     ax=ax,
 )
 ax.set_title("Correlation Matrix")
-ax.set_yticks(
-    np.arange(len(feature_names)) + 0.5, labels=feature_names, fontsize=10, rotation=45
-)
-ax.set_xticks(
-    np.arange(len(feature_names)) + 0.5, labels=feature_names, fontsize=10, rotation=45
-)
+ax.set_yticks(np.arange(len(feature_names)) + 0.5)
+ax.set_yticklabels(labels=feature_names, fontsize=10, rotation=45)
+ax.set_xticks(np.arange(len(feature_names)) + 0.5)
+ax.set_xticklabels(labels=feature_names, fontsize=10, rotation=45)
 plt.tight_layout()
 plt.show()
 
