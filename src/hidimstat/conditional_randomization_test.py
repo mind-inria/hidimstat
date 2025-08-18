@@ -35,8 +35,6 @@ class CRT(BaseVariableImportance, SelectionFDR):
         Used for caching
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs
-    problem_type : {'regression', 'classification'}, default='regression'
-        Type of prediction problem
 
     Attributes
     ----------
@@ -68,14 +66,12 @@ class CRT(BaseVariableImportance, SelectionFDR):
         n_jobs=1,
         memory=None,
         joblib_verbose=0,
-        problem_type="regression",
     ):
         self.generator = generator
         self.n_sampling = n_sampling
         self.n_jobs = n_jobs
         self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
-        self.problem_type = problem_type
         self.statistical_test = statistical_test
 
     def fit(self, X, y=None):
@@ -244,7 +240,6 @@ def crt(
     n_jobs=1,
     memory=None,
     joblib_verbose=0,
-    problem_type="regression",
 ):
     crt = CRT(
         generator=generator,
@@ -253,7 +248,6 @@ def crt(
         n_jobs=n_jobs,
         memory=memory,
         joblib_verbose=joblib_verbose,
-        problem_type=problem_type,
     )
     return crt.fit_importance(X, y)
 
