@@ -744,11 +744,13 @@ d0crt.__doc__ = _aggregate_docstring(
     """
     Returns
     -------
-    selection: binary array-like of shape (n_features)
-        Binary array of the seleted features
-    importance : array-like of shape (n_features)
-        The computed feature importance scores.
-    pvalues : array-like of shape (n_features)
-        The computed significant of feature for the prediction.
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics. For features not selected 
+        during screening, scores are set to 0.
+    pvalues : ndarray of shape (n_features,)
+        Two-sided p-values for each feature under Gaussian null hypothesis.
+        For features not selected during screening, p-values are set to 1.
     """,
 )
