@@ -22,6 +22,8 @@ class D0CRT(BaseVariableImportance):
     by combining Lasso-based screening and residual-based test statistics.
     Based on the original implementation at:
     https://github.com/moleibobliu/Distillation-CRT/
+    The y-distillation is based on a given estimator and the x-distillation is
+    based on a Lasso estimator.
 
     Parameters
     ----------
@@ -75,7 +77,8 @@ class D0CRT(BaseVariableImportance):
     clf_x_ : list of estimators of length n_features
         Fitted models for X distillation (Lasso or None if using sigma_X).
     clf_y_ : list of estimators of length n_features
-        Fitted models for y distillation (Lasso or None if using estimated_coef).
+        Fitted models for y distillation
+        (sklearn estimator or None if using estimated_coef and Lasso estimator).
     clf_screening_ : LassoCV or Lasso
         Fitted screening model if estimated_coef is None.
     non_selection_ : ndarray
