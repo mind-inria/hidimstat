@@ -4,7 +4,7 @@ Test the scenario module
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal, assert_equal
+from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
 from hidimstat._utils.scenario import (
     multivariate_simulation,
@@ -14,27 +14,37 @@ from hidimstat._utils.scenario import (
 )
 
 
-def test_multivariate_simulation_2D():
+@pytest.mark.parametrize(
+    "n_samples,shape,roi_size,signal_noise_ratio,smooth_X,rho_expected,seed",
+    [
+        (100, (12, 12), 2, 1.0, 1.0, 0.8, 0),
+        (100, (12, 12), 2, 0.0, 1.0, 0.8, 0),
+        (100, (12, 12), 2, np.inf, 1.0, 0.8, 0),
+        (100, (12, 12), 0, 1.0, 1.0, 0.8, 0),
+    ],
+    ids=[
+        "basic case",
+        "only noise",
+        "no noise",
+        "no roi",
+    ],
+)
+def test_multivariate_simulation_2D(
+    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, rho_expected, seed
+):
     """Test concerns a simulation with a 2D
     if the data has expected shape,
     if the input parameters are close to their empirical estimators,
     if the support has the expected size (from simple geometry)
     and if the noise model is the generative model.
     """
-    n_samples = 100
-    shape = (12, 12)
-    roi_size = 2
-    signal_noise_ratio = 1.0
-    smooth_X = 1.0
-    rho_expected = 0.8
-
     X, y, beta, noise = multivariate_simulation_spatial(
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
         signal_noise_ratio=signal_noise_ratio,
         smooth_X=smooth_X,
-        seed=0,
+        seed=seed,
     )
 
     signal_noise_ratio_hat = np.linalg.norm(y - noise) / np.linalg.norm(noise)
@@ -43,11 +53,24 @@ def test_multivariate_simulation_2D():
     # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1]))
     # check if the input parameters are close to their empirical estimators
-    assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
+    if roi_size == 0:
+        assert_raises(
+            AssertionError,
+            assert_almost_equal,
+            signal_noise_ratio_hat,
+            signal_noise_ratio,
+        )
+    else:
+        assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
-    assert_equal(y, np.dot(X, beta) + noise)
+    if signal_noise_ratio == 0:
+        assert_equal(y, noise)
+    else:
+        assert_equal(y, np.dot(X, beta) + noise)
+
     # check if the support has the expected size (from simple geometry)
-    assert_equal(np.count_nonzero(beta), 4 * (roi_size**2))
+    if roi_size != 0:
+        assert_equal(np.count_nonzero(beta), 4 * (roi_size**2))
 
 
 def test_multivariate_simulation_3D():
@@ -185,6 +208,7 @@ def test_multivariate_simulation_weights_2D():
 
 
 def test_multivariate_simulation_weights_3D():
+    """Test weight map generation and properties"""
     # 3D weights
     shape = (6, 6, 6)
     roi_size = 2

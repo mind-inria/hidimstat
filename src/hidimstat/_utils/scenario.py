@@ -162,7 +162,7 @@ def multivariate_simulation_spatial(
 
     # Scale the noise for respecting signal-noise-ratio.
     eps = rng.standard_normal(size=n_samples)
-    if np.sum(shape) == 0:
+    if roi_size == 0:
         noise_mag = 1.0
     elif np.isinf(signal_noise_ratio):
         noise_mag = 0.0
