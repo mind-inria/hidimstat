@@ -62,13 +62,14 @@ class CRT(BaseVariableImportance, SelectionFDR):
         self,
         generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
         statistical_test=lasso_statistic,
-        n_sampling=10,
+        n_repeat=10,
         n_jobs=1,
         memory=None,
         joblib_verbose=0,
     ):
         self.generator = generator
-        self.n_sampling = n_sampling
+        assert n_repeat > 0, "n_samplings must be positive"
+        self.n_repeat = n_repeat
         self.n_jobs = n_jobs
         self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
@@ -140,7 +141,7 @@ class CRT(BaseVariableImportance, SelectionFDR):
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         X_samples = []
-        for i in range(self.n_sampling):
+        for i in range(self.n_repeat):
             X_samples.append(self.generator.simulate())
 
         self.test_scores_ = np.array(
@@ -152,7 +153,7 @@ class CRT(BaseVariableImportance, SelectionFDR):
             )
         )
         self.test_scores_ = reference_value - np.array(self.test_scores_).reshape(
-            self.n_sampling, -1
+            self.n_repeat, -1
         )
 
         self.importances_ = np.mean(np.abs(self.test_scores_), axis=0)
@@ -163,7 +164,7 @@ class CRT(BaseVariableImportance, SelectionFDR):
                 self.test_scores_ >= 0,
                 axis=0,
             )
-        ) / (self.n_sampling + 1)
+        ) / (self.n_repeat + 1)
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
@@ -236,7 +237,7 @@ def crt(
     y,
     generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
     statistical_test=lasso_statistic,
-    n_sampling=10,
+    n_repeat=10,
     n_jobs=1,
     memory=None,
     joblib_verbose=0,
@@ -244,7 +245,7 @@ def crt(
     crt = CRT(
         generator=generator,
         statistical_test=statistical_test,
-        n_sampling=n_sampling,
+        n_repeat=n_repeat,
         n_jobs=n_jobs,
         memory=memory,
         joblib_verbose=joblib_verbose,
