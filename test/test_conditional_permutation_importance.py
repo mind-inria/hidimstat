@@ -12,7 +12,7 @@ from hidimstat import CPI, BasePerturbation
 from hidimstat._utils.exception import InternalError
 
 
-def configure_linear_categorial_cpi(X, y, n_permutation, seed):
+def run_categorial_cpi(X, y, n_permutation, seed):
     """
     Configure Conditional Permutation Importance (CPI) model with linear regression
     for feature importance analysis.
@@ -90,7 +90,7 @@ parameter_exact = [
 def test_cpi_linear_data_exact(data_generator, cpi_n_permutation, cpi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
-    importance = configure_linear_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
+    importance = run_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -122,7 +122,7 @@ parameter_partial = [
 def test_cpi_linear_data_partial(data_generator, cpi_n_permutation, cpi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
-    importance = configure_linear_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
+    importance = run_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -147,7 +147,7 @@ def test_cpi_linear_data_partial(data_generator, cpi_n_permutation, cpi_seed):
 def test_cpi_linear_fail(data_generator, cpi_n_permutation, cpi_seed):
     """Tests when the method doesn't identify all important features"""
     X, y, important_features, not_important_features = data_generator
-    importance = configure_linear_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
+    importance = run_categorial_cpi(X, y, cpi_n_permutation, cpi_seed)
     # check that importance is defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that mean importance of important features is
