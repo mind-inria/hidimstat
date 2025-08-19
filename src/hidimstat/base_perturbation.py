@@ -6,6 +6,7 @@ from sklearn.metrics import root_mean_squared_error
 import warnings
 
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat._utils.exception import InternalError
 
 
 class BasePerturbation(BaseEstimator):
@@ -190,12 +191,29 @@ class BasePerturbation(BaseEstimator):
                 " to set variable groups. If no grouping is needed,"
                 " call fit with groups=None"
             )
+        if isinstance(X, pd.DataFrame):
+            names = [*X]
+        elif isinstance(X, np.ndarray) and X.dtype.names is not None:
+            names = X.dtype.names
+        elif isinstance(X, np.ndarray):
+            names = None
+        else:
+            raise ValueError("X should be a pandas dataframe or a numpy array.")
+        number_columns = X.shape[1]
         count = 0
         for index_variables in self.groups.values():
             if type(index_variables[0]) is int:
                 assert np.all(
-                    np.array(index_variables, dtype=int) < X.shape[1]
+                    np.array(index_variables, dtype=int) < number_columns
                 ), "X does not correspond to the fitting data."
+            elif type(index_variables[0]) is str:
+                assert np.all(
+                    [name in names for name in index_variables]
+                ), f"The array is missing at least one of the following columns {index_variables}."
+            else:
+                raise InternalError(
+                    "A problem with indexing has happened during the fit."
+                )
             count += len(index_variables)
         if X.shape[1] > count:
             warnings.warn(

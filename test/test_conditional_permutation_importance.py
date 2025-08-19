@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat import CPI, BasePerturbation
+from hidimstat._utils.exception import InternalError
 
 
 def configure_linear_categorial_cpi(X, y, n_permutation, seed):
@@ -429,6 +430,22 @@ class TestCPIExceptions:
         with pytest.raises(AssertionError, match="n_permutations must be positive"):
             CPI(estimator=fitted_model, n_permutations=-1, method="predict")
 
+    def test_not_good_type_X(self, data_generator):
+        """Test when X is wrong type"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+        )
+        cpi.fit(X, groups=None, var_type="auto")
+
+        with pytest.raises(
+            ValueError, match="X should be a pandas dataframe or a numpy array."
+        ):
+            cpi.importance(X.tolist(), y)
+
     def test_mismatched_features(self, data_generator):
         """Test when number of features doesn't match between fit and predict"""
         X, y, _, _ = data_generator
@@ -444,6 +461,57 @@ class TestCPIExceptions:
             AssertionError, match="X does not correspond to the fitting data."
         ):
             cpi.importance(X[:, :-1], y)
+
+    def test_mismatched_features_string(self, data_generator):
+        """Test when name of features doesn't match between fit and predict"""
+        X, y, _, _ = data_generator
+        X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+        )
+        subgroups = {
+            "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
+            "group2": [
+                "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
+            ],
+        }
+        cpi.fit(X, groups=subgroups, var_type="auto")
+
+        with pytest.raises(
+            AssertionError,
+            match=f"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
+        ):
+            cpi.importance(
+                X[np.concatenate([subgroups["group1"], subgroups["group2"][:-2]])], y
+            )
+
+    def test_internal_error(self, data_generator):
+        """Test when name of features doesn't match between fit and predict"""
+        X, y, _, _ = data_generator
+        X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
+        fitted_model = LinearRegression().fit(X, y)
+        cpi = CPI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+        )
+        subgroups = {
+            "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
+            "group2": [
+                "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
+            ],
+        }
+        cpi.fit(X, groups=subgroups, var_type="auto")
+        cpi.groups["group1"] = [None for i in range(100)]
+
+        with pytest.raises(
+            InternalError,
+            match=f"A problem with indexing has happened during the fit.",
+        ):
+            cpi.importance(X, y)
 
     def test_invalid_var_type(self, data_generator):
         """Test when invalid variable type is provided"""
