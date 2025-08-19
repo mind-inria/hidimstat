@@ -85,14 +85,102 @@ def test_fdp_power():
 
 def test_aggregate_docstring():
     """Test docstring grouping"""
-    doc_quantile = "\n    Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\n    The function aggregates multiple p-values into a single p-value while controlling\n\n    Parameters\n    ----------\n    pvals : ndarray of shape (n_sampling*2, n_test)\n        Matrix of p-values to aggregate. Each row represents a sampling instance.\n\n    Returns\n    -------\n    ndarray of shape (n_test,)\n        Vector of aggregated p-values, one for each hypothesis test.\n\n    References\n    ----------\n    .. footbibliography::\n\n    Notes\n    -----\n    The aggregated p-values are guaranteed to be valid p-values in [0,1].\n    "
-    doc_fixed_quantile = "\n    Quantile aggregation function based on :cite:meinshausen2009p\n\n    Parameters\n    ----------\n    pvals : 2D ndarray (n_sampling*2, n_test)\n        p-valueur\n\n Returns\n    -------\n    1D ndarray (n_tests, )\n        Vector of aggregated p-values\n\n    References\n    ----------\n    .. footbibliography::\n    "
-    doc_adaptive_quantile = "\n    Adaptive version of quantile aggregation method based on :cite:meinshausen2009p\n\n    Parameters\n    ----------\n    pvals : 2D ndarray (n_sampling*2, n_test)\n        p-value\n\n    Returns\n    -------\n    2D ndarray (n_tests, )\n        Vector of aggregated p-values\n\n    References\n    ----------\n    .. footbibliography::\n    "
+    doc_minimum_1 = """
+    Short Summary
+    
+    Parameters
+    ----------
+    param_1: ndarray of shape (n_sampling,)
+        short description
+    
+    param_2: float, default=2.0
+        short description 2
+    
+    Returns
+    -------
+    ndarray of shape (n_sampling,)
+        short description for return
+    
+    References
+    ----------
+    .. footbibliography::
+    
+    Notes
+    -----
+    
+    Complementary information
+    """
+    doc_minimum_2 = """
+    Name object
+    
+    Description
+    
+    Parameters
+    ----------
+    param2_1: float, default=2.0
+        description param2_1
+    
+    param2_2: ndarray of shape (n_sampling,)
+        description param2_2
+    
+    Returns
+    -------
+    time_example (float)
+        description of return
+    """
+    doc_minimum_3 = """
+    Short Description
+    
+    Parameters
+    ----------
+    param_first: int, default=10
+        integer interpretation
+    
+    param_second: float, default=2.0
+        float interpretation
+    
+    Returns
+    -------
+    None
+        
+    
+    References
+    ----------
+    .. footbibliography::
+    
+    """
     final_doc = _aggregate_docstring(
-        [doc_quantile, None, doc_fixed_quantile, doc_adaptive_quantile],
-        "Returns\n    -------\n    3D ndarray (n_tests, )\n        Vector of aggregated p-values\n",
+        [doc_minimum_1, None, doc_minimum_2, doc_minimum_3],
+        """
+        Returns
+        -------
+        3D ndarray (n_tests, )
+        Vector of aggregated p-values
+        """,
     )
     assert (
         final_doc
-        == "Implements the quantile aggregation method for p-values based on :cite:meinshausen2009p.\n\nThe function aggregates multiple p-values into a single p-value while controlling\nParameters\n----------\npvals : ndarray of shape (n_sampling*2, n_test)\nMatrix of p-values to aggregate. Each row represents a sampling instance.\npvals : 2D ndarray (n_sampling*2, n_test)\np-valueur\npvals : 2D ndarray (n_sampling*2, n_test)\np-value\nReturns\n-------\n3D ndarray (n_tests, )\nVector of aggregated p-values"
+        == """Short Summary
+Parameters
+----------
+param_1: ndarray of shape (n_sampling,)
+short description
+
+param_2: float, default=2.0
+short description 2
+param2_1: float, default=2.0
+description param2_1
+
+param2_2: ndarray of shape (n_sampling,)
+description param2_2
+param_first: int, default=10
+integer interpretation
+
+param_second: float, default=2.0
+float interpretation
+
+Returns
+-------
+3D ndarray (n_tests, )
+Vector of aggregated p-values"""
     )
