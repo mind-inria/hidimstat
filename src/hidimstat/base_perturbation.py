@@ -195,6 +195,8 @@ class BasePerturbation(BaseEstimator):
             names = [*X]
         elif isinstance(X, np.ndarray) and X.dtype.names is not None:
             names = X.dtype.names
+            # transform Structured Array in pandas array for a better manipulation
+            X = pd.DataFrame(X)
         elif isinstance(X, np.ndarray):
             names = None
         else:

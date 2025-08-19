@@ -502,6 +502,8 @@ class TestCPIExceptions:
         cpi.fit(X, groups=subgroups, var_type="auto")
         cpi.groups["group1"] = [None for i in range(100)]
 
+        X = X.to_records(index=False)
+        X = np.array(X, dtype=X.dtype.descr)
         with pytest.raises(
             InternalError,
             match=f"A problem with indexing has happened during the fit.",
