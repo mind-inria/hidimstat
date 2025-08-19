@@ -199,7 +199,8 @@ class BasePerturbation(BaseEstimator):
             count += len(index_variables)
         if X.shape[1] > count:
             warnings.warn(
-                "The importance will be computed only for features in the groups."
+                f"Among all {X.shape[1]} features, only the first {count}"
+                " ones will get an importance score."
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):

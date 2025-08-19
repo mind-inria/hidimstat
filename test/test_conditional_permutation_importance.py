@@ -499,6 +499,7 @@ class TestCPIExceptions:
 
         with pytest.warns(
             UserWarning,
-            match="The importance will be computed only for features in the groups.",
+            match="Among all 200 features, only the first 4"
+            " ones will get an importance score.",
         ):
             cpi.importance(X, y)
