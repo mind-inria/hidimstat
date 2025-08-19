@@ -103,51 +103,51 @@ def test_crt_linear_data_exact(data_generator, crt_n_sampling, crt_seed, crt_fdr
     assert power == 1.0
 
 
-# ## tests crt no power
-# parameter_no_power = [
-#     ("Dim", 200, 20, 4, 0.0, 42, 1.0, np.inf, 0.0),
-#     ("Dim with noise", 200, 20, 4, 0.0, 42, 1.0, 10.0, 0.0),
-#     ("Dim with correlated noise", 200, 20, 4, 0.0, 42, 1.0, 10.0, 0.2),
-#     ("Dim with correlated features", 200, 20, 4, 0.2, 42, 1.0, np.inf, 0.0),
-#     ("Dim high level noise", 200, 20, 4, 0.2, 42, 1.0, 1.0, 0.0),
-#     ("Dim with correlated features and noise", 200, 20, 4, 0.2, 42, 1, 10, 0),
-#     (
-#         "Dim with correlated features and correlated noise",
-#         200,
-#         20,
-#         4,
-#         0.2,
-#         42,
-#         1.0,
-#         10,
-#         0.2,
-#     ),
-# ]
+## tests crt no power
+parameter_no_power = [
+    ("Dim", 200, 20, 3, 0.0, 42, 1.0, np.inf, 0.0),
+    ("Dim with noise", 200, 20, 3, 0.0, 42, 1.0, 10.0, 0.0),
+    ("Dim with correlated noise", 200, 20, 3, 0.0, 42, 1.0, 10.0, 0.2),
+    ("Dim with correlated features", 200, 20, 3, 0.2, 42, 1.0, np.inf, 0.0),
+    ("Dim high level noise", 200, 20, 3, 0.2, 42, 1.0, 1.0, 0.0),
+    ("Dim with correlated features and noise", 200, 20, 3, 0.2, 42, 1, 10, 0),
+    (
+        "Dim with correlated features and correlated noise",
+        200,
+        20,
+        3,
+        0.2,
+        42,
+        1.0,
+        10,
+        0.2,
+    ),
+]
 
 
-# @pytest.mark.parametrize(
-#     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-#     zip(*(list(zip(*parameter_no_power))[1:])),
-#     ids=list(zip(*parameter_no_power))[0],
-# )
-# @pytest.mark.parametrize(
-#     "crt_n_sampling, crt_seed, crt_fdr", [(20, 5, 0.4)], ids=["default_crt"]
-# )
-# def test_crt_linear_no_power(data_generator, crt_n_sampling, crt_seed, crt_fdr):
-#     """Tests the method on linear cases with noise and correlation"""
-#     X, y, important_features, _ = data_generator
-#     importance, selected = configure_linear_categorial_crt(
-#         X, y, crt_n_sampling, crt_seed, crt_fdr
-#     )
-#     # check that importance scores are defined for each feature
-#     assert importance.shape == (X.shape[1],)
-#     # check that important features have the highest importance scores
-#     assert np.all([int(i) in important_features for i in np.argsort(importance)[-5:]])
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    zip(*(list(zip(*parameter_no_power))[1:])),
+    ids=list(zip(*parameter_no_power))[0],
+)
+@pytest.mark.parametrize(
+    "crt_n_sampling, crt_seed, crt_fdr", [(5, 5, 0.4)], ids=["default_crt"]
+)
+def test_crt_linear_no_power(data_generator, crt_n_sampling, crt_seed, crt_fdr):
+    """Tests the method on linear cases with noise and correlation"""
+    X, y, important_features, _ = data_generator
+    importance, selected = configure_linear_categorial_crt(
+        X, y, crt_n_sampling, crt_seed, crt_fdr
+    )
+    # check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # check that important features have the highest importance scores
+    assert np.all([int(i) in important_features for i in np.argsort(importance)[-3:]])
 
-#     # test the selection part
-#     fdp, power = fdp_power(np.where(selected)[0], important_features)
-#     assert fdp < crt_fdr
-#     assert power == 0.0
+    # test the selection part
+    fdp, power = fdp_power(np.where(selected)[0], important_features)
+    assert fdp < crt_fdr
+    assert power == 0.0
 
 
 ## tests crt on different type of data
