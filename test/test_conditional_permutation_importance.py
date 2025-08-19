@@ -136,15 +136,12 @@ def test_cpi_linear_data_partial(data_generator, cpi_n_permutation, cpi_seed):
     assert min_rank < 15
 
 
-parameter_bad_detection = [
-    ("high level noise", 150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0),
-]
 
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_bad_detection))[1:])),
-    ids=list(zip(*parameter_bad_detection))[0],
+    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    ids=["high level noise"],
 )
 @pytest.mark.parametrize("cpi_n_permutation, cpi_seed", [(20, 0)], ids=["default_cpi"])
 def test_cpi_linear_fail(data_generator, cpi_n_permutation, cpi_seed):
