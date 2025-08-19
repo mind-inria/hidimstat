@@ -202,11 +202,15 @@ class BasePerturbation(BaseEstimator):
         number_columns = X.shape[1]
         count = 0
         for index_variables in self.groups.values():
-            if type(index_variables[0]) is int:
+            if type(index_variables[0]) is int or np.issubdtype(
+                type(index_variables[0]), int
+            ):
                 assert np.all(
                     np.array(index_variables, dtype=int) < number_columns
                 ), "X does not correspond to the fitting data."
-            elif type(index_variables[0]) is str:
+            elif type(index_variables[0]) is str or np.issubdtype(
+                type(index_variables[0]), str
+            ):
                 assert np.all(
                     [name in names for name in index_variables]
                 ), f"The array is missing at least one of the following columns {index_variables}."
