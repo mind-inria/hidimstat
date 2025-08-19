@@ -136,8 +136,6 @@ def test_cpi_linear_data_partial(data_generator, cpi_n_permutation, cpi_seed):
     assert min_rank < 15
 
 
-
-
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],

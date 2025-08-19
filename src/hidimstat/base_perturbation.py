@@ -219,7 +219,12 @@ class BasePerturbation(BaseEstimator):
                     "A problem with indexing has happened during the fit."
                 )
             count += len(index_variables)
-        if X.shape[1] > count:
+        if (
+            X.shape[1]
+            > np.unique(
+                np.concatenate([values for values in self.groups.values()])
+            ).shape[0]
+        ):
             warnings.warn(
                 f"Among all {X.shape[1]} features, only the first {count}"
                 " ones will get an importance score."
