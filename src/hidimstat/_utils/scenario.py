@@ -99,7 +99,7 @@ def multivariate_simulation_spatial(
     n_samples=100,
     shape=(12, 12),
     roi_size=2,
-    sigma_noise=1.0,
+    signal_noise_ratio=1.0,
     smooth_X=1.0,
     seed=0,
 ):
@@ -115,8 +115,8 @@ def multivariate_simulation_spatial(
         or (n_x, n_y, n_z) for 3D data.
     roi_size : int, default=2
         Size of the edge of the ROIs (Regions of Interest).
-    sigma_noise : float, default=1.0
-        Standard deviation of the additive white Gaussian noise.
+    signal_noise_ratio : float, default=1.0
+        Signal-to-noise ratio. Controls noise scaling.
     smooth_X : float, default=1.0
         Level of data smoothing using a Gaussian filter.
     seed : int, default=0
@@ -150,9 +150,7 @@ def multivariate_simulation_spatial(
         X.append(Xi.ravel())
     X = np.asarray(X)
 
-    # Generate the support and the noise of the data for the prediction.
-    noise = sigma_noise * rng.standard_normal(n_samples)
-    # generate the support of the data
+    # Generate the support of the data
     if len(shape) == 2:
         w = _generate_2D_weight(shape, roi_size)
     elif len(shape) == 3:
@@ -160,8 +158,24 @@ def multivariate_simulation_spatial(
     else:
         raise ValueError(f"Shape {shape} not supported, only 2D and 3D are supported")
     beta = w.sum(-1).ravel()
+    prod_temp = np.dot(X, beta)
 
-    y = np.dot(X, beta) + noise
+    # Scale the noise for respecting signal-noise-ratio.
+    eps = rng.standard_normal(size=n_samples)
+    if np.sum(shape) == 0:
+        noise_mag = 1.0
+    elif np.isinf(signal_noise_ratio):
+        noise_mag = 0.0
+    elif signal_noise_ratio != 0.0:
+        noise_mag = np.linalg.norm(prod_temp) / (
+            np.linalg.norm(eps) * np.sqrt(signal_noise_ratio)
+        )
+    else:
+        prod_temp = np.zeros_like(prod_temp)
+        noise_mag = 1
+    noise = noise_mag * eps
+
+    y = prod_temp + noise
 
     return X, y, beta, noise
 
@@ -203,7 +217,7 @@ def multivariate_simulation(
         Serial correlation coefficient of the noise.
     shuffle : bool, default=False
         Whether to shuffle features randomly to avoid to have correlated
-        adjacent correlated features.
+        adjacent features.
     continuous_support: bool, default=False
         If True, places non-zero coefficients continuously at the start of beta.
         If False, randomly distributes them throughout beta.

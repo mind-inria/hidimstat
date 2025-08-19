@@ -24,7 +24,7 @@ def test_multivariate_simulation_2D():
     n_samples = 100
     shape = (12, 12)
     roi_size = 2
-    sigma = 1.0
+    signal_noise_ratio = 1.0
     smooth_X = 1.0
     rho_expected = 0.8
 
@@ -32,18 +32,18 @@ def test_multivariate_simulation_2D():
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        sigma_noise=sigma,
+        signal_noise_ratio=signal_noise_ratio,
         smooth_X=smooth_X,
         seed=0,
     )
 
-    sigma_hat = np.std(noise)
+    signal_noise_ratio_hat = np.linalg.norm(y - noise) / np.linalg.norm(noise)
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
     # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1]))
     # check if the input parameters are close to their empirical estimators
-    assert_almost_equal(sigma_hat, sigma, decimal=1)
+    assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
     assert_equal(y, np.dot(X, beta) + noise)
     # check if the support has the expected size (from simple geometry)
@@ -60,7 +60,7 @@ def test_multivariate_simulation_3D():
     n_samples = 100
     shape = (12, 12, 12)
     roi_size = 2
-    sigma = 1.0
+    signal_noise_ratio = 1.0
     smooth_X = 1.0
     rho_expected = 0.8
 
@@ -68,18 +68,18 @@ def test_multivariate_simulation_3D():
         n_samples=n_samples,
         shape=shape,
         roi_size=roi_size,
-        sigma_noise=sigma,
+        signal_noise_ratio=signal_noise_ratio,
         smooth_X=smooth_X,
         seed=0,
     )
 
-    sigma_hat = np.std(noise)
+    signal_noise_ratio_hat = np.linalg.norm(y - noise) / np.linalg.norm(noise)
     rho_hat = np.corrcoef(X[:, 100], X[:, 101])[0, 1]
 
     # check if the data has expected shape
     assert_equal(X.shape, (n_samples, shape[0] * shape[1] * shape[2]))
     # check if the input parameters are close to their empirical estimators
-    assert_almost_equal(sigma_hat, sigma, decimal=1)
+    assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
     assert_equal(y, np.dot(X, beta) + noise)
     # check if the support has the expected size (from simple geometry)
