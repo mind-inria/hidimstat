@@ -200,7 +200,6 @@ class BasePerturbation(BaseEstimator):
         else:
             raise ValueError("X should be a pandas dataframe or a numpy array.")
         number_columns = X.shape[1]
-        count = 0
         for index_variables in self.groups.values():
             if type(index_variables[0]) is int or np.issubdtype(
                 type(index_variables[0]), int
@@ -218,15 +217,13 @@ class BasePerturbation(BaseEstimator):
                 raise InternalError(
                     "A problem with indexing has happened during the fit."
                 )
-            count += len(index_variables)
-        if (
-            X.shape[1]
-            > np.unique(
-                np.concatenate([values for values in self.groups.values()])
-            ).shape[0]
-        ):
+        number_unique_feature_in_groups = np.unique(
+            np.concatenate([values for values in self.groups.values()])
+        ).shape[0]
+        if X.shape[1] > number_unique_feature_in_groups:
             warnings.warn(
-                f"Among all {X.shape[1]} features, only the first {count}"
+                f"Among all {X.shape[1]} features, only the first "
+                f"{number_unique_feature_in_groups}"
                 " ones will get an importance score."
             )
 
