@@ -14,8 +14,11 @@ the power
 
 import matplotlib.pyplot as plt
 import numpy as np
-from hidimstat.dcrt import dcrt_zero, dcrt_pvalue
-from hidimstat._utils.scenario import multivariate_simulation
+from sklearn.linear_model import LassoCV
+from sklearn.ensemble import RandomForestRegressor
+
+from hidimstat import D0CRT
+from hidimstat._utils.scenario import multivariate_1D_simulation
 
 plt.rcParams.update({"font.size": 21})
 
@@ -57,6 +60,7 @@ for sim_ind in range(10):
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
+<<<<<<< HEAD
     selection_features, X_res, sigma2, y_res = dcrt_zero(X, y, screening=False)
     variables_important_lasso, pvals_lasso, ts_lasso = dcrt_pvalue(
         selection_features, X_res, sigma2, y_res
@@ -65,18 +69,40 @@ for sim_ind in range(10):
         sum(pvals_lasso[np.logical_not(beta_true)] < alpha) / (p - n_signal)
     )
     power["Lasso"].append(sum(pvals_lasso[beta_true] < alpha) / (n_signal))
-
-    ## dcrt Random Forest ##
-    selection_features, X_res, sigma2, y_res = dcrt_zero(
-        X, y, screening=False, statistic="random_forest"
-    )
-    rvariables_important_forest, pvals_forest, ts_forest = dcrt_pvalue(
+||||||| 2e2fd2c
+    selection_features, X_res, sigma2, y_res = dcrt_zero(X, y, screening=False)
+    variables_important_lasso, pvals_lasso, ts_lasso = dcrt_pvalue(
         selection_features, X_res, sigma2, y_res
     )
+    typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
+    power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
+=======
+    d0crt_lasso = D0CRT(estimator=LassoCV(random_state=42, n_jobs=1), screening=False)
+    d0crt_lasso.fit_importance(X, y)
+    pvals_lasso = d0crt_lasso.pvalues_
+    typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
+    power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
+>>>>>>> main
+
+    ## dcrt Random Forest ##
+    d0crt_random_forest = D0CRT(
+        estimator=RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=1),
+        screening=False,
+    )
+<<<<<<< HEAD
     typeI_error["Forest"].append(
         sum(pvals_forest[np.logical_not(beta_true)] < alpha) / (p - n_signal)
     )
     power["Forest"].append(sum(pvals_forest[beta_true] < alpha) / (n_signal))
+||||||| 2e2fd2c
+    typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
+    power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
+=======
+    d0crt_random_forest.fit_importance(X, y)
+    pvals_forest = d0crt_random_forest.pvalues_
+    typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
+    power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
+>>>>>>> main
 
 #############################################################################
 # Plotting the comparison
