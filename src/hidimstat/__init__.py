@@ -1,4 +1,3 @@
-from .base_variable_importance import BaseVariableImportance
 from .base_perturbation import BasePerturbation
 from .ensemble_clustered_inference import (
     clustered_inference,
@@ -13,7 +12,6 @@ from .desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from .dcrt import d0crt, D0CRT
 from .conditional_permutation_importance import CPI
 from .knockoffs import (
     model_x_knockoff,
@@ -24,8 +22,8 @@ from .knockoffs import (
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_feature_importance import PFI
-
 from .statistical_tools.aggregation import quantile_aggregation
+from .dcrt import dcrt_zero, dcrt_pvalue
 
 try:
     from ._version import __version__
@@ -38,8 +36,8 @@ __all__ = [
     "clustered_inference_pvalue",
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
-    "d0crt",
-    "D0CRT",
+    "dcrt_zero",
+    "dcrt_pvalue",
     "desparsified_lasso",
     "desparsified_lasso_pvalue",
     "desparsified_group_lasso_pvalue",
