@@ -11,7 +11,7 @@ from hidimstat import CFI, BasePerturbation
 
 
 def test_cfi(linear_scenario):
-    """Test the Conditional Permutation Importance algorithm on a linear scenario."""
+    """Test the Conditional Feature Importance algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
@@ -101,7 +101,7 @@ def test_cfi(linear_scenario):
 def test_raises_value_error(
     linear_scenario,
 ):
-    """Test for the ValueError raised by the Conditional Permutation Importance
+    """Test for the ValueError raised by the Conditional Feature Importance
     algorithm."""
     X, y, _ = linear_scenario
 
