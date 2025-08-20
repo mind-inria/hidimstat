@@ -13,7 +13,7 @@ from .desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from .dcrt import d0crt, D0CRT
+from .distilled_conditional_randomization_test import d0crt, D0CRT
 from .conditional_permutation_importance import CPI
 from .knockoffs import (
     model_x_knockoff,
