@@ -192,7 +192,7 @@ class BasePerturbation(BaseEstimator):
                 " call fit with groups=None"
             )
         if isinstance(X, pd.DataFrame):
-            names = [*X]
+            names = list(X.columns)
         elif isinstance(X, np.ndarray) and X.dtype.names is not None:
             names = X.dtype.names
             # transform Structured Array in pandas array for a better manipulation
@@ -222,11 +222,11 @@ class BasePerturbation(BaseEstimator):
         number_unique_feature_in_groups = np.unique(
             np.concatenate([values for values in self.groups.values()])
         ).shape[0]
-        if X.shape[1] > number_unique_feature_in_groups:
+        if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(
-                f"Among all {X.shape[1]} features, only the first "
+                f"The number of features in X: {X.shape[1]} differs from the"
+                " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}"
-                " ones will get an importance score."
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
