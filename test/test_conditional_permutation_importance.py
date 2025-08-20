@@ -12,7 +12,7 @@ from hidimstat import CPI, BasePerturbation
 from hidimstat._utils.exception import InternalError
 
 
-def run_categorial_cpi(X, y, n_permutation, seed):
+def run_cpi(X, y, n_permutation, seed):
     """
     Configure Conditional Permutation Importance (CPI) model with linear regression
     for feature importance analysis.
