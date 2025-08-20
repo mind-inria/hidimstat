@@ -22,7 +22,7 @@ class CFI(BasePerturbation):
         categorical_max_cardinality: int = 10,
     ):
         """
-        Conditional Feature Importance (CPI) algorithm.
+        Conditional Feature Importance (CFI) algorithm.
         :footcite:t:`Chamma_NeurIPS2023` and for group-level see
         :footcite:t:`Chamma_AAAI2024`.
 

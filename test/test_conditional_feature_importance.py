@@ -7,10 +7,10 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import CPI, BasePerturbation
+from hidimstat import CFI, BasePerturbation
 
 
-def test_cpi(linear_scenario):
+def test_cfi(linear_scenario):
     """Test the Conditional Permutation Importance algorithm on a linear scenario."""
     X, y, beta = linear_scenario
     important_features = np.where(beta != 0)[0]
@@ -22,7 +22,7 @@ def test_cpi(linear_scenario):
     regression_model.fit(X_train, y_train)
     imputation_model = LinearRegression()
 
-    cpi = CPI(
+    cfi = CFI(
         estimator=regression_model,
         imputation_model_continuous=clone(imputation_model),
         imputation_model_categorical=LogisticRegression(),
@@ -32,12 +32,12 @@ def test_cpi(linear_scenario):
         n_jobs=1,
     )
 
-    cpi.fit(
+    cfi.fit(
         X_train,
         groups=None,
         var_type="auto",
     )
-    vim = cpi.importance(X_test, y_test)
+    vim = cfi.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -54,7 +54,7 @@ def test_cpi(linear_scenario):
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
     regression_model.fit(X_train_df, y_train)
-    cpi = CPI(
+    cfi = CFI(
         estimator=regression_model,
         imputation_model_continuous=clone(imputation_model),
         n_permutations=20,
@@ -62,14 +62,14 @@ def test_cpi(linear_scenario):
         random_state=0,
         n_jobs=1,
     )
-    cpi.fit(
+    cfi.fit(
         X_train_df,
         groups=groups,
         var_type="continuous",
     )
     # warnings because we don't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = cpi.importance(X_test_df, y_test)
+        vim = cfi.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
@@ -81,7 +81,7 @@ def test_cpi(linear_scenario):
     logistic_model = LogisticRegression()
     logistic_model.fit(X_train, y_train_clf)
 
-    cpi = CPI(
+    cfi = CFI(
         estimator=logistic_model,
         imputation_model_continuous=clone(imputation_model),
         n_permutations=20,
@@ -90,12 +90,12 @@ def test_cpi(linear_scenario):
         method="predict_proba",
         loss=log_loss,
     )
-    cpi.fit(
+    cfi.fit(
         X_train,
         groups=None,
         var_type=["continuous"] * X.shape[1],
     )
-    vim = cpi.importance(X_test, y_test_clf)
+    vim = cfi.importance(X_test, y_test_clf)
 
 
 def test_raises_value_error(
@@ -109,14 +109,14 @@ def test_raises_value_error(
     with pytest.raises(ValueError):
         fitted_model = LinearRegression().fit(X, y)
         predict_method = "unknown method"
-        CPI(
+        CFI(
             estimator=fitted_model,
             method=predict_method,
         )
 
     # Not fitted estimator
     with pytest.raises(NotFittedError):
-        cpi = CPI(
+        cfi = CFI(
             estimator=LinearRegression(),
             method="predict",
         )
@@ -124,26 +124,26 @@ def test_raises_value_error(
     # Not fitted imputation model with predict and importance methods
     with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        cfi = CFI(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.predict(X)
+        cfi.predict(X)
     with pytest.raises(ValueError, match="The estimator is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        cfi = CFI(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.importance(X, y)
+        cfi.importance(X, y)
 
     with pytest.raises(
         ValueError, match="The estimators require to be fit before to use them"
     ):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        cfi = CFI(
             estimator=fitted_model,
             method="predict",
         )
-        BasePerturbation.fit(cpi, X, y)
-        cpi.importance(X, y)
+        BasePerturbation.fit(cfi, X, y)
+        cfi.importance(X, y)
