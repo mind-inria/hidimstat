@@ -191,7 +191,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
     model_c = fitted_estimators[i]
 
-    # Compute conditional permutation feature importance
+    # Compute conditional feature importance
     cfi = CFI(
         model_c,
         imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 5)),
