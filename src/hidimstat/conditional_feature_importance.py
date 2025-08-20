@@ -8,7 +8,7 @@ from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
 
 
-class CPI(BasePerturbation):
+class CFI(BasePerturbation):
     def __init__(
         self,
         estimator,
@@ -22,7 +22,7 @@ class CPI(BasePerturbation):
         categorical_max_cardinality: int = 10,
     ):
         """
-        Conditional Permutation Importance (CPI) algorithm.
+        Conditional Feature Importance (CPI) algorithm.
         :footcite:t:`Chamma_NeurIPS2023` and for group-level see
         :footcite:t:`Chamma_AAAI2024`.
 
