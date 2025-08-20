@@ -55,7 +55,7 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat import CPI, LOCO, PFI
+from hidimstat import CFI, LOCO, PFI
 
 #############################################################################
 # Load the diabetes dataset
@@ -108,15 +108,15 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}: {mse}")
 
 #############################################################################
-# Measure the importance of variables using the CPI method
+# Measure the importance of variables using the CFI method
 # --------------------------------------------------------
 
-cpi_importance_list = []
+cfi_importance_list = []
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    cpi = CPI(
+    cfi = CFI(
         estimator=regressor_list[i],
         imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
         imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
@@ -125,9 +125,9 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         random_state=0,
         n_jobs=4,
     )
-    cpi.fit(X_train, y_train)
-    importance = cpi.importance(X_test, y_test)
-    cpi_importance_list.append(importance)
+    cfi.fit(X_train, y_train)
+    importance = cfi.importance(X_test, y_test)
+    cfi_importance_list.append(importance)
 
 #############################################################################
 # Measure the importance of variables using the LOCO method
@@ -184,20 +184,20 @@ def compute_pval(vim):
 # -------------------
 
 
-cpi_vim_arr = np.array([x["importance"] for x in cpi_importance_list]) / 2
-cpi_pval = compute_pval(cpi_vim_arr)
+cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
+cfi_pval = compute_pval(cfi_vim_arr)
 
 vim = [
     pd.DataFrame(
         {
-            "var": np.arange(cpi_vim_arr.shape[1]),
+            "var": np.arange(cfi_vim_arr.shape[1]),
             "importance": x["importance"],
             "fold": i,
-            "pval": cpi_pval,
-            "method": "CPI",
+            "pval": cfi_pval,
+            "method": "CFI",
         }
     )
-    for x in cpi_importance_list
+    for x in cfi_importance_list
 ]
 
 loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
