@@ -63,8 +63,10 @@ for sim_ind in range(10):
     d0crt_lasso = D0CRT(estimator=LassoCV(random_state=42, n_jobs=1), screening=False)
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
-    typeI_error["Lasso"].append(sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal))
-    power["Lasso"].append(sum(pvals_lasso[:n_signal] < alpha) / (n_signal))
+    typeI_error["Lasso"].append(
+        sum(pvals_lasso[np.logical_not(beta_true)] < alpha) / (p - n_signal)
+    )
+    power["Lasso"].append(sum(pvals_lasso[beta_true] < alpha) / (n_signal))
 
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
@@ -73,8 +75,10 @@ for sim_ind in range(10):
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_
-    typeI_error["Forest"].append(sum(pvals_forest[n_signal:] < alpha) / (p - n_signal))
-    power["Forest"].append(sum(pvals_forest[:n_signal] < alpha) / (n_signal))
+    typeI_error["Forest"].append(
+        sum(pvals_forest[np.logical_not(beta_true)] < alpha) / (p - n_signal)
+    )
+    power["Forest"].append(sum(pvals_forest[beta_true] < alpha) / (n_signal))
 
 #############################################################################
 # Plotting the comparison
