@@ -7,11 +7,11 @@ import numpy as np
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_regression, make_classification
 from sklearn.model_selection import KFold
-from hidimstat.dcrt import d0crt, D0CRT
 from sklearn.linear_model import LassoCV, Lasso
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 
 
+from hidimstat import d0crt, D0CRT
 from hidimstat._utils.regression import _alpha_max
 
 
