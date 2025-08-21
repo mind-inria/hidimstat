@@ -94,4 +94,12 @@ sns.boxplot(data=df_plot, x="model", y="power", ax=ax[1], hue="model")
 
 sns.despine()
 plt.show()
-plt.show()
+
+#############################################################################
+# Both methods empirically control the type-I error. In addition, it can
+# be observed that the power of the Random Forest model is generally higher
+# than that of the Lasso model, indicating a better ability to detect true
+# signals in the data. This is likely due to the capacity of the Random
+# Forest model to capture interactions and non-linear relationships which
+# are introduced in this simulation by the ReLU transformation applied to the
+# outcome.
