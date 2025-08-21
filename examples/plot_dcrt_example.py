@@ -58,7 +58,7 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "Lasso",
-            "ype-1 error": sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal),
+            "type-1 error": sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal),
             "power": sum(pvals_lasso[:n_signal] < alpha) / (n_signal),
         }
     )
@@ -73,7 +73,7 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "RF",
-            "ype-1 error": sum(pvals_forest[n_signal:] < alpha) / (p - n_signal),
+            "type-1 error": sum(pvals_forest[n_signal:] < alpha) / (p - n_signal),
             "power": sum(pvals_forest[:n_signal] < alpha) / (n_signal),
         }
     )
