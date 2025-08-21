@@ -11,11 +11,11 @@ from hidimstat.gaussian_knockoff import (
     gaussian_knockoff_generation,
     repeat_gaussian_knockoff_generation,
 )
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
-def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
+def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, alphas=20):
     """
     Configure the estimator for Model-X knockoffs.
 
@@ -38,7 +38,7 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
     y : 1D ndarray (n_samples, )
         The target vector.
 
-    n_alphas : int, default=10
+    alphas : int, default=10
         The number of alpha values to use to instantiate the cross-validation.
 
     Returns
@@ -62,8 +62,8 @@ def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
     alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
-    estimator.alphas = alphas
+
+    estimator.alphas = np.linspace(alpha_max * np.exp(-alphas), alpha_max, alphas)
     return estimator
 
 

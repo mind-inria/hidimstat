@@ -1,15 +1,16 @@
-import numpy as np
 import warnings
+
+import numpy as np
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.base import clone
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 class D0CRT(BaseVariableImportance):
@@ -39,8 +40,7 @@ class D0CRT(BaseVariableImportance):
     params_lasso_screening : dict
         Parameters for variable screening Lasso:
         - alpha : float or None - L1 regularization strength. If None, determined by CV.
-        - n_alphas : int - Number of alphas for cross-validation (default: 10).
-        - alphas : array-like or None - List of alpha values to try in CV (default: None).
+        - alphas : array-like or None - List of alpha values to try in CV (default: 10).
         - alpha_max_fraction : float - Scale factor for alpha_max (default: 0.5).
         - cv : int - Cross-validation folds (default: 5).
         - tol : float - Convergence tolerance (default: 1e-6).
@@ -111,8 +111,7 @@ class D0CRT(BaseVariableImportance):
         sigma_X=None,
         params_lasso_screening={
             "alpha": None,
-            "n_alphas": 10,
-            "alphas": None,
+            "alphas": 10,
             "alpha_max_fraction": 0.5,
             "cv": 5,
             "tol": 1e-6,
@@ -449,8 +448,7 @@ def _joblib_fit(
         "n_jobs": 1,
         "random_state": 44,
         "alpha": None,
-        "n_alphas": 10,
-        "alphas": None,
+        "alphas": 10,
         "alpha_max_fraction": 0.5,
     },
 ):
@@ -616,7 +614,6 @@ def _fit_lasso(
     n_jobs,
     alpha,
     alphas,
-    n_alphas,
     alpha_max_fraction,
     **params,
 ):
@@ -632,15 +629,13 @@ def _fit_lasso(
     n_jobs : int
         Number of CPUs to use for cross-validation.
     alpha : float or None
-        Regularization strength. If None and alphas/n_alphas not provided,
+        Regularization strength. If None and alphas not provided,
         alpha is set to alpha_max_fraction * alpha_max.
     alphas : array-like or None
-        List of alphas to use for model fitting. If None and n_alphas > 0,
+        List of alphas to use for model fitting. If None,
         alphas are set automatically.
-    n_alphas : int
-        Number of alphas along the regularization path. Ignored if alphas is provided.
     alpha_max_fraction : float
-        Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
+        Fraction of alpha_max to use when alpha, and alphas are not provided.
     random_state : int, RandomState instance or None
         Random seed for reproducibility.
     **params : dict
@@ -653,12 +648,11 @@ def _fit_lasso(
 
     Notes
     -----
-    Uses cross-validation to select the best alpha if alphas or n_alphas are provided.
+    Uses cross-validation to select the best alpha if alphas are provided.
     Otherwise, uses a single alpha value either provided or computed from alpha_max_fraction.
     """
-    if alphas is not None or n_alphas > 0:
+    if alphas is not None:
         clf = LassoCV(
-            n_alphas=n_alphas,
             alphas=alphas,
             n_jobs=n_jobs,
             **params,
@@ -685,8 +679,7 @@ def d0crt(
     sigma_X=None,
     params_lasso_screening={
         "alpha": None,
-        "n_alphas": 10,
-        "alphas": None,
+        "alphas": 10,
         "alpha_max_fraction": 0.5,
         "cv": 5,
         "tol": 1e-6,

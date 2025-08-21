@@ -2,16 +2,15 @@
 Test the dcrt module
 """
 
-import pytest
 import numpy as np
+import pytest
 from sklearn.covariance import LedoitWolf
-from sklearn.datasets import make_regression, make_classification
-from sklearn.model_selection import KFold
-from sklearn.linear_model import LassoCV, Lasso
+from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import Lasso, LassoCV
+from sklearn.model_selection import KFold
 
-
-from hidimstat import d0crt, D0CRT
+from hidimstat import D0CRT, d0crt
 from hidimstat._utils.regression import _alpha_max
 
 
@@ -113,7 +112,6 @@ def test_dcrt_lasso_with_no_cv(generate_regation_dataset):
         estimator=LassoCV(n_jobs=1),
         params_lasso_screening={
             "alpha": None,
-            "n_alphas": 0,
             "alphas": None,
             "alpha_max_fraction": 0.5,
             "fit_intercept": False,
@@ -233,7 +231,6 @@ def test_dcrt_distillation_y_different():
         random_state=2024,
         params_lasso_distillation_x={
             "alpha": None,
-            "n_alphas": 0,
             "alphas": None,
             "alpha_max_fraction": 0.5,
             "fit_intercept": False,
@@ -258,7 +255,6 @@ def test_dcrt_lasso_fit_with_no_cv():
         fit_y=True,
         params_lasso_screening={
             "alpha": None,
-            "n_alphas": 0,
             "alphas": None,
             "alpha_max_fraction": 0.5,
             "fit_intercept": False,
