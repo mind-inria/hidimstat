@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.linear_model import LassoCV
 from sklearn.ensemble import RandomForestRegressor
 
-from hidimstat.dcrt import D0CRT
+from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_1D_simulation
 
 plt.rcParams.update({"font.size": 21})
