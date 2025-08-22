@@ -24,11 +24,13 @@ from sklearn.model_selection import KFold, train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import check_random_state
 
 from hidimstat import CPI, PFI
 from hidimstat.conditional_sampling import ConditionalSampler
 
-rng = np.random.RandomState(0)
+rng = check_random_state(42)
+seeds = rng.randint(1, np.iinfo(np.int32).max, 9)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature
@@ -40,7 +42,9 @@ rng = np.random.RandomState(0)
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
 # only use 2/3 of samples to speed up the example
-X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=0, shuffle=True)
+X, _, y, _ = train_test_split(
+    X_, y_, test_size=0.6667, random_state=seeds[0], shuffle=True
+)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
@@ -85,7 +89,7 @@ model = TransformedTargetRegressor(
     regressor=make_pipeline(
         StandardScaler(),
         MLPRegressor(
-            random_state=0,
+            random_state=seeds[1],
             hidden_layer_sizes=(32, 16, 8),
             early_stopping=True,
             learning_rate_init=0.01,
@@ -96,7 +100,7 @@ model = TransformedTargetRegressor(
 )
 
 
-kf = KFold(n_splits=5, shuffle=True, random_state=0)
+kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
 for train_index, test_index in kf.split(X):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -118,6 +122,7 @@ print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}
 # testing conditional importance, as it identifies the spurious feature as important.
 permutation_importances = []
 conditional_permutation_importances = []
+kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -128,7 +133,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         model_c,
         n_permutations=50,
-        random_state=0,
+        n_jobs=5,
+        random_state=seeds[3],
     )
     pfi.fit(X_test, y_test)
 
@@ -185,6 +191,7 @@ plt.show()
 # explained by the other features unchanged. This method is valid for testing conditional
 # importance. As shown below, it does not identify the spurious feature as important.
 conditional_importances = []
+kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -194,8 +201,11 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     # Compute conditional permutation feature importance
     cpi = CPI(
         model_c,
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 5)),
-        random_state=0,
+        imputation_model_continuous=RidgeCV(
+            alphas=np.logspace(-3, 3, 5),
+            cv=KFold(shuffle=True, random_state=seeds[4]),
+        ),
+        random_state=seeds[5],
         n_jobs=5,
     )
     cpi.fit(X_test, y_test)
@@ -251,12 +261,14 @@ plt.show()
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
-    random_state=0,
+    random_state=seeds[6],
 )
 
 conditional_sampler = ConditionalSampler(
-    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
-    random_state=0,
+    model_regression=RidgeCV(
+        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=seeds[7])
+    ),
+    random_state=seeds[8],
 )
 
 
