@@ -1,0 +1,21 @@
+# Testing workflow of the CI 
+
+name: 'CI TEST'
+on:
+  pull_request:
+    branches: main
+
+# disable all the permission for the workflow
+permissions: {}
+
+# Cancel existing runs 
+concurrency:
+  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ci_test:
+    # Example of the test of workflow for testing minimal version
+    name: tests_workflow
+    if: ${{ github.event.pull_request.number == 321 }}
+    uses: ./.github/workflows/call_test_minimal.yml

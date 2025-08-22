@@ -34,3 +34,15 @@ For more details, the GitHub Action creates an event on the CircleCI pipeline, w
 CI is testing all possible configurations supported by hidimstat, so tests may fail
 with configurations different from what you are developing with. See with the 
 maintainers to identify the cause of this failure. 
+
+Modification Continuous Integration (CI)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Actually, only the workflow on the main branch is used for running the CI. This is 
+done for security reasons.
+In consequence, for testing a modification of the actual workflow or a new workflow,
+it requires creating a pull request, which is modified .github/workflow/ci_test.yml for
+allowing the running of this modification.
+
+Once this modification is merged into main, it should be important to clean ci_test.yml 
+for having an empty workflow. 
