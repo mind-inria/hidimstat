@@ -73,7 +73,8 @@ seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
+def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
+    seeds = check_random_state(seed).randint(1, np.iinfo(np.int32).max, 4)
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
@@ -85,10 +86,10 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[0]),
         ),
         n_bootstraps=1,
-        random_state=seed,
+        random_state=seeds[1],
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
@@ -99,11 +100,11 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[2]),
         ),
         n_bootstraps=n_bootstraps,
         n_jobs=1,
-        random_state=seed,
+        random_state=seeds[3],
     )
 
     # Use p-values aggregation [2]
@@ -131,7 +132,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
             y = bounds[nb][i]
-            x = np.random.normal(nb + 1, 0.05)
+            x = rng.normal(nb + 1, 0.05)
             plt.scatter(x, y, alpha=0.65, c="blue")
 
     plt.boxplot(bounds, sym="")
@@ -165,7 +166,14 @@ def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
-            n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=seed
+            n_samples,
+            n_features,
+            rho,
+            sparsity,
+            snr,
+            fdr,
+            n_bootstraps,
+            seed=seed,
         )
         for seed in seed_list
     )

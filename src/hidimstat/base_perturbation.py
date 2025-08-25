@@ -49,6 +49,7 @@ class BasePerturbation(BaseVariableImportance):
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
         self.n_groups = None
+        self.random_state = None
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -105,9 +106,17 @@ class BasePerturbation(BaseVariableImportance):
         X_ = np.asarray(X)
 
         # Parallelize the computation of the importance scores for each group
+        if self.random_state is None:
+            list_seed = [None for i in range(self.n_groups)]
+        else:
+            list_seed = self.random_state.randint(
+                1, np.iinfo(np.int32).max, self.n_groups
+            )
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
-            for group_id, group_key in enumerate(self.groups.keys())
+            delayed(self._joblib_predict_one_group)(X_, group_id, group_key, seed)
+            for group_id, (group_key, seed) in enumerate(
+                zip(self.groups.keys(), list_seed)
+            )
         )
         return np.stack(out_list, axis=0)
 
@@ -168,7 +177,7 @@ class BasePerturbation(BaseVariableImportance):
                 " call fit with groups=None"
             )
 
-    def _joblib_predict_one_group(self, X, group_id, group_key):
+    def _joblib_predict_one_group(self, X, group_id, group_key, seed):
         """
         Compute the predictions after perturbation of the data for a given
         group of variables. This function is parallelized.
@@ -181,6 +190,8 @@ class BasePerturbation(BaseVariableImportance):
             The index of the group of variables.
         group_key: str, int
             The key of the group of variables. (parameter use for debugging)
+        seed: int, optional
+            Random seed for reproducibility.
         """
         group_ids = self._groups_ids[group_id]
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
@@ -188,7 +199,7 @@ class BasePerturbation(BaseVariableImportance):
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
         X_perm[:, :, non_group_ids] = np.delete(X, group_ids, axis=1)
-        X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id)
+        X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id, seed=seed)
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
         y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
@@ -202,6 +213,6 @@ class BasePerturbation(BaseVariableImportance):
             )
         return y_pred_perm
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, seed):
         """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError

@@ -66,6 +66,40 @@ jobs:
           paths:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
+  
+  test_example_same:
+    docker:
+      - image: cimg/python:3.13.2
+    environment:
+      - PYTHON_VERSION: "3.13"
+    steps:
+      - checkout
+      - run: 
+          name:
+            'Checkout to PR commit'
+          command: 
+            bash ./tools/documentation/circleci/checkout_merge_commit.sh
+      - restore_cache:
+          key: saved-cache
+      - run:
+          name: "Create the environment for building the documentation"
+          command: 
+            bash ./tools/documentation/circleci/setup_virtual_environment.sh
+      - run:
+          name: "Build documentation"
+          command: 
+            bash ./tools/examples/circleci/test_example.sh
+          no_output_timeout: 40m
+      # store the comparison for see it in a PR
+      - store_artifacts:
+          path: tools/examples/circleci/result_test
+          destination: compare_example
+      - save_cache:
+          # cache some library
+          key: saved-cache
+          paths:
+            - /home/circleci/nilearn_data
+            - /home/circleci/sklearn_data
 
   get-tests-reports:
     docker:
