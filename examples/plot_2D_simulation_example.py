@@ -71,6 +71,9 @@ from hidimstat.ensemble_clustered_inference import (
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 from hidimstat._utils.scenario import multivariate_simulation
 
+# Define the seeds for the reproducibility of the example
+seeds = np.random.RandomState(0).randint(1e3, size=4)
+
 #############################################################################
 # Specific plotting functions
 # ---------------------------
@@ -172,7 +175,7 @@ smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 
 # generating the data
 X_init, y, beta, epsilon, _, _ = multivariate_simulation(
-    n_samples, shape, roi_size, sigma, smooth_X, seed=1
+    n_samples, shape, roi_size, sigma, smooth_X, seed=seeds[0]
 )
 
 ##############################################################################
@@ -242,7 +245,9 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 # and referred to as Desparsified Lasso.
 
 # compute desparsified lasso
-beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
+beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
+    X_init, y, n_jobs=n_jobs, seed=seeds[1]
+)
 pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
     desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diagonal)
 )
@@ -270,7 +275,7 @@ ward = FeatureAgglomeration(
 
 # clustered desparsified lasso (CluDL)
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler(), seed=seeds[2]
 )
 beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
     clustered_inference_pvalue(n_samples, False, ward_, beta_hat, theta_hat, omega_diag)
@@ -295,11 +300,7 @@ selected_cdl = np.logical_or(
 # ensemble of clustered desparsified lasso (EnCluDL)
 list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
     ensemble_clustered_inference(
-        X_init,
-        y,
-        ward,
-        n_clusters,
-        scaler_sampling=StandardScaler(),
+        X_init, y, ward, n_clusters, scaler_sampling=StandardScaler(), seed=seeds[3]
     )
 )
 beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(

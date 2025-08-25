@@ -54,11 +54,11 @@ from sklearn.datasets import load_diabetes
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
-from sklearn.utils import check_random_state
 
 from hidimstat import CPI, LOCO, PFI
 
-seeds = check_random_state(42).randint(1, np.iinfo(np.int32).max, 7)
+# Define the seeds for the reproducibility of the example
+seeds = np.random.RandomState(0).randint(1e3, size=7)
 
 #############################################################################
 # Load the diabetes dataset

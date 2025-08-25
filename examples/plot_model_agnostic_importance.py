@@ -37,11 +37,14 @@ from sklearn.svm import SVC
 
 from hidimstat import LOCO, D0CRT
 
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(0)
+seeds = rng.randint(1e3, size=6)
+
 #############################################################################
 # Generate data where classes are not linearly separable
 # --------------------------------------------------------------
-rng = np.random.RandomState(0)
-X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
+X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=seeds[0])
 
 
 fig, ax = plt.subplots()
@@ -60,8 +63,8 @@ plt.show()
 ###############################################################################
 # Define a linear and a non-linear estimator
 # ------------------------------------------
-non_linear_model = SVC(kernel="rbf", random_state=0)
-linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
+non_linear_model = SVC(kernel="rbf", random_state=seeds[1])
+linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5), random_state=seeds[2])
 
 ###############################################################################
 # Compute p-values using d0CRT
@@ -70,11 +73,15 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
-d0crt_linear = D0CRT(estimator=clone(linear_model), screening=False)
+d0crt_linear = D0CRT(
+    estimator=clone(linear_model), screening=False, random_state=seeds[3]
+)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 
-d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening=False)
+d0crt_non_linear = D0CRT(
+    estimator=clone(non_linear_model), screening=False, random_state=seeds[4]
+)
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 
@@ -86,7 +93,7 @@ pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
-cv = KFold(n_splits=5, shuffle=True, random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=seeds[5])
 
 importances_linear = []
 importances_non_linear = []

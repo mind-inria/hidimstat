@@ -61,6 +61,8 @@ from hidimstat.desparsified_lasso import (
 )
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
+# Define the seeds for the reproducibility of the example
+seeds = np.random.RandomState(0).randint(1e3, size=3)
 
 # Remmove warnings during loading data
 warnings.filterwarnings(
@@ -152,7 +154,7 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # feature aggregation methods.
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-        X, y, noise_method="median", max_iteration=1000
+        X, y, noise_method="median", max_iteration=1000, seed=seeds[0], n_jobs=n_job
     )
     pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diagonal
@@ -166,7 +168,14 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X, y, ward, n_clusters, scaler_sampling=StandardScaler(), tolerance=1e-2
+    X,
+    y,
+    ward,
+    n_clusters,
+    scaler_sampling=StandardScaler(),
+    tolerance=1e-2,
+    seed=seeds[1],
+    n_jobs=n_job,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -191,7 +200,8 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         n_bootstraps=5,
         max_iteration=6000,
         tolerance=1e-2,
-        n_jobs=2,
+        seed=seeds[2],
+        n_jobs=n_job,
     )
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(

@@ -24,13 +24,13 @@ from sklearn.model_selection import KFold, train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 
 from hidimstat import CPI, PFI
 from hidimstat.conditional_sampling import ConditionalSampler
 
-rng = check_random_state(42)
-seeds = rng.randint(1, np.iinfo(np.int32).max, 9)
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(0)
+seeds = rng.randint(1e3, size=9)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature

@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
-from sklearn.utils import check_random_state
 
 from hidimstat.knockoffs import (
     model_x_knockoff,
@@ -59,22 +58,20 @@ fdr = 0.1
 snr = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
-# seed for the random generator
-seed = 45
 # number of jobs for repetition of the method
 n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
-
-rng = check_random_state(seed)
-seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(45)
+seed_list = rng.randint(1e3, size=runs)
 
 
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
-    seeds = check_random_state(seed).randint(1, np.iinfo(np.int32).max, 4)
+    seeds = np.random.RandomState(seed).randint(1, np.iinfo(np.int32).max, 4)
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
