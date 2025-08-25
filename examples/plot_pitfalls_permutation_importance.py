@@ -30,7 +30,7 @@ from hidimstat.conditional_sampling import ConditionalSampler
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = rng.randint(1e3, size=9)
+seeds = rng.randint(1e3, size=10)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature
@@ -150,10 +150,7 @@ pval_threshold = 0.05
 # Create a horizontal boxplot of permutation importances
 fig, ax = plt.subplots()
 sns.barplot(
-    permutation_importances,
-    orient="h",
-    color="tab:blue",
-    capsize=0.2,
+    permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=seeds[4]
 )
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
@@ -203,9 +200,9 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         imputation_model_continuous=RidgeCV(
             alphas=np.logspace(-3, 3, 5),
-            cv=KFold(shuffle=True, random_state=seeds[4]),
+            cv=KFold(shuffle=True, random_state=seeds[5]),
         ),
-        random_state=seeds[5],
+        random_state=seeds[6],
         n_jobs=5,
     )
     cfi.fit(X_test, y_test)
@@ -261,14 +258,14 @@ plt.show()
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
-    random_state=seeds[6],
+    random_state=seeds[7],
 )
 
 conditional_sampler = ConditionalSampler(
     model_regression=RidgeCV(
-        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=seeds[7])
+        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=seeds[8])
     ),
-    random_state=seeds[8],
+    random_state=seeds[9],
 )
 
 
