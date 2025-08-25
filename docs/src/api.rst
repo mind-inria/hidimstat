@@ -37,6 +37,6 @@ Classes
    BaseVariableImportance
    BasePerturbation
    LOCO
-   CPI
+   CFI
    PFI
    D0CRT

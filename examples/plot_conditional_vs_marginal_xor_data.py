@@ -4,7 +4,7 @@ Conditional vs Marginal Importance on the XOR dataset
 
 This example illustrates on XOR data that variables can be conditionally important even
 if they are not marginally important. The conditional importance is computed using the
-Conditional Permutation Importance (CPI) class and the marginal importance is computed using univariate models.
+Conditional Feature Importance (CFI) class and the marginal importance is computed using univariate models.
 """
 
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ from sklearn.metrics import hinge_loss
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.svm import SVC
 
-from hidimstat import CPI
+from hidimstat import CFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
@@ -79,7 +79,7 @@ plt.show()
 # Computing the conditional and marginal importance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # We first compute the marginal importance by fitting univariate models on each feature.
-# Then, we compute the conditional importance using the CPI class. The univarariate
+# Then, we compute the conditional importance using the CFI class. The univarariate
 # models don't perform above chance, since solving the XOR problem requires to use both
 # features. Conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
@@ -113,7 +113,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
     clf_c = clone(clf)
     clf_c.fit(X_train, y_train)
 
-    vim = CPI(
+    vim = CFI(
         estimator=clf_c,
         method="decision_function",
         loss=hinge_loss,

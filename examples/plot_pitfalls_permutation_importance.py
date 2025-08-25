@@ -25,7 +25,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat import CPI, PFI
+from hidimstat import CFI, PFI
 from hidimstat.conditional_sampling import ConditionalSampler
 
 # Define the seeds for the reproducibility of the example
@@ -183,9 +183,9 @@ plt.show()
 
 
 ###########################################################################
-# A valid alternative: Condional permutation importance
+# A valid alternative: Condional Feature Importance
 # -----------------------------------------------------
-# The `ConditionalPermutationFeatureImportance` class computes permutations of the feature of
+# The `ConditionalFeatureImportance` class computes permutations of the feature of
 # interest while conditioning on the other features. In other words, it shuffles the
 # intrinsic information of the feature of interest while leaving the information that is
 # explained by the other features unchanged. This method is valid for testing conditional
@@ -198,8 +198,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
     model_c = fitted_estimators[i]
 
-    # Compute conditional permutation feature importance
-    cpi = CPI(
+    # Compute conditional feature importance
+    cfi = CFI(
         model_c,
         imputation_model_continuous=RidgeCV(
             alphas=np.logspace(-3, 3, 5),
@@ -208,22 +208,22 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         random_state=seeds[5],
         n_jobs=5,
     )
-    cpi.fit(X_test, y_test)
+    cfi.fit(X_test, y_test)
 
-    conditional_importances.append(cpi.importance(X_test, y_test)["importance"])
+    conditional_importances.append(cfi.importance(X_test, y_test)["importance"])
 
 
-cpi_pval = ttest_1samp(
+cfi_pval = ttest_1samp(
     conditional_importances, 0.0, axis=0, alternative="greater"
 ).pvalue
 
 
 df_pval = pd.DataFrame(
     {
-        "pval": np.concatenate([pval_pfi, cpi_pval]),
-        "method": ["PFI"] * len(pval_pfi) + ["CPI"] * len(cpi_pval),
+        "pval": np.concatenate([pval_pfi, cfi_pval]),
+        "method": ["PFI"] * len(pval_pfi) + ["CFI"] * len(cfi_pval),
         "variable": feature_names * 2,
-        "log_pval": -np.concatenate([np.log10(pval_pfi), np.log10(cpi_pval)]),
+        "log_pval": -np.concatenate([np.log10(pval_pfi), np.log10(cfi_pval)]),
     }
 )
 
@@ -244,7 +244,7 @@ plt.show()
 
 
 ###############################################################################
-# Contrary to PFI, CPI does not identify the spurious feature as important.
+# Contrary to PFI, CFI does not identify the spurious feature as important.
 
 
 ###############################################################################
@@ -340,5 +340,5 @@ plt.show()
 
 ###############################################################################
 # PFI is likely to generate samples that are unrealistic and outside of the training
-# data, leading to extrapolation bias. In contrast, CPI generates samples that respect
+# data, leading to extrapolation bias. In contrast, CFI generates samples that respect
 # the conditional distribution of the feature of interest.
