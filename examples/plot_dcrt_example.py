@@ -80,7 +80,7 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "RF",
-            "type-1 error": sum(pvals_forest[beta_true] < alpha) / (n_signal),
+            "type-1 error": sum(pvals_forest[np.logical_not(beta_true)] < alpha) / (n_signal),
             "power": sum(pvals_forest[beta_true] < alpha) / (n_signal),
         }
     )
