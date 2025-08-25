@@ -13,8 +13,8 @@ from .desparsified_lasso import (
     desparsified_lasso_pvalue,
     desparsified_group_lasso_pvalue,
 )
-from .dcrt import d0crt, D0CRT
-from .conditional_permutation_importance import CPI
+from .distilled_conditional_randomization_test import d0crt, D0CRT
+from .conditional_feature_importance import CFI
 from .knockoffs import (
     model_x_knockoff,
     model_x_knockoff_pvalue,
@@ -48,7 +48,7 @@ __all__ = [
     "model_x_knockoff_pvalue",
     "model_x_knockoff_bootstrap_quantile",
     "model_x_knockoff_bootstrap_e_value",
-    "CPI",
+    "CFI",
     "LOCO",
     "PFI",
 ]
