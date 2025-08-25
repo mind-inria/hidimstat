@@ -113,6 +113,8 @@ def reid(
     residual = clf_cv.predict(X_) - y
 
     # get the number of non-zero coefficients
+    # we consider that the coefficient with a value under
+    # tolerance * coefficients_.max() is null
     coefficients_ = (
         np.sum(np.abs(beta_hat), axis=0)
         if len(beta_hat.shape) > 1
@@ -123,7 +125,7 @@ def reid(
     # avoid dividing by 0
     size_support = min(size_support, n_samples - 1)
 
-    # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
+    # estimate the noise standard deviation (eq. 3 in `reid2016study`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
     if not multioutput:
@@ -236,7 +238,7 @@ def empirical_snr(X, y, beta, noise=None):
 
     Returns
     -------
-    snr_hat : float
+    signal_noise_ratio_hat : float
         Empirical SNR computed as var(signal) / var(noise).
 
     Notes
@@ -253,6 +255,6 @@ def empirical_snr(X, y, beta, noise=None):
         noise = y - signal
 
     # compute signal-to-noise ratio
-    snr_hat = np.var(signal) / np.var(noise)
+    signal_noise_ratio_ = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
 
-    return snr_hat
+    return signal_noise_ratio_

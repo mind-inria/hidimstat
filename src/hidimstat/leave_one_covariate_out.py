@@ -102,10 +102,10 @@ class LOCO(BasePerturbation):
 
         return [y_pred_loco]
 
-    def _check_fit(self):
+    def _check_fit(self, X):
         """Check that an estimator has been fitted after removing each group of
         covariates."""
-        super()._check_fit()
+        super()._check_fit(X)
         check_is_fitted(self.estimator)
         if len(self._list_estimators) == 0:
             raise ValueError("The estimators require to be fit before to use them")
