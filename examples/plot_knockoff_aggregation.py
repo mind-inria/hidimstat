@@ -71,7 +71,7 @@ seed_list = rng.randint(1e3, size=runs)
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
-    seeds = np.random.RandomState(seed).randint(np.iinfo(np.int32).max, 6)
+    seeds = np.random.RandomState(seed).randint(np.iinfo(np.int32).max, size=6)
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
