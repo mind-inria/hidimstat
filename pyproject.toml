@@ -10,7 +10,7 @@ dependencies = [
     "joblib       >= 1.2.0, < 2",
     "numpy        >= 1.25,  < 3",
     "pandas       >= 2.2,   < 3",
-    "scikit-learn >= 1.5,   < 2",
+    "scikit-learn >= 1.5,   < 1.9",
     "scipy        >= 1.6,   < 2",
 ]
 requires-python = ">=3.9,   < 4"
@@ -47,14 +47,8 @@ doc = [
     "sphinx-prompt          >= 1.8.0,   < 2",
     "tqdm                   >= 4.1.0,   < 5",
 ]
-example = [
-    "matplotlib >= 3.1.0,   < 4",
-    "seaborn    >= 0.9,     < 1"
-    ]
-style = [
-    "black  >= 24.4.2",
-    "isort  >= 5.13.2"
-    ]
+example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
+style = ["black  >= 24.4.2", "isort  >= 5.13.2"]
 
 # For running unit and docstring tests
 test = [
