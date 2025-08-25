@@ -86,11 +86,11 @@ parameter_exact = [
     zip(*(list(zip(*parameter_exact))[1:])),
     ids=list(zip(*parameter_exact))[0],
 )
-@pytest.mark.parametrize("cfi_n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
-def test_cfi_linear_data_exact(data_generator, cfi_n_permutation, cfi_seed):
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
+def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
-    importance = run_cfi(X, y, cfi_n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutation, cfi_seed)
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -118,11 +118,11 @@ parameter_partial = [
     zip(*(list(zip(*parameter_partial))[1:])),
     ids=list(zip(*parameter_partial))[0],
 )
-@pytest.mark.parametrize("cfi_n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
-def test_cfi_linear_data_partial(data_generator, cfi_n_permutation, cfi_seed):
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
+def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
-    importance = run_cfi(X, y, cfi_n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutation, cfi_seed)
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -141,11 +141,11 @@ def test_cfi_linear_data_partial(data_generator, cfi_n_permutation, cfi_seed):
     [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
-@pytest.mark.parametrize("cfi_n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
-def test_cfi_linear_fail(data_generator, cfi_n_permutation, cfi_seed):
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
+def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
     """Tests when the method doesn't identify all important features"""
     X, y, important_features, not_important_features = data_generator
-    importance = run_cfi(X, y, cfi_n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutation, cfi_seed)
     # check that importance is defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that mean importance of important features is
@@ -167,7 +167,7 @@ def test_cfi_linear_fail(data_generator, cfi_n_permutation, cfi_seed):
     [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
-def test_cfi_group(data_generator):
+def test_group(data_generator):
     """Test CFI with groups using pandas objects"""
     X, y, important_features, not_important_features = data_generator
 
@@ -214,7 +214,7 @@ def test_cfi_group(data_generator):
     zip(*(list(zip(*parameter_exact))[1:])),
     ids=list(zip(*parameter_exact))[0],
 )
-def test_cfi_classication(data_generator):
+def test_classication(data_generator):
     """Test CFI for a classification problem"""
     X, y, important_features, not_important_features = data_generator
     # Create categories
@@ -268,7 +268,7 @@ def test_cfi_classication(data_generator):
 class TestCFIClass:
     """Test the element of the class"""
 
-    def test_cfi_init(self, data_generator):
+    def test_init(self, data_generator):
         """Test CFI initialization"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
@@ -284,7 +284,7 @@ class TestCFIClass:
         assert cfi.imputation_model_categorical is None
         assert cfi.imputation_model_continuous is None
 
-    def test_cfi_fit(self, data_generator):
+    def test_fit(self, data_generator):
         """Test fitting CFI"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
@@ -305,7 +305,7 @@ class TestCFIClass:
         assert len(cfi._list_imputation_models) == 2
         assert cfi.n_groups == 2
 
-    def test_cfi_categorical(
+    def test_categorical(
         self,
         n_samples,
         n_features,
@@ -407,8 +407,8 @@ class TestCFIExceptions:
         ):
             cfi.importance(X, y)
 
-    def test_cfi_errors(self, data_generator):
-        """Test error handling"""
+    def test_invalid_type(self, data_generator):
+        """Test invalid type of data"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(estimator=fitted_model)
