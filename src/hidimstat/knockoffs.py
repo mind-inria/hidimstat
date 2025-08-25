@@ -190,7 +190,7 @@ def model_x_knockoff(
 
     # get the seed for the different run
     seed_list = check_random_state(random_state).randint(
-        0, np.iinfo(np.int32).max, n_bootstraps
+        np.iinfo(np.int32).max, size=n_bootstraps
     )
 
     if centered:

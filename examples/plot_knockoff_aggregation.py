@@ -71,7 +71,7 @@ seed_list = rng.randint(1e3, size=runs)
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
-    seeds = np.random.RandomState(seed).randint(1, np.iinfo(np.int32).max, 4)
+    seeds = np.random.RandomState(seed).randint(np.iinfo(np.int32).max, 6)
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
@@ -84,9 +84,10 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         estimator=LassoCV(
             n_jobs=1,
             cv=KFold(n_splits=5, shuffle=True, random_state=seeds[0]),
+            random_state=seeds[1],
         ),
         n_bootstraps=1,
-        random_state=seeds[1],
+        random_state=seeds[2],
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
@@ -97,11 +98,12 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[2]),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[3]),
+            random_state=seeds[4],
         ),
         n_bootstraps=n_bootstraps,
         n_jobs=1,
-        random_state=seeds[3],
+        random_state=seeds[5],
     )
 
     # Use p-values aggregation [2]
