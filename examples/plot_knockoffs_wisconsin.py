@@ -12,8 +12,10 @@ Knockoffs (KO) method is able to address this issue.
 import numpy as np
 import pandas as pd
 
-seed = 0
-rng = np.random.RandomState(seed)
+
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(43)
+seeds = rng.randint(1e3, size=5)
 
 
 ########################################################################################
@@ -32,7 +34,7 @@ X = data.data
 y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.1, random_state=seed
+    X, y, test_size=0.1, random_state=seeds[0]
 )
 
 scaler = StandardScaler()
@@ -53,7 +55,7 @@ feature_names = [str(name) for name in data.feature_names]
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=rng
+    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=seeds[1]
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -100,7 +102,7 @@ lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
     penalty="l1",
     solver="liblinear",
-    random_state=rng,
+    random_state=seeds[2],
     n_jobs=1,
 )
 lasso_noisy.fit(noisy_train, y_train)
@@ -150,12 +152,12 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
         solver="liblinear",
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
-        random_state=rng,
+        random_state=seeds[3],
         tol=1e-3,
         max_iter=1000,
     ),
     n_bootstraps=1,
-    random_state=0,
+    random_state=seeds[4],
     tol_gauss=1e-15,
     preconfigure_estimator=None,
     fdr=fdr,

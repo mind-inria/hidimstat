@@ -22,6 +22,9 @@ from sklearn.linear_model import LassoCV
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_1D_simulation
 
+# Define the seeds for the reproducibility of the example
+seeds = np.random.RandomState(0).randint(1e3, size=10)
+
 #############################################################################
 # Processing the computations
 # ---------------------------
@@ -29,7 +32,6 @@ from hidimstat._utils.scenario import multivariate_1D_simulation
 results_list = []
 for sim_ind in range(10):
     print(f"Processing: {sim_ind+1}")
-    np.random.seed(sim_ind)
 
     # Number of observations
     n = 100
@@ -45,14 +47,18 @@ for sim_ind in range(10):
     alpha = 5e-2
 
     X, y, _, __ = multivariate_1D_simulation(
-        n_samples=n, n_features=p, support_size=n_signal, rho=rho, seed=sim_ind
+        n_samples=n, n_features=p, support_size=n_signal, rho=rho, seed=seeds[sim_ind]
     )
 
     # Applying a reLu function on the outcome y to get non-linear relationships
     y = np.maximum(0.0, y)
 
     ## dcrt Lasso ##
-    d0crt_lasso = D0CRT(estimator=LassoCV(random_state=42, n_jobs=1), screening=False)
+    d0crt_lasso = D0CRT(
+        estimator=LassoCV(random_state=seeds[sim_ind] + 1, n_jobs=1),
+        screening=False,
+        random_state=seeds[sim_ind] + 2,
+    )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
     results_list.append(
@@ -65,8 +71,11 @@ for sim_ind in range(10):
 
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
-        estimator=RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=1),
+        estimator=RandomForestRegressor(
+            n_estimators=100, random_state=seeds[sim_ind] + 3, n_jobs=1
+        ),
         screening=False,
+        random_state=seeds[sim_ind] + 4,
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_

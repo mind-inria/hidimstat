@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
-from sklearn.utils import check_random_state
 
 from hidimstat.knockoffs import (
     model_x_knockoff,
@@ -59,21 +58,20 @@ fdr = 0.1
 snr = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
-# seed for the random generator
-seed = 45
 # number of jobs for repetition of the method
 n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
-
-rng = check_random_state(seed)
-seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(45)
+seed_list = rng.randint(1e3, size=runs)
 
 
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=None):
+def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
+    seeds = np.random.RandomState(seed).randint(np.iinfo(np.int32).max, size=6)
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
@@ -85,10 +83,11 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[0]),
+            random_state=seeds[1],
         ),
         n_bootstraps=1,
-        random_state=seed,
+        random_state=seeds[2],
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
@@ -99,11 +98,12 @@ def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, see
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[3]),
+            random_state=seeds[4],
         ),
         n_bootstraps=n_bootstraps,
         n_jobs=1,
-        random_state=seed,
+        random_state=seeds[5],
     )
 
     # Use p-values aggregation [2]
@@ -131,7 +131,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
             y = bounds[nb][i]
-            x = np.random.normal(nb + 1, 0.05)
+            x = rng.normal(nb + 1, 0.05)
             plt.scatter(x, y, alpha=0.65, c="blue")
 
     plt.boxplot(bounds, sym="")
@@ -165,7 +165,14 @@ def effect_number_samples(n_samples):
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
     results = parallel(
         delayed(single_run)(
-            n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=seed
+            n_samples,
+            n_features,
+            rho,
+            sparsity,
+            snr,
+            fdr,
+            n_bootstraps,
+            seed=seed,
         )
         for seed in seed_list
     )
