@@ -125,7 +125,7 @@ class GaussianGenerator:
         ):
             raise ValueError("The GaussianGenerator requires to be fit before simulate")
 
-    def simulate(self):
+    def sample(self):
         """
         Generate synthetic variables.
 

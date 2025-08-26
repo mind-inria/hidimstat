@@ -142,7 +142,7 @@ class CRT(BaseVariableImportance, SelectionFDR):
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         X_samples = []
         for i in range(self.n_repeat):
-            X_samples.append(self.generator.simulate())
+            X_samples.append(self.generator.sample())
 
         self.test_scores_ = np.array(
             parallel(

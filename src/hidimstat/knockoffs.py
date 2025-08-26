@@ -194,7 +194,7 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
         self._check_fit()
         X_tildes = []
         for i in range(self.n_repeat):
-            X_tildes.append(self.generator.simulate())
+            X_tildes.append(self.generator.sample())
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         self.test_scores_ = np.array(
