@@ -15,7 +15,7 @@ import pandas as pd
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(43)
-seeds = rng.randint(1e3, size=5)
+seeds = np.arange(5) + 16
 
 
 ########################################################################################

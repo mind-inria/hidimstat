@@ -30,7 +30,7 @@ from hidimstat.conditional_sampling import ConditionalSampler
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = rng.randint(1e3, size=10)
+seeds = range(1, 11)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature

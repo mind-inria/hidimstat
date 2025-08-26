@@ -39,7 +39,7 @@ from hidimstat import LOCO, D0CRT
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = rng.randint(1e3, size=6)
+seeds = range(1, 7)
 
 #############################################################################
 # Generate data where classes are not linearly separable

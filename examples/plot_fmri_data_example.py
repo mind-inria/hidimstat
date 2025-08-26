@@ -62,7 +62,7 @@ from hidimstat.desparsified_lasso import (
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 # Define the seeds for the reproducibility of the example
-seeds = np.random.RandomState(0).randint(1e3, size=3)
+seeds = range(3)
 
 # Remmove warnings during loading data
 warnings.filterwarnings(

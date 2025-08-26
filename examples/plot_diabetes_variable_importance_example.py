@@ -58,7 +58,7 @@ from sklearn.model_selection import KFold
 from hidimstat import CFI, LOCO, PFI
 
 # Define the seeds for the reproducibility of the example
-seeds = np.random.RandomState(0).randint(1e3, size=7)
+seeds = np.arange(7) + 20
 
 #############################################################################
 # Load the diabetes dataset

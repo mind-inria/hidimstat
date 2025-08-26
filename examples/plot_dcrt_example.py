@@ -23,7 +23,7 @@ from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_1D_simulation
 
 # Define the seeds for the reproducibility of the example
-seeds = np.random.RandomState(0).randint(1e3, size=10)
+seeds = np.arange(10) + 10
 
 #############################################################################
 # Processing the computations

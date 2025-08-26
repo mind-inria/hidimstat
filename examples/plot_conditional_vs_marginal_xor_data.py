@@ -20,7 +20,7 @@ from hidimstat import CFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = rng.randint(1e3, size=5)
+seeds = range(1, 6)
 
 #############################################################################
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel. The decision function of

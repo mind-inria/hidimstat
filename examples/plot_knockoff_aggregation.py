@@ -64,14 +64,14 @@ n_jobs = 2
 joblib_verbose = 0
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(45)
-seed_list = rng.randint(1e3, size=runs)
+seed_list = range(runs)
 
 
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
 def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
-    seeds = np.random.RandomState(seed).randint(1, np.iinfo(np.int32).max, 6)
+    seeds = np.arange(6) * seed
     # Generate data
     X, y, _, non_zero_index = multivariate_1D_simulation_AR(
         n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr

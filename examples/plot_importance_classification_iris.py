@@ -39,7 +39,7 @@ from hidimstat import CFI, PFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = rng.randint(1e3, size=4)
+seeds = np.arange(4) + 10
 
 ########################################################################
 # Load the iris dataset and add a spurious feature
