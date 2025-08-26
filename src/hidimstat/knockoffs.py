@@ -190,8 +190,8 @@ def model_x_knockoff(
 
     # get the seed for the different run
     seed_list = check_random_state(random_state).randint(
-        np.iinfo(np.int32).max, size=n_bootstraps
-    )
+        np.iinfo(np.int32).max
+    ) + np.arange(n_bootstraps)
 
     if centered:
         X = StandardScaler().fit_transform(X)

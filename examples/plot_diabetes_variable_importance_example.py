@@ -58,7 +58,7 @@ from sklearn.model_selection import KFold
 from hidimstat import CFI, LOCO, PFI
 
 # Define the seeds for the reproducibility of the example
-seeds = np.arange(7) + 20
+seeds = np.arange(6) + 20
 
 #############################################################################
 # Load the diabetes dataset
@@ -106,14 +106,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         estimator=regressor_list[i],
         imputation_model_continuous=RidgeCV(
             alphas=np.logspace(-3, 3, 10),
-            cv=KFold(shuffle=True, random_state=seeds[3]),
+            cv=KFold(shuffle=True, random_state=seeds[2]),
         ),
         imputation_model_categorical=LogisticRegressionCV(
             Cs=np.logspace(-2, 2, 10),
-            cv=KFold(shuffle=True, random_state=seeds[4]),
+            cv=KFold(shuffle=True, random_state=seeds[3]),
         ),
         n_permutations=50,
-        random_state=seeds[5],
+        random_state=seeds[4],
         n_jobs=4,
     )
     cfi.fit(X_train, y_train)
@@ -152,7 +152,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         estimator=regressor_list[i],
         n_permutations=50,
-        random_state=seeds[6],
+        random_state=seeds[5],
         n_jobs=4,
     )
     pfi.fit(X_train, y_train)

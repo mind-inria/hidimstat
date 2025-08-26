@@ -63,8 +63,8 @@ n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
 # Define the seeds for the reproducibility of the example
-rng = np.random.RandomState(45)
-seed_list = range(runs)
+rng = np.random.RandomState(42)
+seed_list = np.arange(runs) + 10
 
 
 #######################################################################

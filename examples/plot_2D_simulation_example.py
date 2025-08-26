@@ -72,7 +72,7 @@ from hidimstat.statistical_tools.p_values import zscore_from_pval
 from hidimstat._utils.scenario import multivariate_simulation
 
 # Define the seeds for the reproducibility of the example
-seeds = np.arange(4) + 20
+seeds = np.arange(4) + 70
 
 #############################################################################
 # Specific plotting functions

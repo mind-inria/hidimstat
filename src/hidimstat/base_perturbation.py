@@ -109,8 +109,8 @@ class BasePerturbation(BaseVariableImportance):
         if self.random_state is None:
             list_seed = [None for i in range(self.n_groups)]
         else:
-            list_seed = self.random_state.randint(
-                1, np.iinfo(np.int32).max, self.n_groups
+            list_seed = self.random_state.randint(np.iinfo(np.int32).max) + np.arange(
+                self.n_groups
             )
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(X_, group_id, group_key, seed)

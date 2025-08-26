@@ -120,7 +120,8 @@ class CFI(BasePerturbation):
             )
             for group_id, seed in zip(
                 range(self.n_groups),
-                self.random_state.randint(0, np.iinfo(np.int32).max, self.n_groups),
+                self.random_state.randint(np.iinfo(np.int32).max)
+                + np.arange(self.n_groups),
             )
         ]
 
