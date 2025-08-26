@@ -20,7 +20,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LassoCV
 
 from hidimstat import D0CRT
-from hidimstat._utils.scenario import multivariate_1D_simulation
+from hidimstat._utils.scenario import multivariate_simulation
 
 #############################################################################
 # Processing the computations
@@ -38,14 +38,20 @@ for sim_ind in range(10):
     # Number of relevant variables
     n_signal = 2
     # Signal-to-noise ratio
-    snr = 4
+    signal_noise_ratio = 4
     # Correlation coefficient
     rho = 0.8
     # Nominal false positive rate
     alpha = 5e-2
 
-    X, y, _, __ = multivariate_1D_simulation(
-        n_samples=n, n_features=p, support_size=n_signal, rho=rho, seed=sim_ind
+    X, y, beta_true, noise = multivariate_simulation(
+        n_samples=n,
+        n_features=p,
+        support_size=n_signal,
+        rho=rho,
+        signal_noise_ratio=signal_noise_ratio,
+        shuffle=True,
+        seed=sim_ind,
     )
 
     # Applying a reLu function on the outcome y to get non-linear relationships
@@ -58,8 +64,9 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "Lasso",
-            "type-1 error": sum(pvals_lasso[n_signal:] < alpha) / (p - n_signal),
-            "power": sum(pvals_lasso[:n_signal] < alpha) / (n_signal),
+            "type-1 error": sum(pvals_lasso[np.logical_not(beta_true)] < alpha)
+            / (p - n_signal),
+            "power": sum(pvals_lasso[beta_true] < alpha) / (n_signal),
         }
     )
 
@@ -73,8 +80,9 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "RF",
-            "type-1 error": sum(pvals_forest[n_signal:] < alpha) / (p - n_signal),
-            "power": sum(pvals_forest[:n_signal] < alpha) / (n_signal),
+            "type-1 error": sum(pvals_forest[np.logical_not(beta_true)] < alpha)
+            / (n_signal),
+            "power": sum(pvals_forest[beta_true] < alpha) / (n_signal),
         }
     )
 
