@@ -69,7 +69,7 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference_pvalue,
 )
 from hidimstat.statistical_tools.p_values import zscore_from_pval
-from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat._utils.scenario import multivariate_simulation_spatial
 
 # Define the seeds for the reproducibility of the example
 seeds = np.arange(4) + 70
@@ -170,12 +170,12 @@ n_samples = 100
 shape = (40, 40)
 n_features = shape[1] * shape[0]
 roi_size = 4  # size of the edge of the four predictive regions
-sigma = 2.0  # noise standard deviation
+signal_noise_ratio = 10.0  # noise standard deviation
 smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 
 # generating the data
-X_init, y, beta, epsilon, _, _ = multivariate_simulation(
-    n_samples, shape, roi_size, sigma, smooth_X, seed=seeds[0]
+X_init, y, beta, epsilon = multivariate_simulation_spatial(
+    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seeds[0]
 )
 
 ##############################################################################

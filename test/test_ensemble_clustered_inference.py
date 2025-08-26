@@ -16,10 +16,7 @@ from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
-)
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 # Scenario 1: data with no temporal dimension
@@ -35,20 +32,21 @@ def test_clustered_inference_no_temporal():
 
     n_samples, n_features = 100, 2000
     support_size = 10
-    sigma = 5.0
+    signal_noise_ratio = 5.0
     rho = 0.95
     n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
+    X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
+        continuous_support=True,
         seed=2,
     )
 
@@ -89,25 +87,27 @@ def test_clustered_inference_temporal():
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
     """
-    n_samples, n_features, n_times = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
-    sigma = 5.0
-    rho_noise = 0.9
+    signal_noise_ratio = 50.0
+    rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho_noise,
-        rho_data=rho_data,
+        signal_noise_ratio=signal_noise_ratio,
+        rho_serial=rho_serial,
+        rho=rho_data,
         shuffle=False,
+        continuous_support=True,
+        seed=10,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
@@ -116,7 +116,7 @@ def test_clustered_inference_temporal():
     )
 
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X, Y, ward, n_clusters, scaler_sampling=StandardScaler()
+        X, y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -148,12 +148,12 @@ def test_clustered_inference_no_temporal_groups():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 20, 2000
+    n_samples, n_features = 20, 1500
     support_size = 10
     n_groups = 10
-    sigma = 5.0
+    signal_noise_ratio = 5.0
     rho = 0.95
-    n_clusters = 200
+    n_clusters = 150
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -162,14 +162,15 @@ def test_clustered_inference_no_temporal_groups():
     X_ = []
     y_ = []
     for i in range(n_groups):
-        X_init, y, beta, epsilon = multivariate_1D_simulation(
+        X_init, y, beta, noise = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
-            sigma=sigma,
+            signal_noise_ratio=signal_noise_ratio,
             rho=rho,
             shuffle=False,
-            seed=2 + i,
+            continuous_support=True,
+            seed=4 + i,
         )
         X_.append(X_init)
         y_.append(y)
@@ -216,16 +217,17 @@ def test_ensemble_clustered_inference():
     # ###########################################
     n_samples, n_features = 200, 2000
     support_size = 10
-    sigma = 5.0
+    signal_noise_ratio = 5.0
     rho = 0.95
 
-    X_init, y, beta, epsilon = multivariate_1D_simulation(
+    X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
+        continuous_support=True,
         seed=0,
     )
 
@@ -277,10 +279,10 @@ def test_ensemble_clustered_inference_temporal_data():
     "Test with temporal data"
     # Scenario 2: temporal data
     # #########################
-    n_samples, n_features, n_times = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 2000, 10
     support_size = 10
-    sigma = 5.0
-    rho_noise = 0.9
+    signal_noise_ratio = 5.0
+    rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 200
     margin_size = 5
@@ -288,15 +290,17 @@ def test_ensemble_clustered_inference_temporal_data():
     extended_support = support_size + margin_size
     n_bootstraps = 4
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho_noise,
-        rho_data=rho_data,
+        signal_noise_ratio=signal_noise_ratio,
+        rho_serial=rho_serial,
+        rho=rho_data,
         shuffle=False,
+        continuous_support=True,
+        seed=7,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
@@ -307,7 +311,7 @@ def test_ensemble_clustered_inference_temporal_data():
     list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
         ensemble_clustered_inference(
             X,
-            Y,
+            y,
             ward,
             n_clusters,
             scaler_sampling=StandardScaler(),

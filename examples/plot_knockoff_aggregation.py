@@ -30,7 +30,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff_pvalue,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-from hidimstat._utils.scenario import multivariate_1D_simulation_AR
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 #############################################################################
@@ -48,14 +48,14 @@ n_samples = 200
 # Number of variables
 n_features = 150
 # Correlation parameter
-rho = 0.4
+rho = 0.5
 # Ratio of number of variables with non-zero coefficients over total
 # coefficients
 sparsity = 0.2
 # Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
 # signal noise ration
-snr = 10
+signal_noise_ratio = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
 # number of jobs for repetition of the method
@@ -70,12 +70,27 @@ seed_list = np.arange(runs) + 10
 #######################################################################
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
-def single_run(n_samples, n_features, rho, sparsity, snr, fdr, n_bootstraps, seed=0):
+def single_run(
+    n_samples,
+    n_features,
+    rho,
+    sparsity,
+    signal_noise_ratio,
+    fdr,
+    n_bootstraps,
+    seed=None,
+):
     seeds = np.arange(6) * seed
     # Generate data
-    X, y, _, non_zero_index = multivariate_1D_simulation_AR(
-        n_samples, n_features, rho=rho, sparsity=sparsity, seed=seed, snr=snr
+    X, y, beta_true, noise = multivariate_simulation(
+        n_samples,
+        n_features,
+        rho=rho,
+        support_size=int(n_features * sparsity),
+        signal_noise_ratio=signal_noise_ratio,
+        seed=seed,
     )
+    non_zero_index = np.where(beta_true)[0]
 
     # Use model-X Knockoffs [1]
     selected, test_scores, threshold, X_tildes = model_x_knockoff(
@@ -169,7 +184,7 @@ def effect_number_samples(n_samples):
             n_features,
             rho,
             sparsity,
-            snr,
+            signal_noise_ratio,
             fdr,
             n_bootstraps,
             seed=seed,
