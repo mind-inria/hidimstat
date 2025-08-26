@@ -115,54 +115,55 @@ def lasso_statistic_with_sampling(
         verbose=0,
         max_iter=200000,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        random_state=1,
         tol=1e-6,
     ),
     preconfigure_lasso=preconfigure_LassoCV,
 ):
     """
-    Compute the Lasso Coefficient-Difference (LCD) statistic by comparing original and knockoff coefficients.
+        Compute the Lasso Coefficient-Difference (LCD) statistic by comparing original and knockoff coefficients.
 
-    This function fits a model on the concatenated original and knockoff features, then
-    calculates test statistics based on the difference between coefficient magnitudes.
+        This function fits a model on the concatenated original and knockoff features, then
+        calculates test statistics based on the difference between coefficient magnitudes.
+    Model-X Knockoff
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Original feature matrix.
 
-    Parameters
-    ----------
-    X : ndarray of shape (n_samples, n_features)
-        Original feature matrix.
+        X_tilde : ndarray of shape (n_samples, n_features)
+            Knockoff feature matrix.
 
-    X_tilde : ndarray of shape (n_samples, n_features)
-        Knockoff feature matrix.
+        y : ndarray of shape (n_samples,)
+            Target values.
 
-    y : ndarray of shape (n_samples,)
-        Target values.
+        estimator : estimator object
+            Scikit-learn estimator with fit() method and coef_ attribute.
+            Common choices include LassoCV, LogisticRegressionCV.
 
-    estimator : estimator object
-        Scikit-learn estimator with fit() method and coef_ attribute.
-        Common choices include LassoCV, LogisticRegressionCV.
+        fdr : float
+            Target false discovery rate level between 0 and 1.
 
-    fdr : float
-        Target false discovery rate level between 0 and 1.
+        preconfigure_estimator : callable, default=None
+            Optional function to configure estimator parameters before fitting.
+            Called with arguments (estimator, X, X_tilde, y).
 
-    preconfigure_estimator : callable, default=None
-        Optional function to configure estimator parameters before fitting.
-        Called with arguments (estimator, X, X_tilde, y).
+        Returns
+        -------
+        test_score : ndarray of shape (n_features,)
+            Feature importance scores computed as |beta_j| - |beta_j'|
+            where beta_j and beta_j' are original and knockoff coefficients.
 
-    Returns
-    -------
-    test_score : ndarray of shape (n_features,)
-        Feature importance scores computed as |beta_j| - |beta_j'|
-        where beta_j and beta_j' are original and knockoff coefficients.
+        ko_thr : float
+            Knockoff threshold value used for feature selection.
 
-    ko_thr : float
-        Knockoff threshold value used for feature selection.
+        selected : ndarray
+            Indices of features with test_score >= ko_thr.
 
-    selected : ndarray
-        Indices of features with test_score >= ko_thr.
-
-    Notes
-    -----
-    The test statistic follows Equation 1.7 in Barber & Candès (2015) and
-    Equation 3.6 in Candès et al. (2018).
+        Notes
+        -----
+        The test statistic follows Equation 1.7 in Barber & Candès (2015) and
+        Equation 3.6 in Candès et al. (2018).
     """
     n_samples, n_features = X.shape
     X_ko = np.column_stack([X, X_tilde])

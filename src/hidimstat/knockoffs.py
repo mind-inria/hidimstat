@@ -5,6 +5,7 @@ from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
 from sklearn.utils.validation import check_memory
 
+from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.base_variable_importance import (
@@ -111,10 +112,12 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
 
     def __init__(
         self,
-        generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
+        generator=GaussianGenerator(
+            cov_estimator=LedoitWolf(assume_centered=True), random_state=0
+        ),
         statistical_test=lasso_statistic_with_sampling,
         joblib_verbose=0,
-        n_sampling=1,
+        n_repeat=1,
         n_jobs=1,
         memory=None,
     ):
@@ -123,14 +126,14 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
         self.joblib_verbose = joblib_verbose
         self.statistical_test = statistical_test
 
-        assert n_sampling > 0, "the number of sampling should at least higher than 1"
-        self.n_sampling = n_sampling
+        assert n_repeat > 0, "n_samplings must be positive"
+        self.n_repeat = n_repeat
         # unnecessary to have n_jobs > number of bootstraps
-        self.n_jobs = min(n_sampling, n_jobs)
+        self.n_jobs = min(n_repeat, n_jobs)
 
     def fit(self, X, y=None):
         """
-        Fit the CRT model by training the generator.
+        Fit the Model-X Knockoff model by training the generator.
 
         Parameters
         ----------
@@ -154,6 +157,14 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
             warnings.warn("y won't be used")
         self.generator.fit(X)
         return self
+
+    def _check_fit(self):
+        try:
+            self.generator._check_fit()
+        except ValueError as exc:
+            raise ValueError(
+                "The Model-X Knockoff requires to be fitted before computing importance"
+            ) from exc
 
     def importance(self, X, y):
         """
@@ -180,22 +191,103 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
         --------
         statistical_test : Method that computes the test statistic used in this function.
         """
+        self._check_fit()
         X_tildes = []
-        for i in range(self.n_sampling):
+        for i in range(self.n_repeat):
             X_tildes.append(self.generator.simulate())
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         self.test_scores_ = np.array(
             parallel(
                 delayed(lasso_statistic_with_sampling)(X, X_tildes[i], y)
-                for i in range(self.n_sampling)
+                for i in range(self.n_repeat)
             )
         )
         self.test_scores_ = np.array(self.test_scores_)
 
         self.importances_ = np.mean(self.test_scores_, axis=0)
         self.pvalues_ = np.mean(
-            [_empirical_pval(self.test_scores_[i]) for i in range(self.n_sampling)],
+            [_empirical_pval(self.test_scores_[i]) for i in range(self.n_repeat)],
             axis=0,
         )
         return self.importances_
+
+    def fit_importance(self, X, y, cv=None):
+        """
+        Fits the model to the data and computes feature importance.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data matrix where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like of shape (n_samples,)
+            The target values.
+        cv : None or cross-validation generator, default=None
+            Cross-validation parameter. Not used in this method.
+            A warning will be issued if provided.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores (p-values) for each feature.
+            Lower values indicate higher importance. Values range from 0 to 1.
+
+        Notes
+        -----
+        This method combines the fit and importance computation steps.
+        It first fits the generator to X and then computes importance scores
+        by comparing observed test statistics against permuted ones.
+
+        See Also
+        --------
+        fit : Method for fitting the generator only
+        importance : Method for computing importance scores only
+        """
+        if cv is not None:
+            warnings.warn("cv won't be used")
+
+        self.fit(X)
+        return self.importance(X, y)
+
+
+def model_x_knockoff(
+    X,
+    y,
+    generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
+    statistical_test=lasso_statistic_with_sampling,
+    joblib_verbose=0,
+    n_repeat=1,
+    n_jobs=1,
+    memory=None,
+):
+    model_x_knockoff = ModelXKnockoff(
+        generator=generator,
+        statistical_test=statistical_test,
+        n_repeat=n_repeat,
+        n_jobs=n_jobs,
+        memory=memory,
+        joblib_verbose=joblib_verbose,
+    )
+    return model_x_knockoff.fit_importance(X, y)
+
+
+# use the docstring of the class for the function
+model_x_knockoff.__doc__ = _aggregate_docstring(
+    [
+        ModelXKnockoff.__doc__,
+        ModelXKnockoff.__init__.__doc__,
+        ModelXKnockoff.fit_importance.__doc__,
+        ModelXKnockoff.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection: binary array-like of shape (n_features)
+        Binary array of the seleted features
+    importance : array-like of shape (n_features)
+        The computed feature importance scores.
+    pvalues : array-like of shape (n_features)
+        The computed significant of feature for the prediction.
+    """,
+)
