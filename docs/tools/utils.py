@@ -31,9 +31,10 @@ def linkcode_resolve(domain, info):
         fn = os.path.relpath(fn, start=os.path.dirname(__file__))
 
         # Adjust if project inside src folder
-        if fn.startswith("src"):
-            fn = fn[len("src/") :]
+        if fn.startswith("../../src"):
+            fn = fn[len("../../src/") :]
 
+        print(fn)
         return f"https://github.com/mind-inria/hidimstat/blob/main/src/{fn}#L{lineno}-L{lineno + len(source) - 1}"
     except Exception:
         return None
