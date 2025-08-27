@@ -134,9 +134,9 @@ class CFI(BasePerturbation):
         X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                estimator, X_, features_groups_ids
+                imputation_model, X_, features_groups_ids
             )
-            for features_groups_ids, estimator in zip(
+            for features_groups_ids, imputation_model in zip(
                 self._features_groups_ids, self._list_imputation_models
             )
         )
