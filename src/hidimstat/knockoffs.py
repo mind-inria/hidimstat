@@ -6,7 +6,7 @@ from sklearn.covariance import LedoitWolf
 from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
+from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -112,7 +112,7 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
 
     def __init__(
         self,
-        generator=GaussianGenerator(
+        generator=GaussianDistribution(
             cov_estimator=LedoitWolf(assume_centered=True), random_state=0
         ),
         statistical_test=lasso_statistic_with_sampling,
@@ -199,7 +199,7 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         self.test_scores_ = np.array(
             parallel(
-                delayed(lasso_statistic_with_sampling)(X, X_tildes[i], y)
+                delayed(self.statistical_test)(X, X_tildes[i], y)
                 for i in range(self.n_repeat)
             )
         )
@@ -254,7 +254,7 @@ class ModelXKnockoff(BaseVariableImportance, SelectionFDR):
 def model_x_knockoff(
     X,
     y,
-    generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
+    generator=GaussianDistribution(cov_estimator=LedoitWolf(assume_centered=True)),
     statistical_test=lasso_statistic_with_sampling,
     joblib_verbose=0,
     n_repeat=1,

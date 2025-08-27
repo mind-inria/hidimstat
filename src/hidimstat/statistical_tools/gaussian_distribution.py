@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 
 
-class GaussianGenerator:
+class GaussianDistribution:
     """
     Generator for second-order Gaussian variables using the equi-correlated method.
 

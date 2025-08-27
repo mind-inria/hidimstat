@@ -9,7 +9,7 @@ from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
+from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
 from hidimstat.statistical_tools.lasso_test import lasso_statistic
 from hidimstat.base_variable_importance import BaseVariableImportance, SelectionFDR
 
@@ -60,7 +60,7 @@ class CRT(BaseVariableImportance, SelectionFDR):
 
     def __init__(
         self,
-        generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
+        generator=GaussianDistribution(cov_estimator=LedoitWolf(assume_centered=True)),
         statistical_test=lasso_statistic,
         n_repeat=10,
         n_jobs=1,
@@ -235,7 +235,7 @@ def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
 def crt(
     X,
     y,
-    generator=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True)),
+    generator=GaussianDistribution(cov_estimator=LedoitWolf(assume_centered=True)),
     statistical_test=lasso_statistic,
     n_repeat=10,
     n_jobs=1,
