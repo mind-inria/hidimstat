@@ -8,7 +8,7 @@ from sklearn.model_selection import KFold
 
 from hidimstat import CRT
 from hidimstat.conditional_randomization_test import crt
-from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
+from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.lasso_test import lasso_statistic
 
@@ -45,7 +45,7 @@ def configure_linear_categorial_crt(X, y, n_repeat, seed, fdr):
     # instantiate CRT model with linear regression imputer
     crt = CRT(
         n_repeat=n_repeat,
-        generator=GaussianGenerator(
+        generator=GaussianDistribution(
             cov_estimator=LedoitWolf(assume_centered=True), random_state=seed
         ),
     )
@@ -267,11 +267,12 @@ class TestCRTClass:
                 lasso=GridSearchCV(
                     Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
                 ),
+                n_alphas=5,
             )
 
         crt = CRT(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=seed + 2
             ),
             statistical_test=lasso_statistic_gen,
@@ -290,7 +291,7 @@ class TestCRTClass:
         X, y, important_features, _ = data_generator
         crt = CRT(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=seed + 1
             ),
         )
@@ -301,7 +302,7 @@ class TestCRTClass:
 
         crt = CRT(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=GraphicalLassoCV(
                     alphas=[1e-3, 1e-2, 1e-1, 1],
                     cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -366,7 +367,7 @@ class TestCRTClass:
         # Single AKO (or vanilla KO) (verbose vs no verbose)
         crt_repeat = CRT(
             n_repeat=5,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=5
             ),
         )
@@ -375,7 +376,7 @@ class TestCRTClass:
 
         crt_no_repeat = CRT(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=5
             ),
         )

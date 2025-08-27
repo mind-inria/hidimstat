@@ -8,9 +8,9 @@ from sklearn.model_selection import KFold
 
 from hidimstat import ModelXKnockoff
 from hidimstat.knockoffs import model_x_knockoff
-from hidimstat.statistical_tools.gaussian_knockoff import GaussianGenerator
+from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-from hidimstat.statistical_tools.lasso_test import lasso_statistic
+from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 
 
 def configure_linear_categorial_model_x_knockoff(X, y, n_repeat, seed, fdr):
@@ -45,7 +45,7 @@ def configure_linear_categorial_model_x_knockoff(X, y, n_repeat, seed, fdr):
     # instantiate ModelXKnockoff model with linear regression imputer
     model_x_knockoff = ModelXKnockoff(
         n_repeat=n_repeat,
-        generator=GaussianGenerator(
+        generator=GaussianDistribution(
             cov_estimator=LedoitWolf(assume_centered=True), random_state=seed
         ),
     )
@@ -316,18 +316,20 @@ class TestModelXKnockoffClass:
         fdr = 0.7
         X, y, important_features, _ = data_generator
 
-        def lasso_statistic_gen(X, y):
-            return lasso_statistic(
+        def lasso_statistic_gen(X, X_tilde, y):
+            return lasso_statistic_with_sampling(
                 X,
+                X_tilde,
                 y,
                 lasso=GridSearchCV(
                     Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
                 ),
+                preconfigure_lasso=None,
             )
 
         model_x_knockoff = ModelXKnockoff(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=seed + 2
             ),
             statistical_test=lasso_statistic_gen,
@@ -346,7 +348,7 @@ class TestModelXKnockoffClass:
         X, y, important_features, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=seed + 1
             ),
         )
@@ -357,7 +359,7 @@ class TestModelXKnockoffClass:
 
         model_x_knockoff = ModelXKnockoff(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=GraphicalLassoCV(
                     alphas=[1e-3, 1e-2, 1e-1, 1],
                     cv=KFold(n_splits=5, shuffle=True, random_state=seed + 2),
@@ -408,7 +410,7 @@ class TestModelXKnockoffClass:
         X, y, important_features, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=n_repeat,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=0
             ),
         )
@@ -431,7 +433,7 @@ class TestModelXKnockoffClass:
         # Single AKO (or vanilla KO) (verbose vs no verbose)
         model_x_knockoff_repeat = ModelXKnockoff(
             n_repeat=10,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=0
             ),
         )
@@ -440,7 +442,7 @@ class TestModelXKnockoffClass:
 
         model_x_knockoff_no_repeat = ModelXKnockoff(
             n_repeat=1,
-            generator=GaussianGenerator(
+            generator=GaussianDistribution(
                 cov_estimator=LedoitWolf(assume_centered=True), random_state=0
             ),
         )
