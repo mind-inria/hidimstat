@@ -25,6 +25,7 @@ from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_feature_importance import PFI
 
+from .conditional_sampling import ConditionalSampler
 from .statistical_tools.aggregation import quantile_aggregation
 
 try:

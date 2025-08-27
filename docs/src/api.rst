@@ -4,19 +4,29 @@
 API
 =================
 
-Estimators
-==========
-
 .. currentmodule:: hidimstat
 
-Functions
-=========
+Base Classes
+============
 
 .. autosummary::
-   :toctree: ./generated/api/function/
-   :template: function.rst
+   :toctree: ./generated/api/base/
+   :template: class.rst
 
-   quantile_aggregation
+   BaseVariableImportance
+   BasePerturbation
+
+Conditional Importance
+======================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+   
+   LOCO
+   CFI
+   PFI
+   D0CRT
    clustered_inference
    clustered_inference_pvalue
    desparsified_lasso
@@ -25,18 +35,22 @@ Functions
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
    model_x_knockoff
-   reid
 
-Classes
+Sampler
 =======
 
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: class.rst
-   
-   BaseVariableImportance
-   BasePerturbation
-   LOCO
-   CFI
-   PFI
-   D0CRT
+
+   ConditionalSampler
+
+Helper Functions
+================
+
+.. autosummary::
+   :toctree: ./generated/api/helper_functions/
+   :template: function.rst
+
+   quantile_aggregation
+   reid
