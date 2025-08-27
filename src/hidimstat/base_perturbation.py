@@ -6,11 +6,11 @@ from sklearn.metrics import root_mean_squared_error
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
-    VariableImportanceGroup,
+    VariableImportanceFeatureGroup,
 )
 
 
-class BasePerturbation(BaseVariableImportance, VariableImportanceGroup):
+class BasePerturbation(BaseVariableImportance, VariableImportanceFeatureGroup):
     def __init__(
         self,
         estimator,
@@ -121,12 +121,14 @@ class BasePerturbation(BaseVariableImportance, VariableImportanceGroup):
         out_dict["importance"] = np.array(
             [
                 np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_groups)
+                for j in range(self.n_features_groups)
             ]
         )
         return out_dict
 
-    def _joblib_predict_one_group(self, X, features_group_id, features_group_key):
+    def _joblib_predict_one_features_group(
+        self, X, features_group_id, features_group_key
+    ):
         """
         Compute the predictions after perturbation of the data for a given
         group of variables. This function is parallelized.
@@ -140,7 +142,7 @@ class BasePerturbation(BaseVariableImportance, VariableImportanceGroup):
         group_key: str, int
             The key of the group of variables. (parameter use for debugging)
         """
-        features_group_ids = self._groups_ids[features_group_id]
+        features_group_ids = self._features_groups_ids[features_group_id]
         non_features_group_ids = np.delete(np.arange(X.shape[1]), features_group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
