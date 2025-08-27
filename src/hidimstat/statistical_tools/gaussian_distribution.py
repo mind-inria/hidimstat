@@ -44,12 +44,7 @@ class GaussianDistribution:
         self.cov_estimator = cov_estimator
         self.centered = centered
         self.tol = tol
-        if isinstance(random_state, (int, np.int32, np.int64)):
-            self.rng = check_random_state(random_state)
-        elif random_state is None:
-            self.rng = check_random_state(0)
-        else:
-            raise TypeError("Wrong type for random_state")
+        self.rng = check_random_state(random_state)
 
     def fit(self, X):
         """
