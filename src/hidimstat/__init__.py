@@ -28,6 +28,10 @@ from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_feature_importance import PFI
 
+# marginal methods
+from .marginal import LeaveOneCovariateIn  # for having documentation
+from .marginal import LeaveOneCovariateIn as LOCI
+
 from .statistical_tools.aggregation import quantile_aggregation
 
 try:
@@ -54,4 +58,6 @@ __all__ = [
     "CFI",
     "LOCO",
     "PFI",
+    # marginal methods
+    "LOCI",
 ]
