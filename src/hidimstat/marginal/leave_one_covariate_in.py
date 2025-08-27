@@ -2,7 +2,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-from typing import override
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import (
@@ -49,7 +48,6 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
         self._list_univariate_model = []
         self.loss_reference_ = None
 
-    @override
     def fit(self, X, y, features_groups=None):
         """
         Fit the marginal information variable importance model.
