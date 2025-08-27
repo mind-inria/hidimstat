@@ -30,7 +30,6 @@ from hidimstat.conditional_sampling import ConditionalSampler
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = range(1, 11)
 
 #############################################################################
 # Load the California housing dataset and add a spurious feature
@@ -42,9 +41,7 @@ seeds = range(1, 11)
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
 # only use 2/3 of samples to speed up the example
-X, _, y, _ = train_test_split(
-    X_, y_, test_size=0.6667, random_state=seeds[0], shuffle=True
-)
+X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=1, shuffle=True)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
@@ -89,7 +86,7 @@ model = TransformedTargetRegressor(
     regressor=make_pipeline(
         StandardScaler(),
         MLPRegressor(
-            random_state=seeds[1],
+            random_state=2,
             hidden_layer_sizes=(32, 16, 8),
             early_stopping=True,
             learning_rate_init=0.01,
@@ -100,7 +97,7 @@ model = TransformedTargetRegressor(
 )
 
 
-kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
+kf = KFold(n_splits=5, shuffle=True, random_state=3)
 for train_index, test_index in kf.split(X):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -122,7 +119,7 @@ print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}
 # testing conditional importance, as it identifies the spurious feature as important.
 permutation_importances = []
 conditional_permutation_importances = []
-kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
+kf = KFold(n_splits=5, shuffle=True, random_state=3)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -134,7 +131,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         n_permutations=50,
         n_jobs=5,
-        random_state=seeds[3],
+        random_state=4,
     )
     pfi.fit(X_test, y_test)
 
@@ -149,9 +146,7 @@ pval_pfi = ttest_1samp(
 pval_threshold = 0.05
 # Create a horizontal boxplot of permutation importances
 fig, ax = plt.subplots()
-sns.barplot(
-    permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=seeds[4]
-)
+sns.barplot(permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5)
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
 for i, pval in enumerate(pval_pfi):
@@ -188,7 +183,7 @@ plt.show()
 # explained by the other features unchanged. This method is valid for testing conditional
 # importance. As shown below, it does not identify the spurious feature as important.
 conditional_importances = []
-kf = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
+kf = KFold(n_splits=5, shuffle=True, random_state=3)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -200,9 +195,9 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         imputation_model_continuous=RidgeCV(
             alphas=np.logspace(-3, 3, 5),
-            cv=KFold(shuffle=True, random_state=seeds[5]),
+            cv=KFold(shuffle=True, random_state=6),
         ),
-        random_state=seeds[6],
+        random_state=7,
         n_jobs=5,
     )
     cfi.fit(X_test, y_test)
@@ -258,14 +253,14 @@ plt.show()
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
-    random_state=seeds[7],
+    random_state=8,
 )
 
 conditional_sampler = ConditionalSampler(
     model_regression=RidgeCV(
-        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=seeds[8])
+        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=9)
     ),
-    random_state=seeds[9],
+    random_state=10,
 )
 
 

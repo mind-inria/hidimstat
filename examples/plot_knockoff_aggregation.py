@@ -64,7 +64,6 @@ n_jobs = 2
 joblib_verbose = 0
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(42)
-seed_list = np.arange(runs) + 10
 
 
 #######################################################################
@@ -189,7 +188,7 @@ def effect_number_samples(n_samples):
             n_bootstraps,
             seed=seed,
         )
-        for seed in seed_list
+        for seed in range(10, 10 + runs)
     )
 
     fdps_mx = []

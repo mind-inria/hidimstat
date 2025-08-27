@@ -20,7 +20,6 @@ from hidimstat import CFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = range(1, 6)
 
 #############################################################################
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel. The decision function of
@@ -33,10 +32,8 @@ xx, yy = np.meshgrid(
     np.linspace(np.min(X[:, 1]), np.max(X[:, 1]), 100),
 )
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.2, random_state=seeds[0]
-)
-model = SVC(kernel="rbf", random_state=seeds[1])
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
+model = SVC(kernel="rbf", random_state=2)
 model.fit(X_train, y_train)
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
 
@@ -84,8 +81,8 @@ plt.show()
 # features. Conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
-cv = KFold(n_splits=5, shuffle=True, random_state=seeds[2])
-clf = SVC(kernel="rbf", random_state=seeds[3])
+cv = KFold(n_splits=5, shuffle=True, random_state=3)
+clf = SVC(kernel="rbf", random_state=4)
 # Compute marginal importance using univariate models
 marginal_scores = []
 for i in range(X.shape[1]):
@@ -119,7 +116,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
         loss=hinge_loss,
         imputation_model_continuous=RidgeCV(np.logspace(-3, 3, 10)),
         n_permutations=50,
-        random_state=seeds[4],
+        random_state=5,
     )
     vim.fit(X_train, y_train)
     importances.append(vim.importance(X_test, y_test)["importance"])

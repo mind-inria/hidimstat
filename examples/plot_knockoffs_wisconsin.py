@@ -15,7 +15,6 @@ import pandas as pd
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(43)
-seeds = np.arange(5) + 16
 
 
 ########################################################################################
@@ -34,7 +33,7 @@ X = data.data
 y = data.target
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.1, random_state=seeds[0]
+    X, y, test_size=0.1, random_state=16
 )
 
 scaler = StandardScaler()
@@ -55,7 +54,7 @@ feature_names = [str(name) for name in data.feature_names]
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=seeds[1]
+    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=17
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -102,7 +101,7 @@ lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
     penalty="l1",
     solver="liblinear",
-    random_state=seeds[2],
+    random_state=18,
     n_jobs=1,
 )
 lasso_noisy.fit(noisy_train, y_train)
@@ -152,12 +151,12 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
         solver="liblinear",
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
-        random_state=seeds[3],
+        random_state=19,
         tol=1e-3,
         max_iter=1000,
     ),
     n_bootstraps=1,
-    random_state=seeds[4],
+    random_state=20,
     tol_gauss=1e-15,
     preconfigure_estimator=None,
     fdr=fdr,

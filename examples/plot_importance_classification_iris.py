@@ -39,7 +39,6 @@ from hidimstat import CFI, PFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
-seeds = np.arange(5)
 
 ########################################################################
 # Load the iris dataset and add a spurious feature
@@ -85,7 +84,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
                 alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
             ),
             n_permutations=50,
-            random_state=seeds[0],
+            random_state=2,
             method=method,
             loss=loss,
         )
@@ -93,7 +92,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
         vim = PFI(
             estimator=model_c,
             n_permutations=50,
-            random_state=seeds[1],
+            random_state=3,
             method=method,
             loss=loss,
         )
@@ -122,15 +121,15 @@ models = [
         Cs=np.logspace(-3, 3, 10),
         tol=1e-3,
         max_iter=1000,
-        cv=KFold(shuffle=True, random_state=seeds[2]),
+        cv=KFold(shuffle=True, random_state=4),
     ),
     GridSearchCV(
         SVC(kernel="rbf"),
         {"C": np.logspace(-3, 3, 10)},
-        cv=KFold(shuffle=True, random_state=seeds[3]),
+        cv=KFold(shuffle=True, random_state=5),
     ),
 ]
-cv = KFold(n_splits=5, shuffle=True, random_state=seeds[4])
+cv = KFold(n_splits=5, shuffle=True, random_state=6)
 groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(

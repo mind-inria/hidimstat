@@ -22,9 +22,6 @@ from sklearn.linear_model import LassoCV
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_simulation
 
-# Define the seeds for the reproducibility of the example
-seeds = np.arange(10) + 10
-
 #############################################################################
 # Processing the computations
 # ---------------------------
@@ -53,7 +50,7 @@ for sim_ind in range(10):
         rho=rho,
         signal_noise_ratio=signal_noise_ratio,
         shuffle=True,
-        seed=seeds[sim_ind],
+        seed=sim_ind + 10,
     )
 
     # Applying a reLu function on the outcome y to get non-linear relationships
@@ -61,9 +58,9 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     d0crt_lasso = D0CRT(
-        estimator=LassoCV(random_state=seeds[sim_ind] + 1, n_jobs=1),
+        estimator=LassoCV(random_state=sim_ind + 11, n_jobs=1),
         screening=False,
-        random_state=seeds[sim_ind] + 2,
+        random_state=sim_ind + 12,
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
@@ -79,10 +76,10 @@ for sim_ind in range(10):
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
         estimator=RandomForestRegressor(
-            n_estimators=100, random_state=seeds[sim_ind] + 3, n_jobs=1
+            n_estimators=100, random_state=sim_ind + 13, n_jobs=1
         ),
         screening=False,
-        random_state=seeds[sim_ind] + 4,
+        random_state=sim_ind + 14,
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_
