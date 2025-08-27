@@ -53,7 +53,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
     def fit(self, X, y, features_groups=None):
         """
         Fit the marginal information variable importance model.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -64,7 +64,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
             A dictionary where the keys are group identifiers and the values are lists
             of feature indices or names for each group. If None, each feature is
             treated as its own group.
-        
+
         Returns
         -------
         self : object
@@ -84,14 +84,14 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
         """
         Compute the predictions after perturbation of the data for each group of
         features.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             The input samples.
         y : array-like of shape (n_samples,)
             The target values.
-            
+
         Returns
         -------
         out : array-like of shape (n_features_groups, n_samples)
@@ -102,22 +102,26 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_features_group)(X_, features_group_id, features_groups_ids)
-            for features_group_id, features_groups_ids in enumerate(self._features_groups_ids)
+            delayed(self._joblib_predict_one_features_group)(
+                X_, features_group_id, features_groups_ids
+            )
+            for features_group_id, features_groups_ids in enumerate(
+                self._features_groups_ids
+            )
         )
         return np.array(out_list)
 
     def importance(self, X, y):
         """
         Compute the marginal importance scores for each group of features.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             The input samples.
         y : array-like of shape (n_samples,)
             The target values.
-            
+
         Returns
         -------
         out_dict : dict
@@ -154,7 +158,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
     def fit_importance(self, X, y, cv, features_groups=None):
         """
         Fits the model to the data and computes feature importance.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -167,7 +171,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
             A dictionary where the keys are group identifiers and the values are lists
             of feature indices or names for each group. If None, each feature is
             treated as its own group.
-            
+
         Returns
         -------
         importance : array-like
@@ -195,7 +199,7 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
     def _joblib_fit_one_features_group(self, X, y, features_group_ids):
         """
         Helper function to fit a univariate model for a single group.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -204,19 +208,23 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
             The target values.
         features_group_ids : array-like
             The indices of features belonging to this group.
-            
+
         Returns
         -------
         object
             The fitted univariate model for this group.
         """
         univariate_model = clone(self.estimator)
-        return univariate_model.fit(X[:, features_group_ids].reshape(-1, len(features_group_ids)), y)
+        return univariate_model.fit(
+            X[:, features_group_ids].reshape(-1, len(features_group_ids)), y
+        )
 
-    def _joblib_predict_one_features_group(self, X, index_features_group, features_group_ids):
+    def _joblib_predict_one_features_group(
+        self, X, index_features_group, features_group_ids
+    ):
         """
         Helper function to predict for a single group.
-        
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -225,13 +233,13 @@ class LeaveOneCovariateIn(BaseVariableImportance, VariableImportanceFeatureGroup
             The index of the group in _list_univariate_model.
         features_group_ids : array-like
             The indices of features belonging to this group.
-            
+
         Returns
         -------
         float
             The prediction score for this group.
         """
-        y_pred_loci = getattr(self._list_univariate_model[index_features_group], self.method)(
-            X[:, features_group_ids].reshape(-1, len(features_group_ids))
-        )
+        y_pred_loci = getattr(
+            self._list_univariate_model[index_features_group], self.method
+        )(X[:, features_group_ids].reshape(-1, len(features_group_ids)))
         return y_pred_loci

@@ -24,14 +24,14 @@ def configure_linear_categorial_loci(X, y):
         and each row a sample.
     y : array-like of shape (n_samples,)
         Target variable array.
-        
+
     Returns
     -------
     importance : array-like
         Array containing importance scores for each feature.
         Higher values indicate greater feature importance in predicting
         the target variable.
-        
+
     Notes
     -----
     The function performs the following steps:
