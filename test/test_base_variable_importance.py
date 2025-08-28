@@ -6,6 +6,22 @@ from hidimstat import BaseVariableImportance
 
 @pytest.fixture
 def set_BaseVariableImportance(pvalues, test_score, seed):
+    """Create a BaseVariableImportance instance with test data for testing purposes.
+
+    Parameters
+    ----------
+    pvalues : bool
+        If True, generate random p-values for testing.
+    test_score : bool
+        If True, generate random test scores for testing.
+    seed : int
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    BaseVariableImportance
+        A BaseVariableImportance instance with test data.
+    """
     nb_features = 100
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
@@ -14,6 +30,7 @@ def set_BaseVariableImportance(pvalues, test_score, seed):
     if pvalues or test_score:
         vi.pvalues_ = np.sort(rng.rand(nb_features))[vi.importances_]
     if test_score:
+        # TODO: this can be improved.
         vi.test_scores_ = []
         for i in range(10):
             score = np.random.rand(nb_features) * 30
@@ -32,7 +49,7 @@ def set_BaseVariableImportance(pvalues, test_score, seed):
     ids=["only importance", "p-value", "test-score"],
 )
 class TestSelection:
-    """Test selection base on importance"""
+    """Test selection based on importance"""
 
     def test_selection_k_best(self, set_BaseVariableImportance):
         "test selection of the k_best"
@@ -109,7 +126,7 @@ class TestSelection:
     "pvalues, test_score, seed", [(True, True, 10)], ids=["default"]
 )
 class TestSelectionFDR:
-    """Test selection base on fdr"""
+    """Test selection based on fdr"""
 
     def test_selection_fdr_default(self, set_BaseVariableImportance):
         "test selection of the default"
@@ -126,14 +143,14 @@ class TestSelectionFDR:
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_fdr_bhy(self, set_BaseVariableImportance):
-        "test selection of the adaptation"
+        "test selection with bhy"
         vi = set_BaseVariableImportance
         true_value = vi.importances_ >= 85
         selection = vi.selection_fdr(0.8, fdr_control="bhy")
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_fdr_ebh(self, set_BaseVariableImportance):
-        "test selection of the adaptation"
+        "test selection with e-values"
         vi = set_BaseVariableImportance
         true_value = vi.importances_ >= 2
         selection = vi.selection_fdr(0.037, fdr_control="ebh", evalues=True)
