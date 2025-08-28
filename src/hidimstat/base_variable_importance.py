@@ -70,17 +70,23 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
         if k_best is not None:
-            if not isinstance(k_best, str) and k_best > self.importances_.shape[1]:
+            if not isinstance(k_best, str) and k_best > self.importances_.shape[0]:
                 warnings.warn(
-                    f"k={k_best} is greater than n_features={self.importances_.shape[1]}. "
+                    f"k={k_best} is greater than n_features={self.importances_.shape[0]}. "
                     "All the features will be returned."
                 )
-            assert k_best > 0, "k_best needs to be positive and not null"
+            if isinstance(k_best, str):
+                assert k_best == "all"
+            else:
+                assert k_best >= 0, "k_best needs to be positive or null"
         if percentile is not None:
             assert (
-                0 < percentile and percentile < 100
+                0 <= percentile and percentile <= 100
             ), "percentile needs to be between 0 and 100"
         if threshold_pvalue is not None:
+            assert (
+                self.pvalues_ is not None
+            ), "This method doesn't support a threshold on p-values"
             assert (
                 0 < threshold_pvalue and threshold_pvalue < 1
             ), "threshold_pvalue needs to be between 0 and 1"
@@ -105,9 +111,9 @@ class BaseVariableImportance(BaseEstimator):
         elif percentile == 0:
             mask_percentile = np.zeros(len(self.importances_), dtype=bool)
         elif percentile is not None:
-            threshold = np.percentile(self.importances_, 100 - percentile)
-            mask_percentile = self.importances_ > threshold
-            ties = np.where(self.importances_ == threshold)[0]
+            threshold_percentile = np.percentile(self.importances_, 100 - percentile)
+            mask_percentile = self.importances_ > threshold_percentile
+            ties = np.where(self.importances_ == threshold_percentile)[0]
             if len(ties):
                 max_feats = int(len(self.importances_) * percentile / 100)
                 kept_ties = ties[: max_feats - mask_percentile.sum()]
