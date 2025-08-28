@@ -37,9 +37,6 @@ from sklearn.svm import SVC
 
 from hidimstat import LOCO, D0CRT
 
-# Define the seeds for the reproducibility of the example
-rng = np.random.RandomState(0)
-
 #############################################################################
 # Generate data where classes are not linearly separable
 # --------------------------------------------------------------
