@@ -53,16 +53,18 @@ class BaseVariableImportance(BaseEstimator):
     ):
         """
         Selects features based on variable importance.
+
         Parameters
         ----------
-        k_best : int, optional, default=None
+        k_best : int, default=None
             Selects the top k features based on importance scores.
-        percentile : float, optional, default=None
+        percentile : float, default=None
             Selects features based on a specified percentile of importance scores.
-        threshold : float, optional, default=None
+        threshold : float, default=None
             Selects features with importance scores above the specified threshold.
-        threshold_pvalue : float, optional, default=None
+        threshold_pvalue : float, default=None
             Selects features with p-values below the specified threshold.
+
         Returns
         -------
         selection : array-like of shape (n_features,)
@@ -182,7 +184,7 @@ class BaseVariableImportance(BaseEstimator):
         Raises
         ------
         AssertionError
-            If test_scores_ is None or if incompatible combinations of parameters are provided
+            If test_scores\_ is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
         assert (
