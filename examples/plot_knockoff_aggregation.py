@@ -79,7 +79,6 @@ def single_run(
     n_bootstraps,
     seed=None,
 ):
-    seeds = np.arange(6) * seed
     # Generate data
     X, y, beta_true, noise = multivariate_simulation(
         n_samples,
@@ -97,11 +96,11 @@ def single_run(
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[0]),
-            random_state=seeds[1],
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            random_state=1,
         ),
         n_bootstraps=1,
-        random_state=seeds[2],
+        random_state=2,
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
@@ -112,12 +111,12 @@ def single_run(
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=seeds[3]),
-            random_state=seeds[4],
+            cv=KFold(n_splits=5, shuffle=True, random_state=3),
+            random_state=4,
         ),
         n_bootstraps=n_bootstraps,
         n_jobs=1,
-        random_state=seeds[5],
+        random_state=5,
     )
 
     # Use p-values aggregation [2]
