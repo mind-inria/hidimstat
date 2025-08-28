@@ -1,13 +1,13 @@
 """
 Partial Dependence and Individual Conditional Expectation Plots
 ===============================================================
-This example is a modiyed version of the the exampel propose by scikitlearn:
+This example is a modified version of the the example proposed in Scikit-learn:
 https://scikit-learn.org/1.7/auto_examples/inspection/plot_partial_dependence.html
 Partial dependence plots show the dependence between the target function [2]_
 and a set of features of interest, marginalizing over the values of all other
 features (the complement features). We limit to only one feature for the
-calculation of the importance because the extension of it for multiple is
-feature are not tricvial and not used.
+calculation of the importance because the extension of this method for multiple is
+features is not trivial.
 Similarly, an individual conditional expectation (ICE) plot [3]_
 shows the dependence between the target function and a feature of interest.
 However, unlike partial dependence plots, which show the average effect of the
@@ -92,7 +92,7 @@ numerical_features = [
 categorical_features = X_train.columns.drop(numerical_features)
 
 # %%
-# Before we go into the details regarding the preprocessing of the different machine
+# Before we go into the details regarding  the different machine
 # learning pipelines, we will try to get some additional intuition regarding the dataset
 # that will be helpful to understand the model's statistical performance and results of
 # the partial dependence analysis.
@@ -194,7 +194,7 @@ hgbdt_preprocessor
 # In this section, we will compute 1-way partial dependence with two different
 # machine-learning models: (i) a multi-layer perceptron and (ii) a
 # gradient-boosting model. With these two models, we illustrate how to compute and
-# interpret both partial dependence plot (PDP) for both numerical and categorical
+# interpret partial dependence plots (PDP) for both numerical and categorical
 # features and individual conditional expectation (ICE).
 #
 # Multi-layer perceptron
@@ -434,7 +434,7 @@ _ = fig.suptitle("ICE and PDP representations", fontsize=16)
 #
 # None of the examples so far specify _which_ points are evaluated to create the
 # partial dependence plots. By default we use percentiles defined by the input dataset.
-# In some cases it can be helpful to specify the exact points where you would like the
+# In some cases it can be helpful to specify the exact points where one would like the
 # model evaluated. For instance, if a user wants to test the model behavior on
 # out-of-distribution data or compare two models that were fit on slightly different
 # data. The `custom_values` parameter allows the user to pass in the values that they
