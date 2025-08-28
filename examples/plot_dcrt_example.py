@@ -59,9 +59,8 @@ for sim_ind in range(10):
     ## dcrt Lasso ##
     d0crt_lasso = D0CRT(
         estimator=LassoCV(random_state=sim_ind, n_jobs=1),
-``` Please avoid these weidies
         screening=False,
-        random_state=sim_ind + 12,
+        random_state=sim_ind,
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
