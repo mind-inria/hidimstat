@@ -193,9 +193,12 @@ def model_x_knockoff(
         raise TypeError("Wrong type for random_state")
     seed_list = rng.randint(1, np.iinfo(np.int32).max, n_bootstraps)
 
+    if centered:
+        X = StandardScaler().fit_transform(X)
+
     # Create knockoff variables
     conditionnal_sampler = GaussianDistribution(
-        cov_estimator, random_state=seed_list[0], centered=centered, tol=tol_gauss
+        cov_estimator, random_state=seed_list[0], tol=tol_gauss
     )
     conditionnal_sampler.fit(X)
     X_tildes = [conditionnal_sampler.sample() for i in range(n_bootstraps)]
