@@ -175,7 +175,7 @@ class ConditionalSampler:
                 y_pred_cond.append(
                     np.stack(
                         [
-                            self.rng.choice(classes, p=p, size=n_samples)
+                            rng.choice(classes, p=p, size=n_samples)
                             for p in y_pred_proba[index]
                         ],
                         axis=1,
