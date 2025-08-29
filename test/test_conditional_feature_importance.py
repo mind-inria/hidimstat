@@ -74,10 +74,10 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 10, 5, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 10, 5, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 10, 5, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 10, 5, 0.2, 42, 1.0, np.inf, 0.0),
+    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -94,10 +94,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
-    assert (
-        importance[important_features].mean()
-        > importance[not_important_features].mean()
-    )
+    assert np.all([int(i) in np.argsort(importance)[-15:] for i in important_features])
 
 
 parameter_partial = [
