@@ -1,7 +1,6 @@
 import warnings
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 
 
@@ -17,8 +16,6 @@ class GaussianDistribution:
         have a covariance_ attribute after fitting.
     random_state : int or None, default=None
         Random seed for generating synthetic data.
-    centered : bool, default=False
-        Whether to center and scale the input data before generating synthetic variables.
     tol : float, default=1e-14
         Tolerance for numerical stability in matrix computations.
     Attributes
@@ -32,9 +29,8 @@ class GaussianDistribution:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator, random_state=None, centered=False, tol=1e-14):
+    def __init__(self, cov_estimator, random_state=None, tol=1e-14):
         self.cov_estimator = cov_estimator
-        self.centered = centered
         self.tol = tol
         self.rng = check_random_state(random_state)
 
@@ -61,16 +57,12 @@ class GaussianDistribution:
         3. Computes parameters for synthetic variable generation
         """
         _, n_features = X.shape
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
 
         # estimation of X distribution
         # original implementation:
         # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
-        mu = X_.mean(axis=0)
-        sigma = self.cov_estimator.fit(X_).covariance_
+        mu = X.mean(axis=0)
+        sigma = self.cov_estimator.fit(X).covariance_
 
         diag_s = np.diag(_s_equi(sigma, tol=self.tol))
 

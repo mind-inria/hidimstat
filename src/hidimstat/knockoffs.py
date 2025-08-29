@@ -4,6 +4,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
 from sklearn.utils.validation import check_memory
+from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
@@ -115,6 +116,7 @@ class ModelXKnockoff(BaseVariableImportance):
             cov_estimator=LedoitWolf(assume_centered=True), random_state=0
         ),
         statistical_test=lasso_statistic_with_sampling,
+        centered=True,
         joblib_verbose=0,
         n_repeat=1,
         n_jobs=1,
@@ -124,6 +126,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
         self.statistical_test = statistical_test
+        self.centered = centered
 
         assert n_repeat > 0, "n_samplings must be positive"
         self.n_repeat = n_repeat
@@ -154,7 +157,11 @@ class ModelXKnockoff(BaseVariableImportance):
         """
         if y is not None:
             warnings.warn("y won't be used")
-        self.generator.fit(X)
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        self.generator.fit(X_)
         return self
 
     def _check_fit(self):
@@ -191,6 +198,12 @@ class ModelXKnockoff(BaseVariableImportance):
         statistical_test : Method that computes the test statistic used in this function.
         """
         self._check_fit()
+
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+
         X_tildes = []
         for i in range(self.n_repeat):
             X_tildes.append(self.generator.sample())
@@ -198,7 +211,7 @@ class ModelXKnockoff(BaseVariableImportance):
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         self.test_scores_ = np.array(
             parallel(
-                delayed(self.statistical_test)(X, X_tildes[i], y)
+                delayed(self.statistical_test)(X_, X_tildes[i], y)
                 for i in range(self.n_repeat)
             )
         )

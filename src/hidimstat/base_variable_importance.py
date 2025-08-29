@@ -38,6 +38,9 @@ class BaseVariableImportance(BaseEstimator):
         self.pvalues_ = None
         self.selections_ = None
         self.test_scores_ = None
+        self.threshold_fdr_ = None
+        self.aggregated_pval_ = None
+        self.aggregated_eval_ = None
 
     def _check_importance(self):
         """
@@ -191,43 +194,38 @@ class BaseVariableImportance(BaseEstimator):
             self.test_scores_ is not None
         ), "this method doesn't support selection base on FDR"
 
-        if not evalues:
+        if self.test_scores_.shape[0] == 1:
+            self.threshold_fdr_ = _estimated_threshold(self.test_scores_, fdr=fdr)
+            selected = self.test_scores_[0] >= self.threshold_fdr_
+        elif not evalues:
             assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
             pvalues = np.array(
-                [
-                    _empirical_pval(self.test_scores_[i])
-                    for i in range(len(self.test_scores_))
-                ]
+                [_empirical_pval(test_score) for test_score in self.test_scores_]
             )
-            aggregated_pval = quantile_aggregation(
+            self.aggregated_pval_ = quantile_aggregation(
                 pvalues, gamma=gamma, adaptive=adaptive_aggregation
             )
-            threshold = fdr_threshold(
-                aggregated_pval,
+            self.threshold_fdr_ = fdr_threshold(
+                self.aggregated_pval_,
                 fdr=fdr,
                 method=fdr_control,
                 reshaping_function=reshaping_function,
             )
-            selected = aggregated_pval <= threshold
+            selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
             assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
-            ko_threshold = []
+            evalues = []
             for test_score in self.test_scores_:
-                ko_threshold.append(_estimated_threshold(test_score, fdr=fdr))
-            evalues = np.array(
-                [
-                    _empirical_eval(self.test_scores_[i], ko_threshold[i])
-                    for i in range(len(self.test_scores_))
-                ]
-            )
-            aggregated_eval = np.mean(evalues, axis=0)
-            threshold = fdr_threshold(
-                aggregated_eval,
+                ko_threshold = _estimated_threshold(test_score, fdr=fdr)
+                evalues.append(_empirical_eval(test_score, ko_threshold))
+            self.aggregated_eval_ = np.mean(evalues, axis=0)
+            self.threshold_fdr_ = fdr_threshold(
+                self.aggregated_eval_,
                 fdr=fdr,
                 method=fdr_control,
                 reshaping_function=reshaping_function,
             )
-            selected = aggregated_eval >= threshold
+            selected = self.aggregated_eval_ >= self.threshold_fdr_
         return selected
 
 
