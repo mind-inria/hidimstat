@@ -20,16 +20,9 @@ inference.
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
-from hidimstat.knockoffs import (
-    model_x_knockoff,
-    model_x_knockoff_bootstrap_e_value,
-    model_x_knockoff_bootstrap_quantile,
-    model_x_knockoff_pvalue,
-)
+from hidimstat.knockoffs import ModelXKnockoff
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat._utils.scenario import multivariate_simulation
 
@@ -95,46 +88,28 @@ def single_run(
     non_zero_index = np.where(beta_true)[0]
 
     # Use model-X Knockoffs [1]
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
-        X,
-        y,
-        estimator=LassoCV(
-            n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        ),
-        n_bootstraps=1,
-        random_state=seed,
-    )
-    mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
-    fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
+    model_x_knockoff = ModelXKnockoff(n_repeat=1)
+    model_x_knockoff.fit_importance(X, y)
+    mx_selection = model_x_knockoff.selection_fdr(fdr=fdr)
+    fdp_mx, power_mx = fdp_power(np.where(mx_selection)[0], non_zero_index)
 
     # Use aggregation model-X Knockoffs [2]
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
-        X,
-        y,
-        estimator=LassoCV(
-            n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        ),
-        n_bootstraps=n_bootstraps,
-        n_jobs=1,
-        random_state=seed,
-    )
+    model_x_knockoff_repeat = ModelXKnockoff(n_repeat=n_bootstraps)
+    model_x_knockoff_repeat.fit_importance(X, y)
 
     # Use p-values aggregation [2]
-    aggregated_ko_selection, _, _ = model_x_knockoff_bootstrap_quantile(
-        test_scores, fdr=fdr, adaptive_aggregation=True
+    aggregated_ko_selection = model_x_knockoff_repeat.selection_fdr(
+        fdr=fdr, adaptive_aggregation=True
     )
-
-    fdp_pval, power_pval = fdp_power(aggregated_ko_selection, non_zero_index)
+    fdp_pval, power_pval = fdp_power(
+        np.where(aggregated_ko_selection)[0], non_zero_index
+    )
 
     # Use e-values aggregation [3]
-    eval_selection, _, _ = model_x_knockoff_bootstrap_e_value(
-        test_scores, threshold, fdr=fdr
+    eval_selection = model_x_knockoff_repeat.selection_fdr(
+        fdr=fdr, fdr_control="ebh", evalues=True
     )
-
-    fdp_eval, power_eval = fdp_power(eval_selection, non_zero_index)
-
+    fdp_eval, power_eval = fdp_power(np.where(eval_selection)[0], non_zero_index)
     return fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval
 
 
