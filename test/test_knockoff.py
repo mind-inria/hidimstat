@@ -377,10 +377,14 @@ class TestModelXKnockoffClass:
         fdr = 0.5
         n_repeat = 5
         X, y, important_features, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat)
+        model_x_knockoff = ModelXKnockoff(
+            n_repeat=n_repeat,
+            generator=GaussianDistribution(
+                cov_estimator=LedoitWolf(assume_centered=True), random_state=0
+            ),
+        )
         model_x_knockoff.fit_importance(X, y)
         selected = model_x_knockoff.selection_fdr(fdr=fdr)
-        print(model_x_knockoff.importances_, model_x_knockoff.pvalues_)
         fdp, power = fdp_power(np.where(selected)[0], important_features)
         assert fdp <= 0.5
         assert power > 0.7
@@ -393,7 +397,12 @@ class TestModelXKnockoffClass:
         fdr = 0.5
         n_repeat = 5
         X, y, important_features, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat)
+        model_x_knockoff = ModelXKnockoff(
+            n_repeat=n_repeat,
+            generator=GaussianDistribution(
+                cov_estimator=LedoitWolf(assume_centered=True), random_state=0
+            ),
+        )
         model_x_knockoff.fit_importance(X, y)
         selected = model_x_knockoff.selection_fdr(fdr=fdr)
 
@@ -509,7 +518,12 @@ class TestModelXKnockoffExceptions:
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(n_repeat=5)
+        model_x_knockoff = ModelXKnockoff(
+            n_repeat=5,
+            generator=GaussianDistribution(
+                cov_estimator=LedoitWolf(assume_centered=True), random_state=0
+            ),
+        )
 
         with pytest.raises(
             ValueError,
