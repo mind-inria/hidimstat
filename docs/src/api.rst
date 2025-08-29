@@ -37,6 +37,8 @@ Classes
    BaseVariableImportance
    BasePerturbation
    LOCO
+   CRT
+   ConditionalRandimizationTest
    CFI
    PFI
    D0CRT

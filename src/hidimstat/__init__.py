@@ -15,6 +15,8 @@ from .desparsified_lasso import (
 )
 from .distilled_conditional_randomization_test import d0crt, D0CRT
 from .conditional_feature_importance import CFI
+from .conditional_randomization_test import ConditionalRandimizationTest
+from .conditional_randomization_test import ConditionalRandimizationTest as CRT
 from .knockoffs import (
     model_x_knockoff,
     model_x_knockoff_pvalue,

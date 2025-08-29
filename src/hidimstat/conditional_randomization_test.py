@@ -14,7 +14,7 @@ from hidimstat.statistical_tools.lasso_test import lasso_statistic
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
-class CRT(BaseVariableImportance):
+class ConditionalRandimizationTest(BaseVariableImportance):
     """
     Implements conditional randomization test (CRT).
     The Conditional Randomization Test :footcite:t:`candes2018panning` is a method
@@ -222,7 +222,7 @@ def crt(
     memory=None,
     joblib_verbose=0,
 ):
-    crt = CRT(
+    crt = ConditionalRandimizationTest(
         generator=generator,
         statistical_test=statistical_test,
         n_repeat=n_repeat,
@@ -236,10 +236,10 @@ def crt(
 # use the docstring of the class for the function
 crt.__doc__ = _aggregate_docstring(
     [
-        CRT.__doc__,
-        CRT.__init__.__doc__,
-        CRT.fit_importance.__doc__,
-        CRT.selection.__doc__,
+        ConditionalRandimizationTest.__doc__,
+        ConditionalRandimizationTest.__init__.__doc__,
+        ConditionalRandimizationTest.fit_importance.__doc__,
+        ConditionalRandimizationTest.selection.__doc__,
     ],
     """
     Returns
