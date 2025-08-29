@@ -1,15 +1,16 @@
-import numpy as np
 import warnings
+
+import numpy as np
 from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.base import clone
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 class D0CRT(BaseVariableImportance):
@@ -67,8 +68,6 @@ class D0CRT(BaseVariableImportance):
         Whether to fit y using selected features instead of using estimated_coef.
     scaled_statistics : bool, default=False
         Whether to use scaled statistics when computing importance.
-    random_state : int, default=2022
-        Random seed for reproducibility.
 
     Attributes
     ----------
@@ -129,7 +128,6 @@ class D0CRT(BaseVariableImportance):
         joblib_verbose=0,
         fit_y=False,
         scaled_statistics=False,
-        random_state=2022,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -146,7 +144,6 @@ class D0CRT(BaseVariableImportance):
         self.joblib_verbose = joblib_verbose
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
-        self.random_state = random_state
 
     def fit(self, X, y):
         """
@@ -641,8 +638,6 @@ def _fit_lasso(
         Number of alphas along the regularization path. Ignored if alphas is provided.
     alpha_max_fraction : float
         Fraction of alpha_max to use when alpha, alphas, and n_alphas are not provided.
-    random_state : int, RandomState instance or None
-        Random seed for reproducibility.
     **params : dict
         Additional parameters for Lasso or LassoCV.
 
@@ -724,7 +719,6 @@ def d0crt(
         joblib_verbose=joblib_verbose,
         fit_y=fit_y,
         scaled_statistics=scaled_statistics,
-        random_state=random_state,
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(
