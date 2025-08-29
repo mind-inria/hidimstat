@@ -241,7 +241,7 @@ class TestCRTClass:
         X = np.hstack([X_cont, X_cat])
         y = rng.random((n_samples))
 
-        crt = CRT()
+        crt = CRT(centered=False)
 
         with pytest.warns(
             Warning,
