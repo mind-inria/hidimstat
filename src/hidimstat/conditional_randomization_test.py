@@ -218,7 +218,8 @@ class ConditionalRandimizationTest(BaseVariableImportance):
 
 
 def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
-    """Compute test statistic for a single feature with permuted data.
+    """
+    Compute test statistic for a single feature with permuted data.
 
     Parameters
     ----------
