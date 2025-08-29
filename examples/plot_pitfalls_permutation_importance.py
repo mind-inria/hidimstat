@@ -26,7 +26,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat import CFI, PFI
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
 
 rng = np.random.RandomState(0)
 
