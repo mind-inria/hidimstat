@@ -440,7 +440,12 @@ class TestCRTExceptions:
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator
-        crt = CRT(n_repeat=5)
+        crt = CRT(
+            n_repeat=5,
+            generator=GaussianDistribution(
+                cov_estimator=LedoitWolf(assume_centered=True), random_state=5
+            ),
+        )
 
         with pytest.raises(
             ValueError,
