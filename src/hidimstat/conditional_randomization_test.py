@@ -95,12 +95,15 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         return self
 
     def _check_fit(self):
+        fitted = True
         try:
             self.generator._check_fit()
-        except ValueError as exc:
+        except ValueError:
+            fitted = False
+        if not fitted:
             raise ValueError(
                 "The CRT requires to be fitted before computing importance"
-            ) from exc
+            )
 
     def importance(self, X, y):
         """
