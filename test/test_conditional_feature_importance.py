@@ -74,10 +74,10 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 10, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 10, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 10, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 10, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    ("HiDim", 150, 10, 5, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 10, 5, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 10, 5, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 10, 5, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
