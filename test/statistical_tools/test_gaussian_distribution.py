@@ -17,7 +17,6 @@ def test_gaussian_equi():
     generator = GaussianDistribution(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
-        centered=False,
     )
     generator.fit(X=X)
     X_tilde = generator.sample()
@@ -33,7 +32,6 @@ def test_gaussian_center():
     generator = GaussianDistribution(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
-        centered=True,
     )
     generator.fit(X=X)
     X_tilde = generator.sample()
@@ -49,7 +47,6 @@ def test_gaussian_error():
     generator = GaussianDistribution(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
-        centered=True,
     )
     with pytest.raises(
         ValueError, match="The GaussianGenerator requires to be fit before simulate"
