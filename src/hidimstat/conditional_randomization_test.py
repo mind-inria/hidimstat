@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
@@ -56,6 +57,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         self,
         generator=GaussianDistribution(cov_estimator=LedoitWolf(assume_centered=True)),
         statistical_test=lasso_statistic,
+        centered=True,
         n_repeat=10,
         n_jobs=1,
         memory=None,
@@ -68,6 +70,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
         self.statistical_test = statistical_test
+        self.centered = centered
 
     def fit(self, X, y=None):
         """
@@ -91,7 +94,11 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         if y is not None:
             warnings.warn("y won't be used")
 
-        self.generator.fit(X)
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        self.generator.fit(X_)
         return self
 
     def _check_fit(self):
@@ -123,7 +130,11 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         statistical_test : Method that computes the test statistic used in this function.
         """
         self._check_fit()
-        reference_value = self.statistical_test(X, y)
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        reference_value = self.statistical_test(X_, y)
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
         X_samples = []
@@ -133,9 +144,9 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         self.test_scores_ = np.array(
             parallel(
                 delayed(joblib_statitistic_test)(
-                    index, X, X_sample, y, self.statistical_test
+                    index, X_, X_sample, y, self.statistical_test
                 )
-                for X_sample, index in tqdm(product(X_samples, range(X.shape[1])))
+                for X_sample, index in tqdm(product(X_samples, range(X_.shape[1])))
             )
         )
         self.test_scores_ = reference_value - np.array(self.test_scores_).reshape(
