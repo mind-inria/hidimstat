@@ -24,7 +24,6 @@ Functions
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
-   model_x_knockoff
    reid
 
 Classes
