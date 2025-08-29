@@ -42,3 +42,20 @@ Classes
    CFI
    PFI
    D0CRT
+
+Helper Classes
+==============
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   statistical_tools.gaussian_distribution.GaussianDistribution
+
+Helper Functions
+================
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: function.rst
+   
+   statistical_tools.lasso_test.lasso_statistic
+

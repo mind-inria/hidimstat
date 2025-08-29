@@ -17,6 +17,7 @@ def lasso_statistic(
 ):
     """
     Compute Lasso statistic using feature coefficients.
+
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features)
@@ -28,14 +29,16 @@ def lasso_statistic(
     n_alphas : int, default=0
         Number of alpha values to test for Lasso regularization path.
         If 0, uses the default alpha sequence from the estimator.
+
     Returns
     -------
     coef : ndarray
         Lasso coefficients for each feature.
+
     Raises
     ------
     TypeError
-        If the provided estimator does not have coef_ attribute or is not linear.
+        If the provided estimator does not have coef\_ attribute or is not linear.
     """
     if n_alphas != 0:
         alpha_max = np.max(np.dot(X.T, y)) / (X.shape[1])

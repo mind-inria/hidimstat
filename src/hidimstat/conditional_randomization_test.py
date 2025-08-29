@@ -48,11 +48,6 @@ class ConditionalRandimizationTest(BaseVariableImportance):
     The CRT tests feature importance by comparing observed test statistics against
     a conditional null distribution generated through simulation.
 
-    See Also
-    --------
-    GaussianGenerator : Generator for Gaussian null distributions
-    lasso_statistic : Default test statistic using Lasso coefficients
-
     References
     ----------
     .. footbibliography::
@@ -138,10 +133,6 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         (1 + #(T_perm >= T_obs)) / (n_permutations + 1)
         where T_perm are the test statistics from permuted data and T_obs is the
         reference test statistic.
-
-        See Also
-        --------
-        statistical_test : Method that computes the test statistic used in this function.
         """
         self._check_fit()
         if self.centered:

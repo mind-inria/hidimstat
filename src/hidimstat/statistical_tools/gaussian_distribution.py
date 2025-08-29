@@ -9,21 +9,24 @@ class GaussianDistribution:
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original
     variables while ensuring conditional independence between the original and synthetic data.
+
     Parameters
     ----------
     cov_estimator : object
         Estimator for computing the covariance matrix. Must implement fit and
-        have a covariance_ attribute after fitting.
+        have a covariance\_ attribute after fitting.
     random_state : int or None, default=None
         Random seed for generating synthetic data.
     tol : float, default=1e-14
         Tolerance for numerical stability in matrix computations.
+
     Attributes
     ----------
     mu_tilde_ : ndarray of shape (n_samples, n_features)
         Mean matrix for generating synthetic variables.
     sigma_tilde_decompose_ : ndarray of shape (n_features, n_features)
         Cholesky decomposition of the synthetic covariance matrix.
+
     References
     ----------
     .. footbibliography::
@@ -40,15 +43,18 @@ class GaussianDistribution:
         This method estimates the parameters needed to generate Gaussian synthetic variables
         based on the input data. It follows a methodology for creating second-order
         synthetic variables that preserve the covariance structure.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             The input samples used to estimate the parameters for synthetic variable generation.
             The data is assumed to follow a Gaussian distribution.
+
         Returns
         -------
         self : object
             Returns the instance itself.
+
         Notes
         -----
         The method implements the following steps:
@@ -88,6 +94,7 @@ class GaussianDistribution:
     def _check_fit(self):
         """
         Check if the model has been fit before performing analysis.
+
         Raises
         ------
         ValueError
@@ -104,6 +111,7 @@ class GaussianDistribution:
         Generate synthetic variables.
         This function generates synthetic variables that preserve the covariance structure
         of the original data while ensuring conditional independence.
+
         Returns
         -------
         X_tilde : 2D ndarray (n_samples, n_features)
@@ -131,6 +139,7 @@ def _s_equi(sigma, tol=1e-14):
     covariance matrix sigma and a tolerance value tol,
     and returns a vector of diagonal values of the estimated
     matrix diag{s}.
+
     Parameters
     ----------
     sigma : 2D ndarray (n_features, n_features)
@@ -139,10 +148,12 @@ def _s_equi(sigma, tol=1e-14):
     tol : float, optional
         A tolerance value used for numerical stability in the calculation
         of the eigenvalues of the correlation matrix.
+
     Returns
     -------
     1D ndarray (n_features, )
         A vector of diagonal values of the estimated matrix diag{s}.
+
     Raises
     ------
     Exception
