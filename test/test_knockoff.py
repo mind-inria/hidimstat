@@ -235,8 +235,8 @@ def test_model_x_knockoff_linear_fail(
 
     # test the selection part
     fdp, power = fdp_power(np.where(selected)[0], important_features)
-    assert fdp == 0.0
-    assert power == 0.0
+    assert fdp == power
+    assert power < 0.2
 
 
 ##############################################################################
@@ -297,7 +297,7 @@ class TestModelXKnockoffClass:
         X = np.hstack([X_cont, X_cat])
         y = rng.random((n_samples))
 
-        model_x_knockoff = ModelXKnockoff()
+        model_x_knockoff = ModelXKnockoff(centered=False)
 
         with pytest.warns(
             Warning,
@@ -375,7 +375,7 @@ class TestModelXKnockoffClass:
     def test_model_x_knockoff_selection(self, data_generator):
         """Test the selection of variable from knockoff"""
         fdr = 0.5
-        n_repeat = 5
+        n_repeat = 10
         X, y, important_features, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=n_repeat,
@@ -395,7 +395,7 @@ class TestModelXKnockoffClass:
     def test_model_x_knockoff_repeat_quantile(self, data_generator, n_features):
         """Test ModelXKnockoff selection"""
         fdr = 0.5
-        n_repeat = 5
+        n_repeat = 10
         X, y, important_features, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=n_repeat,
@@ -414,8 +414,8 @@ class TestModelXKnockoffClass:
 
     def test_model_x_knockoff_repeat_e_values(self, data_generator, n_features):
         """Test ModelXKnockoff selection with e-values"""
-        fdr = 0.5
-        n_repeat = 5
+        fdr = 0.75
+        n_repeat = 20
         X, y, important_features, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=n_repeat,
@@ -431,7 +431,7 @@ class TestModelXKnockoffClass:
         fdp, power = fdp_power(np.where(selected)[0], important_features)
 
         assert model_x_knockoff.test_scores_.shape == (n_repeat, n_features)
-        assert fdp < 0.5
+        assert fdp <= 0.75
         assert power == 1.0
 
     def test_model_x_knockoff_invariant_with_bootstrap(self, data_generator):

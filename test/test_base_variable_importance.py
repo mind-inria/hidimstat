@@ -40,6 +40,7 @@ def set_BaseVariableImportance(pvalues, test_score, seed):
             score[-i:] = np.arange(30 - i, 30) * 2
             score[:i] = -np.arange(30 - i, 30)
             vi.test_scores_.append(score[vi.importances_])
+        vi.test_scores_ = np.array(vi.test_scores_)
     return vi
 
 
