@@ -15,12 +15,7 @@ from .desparsified_lasso import (
 )
 from .distilled_conditional_randomization_test import d0crt, D0CRT
 from .conditional_feature_importance import CFI
-from .knockoffs import (
-    model_x_knockoff,
-    model_x_knockoff_pvalue,
-    model_x_knockoff_bootstrap_quantile,
-    model_x_knockoff_bootstrap_e_value,
-)
+from .knockoffs import ModelXKnockoff
 from .leave_one_covariate_out import LOCO
 from .noise_std import reid
 from .permutation_feature_importance import PFI
@@ -44,10 +39,7 @@ __all__ = [
     "desparsified_lasso_pvalue",
     "desparsified_group_lasso_pvalue",
     "reid",
-    "model_x_knockoff",
-    "model_x_knockoff_pvalue",
-    "model_x_knockoff_bootstrap_quantile",
-    "model_x_knockoff_bootstrap_e_value",
+    "ModelXKnockoff",
     "CFI",
     "LOCO",
     "PFI",

@@ -36,6 +36,7 @@ Classes
    
    BaseVariableImportance
    BasePerturbation
+   ModelXKnockoff
    LOCO
    CFI
    PFI
