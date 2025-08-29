@@ -101,66 +101,128 @@ def test_permutation_importance():
     assert importance_clf.shape == (X.shape[1],)
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 5, 2, 0.0, 0, 1.0, 4, 0.0)],
-    ids=["high dimension"],
-)
-def test_reproducibility(data_generator):
-    X, y, _, _ = data_generator
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-    pfi = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi.fit(
-        X_train,
-        y_train,
-        groups=None,
-    )
-    vim = pfi.importance(X_test, y_test)["importance"]
-    vim_reproducible = pfi.importance(X_test, y_test)["importance"]
+class TestPFIReproducibility:
+    """
+    Test the reproducibility and randomness of PFI.
+    """
 
-    # Test reproducibility when calling importance multiple times
-    assert np.array_equal(vim, vim_reproducible)
+    @classmethod
+    def setup_method(cls):
+        """
+        Sets up the common data and model instances for each test method.
+        This runs before every test function in this class.
+        """
+        X, y, _, _ = multivariate_simulation(
+            n_samples=100,
+            n_features=5,
+            support_size=2,
+            rho=0,
+            value=1,
+            signal_noise_ratio=4,
+            rho_serial=0,
+            shuffle=False,
+            seed=0,
+        )
+        cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(
+            X, y, random_state=0
+        )
+        cls.model = LinearRegression()
+        cls.model.fit(cls.X_train, cls.y_train)
 
-    pfi_2 = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi_2.fit(
-        X_train,
-        y_train,
-        groups=None,
-    )
-    vim_2 = pfi_2.importance(X_test, y_test)["importance"]
+    def test_multiple_calls_are_reproducible(self):
+        """
+        Tests that calling the importance method multiple times on the same
+        PFI instance with a fixed random_state produces identical results.
+        """
+        pfi = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        pfi.fit(
+            self.X_train,
+            self.y_train,
+            groups=None,
+        )
+        vim = pfi.importance(self.X_test, self.y_test)["importance"]
+        vim_reproducible = pfi.importance(self.X_test, self.y_test)["importance"]
+        assert np.array_equal(vim, vim_reproducible)
 
-    # Test reproducibility fitting different PFI with same random state
-    assert np.array_equal(vim, vim_2)
+    def test_different_pfi_same_random_state_are_reproducible(self):
+        """
+        Tests that two different PFI instances, when initialized with the
+        same fixed random_state, produce identical importance scores.
+        """
+        pfi_1 = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        pfi_1.fit(
+            self.X_train,
+            self.y_train,
+            groups=None,
+        )
+        vim_1 = pfi_1.importance(self.X_test, self.y_test)["importance"]
 
-    pfi_3 = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=None,
-        n_jobs=1,
-    )
-    pfi_3.fit(
-        X_train,
-        y_train,
-        groups=None,
-    )
-    vim_3 = pfi_3.importance(X_test, y_test)["importance"]
-    vim_not_random = pfi_3.importance(X_test, y_test)["importance"]
+        pfi_2 = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        pfi_2.fit(
+            self.X_train,
+            self.y_train,
+            groups=None,
+        )
+        vim_2 = pfi_2.importance(self.X_test, self.y_test)["importance"]
+        assert np.array_equal(vim_1, vim_2)
 
-    # Test randomness when using a different random state
-    assert not np.array_equal(vim, vim_3)
-    assert not np.array_equal(vim, vim_not_random)
+    def test_different_random_state_is_not_reproducible(self):
+        """
+        Tests that using different random states (or None) results in
+        non-reproducible (random) importance scores.
+        """
+        pfi_fixed = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        pfi_fixed.fit(self.X_train, self.y_train, groups=None)
+        vim_fixed = pfi_fixed.importance(self.X_test, self.y_test)["importance"]
+
+        pfi_new_state = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=1,
+            n_jobs=1,
+        )
+        pfi_new_state.fit(self.X_train, self.y_train, groups=None)
+        vim_new_state = pfi_new_state.importance(self.X_test, self.y_test)["importance"]
+        assert not np.array_equal(vim_fixed, vim_new_state)
+
+        # Test with random_state=None to ensure randomness
+        pfi_none_state = PFI(
+            estimator=self.model,
+            n_permutations=20,
+            method="predict",
+            random_state=None,
+            n_jobs=1,
+        )
+        pfi_none_state.fit(self.X_train, self.y_train, groups=None)
+        vim_none_state_1 = pfi_none_state.importance(self.X_test, self.y_test)[
+            "importance"
+        ]
+        vim_none_state_2 = pfi_none_state.importance(self.X_test, self.y_test)[
+            "importance"
+        ]
+        assert not np.array_equal(vim_none_state_1, vim_none_state_2)

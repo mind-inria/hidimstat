@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import CFI, BasePerturbation
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -570,70 +571,133 @@ class TestCFIExceptions:
             cfi.importance(X, y)
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 5, 2, 0.0, 0, 1.0, 4, 0.0)],
-    ids=["high dimension"],
-)
-def test_cfi_reproducibility(data_generator):
-    X, y, _, _ = data_generator
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+class TestCFIReproducibility:
+    """
+    Test the reproducibility and randomness of CFI
+    """
 
-    ###############################################################
-    # Test reproducibility when calling importance multiple times
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    cfi.fit(
-        X_train,
-        groups=None,
-        var_type="auto",
-    )
-    vim = cfi.importance(X_test, y_test)["importance"]
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
-    assert np.array_equal(vim, vim_reproducible)
+    @classmethod
+    def setup_method(cls):
+        """
+        Sets up the common data and model instances for each test method.
+        This runs before every test function in this class.
+        """
+        X, y, _, _ = multivariate_simulation(
+            n_samples=100,
+            n_features=5,
+            support_size=2,
+            rho=0,
+            value=1,
+            signal_noise_ratio=4,
+            rho_serial=0,
+            shuffle=False,
+            seed=0,
+        )
+        cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(
+            X, y, random_state=0
+        )
+        cls.model = LinearRegression()
+        cls.model.fit(cls.X_train, cls.y_train)
 
-    ###################################################################
-    # Test reproducibility fitting different CFI with same random state
-    cfi_2 = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    cfi_2.fit(
-        X_train,
-        groups=None,
-        var_type="auto",
-    )
-    vim_2 = cfi_2.importance(X_test, y_test)["importance"]
-    assert np.array_equal(vim, vim_2)
+    def test_multiple_calls_are_reproducible(self):
+        """
+        Tests that calling the importance method multiple times on the same
+        CFI instance with a fixed random_state produces identical results.
+        """
+        cfi = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        cfi.fit(
+            self.X_train,
+            groups=None,
+            var_type="auto",
+        )
+        vim = cfi.importance(self.X_test, self.y_test)["importance"]
+        vim_reproducible = cfi.importance(self.X_test, self.y_test)["importance"]
+        assert np.array_equal(vim, vim_reproducible)
 
-    ###################################################################
-    # Test randomness when using a different random state or None
-    cfi_3 = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=None,
-        n_jobs=1,
-    )
-    cfi_3.fit(
-        X_train,
-        groups=None,
-        var_type="auto",
-    )
-    vim_3 = cfi_3.importance(X_test, y_test)["importance"]
-    vim_not_random = cfi_3.importance(X_test, y_test)["importance"]
-    assert not np.array_equal(vim, vim_3)
-    assert not np.array_equal(vim, vim_not_random)
+    def test_different_cfi_same_random_state_are_reproducible(self):
+        """
+        Tests that two different CFI instances, when initialized with the
+        same fixed random_state, produce identical importance scores.
+        """
+        cfi_1 = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        cfi_1.fit(
+            self.X_train,
+            groups=None,
+            var_type="auto",
+        )
+        vim_1 = cfi_1.importance(self.X_test, self.y_test)["importance"]
+
+        cfi_2 = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        cfi_2.fit(
+            self.X_train,
+            groups=None,
+            var_type="auto",
+        )
+        vim_2 = cfi_2.importance(self.X_test, self.y_test)["importance"]
+        assert np.array_equal(vim_1, vim_2)
+
+    def test_different_random_state_is_not_reproducible(self):
+        """
+        Tests that using different random states (or None) results in
+        non-reproducible (random) importance scores.
+        """
+        cfi_fixed = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=0,
+            n_jobs=1,
+        )
+        cfi_fixed.fit(self.X_train, groups=None, var_type="auto")
+        vim_fixed = cfi_fixed.importance(self.X_test, self.y_test)["importance"]
+        cfi_new_state = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=1,
+            n_jobs=1,
+        )
+        cfi_new_state.fit(self.X_train, groups=None, var_type="auto")
+        vim_new_state = cfi_new_state.importance(self.X_test, self.y_test)["importance"]
+        assert not np.array_equal(vim_fixed, vim_new_state)
+
+        # Test with random_state=None to ensure randomness
+        cfi_none_state = CFI(
+            estimator=self.model,
+            imputation_model_continuous=LinearRegression(),
+            n_permutations=20,
+            method="predict",
+            random_state=None,
+            n_jobs=1,
+        )
+        cfi_none_state.fit(self.X_train, groups=None, var_type="auto")
+        vim_none_state_1 = cfi_none_state.importance(self.X_test, self.y_test)[
+            "importance"
+        ]
+        vim_none_state_2 = cfi_none_state.importance(self.X_test, self.y_test)[
+            "importance"
+        ]
+        assert not np.array_equal(vim_none_state_1, vim_none_state_2)
