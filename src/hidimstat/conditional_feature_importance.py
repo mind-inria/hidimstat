@@ -5,7 +5,7 @@ from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
 
 
 class CFI(BasePerturbation):
