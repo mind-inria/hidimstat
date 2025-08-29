@@ -20,6 +20,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
     Implements conditional randomization test (CRT).
     The Conditional Randomization Test :footcite:t:`candes2018panning` is a method
     for statistical variable importance testing (see algorithm 2).
+
     Parameters
     ----------
     generator : object, default=GaussianGenerator(cov_estimator=LedoitWolf(assume_centered=True))
@@ -34,20 +35,24 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         Used for caching
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs
+
     Attributes
     ----------
     importances_ : ndarray of shape (n_features,)
         Feature importance scores
     pvalues_ : ndarray of shape (n_features,)
         P-values for each feature
+
     Notes
     -----
     The CRT tests feature importance by comparing observed test statistics against
     a conditional null distribution generated through simulation.
+
     See Also
     --------
     GaussianGenerator : Generator for Gaussian null distributions
     lasso_statistic : Default test statistic using Lasso coefficients
+
     References
     ----------
     .. footbibliography::
@@ -75,6 +80,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
     def fit(self, X, y=None):
         """
         Fit the CRT model by training the generator.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -82,10 +88,12 @@ class ConditionalRandimizationTest(BaseVariableImportance):
             n_features is the number of features.
         y : array-like of shape (n_samples,), default=None
             Target values. Not used in this method.
+
         Returns
         -------
         self : object
             Returns the instance itself.
+
         Notes
         -----
         The fit method only trains the generator component. The target values y
@@ -115,16 +123,22 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         This function processes the results from Conditional Randomization Test (CRT) to identify
         statistically significant features. It computes p-values by comparing a reference test
         statistic to test statistics from permuted data.
+
+        Parameters
+        ----------
         X : array-like of shape (n_samples, n_features)
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
         y : array-like of shape (n_samples,)
-            Array of importance scores (p-values) for each feature. Lower p-values indicate
-            higher importance. Values range from 0 to 1.
+            Target values.
+
         Notes
         -----
         The p-values are calculated using the formula:
         (1 + #(T_perm >= T_obs)) / (n_permutations + 1)
         where T_perm are the test statistics from permuted data and T_obs is the
         reference test statistic.
+
         See Also
         --------
         statistical_test : Method that computes the test statistic used in this function.
@@ -167,6 +181,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
     def fit_importance(self, X, y, cv=None):
         """
         Fits the model to the data and computes feature importance.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -177,16 +192,19 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         cv : None or cross-validation generator, default=None
             Cross-validation parameter. Not used in this method.
             A warning will be issued if provided.
+
         Returns
         -------
         importances_ : ndarray of shape (n_features,)
             Feature importance scores (p-values) for each feature.
             Lower values indicate higher importance. Values range from 0 to 1.
+
         Notes
         -----
         This method combines the fit and importance computation steps.
         It first fits the generator to X and then computes importance scores
         by comparing observed test statistics against permuted ones.
+
         See Also
         --------
         fit : Method for fitting the generator only
@@ -201,6 +219,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
 
 def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
     """Compute test statistic for a single feature with permuted data.
+
     Parameters
     ----------
     index : int
@@ -213,6 +232,7 @@ def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
         Target values
     statistic_test : callable
         Function that computes the test statistic
+
     Returns
     -------
     float
