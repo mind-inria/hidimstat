@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-import pytest
 
 from hidimstat import PFI
 from hidimstat._utils.scenario import multivariate_simulation
@@ -99,3 +99,68 @@ def test_permutation_importance():
 
     importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (X.shape[1],)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 5, 2, 0.0, 0, 1.0, 4, 0.0)],
+    ids=["high dimension"],
+)
+def test_reproducibility(data_generator):
+    X, y, _, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    pfi = PFI(
+        estimator=model,
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    pfi.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
+    vim = pfi.importance(X_test, y_test)["importance"]
+    vim_reproducible = pfi.importance(X_test, y_test)["importance"]
+
+    # Test reproducibility when calling importance multiple times
+    assert np.array_equal(vim, vim_reproducible)
+
+    pfi_2 = PFI(
+        estimator=model,
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    pfi_2.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
+    vim_2 = pfi_2.importance(X_test, y_test)["importance"]
+
+    # Test reproducibility fitting different PFI with same random state
+    assert np.array_equal(vim, vim_2)
+
+    pfi_3 = PFI(
+        estimator=model,
+        n_permutations=20,
+        method="predict",
+        random_state=None,
+        n_jobs=1,
+    )
+    pfi_3.fit(
+        X_train,
+        y_train,
+        groups=None,
+    )
+    vim_3 = pfi_3.importance(X_test, y_test)["importance"]
+    vim_not_random = pfi_3.importance(X_test, y_test)["importance"]
+
+    # Test randomness when using a different random state
+    assert not np.array_equal(vim, vim_3)
+    assert not np.array_equal(vim, vim_not_random)

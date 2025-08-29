@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.base import MultiOutputMixin, check_is_fitted, BaseEstimator
+from sklearn.base import BaseEstimator, MultiOutputMixin, check_is_fitted
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
 
@@ -79,7 +79,7 @@ class ConditionalSampler:
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
-        self.rng = check_random_state(random_state)
+        self.random_state = random_state
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -139,6 +139,7 @@ class ConditionalSampler:
         """
 
         check_is_fitted(self.model)
+        rng = check_random_state(self.random_state)
 
         if self.data_type == "continuous":
             if not hasattr(self.model, "predict"):
@@ -149,7 +150,7 @@ class ConditionalSampler:
             y_hat = self.model.predict(X).reshape(y.shape)
             residual = y - y_hat
             residual_permuted = np.stack(
-                [self.rng.permutation(residual) for _ in range(n_samples)],
+                [rng.permutation(residual) for _ in range(n_samples)],
                 axis=0,
             )
             return y_hat[np.newaxis, ...] + residual_permuted
