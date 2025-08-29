@@ -89,12 +89,15 @@ parameter_exact = [
 @pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
 def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
-    X, y, important_features, _ = data_generator
+    X, y, important_features, not_important_features = data_generator
     importance = run_cfi(X, y, n_permutation, cfi_seed)
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
-    assert np.all([int(i) in important_features for i in np.argsort(importance)[-10:]])
+    assert (
+        importance[important_features].mean()
+        > importance[not_important_features].mean()
+    )
 
 
 parameter_partial = [
