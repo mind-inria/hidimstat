@@ -40,6 +40,7 @@ def set_BaseVariableImportance(pvalues, test_score, seed):
             score[-i:] = np.arange(30 - i, 30) * 2
             score[:i] = -np.arange(30 - i, 30)
             vi.test_scores_.append(score[vi.importances_])
+        vi.test_scores_ = np.array(vi.test_scores_)
     return vi
 
 
@@ -132,6 +133,14 @@ class TestSelectionFDR:
         "test selection of the default"
         vi = set_BaseVariableImportance
         true_value = vi.importances_ >= 85
+        selection = vi.selection_fdr(0.2)
+        np.testing.assert_array_equal(true_value, selection)
+
+    def test_selection_fdr_default_1(self, set_BaseVariableImportance):
+        "test selection of the default"
+        vi = set_BaseVariableImportance
+        vi.test_scores_ = np.array([vi.test_scores_[0, :]])
+        true_value = vi.importances_ > -1  # all selected
         selection = vi.selection_fdr(0.2)
         np.testing.assert_array_equal(true_value, selection)
 
