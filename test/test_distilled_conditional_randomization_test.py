@@ -336,99 +336,95 @@ def test_function_d0crt():
     assert len(pvalues) == 10
 
 
-class TestD0CRTReproducibility:
+@pytest.fixture(scope="module")
+def d0crt_test_data():
+    X, y, _, _ = multivariate_simulation(
+        n_samples=150,
+        n_features=20,
+        support_size=10,
+        rho=0,
+        value=1,
+        signal_noise_ratio=2,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    return X, y
+
+
+def test_d0crt_different_instances_same_random_state_are_reproducible(d0crt_test_data):
     """
-    Test the reproducibility and randomness of D0CRT
+    Test that different instances of D0CRT with the same random state provide
+    deterministic results.
     """
+    X, y = d0crt_test_data
+    d0crt_1 = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
+        screening=False,
+        params_lasso_distillation_x={
+            "cv": KFold(shuffle=True, random_state=1),
+            "alphas": None,
+            "n_alphas": 10,
+            "alpha": None,
+            "alpha_max_fraction": 0.5,
+        },
+    )
+    d0crt_1.fit(X, y)
+    vim_1 = d0crt_1.importance(X, y)
 
-    @classmethod
-    def setup_method(cls):
-        """
-        Sets up the common data and model instances for each test method.
-        This runs before every test function in this class.
-        """
-        cls.X, cls.y, _, _ = multivariate_simulation(
-            n_samples=150,
-            n_features=20,
-            support_size=10,
-            rho=0,
-            value=1,
-            signal_noise_ratio=2,
-            rho_serial=0,
-            shuffle=False,
-            seed=0,
-        )
+    d0crt_2 = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
+        screening=False,
+        params_lasso_distillation_x={
+            "cv": KFold(shuffle=True, random_state=1),
+            "alphas": None,
+            "n_alphas": 10,
+            "alpha": None,
+            "alpha_max_fraction": 0.5,
+        },
+    )
+    d0crt_2.fit(X, y)
+    vim_2 = d0crt_2.importance(X, y)
+    assert np.array_equal(vim_1, vim_2)
 
-    def test_different_d0crt_same_random_state_are_reproducible(self):
-        """
-        Tests that two different D0CRT instances, when initialized with the
-        same fixed random_state, produce identical importance scores.
-        """
-        d0crt_1 = D0CRT(
-            estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-            screening=False,
-            params_lasso_distillation_x={
-                "cv": KFold(shuffle=True, random_state=1),
-                "alphas": None,
-                "n_alphas": 10,
-                "alpha": None,
-                "alpha_max_fraction": 0.5,
-            },
-        )
-        d0crt_1.fit(self.X, self.y)
-        vim_1 = d0crt_1.importance(self.X, self.y)
 
-        d0crt_2 = D0CRT(
-            estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-            screening=False,
-            params_lasso_distillation_x={
-                "cv": KFold(shuffle=True, random_state=1),
-                "alphas": None,
-                "n_alphas": 10,
-                "alpha": None,
-                "alpha_max_fraction": 0.5,
-            },
-        )
-        d0crt_2.fit(self.X, self.y)
-        vim_2 = d0crt_2.importance(self.X, self.y)
-        assert np.array_equal(vim_1, vim_2)
+def test_d0crt_different_random_state_randomness(d0crt_test_data):
+    """
+    Test that different random states provide different results and that
+    random_state=None produces randomness.
+    """
+    X, y = d0crt_test_data
+    # Fixed random state
+    d0crt_fixed = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
+        screening=False,
+        params_lasso_distillation_x={
+            "cv": KFold(shuffle=True, random_state=0),
+            "alphas": None,
+            "n_alphas": 10,
+            "alpha": None,
+            "alpha_max_fraction": 0.5,
+        },
+    )
+    d0crt_fixed.fit(X, y)
+    vim_fixed = d0crt_fixed.importance(X, y)
 
-    def test_different_random_state_is_not_reproducible(self):
-        """
-        Tests that using different random states (or None) results in
-        non-reproducible (random) importance scores for D0CRT.
-        """
-        # Fixed random state
-        d0crt_fixed = D0CRT(
-            estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-            screening=False,
-            params_lasso_distillation_x={
-                "cv": KFold(shuffle=True, random_state=0),
-                "alphas": None,
-                "n_alphas": 10,
-                "alpha": None,
-                "alpha_max_fraction": 0.5,
-            },
-        )
-        d0crt_fixed.fit(self.X, self.y)
-        vim_fixed = d0crt_fixed.importance(self.X, self.y)
+    # Different random state
+    d0crt_none_state = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
+        screening=False,
+        params_lasso_distillation_x={
+            "cv": KFold(shuffle=True, random_state=None),
+            "alphas": None,
+            "n_alphas": 10,
+            "alpha": None,
+            "alpha_max_fraction": 0.5,
+        },
+    )
+    d0crt_none_state.fit(X, y)
+    vim_none_state_1 = d0crt_none_state.importance(X, y)
+    assert not np.array_equal(vim_fixed, vim_none_state_1)
 
-        # Different random state
-        d0crt_none_state = D0CRT(
-            estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-            screening=False,
-            params_lasso_distillation_x={
-                "cv": KFold(shuffle=True, random_state=None),
-                "alphas": None,
-                "n_alphas": 10,
-                "alpha": None,
-                "alpha_max_fraction": 0.5,
-            },
-        )
-        d0crt_none_state.fit(self.X, self.y)
-        vim_none_state_1 = d0crt_none_state.importance(self.X, self.y)
-        assert not np.array_equal(vim_fixed, vim_none_state_1)
-
-        d0crt_none_state.fit(self.X, self.y)
-        vim_none_state_2 = d0crt_none_state.importance(self.X, self.y)
-        assert not np.array_equal(vim_none_state_1, vim_none_state_2)
+    d0crt_none_state.fit(X, y)
+    vim_none_state_2 = d0crt_none_state.importance(X, y)
+    assert not np.array_equal(vim_none_state_1, vim_none_state_2)
