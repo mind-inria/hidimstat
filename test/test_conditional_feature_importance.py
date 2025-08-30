@@ -574,7 +574,8 @@ class TestCFIExceptions:
 @pytest.fixture(scope="module")
 def cfi_test_data():
     """
-    Fixture to generate test data and a fitted LinearRegression model for CFI reproducibility tests.
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
     """
     X, y, _, _ = multivariate_simulation(
         n_samples=100,
@@ -595,7 +596,8 @@ def cfi_test_data():
 
 def test_cfi_multiple_calls_are_reproducible(cfi_test_data):
     """
-    Test that multiple calls of .importance() when CFI is seeded provide deterministic results.
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
     """
     X_train, X_test, y_train, y_test, model = cfi_test_data
     cfi = CFI(
@@ -614,7 +616,8 @@ def test_cfi_multiple_calls_are_reproducible(cfi_test_data):
 
 def test_cfi_different_instances_same_random_state_are_reproducible(cfi_test_data):
     """
-    Test that different instances of CFI with the same random state provide deterministic results.
+    Test that different instances of CFI with the same random state provide
+    deterministic results.
     """
     X_train, X_test, y_train, y_test, model = cfi_test_data
     cfi_1 = CFI(
