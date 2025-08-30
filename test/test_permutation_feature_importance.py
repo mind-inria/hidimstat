@@ -101,8 +101,11 @@ def test_permutation_importance():
     assert importance_clf.shape == (X.shape[1],)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def pfi_test_data():
+    """
+    Fixture to generate data and fitted model for PFI tests.
+    """
     X, y, _, _ = multivariate_simulation(
         n_samples=100,
         n_features=5,
@@ -121,6 +124,10 @@ def pfi_test_data():
 
 
 def test_pfi_multiple_calls_are_reproducible(pfi_test_data):
+    """
+    Test that multiple calls of .importance() when PFI is seeded provide deterministic
+    results.
+    """
     X_train, X_test, y_train, y_test, model = pfi_test_data
     pfi = PFI(
         estimator=model,
@@ -136,6 +143,10 @@ def test_pfi_multiple_calls_are_reproducible(pfi_test_data):
 
 
 def test_pfi_different_instances_same_random_state_are_reproducible(pfi_test_data):
+    """
+    Test that different instances of PFI with the same random state provide
+    deterministic results.
+    """
     X_train, X_test, y_train, y_test, model = pfi_test_data
     pfi_1 = PFI(
         estimator=model,
@@ -160,6 +171,10 @@ def test_pfi_different_instances_same_random_state_are_reproducible(pfi_test_dat
 
 
 def test_pfi_different_random_state_is_not_reproducible(pfi_test_data):
+    """
+    Test that different random states provide different results and multiple calls
+    of .importance() when random_state is None provide different results.
+    """
     X_train, X_test, y_train, y_test, model = pfi_test_data
     pfi_fixed = PFI(
         estimator=model,
