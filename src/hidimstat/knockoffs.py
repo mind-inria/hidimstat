@@ -174,28 +174,31 @@ class ModelXKnockoff(BaseVariableImportance):
 
     def importance(self, X, y):
         """
-        Calculate p-values and identify significant features using the CRT test statistics.
+        Calculate feature importance scores using Model-X knockoffs.
 
-        This function processes the results from Conditional Randomization Test (CRT) to identify
-        statistically significant features. It computes p-values by comparing a reference test
-        statistic to test statistics from permuted data.
+        This method generates knockoff variables and computes test statistics to measure
+        feature importance. For multiple repeats, the scores are averaged across repeats
+        to improve stability.
 
+        Parameters
+        ----------
         X : array-like of shape (n_samples, n_features)
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
         y : array-like of shape (n_samples,)
+            Target values.
 
-            Array of importance scores (p-values) for each feature. Lower p-values indicate
-            higher importance. Values range from 0 to 1.
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores for each feature.
+            Higher absolute values indicate higher importance.
 
         Notes
         -----
-        The p-values are calculated using the formula:
-        (1 + #(T_perm >= T_obs)) / (n_permutations + 1)
-        where T_perm are the test statistics from permuted data and T_obs is the
-        reference test statistic.
-
-        See Also
-        --------
-        statistical_test : Method that computes the test statistic used in this function.
+        The method generates knockoff variables that satisfy the exchangeability property
+        and computes test statistics comparing original features against their knockoffs.
+        When n_repeat > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         self._check_fit()
 
