@@ -127,6 +127,12 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         y : array-like of shape (n_samples,)
             Target values.
 
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores for each feature.
+            Higher values indicate higher importance.
+
         Notes
         -----
         The p-values are calculated using the formula:
