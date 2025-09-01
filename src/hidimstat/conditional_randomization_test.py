@@ -151,7 +151,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
 
         self.test_scores_ = np.array(
             parallel(
-                delayed(joblib_statitistic_test)(
+                delayed(joblib_statistic_test)(
                     index, X_, self.generator.sample(), y, self.statistical_test
                 )
                 for index in tqdm(range(X_.shape[1]))
@@ -211,7 +211,7 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         return self.importance(X, y)
 
 
-def joblib_statitistic_test(index, X, X_sample, y, statistic_test):
+def joblib_statistic_test(index, X, X_sample, y, statistic_test):
     """
     Compute test statistic for a single feature with permuted data.
 
