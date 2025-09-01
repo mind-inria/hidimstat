@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 
-class GaussianDistribution:
+class GaussianKnockoffs:
     """
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original

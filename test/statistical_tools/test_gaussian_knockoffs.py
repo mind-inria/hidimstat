@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-from hidimstat.statistical_tools.gaussian_distribution import (
+from hidimstat.statistical_tools.gaussian_knockoffs import (
     _s_equi,
-    GaussianDistribution,
+    GaussianKnockoffs,
 )
 from hidimstat._utils.scenario import multivariate_simulation
 from sklearn.covariance import LedoitWolf
@@ -14,7 +14,7 @@ def test_gaussian_equi():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    generator = GaussianDistribution(
+    generator = GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
     )
@@ -29,7 +29,7 @@ def test_gaussian_center():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    generator = GaussianDistribution(
+    generator = GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
     )
@@ -44,7 +44,7 @@ def test_gaussian_error():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    generator = GaussianDistribution(
+    generator = GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True),
         random_state=seed * 2,
     )

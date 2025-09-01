@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
-from hidimstat.statistical_tools.gaussian_distribution import GaussianDistribution
+from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
@@ -197,7 +197,7 @@ def model_x_knockoff(
         X = StandardScaler().fit_transform(X)
 
     # Create knockoff variables
-    conditionnal_sampler = GaussianDistribution(
+    conditionnal_sampler = GaussianKnockoffs(
         cov_estimator, random_state=seed_list[0], tol=tol_gauss
     )
     conditionnal_sampler.fit(X)
