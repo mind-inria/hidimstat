@@ -116,7 +116,6 @@ class TestSelection:
         vi = set_BaseVariableImportance
         if vi.pvalues_ is not None:
             true_value = vi.importances_ < 5
-            print(vi.pvalues_)
             selection = vi.selection(
                 threshold_pvalue=vi.pvalues_[np.argsort(vi.importances_)[5]]
             )
