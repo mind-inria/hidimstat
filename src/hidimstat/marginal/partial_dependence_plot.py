@@ -552,7 +552,9 @@ class PartialDependencePlot(BaseVariableImportance):
         # Use check_array only on lists and other non-array-likes / sparse. Do not
         # convert DataFrame into a NumPy array.
         if not (hasattr(X, "__array__") or sparse.issparse(X)):
-            X_ = deepcopy(check_array(X, ensure_all_finite="allow-nan", dtype=object))
+            # TODO the option was ensure_all_finite added in version 1.6 of scikit learn, it's removed for retrocompatibility
+            # ensure_all_finite="allow-nan"))
+            X_ = deepcopy(check_array(X, dtype=object))
         else:
             X_ = deepcopy(X)
         X_subset, custom_values_for_X_subset = self._set_environment(X_)

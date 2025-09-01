@@ -1,4 +1,6 @@
 from copy import deepcopy
+import sys
+
 import numpy as np
 import pytest
 from sklearn.exceptions import NotFittedError
@@ -144,6 +146,10 @@ def test_pdp_classication(data_generator):
 
 # test plot of the pdp
 @pytest.mark.skipif(not seaborn_installed(), reason="seaborn is not installed")
+@pytest.mark.skipif(
+    sys.version_info < (3, 12),
+    reason="Don't test retrocompatibility for the generation of figures.",
+)
 @pytest.mark.mpl_image_compare
 def test_plot_pdp():
     """Test simple plot of pdp"""
@@ -176,6 +182,10 @@ def test_plot_pdp():
 
 
 @pytest.mark.skipif(not seaborn_installed(), reason="seaborn is not installed")
+@pytest.mark.skipif(
+    sys.version_info < (3, 12),
+    reason="Don't test retrocompatibility for the generation of figures.",
+)
 @pytest.mark.mpl_image_compare
 def test_plot_pdp_not_fig():
     """Test plot when the figure is not define before"""
