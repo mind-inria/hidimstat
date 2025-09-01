@@ -104,6 +104,8 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         super().fit(X, None, groups=groups)
+        rng = np.random.default_rng(self.random_state)
+
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
@@ -122,7 +124,9 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.random_state,
+                random_state=(
+                    None if self.random_state is None else rng.integers(0, 1e6)
+                ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)
