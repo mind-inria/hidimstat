@@ -142,16 +142,13 @@ class ConditionalRandimizationTest(BaseVariableImportance):
         reference_value = self.statistical_test(X_, y)
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
-        X_samples = []
-        for i in range(self.n_repeat):
-            X_samples.append(self.generator.sample())
 
         self.test_scores_ = np.array(
             parallel(
                 delayed(joblib_statitistic_test)(
-                    index, X_, X_sample, y, self.statistical_test
+                    index, X_, self.generator.sample(), y, self.statistical_test
                 )
-                for X_sample, index in tqdm(product(X_samples, range(X_.shape[1])))
+                for index in tqdm(range(X_.shape[1]))
             )
         )
         self.test_scores_ = reference_value - np.array(self.test_scores_).reshape(
