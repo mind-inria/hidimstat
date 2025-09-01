@@ -154,7 +154,9 @@ class ConditionalRandimizationTest(BaseVariableImportance):
                 delayed(joblib_statistic_test)(
                     index, X_, self.generator.sample(), y, self.statistical_test
                 )
-                for index in tqdm(range(X_.shape[1]))
+                for repeat_i, index in tqdm(
+                    product(range(self.n_repeat), range(X_.shape[1]))
+                )
             )
         )
         self.test_scores_ = reference_value - np.array(self.test_scores_).reshape(
