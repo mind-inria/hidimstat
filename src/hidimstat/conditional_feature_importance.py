@@ -2,6 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -104,7 +105,7 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         super().fit(X, None, groups=groups)
-        rng = np.random.default_rng(self.random_state)
+        rng = check_random_state(self.random_state)
 
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
@@ -125,7 +126,7 @@ class CFI(BasePerturbation):
                     else clone(self.imputation_model_categorical)
                 ),
                 random_state=(
-                    None if self.random_state is None else rng.integers(0, 1e6)
+                    None if self.random_state is None else rng.randint(0, 1e6)
                 ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
