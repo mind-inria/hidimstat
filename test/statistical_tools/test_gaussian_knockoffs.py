@@ -15,7 +15,7 @@ def test_gaussian_equi():
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(assume_centered=True),
+        cov_estimator=LedoitWolf(),
         random_state=seed * 2,
     )
     generator.fit(X=X)
@@ -30,7 +30,7 @@ def test_gaussian_center():
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(assume_centered=True),
+        cov_estimator=LedoitWolf(),
         random_state=seed * 2,
     )
     generator.fit(X=X)
@@ -45,7 +45,7 @@ def test_gaussian_error():
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(assume_centered=True),
+        cov_estimator=LedoitWolf(),
         random_state=seed * 2,
     )
     with pytest.raises(
