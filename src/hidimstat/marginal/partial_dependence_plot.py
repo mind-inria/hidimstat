@@ -34,6 +34,7 @@ def _grid_from_X(
 ):
     """
     Generate a grid of points based on the percentiles of X.
+
     Parameters
     ----------
     X : array-like of shape (n_samples, n_target_features)
@@ -53,6 +54,7 @@ def _grid_from_X(
     resolution_statistique : bool, default=False
         If True, uses quantiles for grid points instead of equally spaced points
         between percentile boundaries.
+
     Returns
     -------
     values : list of 1d ndarrays
@@ -61,6 +63,7 @@ def _grid_from_X(
     indexes : list of 1d ndarrays
         For each feature, contains the indices mapping each sample in X
         to its position in the grid.
+
     Notes
     -----
     Based on scikit-learn's _grid_from_X implementation:
@@ -168,6 +171,7 @@ def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
     For each value in `grid`, replaces the target features with that value for all samples
     in X, makes predictions, and averages them. This computes the mean model response
     across the data distribution for each grid point.
+
     Parameters
     ----------
     est : BaseEstimator
@@ -188,6 +192,7 @@ def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
         For regressors, always uses predict.
     n_jobs : int
         Number of parallel jobs to run.
+
     Returns
     -------
     list of arrays
@@ -212,6 +217,7 @@ def _partial_dependence_brute(est, grid, features, X, method, n_jobs):
 def _joblib_get_predictions(variable, values, X, est, method):
     """
     Helper function to get predictions for a single feature for parallel processing.
+
     Parameters
     ----------
     variable : int
@@ -224,6 +230,7 @@ def _joblib_get_predictions(variable, values, X, est, method):
         A fitted estimator implementing predict, predict_proba, or decision_function.
     method : str or list of str
         Method to get model predictions: 'predict', 'predict_proba', or 'decision_function'.
+
     Returns
     -------
     list of array
@@ -261,6 +268,7 @@ class PartialDependancePlot(BaseVariableImportance):
     Feature importance scores are computed following :footcite:t:`greenwell2018simple`:
     - For continuous features: standard deviation of PDP curve
     - For categorical features: range of PDP values divided by 4
+
     Parameters
     ----------
     estimator : BaseEstimator
@@ -307,6 +315,7 @@ class PartialDependancePlot(BaseVariableImportance):
     resolution_statistique : bool, default=False
         If True, uses quantile-based grid points instead of evenly spaced points.
         Can better capture feature distribution.
+
     Attributes
     ----------
     importances_ : ndarray of shape (n_features,)
@@ -315,9 +324,11 @@ class PartialDependancePlot(BaseVariableImportance):
         Individual Conditional Expectation curves for each feature
     values_ : list of arrays
         Grid values used for each feature
+
     See Also
     --------
     sklearn.inspection.partial_dependence : Similar functionality in scikit-learn
+
     References
     ----------
     .. footbibliography::
@@ -368,12 +379,14 @@ class PartialDependancePlot(BaseVariableImportance):
         """
         Fits the PartialDependencePlot model. This method has no effect as PDP
         only needs a fitted estimator.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             (Not used) Training data. Not used, present here for API consistency.
         y : array-like of shape (n_samples,)
             (Not used) Target values. Not used, present here for API consistency.
+
         Returns
         -------
         self : object
@@ -388,16 +401,19 @@ class PartialDependancePlot(BaseVariableImportance):
     def _set_enviroment_importance(self, X_):
         """
         Set up environment variables needed for importance calculation.
+
         Parameters
         ----------
         X_ : array-like of shape (n_samples, n_features)
             Input data on which to compute feature importance.
+
         Returns
         -------
         tuple
             Contains:
             - X_subset : array-like, subset of X_ with only target features
             - custom_values_for_X_subset : dict, custom values for target features
+
         Raises
         ------
         ValueError
@@ -501,6 +517,7 @@ class PartialDependancePlot(BaseVariableImportance):
     def importance(self, X, y=None):
         """
         Calculate partial dependence importance scores for each feature.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -508,11 +525,13 @@ class PartialDependancePlot(BaseVariableImportance):
             as training data.
         y : array-like of shape (n_samples,)
             (not used) Target values. Kept for API compatibility.
+
         Returns
         -------
         ndarray of shape (n_features,)
             Importance scores for each feature based on partial dependence.
             Higher values indicate greater importance.
+
         Raises
         ------
         ValueError
@@ -601,6 +620,7 @@ class PartialDependancePlot(BaseVariableImportance):
     def fit_importance(self, X, y=None, cv=None):
         """
         Convenience method to fit and calculate importance scores in one step.
+
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
@@ -610,6 +630,7 @@ class PartialDependancePlot(BaseVariableImportance):
             Not used, kept for API compatibility.
         cv : object, default=None
             Not used, kept for API compatibility.
+
         Returns
         -------
         ndarray of shape (n_features,)
@@ -635,6 +656,7 @@ class PartialDependancePlot(BaseVariableImportance):
     ):
         """
         Plot partial dependence and ICE curves for a given feature.
+
         Parameters
         ----------
         feature_id : int
@@ -653,14 +675,17 @@ class PartialDependancePlot(BaseVariableImportance):
             Controls random sampling of ICE curves when percentage_ice < 1.
         **kwargs : dict
             Additional keyword arguments passed to plot function.
+
         Returns
         -------
         matplotlib.axes.Axes
             The axes containing the plot.
+
         Raises
         ------
         Exception
             If seaborn is not installed.
+
         Notes
         -----
         For continuous features:
@@ -756,6 +781,7 @@ class PartialDependancePlot(BaseVariableImportance):
 def _ax_quantiles(ax, quantiles, twin="x"):
     """
     Add quantile percentage labels on a twin axis.
+
     Parameters
     ----------
     ax : matplotlib.axes.Axes
@@ -766,10 +792,12 @@ def _ax_quantiles(ax, quantiles, twin="x"):
         Which axis to add the twin axis and labels to:
         - 'x': Add labels on top x-axis
         - 'y': Add labels on right y-axis
+
     Raises
     ------
     ValueError
         If twin is not 'x' or 'y'.
+
     Notes
     -----
     Creates a twin axis with percentage labels (0-100%) corresponding to the
