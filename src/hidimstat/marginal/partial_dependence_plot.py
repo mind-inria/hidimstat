@@ -592,9 +592,9 @@ class PartialDependencePlot(BaseVariableImportance):
         self.importances_ = np.zeros_like(self.is_categorical, dtype=float)
         # importance for continous variable
         if len(averaged_predictions_continuous) > 0:
-            importance_continious = []
+            importance_continuous = []
             for averaged_prediction in averaged_predictions_continuous:
-                importance_continious.append(
+                importance_continuous.append(
                     np.sqrt(
                         np.sum(
                             (averaged_prediction - np.mean(averaged_prediction)) ** 2
@@ -603,7 +603,7 @@ class PartialDependencePlot(BaseVariableImportance):
                     )
                 )
             self.importances_[np.logical_not(self.is_categorical)] = (
-                importance_continious
+                importance_continuous
             )
         # importance for categoritcal features
         if len(averaged_predictions_categorie) > 0:
@@ -649,7 +649,7 @@ class PartialDependencePlot(BaseVariableImportance):
         feature_id,
         ax=None,
         X=None,
-        nbins=5,
+        n_bins=5,
         percentage_ice=1.0,
         random_state=None,
         **kwargs,
@@ -742,7 +742,7 @@ class PartialDependencePlot(BaseVariableImportance):
                 _ax_quantiles(
                     ax,
                     np.unique(
-                        np.quantile(data, np.linspace(0, 1, nbins), method="lower")
+                        np.quantile(data, np.linspace(0, 1, n_bins), method="lower")
                     ),
                 )
                 # add distribution of value
