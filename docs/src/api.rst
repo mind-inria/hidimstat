@@ -47,5 +47,5 @@ Marginal Importance
    :toctree: ./generated/api/marginal
    :template: class.rst
 
-   PartialDependancePlot
+   PartialDependencePlot
    PDP

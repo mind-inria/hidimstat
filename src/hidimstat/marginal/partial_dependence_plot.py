@@ -39,7 +39,7 @@ def _grid_from_X(
     ----------
     X : array-like of shape (n_samples, n_target_features)
         The data from which to generate the grid.
-    percentiles : tuple of float (p1, p2)
+    percentiles : a pair of float (p1, p2)
         The lower and upper percentiles to use for the grid boundaries.
         Must satisfy 0 <= p1 < p2 <= 1.
     is_categorical : list of bool
@@ -256,7 +256,7 @@ def _joblib_get_predictions(variable, values, X, est, method):
     return predictions
 
 
-class PartialDependancePlot(BaseVariableImportance):
+class PartialDependencePlot(BaseVariableImportance):
     """
     Partial Dependence Plot (PDP):footcite:t:`friedman2001greedy` for analyzing
     feature effects on model predictions. This is based on individual conditional

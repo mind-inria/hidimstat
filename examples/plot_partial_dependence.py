@@ -244,7 +244,7 @@ print(f"Test R2 score: {mlp_model.score(X_test, y_test):.2f}")
 # We will plot the averaged partial dependence.
 import matplotlib.pyplot as plt
 
-from hidimstat.marginal.partial_dependence_plot import PartialDependancePlot
+from hidimstat.marginal.partial_dependence_plot import PartialDependencePlot
 
 common_params = {
     "n_jobs": 2,
@@ -259,7 +259,7 @@ features_info = {
     "categorical_features": categorical_features,
 }
 tic = time()
-pdp = PartialDependancePlot(
+pdp = PartialDependencePlot(
     mlp_model,
     **features_info,
     **common_params,
@@ -320,7 +320,7 @@ print(f"Test R2 score: {hgbdt_model.score(X_test, y_test):.2f}")
 print("Computing partial dependence plots...")
 tic = time()
 fig, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 8), constrained_layout=True)
-pdp = PartialDependancePlot(
+pdp = PartialDependencePlot(
     hgbdt_model,
     **features_info,
     **common_params,
@@ -379,7 +379,7 @@ features_info = {
     # "centered": True,
 }
 
-pdp = PartialDependancePlot(
+pdp = PartialDependencePlot(
     hgbdt_model,
     **features_info,
     **common_params,
@@ -416,7 +416,7 @@ print(f"Test R2 score: {hgbdt_model_without_interactions.score(X_test, y_test):.
 fig, axs = plt.subplots(ncols=2, figsize=(6, 4), sharey=True, constrained_layout=True)
 
 # features_info["centered"] = False
-pdp = PartialDependancePlot(
+pdp = PartialDependencePlot(
     hgbdt_model_without_interactions,
     **features_info,
     **common_params,
@@ -450,7 +450,7 @@ features_info = {
     "features": ["temp", "humidity"],
 }
 
-pdp = PartialDependancePlot(
+pdp = PartialDependencePlot(
     hgbdt_model,
     **features_info,
     **common_params,

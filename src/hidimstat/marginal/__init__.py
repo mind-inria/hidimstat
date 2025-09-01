@@ -1,3 +1,3 @@
-from .partial_dependence_plot import PartialDependancePlot
+from .partial_dependence_plot import PartialDependencePlot
 
-__all__ = ["PartialDependancePlot"]
+__all__ = ["PartialDependencePlot"]
