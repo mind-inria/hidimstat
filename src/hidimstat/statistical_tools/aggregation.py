@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
+def quantile_aggregation(pvals, gamma=0.5, adaptive=False):
     """
     Implements the quantile aggregation method for p-values.
 
@@ -15,7 +15,7 @@ def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
     pvals : ndarray of shape (n_sampling*2, n_test)
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
-    gamma : float, default=0.05
+    gamma : float, default=0.5
         Quantile level for aggregation. Must be in range (0,1].
     adaptive : bool, default=False
         If True, uses adaptive quantile aggregation which optimizes over multiple gamma values.
