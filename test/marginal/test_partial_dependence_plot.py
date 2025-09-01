@@ -240,7 +240,7 @@ class TestPDPClass:
         """Test resolution statistic PDP"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
-        pdp = PDP(estimator=fitted_model, resolution_statistique=True)
+        pdp = PDP(estimator=fitted_model, statistical_resolution=True)
         # Test importance
         pdp.importance(X)
         assert len(pdp.importances_) > 0
