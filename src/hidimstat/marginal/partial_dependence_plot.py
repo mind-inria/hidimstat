@@ -398,7 +398,7 @@ class PartialDependencePlot(BaseVariableImportance):
             warnings.warn("y won't be used")
         return self
 
-    def _set_enviroment_importance(self, X_):
+    def _set_environment(self, X_):
         """
         Set up environment variables needed for importance calculation.
 
@@ -555,7 +555,7 @@ class PartialDependencePlot(BaseVariableImportance):
             X_ = deepcopy(check_array(X, ensure_all_finite="allow-nan", dtype=object))
         else:
             X_ = deepcopy(X)
-        X_subset, custom_values_for_X_subset = self._set_enviroment_importance(X_)
+        X_subset, custom_values_for_X_subset = self._set_environment(X_)
 
         self.values_, _ = _grid_from_X(
             X_subset,
