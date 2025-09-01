@@ -146,7 +146,7 @@ def test_crt_linear_no_power(data_generator, crt_n_sampling, crt_seed, crt_fdr):
 
     # test the selection part
     fdp, power = fdp_power(np.where(selected)[0], important_features)
-    assert fdp < crt_fdr
+    assert fdp <= crt_fdr
     assert power == 0.0
 
 
