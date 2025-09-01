@@ -575,12 +575,12 @@ class PartialDependencePlot(BaseVariableImportance):
             self.n_jobs,
         )
 
-        averaged_predictions_continious = []
+        averaged_predictions_continuous = []
         averaged_predictions_categorie = []
         # average over samples
         for index, ice in enumerate(self.ices_):
             if not self.is_categorical[index]:
-                averaged_predictions_continious.append(
+                averaged_predictions_continuous.append(
                     np.average(ice, axis=1, weights=self.sample_weight)
                 )
             else:
@@ -591,9 +591,9 @@ class PartialDependencePlot(BaseVariableImportance):
         # compute importance from equation 4 of greenwell2018simple
         self.importances_ = np.zeros_like(self.is_categorical, dtype=float)
         # importance for continous variable
-        if len(averaged_predictions_continious) > 0:
+        if len(averaged_predictions_continuous) > 0:
             importance_continious = []
-            for averaged_prediction in averaged_predictions_continious:
+            for averaged_prediction in averaged_predictions_continuous:
                 importance_continious.append(
                     np.sqrt(
                         np.sum(
