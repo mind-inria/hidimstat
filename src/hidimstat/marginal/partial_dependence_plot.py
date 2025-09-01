@@ -30,7 +30,7 @@ def _grid_from_X(
     is_categorical,
     grid_resolution,
     custom_values,
-    resolution_statistique=False,
+    statistical_resolution=False,
 ):
     """
     Generate a grid of points based on the percentiles of X.
@@ -51,7 +51,7 @@ def _grid_from_X(
     custom_values : dict
         Mapping from column index of X to array-like of custom values
         to use for that feature instead of the generated grid.
-    resolution_statistique : bool, default=False
+    statistical_resolution : bool, default=False
         If True, uses quantiles for grid points instead of equally spaced points
         between percentile boundaries.
 
@@ -127,7 +127,7 @@ def _grid_from_X(
                 axis = uniques
             else:
                 # create axis based on percentiles and grid resolution
-                if resolution_statistique:
+                if statistical_resolution:
                     axis = np.unique(
                         mquantiles(
                             data,
@@ -312,7 +312,7 @@ class PartialDependencePlot(BaseVariableImportance):
         Custom grid values for features. Dictionary mapping feature index/name
         to array of values to evaluate.
         Overrides percentiles and grid_resolution for specified features.
-    resolution_statistique : bool, default=False
+    statistical_resolution : bool, default=False
         If True, uses quantile-based grid points instead of evenly spaced points.
         Can better capture feature distribution.
 
@@ -346,7 +346,7 @@ class PartialDependencePlot(BaseVariableImportance):
         percentiles=(0.05, 0.95),
         grid_resolution=100,
         custom_values=None,
-        resolution_statistique=False,
+        statistical_resolution=False,
     ):
         super().__init__()
         check_is_fitted(estimator)
@@ -373,7 +373,7 @@ class PartialDependencePlot(BaseVariableImportance):
         self.percentiles = percentiles
         self.grid_resolution = grid_resolution
         self.custom_values = custom_values
-        self.resolution_statistique = resolution_statistique
+        self.statistical_resolution = statistical_resolution
 
     def fit(self, X=None, y=None):
         """
@@ -563,7 +563,7 @@ class PartialDependencePlot(BaseVariableImportance):
             self.is_categorical,
             self.grid_resolution,
             custom_values_for_X_subset,
-            self.resolution_statistique,
+            self.statistical_resolution,
         )
 
         self.ices_ = _partial_dependence_brute(
