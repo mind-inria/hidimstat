@@ -195,7 +195,12 @@ class BaseVariableImportance(BaseEstimator):
         ), "this method doesn't support selection base on FDR"
 
         if self.test_scores_.shape[0] == 1:
-            self.threshold_fdr_ = _estimated_threshold(self.test_scores_, fdr=fdr)
+            self.threshold_fdr_ = fdr_threshold(
+                self.pvalues_,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
             selected = self.test_scores_[0] >= self.threshold_fdr_
         elif not evalues:
             assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
