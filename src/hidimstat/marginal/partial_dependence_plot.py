@@ -286,9 +286,6 @@ class PartialDependencePlot(BaseVariableImportance):
         - 'predict_proba': uses predicted probabilities
         - 'decision_function': uses decision function scores
         Ignored for regressors which always use predict.
-    n_jobs : int, default=1
-        Number of CPU cores to use for parallel processing.
-        -1 means using all processors.
     sample_weight : array-like of shape (n_samples,), default=None
         Sample weights for computing weighted averages of predictions.
         If None, samples are weighted equally.
@@ -315,6 +312,9 @@ class PartialDependencePlot(BaseVariableImportance):
     statistical_resolution : bool, default=False
         If True, uses quantile-based grid points instead of evenly spaced points.
         Can better capture feature distribution.
+    n_jobs : int, default=1
+        Number of CPU cores to use for parallel processing.
+        -1 means using all processors.
 
     Attributes
     ----------
@@ -339,7 +339,6 @@ class PartialDependencePlot(BaseVariableImportance):
         estimator,
         features=None,
         method: str = "auto",
-        n_jobs: int = 1,
         sample_weight=None,
         categorical_features=None,
         feature_names=None,
@@ -347,6 +346,7 @@ class PartialDependencePlot(BaseVariableImportance):
         grid_resolution=100,
         custom_values=None,
         statistical_resolution=False,
+        n_jobs: int = 1,
     ):
         super().__init__()
         check_is_fitted(estimator)
@@ -366,7 +366,6 @@ class PartialDependencePlot(BaseVariableImportance):
             )
         self.features = features
         self.method = method
-        self.n_jobs = n_jobs
         self.sample_weight = sample_weight
         self.categorical_features = categorical_features
         self.feature_names = feature_names
@@ -374,6 +373,7 @@ class PartialDependencePlot(BaseVariableImportance):
         self.grid_resolution = grid_resolution
         self.custom_values = custom_values
         self.statistical_resolution = statistical_resolution
+        self.n_jobs = n_jobs
 
     def fit(self, X=None, y=None):
         """
