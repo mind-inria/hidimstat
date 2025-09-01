@@ -3,12 +3,12 @@ Partial Dependence and Individual Conditional Expectation Plots
 ===============================================================
 This example is a modified version of the the example proposed in Scikit-learn:
 https://scikit-learn.org/1.7/auto_examples/inspection/plot_partial_dependence.html
-Partial dependence plots show the dependence between the target function [2]_
+Partial dependence plots show the dependence between the target function [1]_
 and a set of features of interest, marginalizing over the values of all other
 features (the complement features). We limit to only one feature for the
 calculation of the importance because the extension of this method for multiple is
 features is not trivial.
-Similarly, an individual conditional expectation (ICE) plot [3]_
+Similarly, an individual conditional expectation (ICE) plot :footcite:t:`goldstein2015peeking`
 shows the dependence between the target function and a feature of interest.
 However, unlike partial dependence plots, which show the average effect of the
 features of interest, ICE plots visualize the dependence of the prediction on a
@@ -17,16 +17,17 @@ Only one feature of interest is supported for ICE plots.
 This example shows how to obtain partial dependence and ICE plots from a
 :class:`~sklearn.neural_network.MLPRegressor` and a
 :class:`~sklearn.ensemble.HistGradientBoostingRegressor` trained on the
-bike sharing dataset. The example is inspired by [1]_.
-.. [1] `Molnar, Christoph. "Interpretable machine learning.
-       A Guide for Making Black Box Models Explainable",
-       2019. <https://christophm.github.io/interpretable-ml-book/>`_
-.. [2] For classification you can think of it as the regression score before
+bike sharing dataset. The example is inspired by :footcite:t:`molnar2025`.
+
+Notes
+-----
+.. [1] For classification you can think of it as the regression score before
        the link function.
-.. [3] `Goldstein, A., Kapelner, A., Bleich, J., and Pitkin, E. (2015).
-       "Peeking Inside the Black Box: Visualizing Statistical Learning With Plots of
-       Individual Conditional Expectation". Journal of Computational and
-       Graphical Statistics, 24(1): 44-65 <1309.6392>`
+
+References
+----------
+.. footbibliography::
+
 """
 
 # %%
