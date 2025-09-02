@@ -2,16 +2,15 @@
 Test the dcrt module
 """
 
-import pytest
 import numpy as np
+import pytest
 from sklearn.covariance import LedoitWolf
-from sklearn.datasets import make_regression, make_classification
-from sklearn.model_selection import KFold
-from sklearn.linear_model import LassoCV, Lasso
+from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import Lasso, LassoCV
+from sklearn.model_selection import KFold
 
-
-from hidimstat import d0crt, D0CRT
+from hidimstat import D0CRT, d0crt
 from hidimstat._utils.regression import _alpha_max
 
 
@@ -28,12 +27,12 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
     X, y = generate_regation_dataset
     # Checking with and without screening
     d0crt_no_screening = D0CRT(
-        estimator=LassoCV(n_jobs=1), screening=False, random_state=2024
+        estimator=LassoCV(n_jobs=1), screening_threshold=None, random_state=2024
     )
     pvalue_no_screening = d0crt_no_screening.fit_importance(X, y)
     sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
     d0crt_screening = D0CRT(
-        estimator=LassoCV(n_jobs=1), screening=True, random_state=2024
+        estimator=LassoCV(n_jobs=1), screening_threshold=10, random_state=2024
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
     sv_screening = d0crt_screening.selection(threshold_pvalue=0.05)
@@ -49,7 +48,7 @@ def test_dcrt_lasso_screening(generate_regation_dataset):
     # Checking with scaled statistics
     d0crt_no_screening = D0CRT(
         estimator=LassoCV(n_jobs=1),
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
         scaled_statistics=True,
     )
@@ -73,7 +72,7 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_regation_dataset):
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         estimated_coef=estimated_coefs,
-        screening=False,
+        screening_threshold=None,
         random_state=2026,
     )
     d0crt.fit(X, y)
@@ -93,7 +92,7 @@ def test_dcrt_lasso_with_refit(generate_regation_dataset):
     d0crt_refit = D0CRT(
         estimator=LassoCV(n_jobs=1),
         refit=True,
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
     )
     pvalue = d0crt_refit.fit_importance(X, y)
@@ -111,14 +110,8 @@ def test_dcrt_lasso_with_no_cv(generate_regation_dataset):
     # Checking with use_cv
     d0crt_use_cv = D0CRT(
         estimator=LassoCV(n_jobs=1),
-        params_lasso_screening={
-            "alpha": None,
-            "n_alphas": 0,
-            "alphas": None,
-            "alpha_max_fraction": 0.5,
-            "fit_intercept": False,
-        },
-        screening=False,
+        lasso_screening=LassoCV(n_jobs=1, fit_intercept=False),
+        screening_threshold=None,
         random_state=2024,
     )
     pvalue = d0crt_use_cv.fit_importance(X, y)
@@ -139,7 +132,7 @@ def test_dcrt_lasso_with_covariance(generate_regation_dataset):
     d0crt_covariance = D0CRT(
         estimator=LassoCV(n_jobs=1),
         sigma_X=cov.covariance_,
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
     )
     pvalue = d0crt_covariance.fit_importance(X, y)
@@ -157,7 +150,7 @@ def test_dcrt_lasso_center():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         centered=False,
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
         scaled_statistics=True,
     )
@@ -190,18 +183,14 @@ def test_dcrt_lasso_refit():
 def test_dcrt_lasso_no_selection():
     """
     This function tests the dcrt function using the Lasso learner
-    with distillation y using different argument
+    with distillation y when precomputed coefficients are provided.
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10, random_state=2024
     )
     d0crt.fit(X, y)
-    for arr in [
-        d0crt.clf_x_,
-        d0crt.clf_y_,
-    ]:
-        assert np.all(arr == np.array([]))
+    assert np.all(d0crt.selection_set)
 
 
 def test_dcrt_distillation_x_different():
@@ -231,13 +220,7 @@ def test_dcrt_distillation_y_different():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         random_state=2024,
-        params_lasso_distillation_x={
-            "alpha": None,
-            "n_alphas": 0,
-            "alphas": None,
-            "alpha_max_fraction": 0.5,
-            "fit_intercept": False,
-        },
+        model_distillation_x=LassoCV(n_jobs=1),
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -256,14 +239,8 @@ def test_dcrt_lasso_fit_with_no_cv():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         fit_y=True,
-        params_lasso_screening={
-            "alpha": None,
-            "n_alphas": 0,
-            "alphas": None,
-            "alpha_max_fraction": 0.5,
-            "fit_intercept": False,
-        },
-        screening=False,
+        lasso_screening=LassoCV(n_jobs=1),
+        screening_threshold=None,
         random_state=2026,
         scaled_statistics=True,
     )
@@ -284,7 +261,7 @@ def test_dcrt_RF_regression():
     d0crt = D0CRT(
         estimator=RandomForestRegressor(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict",
-        screening=False,
+        screening_threshold=None,
         random_state=2026,
         scaled_statistics=True,
     )
@@ -304,7 +281,7 @@ def test_dcrt_RF_classification():
     d0crt = D0CRT(
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
-        screening=False,
+        screening_threshold=None,
         random_state=2026,
         scaled_statistics=True,
     )
@@ -322,7 +299,7 @@ def test_exception_not_fitted():
     d0crt = D0CRT(
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
         scaled_statistics=True,
     )
@@ -338,7 +315,7 @@ def test_warning_not_used_parameters():
     d0crt = D0CRT(
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
-        screening=False,
+        screening_threshold=None,
         random_state=2024,
     )
     d0crt.fit(X, y)
@@ -354,3 +331,59 @@ def test_function_d0crt():
     assert len(sv) <= 10
     assert len(importances) == 10
     assert len(pvalues) == 10
+
+
+def test_d0crt_linear():
+    """
+    This function tests the D0CRT on a linear simulation, to see if it selects the
+    correct features.
+    It checks if the importances measured are larger for the features with non-zero
+    coefficients and that the selected features correspond to the true informative
+    features.
+    """
+    X, y, coef = make_regression(
+        n_samples=100,
+        n_features=10,
+        noise=0.0,
+        random_state=0,
+        coef=True,
+        n_informative=5,
+        shuffle=False,
+    )
+    important_ids = np.where(coef != 0)[0]
+    d0crt = D0CRT(
+        estimator=LassoCV(n_jobs=1, n_alphas=10),
+        screening_threshold=90,
+        random_state=0,
+    )
+    importances = d0crt.fit_importance(X, y)
+    sv = d0crt.selection(threshold_pvalue=0.05)
+
+    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
+    assert np.array_equal(np.where(sv)[0], important_ids)
+
+
+def test_d0crt_rf():
+    """
+    This function tests the D0CRT on a random forest model.
+    """
+    X, y, coef = make_regression(
+        n_samples=200,
+        n_features=10,
+        noise=0.0,
+        random_state=0,
+        coef=True,
+        n_informative=5,
+        shuffle=False,
+    )
+    important_ids = np.where(coef != 0)[0]
+    d0crt = D0CRT(
+        estimator=RandomForestRegressor(n_estimators=100, random_state=0, n_jobs=1),
+        screening_threshold=None,
+        random_state=0,
+    )
+    importances = d0crt.fit_importance(X, y)
+    sv = d0crt.selection(threshold_pvalue=0.05)
+
+    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
+    assert np.array_equal(np.where(sv)[0], important_ids)
