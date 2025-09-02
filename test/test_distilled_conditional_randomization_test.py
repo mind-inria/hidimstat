@@ -337,7 +337,7 @@ def test_dcrt_invalid_lasso_screening(generate_regation_dataset):
         random_state=2024,
     )
     with pytest.raises(
-        ValueError, match="lasso_screening must be an instance of Lasso or LassoCV"
+        ValueError, match="lasso_model must be an instance of Lasso or LassoCV"
     ):
         d0crt.fit(X, y)
 

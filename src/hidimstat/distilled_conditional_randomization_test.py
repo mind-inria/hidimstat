@@ -180,14 +180,29 @@ class D0CRT(BaseVariableImportance):
         y_ = y  # avoid modifying the original y
 
         if self.screening_threshold is not None:
-            self.selection_set = self.run_lasso_screening(X_, y_)
-            if self.refit:
-                self.estimator.fit(X_[:, self.selection_set], y_)
+            if self.estimated_coef is not None:
+                warnings.warn(
+                    "Precomputed coefficients were provided, screening is skipped and "
+                    "screening_threshold is set to 100."
+                )
+                self.selection_set = np.ones(X.shape[1], dtype=bool)
+            else:
+                self.selection_set, self.lasso_model_ = run_lasso_screening(
+                    X_,
+                    y_,
+                    lasso_model=self.lasso_screening,
+                    estimated_coef=self.estimated_coef,
+                    screening_threshold=self.screening_threshold,
+                )
+                if self.refit:
+                    self.estimator.fit(X_[:, self.selection_set], y_)
         else:
             self.selection_set = np.ones(X_.shape[1], dtype=bool)
 
-        if self.reuse_screening_model and (self.screening_threshold is not None):
-            self.coefficient_ = self.screening_coefficient_
+        if self.estimated_coef is not None:
+            self.coefficient_ = self.estimated_coef
+        elif self.reuse_screening_model and (self.screening_threshold is not None):
+            self.coefficient_ = self.lasso_model_.coef_
         else:
             self.estimator.fit(X_[:, self.selection_set], y_)
             if hasattr(self.estimator, "coef_"):
@@ -214,50 +229,6 @@ class D0CRT(BaseVariableImportance):
             self.coefficient_ = np.array([result[2] for result in results])
 
         return self
-
-    def run_lasso_screening(self, X, y):
-        """
-        Perform Lasso screening for feature selection.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Input data matrix.
-        y : array-like of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        selection_set : ndarray of shape (n_features,)
-            Boolean mask indicating selected features.
-        """
-        # Use pre-computed coefficients if available
-        if self.estimated_coef is not None:
-            warnings.warn(
-                "Precomputed coefficients were provided, screening is skipped and "
-                "self.screening_threshold is set to 100."
-            )
-            self.screening_threshold = 100
-            self.screening_coefficient_ = self.estimated_coef
-            return np.ones(X.shape[1], dtype=bool)
-
-        # Fit the Lasso model for screening
-        else:
-            if not (
-                isinstance(self.lasso_screening, LassoCV)
-                or isinstance(self.lasso_screening, Lasso)
-            ):
-                raise ValueError(
-                    "lasso_screening must be an instance of Lasso or LassoCV"
-                )
-            self.lasso_screening.fit(X, y)
-            self.screening_coefficient_ = self.lasso_screening.coef_
-
-        # Selection based on the screening threshold
-        selection_set = np.abs(self.screening_coefficient_) >= np.percentile(
-            np.abs(self.screening_coefficient_), 100 - self.screening_threshold
-        )
-        return selection_set
 
     def _check_fit(self):
         """
@@ -576,6 +547,43 @@ def _joblib_distill(
             y_residual = y - y_pred[:, 1]  # IIABDFI
 
     return X_residual, sigma2, y_residual
+
+
+def run_lasso_screening(
+    X,
+    y,
+    lasso_model=LassoCV(fit_intercept=False),
+    estimated_coef=None,
+    screening_threshold=10,
+):
+    """
+    Perform Lasso screening for feature selection.
+
+    Parameters
+    ----------
+    X : array-like of shape (n_samples, n_features)
+        Input data matrix.
+    y : array-like of shape (n_samples,)
+        Target values.
+    lasso_model : sklearn estimator or None, default=LassoCV(cv=5, n_alphas=10, tol=1e-6, fit_intercept=False)
+        Estimator for variable screening (typically LassoCV or Lasso).
+    screening_threshold : float
+        Percentile threshold for screening (0-100).
+
+    Returns
+    -------
+    selection_set : ndarray of shape (n_features,)
+        Boolean mask indicating selected features.
+    lasso_model : sklearn estimator
+        Fitted Lasso model used for screening.
+    """
+    if not (isinstance(lasso_model, LassoCV) or isinstance(lasso_model, Lasso)):
+        raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
+    lasso_model.fit(X, y)
+    selection_set = np.abs(lasso_model.coef_) >= np.percentile(
+        np.abs(lasso_model.coef_), 100 - screening_threshold
+    )
+    return selection_set, lasso_model
 
 
 def d0crt(
