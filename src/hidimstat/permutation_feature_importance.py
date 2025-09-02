@@ -7,10 +7,12 @@ from hidimstat.base_perturbation import BasePerturbation
 
 class PFI(BasePerturbation):
     """
-    Permutation Feature Importance algorithm as presented in
-    :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
-    the importance is computed as the difference between the loss of the initial
-    model and the loss of the model with the variable/group permuted.
+    Permutation Feature Importance algorithm
+
+    This as presented in :footcite:t:`breimanRandomForests2001`.
+    For each variable/group of variables, the importance is computed as
+    the difference between the loss of the initial model and the loss of
+    the model with the variable/group permuted.
     The method was also used in :footcite:t:`mi2021permutation`
 
     Parameters

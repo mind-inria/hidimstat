@@ -184,14 +184,14 @@ def compute_pval(vim):
 # -------------------
 
 
-cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
+cfi_vim_arr = np.array(cfi_importance_list) / 2
 cfi_pval = compute_pval(cfi_vim_arr)
 
 vim = [
     pd.DataFrame(
         {
             "var": np.arange(cfi_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": cfi_pval,
             "method": "CFI",
@@ -200,14 +200,14 @@ vim = [
     for x in cfi_importance_list
 ]
 
-loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
+loco_vim_arr = np.array(loco_importance_list)
 loco_pval = compute_pval(loco_vim_arr)
 
 vim += [
     pd.DataFrame(
         {
             "var": np.arange(loco_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": loco_pval,
             "method": "LOCO",
@@ -216,14 +216,14 @@ vim += [
     for x in loco_importance_list
 ]
 
-pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
+pfi_vim_arr = np.array(pfi_importance_list)
 pfi_pval = compute_pval(pfi_vim_arr)
 
 vim += [
     pd.DataFrame(
         {
             "var": np.arange(pfi_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": pfi_pval,
             "method": "PFI",

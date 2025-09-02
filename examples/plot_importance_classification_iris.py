@@ -93,7 +93,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
         )
 
     vim.fit(X[train_index], y[train_index], groups=groups)
-    importance = vim.importance(X[test_index], y[test_index])["importance"]
+    importance = vim.importance(X[test_index], y[test_index])
 
     return pd.DataFrame(
         {

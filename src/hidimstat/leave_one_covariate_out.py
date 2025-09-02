@@ -9,8 +9,9 @@ from hidimstat.base_perturbation import BasePerturbation
 
 class LOCO(BasePerturbation):
     """
-    Leave-One-Covariate-Out (LOCO) as presented in
-    :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
+    Leave-One-Covariate-Out (LOCO) algorithm
+
+    This method is presented in :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
     The model is re-fitted for each variable/group of variables. The importance is
     then computed as the difference between the loss of the full model and the loss
     of the model without the variable/group.

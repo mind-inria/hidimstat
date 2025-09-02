@@ -117,7 +117,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
         random_state=0,
     )
     vim.fit(X_train, y_train)
-    importances.append(vim.importance(X_test, y_test)["importance"])
+    importances.append(vim.importance(X_test, y_test))
 
 importances = np.array(importances).T
 
