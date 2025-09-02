@@ -203,10 +203,14 @@ class D0CRT(BaseVariableImportance):
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
             self.coefficient_ = self.lasso_model_.coef_
+            # optimisation to reduce the number of elements different to zeros
+            self.coefficient_[~self.selection_set] = 0
         else:
             self.estimator.fit(X_[:, self.selection_set], y_)
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = self.estimator.coef_
+                # optimisation to reduce the number of elements different to zeros
+                self.coefficient_[~self.selection_set] = 0
             else:
                 self.coefficient_ = None
 
