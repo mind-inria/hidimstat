@@ -187,7 +187,7 @@ def effect_number_samples(n_samples):
             n_bootstraps,
             seed=seed,
         )
-        for seed in range(10, 10 + runs)
+        for seed in range(runs)
     )
 
     fdps_mx = []
