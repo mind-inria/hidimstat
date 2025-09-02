@@ -39,9 +39,8 @@ def test_permutation_importance():
         y_train,
         groups=None,
     )
-    vim = pfi.importance(X_test, y_test)
+    importance = pfi.importance(X_test, y_test)
 
-    importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
@@ -70,9 +69,8 @@ def test_permutation_importance():
     )
     # warnings because we doesn't considere the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = pfi.importance(X_test_df, y_test)
+        importance = pfi.importance(X_test_df, y_test)
 
-    importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
@@ -95,7 +93,6 @@ def test_permutation_importance():
         y_train_clf,
         groups=None,
     )
-    vim_clf = pfi_clf.importance(X_test, y_test_clf)
+    importance_clf = pfi_clf.importance(X_test, y_test_clf)
 
-    importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (X.shape[1],)

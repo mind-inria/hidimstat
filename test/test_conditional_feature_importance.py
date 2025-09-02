@@ -66,8 +66,7 @@ def run_cfi(X, y, n_permutation, seed):
         var_type="auto",
     )
     # calculate feature importance using the test set
-    vim = cfi.importance(X_test, y_test)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test)
     return importance
 
 
@@ -199,9 +198,8 @@ def test_group(data_generator):
     )
     # Warning expected since column names in pandas are not considered
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = cfi.importance(X_test_df, y_test)
+        importance = cfi.importance(X_test_df, y_test)
 
-    importance = vim["importance"]
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)
     # Verify that important feature group has higher score
@@ -248,8 +246,7 @@ def test_classication(data_generator):
         groups=None,
         var_type=["continuous"] * X.shape[1],
     )
-    vim = cfi.importance(X_test, y_test_clf)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test_clf)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # Check that important features have higher mean importance scores
@@ -297,13 +294,13 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_groups == X.shape[1]
+        assert cfi._n_groups == X.shape[1]
 
         # Test fit with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
         cfi.fit(X, groups=groups)
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_groups == 2
+        assert cfi._n_groups == 2
 
     def test_categorical(
         self,
@@ -334,7 +331,7 @@ class TestCFIClass:
         var_type = ["continuous", "continuous", "categorical"]
         cfi.fit(X, y, var_type=var_type)
 
-        importances = cfi.importance(X, y)["importance"]
+        importances = cfi.importance(X, y)
         assert len(importances) == 3
         assert np.all(importances >= 0)
 
