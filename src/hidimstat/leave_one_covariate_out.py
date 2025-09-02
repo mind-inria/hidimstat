@@ -2,9 +2,11 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
+from sklearn.model_selection import KFold
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 class LOCO(BasePerturbation):
@@ -89,6 +91,11 @@ class LOCO(BasePerturbation):
         )
         return self
 
+    def importance(self, X, y):
+        super().importance(X, y)
+        self.pvalues_ = None
+        return self.importances_
+
     def _joblib_fit_one_group(self, estimator, X, y, key_groups):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
@@ -116,3 +123,59 @@ class LOCO(BasePerturbation):
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_estimators:
             check_is_fitted(m)
+
+
+def loco(
+    estimator,
+    X,
+    y,
+    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+    groups: dict = None,
+    method: str = "predict",
+    loss: callable = root_mean_squared_error,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
+    n_jobs: int = 1,
+):
+    methods = LOCO(
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        n_jobs=n_jobs,
+    )
+    methods.fit_importance(
+        X,
+        y,
+        cv=cv,
+        groups=groups,
+    )
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
+    )
+    return selection, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+loco.__doc__ = _aggregate_docstring(
+    [
+        LOCO.__doc__,
+        LOCO.__init__.__doc__,
+        LOCO.fit_importance.__doc__,
+        LOCO.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics.
+    pvalues : ndarray of shape (n_features,)
+    
+    """,
+)

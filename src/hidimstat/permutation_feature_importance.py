@@ -1,8 +1,10 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 class PFI(BasePerturbation):
@@ -69,3 +71,63 @@ class PFI(BasePerturbation):
             ]
         )
         return X_perm_j
+
+
+def pfi(
+    estimator,
+    X,
+    y,
+    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+    groups: dict = None,
+    method: str = "predict",
+    loss: callable = root_mean_squared_error,
+    n_permutations: int = 50,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
+    random_state: int = None,
+    n_jobs: int = 1,
+):
+    methods = PFI(
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        n_permutations=n_permutations,
+        random_state=random_state,
+        n_jobs=n_jobs,
+    )
+    methods.fit_importance(
+        X,
+        y,
+        cv=cv,
+        groups=groups,
+    )
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
+    )
+    return selection, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+pfi.__doc__ = _aggregate_docstring(
+    [
+        PFI.__doc__,
+        PFI.__init__.__doc__,
+        PFI.fit_importance.__doc__,
+        PFI.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics.
+    pvalues : ndarray of shape (n_features,)
+    
+    """,
+)

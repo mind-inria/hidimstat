@@ -1,9 +1,12 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted
+from scipy.stats import ttest_1samp
+from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-import warnings
+from sklearn.model_selection import KFold
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
@@ -164,8 +167,51 @@ class BasePerturbation(BaseVariableImportance):
                 for j in range(self._n_groups)
             ]
         )
-        self.pvalues_ = None
+        self.pvalues_ = ttest_1samp(
+            self.importances_, 0.0, axis=0, alternative="greater"
+        ).pvalue
         return self.importances_
+
+    def fit_importance(
+        self, X, y, cv=KFold(n_splits=5, shuffle=True, random_state=0), **fit_kwargs
+    ):
+        """
+        Compute feature importance scores using cross-validation.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+        cv : cross-validation generator or iterable, default=KFold(n_splits=5, shuffle=True, random_state=0)
+            Determines the cross-validation splitting strategy.
+        **fit_kwargs : dict
+            Additional arguments passed to the fit method during variable group identification.
+
+        Returns
+        -------
+        importances : float
+            Mean feature importance scores across CV folds.
+
+        Notes
+        -----
+        For each CV fold:
+        1. Clones and fits the estimator on training fold
+        2. Identifies variable groups on training fold
+        3. Computes feature importances on test fold
+        4. Returns average importance across all folds
+
+        The importances for each fold are stored in self.importances_
+        """
+        importances = []
+        for train, test in cv.split(X):
+            estimator = clone(self.estimator)
+            estimator.fit(X[train], y[train])
+            self.fit(X[train], y[train], **fit_kwargs)
+            importances.append(self.importance(X[test], y[test]))
+        self.importances_ = importances
+        return np.mean(importances)
 
     def _check_fit(self, X):
         """
