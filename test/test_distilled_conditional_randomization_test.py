@@ -220,7 +220,7 @@ def test_dcrt_distillation_y_different():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         random_state=2024,
-        model_distillation_x=LassoCV(n_jobs=1),
+        model_distillation_x=Lasso(),
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
