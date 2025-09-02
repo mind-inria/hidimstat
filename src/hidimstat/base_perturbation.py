@@ -14,9 +14,9 @@ class BasePerturbation(BaseVariableImportance):
     def __init__(
         self,
         estimator,
+        method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        method: str = "predict",
         n_jobs: int = 1,
     ):
         """
@@ -27,6 +27,10 @@ class BasePerturbation(BaseVariableImportance):
         ----------
         estimator : sklearn compatible estimator, optional
             The estimator to use for the prediction.
+        method : str, default="predict"
+            The method used for making predictions. This determines the predictions
+            passed to the loss function. Supported methods are "predict",
+            "predict_proba", "decision_function", "transform".
         loss : callable, default=root_mean_squared_error
             The function to compute the loss when comparing the perturbed model
             to the original model.
@@ -35,10 +39,6 @@ class BasePerturbation(BaseVariableImportance):
             Specifies the number of times the variable group (residual for CFI) is
             permuted. For each permutation, the perturbed model's loss is calculated
             and averaged over all permutations.
-        method : str, default="predict"
-            The method used for making predictions. This determines the predictions
-            passed to the loss function. Supported methods are "predict",
-            "predict_proba", "decision_function", "transform".
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
@@ -50,9 +50,16 @@ class BasePerturbation(BaseVariableImportance):
         self.loss = loss
         _check_vim_predict_method(method)
         self.method = method
-        self.n_jobs = n_jobs
         self.n_permutations = n_permutations
-        self.n_groups = None
+        self.n_jobs = n_jobs
+        # variable set in fit
+        self.groups = None
+        # varaible set in importance
+        self.loss_reference_ = None
+        self.loss_ = None
+        # internal variables
+        self._n_groups = None
+        self._groups_ids = None
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -69,11 +76,11 @@ class BasePerturbation(BaseVariableImportance):
             identified based on the columns of X.
         """
         if groups is None:
-            self.n_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self.n_groups)}
+            self._n_groups = X.shape[1]
+            self.groups = {j: [j] for j in range(self._n_groups)}
             self._groups_ids = np.array(list(self.groups.values()), dtype=int)
         elif isinstance(groups, dict):
-            self.n_groups = len(groups)
+            self._n_groups = len(groups)
             self.groups = groups
             if isinstance(X, pd.DataFrame):
                 self._groups_ids = []
@@ -91,6 +98,7 @@ class BasePerturbation(BaseVariableImportance):
                 ]
         else:
             raise ValueError("groups needs to be a dictionnary")
+        return self
 
     def predict(self, X):
         """
@@ -139,27 +147,25 @@ class BasePerturbation(BaseVariableImportance):
         """
         self._check_fit(X)
 
-        out_dict = dict()
-
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y, y_pred)
-        out_dict["loss_reference"] = loss_reference
+        self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self.predict(X)
-        out_dict["loss"] = dict()
+        self.loss_ = dict()
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
             for y_pred_perm in y_pred_j:
                 list_loss.append(self.loss(y, y_pred_perm))
-            out_dict["loss"][j] = np.array(list_loss)
+            self.loss_[j] = np.array(list_loss)
 
-        out_dict["importance"] = np.array(
+        self.importances_ = np.array(
             [
-                np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_groups)
+                np.mean(self.loss_[j]) - self.loss_reference_
+                for j in range(self._n_groups)
             ]
         )
-        return out_dict
+        self.pvalues_ = None
+        return self.importances_
 
     def _check_fit(self, X):
         """
@@ -183,11 +189,7 @@ class BasePerturbation(BaseVariableImportance):
             If the number of features in X does not match the total number
             of features in the grouped variables.
         """
-        if (
-            self.n_groups is None
-            or not hasattr(self, "groups")
-            or not hasattr(self, "_groups_ids")
-        ):
+        if self._n_groups is None or self.groups is None or self._groups_ids is None:
             raise ValueError(
                 "The class is not fitted. The fit method must be called"
                 " to set variable groups. If no grouping is needed,"
@@ -229,6 +231,16 @@ class BasePerturbation(BaseVariableImportance):
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}"
+            )
+
+    def _check_importance(self):
+        """
+        Checks if the loss have been computed.
+        """
+        super()._check_importance()
+        if self.loss_reference_ is None or self.loss_ is None:
+            raise ValueError(
+                "The importances need to be called before calling this method"
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):

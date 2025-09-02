@@ -8,55 +8,59 @@ from hidimstat.base_perturbation import BasePerturbation
 
 
 class LOCO(BasePerturbation):
+    """
+    Leave-One-Covariate-Out (LOCO) as presented in
+    :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
+    The model is re-fitted for each variable/group of variables. The importance is
+    then computed as the difference between the loss of the full model and the loss
+    of the model without the variable/group.
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator, optional
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method to use for the prediction. This determines the predictions passed
+        to the loss function. Supported methods are "predict", "predict_proba",
+        "decision_function", "transform".
+    loss : callable, default=root_mean_squared_error
+        The loss function to use when comparing the perturbed model to the full
+        model.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. Parallelization is done over the
+        variables or groups of variables.
+
+    Notes
+    -----
+    :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
+    additional data splitting strategy.
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
         method: str = "predict",
+        loss: callable = root_mean_squared_error,
         n_jobs: int = 1,
     ):
-        """
-        Leave-One-Covariate-Out (LOCO) as presented in
-        :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
-        The model is re-fitted for each variable/group of variables. The importance is
-        then computed as the difference between the loss of the full model and the loss
-        of the model without the variable/group.
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The loss function to use when comparing the perturbed model to the full
-            model.
-        method : str, default="predict"
-            The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
-
-        Notes
-        -----
-        :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
-        additional data splitting strategy.
-
-        References
-        ----------
-        .. footbibliography::
-        """
         super().__init__(
             estimator=estimator,
-            loss=loss,
             method=method,
-            n_jobs=n_jobs,
+            loss=loss,
             n_permutations=1,
+            n_jobs=n_jobs,
         )
+        # internal variable
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
-        """Fit a model after removing each covariate/group of covariates.
+        """
+        Fit a model after removing each covariate/group of covariates.
 
         Parameters
         ----------
@@ -75,7 +79,7 @@ class LOCO(BasePerturbation):
         """
         super().fit(X, y, groups)
         # create a list of covariate estimators for each group if not provided
-        self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
+        self._list_estimators = [clone(self.estimator) for _ in range(self._n_groups)]
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
@@ -93,7 +97,7 @@ class LOCO(BasePerturbation):
         estimator.fit(X_minus_j, y)
         return estimator
 
-    def _joblib_predict_one_group(self, X, group_id, key_groups):
+    def _joblib_predict_one_group(self, X, group_id, group_key):
         """Predict the target variable after removing a group of covariates.
         Used in parallel."""
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)

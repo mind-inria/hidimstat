@@ -6,52 +6,54 @@ from hidimstat.base_perturbation import BasePerturbation
 
 
 class PFI(BasePerturbation):
+    """
+    Permutation Feature Importance algorithm as presented in
+    :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
+    the importance is computed as the difference between the loss of the initial
+    model and the loss of the model with the variable/group permuted.
+    The method was also used in :footcite:t:`mi2021permutation`
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator, optionals
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method to use for the prediction. This determines the predictions passed
+        to the loss function. Supported methods are "predict", "predict_proba",
+        "decision_function", "transform".
+    loss : callable, default=root_mean_squared_error
+        The loss function to use when comparing the perturbed model to the full
+        model.
+    n_permutations : int, default=50
+        The number of permutations to perform. For each variable/group of variables,
+        the mean of the losses over the `n_permutations` is computed.
+    random_state : int, default=None
+        The random state to use for sampling.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. Parallelization is done over the
+        variables or groups of variables.
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1,
+        loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
         random_state: int = None,
+        n_jobs: int = 1,
     ):
-        """
-        Permutation Feature Importance algorithm as presented in
-        :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
-        the importance is computed as the difference between the loss of the initial
-        model and the loss of the model with the variable/group permuted.
-        The method was also used in :footcite:t:`mi2021permutation`
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optionals
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The loss function to use when comparing the perturbed model to the full
-            model.
-        method : str, default="predict"
-            The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
-        n_permutations : int, default=50
-            The number of permutations to perform. For each variable/group of variables,
-            the mean of the losses over the `n_permutations` is computed.
-        random_state : int, default=None
-            The random state to use for sampling.
-
-        References
-        ----------
-        .. footbibliography::
-        """
         super().__init__(
             estimator=estimator,
-            loss=loss,
             method=method,
-            n_jobs=n_jobs,
+            loss=loss,
             n_permutations=n_permutations,
+            n_jobs=n_jobs,
         )
         self.random_state = random_state
 
