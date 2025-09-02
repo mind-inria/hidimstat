@@ -324,6 +324,24 @@ def test_warning_not_used_parameters():
         _ = d0crt.fit_importance(X, y, cv=cv)
 
 
+def test_dcrt_invalid_lasso_screening(generate_regation_dataset):
+    """
+    Test that passing a non-Lasso model to lasso_screening raises a ValueError.
+    """
+    X, y = generate_regation_dataset
+
+    d0crt = D0CRT(
+        estimator=LassoCV(n_jobs=1),
+        lasso_screening=RandomForestRegressor(n_estimators=10, random_state=0),
+        screening_threshold=10,
+        random_state=2024,
+    )
+    with pytest.raises(
+        ValueError, match="lasso_screening must be an instance of Lasso or LassoCV"
+    ):
+        d0crt.fit(X, y)
+
+
 def test_function_d0crt():
     """Test the d0crt function"""
     X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
