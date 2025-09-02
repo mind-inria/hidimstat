@@ -135,7 +135,7 @@ class AnalysisOfVariance(AdapterScikitLearn):
         # Test the opposite hypothese to the anova
         # Test the similarity in the distribution instead of the difference
         self.importances_ = f_statistic
-        self.pvalues_ = 1 - p_values
+        self.pvalues_ = p_values
         return self.importances_
 
 
@@ -198,7 +198,7 @@ class UnivariateLinearRegressionTests(AdapterScikitLearn):
         # Test the opposite hypothese to the anova
         # Test the similarity in the distribution instead of the difference
         self.importances_ = f_statistic
-        self.pvalues_ = 1 - p_values
+        self.pvalues_ = p_values
         return self.importances_
 
 
