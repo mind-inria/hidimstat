@@ -8,7 +8,7 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat import CFI, BasePerturbation
+from hidimstat import cfi, CFI, BasePerturbation
 from hidimstat._utils.exception import InternalError
 
 
@@ -565,3 +565,22 @@ class TestCFIExceptions:
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    ids=["high level noise"],
+)
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
+def test_function_cfi(data_generator, n_permutation, cfi_seed):
+    """Test CFI function"""
+    X, y, _, _ = data_generator
+    cfi(
+        LinearRegression().fit(X, y),
+        X,
+        y,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=n_permutation,
+        random_state=cfi_seed,
+    )

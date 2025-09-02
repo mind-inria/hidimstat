@@ -5,7 +5,7 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 import pytest
 
-from hidimstat import PFI
+from hidimstat import PFI, pfi
 from hidimstat._utils.scenario import multivariate_simulation
 
 
@@ -96,3 +96,37 @@ def test_permutation_importance():
     importance_clf = pfi_clf.importance(X_test, y_test_clf)
 
     assert importance_clf.shape == (X.shape[1],)
+
+
+def test_permutation_importance_function():
+    """Test the function of Permutation Importance algorithm on a linear scenario."""
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
+    important_features = np.where(beta != 0)[0]
+    non_important_features = np.where(beta == 0)[0]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    regression_model = LinearRegression()
+    regression_model.fit(X_train, y_train)
+
+    selection, importance, pvalue = pfi(
+        regression_model,
+        X,
+        y,
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+
+    assert importance.shape == (X.shape[1],)
+    assert (
+        importance[important_features].mean()
+        > importance[non_important_features].mean()
+    )

@@ -60,6 +60,8 @@ class BasePerturbation(BaseVariableImportance):
         # varaible set in importance
         self.loss_reference_ = None
         self.loss_ = None
+        # variable set in fit_importance
+        self.importances_cv_ = None
         # internal variables
         self._n_groups = None
         self._groups_ids = None
@@ -210,8 +212,9 @@ class BasePerturbation(BaseVariableImportance):
             estimator.fit(X[train], y[train])
             self.fit(X[train], y[train], **fit_kwargs)
             importances.append(self.importance(X[test], y[test]))
-        self.importances_ = importances
-        return np.mean(importances)
+        self.importances_cv_ = importances
+        self.importances_ = np.mean(importances, axis=0)
+        return self.importances_
 
     def _check_fit(self, X):
         """
