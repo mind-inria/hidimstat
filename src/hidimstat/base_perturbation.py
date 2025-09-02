@@ -204,7 +204,7 @@ class BasePerturbation(BaseVariableImportance):
         3. Computes feature importances on test fold
         4. Returns average importance across all folds
 
-        The importances for each fold are stored in self.importances_
+        The importances for each fold are stored in self.importances\_
         """
         importances = []
         for train, test in cv.split(X):
