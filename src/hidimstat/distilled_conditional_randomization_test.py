@@ -8,7 +8,6 @@ from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import BaseVariableImportance
 
@@ -109,7 +108,6 @@ class D0CRT(BaseVariableImportance):
         lasso_screening=LassoCV(n_alphas=10, cv=5, tol=1e-6, fit_intercept=False),
         model_distillation_x=LassoCV(n_jobs=1, n_alphas=10),
         refit=False,
-        # screening=True,
         screening_threshold=10,
         centered=True,
         n_jobs=1,
@@ -127,7 +125,6 @@ class D0CRT(BaseVariableImportance):
         self.lasso_screening = lasso_screening
         self.model_distillation_x = model_distillation_x
         self.refit = refit
-        # self.screening = screening
         self.screening_threshold = screening_threshold
         self.centered = centered
         self.n_jobs = n_jobs
