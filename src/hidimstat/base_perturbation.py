@@ -43,6 +43,7 @@ class BasePerturbation(BaseVariableImportance):
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
         """
+        super().__init__()
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
