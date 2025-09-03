@@ -210,7 +210,9 @@ class D0CRT(BaseVariableImportance):
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = self.estimator.coef_
                 # optimisation to reduce the number of elements different to zeros
-                self.coefficient_[~self.selection_set] = 0
+                # TODO: the multi-dimensional indexing should be removed when the
+                # classification is properly handled
+                self.coefficient_[..., ~self.selection_set] = 0
             else:
                 self.coefficient_ = None
 
