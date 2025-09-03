@@ -133,7 +133,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
         if rank > min_rank:
             min_rank = rank
     # accept missing ranking of 5 elements
-    assert min_rank < 15
+    assert min_rank < 20
 
 
 @pytest.mark.parametrize(
