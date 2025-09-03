@@ -151,19 +151,38 @@ class BasePerturbation(BaseVariableImportance):
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        y: array-like of shape (n_samples,)
-            The target values.
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
 
         Returns
         -------
-        out_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss': a dictionary containing the loss of the perturbed model
-            for each group.
-            - 'importance': the importance scores for each group.
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for each feature.
+
+        Attributes
+        ----------
+        loss_reference_ : float
+            The loss of the model with the original (non-perturbed) data.
+        loss_ : dict
+            Dictionary with indices as keys and arrays of perturbed losses as values.
+            Contains the loss values for each permutation of each group.
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each group.
+        pvalues_ : ndarray of shape (n_groups,)
+            P-values from one-sided t-test testing if importance scores are
+            significantly greater than 0.
+
+        Notes
+        -----
+        The importance score for each group is calculated as the mean increase in loss
+        when that group is perturbed, compared to the reference loss.
+        A higher importance score indicates that perturbing that group leads to
+        worse model performance, suggesting those features are more important.
         """
         self._check_fit(X)
 
@@ -208,18 +227,31 @@ class BasePerturbation(BaseVariableImportance):
 
         Returns
         -------
-        importances : float
-            Mean feature importance scores across CV folds.
+        importances_ : ndarray
+            Average importance scores for each feature group across CV folds.
+
+        Attributes
+        ----------
+        estimators_cv_ : list
+            List of fitted estimators for each CV fold.
+        importances_cv_ : list
+            List of importance scores for each CV fold.
+        pvalues_cv_ : list
+            List of p-values for each CV fold.
+        loss_cv_ : list
+            List of loss values for each CV fold.
+        loss_reference_cv_ : list
+            List of reference loss values for each CV fold.
 
         Notes
         -----
         For each CV fold:
-        1. Clones and fits the estimator on training fold
-        2. Identifies variable groups on training fold
-        3. Computes feature importances on test fold
-        4. Returns average importance across all folds
+        1. Fits a clone of the base estimator on the training fold
+        2. Identifies variable groups on the training fold
+        3. Computes feature importances using the test fold
+        4. Stores results for each fold in respective cv_ attributes
 
-        The importances for each fold are stored in self.importances\_
+        Final importances_ and pvalues_ are averaged across all CV folds.
         """
         name_attribute_save = get_generated_attributes(self)
         for name in name_attribute_save:

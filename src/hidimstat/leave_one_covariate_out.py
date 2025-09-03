@@ -92,6 +92,24 @@ class LOCO(BasePerturbation):
         return self
 
     def importance(self, X, y):
+        """
+        Compute the importance scores for each group of covariates.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for each feature.
+        """
         super().importance(X, y)
         self.pvalues_ = None
         return self.importances_
