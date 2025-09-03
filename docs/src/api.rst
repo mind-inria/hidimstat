@@ -40,3 +40,14 @@ Classes
    CFI
    PFI
    D0CRT
+
+Marginal Importance
+===================
+.. autosummary::
+   :toctree: ./generated/api/marginal
+   :template: class.rst
+
+   ANOVA
+   AnalysisOfVariance
+   UnivariateLinearRegressionTests
+   MutualInformation
