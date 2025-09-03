@@ -55,7 +55,13 @@ class D0CRT(BaseVariableImportance):
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
     fit_y : bool, default=False
-        Whether to fit y using selected features instead of using estimated_coef.
+        Controls y-distillation behavior:
+        - If False and the estimator is linear, the sub-model predicting y from X^{-j}
+        is created by simply removing the idx-th coefficient from the full model
+        (no fitting is performed).
+        - If True, fits a clone of `estimator` on (X^{-j}, y)
+        - For non-linear estimators, always fits a clone of `estimator` on (X^{-j}, y)
+        regardless of fit_y.
     scaled_statistics : bool, default=False
         Whether to use scaled statistics when computing importance.
     random_state : int, default=2022
@@ -406,42 +412,48 @@ def _joblib_fit(
     idx, X, y, estimator, sigma_X=False, fit_y=False, model_distillation_x=None
 ):
     """
-     Standard Lasso distillation for least squares regression.
+    Standard Lasso distillation for least squares regression.
 
-     This function fits a Lasso model (or other estimator) to predict X[:, idx]
-     from the remaining features, and optionally fits a model to predict y from
-     the remaining features.
-     Used as a helper for parallel feature-wise distillation in dCRT.
+    This function fits a Lasso model (or other estimator) to predict X[:, idx]
+    from the remaining features, and optionally fits a model to predict y from
+    the remaining features.
+    Used as a helper for parallel feature-wise distillation in dCRT.
 
-     Parameters
-     ----------
-     idx : int
-         Index of the variable to be tested.
-     X : array-like of shape (n_samples, n_features)
-         The input data matrix.
-     y : array-like of shape (n_samples,)
-         The target values.
-     estimator : sklearn estimator
-         The estimator used for distillation and prediction.
-     sigma_X : bool, default=False
-         If True, use Lasso for X distillation; if False, skip X distillation.
-     fit_y : bool, default=False
-         Whether to fit y using Lasso when coefficient is None.
+    Parameters
+    ----------
+    idx : int
+        Index of the variable to be tested.
+    X : array-like of shape (n_samples, n_features)
+        The input data matrix.
+    y : array-like of shape (n_samples,)
+        The target values.
+    estimator : sklearn estimator
+        The estimator used for distillation and prediction.
+    sigma_X : bool, default=False
+        If True, use Lasso for X distillation; if False, skip X distillation.
+    fit_y : bool, default=False
+        Controls y-distillation behavior:
+        - If False and the estimator is linear, the sub-model predicting y from X^{-j}
+        is created by simply removing the idx-th coefficient from the full model
+        (no fitting is performed).
+        - If True, fits a clone of `estimator` on (X^{-j}, y)
+        - For non-linear estimators, always fits a clone of `estimator` on (X^{-j}, y)
+        regardless of fit_y.
     model_distillation_x : sklearn estimator or None
         The model to use for distillation of X, or None if not used.
 
-     Returns
-     -------
-     clf_x : estimator or None
-         Fitted Lasso model for X distillation, or None if not used.
-     clf_y : estimator or None
-         Fitted estimator for y distillation, or None if not used.
-     coefficient_minus_idx : array-like or None
-         Estimated coefficients for y prediction, or None if not computed.
+    Returns
+    -------
+    clf_x : estimator or None
+        Fitted Lasso model for X distillation, or None if not used.
+    clf_y : estimator or None
+        Fitted estimator for y distillation, or None if not used.
+    coefficient_minus_idx : array-like or None
+        Estimated coefficients for y prediction, or None if not computed.
 
-     References
-     ----------
-     .. footbibliography::
+    References
+    ----------
+    .. footbibliography::
     """
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
