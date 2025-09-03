@@ -11,6 +11,7 @@ from sklearn.model_selection import KFold
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.utils import get_generated_attributes
 
 
 class BasePerturbation(BaseVariableImportance):
@@ -60,8 +61,6 @@ class BasePerturbation(BaseVariableImportance):
         # varaible set in importance
         self.loss_reference_ = None
         self.loss_ = None
-        # variable set in fit_importance
-        self.importances_cv_ = None
         # internal variables
         self._n_groups = None
         self._groups_ids = None
@@ -206,14 +205,23 @@ class BasePerturbation(BaseVariableImportance):
 
         The importances for each fold are stored in self.importances\_
         """
-        importances = []
+        name_attribute_save = get_generated_attributes(self)
+        for name in name_attribute_save:
+            setattr(self, name + "cv_", [])
+        self.estimators_cv_ = []
+
         for train, test in cv.split(X):
             estimator = clone(self.estimator)
             estimator.fit(X[train], y[train])
             self.fit(X[train], y[train], **fit_kwargs)
-            importances.append(self.importance(X[test], y[test]))
-        self.importances_cv_ = importances
-        self.importances_ = np.mean(importances, axis=0)
+            self.importance(X[test], y[test])
+            # save result of each cv
+            for name in name_attribute_save:
+                getattr(self, name + "cv_").append(getattr(self, name))
+                setattr(self, name, None)
+            self.estimators_cv_.append(estimator)
+        self.importances_ = np.mean(self.importances_cv_, axis=0)
+        self.pvalues_ = np.mean(self.pvalues_cv_, axis=0)
         return self.importances_
 
     def _check_fit(self, X):
@@ -287,7 +295,9 @@ class BasePerturbation(BaseVariableImportance):
         Checks if the loss have been computed.
         """
         super()._check_importance()
-        if self.loss_reference_ is None or self.loss_ is None:
+        if (
+            self.loss_reference_ is None and not hasattr(self, "loss_reference_cv_")
+        ) or (self.loss_ is None and not hasattr(self, "loss_cv_")):
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
