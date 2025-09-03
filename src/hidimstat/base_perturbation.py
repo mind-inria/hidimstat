@@ -15,6 +15,45 @@ from hidimstat._utils.utils import get_generated_attributes
 
 
 class BasePerturbation(BaseVariableImportance):
+    """
+    Base class for model-agnostic variable importance measures based on
+    perturbation.
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+    loss : callable, default=root_mean_squared_error
+        Loss function to compute difference between original and perturbed predictions.
+    n_permutations : int, default=50
+        Number of permutations to perform for calculating variable importance.
+        Higher values give more stable results but increase computation time.
+    n_jobs : int, default=1
+        Number of parallel jobs to run. -1 means using all processors.
+
+    Attributes
+    ----------
+    groups : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray
+        Computed importance scores for each feature group.
+    loss_reference_ : float
+        Loss of the original model without perturbation.
+    loss_ : dict
+        Loss values for each perturbed feature group.
+    pvalues_ : ndarray
+        P-values for importance scores.
+
+    Notes
+    -----
+    This is an abstract base class. Concrete implementations must override
+    the _permutation method.
+    """
+
     def __init__(
         self,
         estimator,
@@ -23,30 +62,7 @@ class BasePerturbation(BaseVariableImportance):
         n_permutations: int = 50,
         n_jobs: int = 1,
     ):
-        """
-        Base class for model-agnostic variable importance measures based on
-        perturbation.
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        method : str, default="predict"
-            The method used for making predictions. This determines the predictions
-            passed to the loss function. Supported methods are "predict",
-            "predict_proba", "decision_function", "transform".
-        loss : callable, default=root_mean_squared_error
-            The function to compute the loss when comparing the perturbed model
-            to the original model.
-        n_permutations : int, default=50
-            This parameter is relevant only for PFI or CFI.
-            Specifies the number of times the variable group (residual for CFI) is
-            permuted. For each permutation, the perturbed model's loss is calculated
-            and averaged over all permutations.
-        n_jobs : int, default=1
-            The number of parallel jobs to run. Parallelization is done over the
-            variables or groups of variables.
-        """
         super().__init__()
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"

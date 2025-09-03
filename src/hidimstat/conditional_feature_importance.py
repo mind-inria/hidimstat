@@ -258,6 +258,6 @@ cfi.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_features,)
         Feature importance scores/test statistics.
     pvalues : ndarray of shape (n_features,)
-    
+        P-values for importance scores. 
     """,
 )
