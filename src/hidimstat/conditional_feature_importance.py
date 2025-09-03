@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, BaseEstimator
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
@@ -104,8 +104,9 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
+        rng = check_random_state(self.random_state)
+
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
@@ -124,7 +125,9 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.random_state,
+                random_state=(
+                    None if self.random_state is None else rng.randint(0, 1e6)
+                ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)
