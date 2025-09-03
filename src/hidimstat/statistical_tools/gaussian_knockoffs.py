@@ -32,7 +32,7 @@ class GaussianKnockoffs:
     def __init__(self, cov_estimator, random_state=None, tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
-        self.rng = check_random_state(random_state)
+        self.random_state = random_state
 
     def fit(self, X):
         """
@@ -110,10 +110,11 @@ class GaussianKnockoffs:
             The synthetic variables.
         """
         self._check_fit()
+        rng = check_random_state(self.random_state)
         n_samples, n_features = self.mu_tilde_.shape
 
         # create a uniform noise for all the data
-        u_tilde = self.rng.randn(n_samples, n_features)
+        u_tilde = rng.randn(n_samples, n_features)
 
         # Equation 1.4 in barber2015controlling
         X_tilde = self.mu_tilde_ + np.dot(u_tilde, self.sigma_tilde_decompose_)

@@ -23,21 +23,6 @@ def test_gaussian_equi():
     assert X_tilde.shape == (n, p)
 
 
-def test_gaussian_center():
-    """test function of gaussian"""
-    seed = 42
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(),
-        random_state=seed * 2,
-    )
-    generator.fit(X=X)
-    X_tilde = generator.sample()
-    assert X_tilde.shape == (n, p)
-
-
 def test_gaussian_error():
     """test function error"""
     seed = 42

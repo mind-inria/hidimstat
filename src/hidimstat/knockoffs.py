@@ -180,25 +180,19 @@ def model_x_knockoff(
     """
     assert n_bootstraps > 0, "the number of bootstraps should at least higher than 1"
     memory = check_memory(memory)
+    rng = check_random_state(random_state)
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
-
-    # get the seed for the different run
-    if isinstance(random_state, (int, np.int32, np.int64)):
-        rng = check_random_state(random_state)
-    elif random_state is None:
-        rng = check_random_state(0)
-    else:
-        raise TypeError("Wrong type for random_state")
-    seed_list = rng.randint(1, np.iinfo(np.int32).max, n_bootstraps)
 
     if centered:
         X = StandardScaler().fit_transform(X)
 
     # Create knockoff variables
     conditionnal_sampler = GaussianKnockoffs(
-        cov_estimator, random_state=seed_list[0], tol=tol_gauss
+        cov_estimator,
+        random_state=rng,
+        tol=tol_gauss,
     )
     conditionnal_sampler.fit(X)
     X_tildes = [conditionnal_sampler.sample() for i in range(n_bootstraps)]
