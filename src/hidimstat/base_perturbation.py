@@ -249,9 +249,9 @@ class BasePerturbation(BaseVariableImportance):
         1. Fits a clone of the base estimator on the training fold
         2. Identifies variable groups on the training fold
         3. Computes feature importances using the test fold
-        4. Stores results for each fold in respective cv_ attributes
+        4. Stores results for each fold in respective cv\_ attributes
 
-        Final importances_ and pvalues_ are averaged across all CV folds.
+        Final importances\_ and pvalues\_ are averaged across all CV folds.
         """
         name_attribute_save = get_generated_attributes(self)
         for name in name_attribute_save:
