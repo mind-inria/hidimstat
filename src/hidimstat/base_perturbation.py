@@ -269,7 +269,9 @@ class BasePerturbation(BaseVariableImportance):
                 setattr(self, name, None)
             self.estimators_cv_.append(estimator)
         self.importances_ = np.mean(self.importances_cv_, axis=0)
-        self.pvalues_ = np.mean(self.pvalues_cv_, axis=0)
+        self.pvalues_ = (
+            None if self.pvalues_cv_[0] is None else np.mean(self.pvalues_cv_, axis=0)
+        )
         return self.importances_
 
     def _check_fit(self, X):
