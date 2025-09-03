@@ -57,7 +57,7 @@ class PFI(BasePerturbation):
 
     def _permutation(self, X, group_id, seed):
         """Create the permuted data for the j-th group of covariates"""
-        rng = check_random_state(random_state)
+        rng = check_random_state(seed)
         X_perm_j = np.array(
             [
                 rng.permutation(X[:, self._groups_ids[group_id]].copy())

@@ -3,6 +3,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils import check_random_state
 import warnings
 
 from hidimstat._utils.utils import _check_vim_predict_method
@@ -93,7 +94,7 @@ class BasePerturbation(BaseVariableImportance):
         else:
             raise ValueError("groups needs to be a dictionnary")
 
-    def predict(self, X):
+    def predict(self, X, random_generator):
         """
         Compute the predictions after perturbation of the data for each group of
         variables.
@@ -112,10 +113,10 @@ class BasePerturbation(BaseVariableImportance):
         X_ = np.asarray(X)
 
         # Parallelize the computation of the importance scores for each group
-        if self.random_state is None:
+        if random_generator is None:
             list_seed = [None for i in range(self.n_groups)]
         else:
-            list_seed = self.random_state.randint(np.iinfo(np.int32).max) + np.arange(
+            list_seed = random_generator.randint(np.iinfo(np.int32).max) + np.arange(
                 self.n_groups
             )
         out_list = Parallel(n_jobs=self.n_jobs)(
@@ -147,6 +148,9 @@ class BasePerturbation(BaseVariableImportance):
             - 'importance': the importance scores for each group.
         """
         self._check_fit(X)
+        random_generator = (
+            None if self.random_state is None else check_random_state(self.random_state)
+        )
 
         out_dict = dict()
 
@@ -154,7 +158,7 @@ class BasePerturbation(BaseVariableImportance):
         loss_reference = self.loss(y, y_pred)
         out_dict["loss_reference"] = loss_reference
 
-        y_pred = self.predict(X)
+        y_pred = self.predict(X, random_generator=random_generator)
         out_dict["loss"] = dict()
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
