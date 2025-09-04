@@ -68,6 +68,7 @@ def test_s_equi_not_define_positive():
 
 
 def test_reproducibility_sample():
+    """Test the repeatability of the samples"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
     gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf(), random_state=0)
     gaussian_sampler.fit(X=X)
@@ -76,7 +77,8 @@ def test_reproducibility_sample():
     assert np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_randomness_sample():
+def test_randomness_sample_no_seed():
+    """Test the non repeatability of the samples when no seed"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
     gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf(), random_state=None)
     gaussian_sampler.fit(X=X)
@@ -84,6 +86,10 @@ def test_randomness_sample():
     X_tilde_2 = gaussian_sampler.sample()
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
+
+def test_randomness_sample_rgn():
+    """Test the non repeatability of the samples when the usage of random generator"""
+    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
     gaussian_sampler_rng = GaussianKnockoffs(
         cov_estimator=LedoitWolf(), random_state=np.random.RandomState(0)
     )
