@@ -32,7 +32,7 @@ class D0CRT(BaseVariableImportance):
         (e.g., Lasso, RandomForest, ...).
     method : str, default="predict"
         Method of the estimator to use for predictions ("predict", "predict_proba",
-        etc.).
+        "decision_function").
     estimated_coef : array-like of shape (n_features,) or None, default=None
         Pre-computed feature coefficients. If None, coefficients are estimated via
         Lasso.
