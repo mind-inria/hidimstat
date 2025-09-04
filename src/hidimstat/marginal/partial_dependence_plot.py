@@ -749,6 +749,7 @@ class PartialDependencePlot(BaseVariableImportance):
                 )
                 # add distribution of value
                 sns.rugplot(data, ax=ax, alpha=0.2, legend=False)
+            ax.set_xlabel(self.feature_names[feature_id])
         else:
             ax.boxplot(
                 self.ices_[feature_id],
