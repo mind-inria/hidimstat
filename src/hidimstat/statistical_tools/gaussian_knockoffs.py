@@ -9,6 +9,7 @@ class GaussianKnockoffs:
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original
     variables while ensuring conditional independence between the original and synthetic data.
+    
     Parameters
     ----------
     cov_estimator : object
@@ -40,6 +41,7 @@ class GaussianKnockoffs:
         This method estimates the parameters needed to generate Gaussian synthetic variables
         based on the input data. It follows a methodology for creating second-order
         synthetic variables that preserve the covariance structure.
+        
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
