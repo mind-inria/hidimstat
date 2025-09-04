@@ -6,7 +6,7 @@ https://scikit-learn.org/1.7/auto_examples/inspection/plot_partial_dependence.ht
 Partial dependence plots show the dependence between the target function [1]_
 and a set of features of interest, marginalizing over the values of all other
 features (the complement features). We limit to only one feature for the
-calculation of the importance because the extension of this method for multiple is
+calculation of the importance because the extension of this method to multiple 
 features is not trivial.
 Similarly, an individual conditional expectation (ICE) plot :footcite:t:`goldstein2015peeking`
 shows the dependence between the target function and a feature of interest.
@@ -269,9 +269,6 @@ pdp.fit_importance(X=X_train)
 # plot the figure
 fig, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 8), constrained_layout=True)
 for i, ax in enumerate(axs.ravel()):
-    _ = pdp.plot(feature_id=i, ax=ax, percentage_ice=0.1)
-fig, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 8), constrained_layout=True)
-for i, ax in enumerate(axs.ravel()):
     _ = pdp.plot(feature_id=i, ax=ax, X=X_train)
 
 print(f"done in {time() - tic:.3f}s")
@@ -373,6 +370,7 @@ _ = fig.suptitle(
 # selected ICEs for the temperature and humidity features.
 print("Computing partial dependence plots and individual conditional expectation...")
 tic = time()
+# sphinx_gallery_thumbnail_number = 4
 fig, axs = plt.subplots(ncols=2, figsize=(6, 4), sharey=True, constrained_layout=True)
 
 features_info = {
