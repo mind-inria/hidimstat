@@ -110,13 +110,11 @@ class CFI(BasePerturbation):
         else:
             self.var_type = var_type
 
-        # base on the recomendation ofnumpy for paralellization of random generator
+        # base on the recomendation of numpy for paralellization of random generator
         # see https://numpy.org/doc/stable/reference/random/parallel.html
-        seedsequence = np.random.SeedSequence(
-            self.random_state
-            if isinstance(self.random_state, int)
-            else self.random_state.randint(np.iinfo(np.int32).max)
-        )
+        streams = np.random.SeedSequence(
+            check_random_state(self.random_state).randint(np.iinfo(np.int32).max)
+        ).spawn(self.n_groups)
 
         self._list_imputation_models = [
             ConditionalSampler(
@@ -131,15 +129,13 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
+                # require a RandomState due to scikitlearn check
                 random_state=np.random.RandomState(
-                    np.random.default_rng(seed).bit_generator
-                ),  # require a RandomState due to scikitlearn check
+                    np.random.default_rng(streams[group_id]).bit_generator
+                ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for group_id, seed in zip(
-                range(self.n_groups),
-                seedsequence.spawn(self.n_groups),
-            )
+            for group_id in range(self.n_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
