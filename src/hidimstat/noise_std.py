@@ -1,116 +1,68 @@
 import numpy as np
 from numpy.linalg import norm
 from scipy.linalg import solve, toeplitz
-from sklearn.linear_model import LassoCV, MultiTaskLassoCV
-from sklearn.model_selection import KFold
 
 
 def reid(
-    X,
-    y,
-    epsilon=1e-2,
+    beta_hat,
+    residual,
     tolerance=1e-4,
-    max_iterance=10000,
-    n_splits=5,
-    n_jobs=1,
-    seed=0,
     multioutput=False,
     stationary=True,
     method="median",
     order=1,
 ):
     """
-    Residual sum of squares based estimators for noise standard deviation
+    Residual sum of squares-based estimators for noise standard deviation
     estimation.
 
     This implementation follows the procedure described in
-    :footcite:t:`fan2012variance` and :footcite:t:`reid2016study`. It uses Lasso with
-    cross-validation to estimate both the noise standard deviation and model
-    coefficients.
+    :footcite:t:`fan2012variance` and :footcite:t:`reid2016study`.
+    The beta_hat should correspond to the coefficient of Lasso with
+    cross-validation, and the residual is based on this model.
 
-    For group, the implementation is based on the procedure
+    For groups, the implementation is based on the procedure
     from :footcite:t:`chevalier2020statistical`.
 
     Parameters
     ----------
-    X : ndarray, shape (n_samples, n_features)
-        Input data matrix.
-
-    y : ndarray, shape (n_samples,)/(n_samples, n_times)
-        Target vector. The time means the presence of groups.
-
-    epsilon : float, optional (default=1e-2)
-        Length of the cross-validation path, where alpha_min / alpha_max = eps.
-        Smaller values create a finer grid.
-
-    tolerance : float, optional (default=1e-4)
-        Tolerance for optimization convergence. The algorithm stops
-        when updates are smaller than tol and dual gap is smaller than tol.
-
-    max_iteration : int, optional (default=10000)
-        Maximum number of iterations for the optimization algorithm.
-
-    n_splits : int, optional (default=5)
-        Number of folds for cross-validation.
-
-    n_jobs : int, optional (default=1)
-        Number of parallel jobs for cross-validation.
-        -1 means using all processors.
-
-    seed : int, optional (default=0)
-        Random seed for reproducible cross-validation splits.
-
-    stationary : bool, (default=True)
+    beta_hat : ndarray, shape (n_features,) or (n_times, n_features)
+        Estimated sparse coefficient vector from regression.
+    residual : ndarray, shape (n_samples,) or (n_samples, n_times)
+        Residuals from the regression model.
+    tolerance : float, default=1e-4
+        Threshold for considering coefficients as non-zero.
+    multioutput : bool, default=False
+        If True, handles multiple outputs (group case).
+    stationary : bool, default=True
         Whether noise has constant magnitude across time steps.
-
-    method : {'median', 'AR'}, (default='simple')
-        Covariance estimation method:
+    method : {'median', 'AR'}, default='median'
+        Method for covariance estimation in multioutput case:
         - 'median': Uses median correlation between consecutive time steps
         - 'AR': Uses Yule-Walker method with specified order
-
     order : int, default=1
         Order of AR model when method='AR'. Must be < n_times.
 
     Returns
     -------
-    sigma_hat/cov_hat : float/ndarray, shape (n_times, n_times)
-        Estimated noise standard deviation based on residuals
-        or estimated covariance matrix for group.
+    sigma_hat_raw or covariance_hat : float or ndarray
+        For single output: estimated noise standard deviation
+        For multiple outputs: estimated (n_times, n_times) covariance matrix
 
-    beta_hat : ndarray, shape (n_features,)/(n_features, n_times)
-        Estimated sparse coefficient vector from Lasso regression.
+    Notes
+    -----
+    Implementation based on :footcite:t:`reid2016study` for single output
+    and :footcite:t:`chevalier2020statistical` for multiple outputs.
 
     References
     ----------
     .. footbibliography::
     """
-
-    X_ = np.asarray(X)
-    n_samples, n_features = X_.shape
     if multioutput:
-        n_times = y.shape[1]
-
-    # check if max_iter is large enough
-    if max_iterance // n_splits <= n_features:
-        max_iterance = n_features * n_splits
-        print(f"'max_iter' has been increased to {max_iterance}")
-
-    # use the cross-validation for define the best alpha of Lasso
-    cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
-    Refit_CV = MultiTaskLassoCV if multioutput else LassoCV
-    clf_cv = Refit_CV(
-        eps=epsilon,
-        fit_intercept=False,
-        cv=cv,
-        tol=tolerance,
-        max_iter=max_iterance,
-        n_jobs=n_jobs,
-    )
-    clf_cv.fit(X_, y)
-
-    # Estimate the support of the variable importance
-    beta_hat = clf_cv.coef_
-    residual = clf_cv.predict(X_) - y
+        n_times = beta_hat.shape[0]
+    else:
+        n_times = None
+    n_samples = residual.shape[0]
 
     # get the number of non-zero coefficients
     # we consider that the coefficient with a value under
@@ -129,7 +81,7 @@ def reid(
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
     if not multioutput:
-        return sigma_hat_raw, beta_hat
+        return sigma_hat_raw
 
     ## Computation of the covariance matrix for group
     else:
@@ -214,7 +166,7 @@ def reid(
             # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
 
-        return covariance_hat, beta_hat
+        return covariance_hat
 
 
 def empirical_snr(X, y, beta, noise=None):

@@ -10,6 +10,9 @@ from scipy.linalg import toeplitz
 from hidimstat.noise_std import empirical_snr, reid
 from hidimstat._utils.scenario import multivariate_simulation
 
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import KFold
+
 
 def test_reid():
     """Estimating noise standard deviation in two scenarios.
@@ -31,9 +34,11 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=0,
     )
+    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
+    residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
-    sigma_hat, _ = reid(X, y, tolerance=1e-3, max_iterance=1)
+    sigma_hat = reid(lasso_cv.coef_, residual, tolerance=1e-3)
     expected_sigma = support_size / signal_noise_ratio
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.3
@@ -49,8 +54,10 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=2,
     )
+    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
+    residual = lasso_cv.predict(X) - y
 
-    sigma_hat, _ = reid(X, y)
+    sigma_hat = reid(lasso_cv.coef_, residual)
     expected_sigma = 1.0  # when there is no signal, the variance is 1.0
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.2
@@ -70,7 +77,7 @@ def test_group_reid():
     # First expe
     # ##########
     support_size = 2
-    X, Y, beta, noise = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -83,16 +90,19 @@ def test_group_reid():
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = support_size / signal_noise_ratio * corr
 
+    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    residual = lasso_cv.predict(X) - y
+
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, tolerance=1e-3)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, method="AR")
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, stationary=False)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 
@@ -111,7 +121,7 @@ def test_group_reid_2():
     # Second expe
     # ###########
     support_size = 0
-    X, Y, beta, noise = multivariate_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -124,15 +134,18 @@ def test_group_reid_2():
     corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
     cov = 1.0 * corr
 
-    cov_hat, _ = reid(X, Y, multioutput=True)
+    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    residual = lasso_cv.predict(X) - y
+
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, method="AR")
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
+    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, stationary=False)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 

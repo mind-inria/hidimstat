@@ -1,39 +1,30 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
+from sklearn.base import clone, check_is_fitted
 from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import KFold
+from sklearn.exceptions import NotFittedError
+from sklearn.utils import check_random_state
+from sklearn.preprocessing import StandardScaler
 
+from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
     pval_from_two_sided_pval_and_sign,
     pval_from_cb,
 )
 from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
-def desparsified_lasso(
-    X,
-    y,
-    dof_ajdustement=False,
-    max_iteration=5000,
-    tolerance=1e-3,
-    alpha_max_fraction=0.01,
-    epsilon=1e-2,
-    tolerance_reid=1e-4,
-    n_splits=5,
-    n_jobs=1,
-    seed=0,
-    memory=None,
-    verbose=0,
-    multioutput=False,
-    covariance=None,
-    noise_method="AR",
-    order=1,
-    stationary=True,
-):
+class DesparsifiedLasso(BaseVariableImportance):
     """
     Desparsified Lasso
 
@@ -42,61 +33,34 @@ def desparsified_lasso(
 
     Parameters
     ----------
-    X : ndarray, shape (n_samples, n_features)
-        Input data matrix.
+    lasso_cv : LassoCV or MultiTaskLassoCV instance, default=LassoCV()
+        CV object used for initial Lasso fit.
 
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Target vector for single response or matrix for multiple
-        responses.
+    lasso : Lasso instance, default=Lasso()
+        Base Lasso estimator used for nodewise regressions.
 
-    dof_ajdustement : bool, optional (default=False)
+    centered : bool, default=True
+        Whether to center X and y.
+
+    dof_ajdustement : bool, default=False
         If True, applies degrees of freedom adjustment from :footcite:t:`bellec2022biasing`.
-        If False, computes original Desparsified Lasso estimator.
 
-    max_iteration : int, optional (default=5000)
-        Maximum iterations for Nodewise Lasso regressions.
+    alpha_max_fraction : float, default=0.01
+        Fraction of max alpha used for nodewise Lasso regularization.
 
-    tolerance : float, optional (default=1e-3)
-        Convergence tolerance for optimization.
+    tolerance_reid : float, default=1e-4
+        Tolerance for Reid variance estimation method.
 
-    alpha_max_fraction : float, optional (default=0.01)
-        Fraction of max alpha used for Lasso regularization.
+    random_state : int, RandomState instance or None, default=None
+        Controls randomization in CV splitter and Lasso fits.
 
-    epsilon : float, optional (default=1e-2)
-        Small constant used in noise estimation.
-
-    tolerance_reid : float, optional (default=1e-4)
-        Tolerance for variance estimation with the Reid method.
-
-    n_splits : int, optional (default=5)
-        Number of splits for cross-validation in Reid procedure.
-
-    n_jobs : int, optional (default=1)
-        Number of parallel jobs. Use -1 for all CPUs.
-
-    seed : int, default=0
-        Random seed for reproducibility.
-
-    memory : str or joblib.Memory object, optional (default=None)
-        Used to cache the output of the computation of the Nodewise Lasso.
-        By default, no caching is done. If a string is given, it is the path
-        to the caching directory.
-
-    verbose : int, default=0
-        Verbosity level for logging.
-
-    multioutput : bool, default=False
-        If True, use group Lasso for multiple responses.
-
-    covariance : ndarray, shape (n_times, n_times), default=None
-        Temporal covariance matrix of the noise.
-        If None, it is estimated.
+    covariance : ndarray of shape (n_times, n_times) or None, default=None
+        Temporal noise covariance matrix. If None, estimated from data.
 
     noise_method : {'AR', 'median'}, default='AR'
         Method to estimate noise covariance:
-        - 'median': Uses median correlation between consecutive
-        timepoints
-        - 'AR': Fits autoregressive model of specified order
+        - 'AR': Autoregressive model
+        - 'median': Median correlation between consecutive timepoints
 
     order : int, default=1
         Order of AR model when noise_method='AR'. Must be < n_times.
@@ -104,350 +68,403 @@ def desparsified_lasso(
     stationary : bool, default=True
         Whether to assume stationary noise in estimation.
 
-    Returns
-    -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
-        Desparsified Lasso coefficient estimates.
-
-    sigma_hat/theta_hat : float or ndarray, shape (n_times, n_times)
-        Estimated noise level (single response) or precision matrix
-        (multiple responses).
-
-    precision_diagonal : ndarray, shape (n_features,)
-        Diagonal elements of the precision matrix.
-
-    Notes
-    -----
-    The columns of `X` and `y` are always centered, this ensures that
-    the intercepts of the Nodewise Lasso problems are all equal to zero
-    and the intercept of the noise model is also equal to zero. Since
-    the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
-    Also, you may consider to center and scale `X` beforehand, notably if
-    the data contained in `X` has not been prescaled from measurements.
-    Other relevant references: :footcite:t:`van2014asymptotically`,
-    :footcite:t:`zhang2014confidence`.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-    memory = check_memory(memory)
-
-    X_ = np.asarray(X)
-
-    n_samples, n_features = X_.shape
-    if multioutput:
-        n_times = y.shape[1]
-        if covariance is not None and covariance.shape != (n_times, n_times):
-            raise ValueError(
-                f'Shape of "cov" should be ({n_times}, {n_times}),'
-                + f' the shape of "cov" was ({covariance.shape}) instead'
-            )
-
-    # centering the data and the target variable
-    y_ = y - np.mean(y)
-    X_ = X_ - np.mean(X_, axis=0)
-
-    # Lasso regression and noise standard deviation estimation
-    sigma_hat, beta_reid = memory.cache(reid, ignore=["n_jobs"])(
-        X_,
-        y_,
-        epsilon=epsilon,
-        tolerance=tolerance_reid,
-        max_iterance=max_iteration,
-        n_splits=n_splits,
-        n_jobs=n_jobs,
-        seed=seed,
-        # for group
-        multioutput=multioutput,
-        method=noise_method,
-        order=order,
-        stationary=stationary,
-    )
-
-    # define the alphas for the Nodewise Lasso
-    list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
-    alphas = alpha_max_fraction * list_alpha_max
-
-    # Calculating precision matrix (Nodewise Lasso)
-    Z, precision_diagonal = memory.cache(
-        _compute_all_residuals, ignore=["n_jobs", "verbose"]
-    )(
-        X_,
-        alphas,
-        np.dot(X_.T, X_),  # Gram matrix
-        max_iteration=max_iteration,
-        tolerance=tolerance,
-        n_jobs=n_jobs,
-        verbose=verbose,
-    )
-
-    # Computing the degrees of freedom adjustement
-    if dof_ajdustement:
-        coefficient_max = np.max(np.abs(beta_reid))
-        support = np.sum(np.abs(beta_reid) > 0.01 * coefficient_max)
-        support = min(support, n_samples - 1)
-        dof_factor = n_samples / (n_samples - support)
-    else:
-        dof_factor = 1
-
-    # Computing Desparsified Lasso estimator and confidence intervals
-    # Estimating the coefficient vector
-    beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
-
-    # beta hat
-    P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
-    P_nodiagonal = P - np.diag(np.diag(P))
-    Id = np.identity(n_features)
-    P_nodiagonal = dof_factor * P_nodiagonal + (dof_factor - 1) * Id
-    beta_hat = beta_bias.T - P_nodiagonal.dot(beta_reid.T)
-    # confidence intervals
-    precision_diagonal = precision_diagonal * dof_factor**2
-
-    if not multioutput:
-        return beta_hat, sigma_hat, precision_diagonal
-    else:
-        covariance_hat = sigma_hat
-        if covariance is not None:
-            covariance_hat = covariance
-        theta_hat = n_samples * inv(covariance_hat)
-        return beta_hat, theta_hat, precision_diagonal
-
-
-def desparsified_lasso_pvalue(
-    n_samples,
-    beta_hat,
-    sigma_hat,
-    precision_diagonal,
-    confidence=0.95,
-    distribution="norm",
-    epsilon=1e-14,
-):
-    """
-    Calculate confidence intervals and p-values for desparsified lasso estimators.
-
-    This function computes confidence intervals for the desparsified lasso
-    estimator beta_hat.
-    It can also return p-values derived from these confidence intervals.
-
-    Parameters
-    ----------
-    n_samples : float
-        The number of samples
-    beta_hat : ndarray, shape (n_features,)
-        The desparsified lasso coefficient estimates.
-    sigma_hat : float
-        Estimated noise level.
-    precision_diagonal : ndarray, shape (n_features,)
-        Diagonal elements of the precision matrix estimate.
     confidence : float, default=0.95
         Confidence level for intervals, must be in [0, 1].
-    distribution : str, default="norm"
-        Distribution to use for p-value calculation.
-        Currently only "norm" supported.
-    epsilon : float, default=1e-14
-        Small value to avoid numerical issues in p-value calculation.
 
-    Returns
-    -------
-    pval : ndarray, shape (n_features,)
-        P-values
-    pval_corr : ndarray, shape (n_features,)
-        Corrected p-values
-    one_minus_pval : ndarray, shape (n_features,)
-        1 - p-values
-    one_minus_pval_corr : ndarray, shape (n_features,)
-        1 - corrected p-values
-    confidence_bound_min : ndarray, shape (n_features,)
-        Lower bounds of confidence intervals
-    confidence_bound_max : ndarray, shape (n_features,)
-        Upper bounds of confidence intervals
-    """
-    # define the quantile for the confidence intervals
-    quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
-    # see definition of lower and upper bound in algorithm 1
-    # in `chevalier2020statisticalthesis`:
-    # quantile_(1-alpha/2) * (n**(-1/2)) * sigma * (precision_diagonal**(1/2))
-    confint_radius = np.abs(
-        quantile * sigma_hat * np.sqrt(precision_diagonal) / np.sqrt(n_samples)
-    )
-    confidence_bound_max = beta_hat + confint_radius
-    confidence_bound_min = beta_hat - confint_radius
+    distribution : str, default='norm'
+        Distribution for p-value calculation. Only 'norm' supported.
 
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-        confidence_bound_min,
-        confidence_bound_max,
-        confidence=confidence,
-        distribution=distribution,
-        eps=epsilon,
-    )
-    return (
-        pval,
-        pval_corr,
-        one_minus_pval,
-        one_minus_pval_corr,
-        confidence_bound_min,
-        confidence_bound_max,
-    )
-
-
-def desparsified_group_lasso_pvalue(
-    beta_hat, theta_hat, precision_diagonal, test="chi2"
-):
-    """
-    Compute p-values for the desparsified group Lasso estimator using
-    chi-squared or F tests
-
-    Parameters
-    ----------
-    beta_hat : ndarray, shape (n_features, n_times)
-        Estimated parameter matrix from desparsified group Lasso.
-
-    theta_hat : ndarray, shape (n_times, n_times)
-        Estimated precision matrix (inverse covariance).
-
-    precision_diagonal : ndarray, shape (n_features,)
-        Diagonal elements of the precision matrix.
+    epsilon_pvalue : float, default=1e-14
+        Small value to avoid numerical issues in p-values.
 
     test : {'chi2', 'F'}, default='chi2'
-        Statistical test for computing p-values:
-        - 'chi2': Chi-squared test (recommended for large samples)
-        - 'F': F-test
+        Test for p-values:
+        - 'chi2': Chi-squared test (large samples)
+        - 'F': F-test (small samples)
 
-    Returns
-    -------
-    pval : ndarray, shape (n_features,)
-        Raw p-values, numerically accurate for positive effects
-        (p-values close to 0).
+    n_jobs : int, default=1
+        Number of parallel jobs. -1 means all CPUs.
 
-    pval_corr : ndarray, shape (n_features,)
-        P-values corrected for multiple testing using
-        Benjamini-Hochberg procedure.
+    memory : str or Memory object, default=None
+        Used to cache nodewise Lasso computations.
 
-    one_minus_pval : ndarray, shape (n_features,)
-        1 - p-values, numerically accurate for negative effects
-        (p-values close to 1).
+    verbose : int, default=0
+        Verbosity level.
 
-    one_minus_pval_corr : ndarray, shape (n_features,)
-        1 - corrected p-values.
-
-    Notes
-    -----
-    The Chi-squared test assumes asymptotic normality while the F-test
-    is preferable for small sample sizes.
-    P-values are computed based on score statistics from the estimated
-    coefficients and precision matrix.
-    """
-    n_features, n_times = beta_hat.shape
-    n_samples = precision_diagonal.shape[0]
-
-    # Compute the two-sided p-values
-    if test == "chi2":
-        chi2_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / precision_diagonal
-        )
-        two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
-    elif test == "F":
-        f_scores = (
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
-            / precision_diagonal
-            / n_times
-        )
-        two_sided_pval = np.minimum(
-            2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
-        )
-    else:
-        raise ValueError(f"Unknown test '{test}'")
-
-    # Compute the p-values
-    sign_beta = np.sign(np.sum(beta_hat, axis=1))
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
-    )
-
-    return pval, pval_corr, one_minus_pval, one_minus_pval_corr
-
-
-def _compute_all_residuals(
-    X, alphas, gram, max_iteration=5000, tolerance=1e-3, n_jobs=1, verbose=0
-):
-    """
-    Nodewise Lasso for computing residuals and precision matrix diagonal.
-
-    For each feature, fits a Lasso regression against all other features
-    to estimate the precision matrix and residuals needed for the
-    desparsified Lasso estimator.
-
-    Parameters
+    Attributes
     ----------
-    X : ndarray, shape (n_samples, n_features)
-        Input data matrix.
+    importances_ : ndarray of shape (n_features,) or (n_features, n_times)
+        Desparsified Lasso coefficient estimates.
 
-    alphas : ndarray, shape (n_features,)
-        Lasso regularization parameters, one per feature.
+    pvalues_ : ndarray of shape (n_features,)
+        Two-sided p-values.
 
-    gram : ndarray, shape (n_features, n_features)
-        Precomputed Gram matrix X.T @ X to speed up computations.
+    pvalues_corr_ : ndarray of shape (n_features,)
+        Multiple testing corrected p-values.
 
-    max_itereration : int, optional (default=5000)
-        Maximum number of iterations for Lasso optimization.
+    sigma_hat_ : float or ndarray of shape (n_times, n_times)
+        Estimated noise level or precision matrix.
 
-    tolerance : float, optional (default=1e-3)
-        Convergence tolerance for Lasso optimization.
+    confidence_bound_min_ : ndarray of shape (n_features,)
+        Lower confidence bounds.
 
-    n_jobs : int or None, optional (default=1)
-        Number of parallel jobs. None means using all processors.
-
-    verbose : int, optional (default=0)
-        Controls the verbosity when fitting the models:
-        0 = silent
-        1 = progress bar
-        >1 = more detailed output
-
-    Returns
-    -------
-    Z : ndarray, shape (n_samples, n_features)
-        Matrix of residuals from nodewise regressions.
-
-    precision_diagonal : ndarray, shape (n_features,)
-        Diagonal entries of the precision matrix estimate.
+    confidence_bound_max_ : ndarray of shape (n_features,)
+        Upper confidence bounds.
 
     Notes
     -----
-    This implements the nodewise Lasso procedure from :footcite:t:`chevalier2020statisticalthesis`
-    for estimating entries of the precision matrix needed in the
-    desparsified Lasso. The procedure regresses each feature against
-    all others using Lasso to obtain residuals and precision matrix estimates.
+    X and y are always centered. Consider pre-scaling X if not already scaled.
+    Chi-squared test assumes asymptotic normality, F-test preferred for small samples.
 
     References
     ----------
     .. footbibliography::
     """
 
-    n_samples, n_features = X.shape
+    def __init__(
+        self,
+        lasso_cv=LassoCV(
+            eps=1e-2,
+            fit_intercept=False,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-4,
+            max_iter=5000,
+            random_state=1,
+            n_jobs=1,
+        ),
+        lasso=Lasso(max_iter=5000, tol=1e-3),
+        centered=True,
+        dof_ajdustement=False,
+        alpha_max_fraction=0.01,
+        tolerance_reid=1e-4,
+        random_state=None,
+        covariance=None,
+        noise_method="AR",
+        order=1,
+        stationary=True,
+        confidence=0.95,
+        distribution="norm",
+        epsilon_pvalue=1e-14,
+        test="chi2",
+        n_jobs=1,
+        memory=None,
+        verbose=0,
+    ):
 
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(_compute_residuals)(
-            X=X,
-            id_column=i,
-            alpha=alphas[i],
-            gram=gram,
-            max_iteration=max_iteration,
-            tolerance=tolerance,
+        assert issubclass(
+            Lasso, lasso.__class__
+        ), "lasso needs to be a Lasso or a MultiTaskLassoCV"
+        self.lasso = lasso
+        if issubclass(LassoCV, lasso_cv.__class__):
+            self.n_times_ = 1
+        elif issubclass(MultiTaskLassoCV, lasso_cv.__class__):
+            self.n_times_ = -1
+        else:
+            raise ValueError("lasso_cv need to be a Lasso or a MultiTaskLassoCV")
+        self.lasso_cv = lasso_cv
+        self.centered = centered
+        self.dof_ajdustement = dof_ajdustement
+        self.alpha_max_fraction = alpha_max_fraction
+        self.tolerance_reid = tolerance_reid
+        self.covariance = covariance
+        self.noise_method = noise_method
+        self.order = order
+        self.stationary = stationary
+        self.confidence = confidence
+        self.distribution = distribution
+        self.epsilon_pvalue = epsilon_pvalue
+        assert test == "chi2" or test == "F", f"Unknown test '{test}'"
+        self.test = test
+        self.n_jobs = n_jobs
+        self.random_state = random_state
+        self.memory = memory
+        self.verbose = verbose
+
+        self.sigma_hat_ = None
+        self.confidence_bound_min_ = None
+        self.confidence_bound_max_ = None
+        self.pvalues_corr_ = None
+
+    def fit(self, X, y):
+        """
+        Fit the Desparsified Lasso model.
+
+        This method fits the Desparsified Lasso model, which provides debiased estimates
+        and statistical inference for high-dimensional linear models through a two-step
+        procedure involving initial Lasso estimation followed by bias correction.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix.
+        y : array-like of shape (n_samples,) or (n_samples, n_times)
+            Target values. For single task, y should be 1D or (n_samples, 1).
+            For multi-task, y should be (n_samples, n_times).
+
+        Returns
+        -------
+        self : object
+            Returns the fitted instance.
+
+        Notes
+        -----
+        Main steps:
+        1. Optional data centering
+        2. Initial Lasso fit using cross-validation
+        3. Computation of residuals
+        4. Estimation of noise standard deviation
+        5. Preparation for subsequent importance score calculation
+        """
+        memory = check_memory(self.memory)
+        if self.n_times_ == -1:
+            self.n_times_ = y.shape[1]
+
+        # centering the data and the target variable
+        if self.centered:
+            X_ = StandardScaler(with_std=False).fit_transform(X)
+            y_ = y - np.mean(y)
+        else:
+            X_ = X
+            y_ = y
+        _, n_features = X_.shape
+
+        try:
+            check_is_fitted(self.lasso_cv)
+        except NotFittedError:
+            # check if max_iter is large enough
+            if self.lasso_cv.max_iter // self.lasso_cv.cv.n_splits <= n_features:
+                self.lasso_cv.set_params(max_iter=n_features * self.lasso_cv.n_splits)
+                Warning(
+                    f"'max_iter' has been increased to {self.lasso_cv.max_iterance}"
+                )
+            # use the cross-validation for define the best alpha of Lasso
+            self.lasso_cv.set_params(n_jobs=self.n_jobs)
+            self.lasso_cv.fit(X_, y_)
+
+        # Estimate the support of the variable importance
+        residual = self.lasso_cv.predict(X_) - y_
+
+        # Lasso regression and noise standard deviation estimation
+        self.sigma_hat_ = memory.cache(reid, ignore=["n_jobs"])(
+            self.lasso_cv.coef_,
+            residual,
+            tolerance=self.tolerance_reid,
+            # for group
+            multioutput=self.n_times_ > 1,
+            method=self.noise_method,
+            order=self.order,
+            stationary=self.stationary,
         )
-        for i in range(n_features)
-    )
 
-    # Unpacking the results
-    results = np.asarray(results, dtype=object)
-    Z = np.stack(results[:, 0], axis=1)
-    precision_diagonal = np.stack(results[:, 1])
+        return self
 
-    return Z, precision_diagonal
+    def _check_fit(self):
+        """
+        Check if the model has been fit properly.
+
+        This method verifies that the model has been fitted by checking
+        essential attributes (sigma_hat_ and lasso_cv).
+
+        Raises
+        ------
+        ValueError
+            If model hasn't been fit or required attributes are missing.
+        """
+        if self.sigma_hat_ is None:
+            raise ValueError(
+                "The Desparsified Lasso requires to be fit before any analysis"
+            )
+        try:
+            check_is_fitted(self.lasso_cv)
+        except NotFittedError:
+            raise ValueError(
+                "The Desparsified Lasso requires to be fit before any analysis"
+            )
+
+    def importance(self, X, y):
+        """
+        Compute desparsified lasso estimates and confidence intervals.
+
+        Calculates debiased coefficients, confidence intervals and p-values
+        using the desparsified lasso method.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data matrix.
+        y : array-like of shape (n_samples,) or (n_samples, n_times)
+            Target values. For single task, y should be 1D or (n_samples, 1).
+            For multi-task, y should be (n_samples, n_times).
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,) or (n_features, n_times)
+            Desparsified lasso coefficient estimates.
+
+        Attributes
+        ----------
+        importances_ : same as return value
+        pvalues_ : ndarray of shape (n_features,)
+            Two-sided p-values for each feature.
+        pvalues_corr_ : ndarray of shape (n_features,)
+            Multiple testing corrected p-values.
+        confidence_bound_min_ : ndarray of shape (n_features,)
+            Lower confidence bounds (only for single task).
+        confidence_bound_max_ : ndarray of shape (n_features,)
+            Upper confidence bounds (only for single task).
+
+        Notes
+        -----
+        The method:
+        1. Performs nodewise lasso regressions to estimate precision matrix
+        2. Debiases initial lasso estimates
+        3. Computes confidence intervals and p-values
+        4. For multi-task case, uses chi-squared or F test
+        """
+        self._check_fit()
+        rng = check_random_state(self.random_state)
+
+        # centering the data and the target variable
+        if self.centered:
+            X_ = StandardScaler(with_std=False).fit_transform(X)
+            y_ = y - np.mean(y)
+        else:
+            X_ = X
+            y_ = y
+        n_samples, n_features = X_.shape
+        assert X_.shape[1] == self.lasso_cv.coef_.shape[-1]
+        assert self.n_times_ == 1 or self.n_times_ == y.shape[1]
+        if self.n_times_ > 1:
+            if self.covariance is not None and self.covariance.shape != (
+                self.n_times_,
+                self.n_times_,
+            ):
+                raise ValueError(
+                    f'Shape of "cov" should be ({self.n_times_}, {self.n_times_}),'
+                    + f' the shape of "cov" was ({self.covariance.shape}) instead'
+                )
+            assert y_.shape[1] == self.lasso_cv.coef_.shape[0]
+
+        # define the alphas for the Nodewise Lasso
+        list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
+        alphas = self.alpha_max_fraction * list_alpha_max
+        gram = np.dot(X_.T, X_)  # Gram matrix
+
+        # base on the recomendation of numpy for paralellization of random generator
+        # see https://numpy.org/doc/stable/reference/random/parallel.html
+        streams = np.random.SeedSequence(rng.randint(np.iinfo(np.int32).max)).spawn(
+            n_features
+        )
+
+        # Calculating precision matrix (Nodewise Lasso)
+        results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
+            delayed(_compute_residuals)(
+                X=X_,
+                id_column=i,
+                clf=clone(self.lasso).set_params(
+                    alpha=alphas[i],
+                    precompute=np.delete(np.delete(gram, i, axis=0), i, axis=1),
+                    random_state=np.random.RandomState(
+                        np.random.default_rng(streams[i]).bit_generator
+                    ),
+                ),
+            )
+            for i in range(n_features)
+        )
+        # Unpacking the results
+        results = np.asarray(results, dtype=object)
+        Z = np.stack(results[:, 0], axis=1)
+        precision_diagonal = np.stack(results[:, 1])
+
+        # Computing the degrees of freedom adjustement
+        if self.dof_ajdustement:
+            coefficient_max = np.max(np.abs(self.lasso_cv.coef_))
+            support = np.sum(np.abs(self.lasso_cv.coef_) > 0.01 * coefficient_max)
+            support = min(support, n_samples - 1)
+            dof_factor = n_samples / (n_samples - support)
+        else:
+            dof_factor = 1
+
+        # Computing Desparsified Lasso estimator and confidence intervals
+        # Estimating the coefficient vector
+        beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
+
+        # beta hat
+        P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
+        P_nodiagonal = P - np.diag(np.diag(P))
+        Id = np.identity(n_features)
+        P_nodiagonal = dof_factor * P_nodiagonal + (dof_factor - 1) * Id
+        beta_hat = beta_bias.T - P_nodiagonal.dot(self.lasso_cv.coef_.T)
+        # confidence intervals
+        precision_diagonal = precision_diagonal * dof_factor**2
+
+        if self.n_times_ == 1:
+            # define the quantile for the confidence intervals
+            quantile = stats.norm.ppf(1 - (1 - self.confidence) / 2)
+            # see definition of lower and upper bound in algorithm 1
+            # in `chevalier2020statisticalthesis`:
+            # quantile_(1-alpha/2) * (n**(-1/2)) * sigma * (precision_diagonal**(1/2))
+            confint_radius = np.abs(
+                quantile
+                * self.sigma_hat_
+                * np.sqrt(precision_diagonal)
+                / np.sqrt(n_samples)
+            )
+            self.confidence_bound_max_ = beta_hat + confint_radius
+            self.confidence_bound_min_ = beta_hat - confint_radius
+
+            pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
+                self.confidence_bound_min_,
+                self.confidence_bound_max_,
+                confidence=self.confidence,
+                distribution=self.distribution,
+                eps=self.epsilon_pvalue,
+            )
+        else:
+            covariance_hat = self.sigma_hat_
+            if self.covariance is not None:
+                covariance_hat = self.covariance
+            theta_hat = n_samples * inv(covariance_hat)
+            # Compute the two-sided p-values
+            if self.test == "chi2":
+                chi2_scores = (
+                    np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
+                    / precision_diagonal
+                )
+                two_sided_pval = np.minimum(
+                    2 * stats.chi2.sf(chi2_scores, df=self.n_times_), 1.0
+                )
+            elif self.test == "F":
+                f_scores = (
+                    np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
+                    / precision_diagonal
+                    / self.n_times_
+                )
+                two_sided_pval = np.minimum(
+                    2 * stats.f.sf(f_scores, dfd=n_samples, dfn=self.n_times_), 1.0
+                )
+            else:
+                raise ValueError(f"Unknown test '{self.test}'")
+
+            # Compute the p-values
+            sign_beta = np.sign(np.sum(beta_hat, axis=1))
+            pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+                pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
+            )
+
+        self.importances_ = beta_hat
+        self.pvalues_ = pval
+        self.pvalues_corr_ = pval_corr
+        return self.importances_
+
+    def fit_importance(self, X, y, cv=None):
+        if cv is not None:
+            warnings.warn("cv won't be used")
+        self.fit(X, y)
+        return self.importance(X, y)
 
 
-def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=1e-3):
+def _compute_residuals(X, id_column, clf):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -488,16 +505,11 @@ def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
 
-    n_samples, n_features = X.shape
+    n_samples, _ = X.shape
 
     # Removing the column to regress against the others
     X_minus_i = np.delete(X, id_column, axis=1)
     X_i = np.copy(X[:, id_column])
-
-    # Method used for computing the residuals of the Nodewise Lasso.
-    # here we use the Lasso method
-    gram_ = np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
-    clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iteration, tol=tolerance)
 
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
@@ -508,3 +520,90 @@ def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=
     precision_diagonal_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
     return z, precision_diagonal_i
+
+
+def desparsified_lasso(
+    X,
+    y,
+    cv=None,
+    lasso_cv=LassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-3,
+        max_iter=5000,
+        random_state=0,
+    ),
+    lasso=Lasso(max_iter=5000, tol=1e-3),
+    centered=True,
+    dof_ajdustement=False,
+    alpha_max_fraction=0.01,
+    tolerance_reid=1e-4,
+    random_state=None,
+    covariance=None,
+    noise_method="AR",
+    order=1,
+    stationary=True,
+    confidence=0.95,
+    distribution="norm",
+    epsilon_pvalue=1e-14,
+    test="chi2",
+    n_jobs=1,
+    memory=None,
+    verbose=0,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
+):
+    methods = DesparsifiedLasso(
+        lasso_cv=lasso_cv,
+        lasso=lasso,
+        centered=centered,
+        dof_ajdustement=dof_ajdustement,
+        alpha_max_fraction=alpha_max_fraction,
+        tolerance_reid=tolerance_reid,
+        random_state=random_state,
+        covariance=covariance,
+        noise_method=noise_method,
+        order=order,
+        stationary=stationary,
+        confidence=confidence,
+        distribution=distribution,
+        epsilon_pvalue=epsilon_pvalue,
+        test=test,
+        n_jobs=n_jobs,
+        memory=memory,
+        verbose=verbose,
+    )
+    methods.fit_importance(X, y, cv=cv)
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
+    )
+    return selection, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+desparsified_lasso.__doc__ = _aggregate_docstring(
+    [
+        DesparsifiedLasso.__doc__,
+        DesparsifiedLasso.__init__.__doc__,
+        DesparsifiedLasso.fit_importance.__doc__,
+        DesparsifiedLasso.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics. For features not selected 
+        during screening, scores are set to 0.
+    pvalues : ndarray of shape (n_features,)
+        Two-sided p-values for each feature under Gaussian null hypothesis.
+        For features not selected during screening, p-values are set to 1.
+    """,
+)

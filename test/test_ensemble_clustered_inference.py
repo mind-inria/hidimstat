@@ -58,14 +58,12 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
+    ward_, desparsified_lassos = clustered_inference(
         X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_samples, None, ward_, beta_hat, theta_hat, precision_diag
-        )
+        clustered_inference_pvalue(n_samples, None, ward_, desparsified_lassos)
     )
 
     expected = 0.5 * np.ones(n_features)
@@ -115,14 +113,12 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
+    ward_, desparsified_lassos = clustered_inference(
         X, y, ward, n_clusters, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_samples, True, ward_, beta_hat, theta_hat, precision_diag
-        )
+        clustered_inference_pvalue(n_samples, True, ward_, desparsified_lassos)
     )
 
     expected = 0.5 * np.ones(n_features)
@@ -186,13 +182,13 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
+    ward_, desparsified_lassos = clustered_inference(
         X_, y_, ward, n_clusters, groups=groups, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_groups * n_samples, False, ward_, beta_hat, theta_hat, precision_diag
+            n_groups * n_samples, False, ward_, desparsified_lassos
         )
     )
 
@@ -243,23 +239,16 @@ def test_ensemble_clustered_inference():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
-        ensemble_clustered_inference(
-            X_init,
-            y,
-            ward,
-            n_clusters,
-            scaler_sampling=StandardScaler(),
-            n_bootstraps=n_bootstraps,
-        )
+    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
+        X_init,
+        y,
+        ward,
+        n_clusters,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        False,
-        list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
+        n_samples, False, list_ward, list_desparsified_lassos
     )
 
     expected = np.zeros(n_features)
@@ -308,23 +297,19 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
-        ensemble_clustered_inference(
-            X,
-            y,
-            ward,
-            n_clusters,
-            scaler_sampling=StandardScaler(),
-            n_bootstraps=n_bootstraps,
-        )
+    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
+        X,
+        y,
+        ward,
+        n_clusters,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
         n_samples,
         True,
         list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
+        list_desparsified_lassos,
         fdr_control="bhq",
     )
 
@@ -343,9 +328,7 @@ def test_ensemble_clustered_inference_temporal_data():
         n_samples,
         True,
         list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
+        list_desparsified_lassos,
         fdr_control="bhy",
     )
 
