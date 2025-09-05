@@ -93,7 +93,7 @@ class GaussianKnockoffs:
 
     def _check_fit(self):
         """
-        Check if the model has been fit before performing analysis.
+        Check if the model has been fit before sampling knockoffs.
 
         Raises
         ------
@@ -104,7 +104,7 @@ class GaussianKnockoffs:
         if not hasattr(self, "mu_tilde_") or not hasattr(
             self, "sigma_tilde_decompose_"
         ):
-            raise ValueError("The GaussianGenerator requires to be fit before simulate")
+            raise ValueError("The GaussianGenerator requires to be fit before sampling")
 
     def sample(self):
         """

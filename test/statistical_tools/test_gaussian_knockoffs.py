@@ -13,7 +13,7 @@ def test_gaussian_equi():
     seed = 42
     n = 100
     p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    X, _, _, _ = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
         cov_estimator=LedoitWolf(),
         random_state=seed * 2,
