@@ -32,7 +32,7 @@ class D0CRT(BaseVariableImportance):
         (e.g., Lasso, RandomForest, ...).
     method : str, default="predict"
         Method of the estimator to use for predictions ("predict", "predict_proba",
-        "decision_function", "transform").
+        "decision_function").
     estimated_coef : array-like of shape (n_features,) or None, default=None
         Pre-computed feature coefficients. If None, coefficients are estimated via
         Lasso.
@@ -503,7 +503,7 @@ def _joblib_distill(
         The estimator to use for the prediction of X minus one features.
     method : str, default="predict"
         The method to use for the prediction. Supported methods are "predict", "predict_proba",
-        "decision_function", "transform".
+        "decision_function".
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If provided, covariance-based regression is used for X.
     coefficient_minus_idx : ndarray of shape (n_features,) or None
