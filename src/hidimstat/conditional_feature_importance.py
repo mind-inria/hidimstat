@@ -30,10 +30,10 @@ class CFI(BasePerturbation):
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
-    imputation_model_continuous : sklearn compatible estimator, optional
+    imputation_model_continuous : sklearn compatible estimator, default=RidgeCV()
         The model used to estimate the conditional distribution of a given
         continuous variable/group of variables given the others.
-    imputation_model_categorical : sklearn compatible estimator, optional
+    imputation_model_categorical : sklearn compatible estimator, default=LogisticRegressionCV()
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
