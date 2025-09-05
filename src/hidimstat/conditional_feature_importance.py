@@ -3,6 +3,7 @@ from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import KFold
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
@@ -57,8 +58,8 @@ class CFI(BasePerturbation):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        imputation_model_continuous=None,
-        imputation_model_categorical=None,
+        imputation_model_continuous=RidgeCV(),
+        imputation_model_categorical=LogisticRegressionCV(),
         categorical_max_cardinality: int = 10,
         random_state: int = None,
         n_jobs: int = 1,
