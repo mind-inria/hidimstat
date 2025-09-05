@@ -1,48 +1,68 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted
+from scipy.stats import ttest_1samp
+from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-import warnings
+from sklearn.model_selection import KFold
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.utils import get_generated_attributes
 
 
 class BasePerturbation(BaseVariableImportance):
+    """
+    Base class for model-agnostic variable importance measures based on
+    perturbation.
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+    loss : callable, default=root_mean_squared_error
+        Loss function to compute difference between original and perturbed predictions.
+    n_permutations : int, default=50
+        Number of permutations to perform for calculating variable importance.
+        Higher values give more stable results but increase computation time.
+    n_jobs : int, default=1
+        Number of parallel jobs to run. -1 means using all processors.
+
+    Attributes
+    ----------
+    groups : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray
+        Computed importance scores for each feature group.
+    loss_reference_ : float
+        Loss of the original model without perturbation.
+    loss_ : dict
+        Loss values for each perturbed feature group.
+    pvalues_ : ndarray
+        P-values for importance scores.
+
+    Notes
+    -----
+    This is an abstract base class. Concrete implementations must override
+    the _permutation method.
+    """
+
     def __init__(
         self,
         estimator,
+        method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        method: str = "predict",
         n_jobs: int = 1,
     ):
-        """
-        Base class for model-agnostic variable importance measures based on
-        perturbation.
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The function to compute the loss when comparing the perturbed model
-            to the original model.
-        n_permutations : int, default=50
-            This parameter is relevant only for PFI or CFI.
-            Specifies the number of times the variable group (residual for CFI) is
-            permuted. For each permutation, the perturbed model's loss is calculated
-            and averaged over all permutations.
-        method : str, default="predict"
-            The method used for making predictions. This determines the predictions
-            passed to the loss function. Supported methods are "predict",
-            "predict_proba", "decision_function", "transform".
-        n_jobs : int, default=1
-            The number of parallel jobs to run. Parallelization is done over the
-            variables or groups of variables.
-        """
         super().__init__()
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
@@ -50,9 +70,16 @@ class BasePerturbation(BaseVariableImportance):
         self.loss = loss
         _check_vim_predict_method(method)
         self.method = method
-        self.n_jobs = n_jobs
         self.n_permutations = n_permutations
-        self.n_groups = None
+        self.n_jobs = n_jobs
+        # variable set in fit
+        self.groups = None
+        # varaible set in importance
+        self.loss_reference_ = None
+        self.loss_ = None
+        # internal variables
+        self._n_groups = None
+        self._groups_ids = None
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -69,11 +96,11 @@ class BasePerturbation(BaseVariableImportance):
             identified based on the columns of X.
         """
         if groups is None:
-            self.n_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self.n_groups)}
+            self._n_groups = X.shape[1]
+            self.groups = {j: [j] for j in range(self._n_groups)}
             self._groups_ids = np.array(list(self.groups.values()), dtype=int)
         elif isinstance(groups, dict):
-            self.n_groups = len(groups)
+            self._n_groups = len(groups)
             self.groups = groups
             if isinstance(X, pd.DataFrame):
                 self._groups_ids = []
@@ -91,6 +118,7 @@ class BasePerturbation(BaseVariableImportance):
                 ]
         else:
             raise ValueError("groups needs to be a dictionnary")
+        return self
 
     def predict(self, X):
         """
@@ -123,43 +151,128 @@ class BasePerturbation(BaseVariableImportance):
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        y: array-like of shape (n_samples,)
-            The target values.
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
 
         Returns
         -------
-        out_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss': a dictionary containing the loss of the perturbed model
-            for each group.
-            - 'importance': the importance scores for each group.
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for each feature.
+
+        Attributes
+        ----------
+        loss_reference_ : float
+            The loss of the model with the original (non-perturbed) data.
+        loss_ : dict
+            Dictionary with indices as keys and arrays of perturbed losses as values.
+            Contains the loss values for each permutation of each group.
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each group.
+        pvalues_ : ndarray of shape (n_groups,)
+            P-values from one-sided t-test testing if importance scores are
+            significantly greater than 0.
+
+        Notes
+        -----
+        The importance score for each group is calculated as the mean increase in loss
+        when that group is perturbed, compared to the reference loss.
+        A higher importance score indicates that perturbing that group leads to
+        worse model performance, suggesting those features are more important.
         """
         self._check_fit(X)
 
-        out_dict = dict()
-
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y, y_pred)
-        out_dict["loss_reference"] = loss_reference
+        self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self.predict(X)
-        out_dict["loss"] = dict()
+        self.loss_ = dict()
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
             for y_pred_perm in y_pred_j:
                 list_loss.append(self.loss(y, y_pred_perm))
-            out_dict["loss"][j] = np.array(list_loss)
+            self.loss_[j] = np.array(list_loss)
 
-        out_dict["importance"] = np.array(
+        self.importances_ = np.array(
             [
-                np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_groups)
+                np.mean(self.loss_[j]) - self.loss_reference_
+                for j in range(self._n_groups)
             ]
         )
-        return out_dict
+        self.pvalues_ = ttest_1samp(
+            self.importances_, 0.0, axis=0, alternative="greater"
+        ).pvalue
+        return self.importances_
+
+    def fit_importance(
+        self, X, y, cv=KFold(n_splits=5, shuffle=True, random_state=0), **fit_kwargs
+    ):
+        """
+        Compute feature importance scores using cross-validation.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+        cv : cross-validation generator or iterable, default=KFold(n_splits=5, shuffle=True, random_state=0)
+            Determines the cross-validation splitting strategy.
+        **fit_kwargs : dict
+            Additional arguments passed to the fit method during variable group identification.
+
+        Returns
+        -------
+        importances_ : ndarray
+            Average importance scores for each feature group across CV folds.
+
+        Attributes
+        ----------
+        estimators_cv_ : list
+            List of fitted estimators for each CV fold.
+        importances_cv_ : list
+            List of importance scores for each CV fold.
+        pvalues_cv_ : list
+            List of p-values for each CV fold.
+        loss_cv_ : list
+            List of loss values for each CV fold.
+        loss_reference_cv_ : list
+            List of reference loss values for each CV fold.
+
+        Notes
+        -----
+        For each CV fold:
+        1. Fits a clone of the base estimator on the training fold
+        2. Identifies variable groups on the training fold
+        3. Computes feature importances using the test fold
+        4. Stores results for each fold in respective cv\_ attributes
+
+        Final importances\_ and pvalues\_ are averaged across all CV folds.
+        """
+        name_attribute_save = get_generated_attributes(self)
+        for name in name_attribute_save:
+            setattr(self, name + "cv_", [])
+        self.estimators_cv_ = []
+
+        for train, test in cv.split(X):
+            estimator = clone(self.estimator)
+            estimator.fit(X[train], y[train])
+            self.fit(X[train], y[train], **fit_kwargs)
+            self.importance(X[test], y[test])
+            # save result of each cv
+            for name in name_attribute_save:
+                getattr(self, name + "cv_").append(getattr(self, name))
+                setattr(self, name, None)
+            self.estimators_cv_.append(estimator)
+        self.importances_ = np.mean(self.importances_cv_, axis=0)
+        self.pvalues_ = (
+            None if self.pvalues_cv_[0] is None else np.mean(self.pvalues_cv_, axis=0)
+        )
+        return self.importances_
 
     def _check_fit(self, X):
         """
@@ -183,11 +296,7 @@ class BasePerturbation(BaseVariableImportance):
             If the number of features in X does not match the total number
             of features in the grouped variables.
         """
-        if (
-            self.n_groups is None
-            or not hasattr(self, "groups")
-            or not hasattr(self, "_groups_ids")
-        ):
+        if self._n_groups is None or self.groups is None or self._groups_ids is None:
             raise ValueError(
                 "The class is not fitted. The fit method must be called"
                 " to set variable groups. If no grouping is needed,"
@@ -229,6 +338,18 @@ class BasePerturbation(BaseVariableImportance):
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}"
+            )
+
+    def _check_importance(self):
+        """
+        Checks if the loss have been computed.
+        """
+        super()._check_importance()
+        if (
+            self.loss_reference_ is None and not hasattr(self, "loss_reference_cv_")
+        ) or (self.loss_ is None and not hasattr(self, "loss_cv_")):
+            raise ValueError(
+                "The importances need to be called before calling this method"
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):

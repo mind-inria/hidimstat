@@ -2,61 +2,68 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
+from sklearn.model_selection import KFold
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 class LOCO(BasePerturbation):
+    """
+    Leave-One-Covariate-Out (LOCO) algorithm
+
+    This method is presented in :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
+    The model is re-fitted for each variable/group of variables. The importance is
+    then computed as the difference between the loss of the full model and the loss
+    of the model without the variable/group.
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator, optional
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method to use for the prediction. This determines the predictions passed
+        to the loss function. Supported methods are "predict", "predict_proba",
+        "decision_function", "transform".
+    loss : callable, default=root_mean_squared_error
+        The loss function to use when comparing the perturbed model to the full
+        model.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. Parallelization is done over the
+        variables or groups of variables.
+
+    Notes
+    -----
+    :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
+    additional data splitting strategy.
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
         method: str = "predict",
+        loss: callable = root_mean_squared_error,
         n_jobs: int = 1,
     ):
-        """
-        Leave-One-Covariate-Out (LOCO) as presented in
-        :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
-        The model is re-fitted for each variable/group of variables. The importance is
-        then computed as the difference between the loss of the full model and the loss
-        of the model without the variable/group.
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The loss function to use when comparing the perturbed model to the full
-            model.
-        method : str, default="predict"
-            The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
-
-        Notes
-        -----
-        :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
-        additional data splitting strategy.
-
-        References
-        ----------
-        .. footbibliography::
-        """
         super().__init__(
             estimator=estimator,
-            loss=loss,
             method=method,
-            n_jobs=n_jobs,
+            loss=loss,
             n_permutations=1,
+            n_jobs=n_jobs,
         )
+        # internal variable
         self._list_estimators = []
 
     def fit(self, X, y, groups=None):
-        """Fit a model after removing each covariate/group of covariates.
+        """
+        Fit a model after removing each covariate/group of covariates.
 
         Parameters
         ----------
@@ -75,7 +82,7 @@ class LOCO(BasePerturbation):
         """
         super().fit(X, y, groups)
         # create a list of covariate estimators for each group if not provided
-        self._list_estimators = [clone(self.estimator) for _ in range(self.n_groups)]
+        self._list_estimators = [clone(self.estimator) for _ in range(self._n_groups)]
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
@@ -83,6 +90,29 @@ class LOCO(BasePerturbation):
             for key_groups, estimator in zip(self.groups.keys(), self._list_estimators)
         )
         return self
+
+    def importance(self, X, y):
+        """
+        Compute the importance scores for each group of covariates.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for each feature.
+        """
+        super().importance(X, y)
+        self.pvalues_ = None
+        return self.importances_
 
     def _joblib_fit_one_group(self, estimator, X, y, key_groups):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
@@ -93,7 +123,7 @@ class LOCO(BasePerturbation):
         estimator.fit(X_minus_j, y)
         return estimator
 
-    def _joblib_predict_one_group(self, X, group_id, key_groups):
+    def _joblib_predict_one_group(self, X, group_id, group_key):
         """Predict the target variable after removing a group of covariates.
         Used in parallel."""
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
@@ -111,3 +141,59 @@ class LOCO(BasePerturbation):
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_estimators:
             check_is_fitted(m)
+
+
+def loco(
+    estimator,
+    X,
+    y,
+    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+    groups: dict = None,
+    method: str = "predict",
+    loss: callable = root_mean_squared_error,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
+    n_jobs: int = 1,
+):
+    methods = LOCO(
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        n_jobs=n_jobs,
+    )
+    methods.fit_importance(
+        X,
+        y,
+        cv=cv,
+        groups=groups,
+    )
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
+    )
+    return selection, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+loco.__doc__ = _aggregate_docstring(
+    [
+        LOCO.__doc__,
+        LOCO.__init__.__doc__,
+        LOCO.fit_importance.__doc__,
+        LOCO.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics.
+    pvalues : ndarray of shape (n_features,)
+        None because there is no p-value for this method 
+    """,
+)
