@@ -233,10 +233,10 @@ class DesparsifiedLasso(BaseVariableImportance):
         except NotFittedError:
             # check if max_iter is large enough
             if self.lasso_cv.max_iter // self.lasso_cv.cv.n_splits <= n_features:
-                self.lasso_cv.set_params(max_iter=n_features * self.lasso_cv.n_splits)
-                Warning(
-                    f"'max_iter' has been increased to {self.lasso_cv.max_iterance}"
+                self.lasso_cv.set_params(
+                    max_iter=n_features * self.lasso_cv.cv.n_splits
                 )
+                Warning(f"'max_iter' has been increased to {self.lasso_cv.max_iter}")
             # use the cross-validation for define the best alpha of Lasso
             self.lasso_cv.set_params(n_jobs=self.n_jobs)
             self.lasso_cv.fit(X_, y_)
