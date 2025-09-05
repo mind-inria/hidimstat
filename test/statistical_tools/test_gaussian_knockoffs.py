@@ -34,7 +34,7 @@ def test_gaussian_error():
         random_state=seed * 2,
     )
     with pytest.raises(
-        ValueError, match="The GaussianGenerator requires to be fit before simulate"
+        ValueError, match="The GaussianGenerator requires to be fit before sampling"
     ):
         generator.sample()
 
