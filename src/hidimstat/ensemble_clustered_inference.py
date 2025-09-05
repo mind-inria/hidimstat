@@ -3,12 +3,10 @@ from sklearn.base import clone
 from joblib import Parallel, delayed
 from sklearn.utils.validation import check_memory
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import KFold
 
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-    desparsified_group_lasso_pvalue,
-)
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat._utils.bootstrap import _subsampling
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
@@ -259,24 +257,45 @@ def clustered_inference(
         X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
 
     # inference methods
-    beta_hat, theta_hat, precision_diag = memory.cache(
-        desparsified_lasso, ignore=["n_jobs", "verbose", "memory"]
+    multitasklassoCV = MultiTaskLassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-4,
+        max_iter=5000,
+        random_state=1,
+        n_jobs=1,
+    )
+    lasso_cv = LassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-4,
+        max_iter=5000,
+        random_state=1,
+        n_jobs=1,
+    )
+    desparsified_lassos = memory.cache(
+        DesparsifiedLasso(
+            lasso_cv=(
+                multitasklassoCV if len(y.shape) > 1 and y.shape[1] > 1 else lasso_cv
+            ),
+            n_jobs=n_jobs,
+            memory=memory,
+            verbose=verbose,
+            **kwargs,
+        ).fit,
+        ignore=["n_jobs", "verbose", "memory"],
     )(
         X_reduced,
         y,
-        multioutput=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
-        n_jobs=n_jobs,
-        memory=memory,
-        verbose=verbose,
-        **kwargs,
     )
+    desparsified_lassos.importance(X_reduced, y)
 
-    return ward_, beta_hat, theta_hat, precision_diag
+    return ward_, desparsified_lassos
 
 
-def clustered_inference_pvalue(
-    n_samples, group, ward, beta_hat, theta_hat, precision_diag, **kwargs
-):
+def clustered_inference_pvalue(n_samples, group, ward, desparsified_lassos, **kwargs):
     """
     Compute corrected p-values at the cluster level and transform them
     back to feature level.
@@ -312,31 +331,15 @@ def clustered_inference_pvalue(
         1 - corrected p-values
     """
     # corrected cluster-wise p-values
-    if not group:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-            desparsified_lasso_pvalue(
-                n_samples,
-                beta_hat,
-                theta_hat,
-                precision_diag,
-                **kwargs,
-            )
-        )
-    else:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(
-                beta_hat, theta_hat, precision_diag, **kwargs
-            )
-        )
 
     # De-grouping
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
         ward,
-        beta_hat,
-        pval,
-        pval_corr,
-        one_minus_pval,
-        one_minus_pval_corr,
+        desparsified_lassos.importances_,
+        desparsified_lassos.pvalues_,
+        desparsified_lassos.pvalues_corr_,
+        1 - desparsified_lassos.pvalues_,
+        1 - desparsified_lassos.pvalues_corr_,
     )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
@@ -485,22 +488,18 @@ def ensemble_clustered_inference(
         )
         for i in np.arange(seed, seed + n_bootstraps)
     )
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = [], [], [], []
-    for ward, beta_hat, theta_hat, precision_diag in results:
+    list_ward, list_desparsified_lassos = [], []
+    for ward, desparsified_lassos in results:
         list_ward.append(ward)
-        list_beta_hat.append(beta_hat)
-        list_theta_hat.append(theta_hat)
-        list_precision_diag.append(precision_diag)
-    return list_ward, list_beta_hat, list_theta_hat, list_precision_diag
+        list_desparsified_lassos.append(desparsified_lassos)
+    return list_ward, list_desparsified_lassos
 
 
 def ensemble_clustered_inference_pvalue(
     n_samples,
     group,
     list_ward,
-    list_beta_hat,
-    list_theta_hat,
-    list_precision_diag,
+    list_desparsified_lassos,
     fdr=0.1,
     fdr_control="bhq",
     reshaping_function=None,
@@ -571,9 +570,7 @@ def ensemble_clustered_inference_pvalue(
             n_samples,
             group,
             list_ward[i],
-            list_beta_hat[i],
-            list_theta_hat[i],
-            list_precision_diag[i],
+            list_desparsified_lassos[i],
             **kwargs,
         )
         for i in range(len(list_ward))
