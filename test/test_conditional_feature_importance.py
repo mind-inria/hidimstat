@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 
 from hidimstat import cfi, CFI, BasePerturbation
 from hidimstat._utils.exception import InternalError
@@ -278,8 +279,8 @@ class TestCFIClass:
         assert cfi.loss == root_mean_squared_error
         assert cfi.method == "predict"
         assert cfi.categorical_max_cardinality == 10
-        assert cfi.imputation_model_categorical is None
-        assert cfi.imputation_model_continuous is None
+        assert isinstance(cfi.imputation_model_categorical, LogisticRegressionCV)
+        assert isinstance(cfi.imputation_model_continuous, RidgeCV)
 
     def test_fit(self, data_generator):
         """Test fitting CFI"""
