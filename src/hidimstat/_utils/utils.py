@@ -16,7 +16,7 @@ def _check_vim_predict_method(method):
     ------
     ValueError
         If the method is not one of the standard scikit-learn prediction methods:
-        'predict', 'predict_proba', 'decision_function', or 'transform'.
+        'predict', 'predict_proba' or 'decision_function'.
     """
     if method in ["predict", "predict_proba", "decision_function"]:
         return method
