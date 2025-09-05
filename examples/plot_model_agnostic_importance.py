@@ -163,8 +163,7 @@ plt.show()
 # the varibles are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
 # to explain the data. While d0CRT can use any estimator, its distillation step
-# restricts it from capturing variable interactions. A more advanced distillation
-# approach, such as d1CRT, may help overcome this limitation.
+# restricts it from capturing variable interactions.
 
 #################################################################################
 # References
