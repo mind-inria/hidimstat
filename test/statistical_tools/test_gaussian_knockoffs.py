@@ -64,7 +64,8 @@ def test_s_equi_not_define_positive():
     u, s, vh = np.linalg.svd(a)
     d = np.eye(n)
     sigma = u * d * u.T
-    _s_equi(sigma)
+    res = _s_equi(sigma)
+    np.testing.assert_equal(res / np.diag(sigma), np.ones_like(res))
 
 
 def test_reproducibility_sample():
