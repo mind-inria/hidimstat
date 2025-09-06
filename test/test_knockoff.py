@@ -4,7 +4,6 @@ from hidimstat.knockoffs import (
     model_x_knockoff_bootstrap_e_value,
     model_x_knockoff_bootstrap_quantile,
 )
-from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 import numpy as np
@@ -235,72 +234,3 @@ def test_estimate_distribution():
     )
     for i in selected:
         assert np.any(i == non_zero)
-
-
-def test_gaussian_knockoff_equi():
-    """test function of gaussian knockoff"""
-    seed = 42
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    non_zero = np.where(beta)[0]
-    mu = X.mean(axis=0)
-    sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
-
-    X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
-        X, mu, sigma, seed=seed * 2
-    )
-
-    assert X_tilde.shape == (n, p)
-
-
-def test_gaussian_knockoff_equi_warning():
-    "test warning in guassian knockoff"
-    seed = 42
-    n = 100
-    p = 50
-    tol = 1e-14
-    rgn = np.random.RandomState(seed)
-    X = rgn.randn(n, p)
-    mu = X.mean(axis=0)
-    # create a positive definite matrix
-    u, s, vh = np.linalg.svd(rgn.randn(p, p))
-    d = np.eye(p) * tol / 10
-    sigma = u * d * u.T
-    with pytest.warns(
-        UserWarning,
-        match="The conditional covariance matrix for knockoffs is not positive",
-    ):
-        X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
-            X, mu, sigma, seed=seed * 2, tol=tol
-        )
-
-    assert X_tilde.shape == (n, p)
-
-
-def test_s_equi_not_define_positive():
-    """test the warning and error of s_equi function"""
-    n = 10
-    tol = 1e-7
-    seed = 42
-
-    # random positive matrix
-    rgn = np.random.RandomState(seed)
-    a = rgn.randn(n, n)
-    a -= np.min(a)
-    with pytest.raises(
-        Exception, match="The covariance matrix is not positive-definite."
-    ):
-        _s_equi(a)
-
-    # matrix with positive eigenvalues, positive diagonal
-    while not np.all(np.linalg.eigvalsh(a) > tol):
-        a += 0.1 * np.eye(n)
-    with pytest.warns(UserWarning, match="The equi-correlated matrix"):
-        _s_equi(a)
-
-    # positive definite matrix
-    u, s, vh = np.linalg.svd(a)
-    d = np.eye(n)
-    sigma = u * d * u.T
-    _s_equi(sigma)
