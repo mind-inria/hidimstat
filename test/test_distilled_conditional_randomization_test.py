@@ -64,7 +64,7 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_reression_dataset):
     """
     Test the estimated coefficient parameter
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
     # Checking with random estimated coefficients for the features
     rng = np.random.RandomState(2025)
     estimated_coefs = rng.rand(10)
