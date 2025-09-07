@@ -20,7 +20,7 @@ def generate_regression_dataset(n=100, p=10, noise=0.2, seed=2024):
     return X, y
 
 
-def test_dcrt_lasso_screening(generate_reression_dataset):
+def test_dcrt_lasso_screening(generate_regression_dataset):
     """
     Test for screening parameter and pvalue function
     """
@@ -60,7 +60,7 @@ def test_dcrt_lasso_screening(generate_reression_dataset):
     assert len(d0crt_no_screening.importances_) == 10
 
 
-def test_dcrt_lasso_with_estimed_coefficient(generate_reression_dataset):
+def test_dcrt_lasso_with_estimed_coefficient(generate_regression_dataset):
     """
     Test the estimated coefficient parameter
     """
@@ -83,11 +83,11 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_reression_dataset):
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_lasso_with_refit(generate_reression_dataset):
+def test_dcrt_lasso_with_refit(generate_regression_dataset):
     """
     Test the refit parameter
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
     # Checking with refit
     d0crt_refit = D0CRT(
         estimator=LassoCV(n_jobs=1),
@@ -102,11 +102,11 @@ def test_dcrt_lasso_with_refit(generate_reression_dataset):
     assert len(d0crt_refit.importances_) == 10
 
 
-def test_dcrt_lasso_with_no_cv(generate_reression_dataset):
+def test_dcrt_lasso_with_no_cv(generate_regression_dataset):
     """
     Test the parameters to the Lasso of x-distillation
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
     # Checking with use_cv
     d0crt_use_cv = D0CRT(
         estimator=LassoCV(n_jobs=1),
@@ -121,11 +121,11 @@ def test_dcrt_lasso_with_no_cv(generate_reression_dataset):
     assert len(d0crt_use_cv.importances_) == 10
 
 
-def test_dcrt_lasso_with_covariance(generate_reression_dataset):
+def test_dcrt_lasso_with_covariance(generate_regression_dataset):
     """
     Test dcrt with proviede covariance matrix
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
     # Checking with a provided covariance matrix
     cov = LedoitWolf().fit(X)
 
@@ -324,11 +324,11 @@ def test_warning_not_used_parameters():
         _ = d0crt.fit_importance(X, y, cv=cv)
 
 
-def test_dcrt_invalid_lasso_screening(generate_reression_dataset):
+def test_dcrt_invalid_lasso_screening(generate_regression_dataset):
     """
     Test that passing a non-Lasso model to lasso_screening raises a ValueError.
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
 
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
