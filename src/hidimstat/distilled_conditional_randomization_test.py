@@ -486,8 +486,8 @@ def _joblib_distill(
 
     This function implements the distillation process for a single feature, following
     section 2.3 of :footcite:t:`liu2022fast`. It computes the residuals for X[:, idx]
-    and y after regressing out the effect of the other features, using either Lasso-based
-    or covariance-based regression.
+    and y after regressing out the effect of the other features, using either
+    Lasso-based or covariance-based regression.
 
     Parameters
     ----------
@@ -502,8 +502,8 @@ def _joblib_distill(
     clf_x : sklearn compatible estimator
         The estimator to use for the prediction of X minus one features.
     method : str, default="predict"
-        The method to use for the prediction. Supported methods are "predict", "predict_proba" or
-        "decision_function".
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If provided, covariance-based regression is used for X.
     coefficient_minus_idx : ndarray of shape (n_features,) or None
@@ -583,7 +583,7 @@ def run_lasso_screening(
         Input data matrix.
     y : array-like of shape (n_samples,)
         Target values.
-    lasso_model : sklearn estimator or None, default=LassoCV(cv=5, n_alphas=10, tol=1e-6, fit_intercept=False)
+    lasso_model : sklearn estimator or None, default=LassoCV(fit_intercept=False)
         Estimator for variable screening (typically LassoCV or Lasso).
     screening_threshold : float
         Percentile threshold for screening (0-100).
