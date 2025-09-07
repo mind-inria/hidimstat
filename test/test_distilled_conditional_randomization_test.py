@@ -15,7 +15,7 @@ from hidimstat._utils.regression import _alpha_max
 
 
 @pytest.fixture
-def generate_reression_dataset(n=100, p=10, noise=0.2, seed=2024):
+def generate_regression_dataset(n=100, p=10, noise=0.2, seed=2024):
     X, y = make_regression(n_samples=n, n_features=p, noise=noise, random_state=seed)
     return X, y
 
