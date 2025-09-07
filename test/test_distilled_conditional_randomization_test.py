@@ -24,7 +24,7 @@ def test_dcrt_lasso_screening(generate_reression_dataset):
     """
     Test for screening parameter and pvalue function
     """
-    X, y = generate_reression_dataset
+    X, y = generate_regression_dataset
     # Checking with and without screening
     d0crt_no_screening = D0CRT(
         estimator=LassoCV(n_jobs=1), screening_threshold=None, random_state=2024
