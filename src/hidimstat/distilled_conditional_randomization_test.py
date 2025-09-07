@@ -120,7 +120,7 @@ class D0CRT(BaseVariableImportance):
         joblib_verbose=0,
         fit_y=False,
         scaled_statistics=False,
-        random_state=2022,
+        random_state=None,
         reuse_screening_model=True,
     ):
         self.estimator = estimator
@@ -629,7 +629,7 @@ def d0crt(
     joblib_verbose=0,
     fit_y=False,
     scaled_statistics=False,
-    random_state=2022,
+    random_state=None,
     reuse_screening_model=True,
     k_best=None,
     percentile=None,
