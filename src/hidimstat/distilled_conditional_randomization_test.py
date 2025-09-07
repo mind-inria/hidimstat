@@ -97,7 +97,7 @@ class D0CRT(BaseVariableImportance):
     3. Test statistic computation using residual correlations.
     4. P-value calculation assuming Gaussian null distribution.
 
-    The implementation currently allows flexible model for the y-distillation step.
+    The implementation currently allows flexible models for the y-distillation step.
     However, the x-distillation step only supports linear models.
 
     References
