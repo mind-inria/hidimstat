@@ -22,6 +22,6 @@ def test_chek_importance():
     basic_class = BasePerturbation(estimator=estimator)
     basic_class.importances_ = []
     with pytest.raises(
-        ValueError, match="The importances need to be called before calling this method"
+        ValueError, match="The importance method has not yet been called."
     ):
         basic_class.selection()
