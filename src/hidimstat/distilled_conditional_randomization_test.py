@@ -140,6 +140,9 @@ class D0CRT(BaseVariableImportance):
         self.random_state = random_state
         self.is_lasso = isinstance(estimator, (Lasso, LassoCV))
         self.reuse_screening_model = reuse_screening_model
+        
+        self.lasso_model_ = None
+        self.coefficient_ = None
 
     def fit(self, X, y):
         """
