@@ -73,7 +73,7 @@ class BasePerturbation(BaseVariableImportance):
         self.n_permutations = n_permutations
         self.n_jobs = n_jobs
         # variable set in fit
-        self.groups = None
+        self.features_groups = None
         # varaible set in importance
         self.loss_reference_ = None
         self.loss_ = None
@@ -97,24 +97,25 @@ class BasePerturbation(BaseVariableImportance):
         """
         if groups is None:
             self._n_groups = X.shape[1]
-            self.groups = {j: [j] for j in range(self._n_groups)}
-            self._groups_ids = np.array(list(self.groups.values()), dtype=int)
+            self.features_groups = {j: [j] for j in range(self._n_groups)}
+            self._groups_ids = np.array(list(self.features_groups.values()), dtype=int)
         elif isinstance(groups, dict):
             self._n_groups = len(groups)
-            self.groups = groups
+            self.features_groups = groups
             if isinstance(X, pd.DataFrame):
                 self._groups_ids = []
-                for group_key in self.groups.keys():
+                for group_key in self.features_groups.keys():
                     self._groups_ids.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
-                            if col in self.groups[group_key]
+                            if col in self.features_groups[group_key]
                         ]
                     )
             else:
                 self._groups_ids = [
-                    np.array(ids, dtype=int) for ids in list(self.groups.values())
+                    np.array(ids, dtype=int)
+                    for ids in list(self.features_groups.values())
                 ]
         else:
             raise ValueError("groups needs to be a dictionnary")
@@ -141,7 +142,7 @@ class BasePerturbation(BaseVariableImportance):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
-            for group_id, group_key in enumerate(self.groups.keys())
+            for group_id, group_key in enumerate(self.features_groups.keys())
         )
         return np.stack(out_list, axis=0)
 
@@ -296,7 +297,11 @@ class BasePerturbation(BaseVariableImportance):
             If the number of features in X does not match the total number
             of features in the grouped variables.
         """
-        if self._n_groups is None or self.groups is None or self._groups_ids is None:
+        if (
+            self._n_groups is None
+            or self.features_groups is None
+            or self._groups_ids is None
+        ):
             raise ValueError(
                 "The class is not fitted. The fit method must be called"
                 " to set variable groups. If no grouping is needed,"
@@ -313,7 +318,7 @@ class BasePerturbation(BaseVariableImportance):
         else:
             raise ValueError("X should be a pandas dataframe or a numpy array.")
         number_columns = X.shape[1]
-        for index_variables in self.groups.values():
+        for index_variables in self.features_groups.values():
             if type(index_variables[0]) is int or np.issubdtype(
                 type(index_variables[0]), int
             ):
@@ -331,7 +336,7 @@ class BasePerturbation(BaseVariableImportance):
                     "A problem with indexing has happened during the fit."
                 )
         number_unique_feature_in_groups = np.unique(
-            np.concatenate([values for values in self.groups.values()])
+            np.concatenate([values for values in self.features_groups.values()])
         ).shape[0]
         if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(

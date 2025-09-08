@@ -498,7 +498,7 @@ class TestCFIExceptions:
             ],
         }
         cfi.fit(X, groups=subgroups, var_type="auto")
-        cfi.groups["group1"] = [None for i in range(100)]
+        cfi.features_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
