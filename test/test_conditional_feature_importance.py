@@ -62,8 +62,8 @@ def run_cfi(X, y, n_permutation, seed):
     # fit the model using the training set
     cfi.fit(
         X_train,
-        groups=None,
-        var_type="auto",
+        features_groups=None,
+        features_type="auto",
     )
     # calculate feature importance using the test set
     vim = cfi.importance(X_test, y_test)
@@ -194,8 +194,8 @@ def test_group(data_generator):
     )
     cfi.fit(
         X_train_df,
-        groups=groups,
-        var_type="continuous",
+        features_groups=groups,
+        features_type="continuous",
     )
     # Warning expected since column names in pandas are not considered
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
@@ -245,8 +245,8 @@ def test_classication(data_generator):
     )
     cfi.fit(
         X_train,
-        groups=None,
-        var_type=["continuous"] * X.shape[1],
+        features_groups=None,
+        features_type=["continuous"] * X.shape[1],
     )
     vim = cfi.importance(X_test, y_test_clf)
     importance = vim["importance"]
@@ -297,13 +297,13 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_groups == X.shape[1]
+        assert cfi.n_features_groups == X.shape[1]
 
         # Test fit with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
-        cfi.fit(X, groups=groups)
+        cfi.fit(X, features_groups=groups)
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_groups == 2
+        assert cfi.n_features_groups == 2
 
     def test_categorical(
         self,
@@ -331,8 +331,8 @@ class TestCFIClass:
             random_state=seed + 1,
         )
 
-        var_type = ["continuous", "continuous", "categorical"]
-        cfi.fit(X, y, var_type=var_type)
+        features_type = ["continuous", "continuous", "categorical"]
+        cfi.fit(X, y, features_type=features_type)
 
         importances = cfi.importance(X, y)["importance"]
         assert len(importances) == 3
@@ -415,7 +415,7 @@ class TestCFIExceptions:
 
         # Test error when passing invalid var_type
         with pytest.raises(ValueError, match="type of data 'invalid' unknow."):
-            cfi.fit(X, var_type="invalid")
+            cfi.fit(X, features_type="invalid")
 
     def test_invalid_n_permutations(self, data_generator):
         """Test when invalid number of permutations is provided"""
@@ -434,7 +434,7 @@ class TestCFIExceptions:
             imputation_model_continuous=LinearRegression(),
             method="predict",
         )
-        cfi.fit(X, groups=None, var_type="auto")
+        cfi.fit(X, features_groups=None, features_type="auto")
 
         with pytest.raises(
             ValueError, match="X should be a pandas dataframe or a numpy array."
@@ -450,7 +450,7 @@ class TestCFIExceptions:
             imputation_model_continuous=LinearRegression(),
             method="predict",
         )
-        cfi.fit(X, groups=None, var_type="auto")
+        cfi.fit(X, features_groups=None, features_type="auto")
 
         with pytest.raises(
             AssertionError, match="X does not correspond to the fitting data."
@@ -473,7 +473,7 @@ class TestCFIExceptions:
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, groups=subgroups, var_type="auto")
+        cfi.fit(X, features_groups=subgroups, features_type="auto")
 
         with pytest.raises(
             AssertionError,
@@ -499,8 +499,8 @@ class TestCFIExceptions:
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, groups=subgroups, var_type="auto")
-        cfi.groups["group1"] = [None for i in range(100)]
+        cfi.fit(X, features_groups=subgroups, features_type="auto")
+        cfi.features_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -517,7 +517,9 @@ class TestCFIExceptions:
         cfi = CFI(estimator=fitted_model, method="predict")
 
         with pytest.raises(ValueError, match="type of data 'invalid_type' unknow."):
-            cfi.fit(X, groups=None, var_type=["invalid_type"] * X.shape[1])
+            cfi.fit(
+                X, features_groups=None, features_type=["invalid_type"] * X.shape[1]
+            )
 
     def test_incompatible_imputer(self, data_generator):
         """Test when incompatible imputer is provided"""
@@ -548,7 +550,7 @@ class TestCFIExceptions:
 
         invalid_groups = ["group1", "group2"]  # Should be dictionary
         with pytest.raises(ValueError, match="groups needs to be a dictionnary"):
-            cfi.fit(X, groups=invalid_groups, var_type="auto")
+            cfi.fit(X, features_groups=invalid_groups, features_type="auto")
 
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
@@ -560,7 +562,7 @@ class TestCFIExceptions:
             method="predict",
         )
         subgroups = {"group1": [0, 1], "group2": [2, 3]}
-        cfi.fit(X, y, groups=subgroups, var_type="auto")
+        cfi.fit(X, y, features_groups=subgroups, features_type="auto")
 
         with pytest.warns(
             UserWarning,

@@ -17,9 +17,9 @@ class PFI(BasePerturbation):
     ):
         """
         Permutation Feature Importance algorithm as presented in
-        :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
+        :footcite:t:`breimanRandomForests2001`. For each feature/group of features,
         the importance is computed as the difference between the loss of the initial
-        model and the loss of the model with the variable/group permuted.
+        model and the loss of the model with the feature/group permuted.
         The method was also used in :footcite:t:`mi2021permutation`
 
         Parameters
@@ -35,9 +35,9 @@ class PFI(BasePerturbation):
             "decision_function".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
+            features or groups of features.
         n_permutations : int, default=50
-            The number of permutations to perform. For each variable/group of variables,
+            The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
         random_state : int, default=None
             The random state to use for sampling.
@@ -55,12 +55,14 @@ class PFI(BasePerturbation):
         )
         self.random_state = random_state
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, features_group_id):
         """Create the permuted data for the j-th group of covariates"""
         self.random_state = check_random_state(self.random_state)
         X_perm_j = np.array(
             [
-                self.random_state.permutation(X[:, self._groups_ids[group_id]].copy())
+                self.random_state.permutation(
+                    X[:, self._features_groups_ids[features_group_id]].copy()
+                )
                 for _ in range(self.n_permutations)
             ]
         )

@@ -36,7 +36,18 @@ Classes
    
    BaseVariableImportance
    BasePerturbation
+   VariableImportanceFeatureGroup
    LOCO
    CFI
    PFI
    D0CRT
+
+Marginal Importance
+===================
+
+.. autosummary::
+   :toctree: ./generated/api/marginal
+   :template: class.rst
+
+   LOCI
+   LeaveOneCovariateIn
