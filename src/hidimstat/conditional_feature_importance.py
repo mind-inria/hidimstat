@@ -80,7 +80,7 @@ class CFI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = check_random_state(random_state)
+        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
