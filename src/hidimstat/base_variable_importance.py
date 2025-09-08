@@ -128,7 +128,7 @@ class BaseVariableImportance(BaseEstimator):
 
     def _check_importance(self):
         """
-        Checks if the importance scores and p-values have been computed.
+        Checks if the importance scores have been computed.
         """
         if self.importances_ is None:
             raise ValueError(

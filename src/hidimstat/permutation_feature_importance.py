@@ -31,8 +31,8 @@ class PFI(BasePerturbation):
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
+            to the loss function. Supported methods are "predict", "predict_proba" or
+            "decision_function".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             features or groups of features.
