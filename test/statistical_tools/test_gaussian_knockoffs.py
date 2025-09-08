@@ -13,7 +13,8 @@ def test_gaussian_equi():
     seed = 42
     n = 100
     p = 50
-    X, _, _, _ = multivariate_simulation(n, p, seed=seed)
+    rho = 1.0
+    X, _, _, _ = multivariate_simulation(n, p, rho=rho, seed=seed)
     generator = GaussianKnockoffs(
         cov_estimator=LedoitWolf(),
         random_state=seed * 2,
@@ -21,6 +22,41 @@ def test_gaussian_equi():
     generator.fit(X=X)
     X_tilde = generator.sample()
     assert X_tilde.shape == (n, p)
+    assert np.linalg.norm(X - X_tilde) < np.linalg.norm(X)
+
+
+def test_gaussian_equi_2():
+    """test function of gaussian"""
+    seed = 42
+    n = 100
+    p = 50
+    rho = 0.5
+    X, _, _, _ = multivariate_simulation(n, p, rho=rho, seed=seed)
+    generator = GaussianKnockoffs(
+        cov_estimator=LedoitWolf(),
+        random_state=seed * 2,
+    )
+    generator.fit(X=X)
+    X_tilde = generator.sample()
+    assert X_tilde.shape == (n, p)
+    assert np.linalg.norm(X - X_tilde) < np.sqrt(2) * np.linalg.norm(X)
+
+
+def test_gaussian_equi_3():
+    """test function of gaussian"""
+    seed = 42
+    n = 100
+    p = 50
+    rho = 0.0
+    X, _, _, _ = multivariate_simulation(n, p, rho=rho, seed=seed)
+    generator = GaussianKnockoffs(
+        cov_estimator=LedoitWolf(),
+        random_state=seed * 2,
+    )
+    generator.fit(X=X)
+    X_tilde = generator.sample()
+    assert X_tilde.shape == (n, p)
+    assert np.linalg.norm(X - X_tilde) < 5 / 3 * np.linalg.norm(X)
 
 
 def test_gaussian_error():
