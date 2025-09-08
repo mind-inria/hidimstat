@@ -545,8 +545,8 @@ def _joblib_distill(
     clf_x : sklearn compatible estimator
         The estimator to use for the prediction of X minus one features.
     method : str, default="predict"
-        The method to use for the prediction. Supported methods are "predict", "predict_proba",
-        "decision_function", "transform".
+        The method to use for the prediction. Supported methods are "predict", "predict_proba" or
+        "decision_function".
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If provided, covariance-based regression is used for X.
     coefficient_minus_idx : ndarray of shape (n_features,) or None
