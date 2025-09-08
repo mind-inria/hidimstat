@@ -460,7 +460,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
-        """Fit and compute variable importance in one step.
+        """
+        Fit and compute variable importance in one step.
 
         Parameters
         ----------
