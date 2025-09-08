@@ -256,7 +256,6 @@ class D0CRT(BaseVariableImportance):
         These attributes include:
         - model_x_
         - model_y_
-        - coefficient_
         - selection_set_
 
         Raises
@@ -268,7 +267,6 @@ class D0CRT(BaseVariableImportance):
         if (
             self.model_x_ is None
             or self.model_y_ is None
-            or self.coefficient_ is None
             or self.selection_set_ is None
         ):
             raise ValueError("The D0CRT requires to be fit before any analysis")
