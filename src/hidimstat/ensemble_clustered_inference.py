@@ -1,15 +1,17 @@
+import warnings
+
 import numpy as np
 from sklearn.base import clone
 from joblib import Parallel, delayed
 from sklearn.utils.validation import check_memory
+from sklearn.exceptions import NotFittedError
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.linear_model import LassoCV, MultiTaskLassoCV
-from sklearn.model_selection import KFold
+from sklearn.base import check_is_fitted
+from sklearn.utils import check_random_state
 
 from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat._utils.bootstrap import _subsampling
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
 def _ungroup_beta(beta_hat, n_features, ward):
@@ -141,20 +143,7 @@ def _ward_clustering(X_init, ward, train_index):
     return X_reduced, ward
 
 
-def clustered_inference(
-    X_init,
-    y,
-    ward,
-    n_clusters,
-    scaler_sampling=None,
-    train_size=1.0,
-    groups=None,
-    seed=0,
-    n_jobs=1,
-    memory=None,
-    verbose=1,
-    **kwargs,
-):
+class ClusteredInference(BaseVariableImportance):
     """
     Clustered inference algorithm for statistical analysis of
     high-dimensional data.
@@ -231,31 +220,73 @@ def clustered_inference(
     3. Transform data to cluster space
     4. Perform statistical inference using desparsified lasso
     """
-    memory = check_memory(memory=memory)
-    assert issubclass(
-        ward.__class__, FeatureAgglomeration
-    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
 
-    n_samples, n_features = X_init.shape
+    def __init__(
+        self,
+        ward,
+        n_clusters,
+        variable_importance=DesparsifiedLasso(),
+        scaler_sampling=None,
+        train_size=1.0,
+        groups=None,
+        seed=0,
+        n_jobs=1,
+        memory=None,
+        verbose=1,
+    ):
+        self.ward = ward
+        self.n_clusters = n_clusters
+        self.variable_importance = variable_importance
+        self.scaler_sampling = scaler_sampling
+        self.train_size = train_size
+        self.groups = groups
+        self.seed = seed
+        self.n_jobs = n_jobs
+        self.memory = memory
+        self.verbose = verbose
 
-    if verbose > 0:
-        print(
-            f"Clustered inference: n_clusters = {n_clusters}, "
-            + f"inference method desparsified lasso, seed = {seed},"
-            + f"groups = {groups is not None} "
+        # generalize to all the feature generated
+        self.pvalues_corr_ = None
+
+    def fit(self, X_init, y):
+        memory = check_memory(memory=self.memory)
+        assert issubclass(
+            self.ward.__class__, FeatureAgglomeration
+        ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
+
+        n_samples, n_features = X_init.shape
+
+        if self.verbose > 0:
+            print(
+                f"Clustered inference: n_clusters = {self.n_clusters}, "
+                + f"inference method desparsified lasso, seed = {self.seed},"
+                + f"groups = {self.groups is not None} "
+            )
+
+        ## This are the 3 step in first loop of the algorithm 2 of [1]
+        # sampling row of X
+        train_index = _subsampling(
+            n_samples, self.train_size, groups=self.groups, seed=self.seed
         )
 
-    ## This are the 3 step in first loop of the algorithm 2 of [1]
-    # sampling row of X
-    train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
+        # transformation matrix
+        X_reduced, self.ward = memory.cache(_ward_clustering)(
+            X_init, clone(self.ward), train_index
+        )
 
-    # transformation matrix
-    X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, clone(ward), train_index)
+        # Preprocessing
+        if self.scaler_sampling is not None:
+            self.scaler_sampling = clone(self.scaler_sampling)
+            X_reduced = self.scaler_sampling.fit_transform(X_reduced)
 
-    # Preprocessing
-    if scaler_sampling is not None:
-        X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
+        # inference methods
+        self.variable_importance = memory.cache(self.variable_importance.fit)(
+            X_reduced,
+            y,
+        )
+        return self
 
+<<<<<<< HEAD
     # inference methods
     if hasattr(kwargs, "lasso_cv") and kwargs["lasso_cv"] is not None:
         pass
@@ -293,75 +324,160 @@ def clustered_inference(
         y,
     )
     desparsified_lassos.importance(X_reduced, y)
-
-    return ward_, desparsified_lassos
-
-
-def clustered_inference_pvalue(n_samples, group, ward, desparsified_lassos, **kwargs):
-    """
-    Compute corrected p-values at the cluster level and transform them
-    back to feature level.
-
-    Parameters
-    ----------
-    n_samples : int
-        Number of samples in the dataset
-    group : bool
-        If True, uses group lasso p-values for multivariate outcomes
-    ward : AgglomerativeClustering
-        Fitted clustering object
-    beta_hat : ndarray
-        Estimated coefficients at cluster level
-    theta_hat : ndarray
-        Estimated precision matrix
-    precision_diag : ndarray
-        Diagonal elements of the covariance matrix
-    **kwargs : dict
-        Additional arguments passed to p-value computation functions
-
-    Returns
-    -------
-    beta_hat : ndarray
-        Degrouped coefficients at feature level
-    pval : ndarray
-        P-values for each feature
-    pval_corr : ndarray
-        Multiple testing corrected p-values
-    one_minus_pval : ndarray
-        1 - p-values for numerical stability
-    one_minus_pval_corr : ndarray
-        1 - corrected p-values
-    """
-    # corrected cluster-wise p-values
-
-    # De-grouping
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
-        ward,
-        desparsified_lassos.importances_,
-        desparsified_lassos.pvalues_,
-        desparsified_lassos.pvalues_corr_,
-        1 - desparsified_lassos.pvalues_,
-        1 - desparsified_lassos.pvalues_corr_,
+||||||| parent of ec9ff4e (Add Encldel and Cluster)
+    # inference methods
+    multitasklassoCV = MultiTaskLassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-4,
+        max_iter=5000,
+        random_state=1,
+        n_jobs=1,
     )
+    lasso_cv = LassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-4,
+        max_iter=5000,
+        random_state=1,
+        n_jobs=1,
+    )
+    desparsified_lassos = memory.cache(
+        DesparsifiedLasso(
+            lasso_cv=(
+                multitasklassoCV if len(y.shape) > 1 and y.shape[1] > 1 else lasso_cv
+            ),
+            n_jobs=n_jobs,
+            memory=memory,
+            verbose=verbose,
+            **kwargs,
+        ).fit,
+        ignore=["n_jobs", "verbose", "memory"],
+    )(
+        X_reduced,
+        y,
+    )
+    desparsified_lassos.importance(X_reduced, y)
+=======
+    def _check_fit(self):
+        """
+        Check if the model has been fit before performing analysis.
+>>>>>>> ec9ff4e (Add Encldel and Cluster)
 
-    return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
+        This private method verifies that all necessary attributes have been set
+        during the fitting process.
+        These attributes include:
+        - clf_x_
+        - clf_y_
+        - coefficient_
+        - non_selection_
+
+        Raises
+        ------
+        ValueError
+            If any of the required attributes are missing, indicating the model
+            hasn't been fit.
+        """
+        self.variable_importance._check_fit()
+        try:
+            check_is_fitted(self.ward)
+            if self.scaler_sampling is not None:
+                check_is_fitted(self.scaler_sampling)
+        except NotFittedError:
+            raise ValueError(
+                "The ClusteredInference requires to be fit before any analysis"
+            )
+
+    def importance(self, X, y):
+        """
+        Compute feature importance scores using distilled CRT.
+
+        Calculates test statistics and p-values for each feature using residual
+        correlations after the distillation process.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Test statistics/importance scores for each feature. For unselected features,
+            the score is set to 0.
+
+        Attributes
+        ----------
+        importances_ : same as return value
+        pvalues_ : ndarray of shape (n_features,)
+            Two-sided p-values for each feature under Gaussian null.
+
+        Notes
+        -----
+        For each selected feature j:
+        1. Computes residuals from regressing X_j on other features
+        2. Computes residuals from regressing y on other features
+        3. Calculates test statistic from correlation of residuals
+        4. Computes p-value assuming standard normal distribution
+        """
+        self._check_fit()
+        X_reduced = self.ward.transform(X)
+        if self.scaler_sampling is not None:
+            X_reduced = self.scaler_sampling.transform(X_reduced)
+
+        self.variable_importance.importance(X_reduced, y)
+        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
+            self.ward,
+            self.variable_importance.importances_,
+            self.variable_importance.pvalues_,
+            self.variable_importance.pvalues_corr_,
+            1 - self.variable_importance.pvalues_,
+            1 - self.variable_importance.pvalues_corr_,
+        )
+
+        self.importances_ = beta_hat
+        self.pvalues_ = pval
+        self.pvalues_corr_ = pval_corr
+        return self.importances_
+
+    def fit_importance(self, X, y, cv=None):
+        """
+        Fits the model to the data and computes feature importance.
+
+        A convenience method that combines fit() and importance() into a single call.
+        First fits the dCRT model to the data, then calculates importance scores.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+        cv : None or int, optional (default=None)
+            Not used. Included for compatibility. A warning will be issued if provided.
+
+        Returns
+        -------
+        importance : ndarray of shape (n_features,)
+            Feature importance scores/test statistics.
+            For features not selected during screening, scores are set to 0.
+
+        Notes
+        -----
+        Also sets the importances\_ and pvalues\_ attributes on the instance.
+        See fit() and importance() for details on the underlying computations.
+        """
+        if cv is not None:
+            warnings.warn("cv won't be used")
+        self.fit(X, y)
+        return self.importance(X, y)
 
 
-def ensemble_clustered_inference(
-    X_init,
-    y,
-    ward,
-    n_clusters,
-    scaler_sampling=None,
-    train_size=0.3,
-    groups=None,
-    seed=0,
-    n_bootstraps=25,
-    n_jobs=None,
-    verbose=1,
-    memory=None,
-    **kwargs,
-):
+class EnsembleClusteredInference(BaseVariableImportance):
     """
     Ensemble clustered inference algorithm for high-dimensional
     statistical inference, as described in :cite:`chevalier2022spatially`.
@@ -467,152 +583,183 @@ def ensemble_clustered_inference(
     ----------
     .. footbibliography::
     """
-    memory = check_memory(memory=memory)
-    assert issubclass(
-        ward.__class__, FeatureAgglomeration
-    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
 
-    # Clustered inference algorithms
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(clustered_inference)(
-            X_init,
-            y,
-            clone(ward),
-            n_clusters,
-            scaler_sampling=scaler_sampling,
-            train_size=train_size,
-            groups=groups,
-            seed=i,
-            n_jobs=1,
-            verbose=verbose,
-            memory=memory,
-            **kwargs,
+    def __init__(
+        self,
+        variable_importance,
+        n_bootstraps=25,
+        n_jobs=None,
+        verbose=1,
+        memory=None,
+        random_state=None,
+    ):
+        self.variable_importance = variable_importance
+        self.n_bootstraps = n_bootstraps
+        self.n_jobs = n_jobs
+        self.verbose = verbose
+        self.memory = memory
+        self.random_state = random_state
+
+        self.list_variable_importances_ = None
+
+    def fit(self, X, y):
+        """
+        Fit the dCRT model.
+
+        This method fits the Distilled Conditional Randomization Test (DCRT) model
+        as described in :footcite:t:`liu2022fast`. It performs optional feature
+        screening using Lasso, computes coefficients, and prepares the model for
+        importance and p-value computation.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        self : object
+            Returns the fitted instance.
+
+        Notes
+        -----
+        Main steps:
+        1. Optional data centering with StandardScaler
+        2. Lasso screening of variables (if no estimated coefficients provided)
+        3. Feature selection based on coefficient magnitudes
+        4. Model refitting on selected features (if refit=True)
+        5. Fit model for future distillation
+
+        The screening threshold controls which features are kept based on their
+        Lasso coefficients. Features with coefficients below the threshold are
+        set to zero.
+
+        References
+        ----------
+        .. footbibliography::
+        """
+        rng = check_random_state(self.random_state)
+        seed = rng.randint(1)
+
+        def run_fit(variable_importance, X, y, random_state):
+            return variable_importance(random_state=random_state, n_jobs=1).fit(X, y)
+
+        self.list_variable_importances_ = Parallel(
+            n_jobs=self.n_jobs, verbose=self.verbose
+        )(
+            delayed(run_fit)(clone(self.variable_importance), X, y, i)
+            for i in np.arange(seed, seed + self.n_bootstraps)
         )
-        for i in np.arange(seed, seed + n_bootstraps)
-    )
-    list_ward, list_desparsified_lassos = [], []
-    for ward, desparsified_lassos in results:
-        list_ward.append(ward)
-        list_desparsified_lassos.append(desparsified_lassos)
-    return list_ward, list_desparsified_lassos
+        return self
 
+    def _check_fit(self):
+        """
+        Check if the model has been fit before performing analysis.
 
-def ensemble_clustered_inference_pvalue(
-    n_samples,
-    group,
-    list_ward,
-    list_desparsified_lassos,
-    fdr=0.1,
-    fdr_control="bhq",
-    reshaping_function=None,
-    adaptive_aggregation=False,
-    gamma=0.5,
-    n_jobs=None,
-    verbose=0,
-    **kwargs,
-):
-    """
-    Compute and aggregate p-values across multiple bootstrap iterations
-    using an aggregation method.
+        This private method verifies that all necessary attributes have been set
+        during the fitting process.
+        These attributes include:
+        - clf_x_
+        - clf_y_
+        - coefficient_
+        - non_selection_
 
-    This function performs statistical inference on each bootstrap sample
-    and combines the results using a specified aggregation method to obtain
-    robust estimates.
-    The implementation follows the methodology in :footcite:`chevalier2022spatially`.
+        Raises
+        ------
+        ValueError
+            If any of the required attributes are missing, indicating the model
+            hasn't been fit.
+        """
+        if self.list_variable_importances_ is None:
+            raise ValueError("The D0CRT requires to be fit before any analysis")
 
-    Parameters
-    ----------
-    n_samples : int
-        Number of samples in the dataset
-    group : bool
-        If True, uses group lasso p-values for multivariate outcomes
-    list_ward : list of AgglomerativeClustering
-        List of fitted clustering objects from bootstraps
-    list_beta_hat : list of ndarray
-        List of estimated coefficients at cluster level from each bootstrap
-    list_theta_hat : list of ndarray
-        List of estimated precision matrices from each bootstrap
-    list_precision_diag : list of ndarray
-        List of diagonal elements of covariance matrices from each bootstrap
-    fdr : float, default=0.1
-        False discovery rate threshold for multiple testing correction
-    fdr_control : str, default="bhq"
-        Method for FDR control ('bhq' for Benjamini-Hochberg)
-        Available methods are:
-        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
-        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
-        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
-    reshaping_function : callable, optional (default=None)
-        Function to reshape data before FDR control
-    adaptive_aggregation : bool, default=False
-        Whether to use adaptive quantile aggregation
-    gamma : float, default=0.5
-        Quantile level for aggregation
-    n_jobs : int or None, optional (default=None)
-        Number of parallel jobs. None means using all processors.
-    verbose : int, default=0
-        Verbosity level for computation progress
-    **kwargs : dict
-        Additional arguments passed to p-value computation functions
+    def importance(self, X, y):
+        """
+        Compute feature importance scores using distilled CRT.
 
-    Returns
-    -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
-        Averaged coefficients across bootstraps
-    selected : ndarray, shape (n_features,)
-        Selected features: 1 for positive effects, -1 for negative effects,
-        0 for non-selected features
+        Calculates test statistics and p-values for each feature using residual
+        correlations after the distillation process.
 
-    References
-    ----------
-    .. footbibliography::
-    """
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(clustered_inference_pvalue)(
-            n_samples,
-            group,
-            list_ward[i],
-            list_desparsified_lassos[i],
-            **kwargs,
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Test statistics/importance scores for each feature. For unselected features,
+            the score is set to 0.
+
+        Attributes
+        ----------
+        importances_ : same as return value
+        pvalues_ : ndarray of shape (n_features,)
+            Two-sided p-values for each feature under Gaussian null.
+
+        Notes
+        -----
+        For each selected feature j:
+        1. Computes residuals from regressing X_j on other features
+        2. Computes residuals from regressing y on other features
+        3. Calculates test statistic from correlation of residuals
+        4. Computes p-value assuming standard normal distribution
+        """
+        self._check_fit()
+
+        def run_importance(variable_importance, X, y):
+            variable_importance.importance(X, y)
+            return None
+
+        parallel = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)
+        parallel(
+            delayed(run_importance)(variable_importance, X, y)
+            for variable_importance in self.list_variable_importances_
         )
-        for i in range(len(list_ward))
-    )
-    # Collecting results
-    list_beta_hat = []
-    list_pval, list_pval_corr = [], []
-    list_one_minus_pval, list_one_minus_pval_corr = [], []
-    for beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr in results:
-        list_beta_hat.append(beta_hat)
-        list_pval.append(pval)
-        list_pval_corr.append(pval_corr)
-        list_one_minus_pval.append(one_minus_pval)
-        list_one_minus_pval_corr.append(one_minus_pval_corr)
 
-    # Ensembling
-    beta_hat = np.mean(list_beta_hat, axis=0)
-    # pvalue selection
-    aggregated_pval = quantile_aggregation(
-        np.array(list_pval), gamma=gamma, adaptive=adaptive_aggregation
-    )
-    threshold_pval = fdr_threshold(
-        aggregated_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    # 1-pvalue selection
-    aggregated_one_minus_pval = quantile_aggregation(
-        np.array(list_one_minus_pval), gamma=gamma, adaptive=adaptive_aggregation
-    )
-    threshold_one_minus_pval = fdr_threshold(
-        aggregated_one_minus_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    # group seelction
-    selected = np.zeros_like(beta_hat)
-    selected[np.where(aggregated_pval <= threshold_pval)] = 1
-    selected[np.where(aggregated_one_minus_pval <= threshold_one_minus_pval)] = -1
+        # Ensembling
+        # TODO check if selection_FDR is good
+        self.importances_ = np.mean(
+            [vi.importances_ for vi in self.list_variable_importances_], axis=0
+        )
+        # pvalue selection
+        self.pvalues_ = np.array(
+            [vi.pvalues_ for vi in self.list_variable_importances_]
+        )
+        return self.importances_
 
-    return beta_hat, selected
+    def fit_importance(self, X, y, cv=None):
+        """
+        Fits the model to the data and computes feature importance.
+
+        A convenience method that combines fit() and importance() into a single call.
+        First fits the dCRT model to the data, then calculates importance scores.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix.
+        y : array-like of shape (n_samples,)
+            Target values.
+        cv : None or int, optional (default=None)
+            Not used. Included for compatibility. A warning will be issued if provided.
+
+        Returns
+        -------
+        importance : ndarray of shape (n_features,)
+            Feature importance scores/test statistics.
+            For features not selected during screening, scores are set to 0.
+
+        Notes
+        -----
+        Also sets the importances\_ and pvalues\_ attributes on the instance.
+        See fit() and importance() for details on the underlying computations.
+        """
+        if cv is not None:
+            warnings.warn("cv won't be used")
+        self.fit(X, y)
+        return self.importance(X, y)

@@ -17,10 +17,6 @@ Functions
    :template: function.rst
 
    quantile_aggregation
-   clustered_inference
-   clustered_inference_pvalue
-   ensemble_clustered_inference
-   ensemble_clustered_inference_pvalue
    model_x_knockoff
    reid
 
@@ -38,3 +34,5 @@ Classes
    PFI
    D0CRT
    DesparsifiedLasso
+   ClusteredInference
+   EnsembleClusteredInference

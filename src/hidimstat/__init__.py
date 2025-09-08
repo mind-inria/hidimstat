@@ -1,13 +1,7 @@
 from .base_variable_importance import BaseVariableImportance
 from .base_perturbation import BasePerturbation
-from .ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-)
-from .ensemble_clustered_inference import (
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+from .ensemble_clustered_inference import ClusteredInference
+from .ensemble_clustered_inference import EnsembleClusteredInference
 from .desparsified_lasso import desparsified_lasso, DesparsifiedLasso
 from .distilled_conditional_randomization_test import d0crt, D0CRT
 from .conditional_feature_importance import CFI
@@ -30,14 +24,13 @@ except ImportError:
 
 __all__ = [
     "quantile_aggregation",
-    "clustered_inference",
-    "clustered_inference_pvalue",
-    "ensemble_clustered_inference",
-    "ensemble_clustered_inference_pvalue",
+    "ClusteredInference",
+    "EnsembleClusteredInference",
     "d0crt",
     "D0CRT",
     "desparsified_lasso",
-    "DesparsifiedLasso" "reid",
+    "DesparsifiedLasso",
+    "reid",
     "model_x_knockoff",
     "model_x_knockoff_pvalue",
     "model_x_knockoff_bootstrap_quantile",
