@@ -23,8 +23,8 @@ class PFI(BasePerturbation):
         The estimator to use for the prediction.
     method : str, default="predict"
         The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba",
-        "decision_function", "transform".
+        to the loss function. Supported methods are "predict", "predict_proba" or
+        "decision_function".
     loss : callable, default=root_mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
