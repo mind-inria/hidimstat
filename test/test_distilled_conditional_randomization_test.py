@@ -190,7 +190,7 @@ def test_dcrt_lasso_no_selection():
         estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10, random_state=2024
     )
     d0crt.fit(X, y)
-    assert np.all(d0crt.selection_set)
+    assert np.all(d0crt.selection_set_)
 
 
 def test_dcrt_distillation_x_different():
