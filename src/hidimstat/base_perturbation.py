@@ -37,7 +37,7 @@ class BasePerturbation(BaseVariableImportance):
 
     Attributes
     ----------
-    groups : dict
+    features_groups : dict
         Mapping of feature groups identified during fit.
     importances_ : ndarray
         Computed importance scores for each feature group.
