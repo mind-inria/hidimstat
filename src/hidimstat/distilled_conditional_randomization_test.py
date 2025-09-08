@@ -191,7 +191,7 @@ class D0CRT(BaseVariableImportance):
                     "Precomputed coefficients were provided, screening is skipped and "
                     "screening_threshold is set to 100."
                 )
-                self.selection_set = np.ones(X.shape[1], dtype=bool)
+                self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
                 self.selection_set, self.lasso_model_ = run_lasso_screening(
                     X_,
