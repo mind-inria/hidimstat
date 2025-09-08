@@ -73,7 +73,7 @@ class D0CRT(BaseVariableImportance):
     ----------
     coefficient_ : ndarray of shape (n_features,)
         Estimated feature coefficients after screening/refitting during fit method.
-    selection_set : ndarray of shape (n_features,)
+    selection_set_ : ndarray of shape (n_features,)
         Boolean mask indicating selected features after screening.
     model_x_ : list of estimators
         Fitted models for X distillation (Lasso or None if using sigma_X).
@@ -193,7 +193,7 @@ class D0CRT(BaseVariableImportance):
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
-                self.selection_set, self.lasso_model_ = run_lasso_screening(
+                self.selection_set_, self.lasso_model_ = run_lasso_screening(
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
@@ -201,24 +201,24 @@ class D0CRT(BaseVariableImportance):
                     screening_threshold=self.screening_threshold,
                 )
                 if self.refit:
-                    self.estimator.fit(X_[:, self.selection_set], y_)
+                    self.estimator.fit(X_[:, self.selection_set_], y_)
         else:
-            self.selection_set = np.ones(X_.shape[1], dtype=bool)
+            self.selection_set_ = np.ones(X_.shape[1], dtype=bool)
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
             self.coefficient_ = self.lasso_model_.coef_
             # optimisation to reduce the number of elements different to zeros
-            self.coefficient_[~self.selection_set] = 0
+            self.coefficient_[~self.selection_set_] = 0
         else:
-            self.estimator.fit(X_[:, self.selection_set], y_)
+            self.estimator.fit(X_[:, self.selection_set_], y_)
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = self.estimator.coef_
                 # optimisation to reduce the number of elements different to zeros
                 # TODO: the multi-dimensional indexing should be removed when the
                 # classification is properly handled
-                self.coefficient_[..., ~self.selection_set] = 0
+                self.coefficient_[..., ~self.selection_set_] = 0
             else:
                 self.coefficient_ = None
 
@@ -233,7 +233,7 @@ class D0CRT(BaseVariableImportance):
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
             )
-            for idx in np.where(self.selection_set)[0]
+            for idx in np.where(self.selection_set_)[0]
         )
         self.model_x_ = [result[0] for result in results]
         self.model_y_ = [result[1] for result in results]
@@ -252,7 +252,7 @@ class D0CRT(BaseVariableImportance):
         - model_x_
         - model_y_
         - coefficient_
-        - selection_set
+        - selection_set_
 
         Raises
         ------
@@ -264,7 +264,7 @@ class D0CRT(BaseVariableImportance):
             not hasattr(self, "model_x_")
             or not hasattr(self, "model_y_")
             or not hasattr(self, "coefficient_")
-            or not hasattr(self, "selection_set")
+            or not hasattr(self, "selection_set_")
         ):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
@@ -315,7 +315,7 @@ class D0CRT(BaseVariableImportance):
         else:
             X_ = X
         n_samples, n_features = X_.shape
-        selection_features = np.arange(n_features)[self.selection_set]
+        selection_features = np.arange(n_features)[self.selection_set_]
 
         ## Distillation & calculate
         list_job = []
