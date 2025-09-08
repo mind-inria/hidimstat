@@ -138,7 +138,6 @@ class D0CRT(BaseVariableImportance):
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
         self.random_state = random_state
-        self.is_lasso = isinstance(estimator, (Lasso, LassoCV))
         self.reuse_screening_model = reuse_screening_model
 
     def fit(self, X, y):
@@ -322,7 +321,7 @@ class D0CRT(BaseVariableImportance):
         for index, (idx, model_y, model_x) in enumerate(
             zip(selection_features, self.model_y_, self.model_x_)
         ):
-            if self.is_lasso:
+            if isinstance(self.estimator, (Lasso, LassoCV)):
                 if self.fit_y:
                     coefficient_minus_idx = self.coefficient_[index]
                 else:
