@@ -126,6 +126,5 @@ def test_permutation_importance_function():
 
     assert importance.shape == (X.shape[1],)
     assert (
-        importance[important_features].mean()
-        > importance[1 - important_features].mean()
+        importance[important_features].mean() > importance[~important_features].mean()
     )
