@@ -583,7 +583,7 @@ def run_lasso_screening(
         Input data matrix.
     y : array-like of shape (n_samples,)
         Target values.
-    lasso_model : sklearn estimator or None, default=LassoCV(fit_intercept=False)
+    lasso_model : sklearn estimator (uniquely Lasso or LassoCV) or None, default=LassoCV(fit_intercept=False)
         Estimator for variable screening (typically LassoCV or Lasso).
     screening_threshold : float
         Percentile threshold for screening (0-100).
