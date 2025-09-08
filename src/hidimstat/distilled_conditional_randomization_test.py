@@ -139,9 +139,12 @@ class D0CRT(BaseVariableImportance):
         self.scaled_statistics = scaled_statistics
         self.random_state = random_state
         self.reuse_screening_model = reuse_screening_model
-        
+
         self.lasso_model_ = None
         self.coefficient_ = None
+        self.selection_set_ = None
+        self.model_x_ = None
+        self.model_y_ = None
 
     def fit(self, X, y):
         """
@@ -263,10 +266,10 @@ class D0CRT(BaseVariableImportance):
             hasn't been fit.
         """
         if (
-            not hasattr(self, "model_x_")
-            or not hasattr(self, "model_y_")
-            or not hasattr(self, "coefficient_")
-            or not hasattr(self, "selection_set_")
+            self.model_x_ is None
+            or self.model_y_ is None
+            or self.coefficient_ is None
+            or self.selection_set_ is None
         ):
             raise ValueError("The D0CRT requires to be fit before any analysis")
 
