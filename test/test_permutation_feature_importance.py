@@ -107,8 +107,7 @@ def test_permutation_importance_function():
         shuffle=False,
         seed=42,
     )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
+    important_features = beta != 0
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
@@ -128,5 +127,5 @@ def test_permutation_importance_function():
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[1 -  important_features].mean()
     )

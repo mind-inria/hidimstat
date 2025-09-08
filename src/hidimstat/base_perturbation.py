@@ -342,14 +342,14 @@ class BasePerturbation(BaseVariableImportance):
 
     def _check_importance(self):
         """
-        Checks if the loss have been computed.
+        Checks if the loss has been computed.
         """
         super()._check_importance()
         if (
             self.loss_reference_ is None and not hasattr(self, "loss_reference_cv_")
         ) or (self.loss_ is None and not hasattr(self, "loss_cv_")):
             raise ValueError(
-                "The importances need to be called before calling this method"
+                "The importance method has not yet been called."
             )
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
