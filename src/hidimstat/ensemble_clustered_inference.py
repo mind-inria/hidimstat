@@ -286,85 +286,9 @@ class ClusteredInference(BaseVariableImportance):
         )
         return self
 
-<<<<<<< HEAD
-    # inference methods
-    if hasattr(kwargs, "lasso_cv") and kwargs["lasso_cv"] is not None:
-        pass
-    elif len(y.shape) > 1 and y.shape[1] > 1:
-        kwargs["lasso_cv"] = MultiTaskLassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
-            max_iter=5000,
-            random_state=1,
-            n_jobs=1,
-        )
-    else:
-        kwargs["lasso_cv"] = LassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
-            max_iter=5000,
-            random_state=1,
-            n_jobs=1,
-        )
-
-    desparsified_lassos = memory.cache(
-        DesparsifiedLasso(
-            n_jobs=n_jobs,
-            memory=memory,
-            verbose=verbose,
-            **kwargs,
-        ).fit,
-        ignore=["n_jobs", "verbose", "memory"],
-    )(
-        X_reduced,
-        y,
-    )
-    desparsified_lassos.importance(X_reduced, y)
-||||||| parent of ec9ff4e (Add Encldel and Cluster)
-    # inference methods
-    multitasklassoCV = MultiTaskLassoCV(
-        eps=1e-2,
-        fit_intercept=False,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-4,
-        max_iter=5000,
-        random_state=1,
-        n_jobs=1,
-    )
-    lasso_cv = LassoCV(
-        eps=1e-2,
-        fit_intercept=False,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-4,
-        max_iter=5000,
-        random_state=1,
-        n_jobs=1,
-    )
-    desparsified_lassos = memory.cache(
-        DesparsifiedLasso(
-            lasso_cv=(
-                multitasklassoCV if len(y.shape) > 1 and y.shape[1] > 1 else lasso_cv
-            ),
-            n_jobs=n_jobs,
-            memory=memory,
-            verbose=verbose,
-            **kwargs,
-        ).fit,
-        ignore=["n_jobs", "verbose", "memory"],
-    )(
-        X_reduced,
-        y,
-    )
-    desparsified_lassos.importance(X_reduced, y)
-=======
     def _check_fit(self):
         """
         Check if the model has been fit before performing analysis.
->>>>>>> ec9ff4e (Add Encldel and Cluster)
 
         This private method verifies that all necessary attributes have been set
         during the fitting process.
