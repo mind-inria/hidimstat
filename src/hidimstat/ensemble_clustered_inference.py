@@ -257,29 +257,31 @@ def clustered_inference(
         X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
 
     # inference methods
-    multitasklassoCV = MultiTaskLassoCV(
-        eps=1e-2,
-        fit_intercept=False,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-4,
-        max_iter=5000,
-        random_state=1,
-        n_jobs=1,
-    )
-    lasso_cv = LassoCV(
-        eps=1e-2,
-        fit_intercept=False,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-4,
-        max_iter=5000,
-        random_state=1,
-        n_jobs=1,
-    )
+    if hasattr(kwargs, "lasso_cv") and kwargs["lasso_cv"] is not None:
+        pass
+    elif len(y.shape) > 1 and y.shape[1] > 1:
+        kwargs["lasso_cv"] = MultiTaskLassoCV(
+            eps=1e-2,
+            fit_intercept=False,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-4,
+            max_iter=5000,
+            random_state=1,
+            n_jobs=1,
+        )
+    else:
+        kwargs["lasso_cv"] = LassoCV(
+            eps=1e-2,
+            fit_intercept=False,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-4,
+            max_iter=5000,
+            random_state=1,
+            n_jobs=1,
+        )
+
     desparsified_lassos = memory.cache(
         DesparsifiedLasso(
-            lasso_cv=(
-                multitasklassoCV if len(y.shape) > 1 and y.shape[1] > 1 else lasso_cv
-            ),
             n_jobs=n_jobs,
             memory=memory,
             verbose=verbose,

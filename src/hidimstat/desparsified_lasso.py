@@ -160,7 +160,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         elif issubclass(MultiTaskLassoCV, lasso_cv.__class__):
             self.n_times_ = -1
         else:
-            raise ValueError("lasso_cv need to be a Lasso or a MultiTaskLassoCV")
+            raise ValueError("lasso_cv need to be a LassoCV or a MultiTaskLassoCV")
         self.lasso_cv = lasso_cv
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
