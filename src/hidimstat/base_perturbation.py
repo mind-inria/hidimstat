@@ -353,9 +353,7 @@ class BasePerturbation(BaseVariableImportance):
         if (
             self.loss_reference_ is None and not hasattr(self, "loss_reference_cv_")
         ) or (self.loss_ is None and not hasattr(self, "loss_cv_")):
-            raise ValueError(
-                "The importance method has not yet been called."
-            )
+            raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_group(self, X, group_id, group_key):
         """
