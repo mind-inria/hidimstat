@@ -153,14 +153,14 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         assert issubclass(
             Lasso, lasso.__class__
-        ), "lasso needs to be a Lasso or a MultiTaskLassoCV"
+        ), "lasso needs to be a Lasso or a MultiTaskLasso"
         self.lasso = lasso
         if issubclass(LassoCV, lasso_cv.__class__):
             self.n_times_ = 1
         elif issubclass(MultiTaskLassoCV, lasso_cv.__class__):
             self.n_times_ = -1
         else:
-            raise ValueError("lasso_cv need to be a LassoCV or a MultiTaskLassoCV")
+            raise AssertionError("lasso_cv needs to be a LassoCV or a MultiTaskLassoCV")
         self.lasso_cv = lasso_cv
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
@@ -236,7 +236,9 @@ class DesparsifiedLasso(BaseVariableImportance):
                 self.lasso_cv.set_params(
                     max_iter=n_features * self.lasso_cv.cv.n_splits
                 )
-                Warning(f"'max_iter' has been increased to {self.lasso_cv.max_iter}")
+                warnings.warn(
+                    f"'max_iter' has been increased to {self.lasso_cv.max_iter}"
+                )
             # use the cross-validation for define the best alpha of Lasso
             self.lasso_cv.set_params(n_jobs=self.n_jobs)
             self.lasso_cv.fit(X_, y_)
@@ -458,6 +460,23 @@ class DesparsifiedLasso(BaseVariableImportance):
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
+        """Fit and compute variable importance in one step.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix.
+        y : array-like of shape (n_samples,) or (n_samples, n_times)
+            Target values. For single task, y should be 1D or (n_samples, 1).
+            For multi-task, y should be (n_samples, n_times).
+        cv : object
+            Not used. Cross-validation is controlled by lasso_cv parameter.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,) or (n_features, n_times)
+            Desparsified lasso coefficient estimates.
+        """
         if cv is not None:
             warnings.warn("cv won't be used")
         self.fit(X, y)
