@@ -16,7 +16,7 @@ Base Classes
    BaseVariableImportance
    BasePerturbation
 
-Conditional Importance
+Feature Importance
 ======================
 
 .. autosummary::
