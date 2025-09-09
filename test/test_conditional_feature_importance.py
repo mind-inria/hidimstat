@@ -10,6 +10,7 @@ from sklearn.metrics import root_mean_squared_error
 
 from hidimstat import CFI, BasePerturbation
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -568,3 +569,47 @@ class TestCFIExceptions:
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
+
+
+@pytest.fixture(scope="module")
+def cfi_test_data():
+    """
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
+    """
+    X, y, _, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=5,
+        support_size=2,
+        rho=0,
+        value=1,
+        signal_noise_ratio=4,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    return X_train, X_test, y_train, y_test, model
+
+
+def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+    print("reproduction")
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducible)

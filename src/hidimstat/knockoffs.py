@@ -4,7 +4,6 @@ from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 from sklearn.base import clone
 
@@ -14,6 +13,7 @@ from hidimstat.gaussian_knockoff import (
 )
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat._utils.utils import check_random_state
 
 
 def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):

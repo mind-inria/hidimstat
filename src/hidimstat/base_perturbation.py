@@ -3,12 +3,12 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils import check_random_state
 import warnings
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.utils import check_random_state
 
 
 class BasePerturbation(BaseVariableImportance):

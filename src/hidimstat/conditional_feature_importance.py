@@ -2,10 +2,10 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat._utils.utils import check_random_state
 
 
 class CFI(BasePerturbation):
@@ -109,12 +109,9 @@ class CFI(BasePerturbation):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
             self.var_type = var_type
-
-        # base on the recomendation of numpy for paralellization of random generator
-        # see https://numpy.org/doc/stable/reference/random/parallel.html
-        streams = np.random.SeedSequence(
-            check_random_state(self.random_state).randint(np.iinfo(np.int32).max)
-        ).spawn(self.n_groups)
+        seed_root = check_random_state(self.random_state).randint(
+            np.iinfo(np.int32).max, size=1
+        )[0]
 
         self._list_imputation_models = [
             ConditionalSampler(
@@ -130,9 +127,7 @@ class CFI(BasePerturbation):
                     else clone(self.imputation_model_categorical)
                 ),
                 # require a RandomState due to scikitlearn check
-                random_state=np.random.RandomState(
-                    np.random.default_rng(streams[group_id]).bit_generator
-                ),
+                random_state=[group_id, seed_root],
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for group_id in range(self.n_groups)
