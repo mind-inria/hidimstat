@@ -94,7 +94,7 @@ class BasePerturbation(BaseVariableImportance):
         else:
             raise ValueError("groups needs to be a dictionnary")
 
-    def predict(self, X, random_generator):
+    def predict(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
         variables.
@@ -148,9 +148,6 @@ class BasePerturbation(BaseVariableImportance):
             - 'importance': the importance scores for each group.
         """
         self._check_fit(X)
-        random_generator = (
-            None if self.random_state is None else check_random_state(self.random_state)
-        )
 
         out_dict = dict()
 

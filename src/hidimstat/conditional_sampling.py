@@ -138,7 +138,6 @@ class ConditionalSampler:
             The samples from the conditional distribution.
         """
         rng = check_random_state(self.random_state)
-        print(rng.rand(2))
 
         check_is_fitted(self.model)
 
