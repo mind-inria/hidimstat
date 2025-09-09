@@ -123,7 +123,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     def __init__(
         self,
-        lasso_cv=LassoCV(
+        model_y=LassoCV(
             eps=1e-2,
             fit_intercept=False,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -132,7 +132,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             random_state=1,
             n_jobs=1,
         ),
-        lasso=Lasso(max_iter=5000, tol=1e-3),
+        model_x=Lasso(max_iter=5000, tol=1e-3),
         centered=True,
         dof_ajdustement=False,
         alpha_max_fraction=0.01,
@@ -152,16 +152,16 @@ class DesparsifiedLasso(BaseVariableImportance):
     ):
 
         assert issubclass(
-            Lasso, lasso.__class__
+            Lasso, model_x.__class__
         ), "lasso needs to be a Lasso or a MultiTaskLasso"
-        self.lasso = lasso
-        if issubclass(LassoCV, lasso_cv.__class__):
+        self.model_x = model_x
+        if issubclass(LassoCV, model_y.__class__):
             self.n_times_ = 1
-        elif issubclass(MultiTaskLassoCV, lasso_cv.__class__):
+        elif issubclass(MultiTaskLassoCV, model_y.__class__):
             self.n_times_ = -1
         else:
             raise AssertionError("lasso_cv needs to be a LassoCV or a MultiTaskLassoCV")
-        self.lasso_cv = lasso_cv
+        self.model_y = model_y
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
         self.alpha_max_fraction = alpha_max_fraction
@@ -229,26 +229,24 @@ class DesparsifiedLasso(BaseVariableImportance):
         _, n_features = X_.shape
 
         try:
-            check_is_fitted(self.lasso_cv)
+            check_is_fitted(self.model_y)
         except NotFittedError:
             # check if max_iter is large enough
-            if self.lasso_cv.max_iter // self.lasso_cv.cv.n_splits <= n_features:
-                self.lasso_cv.set_params(
-                    max_iter=n_features * self.lasso_cv.cv.n_splits
-                )
+            if self.model_y.max_iter // self.model_y.cv.n_splits <= n_features:
+                self.model_y.set_params(max_iter=n_features * self.model_y.cv.n_splits)
                 warnings.warn(
-                    f"'max_iter' has been increased to {self.lasso_cv.max_iter}"
+                    f"'max_iter' has been increased to {self.model_y.max_iter}"
                 )
             # use the cross-validation for define the best alpha of Lasso
-            self.lasso_cv.set_params(n_jobs=self.n_jobs)
-            self.lasso_cv.fit(X_, y_)
+            self.model_y.set_params(n_jobs=self.n_jobs)
+            self.model_y.fit(X_, y_)
 
         # Estimate the support of the variable importance
-        residual = self.lasso_cv.predict(X_) - y_
+        residual = self.model_y.predict(X_) - y_
 
         # Lasso regression and noise standard deviation estimation
         self.sigma_hat_ = memory.cache(reid, ignore=["n_jobs"])(
-            self.lasso_cv.coef_,
+            self.model_y.coef_,
             residual,
             tolerance=self.tolerance_reid,
             # for group
@@ -277,7 +275,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 "The Desparsified Lasso requires to be fit before any analysis"
             )
         try:
-            check_is_fitted(self.lasso_cv)
+            check_is_fitted(self.model_y)
         except NotFittedError:
             raise ValueError(
                 "The Desparsified Lasso requires to be fit before any analysis"
@@ -334,7 +332,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             X_ = X
             y_ = y
         n_samples, n_features = X_.shape
-        assert X_.shape[1] == self.lasso_cv.coef_.shape[-1]
+        assert X_.shape[1] == self.model_y.coef_.shape[-1]
         assert self.n_times_ == 1 or self.n_times_ == y.shape[1]
         if self.n_times_ > 1:
             if self.covariance is not None and self.covariance.shape != (
@@ -345,7 +343,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                     f'Shape of "cov" should be ({self.n_times_}, {self.n_times_}),'
                     + f' the shape of "cov" was ({self.covariance.shape}) instead'
                 )
-            assert y_.shape[1] == self.lasso_cv.coef_.shape[0]
+            assert y_.shape[1] == self.model_y.coef_.shape[0]
 
         # define the alphas for the Nodewise Lasso
         list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
@@ -363,7 +361,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             delayed(_compute_residuals)(
                 X=X_,
                 id_column=i,
-                clf=clone(self.lasso).set_params(
+                clf=clone(self.model_x).set_params(
                     alpha=alphas[i],
                     precompute=np.delete(np.delete(gram, i, axis=0), i, axis=1),
                     random_state=np.random.RandomState(
@@ -380,8 +378,8 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         # Computing the degrees of freedom adjustement
         if self.dof_ajdustement:
-            coefficient_max = np.max(np.abs(self.lasso_cv.coef_))
-            support = np.sum(np.abs(self.lasso_cv.coef_) > 0.01 * coefficient_max)
+            coefficient_max = np.max(np.abs(self.model_y.coef_))
+            support = np.sum(np.abs(self.model_y.coef_) > 0.01 * coefficient_max)
             support = min(support, n_samples - 1)
             dof_factor = n_samples / (n_samples - support)
         else:
@@ -396,7 +394,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         P_nodiagonal = P - np.diag(np.diag(P))
         Id = np.identity(n_features)
         P_nodiagonal = dof_factor * P_nodiagonal + (dof_factor - 1) * Id
-        beta_hat = beta_bias.T - P_nodiagonal.dot(self.lasso_cv.coef_.T)
+        beta_hat = beta_bias.T - P_nodiagonal.dot(self.model_y.coef_.T)
         # confidence intervals
         precision_diagonal = precision_diagonal * dof_factor**2
 
@@ -546,7 +544,7 @@ def desparsified_lasso(
     X,
     y,
     cv=None,
-    lasso_cv=LassoCV(
+    model_y=LassoCV(
         eps=1e-2,
         fit_intercept=False,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -554,7 +552,7 @@ def desparsified_lasso(
         max_iter=5000,
         random_state=0,
     ),
-    lasso=Lasso(max_iter=5000, tol=1e-3),
+    model_x=Lasso(max_iter=5000, tol=1e-3),
     centered=True,
     dof_ajdustement=False,
     alpha_max_fraction=0.01,
@@ -577,8 +575,8 @@ def desparsified_lasso(
     threshold_pvalue=None,
 ):
     methods = DesparsifiedLasso(
-        lasso_cv=lasso_cv,
-        lasso=lasso,
+        model_y=model_y,
+        model_x=model_x,
         centered=centered,
         dof_ajdustement=dof_ajdustement,
         alpha_max_fraction=alpha_max_fraction,

@@ -160,7 +160,7 @@ estimator = LassoCV(
 # of 5 G for memory. To handle this problem, the following methods use some
 # feature aggregation methods.
 try:
-    desparsified_lasso = DesparsifiedLasso(noise_method="median", lasso_cv=estimator)
+    desparsified_lasso = DesparsifiedLasso(noise_method="median", model_y=estimator)
     desparsified_lasso.fit_importance(X, y)
     pval_dl = desparsified_lasso.pvalues_
     one_minus_pval_dl = 1 - pval_dl

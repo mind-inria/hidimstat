@@ -90,7 +90,7 @@ def test_desparsified_group_lasso():
     )
 
     desparsified_lasso = DesparsifiedLasso(
-        lasso_cv=multitasklassoCV, covariance=corr
+        model_y=multitasklassoCV, covariance=corr
     ).fit(X, y)
     importances = desparsified_lasso.importance(X, y)
 
@@ -102,9 +102,7 @@ def test_desparsified_group_lasso():
     assert_almost_equal(importances, beta, decimal=1)
     assert_almost_equal(desparsified_lasso.pvalues_corr_, expected_pval_corr, decimal=1)
 
-    desparsified_lasso = DesparsifiedLasso(lasso_cv=multitasklassoCV, test="F").fit(
-        X, y
-    )
+    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV, test="F").fit(X, y)
     importances = desparsified_lasso.importance(X, y)
 
     assert_almost_equal(importances, beta, decimal=1)
@@ -116,13 +114,13 @@ def test_desparsified_group_lasso():
     # ValueError, desparsified_lasso, X=X, y=y, multioutput=True, covariance=bad_cov
     # )
     desparsified_lasso = DesparsifiedLasso(
-        lasso_cv=multitasklassoCV, covariance=bad_cov
+        model_y=multitasklassoCV, covariance=bad_cov
     ).fit(X, y)
     with pytest.raises(ValueError):
         desparsified_lasso.importance(X, y)
 
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
-        DesparsifiedLasso(lasso_cv=multitasklassoCV, covariance=bad_cov, test="r2").fit(
+        DesparsifiedLasso(model_y=multitasklassoCV, covariance=bad_cov, test="r2").fit(
             X, y
         )
 
@@ -158,14 +156,14 @@ def test_exception():
     with pytest.raises(
         AssertionError, match="lasso needs to be a Lasso or a MultiTaskLasso"
     ):
-        DesparsifiedLasso(lasso=RandomForestClassifier())
+        DesparsifiedLasso(model_x=RandomForestClassifier())
     with pytest.raises(
         AssertionError, match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
     ):
-        DesparsifiedLasso(lasso_cv=RandomForestClassifier())
+        DesparsifiedLasso(model_y=RandomForestClassifier())
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
         DesparsifiedLasso(test="r2")
-    desparsified_lasso = DesparsifiedLasso(lasso_cv=multitasklassoCV)
+    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV)
     with pytest.raises(
         ValueError,
         match="The Desparsified Lasso requires to be fit before any analysis",
@@ -178,7 +176,7 @@ def test_exception():
     ):
         desparsified_lasso.importance(X, y)
 
-    desparsified_lasso = DesparsifiedLasso(lasso_cv=multitasklassoCV).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV).fit(X, y)
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_lasso.test = "r2"
         desparsified_lasso.importance(X, y)
@@ -200,7 +198,7 @@ def test_warning():
         seed=10,
     )
     desparsified_lasso = DesparsifiedLasso(
-        lasso_cv=LassoCV(cv=KFold(n_splits=2), max_iter=10)
+        model_y=LassoCV(cv=KFold(n_splits=2), max_iter=10)
     )
     with pytest.warns(Warning, match="'max_iter' has been increased to"):
         with pytest.warns(Warning, match="cv won't be used"):
