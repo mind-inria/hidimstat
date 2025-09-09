@@ -314,7 +314,6 @@ def test_ensemble_clustered_inference_temporal_data():
     EnCluDl = EnsembleClusteredInference(
         variable_importance=set_desparsified_lasso_multi_time(),
         ward=ward,
-        n_clusters=n_clusters,
         scaler_sampling=StandardScaler(),
         n_bootstraps=n_bootstraps,
     ).fit(X, y)
@@ -325,10 +324,10 @@ def test_ensemble_clustered_inference_temporal_data():
     expected[:support_size] = 1.0
 
     assert_almost_equal(
-        selected[:interior_support, 0], expected[:interior_support], decimal=3
+        selected[:interior_support], expected[:interior_support], decimal=3
     )
     assert_almost_equal(
-        selected[extended_support:, 0], expected[extended_support:], decimal=1
+        selected[extended_support:], expected[extended_support:], decimal=1
     )
 
     # different aggregation method
@@ -338,8 +337,8 @@ def test_ensemble_clustered_inference_temporal_data():
     expected[:support_size] = 1.0
 
     assert_almost_equal(
-        selected[:interior_support, 0], expected[:interior_support], decimal=3
+        selected[:interior_support], expected[:interior_support], decimal=3
     )
     assert_almost_equal(
-        selected[extended_support:, 0], expected[extended_support:], decimal=1
+        selected[extended_support:], expected[extended_support:], decimal=1
     )

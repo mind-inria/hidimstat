@@ -187,7 +187,7 @@ class BaseVariableImportance(BaseEstimator):
             self, "list_pvalues_"
         ), "this method doesn't support selection base on FDR"
         self._check_importance()
-        assert fdr_control == "bhq" and fdr_control == "bhy"
+        assert fdr_control == "bhq" or fdr_control == "bhy"
 
         aggregated_pval = quantile_aggregation(
             np.array(self.list_pvalues_), gamma=gamma, adaptive=adaptive_aggregation
