@@ -47,7 +47,10 @@ def test_multivariate_simulation_2D(
         seed=seed,
     )
 
-    signal_noise_ratio_hat = np.linalg.norm(y - noise) / np.linalg.norm(noise)
+    if signal_noise_ratio != np.inf:
+        signal_noise_ratio_hat = np.linalg.norm(y - noise) / np.linalg.norm(noise)
+    else:
+        signal_noise_ratio_hat = np.ones_like(y) * np.inf
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
     # check if the data has expected shape
