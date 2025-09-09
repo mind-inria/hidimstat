@@ -13,8 +13,8 @@ Base Classes
    :toctree: ./generated/api/base/
    :template: class.rst
 
-   BaseVariableImportance
-   BasePerturbation
+   hidimstat.base_variable_importance.BaseVariableImportance
+   hidimstat.base_perturbation.BasePerturbation
 
 Feature Importance
 ======================
@@ -43,7 +43,7 @@ Sampler
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   ConditionalSampler
+   hidimstat.conditional_sampling.ConditionalSampler
 
 Helper Functions
 ================
