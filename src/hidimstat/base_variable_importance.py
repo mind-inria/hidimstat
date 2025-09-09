@@ -147,7 +147,6 @@ class BaseVariableImportance(BaseEstimator):
         self,
         fdr,
         fdr_control="bhq",
-        evalues=False,
         reshaping_function=None,
         adaptive_aggregation=False,
         gamma=0.5,
@@ -155,29 +154,24 @@ class BaseVariableImportance(BaseEstimator):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
 
-        This method selects features by controlling the FDR using either p-values or e-values
-        derived from test scores. It supports different FDR control methods and optional
-        adaptive aggregation of the statistical values.
+        This method selects features by controlling the FDR using either p-values.
+        It supports different FDR control methods and optional adaptive aggregation
+        of the statistical values.
 
         Parameters
         ----------
-        fdr : float, default=None
+        fdr : float
             The target false discovery rate level (between 0 and 1)
-        fdr_control: string, default="bhq"
+        fdr_control: str, default="bhq"
             The FDR control method to use. Options are:
             - "bhq": Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-            - "ebh": e-BH procedure (only for e-values)
-        evalues: boolean, default=False
-            If True, uses e-values for selection. If False, uses p-values.
         reshaping_function: callable, default=None
             Reshaping function for BHY method, default uses sum of reciprocals
-        adaptive_aggregation: boolean, default=False
-            If True, uses adaptive weights for p-value aggregation.
-            Only applicable when evalues=False.
-        gamma: boolean, default=0.5
-            The gamma parameter for quantile aggregation of p-values.
-            Only used when evalues=False.
+        adaptive_aggregation: bool, default=False
+            If True, uses adaptive weights for p-value aggregation
+        gamma: float, default=0.5
+            The gamma parameter for quantile aggregation of p-values (between 0 and 1)
 
         Returns
         -------
@@ -187,138 +181,22 @@ class BaseVariableImportance(BaseEstimator):
         Raises
         ------
         AssertionError
-            If test_scores\_ is None or if incompatible combinations of parameters are provided
+            If list_pvalues_ attribute is missing or fdr_control is invalid
         """
-        self._check_importance()
-        assert (
-            self.test_scores_ is not None
+        assert hasattr(
+            self, "list_pvalues_"
         ), "this method doesn't support selection base on FDR"
+        self._check_importance()
+        assert fdr_control == "bhq" and fdr_control == "bhy"
 
-        if self.test_scores_.shape[0] == 1:
-            self.threshold_fdr_ = fdr_threshold(
-                self.pvalues_,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected = self.test_scores_[0] >= self.threshold_fdr_
-        elif not evalues:
-            assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
-            pvalues = np.array(
-                [_empirical_pval(test_score) for test_score in self.test_scores_]
-            )
-            self.aggregated_pval_ = quantile_aggregation(
-                pvalues, gamma=gamma, adaptive=adaptive_aggregation
-            )
-            self.threshold_fdr_ = fdr_threshold(
-                self.aggregated_pval_,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected = self.aggregated_pval_ <= self.threshold_fdr_
-        else:
-            assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
-            evalues = []
-            for test_score in self.test_scores_:
-                ko_threshold = _estimated_threshold(test_score, fdr=fdr)
-                evalues.append(_empirical_eval(test_score, ko_threshold))
-            self.aggregated_eval_ = np.mean(evalues, axis=0)
-            self.threshold_fdr_ = fdr_threshold(
-                self.aggregated_eval_,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected = self.aggregated_eval_ >= self.threshold_fdr_
+        aggregated_pval = quantile_aggregation(
+            np.array(self.list_pvalues_), gamma=gamma, adaptive=adaptive_aggregation
+        )
+        threshold_pval = fdr_threshold(
+            aggregated_pval,
+            fdr=fdr,
+            method=fdr_control,
+            reshaping_function=reshaping_function,
+        )
+        selected = aggregated_pval <= threshold_pval
         return selected
-
-
-def _estimated_threshold(test_score, fdr=0.1):
-    """
-    Calculate the threshold based on the procedure stated in the knockoff article.
-    Original code:
-    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistic.
-    fdr : float
-        Desired controlled FDR (false discovery rate) level.
-    Returns
-    -------
-    threshold : float or np.inf
-        Threshold level.
-    """
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
-
-    threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    np.concatenate(
-        [[0], threshold_mesh, [np.inf]]
-    )  # if there is no solution, the threshold is inf
-    # find the right value of t for getting a good fdr
-    # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018
-    threshold = 0.0
-    for threshold in threshold_mesh:
-        false_pos = np.sum(test_score <= -threshold)
-        selected = np.sum(test_score >= threshold)
-        if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
-            break
-    return threshold
-
-
-def _empirical_pval(test_score):
-    """
-    Compute the empirical p-values from the test based on knockoff+.
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistics.
-    Returns
-    -------
-    pvals : 1D ndarray, shape (n_features, )
-        Vector of empirical p-values.
-    """
-    pvals = []
-    n_features = test_score.size
-
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
-
-    test_score_inv = -test_score
-    for i in range(n_features):
-        if test_score[i] <= 0:
-            pvals.append(1)
-        else:
-            pvals.append(
-                (offset + np.sum(test_score_inv >= test_score[i])) / n_features
-            )
-
-    return np.array(pvals)
-
-
-def _empirical_eval(test_score, ko_threshold):
-    """
-    Compute the empirical e-values from the test based on knockoff.
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistics.
-    ko_threshold : float
-        Threshold level.
-    Returns
-    -------
-    evals : 1D ndarray, shape (n_features, )
-        Vector of empirical e-values.
-    """
-    evals = []
-    n_features = test_score.size
-
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
-
-    for i in range(n_features):
-        if test_score[i] < ko_threshold:
-            evals.append(0)
-        else:
-            evals.append(n_features / (offset + np.sum(test_score <= -ko_threshold)))
-
-    return np.array(evals)
