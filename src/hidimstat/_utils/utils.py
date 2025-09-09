@@ -73,3 +73,102 @@ def check_random_state(seed):
     raise ValueError(
         "%r cannot be used to seed a numpy.random.RandomState instance" % seed
     )
+
+
+class SeedGenerator:
+    """Generate seeds for parallel random number generation based on numpy guidelines.
+
+    This class implements the recommended approach for parallel random number generation
+    from numpy's documentation: https://numpy.org/doc/stable/reference/random/parallel.html
+
+    Parameters
+    ----------
+    seed_root : int
+        The root seed value to generate worker-specific seeds.
+    """
+
+    def __init__(self, seed_root):
+        self.seed_root = seed_root
+
+    def get_seed(self, worker_id):
+        """Generate a seed pair for a specific worker.
+
+        Parameters
+        ----------
+        worker_id : int
+            Unique identifier for the worker/job.
+
+        Returns
+        -------
+        list
+            A list containing [worker_id, seed_root] for random number generation.
+        """
+        return [worker_id, self.seed_root]
+
+
+class NoneGenerator:
+    """Generator that always returns None as seed.
+
+    This is used when no specific seed is required.
+    """
+
+    def get_seed(self, worker_id):
+        """Return None regardless of worker_id.
+
+        Parameters
+        ----------
+        worker_id : int
+            Unique identifier for the worker/job (unused).
+
+        Returns
+        -------
+        None
+            Always returns None.
+        """
+        return None
+
+
+def get_seed_generator(random_state):
+    """
+    Create appropriate seed generator based on input type.
+    WARNING: this function should have the same branch that check_random_state
+
+    Parameters
+    ----------
+    random_state : None, int, tuple/list of 2 ints, or numpy.random.RandomState
+        The random state to use for seed generation.
+
+    Returns
+    -------
+    SeedGenerator or NoneGenerator
+        An appropriate generator for creating seeds.
+
+    Raises
+    ------
+    ValueError
+        If random_state is not of a supported type.
+    """
+    if random_state is None:
+        return NoneGenerator()
+    elif isinstance(random_state, numbers.Integral):
+        return SeedGenerator(seed_root=random_state)
+    elif (
+        (isinstance(random_state, tuple) or isinstance(random_state, list))
+        and len(random_state) == 2
+        and isinstance(random_state[0], numbers.Integral)
+        and isinstance(random_state[1], numbers.Integral)
+    ):
+        seed_root = check_random_state(random_state).randint(
+            np.iinfo(np.int32).max, size=1
+        )[0]
+        return SeedGenerator(seed_root=random_state)
+    elif isinstance(random_state, np.random.RandomState):
+        seed_root = check_random_state(random_state).randint(
+            np.iinfo(np.int32).max, size=1
+        )[0]
+        return SeedGenerator(seed_root=seed_root)
+    else:
+        raise ValueError(
+            "%r cannot be used to seed a numpy.random.RandomState instance"
+            % random_state
+        )

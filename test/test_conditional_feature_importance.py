@@ -329,7 +329,7 @@ class TestCFIClass:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             imputation_model_categorical=LogisticRegression(),
-            random_state=seed + 1,
+            random_state=0,
         )
 
         var_type = ["continuous", "continuous", "categorical"]
@@ -613,3 +613,99 @@ def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
     print("reproduction")
     vim_reproducible = cfi.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_reproducible)
+
+
+def test_cfi_multiple_calls_are_repeatibility_None(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=None,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # rerun importance
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducible)
+
+
+def test_cfi_multiple_calls_are_not_repeatibility_None(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=None,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+
+    # refit
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
+    )
+
+
+def test_cfi_multiple_calls_are_repeatibility_rng(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    rng = np.random.RandomState(0)
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=rng,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # rerun importance
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
+    )
+
+
+def test_cfi_multiple_calls_are_not_repeatibility_rng(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    rng = np.random.RandomState(0)
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=rng,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+
+    # refit
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
+    )
