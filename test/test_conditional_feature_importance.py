@@ -378,7 +378,7 @@ class TestCFIExceptions:
         )
 
         with pytest.raises(ValueError, match="The class is not fitted."):
-            cfi.predict(X, None)
+            cfi.predict(X)
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""

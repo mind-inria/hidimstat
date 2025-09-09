@@ -119,7 +119,7 @@ def test_raises_value_error():
             estimator=fitted_model,
             method="predict",
         )
-        loco.predict(X, None)
+        loco.predict(X)
     with pytest.raises(ValueError, match="The class is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
