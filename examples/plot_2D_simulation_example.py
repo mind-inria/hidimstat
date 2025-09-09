@@ -58,14 +58,7 @@ from sklearn.feature_extraction import image
 from sklearn.linear_model import MultiTaskLassoCV
 
 from hidimstat import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 from hidimstat._utils.scenario import multivariate_simulation_spatial
 
@@ -267,20 +260,21 @@ ward = FeatureAgglomeration(
 )
 
 # clustered desparsified lasso (CluDL)
-ward_, desparsified_lasso = clustered_inference(
-    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+clustered_inference = EnsembleClusteredInference(
+    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
 )
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference_pvalue(n_samples, False, ward_, desparsified_lasso)
-)
+clustered_inference.fit_importance(X_init, y)
 
 # compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
+zscore = zscore_from_pval(
+    clustered_inference.pvalues_, 1 - clustered_inference.pvalues_
+)
 selected_cdl = zscore > thr_c  # use the "clustering threshold"
 
 # compute estimated support (second method)
 selected_cdl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+    clustered_inference.pvalues_corr_ < fwer_target / 2,
+    1 - clustered_inference.pvalues_corr_ < fwer_target / 2,
 )
 
 #############################################################################
@@ -291,20 +285,11 @@ selected_cdl = np.logical_or(
 # solutions are then aggregated into one.
 
 # ensemble of clustered desparsified lasso (EnCluDL)
-list_ward, list_desparsified_lasso = ensemble_clustered_inference(
-    X_init,
-    y,
-    ward,
-    n_clusters,
-    scaler_sampling=StandardScaler(),
+ensemble_clustered_inference = EnsembleClusteredInference(
+    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
 )
-beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
-    n_samples,
-    False,
-    list_ward,
-    list_desparsified_lasso,
-    fdr=fwer_target,
-)
+ensemble_clustered_inference.fit_importance(X_init, y)
+selected_ecdl = ensemble_clustered_inference.selection_fdr(fdr=fwer_target)
 
 #############################################################################
 # Results
