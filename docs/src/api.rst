@@ -13,11 +13,11 @@ Base Classes
    :toctree: ./generated/api/base/
    :template: class.rst
 
-   hidimstat.base_variable_importance.BaseVariableImportance
-   hidimstat.base_perturbation.BasePerturbation
+   base_variable_importance.BaseVariableImportance
+   base_perturbation.BasePerturbation
 
-Feature Importance
-======================
+Feature Importance Class
+========================
 
 .. autosummary::
    :toctree: ./generated/api/class/
@@ -27,6 +27,14 @@ Feature Importance
    CFI
    PFI
    D0CRT
+
+Feature Importance function
+===========================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: function.rst
+
    clustered_inference
    clustered_inference_pvalue
    desparsified_lasso
@@ -43,7 +51,7 @@ Sampler
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   hidimstat.conditional_sampling.ConditionalSampler
+   conditional_sampling.ConditionalSampler
 
 Helper Functions
 ================
