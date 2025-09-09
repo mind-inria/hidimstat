@@ -34,5 +34,4 @@ Classes
    PFI
    D0CRT
    DesparsifiedLasso
-   ClusteredInference
    EnsembleClusteredInference
