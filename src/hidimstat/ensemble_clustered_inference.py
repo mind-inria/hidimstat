@@ -106,7 +106,7 @@ class EnsembleClusteredInference(BaseVariableImportance):
         n_jobs=1,
         verbose=1,
     ):
-        assert issubclass(DesparsifiedLasso, variable_importance)
+        assert issubclass(DesparsifiedLasso, variable_importance.__class__)
         self.variable_importance = variable_importance
         assert ward is None or issubclass(
             FeatureAgglomeration, ward.__class__
@@ -179,17 +179,17 @@ class EnsembleClusteredInference(BaseVariableImportance):
         for ward, scaler, vi in self.list_ward_scaler_vi_:
             if ward is not None:
                 try:
-                    check_is_fitted(self.ward)
+                    check_is_fitted(ward)
                 except NotFittedError:
                     raise ValueError(
-                        "The ClusteredInference requires to be fit before any analysis"
+                        "The EnsembleClusteredInference requires to be fit before any analysis"
                     )
             if scaler is not None:
                 try:
-                    check_is_fitted(self.scaler_sampling)
+                    check_is_fitted(scaler)
                 except NotFittedError:
                     raise ValueError(
-                        "The ClusteredInference requires to be fit before any analysis"
+                        "The EnsembleClusteredInference requires to be fit before any analysis"
                     )
             vi._check_fit()
 
@@ -249,9 +249,9 @@ class EnsembleClusteredInference(BaseVariableImportance):
             self.list_pvalues_.append(pvalues)
             self.list_pvalues_corr_.append(pvalues_corr)
 
-        self.importances_ = np.mean(self.list_importances_)
-        self.pvalues_ = np.mean(self.list_pvalues_)
-        self.pvalues_corr_ = np.mean(self.list_pvalues_corr_)
+        self.importances_ = np.mean(self.list_importances_, axis=0)
+        self.pvalues_ = np.mean(self.list_pvalues_, axis=0)
+        self.pvalues_corr_ = np.mean(self.list_pvalues_corr_, axis=0)
         return self.importances_
 
     def fit_importance(self, X, y, cv=None):
@@ -304,11 +304,10 @@ def _bootstrap_run_fit(
     # sampling row of X
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
 
-    X = X_init[train_index, :]
     # transformation matrix
     if ward is not None:
-        ward_ = clone(ward)
-        X_reduced, ward = ward_.fit_transform(X)
+        ward_ = clone(ward).fit(X_init[train_index, :])
+        X_reduced = ward_.transform(X_init)
     else:
         X_reduced = X_init
         ward_ = None
@@ -335,15 +334,15 @@ def _bootstrap_run_importance(ward_, scaler_sampling_, variable_importance_, X, 
 
     # apply Preprocessing
     if scaler_sampling_ is not None:
-        X_ = scaler_sampling_.transform(X)
+        X_ = scaler_sampling_.transform(X_)
     else:
         X_ = X
 
     variable_importance_.importance(X_, y)
 
     if ward_ is not None:
-        pvalue = ward_.inverse_transform(variable_importance_.pvalue_)
-        pvalue_corr = ward_.inverse_transform(variable_importance_.pvalue_corr)
+        pvalue = ward_.inverse_transform(variable_importance_.pvalues_)
+        pvalue_corr = ward_.inverse_transform(variable_importance_.pvalues_corr_)
         importance = _ungroup_beta(
             variable_importance_.importances_, n_features=pvalue.shape[0], ward=ward_
         )

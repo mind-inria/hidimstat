@@ -10,7 +10,6 @@ from sklearn.feature_extraction import image
 from sklearn.linear_model import MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
-from hidimstat.ensemble_clustered_inference import ClusteredInference
 from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
 from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat._utils.scenario import multivariate_simulation
@@ -68,8 +67,8 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    clustered_inference = ClusteredInference(
-        ward, n_clusters, scaler_sampling=StandardScaler()
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
     ).fit(X_init, y)
     clustered_inference.importance(X_init, y)
 
@@ -125,11 +124,11 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    clustered_inference = ClusteredInference(
-        ward,
-        n_clusters,
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward,
         variable_importance=set_desparsified_lasso_multi_time(),
         scaler_sampling=StandardScaler(),
+        n_bootstraps=1,
     ).fit(X, y)
     clustered_inference.importance(X, y)
 
@@ -198,11 +197,11 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    clustered_inference = ClusteredInference(
-        ward,
-        n_clusters,
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward,
         scaler_sampling=StandardScaler(),
         groups=groups,
+        n_bootstraps=1,
     ).fit(X_, y_)
     clustered_inference.importance(X_, y_)
 
@@ -258,11 +257,10 @@ def test_ensemble_clustered_inference():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    clustered_inference = ClusteredInference(
-        ward, n_clusters, scaler_sampling=StandardScaler()
-    )
     EnCluDl = EnsembleClusteredInference(
-        variable_importance=clustered_inference, n_bootstraps=n_bootstraps
+        ward=ward,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     ).fit(X_init, y)
     EnCluDl.importance(X_init, y)
     selected = EnCluDl.selection_fdr(fdr=0.1)
@@ -313,14 +311,12 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    clustered_inference = ClusteredInference(
-        ward,
-        n_clusters,
-        variable_importance=set_desparsified_lasso_multi_time(),
-        scaler_sampling=StandardScaler(),
-    )
     EnCluDl = EnsembleClusteredInference(
-        variable_importance=clustered_inference, n_bootstraps=n_bootstraps
+        variable_importance=set_desparsified_lasso_multi_time(),
+        ward=ward,
+        n_clusters=n_clusters,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     ).fit(X, y)
     EnCluDl.importance(X, y)
     selected = EnCluDl.selection_fdr(fdr=0.1, fdr_control="bhq")
