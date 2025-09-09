@@ -66,7 +66,7 @@ def test_desparsified_group_lasso():
     n_features = 100
     n_target = 10
     support_size = 2
-    signal_noise_ratio = 5000
+    signal_noise_ratio = 100
     rho_serial = 0.9
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     multitasklassoCV = MultiTaskLassoCV(
@@ -132,7 +132,7 @@ def test_exception():
     n_features = 100
     n_target = 10
     support_size = 2
-    signal_noise_ratio = 5000
+    signal_noise_ratio = 50
     rho_serial = 0.9
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     multitasklassoCV = MultiTaskLassoCV(
