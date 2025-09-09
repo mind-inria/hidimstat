@@ -39,9 +39,10 @@ def check_random_state(seed):
 
     Parameters
     ----------
-    seed : None, int or instance of RandomState
+    seed : None, int, tuple/list of 2 ints, or instance of RandomState
         If seed is None, return the RandomState singleton used by np.random.
         If seed is an int, return a new RandomState instance seeded with seed.
+        If seed is a tuple/list of 2 integers, creates a new seeded RandomState.
         If seed is already a RandomState instance, return it.
         Otherwise raise ValueError.
 
