@@ -33,10 +33,10 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Parameters
     ----------
-    lasso_cv : LassoCV or MultiTaskLassoCV instance, default=LassoCV()
+    model_y : LassoCV or MultiTaskLassoCV instance, default=LassoCV()
         CV object used for initial Lasso fit.
 
-    lasso : Lasso instance, default=Lasso()
+    model_x : Lasso instance, default=Lasso()
         Base Lasso estimator used for nodewise regressions.
 
     centered : bool, default=True
