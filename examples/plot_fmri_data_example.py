@@ -178,7 +178,7 @@ ward_, cl_desparsified_lasso = clustered_inference(
     ward,
     n_clusters,
     scaler_sampling=StandardScaler(),
-    lasso_cv=estimator,  # , tolerance=1e-2
+    model_y=estimator,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, cl_desparsified_lasso
@@ -200,9 +200,7 @@ list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
     groups=groups,
     scaler_sampling=StandardScaler(),
     n_bootstraps=5,
-    lasso_cv=estimator,
-    # max_iteration=6000,
-    # tolerance=1e-2,
+    model_y=estimator,
     n_jobs=2,
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(

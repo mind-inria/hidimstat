@@ -260,7 +260,7 @@ def clustered_inference(
     if hasattr(kwargs, "lasso_cv") and kwargs["lasso_cv"] is not None:
         pass
     elif len(y.shape) > 1 and y.shape[1] > 1:
-        kwargs["lasso_cv"] = MultiTaskLassoCV(
+        kwargs["model_y"] = MultiTaskLassoCV(
             eps=1e-2,
             fit_intercept=False,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
@@ -270,7 +270,7 @@ def clustered_inference(
             n_jobs=1,
         )
     else:
-        kwargs["lasso_cv"] = LassoCV(
+        kwargs["model_y"] = LassoCV(
             eps=1e-2,
             fit_intercept=False,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
