@@ -573,7 +573,7 @@ def _joblib_distill(
 def run_lasso_screening(
     X,
     y,
-    lasso_model=LassoCV(fit_intercept=False),
+    lasso_model=LassoCV(fit_intercept=False, random_state=0),
     estimated_coef=None,
     screening_threshold=10,
 ):
