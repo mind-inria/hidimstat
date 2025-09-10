@@ -175,7 +175,7 @@ class TestSelectionFDR:
     def test_selection_fdr_bhy(self, set_BaseVariableImportance):
         "test selection with bhy"
         vi = set_BaseVariableImportance
-        selection = vi.selection_fdr(0.8, fdr_control="bhy")
+        selection = vi.selection_fdr(0.2, fdr_control="bhy")
         assert np.all(
             [
                 i >= (vi.importances_ - np.sum(selection))
