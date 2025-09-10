@@ -5,6 +5,9 @@ from hidimstat import BaseVariableImportance
 
 
 def generate_list_pvalues_for_fdr(importances, factor=30):
+    """Generate values for applying FDR.
+    TODO: Improve data generation.
+    """
     nb_features = importances.shape[0]
     result_list = []
     for i in range(10):
@@ -40,7 +43,7 @@ def set_BaseVariableImportance(pvalues, list_pvalues, seed):
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(nb_features)
-    # rng.shuffle(vi.importances_)
+    rng.shuffle(vi.importances_)
     list_pvalues_generated = generate_list_pvalues_for_fdr(vi.importances_)
     if pvalues or list_pvalues:
         vi.pvalues_ = np.mean(list_pvalues_generated, axis=0)
