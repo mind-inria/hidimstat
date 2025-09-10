@@ -9,7 +9,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
 from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 
-from hidimstat import cfi, CFI, BasePerturbation
+from hidimstat import cfi, CFI
+from hidimstat.base_perturbation import BasePerturbation
 from hidimstat._utils.exception import InternalError
 
 
