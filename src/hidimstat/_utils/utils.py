@@ -119,7 +119,7 @@ class SequenceGenerator:
     """
 
     def __init__(self, rgn):
-        self.rng = np.random.default_rng(rgn.randint(np.iinfo(int).max, size=1)[0])
+        self.rng = np.random.default_rng(rgn.randint(np.iinfo(np.int32).max, size=1)[0])
 
     def get_seed(self, worker_id):
         """Generate a random state for a specific worker.
