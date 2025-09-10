@@ -387,11 +387,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
 
         # beta hat
-        P = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
-        P_nodiagonal = P - np.diag(np.diag(P))
-        Id = np.identity(n_features)
-        P_nodiagonal = dof_factor * P_nodiagonal + (dof_factor - 1) * Id
-        beta_hat = beta_bias.T - P_nodiagonal.dot(self.model_y.coef_.T)
+        p = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
+        p_nodiagonal = p - np.diag(np.diag(p))
+        p_nodiagonal = dof_factor * p_nodiagonal + (dof_factor - 1) * np.identity(
+            n_features
+        )
+        beta_hat = beta_bias.T - p_nodiagonal.dot(self.model_y.coef_.T)
         # confidence intervals
         precision_diagonal = precision_diagonal * dof_factor**2
 
