@@ -1,7 +1,6 @@
 import numbers
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 
 def _check_vim_predict_method(method):
