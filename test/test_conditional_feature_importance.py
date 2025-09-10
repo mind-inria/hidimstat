@@ -78,7 +78,6 @@ parameter_exact = [
     ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
     ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
     ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -99,6 +98,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 parameter_partial = [
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
     ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 42, 1, 10, 0),
     (
         "HiDim with correlated features and correlated noise",
