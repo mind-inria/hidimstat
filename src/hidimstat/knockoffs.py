@@ -1,5 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import clone
 from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
