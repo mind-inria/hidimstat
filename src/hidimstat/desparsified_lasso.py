@@ -241,13 +241,10 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.model_y.set_params(n_jobs=self.n_jobs)
             self.model_y.fit(X_, y_)
 
-        # Estimate the support of the variable importance
-        residual = self.model_y.predict(X_) - y_
-
         # Lasso regression and noise standard deviation estimation
         self.sigma_hat_ = memory.cache(reid, ignore=["n_jobs"])(
-            self.model_y.coef_,
-            residual,
+            self.model_y.coef_,  # estimated support of the variable importance
+            self.model_y.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
             # for group
             multioutput=self.n_times_ > 1,
