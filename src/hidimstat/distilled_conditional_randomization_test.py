@@ -620,10 +620,12 @@ def d0crt(
         cv=5,
         tol=1e-6,
         fit_intercept=False,
+         random_state=0,
     ),
     model_distillation_x=LassoCV(
         n_jobs=1,
         n_alphas=10,
+        random_state=0,
     ),
     refit=False,
     screening_threshold=10,
