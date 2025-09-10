@@ -1,6 +1,6 @@
 from .base_variable_importance import (
     BaseVariableImportance,
-    VariableImportanceFeatureGroup,
+    GroupVariableImportance,
 )
 from .base_perturbation import BasePerturbation
 from .ensemble_clustered_inference import (
