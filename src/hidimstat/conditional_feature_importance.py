@@ -180,12 +180,9 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id, seed_root):
-        """
-        Sample from the conditional distribution using a permutation of the
-        residuals.
-        Warning: This method is run in parallel.
-        """
+    def _permutation(self, X, group_id):
+        """Sample from the conditional distribution using a permutation of the
+        residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
