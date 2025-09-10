@@ -17,7 +17,7 @@ Base Classes
    base_perturbation.BasePerturbation
 
 Feature Importance Classes
-========================
+==========================
 
 .. autosummary::
    :toctree: ./generated/api/class/
@@ -29,7 +29,7 @@ Feature Importance Classes
    D0CRT
 
 Feature Importance functions
-===========================
+============================
 
 .. autosummary::
    :toctree: ./generated/api/class/
@@ -45,7 +45,7 @@ Feature Importance functions
    model_x_knockoff
 
 Samplers
-=======
+========
 
 .. autosummary::
    :toctree: ./generated/api/class/
