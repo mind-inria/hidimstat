@@ -16,7 +16,7 @@ Base Classes
    base_variable_importance.BaseVariableImportance
    base_perturbation.BasePerturbation
 
-Feature Importance Class
+Feature Importance Classes
 ========================
 
 .. autosummary::
@@ -28,7 +28,7 @@ Feature Importance Class
    PFI
    D0CRT
 
-Feature Importance function
+Feature Importance functions
 ===========================
 
 .. autosummary::
@@ -44,7 +44,7 @@ Feature Importance function
    ensemble_clustered_inference_pvalue
    model_x_knockoff
 
-Sampler
+Samplers
 =======
 
 .. autosummary::
