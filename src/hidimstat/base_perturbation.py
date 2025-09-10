@@ -137,9 +137,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportance):
         ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
-        group_id: int
+        features_group_id: int
             The index of the group of variables.
-        group_key: str, int
+        features_group_key: str, int
             The key of the group of variables. (parameter use for debugging)
         """
         features_group_ids = self._features_groups_ids[features_group_id]
