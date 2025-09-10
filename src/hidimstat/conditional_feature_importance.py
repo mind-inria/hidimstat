@@ -105,7 +105,6 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         super().fit(X, None, groups=groups)
-        rng = check_random_state(self.random_state)
 
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
