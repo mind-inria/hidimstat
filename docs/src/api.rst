@@ -36,7 +36,7 @@ Classes
    
    BaseVariableImportance
    BasePerturbation
-   VariableImportanceFeatureGroup
+   GroupVariableImportance
    LOCO
    CFI
    PFI
