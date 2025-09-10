@@ -11,7 +11,7 @@ from sklearn.utils import check_random_state
 
 from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat._utils.bootstrap import _subsampling
+from sklearn.utils import resample
 
 
 class EnsembleClusteredInference(BaseVariableImportance):
@@ -352,6 +352,39 @@ def _bootstrap_run_importance(ward_, scaler_sampling_, variable_importance_, X, 
         importance = variable_importance_.importances_
 
     return importance, pvalue, pvalue_corr
+
+
+def _subsampling(n_samples, train_size, groups=None, seed=0):
+    """
+    Random subsampling for statistical inference.
+
+    Parameters
+    ----------
+    n_samples : int
+        Total number of samples in the dataset.
+    train_size : float
+        Fraction of samples to include in the training set (between 0 and 1).
+    groups : ndarray, shape (n_samples,), optional (default=None)
+        Group labels for samples.
+        If not None, a subset of groups is selected.
+    seed : int, optional (default=0)
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    train_index : ndarray
+        Indices of selected samples for training.
+    """
+    index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+    train_index = resample(
+        index_row,
+        n_samples=int(len(index_row) * train_size),
+        replace=False,
+        random_state=seed,
+    )
+    if groups is not None:
+        train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+    return train_index
 
 
 def _ungroup_beta(beta_hat, n_features, ward):
