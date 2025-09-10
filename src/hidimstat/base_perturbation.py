@@ -19,6 +19,7 @@ class BasePerturbation(BaseVariableImportance):
         n_permutations: int = 50,
         method: str = "predict",
         n_jobs: int = 1,
+        random_state=None,
     ):
         """
         Base class for model-agnostic variable importance measures based on
@@ -43,6 +44,8 @@ class BasePerturbation(BaseVariableImportance):
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
+        random_state : int, default=None
+            The random state to use for sampling.
         """
         super().__init__()
         check_is_fitted(estimator)
@@ -53,8 +56,8 @@ class BasePerturbation(BaseVariableImportance):
         self.method = method
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
+        self.random_state = random_state
         self.n_groups = None
-        self.random_state = None
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -116,7 +119,7 @@ class BasePerturbation(BaseVariableImportance):
         seed_generator = get_seed_generator(self.random_state)
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(
-                X_, group_id, group_key, seed_generator(group_id)
+                X_, group_id, group_key, seed_generator.get_seed(group_id)
             )
             for group_id, group_key in enumerate(self.groups.keys())
         )

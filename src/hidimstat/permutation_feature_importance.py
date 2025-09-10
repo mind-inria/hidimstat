@@ -60,7 +60,7 @@ class PFI(BasePerturbation):
         Create the permuted data for the j-th group of covariates
         Warning: This method is run in parallel.
         """
-        rng = check_random_state([group_id, seed_root])
+        rng = check_random_state(seed_root)
         X_perm_j = np.array(
             [
                 rng.permutation(X[:, self._groups_ids[group_id]].copy())

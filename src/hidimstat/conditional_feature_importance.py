@@ -66,6 +66,7 @@ class CFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            random_state=random_state,
         )
 
         # check the validity of the inputs
@@ -80,7 +81,6 @@ class CFI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
@@ -182,7 +182,7 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, seed_root):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()

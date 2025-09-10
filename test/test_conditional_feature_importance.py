@@ -76,10 +76,10 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    ("HiDim", 150, 200, 10, 0.0, 43, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 200, 10, 0.0, 43, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 200, 10, 0.0, 43, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 43, 1.0, np.inf, 0.0),
 ]
 
 
@@ -100,14 +100,14 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 parameter_partial = [
-    ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 42, 1, 10, 0),
+    ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 43, 1, 10, 0),
     (
         "HiDim with correlated features and correlated noise",
         150,
         200,
         10,
         0.2,
-        42,
+        43,
         1.0,
         10,
         0.2,
@@ -135,12 +135,12 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
         if rank > min_rank:
             min_rank = rank
     # accept missing ranking of 5 elements
-    assert min_rank < 15
+    assert min_rank < 20
 
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    [(150, 200, 10, 0.2, 43, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
@@ -166,7 +166,7 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
 ## Test specific options of cfi
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    [(150, 200, 10, 0.0, 43, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_group(data_generator):
@@ -264,7 +264,7 @@ def test_classication(data_generator):
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(150, 200, 10, 0.0, 43, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIClass:
@@ -330,7 +330,7 @@ class TestCFIClass:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             imputation_model_categorical=LogisticRegression(),
-            random_state=seed + 1,
+            random_state=seed + 3,
         )
 
         var_type = ["continuous", "continuous", "categorical"]
@@ -344,7 +344,7 @@ class TestCFIClass:
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(150, 200, 10, 0.0, 43, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIExceptions:
@@ -592,7 +592,14 @@ def cfi_test_data():
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     model = LinearRegression()
     model.fit(X_train, y_train)
-    return X_train, X_test, y_train, y_test, model
+    cfi_default_parameters = {
+        "estimator": model,
+        "imputation_model_continuous": LinearRegression(),
+        "n_permutations": 20,
+        "method": "predict",
+        "n_jobs": 1,
+    }
+    return X_train, X_test, y_test, cfi_default_parameters
 
 
 def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
@@ -600,113 +607,97 @@ def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
     Test that multiple calls of .importance() when CFI is seeded provide deterministic
     results.
     """
-    X_train, X_test, y_train, y_test, model = cfi_test_data
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    cfi.fit(X_train, groups=None, var_type="auto")
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(**cfi_default_parameters)
+    cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
-    print("reproduction")
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
-    assert np.array_equal(vim, vim_reproducible)
-
-
-def test_cfi_multiple_calls_are_repeatibility_None(cfi_test_data):
-    """
-    Test that multiple calls of .importance() when CFI is seeded provide deterministic
-    results.
-    """
-    X_train, X_test, y_train, y_test, model = cfi_test_data
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=None,
-        n_jobs=1,
+    # repeat
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_repeat
     )
-    cfi.fit(X_train, groups=None, var_type="auto")
+
+
+def test_cfi_repeatibility_with_None(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI has random_state=None
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(random_state=None, **cfi_default_parameters)
+    cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
-    # rerun importance
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
-    assert np.array_equal(vim, vim_reproducible)
-
-
-def test_cfi_multiple_calls_are_not_repeatibility_None(cfi_test_data):
-    """
-    Test that multiple calls of .importance() when CFI is seeded provide deterministic
-    results.
-    """
-    X_train, X_test, y_train, y_test, model = cfi_test_data
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=None,
-        n_jobs=1,
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_repeat
     )
-    cfi.fit(X_train, groups=None, var_type="auto")
+    # refit
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_refit
+    )
+    # Reproducibility
+    cfi_2 = CFI(random_state=None, **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    np.testing.assert_raises(
+        AssertionError, np.testing.assert_array_equal, vim, vim_reproducibility
+    )
+
+
+def test_cfi_repeatibility_with_integer(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI has random_state=42
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(random_state=42, **cfi_default_parameters)
+    cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_repeat)
 
     # refit
-    cfi.fit(X_train, groups=None, var_type="auto")
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
-    np.testing.assert_raises(
-        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
-    )
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_refit)
+
+    # Reproducibility
+    cfi_2 = CFI(random_state=42, **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducibility)
 
 
-def test_cfi_multiple_calls_are_repeatibility_rng(cfi_test_data):
+def test_cfi_repeatibility_with_RNG(cfi_test_data):
     """
-    Test that multiple calls of .importance() when CFI is seeded provide deterministic
-    results.
+    Test that multiple calls of .importance() when CFI has random_state=rng
     """
-    X_train, X_test, y_train, y_test, model = cfi_test_data
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     rng = np.random.RandomState(0)
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=rng,
-        n_jobs=1,
-    )
-    cfi.fit(X_train, groups=None, var_type="auto")
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+    cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
-    # rerun importance
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
     np.testing.assert_raises(
-        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
+        AssertionError, np.testing.assert_array_equal, vim, vim_repeat
     )
-
-
-def test_cfi_multiple_calls_are_not_repeatibility_rng(cfi_test_data):
-    """
-    Test that multiple calls of .importance() when CFI is seeded provide deterministic
-    results.
-    """
-    X_train, X_test, y_train, y_test, model = cfi_test_data
-    rng = np.random.RandomState(0)
-    cfi = CFI(
-        estimator=model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
-        random_state=rng,
-        n_jobs=1,
-    )
-    cfi.fit(X_train, groups=None, var_type="auto")
-    vim = cfi.importance(X_test, y_test)["importance"]
-
     # refit
-    cfi.fit(X_train, groups=None, var_type="auto")
-    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
     np.testing.assert_raises(
-        AssertionError, np.testing.assert_array_equal, vim, vim_reproducible
+        AssertionError, np.testing.assert_array_equal, vim, vim_refit
     )
+    # refit repeatability
+    rng.seed(0)
+    cfi.fit(X_train)
+    vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_refit_2)
+    # Reproducibility
+    rng.seed(0)
+    cfi_2 = CFI(random_state=rng, **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducibility)

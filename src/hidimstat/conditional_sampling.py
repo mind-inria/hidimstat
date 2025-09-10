@@ -80,7 +80,7 @@ class ConditionalSampler:
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
-        self.rng = check_random_state(random_state)
+        self.random_state = random_state
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -138,7 +138,7 @@ class ConditionalSampler:
         y_conditional : ndarray
             The samples from the conditional distribution.
         """
-
+        rng = check_random_state(self.random_state)
         check_is_fitted(self.model)
 
         if self.data_type == "continuous":
@@ -150,7 +150,7 @@ class ConditionalSampler:
             y_hat = self.model.predict(X).reshape(y.shape)
             residual = y - y_hat
             residual_permuted = np.stack(
-                [self.rng.permutation(residual) for _ in range(n_samples)],
+                [rng.permutation(residual) for _ in range(n_samples)],
                 axis=0,
             )
             return y_hat[np.newaxis, ...] + residual_permuted
@@ -175,7 +175,7 @@ class ConditionalSampler:
                 y_pred_cond.append(
                     np.stack(
                         [
-                            self.rng.choice(classes, p=p, size=n_samples)
+                            rng.choice(classes, p=p, size=n_samples)
                             for p in y_pred_proba[index]
                         ],
                         axis=1,

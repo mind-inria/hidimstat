@@ -4,6 +4,8 @@ from scipy.linalg import solve, toeplitz
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
+from hidimstat._utils.utils import check_random_state
+
 
 def reid(
     X,
@@ -13,7 +15,7 @@ def reid(
     max_iterance=10000,
     n_splits=5,
     n_jobs=1,
-    seed=0,
+    random_state=None,
     multioutput=False,
     stationary=True,
     method="median",
@@ -57,7 +59,7 @@ def reid(
         Number of parallel jobs for cross-validation.
         -1 means using all processors.
 
-    seed : int, optional (default=0)
+    random_state : int, optional (default=None)
         Random seed for reproducible cross-validation splits.
 
     stationary : bool, (default=True)
@@ -84,7 +86,7 @@ def reid(
     ----------
     .. footbibliography::
     """
-
+    rng = check_random_state(random_state)
     X_ = np.asarray(X)
     n_samples, n_features = X_.shape
     if multioutput:
@@ -96,7 +98,7 @@ def reid(
         print(f"'max_iter' has been increased to {max_iterance}")
 
     # use the cross-validation for define the best alpha of Lasso
-    cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    cv = KFold(n_splits=n_splits, shuffle=True, random_state=rng)
     Refit_CV = MultiTaskLassoCV if multioutput else LassoCV
     clf_cv = Refit_CV(
         eps=epsilon,
@@ -105,6 +107,7 @@ def reid(
         tol=tolerance,
         max_iter=max_iterance,
         n_jobs=n_jobs,
+        random_state=rng,
     )
     clf_cv.fit(X_, y)
 

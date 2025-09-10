@@ -106,6 +106,38 @@ class SeedGenerator:
         return [worker_id, self.seed_root]
 
 
+class SequenceGenerator:
+    """Generate seeds for parallel random number generation based on numpy guidelines.
+
+    This class implements the recommended approach for parallel random number generation
+    from numpy's documentation: https://numpy.org/doc/stable/reference/random/parallel.html
+
+    Parameters
+    ----------
+    rgn : int or Generator
+        Random number generator seed or instance to use as base generator.
+    """
+
+    def __init__(self, rgn):
+        self.rng = np.random.default_rng(rgn.randint(np.iinfo(int).max, size=1)[0])
+
+    def get_seed(self, worker_id):
+        """Generate a random state for a specific worker.
+
+        Parameters
+        ----------
+        worker_id : int
+            Unique identifier for the worker/job.
+
+        Returns
+        -------
+        numpy.random.RandomState
+            A RandomState instance seeded uniquely for this worker.
+        """
+        # Spawn a new independent generator and use its bits to seed a RandomState
+        return np.random.RandomState(self.rng.spawn(1)[0].bit_generator)
+
+
 class NoneGenerator:
     """Generator that always returns None as seed.
 
@@ -161,12 +193,9 @@ def get_seed_generator(random_state):
         seed_root = check_random_state(random_state).randint(
             np.iinfo(np.int32).max, size=1
         )[0]
-        return SeedGenerator(seed_root=random_state)
-    elif isinstance(random_state, np.random.RandomState):
-        seed_root = check_random_state(random_state).randint(
-            np.iinfo(np.int32).max, size=1
-        )[0]
         return SeedGenerator(seed_root=seed_root)
+    elif isinstance(random_state, np.random.RandomState):
+        return SequenceGenerator(random_state)
     else:
         raise ValueError(
             "%r cannot be used to seed a numpy.random.RandomState instance"
