@@ -181,7 +181,7 @@ class BaseVariableImportance(BaseEstimator):
         Raises
         ------
         AssertionError
-            If list_pvalues_ attribute is missing or fdr_control is invalid
+            If list_pvalues\_ attribute is missing or fdr_control is invalid
         """
         self._check_importance()
         assert (
