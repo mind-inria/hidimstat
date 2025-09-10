@@ -1,7 +1,8 @@
 import numpy as np
 from sklearn.base import BaseEstimator, MultiOutputMixin, check_is_fitted
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from sklearn.utils.validation import check_random_state
+
+from hidimstat._utils.utils import check_random_state
 
 
 def _check_data_type(
@@ -45,7 +46,6 @@ class ConditionalSampler:
         model_regression=None,
         model_categorical=None,
         data_type: str = "auto",
-        random_state=None,
         categorical_max_cardinality=10,
     ):
         """
@@ -62,8 +62,6 @@ class ConditionalSampler:
             The variable type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
             of the unique values passed to the `fit` method.
-        random_state : int, optional
-            The random state to use for sampling.
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a variable to be considered as categorical
             when `data_type` is "auto".
@@ -79,7 +77,6 @@ class ConditionalSampler:
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
-        self.random_state = random_state
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -119,7 +116,13 @@ class ConditionalSampler:
             raise AttributeError(f"No model was provided for {self.data_type} data")
         self.model.fit(X, y)
 
-    def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:
+    def sample(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        n_samples: int = 1,
+        random_state=None,
+    ) -> np.ndarray:
         """
         Sample from the conditional distribution $p(X^j | X^{-j})$.
 
@@ -131,6 +134,8 @@ class ConditionalSampler:
             The group of variables to sample, $X^j$.
         n_samples : int, optional
             The number of samples to draw.
+        random_state : int, default=None
+            The random state to use for sampling.
 
         Returns
         -------
@@ -139,7 +144,7 @@ class ConditionalSampler:
         """
 
         check_is_fitted(self.model)
-        rng = check_random_state(self.random_state)
+        rng = check_random_state(random_state)
 
         if self.data_type == "continuous":
             if not hasattr(self.model, "predict"):

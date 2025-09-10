@@ -1,12 +1,13 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
-import warnings
 
-from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.utils import _check_vim_predict_method, check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -18,6 +19,7 @@ class BasePerturbation(BaseVariableImportance):
         n_permutations: int = 50,
         method: str = "predict",
         n_jobs: int = 1,
+        random_state=None,
     ):
         """
         Base class for model-agnostic variable importance measures based on
@@ -53,6 +55,7 @@ class BasePerturbation(BaseVariableImportance):
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
         self.n_groups = None
+        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -109,11 +112,16 @@ class BasePerturbation(BaseVariableImportance):
         """
         self._check_fit(X)
         X_ = np.asarray(X)
+        rng = check_random_state(self.random_state)
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
-            for group_id, group_key in enumerate(self.groups.keys())
+            delayed(self._joblib_predict_one_group)(
+                X_, group_id, group_key, random_state=child_state
+            )
+            for group_id, (group_key, child_state) in enumerate(
+                zip(self.groups.keys(), rng.spawn(self.n_groups))
+            )
         )
         return np.stack(out_list, axis=0)
 
@@ -231,7 +239,7 @@ class BasePerturbation(BaseVariableImportance):
                 f"{number_unique_feature_in_groups}"
             )
 
-    def _joblib_predict_one_group(self, X, group_id, group_key):
+    def _joblib_predict_one_group(self, X, group_id, group_key, random_state=None):
         """
         Compute the predictions after perturbation of the data for a given
         group of variables. This function is parallelized.
@@ -251,7 +259,9 @@ class BasePerturbation(BaseVariableImportance):
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
         X_perm[:, :, non_group_ids] = np.delete(X, group_ids, axis=1)
-        X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id)
+        X_perm[:, :, group_ids] = self._permutation(
+            X, group_id=group_id, random_state=random_state
+        )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
         y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
@@ -265,6 +275,6 @@ class BasePerturbation(BaseVariableImportance):
             )
         return y_pred_perm
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, random_state=None):
         """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError

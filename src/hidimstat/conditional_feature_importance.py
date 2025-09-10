@@ -125,9 +125,6 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=(
-                    None if self.random_state is None else rng.randint(0, 1e6)
-                ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)
@@ -183,11 +180,11 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations
+            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
         )
