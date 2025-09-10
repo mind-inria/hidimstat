@@ -8,6 +8,7 @@ import warnings
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat._utils.utils import get_seed_generator
 
 
 class BasePerturbation(BaseVariableImportance):
@@ -53,6 +54,7 @@ class BasePerturbation(BaseVariableImportance):
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
         self.n_groups = None
+        self.random_state = None
 
     def fit(self, X, y=None, groups=None):
         """Base fit method for perturbation-based methods. Identifies the groups.
@@ -111,8 +113,11 @@ class BasePerturbation(BaseVariableImportance):
         X_ = np.asarray(X)
 
         # Parallelize the computation of the importance scores for each group
+        seed_generator = get_seed_generator(self.random_state)
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_group)(X_, group_id, group_key)
+            delayed(self._joblib_predict_one_group)(
+                X_, group_id, group_key, seed_generator(group_id)
+            )
             for group_id, group_key in enumerate(self.groups.keys())
         )
         return np.stack(out_list, axis=0)
@@ -231,7 +236,7 @@ class BasePerturbation(BaseVariableImportance):
                 f"{number_unique_feature_in_groups}"
             )
 
-    def _joblib_predict_one_group(self, X, group_id, group_key):
+    def _joblib_predict_one_group(self, X, group_id, group_key, seed_root):
         """
         Compute the predictions after perturbation of the data for a given
         group of variables. This function is parallelized.
@@ -244,6 +249,8 @@ class BasePerturbation(BaseVariableImportance):
             The index of the group of variables.
         group_key: str, int
             The key of the group of variables. (parameter use for debugging)
+        seed_root: int, optional
+            Random seed for reproducibility.
         """
         group_ids = self._groups_ids[group_id]
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)
@@ -251,7 +258,9 @@ class BasePerturbation(BaseVariableImportance):
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
         X_perm[:, :, non_group_ids] = np.delete(X, group_ids, axis=1)
-        X_perm[:, :, group_ids] = self._permutation(X, group_id=group_id)
+        X_perm[:, :, group_ids] = self._permutation(
+            X, group_id=group_id, seed_root=seed_root
+        )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
         y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
@@ -265,6 +274,6 @@ class BasePerturbation(BaseVariableImportance):
             )
         return y_pred_perm
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, seed_root):
         """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError
