@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 
-from hidimstat import BaseVariableImportance
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 def generate_list_pvalues_for_fdr(importances, factor=30):
