@@ -2,10 +2,10 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
-from hidimstat._utils.utils import get_seed_generator
 
 
 class CFI(BasePerturbation):
@@ -104,13 +104,12 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
             self.var_type = var_type
-
-        seed_generator = get_seed_generator(self.random_state)
 
         self._list_imputation_models = [
             ConditionalSampler(
@@ -125,8 +124,7 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                # require a RandomState due to scikitlearn check
-                random_state=seed_generator.get_seed(group_id),
+                random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for group_id in range(self.n_groups)
