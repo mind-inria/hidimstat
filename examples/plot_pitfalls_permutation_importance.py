@@ -256,13 +256,12 @@ X_train, X_test = train_test_split(
 
 conditional_sampler = ConditionalSampler(
     model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
-    random_state=0,
 )
 
 
 conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
-    X_test[:, :7], X_test[:, 7], n_samples=1
+    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=0
 ).ravel()
 # sphinx_gallery_thumbnail_number = 4
 fig, ax = plt.subplots()
