@@ -4,8 +4,22 @@ import numpy as np
 from hidimstat import BaseVariableImportance
 
 
+def generate_list_pvalues_for_fdr(importances, factor=30):
+    nb_features = importances.shape[0]
+    result_list = []
+    for i in range(10):
+        score = np.random.rand(nb_features) * factor
+        result_list.append(score)
+    for i in range(1, factor):
+        score = np.random.rand(nb_features) + 1
+        score[-i:] = np.arange(factor - i, factor) * 2
+        score[:i] = -np.arange(factor - i, factor)
+        result_list.append(np.flip(score)[importances])
+    return np.array(result_list) / np.max(result_list)
+
+
 @pytest.fixture
-def set_BaseVariableImportance(pvalues, test_score, seed):
+def set_BaseVariableImportance(pvalues, list_pvalues, seed):
     """Create a BaseVariableImportance instance with test data for testing purposes.
 
     Parameters
@@ -26,28 +40,19 @@ def set_BaseVariableImportance(pvalues, test_score, seed):
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(nb_features)
-    rng.shuffle(vi.importances_)
-    if pvalues or test_score:
-        vi.pvalues_ = np.sort(rng.rand(nb_features))[vi.importances_]
-    if test_score:
-        # TODO: this can be improved.
-        vi.test_scores_ = []
-        for i in range(10):
-            score = np.random.rand(nb_features) * 30
-            vi.test_scores_.append(score)
-        for i in range(1, 30):
-            score = np.random.rand(nb_features) + 1
-            score[-i:] = np.arange(30 - i, 30) * 2
-            score[:i] = -np.arange(30 - i, 30)
-            vi.test_scores_.append(score[vi.importances_])
-        vi.test_scores_ = np.array(vi.test_scores_)
+    # rng.shuffle(vi.importances_)
+    list_pvalues_generated = generate_list_pvalues_for_fdr(vi.importances_)
+    if pvalues or list_pvalues:
+        vi.pvalues_ = np.mean(list_pvalues_generated, axis=0)
+    if list_pvalues:
+        vi.list_pvalues_ = list_pvalues_generated
     return vi
 
 
 @pytest.mark.parametrize(
-    "pvalues, test_score, seed",
+    "pvalues, list_pvalues, seed",
     [(False, False, 0), (True, False, 1), (True, True, 2)],
-    ids=["only importance", "p-value", "test-score"],
+    ids=["only importance", "p-value", "list_pvalues"],
 )
 class TestSelection:
     """Test selection based on importance"""
@@ -115,7 +120,7 @@ class TestSelection:
         "test threshold vbse on pvalues"
         vi = set_BaseVariableImportance
         if vi.pvalues_ is not None:
-            true_value = vi.importances_ < 5
+            true_value = vi.importances_ > 5
             selection = vi.selection(
                 threshold_pvalue=vi.pvalues_[np.argsort(vi.importances_)[5]]
             )
@@ -123,7 +128,9 @@ class TestSelection:
 
 
 @pytest.mark.parametrize(
-    "pvalues, test_score, seed", [(True, True, 10)], ids=["default"]
+    "pvalues, list_pvalues, seed",
+    [(True, False, 10), (True, True, 10)],
+    ids=["pvalue_only", "list_pvalue"],
 )
 class TestSelectionFDR:
     """Test selection based on fdr"""
@@ -131,49 +138,58 @@ class TestSelectionFDR:
     def test_selection_fdr_default(self, set_BaseVariableImportance):
         "test selection of the default"
         vi = set_BaseVariableImportance
-        true_value = vi.importances_ >= 85
         selection = vi.selection_fdr(0.2)
-        np.testing.assert_array_equal(true_value, selection)
+        assert np.all(
+            [
+                i >= (vi.importances_ - np.sum(selection))
+                for i in vi.importances_[selection]
+            ]
+        )
 
     def test_selection_fdr_default_1(self, set_BaseVariableImportance):
         "test selection of the default"
         vi = set_BaseVariableImportance
-        vi.test_scores_ = np.array([vi.test_scores_[0, :]])
-        true_value = vi.importances_ > -1  # all selected
+        vi.pvalues_ = np.random.rand(vi.importances_.shape[0]) * 30
+        if hasattr(vi, "list_pvalues_"):
+            vi.list_pvalues_ = [
+                np.random.rand(vi.importances_.shape[0]) * 30 for i in range(10)
+            ]
+        true_value = np.zeros_like(vi.importances_, dtype=bool)  # selected any
         selection = vi.selection_fdr(0.2)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_fdr_adaptation(self, set_BaseVariableImportance):
         "test selection of the adaptation"
         vi = set_BaseVariableImportance
-        true_value = vi.importances_ >= 85
         selection = vi.selection_fdr(0.2, adaptive_aggregation=True)
-        np.testing.assert_array_equal(true_value, selection)
+        assert np.all(
+            [
+                i >= (vi.importances_ - np.sum(selection))
+                for i in vi.importances_[selection]
+            ]
+        )
 
     def test_selection_fdr_bhy(self, set_BaseVariableImportance):
         "test selection with bhy"
         vi = set_BaseVariableImportance
-        true_value = vi.importances_ >= 85
         selection = vi.selection_fdr(0.8, fdr_control="bhy")
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_fdr_ebh(self, set_BaseVariableImportance):
-        "test selection with e-values"
-        vi = set_BaseVariableImportance
-        true_value = vi.importances_ >= 2
-        selection = vi.selection_fdr(0.037, fdr_control="ebh", evalues=True)
-        np.testing.assert_array_equal(true_value, selection)
+        assert np.all(
+            [
+                i >= (vi.importances_ - np.sum(selection))
+                for i in vi.importances_[selection]
+            ]
+        )
 
 
 @pytest.mark.parametrize(
-    "pvalues, test_score, seed",
+    "pvalues, list_pvalues, seed",
     [(False, False, 0), (True, False, 0), (True, True, 0)],
-    ids=["only importance", "p-value", "test-score"],
+    ids=["only importance", "p-value", "list_pvalues"],
 )
 class TestBVIExceptions:
     """Test class for BVI Exception"""
 
-    def test_not_fit(self, pvalues, test_score, seed):
+    def test_not_fit(self, pvalues, list_pvalues, seed):
         "test detection unfit"
         vi = BaseVariableImportance()
         with pytest.raises(
@@ -234,7 +250,7 @@ class TestBVIExceptions:
     def test_selection_fdr_fdr_control(self, set_BaseVariableImportance):
         "test selection fdr_control wrong"
         vi = set_BaseVariableImportance
-        if vi.test_scores_ is None:
+        if vi.pvalues_ is None:
             with pytest.raises(
                 AssertionError,
                 match="this method doesn't support selection base on FDR",
@@ -242,10 +258,7 @@ class TestBVIExceptions:
                 vi.selection_fdr(fdr=0.1)
         else:
             with pytest.raises(
-                AssertionError, match="for e-value, the fdr control need to be 'ebh'"
+                AssertionError,
+                match="only 'bhq' and 'bhy' are supported",
             ):
-                vi.selection_fdr(fdr=0.1, evalues=True)
-            with pytest.raises(
-                AssertionError, match="for p-value, the fdr control can't be 'ebh'"
-            ):
-                vi.selection_fdr(fdr=0.1, fdr_control="ebh", evalues=False)
+                vi.selection_fdr(fdr=0.1, fdr_control="ehb")

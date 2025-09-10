@@ -183,15 +183,20 @@ class BaseVariableImportance(BaseEstimator):
         AssertionError
             If list_pvalues_ attribute is missing or fdr_control is invalid
         """
-        assert hasattr(
-            self, "list_pvalues_"
-        ), "this method doesn't support selection base on FDR"
         self._check_importance()
-        assert fdr_control == "bhq" or fdr_control == "bhy"
+        assert (
+            fdr_control == "bhq" or fdr_control == "bhy"
+        ), "only 'bhq' and 'bhy' are supported"
+        assert (
+            self.pvalues_ is not None
+        ), "this method doesn't support selection base on FDR"
 
-        aggregated_pval = quantile_aggregation(
-            np.array(self.list_pvalues_), gamma=gamma, adaptive=adaptive_aggregation
-        )
+        if hasattr(self, "list_pvalues_"):
+            aggregated_pval = quantile_aggregation(
+                np.array(self.list_pvalues_), gamma=gamma, adaptive=adaptive_aggregation
+            )
+        else:
+            aggregated_pval = self.pvalues_
         threshold_pval = fdr_threshold(
             aggregated_pval,
             fdr=fdr,
