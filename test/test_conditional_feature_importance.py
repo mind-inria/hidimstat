@@ -10,7 +10,6 @@ from sklearn.metrics import root_mean_squared_error
 
 from hidimstat import CFI, BasePerturbation
 from hidimstat._utils.exception import InternalError
-from hidimstat._utils.scenario import multivariate_simulation
 
 
 def run_cfi(X, y, n_permutation, seed):

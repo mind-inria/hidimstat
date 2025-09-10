@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.base import MultiOutputMixin, check_is_fitted, BaseEstimator
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from hidimstat._utils.utils import check_random_state
+from sklearn.utils.validation import check_random_state
 
 
 def _check_data_type(

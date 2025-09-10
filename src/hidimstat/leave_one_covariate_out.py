@@ -93,7 +93,7 @@ class LOCO(BasePerturbation):
         estimator.fit(X_minus_j, y)
         return estimator
 
-    def _joblib_predict_one_group(self, X, group_id, key_groups, seed):
+    def _joblib_predict_one_group(self, X, group_id, key_groups):
         """Predict the target variable after removing a group of covariates.
         Used in parallel."""
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)

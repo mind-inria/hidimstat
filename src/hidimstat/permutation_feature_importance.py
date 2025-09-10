@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
+from sklearn.utils import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat._utils.utils import check_random_state
 
 
 class PFI(BasePerturbation):
@@ -55,15 +55,12 @@ class PFI(BasePerturbation):
         )
         self.random_state = random_state
 
-    def _permutation(self, X, group_id, seed_root):
-        """
-        Create the permuted data for the j-th group of covariates
-        Warning: This method is run in parallel.
-        """
-        rng = check_random_state([group_id, seed_root])
+    def _permutation(self, X, group_id):
+        """Create the permuted data for the j-th group of covariates"""
+        self.random_state = check_random_state(self.random_state)
         X_perm_j = np.array(
             [
-                rng.permutation(X[:, self._groups_ids[group_id]].copy())
+                self.random_state.permutation(X[:, self._groups_ids[group_id]].copy())
                 for _ in range(self.n_permutations)
             ]
         )
