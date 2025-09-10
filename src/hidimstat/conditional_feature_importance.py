@@ -2,7 +2,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -105,7 +104,6 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]

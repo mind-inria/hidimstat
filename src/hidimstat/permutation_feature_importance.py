@@ -1,8 +1,8 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat._utils.utils import check_random_state
 
 
 class PFI(BasePerturbation):
