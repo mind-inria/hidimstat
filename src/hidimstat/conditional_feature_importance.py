@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, BaseEstimator
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
@@ -104,8 +104,8 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
+
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
@@ -124,7 +124,6 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
             for groupd_id in range(self.n_groups)
@@ -180,11 +179,11 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations
+            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
         )
