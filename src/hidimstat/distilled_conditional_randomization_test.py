@@ -9,7 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    get_seed_generator,
+)
 
 
 class D0CRT(BaseVariableImportance):
@@ -129,7 +133,7 @@ class D0CRT(BaseVariableImportance):
         joblib_verbose=0,
         fit_y=False,
         scaled_statistics=False,
-        random_state=2022,
+        random_state=None,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -186,6 +190,7 @@ class D0CRT(BaseVariableImportance):
         ----------
         .. footbibliography::
         """
+        rng = check_random_state(self.random_state)
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
         else:
@@ -203,6 +208,7 @@ class D0CRT(BaseVariableImportance):
                     X_,
                     y_,
                     n_jobs=self.n_jobs,
+                    random_state=rng,
                     **self.params_lasso_screening,
                 )
                 if hasattr(self.clf_screening_, "alpha_"):
@@ -250,6 +256,7 @@ class D0CRT(BaseVariableImportance):
             selection_set = np.logical_not(self.non_selection_)
 
         ## fit models
+        generator_seed = get_seed_generator(rng)
         results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
             delayed(_joblib_fit)(
                 idx,
@@ -263,6 +270,7 @@ class D0CRT(BaseVariableImportance):
                     if self.params_lasso_distillation_x is not None
                     else self.params_lasso_screening
                 ),
+                random_state=generator_seed.get_seed(idx),
             )
             for idx in np.where(selection_set)[0]
         )
@@ -447,12 +455,12 @@ def _joblib_fit(
     fit_y=False,
     params_lasso_distillation_x={
         "n_jobs": 1,
-        "random_state": 44,
         "alpha": None,
         "n_alphas": 10,
         "alphas": None,
         "alpha_max_fraction": 0.5,
     },
+    random_state=None,
 ):
     """
     Standard Lasso distillation for least squares regression.
@@ -503,6 +511,7 @@ def _joblib_fit(
             X_minus_idx,
             X[:, idx],
             n_jobs=1,
+            random_state=random_state,
             **params_lasso_distillation_x,
         )
     else:
