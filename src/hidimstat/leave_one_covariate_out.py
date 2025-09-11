@@ -59,7 +59,7 @@ class LOCO(BasePerturbation):
             n_jobs=n_jobs,
         )
         # internal variable
-        self._list_estimators = []
+        self._list_estimators = None
 
     def fit(self, X, y, groups=None):
         """
@@ -136,7 +136,7 @@ class LOCO(BasePerturbation):
         covariates."""
         super()._check_fit(X)
         check_is_fitted(self.estimator)
-        if len(self._list_estimators) == 0:
+        if self._list_estimators is None:
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_estimators:
             check_is_fitted(m)
