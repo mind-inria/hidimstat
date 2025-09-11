@@ -108,10 +108,8 @@ for train, test in cv.split(X):
     vim_linear.fit(X[train], y[train])
     vim_non_linear.fit(X[train], y[train])
 
-    importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
-    importances_non_linear.append(
-        vim_non_linear.importance(X[test], y[test])["importance"]
-    )
+    importances_linear.append(vim_linear.importance(X[test], y[test]))
+    importances_non_linear.append(vim_non_linear.importance(X[test], y[test]))
 
 
 ################################################################################

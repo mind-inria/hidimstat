@@ -7,7 +7,7 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from hidimstat._utils.scenario import multivariate_simulation
 
-from hidimstat import LOCO
+from hidimstat import loco, LOCO
 from hidimstat.base_perturbation import BasePerturbation
 
 
@@ -39,9 +39,8 @@ def test_loco():
         y_train,
         groups=None,
     )
-    vim = loco.importance(X_test, y_test)
+    importance = loco.importance(X_test, y_test)
 
-    importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
@@ -68,9 +67,8 @@ def test_loco():
     )
     # warnings because we doesn't considere the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = loco.importance(X_test_df, y_test)
+        importance = loco.importance(X_test_df, y_test)
 
-    importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
@@ -90,9 +88,8 @@ def test_loco():
         y_train_clf,
         groups={"group_0": important_features, "the_group_1": non_important_features},
     )
-    vim_clf = loco_clf.importance(X_test, y_test_clf)
+    importance_clf = loco_clf.importance(X_test, y_test_clf)
 
-    importance_clf = vim_clf["importance"]
     assert importance_clf.shape == (2,)
     assert importance[0].mean() > importance[1].mean()
 
@@ -139,3 +136,35 @@ def test_raises_value_error():
         )
         BasePerturbation.fit(loco, X, y)
         loco.importance(X, y)
+
+
+def test_loco_function():
+    """Test the function of LOCO algorithm on a linear scenario."""
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
+    important_features = np.where(beta != 0)[0]
+    non_important_features = np.where(beta == 0)[0]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    regression_model = LinearRegression()
+    regression_model.fit(X_train, y_train)
+
+    selection, importance, pvalue = loco(
+        regression_model,
+        X,
+        y,
+        method="predict",
+        n_jobs=1,
+    )
+
+    assert importance.shape == (X.shape[1],)
+    assert (
+        importance[important_features].mean()
+        > importance[non_important_features].mean()
+    )
