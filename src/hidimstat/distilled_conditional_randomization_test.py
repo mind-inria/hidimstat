@@ -140,7 +140,6 @@ class D0CRT(BaseVariableImportance):
         self.random_state = random_state
         self.reuse_screening_model = reuse_screening_model
 
-        self.lasso_model_ = None
         self.coefficient_ = None
         self.selection_set_ = None
         self.model_x_ = None
@@ -198,7 +197,7 @@ class D0CRT(BaseVariableImportance):
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
-                self.selection_set_, self.lasso_model_ = run_lasso_screening(
+                self.selection_set_, lasso_model_ = run_lasso_screening(
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
@@ -213,7 +212,7 @@ class D0CRT(BaseVariableImportance):
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
-            self.coefficient_ = self.lasso_model_.coef_
+            self.coefficient_ = lasso_model_.coef_
             # optimisation to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
