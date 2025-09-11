@@ -257,9 +257,7 @@ X_train, X_test = train_test_split(
 )
 
 conditional_sampler = ConditionalSampler(
-    model_regression=RidgeCV(
-        alphas=np.logspace(-3, 3, 5), cv=KFold(n_splits=3)
-    ),
+    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5), cv=KFold(n_splits=3)),
     random_state=10,
 )
 
