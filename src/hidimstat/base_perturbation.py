@@ -198,14 +198,12 @@ class BasePerturbation(BaseVariableImportance):
                 list_loss.append(self.loss(y, y_pred_perm))
             self.loss_[j] = np.array(list_loss)
 
-        self.importances_ = np.array(
-            [
-                np.mean(self.loss_[j]) - self.loss_reference_
-                for j in range(self._n_groups)
-            ]
+        test_result = np.array(
+            [self.loss_[j] - self.loss_reference_ for j in range(self._n_groups)]
         )
+        self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = ttest_1samp(
-            self.importances_, 0.0, axis=0, alternative="greater"
+            test_result, 0.0, axis=1, alternative="greater"
         ).pvalue
         return self.importances_
 
