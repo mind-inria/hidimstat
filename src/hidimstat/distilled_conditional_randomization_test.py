@@ -616,7 +616,6 @@ def d0crt(
     sigma_X=None,
     lasso_screening=LassoCV(
         n_alphas=10,
-        cv=5,
         tol=1e-6,
         fit_intercept=False,
         random_state=0,
