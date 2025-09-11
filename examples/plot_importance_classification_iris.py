@@ -36,6 +36,10 @@ from sklearn.svm import SVC
 
 from hidimstat import CFI, PFI
 
+
+# Define the seeds for the reproducibility of the example
+rng = np.random.RandomState(0)
+
 ########################################################################
 # Load the iris dataset and add a spurious feature
 # ----------------------------------------------------------------------
@@ -44,7 +48,6 @@ from hidimstat import CFI, PFI
 # allows to illustrate that `PFI` is not robust to spurious features,
 # contrarily to `CFI`.
 dataset = load_iris()
-rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
 spurious_feat = X[:, 2] + X[:, 3]
 spurious_feat += rng.normal(size=X.shape[0], scale=np.std(spurious_feat) / 2)
@@ -77,9 +80,11 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
     if vim_name == "CFI":
         vim = CFI(
             estimator=model_c,
-            imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            imputation_model_continuous=RidgeCV(
+                alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
+            ),
             n_permutations=50,
-            random_state=0,
+            random_state=2,
             method=method,
             loss=loss,
         )
@@ -87,7 +92,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
         vim = PFI(
             estimator=model_c,
             n_permutations=50,
-            random_state=0,
+            random_state=3,
             method=method,
             loss=loss,
         )
@@ -112,10 +117,19 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
 # combination, in parallel.
 
 models = [
-    LogisticRegressionCV(Cs=np.logspace(-3, 3, 10), tol=1e-3, max_iter=1000),
-    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
+    LogisticRegressionCV(
+        Cs=np.logspace(-3, 3, 10),
+        tol=1e-3,
+        max_iter=1000,
+        cv=KFold(shuffle=True, random_state=4),
+    ),
+    GridSearchCV(
+        SVC(kernel="rbf"),
+        {"C": np.logspace(-3, 3, 10)},
+        cv=KFold(shuffle=True, random_state=5),
+    ),
 ]
-cv = KFold(n_splits=5, shuffle=True, random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=6)
 groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(

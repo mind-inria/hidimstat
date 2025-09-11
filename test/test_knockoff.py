@@ -206,7 +206,7 @@ def test_estimate_distribution():
     """
     test different estimation of the covariance
     """
-    seed = 42
+    seed = 0
     fdr = 0.1
     n = 100
     p = 50
@@ -227,10 +227,10 @@ def test_estimate_distribution():
         y,
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=seed + 2),
         ),
         n_bootstraps=1,
-        random_state=seed + 2,
+        random_state=seed + 3,
         fdr=fdr,
     )
     for i in selected:

@@ -71,30 +71,12 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 # diabetes dataset.
 
 n_folds = 5
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
+regressor = RidgeCV(
+    alphas=np.logspace(-3, 3, 10),
+    cv=KFold(shuffle=True, random_state=20),
+)
 regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    regressor_list[i].fit(X[train_index], y[train_index])
-    score = r2_score(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
-    mse = root_mean_squared_error(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
-
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
-#############################################################################
-# Fit a baselien model on the diabetes dataset
-# --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
-# diabetes dataset.
-
-n_folds = 10
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
-regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     regressor_list[i].fit(X[train_index], y[train_index])
     score = r2_score(
@@ -112,17 +94,23 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # --------------------------------------------------------
 
 cfi_importance_list = []
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
     cfi = CFI(
         estimator=regressor_list[i],
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
-        imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
-        # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
+        imputation_model_continuous=RidgeCV(
+            alphas=np.logspace(-3, 3, 10),
+            cv=KFold(shuffle=True, random_state=22),
+        ),
+        imputation_model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10),
+            cv=KFold(shuffle=True, random_state=23),
+        ),
         n_permutations=50,
-        random_state=0,
+        random_state=24,
         n_jobs=4,
     )
     cfi.fit(X_train, y_train)
@@ -134,7 +122,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # ---------------------------------------------------------
 
 loco_importance_list = []
-
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
@@ -153,7 +141,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # ----------------------------------------------------------------
 
 pfi_importance_list = []
-
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
@@ -161,7 +149,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         estimator=regressor_list[i],
         n_permutations=50,
-        random_state=0,
+        random_state=25,
         n_jobs=4,
     )
     pfi.fit(X_train, y_train)
