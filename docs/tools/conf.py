@@ -152,9 +152,7 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
-    "numba": ("https://numba.readthedocs.io/en/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
-    "pyvista": ("https://docs.pyvista.org", None),
 }
