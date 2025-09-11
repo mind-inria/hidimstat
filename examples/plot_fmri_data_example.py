@@ -69,7 +69,7 @@ warnings.filterwarnings(
 # Limit the ressoruce use for the example to 5 G.
 resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
 # Set the number of jobs for parallel computations
-n_job = 1
+n_jobs = 1
 
 
 #############################################################################
@@ -152,7 +152,7 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # feature aggregation methods.
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-        X, y, noise_method="median", max_iteration=1000, seed=0, n_jobs=n_job
+        X, y, noise_method="median", max_iteration=1000, seed=0, n_jobs=n_jobs
     )
     pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diagonal

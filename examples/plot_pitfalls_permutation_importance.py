@@ -195,7 +195,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         imputation_model_continuous=RidgeCV(
             alphas=np.logspace(-3, 3, 5),
-            cv=KFold(shuffle=True, random_state=6),
+            cv=KFold(n_splits=3),
         ),
         random_state=7,
         n_jobs=5,
@@ -258,7 +258,7 @@ X_train, X_test = train_test_split(
 
 conditional_sampler = ConditionalSampler(
     model_regression=RidgeCV(
-        alphas=np.logspace(-3, 3, 5), cv=KFold(shuffle=True, random_state=9)
+        alphas=np.logspace(-3, 3, 5), cv=KFold(n_splits=3)
     ),
     random_state=10,
 )
