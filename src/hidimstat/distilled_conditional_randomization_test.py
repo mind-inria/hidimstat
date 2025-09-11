@@ -80,8 +80,6 @@ class D0CRT(BaseVariableImportance):
     model_y_ : list of estimators
         Fitted models for y distillation (sklearn estimator or None if using
         estimated_coef and Lasso estimator).
-    screening_coefficient_ : ndarray
-        Coefficients from the screening model (LassoCV or Lasso).
     importances_ : ndarray of shape (n_features,)
         Importance scores for each feature. Test statistics following standard normal
         distribution.
