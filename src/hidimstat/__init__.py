@@ -6,11 +6,7 @@ from .ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from .desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-    desparsified_group_lasso_pvalue,
-)
+from .desparsified_lasso import desparsified_lasso, DesparsifiedLasso
 from .distilled_conditional_randomization_test import d0crt, D0CRT
 from .conditional_feature_importance import CFI
 from .knockoffs import (
@@ -39,8 +35,7 @@ __all__ = [
     "d0crt",
     "D0CRT",
     "desparsified_lasso",
-    "desparsified_lasso_pvalue",
-    "desparsified_group_lasso_pvalue",
+    "DesparsifiedLasso",
     "reid",
     "model_x_knockoff",
     "model_x_knockoff_pvalue",
