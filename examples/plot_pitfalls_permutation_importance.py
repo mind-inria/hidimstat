@@ -119,7 +119,7 @@ print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}
 # testing conditional importance, as it identifies the spurious feature as important.
 permutation_importances = []
 conditional_permutation_importances = []
-kf = KFold(n_splits=5, shuffle=True, random_state=3)
+kf = KFold(n_splits=5)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -183,7 +183,7 @@ plt.show()
 # explained by the other features unchanged. This method is valid for testing conditional
 # importance. As shown below, it does not identify the spurious feature as important.
 conditional_importances = []
-kf = KFold(n_splits=5, shuffle=True, random_state=3)
+kf = KFold(n_splits=5)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
