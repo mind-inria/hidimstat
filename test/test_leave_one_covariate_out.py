@@ -179,7 +179,6 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
-from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 
 from hidimstat import loco, LOCO
 from hidimstat.base_perturbation import BasePerturbation
@@ -532,6 +531,21 @@ class TestLOCOExceptions:
         with pytest.raises(ValueError, match="The class is not fitted."):
             loco.importance(X, y)
 
+    def test_unfitted_base_perturbation(self, data_generator):
+        """Test base perturbation with unfitted estimators"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        loco = LOCO(
+            estimator=fitted_model,
+            method="predict",
+        )
+        BasePerturbation.fit(loco, X, y)
+
+        with pytest.raises(
+            ValueError, match="The estimators require to be fit before to use them"
+        ):
+            loco.importance(X, y)
+
     def test_not_good_type_X(self, data_generator):
         """Test when X is wrong type"""
         X, y, _, _ = data_generator
@@ -644,14 +658,17 @@ class TestLOCOExceptions:
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
-    ids=["high level noise"],
+    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["HiDim"],
 )
 def test_function_loco(data_generator):
     """Test LOCO function"""
-    X, y, _, _ = data_generator
-    loco(
-        LinearRegression().fit(X, y),
-        X,
-        y,
-    )
+    X, y, important_features, _ = data_generator
+    selection, importance, pvalue = loco(LinearRegression().fit(X, y), X, y)
+    # check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # check that important features have the highest importance scores
+    assert np.all([int(i) in important_features for i in np.argsort(importance)[-10:]])
+
+    assert pvalue is None
+    assert np.all(selection[important_features])
