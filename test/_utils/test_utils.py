@@ -1,5 +1,6 @@
 import numbers
 import numpy as np
+import pytest
 from hidimstat._utils.utils import (
     get_seed_generator,
     check_random_state,
@@ -76,3 +77,16 @@ def test_rng():
 
     seed = generator.get_seed(52)
     assert isinstance(seed, np.random.RandomState)
+
+
+def test_error():
+    "test random state is rng"
+    random_state = [1, 2, 3]
+    with pytest.raises(
+        ValueError, match="cannot be used to seed a numpy.random.RandomState instance"
+    ):
+        check_random_state(random_state)
+    with pytest.raises(
+        ValueError, match="cannot be used to seed a numpy.random.RandomState instance"
+    ):
+        generator = get_seed_generator(random_state)
