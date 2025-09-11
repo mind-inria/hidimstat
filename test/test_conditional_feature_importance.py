@@ -571,18 +571,28 @@ class TestCFIExceptions:
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
-    ids=["high level noise"],
+    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["HiDim"],
 )
 @pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
-def test_function_cfi(data_generator, n_permutation, cfi_seed):
+def test_function_pfi(data_generator, n_permutation, cfi_seed):
     """Test CFI function"""
-    X, y, _, _ = data_generator
-    cfi(
+    X, y, important_features, _ = data_generator
+    selection, importance, pvalue = cfi(
         LinearRegression().fit(X, y),
         X,
         y,
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutation,
         random_state=cfi_seed,
+        # TODO add a parameter for selection
     )
+    # check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # check that important features have the highest importance scores
+    assert np.all([int(i) in important_features for i in np.argsort(importance)[-10:]])
+
+    assert pvalue.shape == (X.shape[1],)
+    assert pvalue[important_features].mean() < pvalue[~important_features].mean()
+    assert selection.shape == (X.shape[1],)
+    assert np.all(selection[important_features])
