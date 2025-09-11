@@ -324,6 +324,8 @@ class D0CRT(BaseVariableImportance):
         for index, (idx, model_y, model_x) in enumerate(
             zip(selection_features, self.model_y_, self.model_x_)
         ):
+            # TODO: Creating sub-models by simply deleting a coefficient is not
+            # validated and should be removed
             if isinstance(self.estimator, (Lasso, LassoCV)):
                 if self.fit_y:
                     coefficient_minus_idx = self.coefficient_[index]
