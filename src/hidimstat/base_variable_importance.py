@@ -20,8 +20,6 @@ class BaseVariableImportance(BaseEstimator):
         The computed importance scores for each feature.
     pvalues_ : array-like of shape (n_features,), default=None
         The computed p-values for each feature.
-    selections_ : array-like of shape (n_features,), default=None
-        Binary mask indicating selected features.
 
     Methods
     -------
@@ -36,11 +34,6 @@ class BaseVariableImportance(BaseEstimator):
         super().__init__()
         self.importances_ = None
         self.pvalues_ = None
-        self.selections_ = None
-        self.test_scores_ = None
-        self.threshold_fdr_ = None
-        self.aggregated_pval_ = None
-        self.aggregated_eval_ = None
 
     def _check_importance(self):
         """
@@ -137,11 +130,11 @@ class BaseVariableImportance(BaseEstimator):
         else:
             mask_threshold_pvalue = np.ones(self.importances_.shape, dtype=bool)
 
-        self.selections_ = (
+        selections = (
             mask_k_best & mask_percentile & mask_threshold & mask_threshold_pvalue
         )
 
-        return self.selections_
+        return selections
 
     def selection_fdr(
         self,
@@ -173,7 +166,7 @@ class BaseVariableImportance(BaseEstimator):
         gamma: float, default=0.5
             The gamma parameter for quantile aggregation of p-values (between 0 and 1)
 
-        Returns
+        Returnsgit
         -------
         numpy.ndarray
             Boolean array indicating selected features (True for selected, False for not selected)
