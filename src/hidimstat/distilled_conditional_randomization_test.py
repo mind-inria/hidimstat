@@ -112,7 +112,7 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         sigma_X=None,
         lasso_screening=LassoCV(
-            n_alphas=10, cv=5, tol=1e-6, fit_intercept=False, random_state=0
+            n_alphas=10, tol=1e-6, fit_intercept=False, random_state=0
         ),
         model_distillation_x=LassoCV(n_jobs=1, n_alphas=10, random_state=0),
         refit=False,
