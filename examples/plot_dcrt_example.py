@@ -50,7 +50,7 @@ for sim_ind in range(10):
         rho=rho,
         signal_noise_ratio=signal_noise_ratio,
         shuffle=True,
-        seed=sim_ind + 10,
+        seed=sim_ind,
     )
 
     # Applying a reLu function on the outcome y to get non-linear relationships

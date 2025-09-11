@@ -68,7 +68,7 @@ warnings.filterwarnings(
 
 # Limit the ressoruce use for the example to 5 G.
 resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
-# Set the number of job for the methods
+# Set the number of jobs for parallel computations
 n_job = 1
 
 
@@ -173,7 +173,7 @@ ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
     scaler_sampling=StandardScaler(),
     tolerance=1e-2,
     seed=1,
-    n_jobs=n_job,
+    n_jobs=n_jobs,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -199,7 +199,7 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         max_iteration=6000,
         tolerance=1e-2,
         seed=2,
-        n_jobs=n_job,
+        n_jobs=n_jobs,
     )
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(
