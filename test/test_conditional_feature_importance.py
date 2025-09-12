@@ -8,7 +8,8 @@ from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat import CFI, BasePerturbation
+from hidimstat import CFI
+from hidimstat.base_perturbation import BasePerturbation
 from hidimstat._utils.exception import InternalError
 
 
