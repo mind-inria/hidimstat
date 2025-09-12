@@ -11,7 +11,7 @@ from sklearn.model_selection import KFold
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat._utils.utils import get_generated_attributes
+from hidimstat._utils.utils import get_fitted_attributes
 
 
 class BasePerturbation(BaseVariableImportance):
@@ -252,7 +252,7 @@ class BasePerturbation(BaseVariableImportance):
 
         Final importances\_ and pvalues\_ are averaged across all CV folds.
         """
-        name_attribute_save = get_generated_attributes(self)
+        name_attribute_save = get_fitted_attributes(self)
         for name in name_attribute_save:
             setattr(self, name + "cv_", [])
         self.estimators_cv_ = []

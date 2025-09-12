@@ -1,4 +1,4 @@
-from hidimstat._utils.utils import get_generated_attributes
+from hidimstat._utils.utils import get_fitted_attributes
 
 
 def test_generated_attributes():
@@ -12,5 +12,5 @@ def test_generated_attributes():
             self.attr4__ = 4
             self.attr5_ = 5
 
-    attributes = get_generated_attributes(MyClass())
+    attributes = get_fitted_attributes(MyClass())
     assert attributes == ["attr2_", "attr5_"]
