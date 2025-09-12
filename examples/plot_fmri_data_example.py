@@ -68,9 +68,11 @@ warnings.filterwarnings(
 )
 
 # Limit the ressoruce use for the example to 5 G or maximum of possible.
+limit_5G = int(5 * 1e9)
 soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-new_limit = int(5 * 1e9)
-resource.setrlimit(resource.RLIMIT_AS, (min(new_limit, hard), hard))
+new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
+new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
+resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
 n_job = 1
 
 
