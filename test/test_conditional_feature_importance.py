@@ -7,8 +7,9 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 
-from hidimstat import CFI
+from hidimstat import cfi, CFI
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat._utils.exception import InternalError
 
@@ -67,8 +68,7 @@ def run_cfi(X, y, n_permutation, seed):
         var_type="auto",
     )
     # calculate feature importance using the test set
-    vim = cfi.importance(X_test, y_test)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test)
     return importance
 
 
@@ -200,9 +200,8 @@ def test_group(data_generator):
     )
     # Warning expected since column names in pandas are not considered
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = cfi.importance(X_test_df, y_test)
+        importance = cfi.importance(X_test_df, y_test)
 
-    importance = vim["importance"]
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)
     # Verify that important feature group has higher score
@@ -249,8 +248,7 @@ def test_classication(data_generator):
         groups=None,
         var_type=["continuous"] * X.shape[1],
     )
-    vim = cfi.importance(X_test, y_test_clf)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test_clf)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # Check that important features have higher mean importance scores
@@ -282,8 +280,8 @@ class TestCFIClass:
         assert cfi.loss == root_mean_squared_error
         assert cfi.method == "predict"
         assert cfi.categorical_max_cardinality == 10
-        assert cfi.imputation_model_categorical is None
-        assert cfi.imputation_model_continuous is None
+        assert isinstance(cfi.imputation_model_categorical, LogisticRegressionCV)
+        assert isinstance(cfi.imputation_model_continuous, RidgeCV)
 
     def test_fit(self, data_generator):
         """Test fitting CFI"""
@@ -298,13 +296,13 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_groups == X.shape[1]
+        assert cfi._n_groups == X.shape[1]
 
         # Test fit with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
         cfi.fit(X, groups=groups)
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_groups == 2
+        assert cfi._n_groups == 2
 
     def test_categorical(
         self,
@@ -335,7 +333,7 @@ class TestCFIClass:
         var_type = ["continuous", "continuous", "categorical"]
         cfi.fit(X, y, var_type=var_type)
 
-        importances = cfi.importance(X, y)["importance"]
+        importances = cfi.importance(X, y)
         assert len(importances) == 3
         assert np.all(importances >= 0)
 
@@ -501,7 +499,7 @@ class TestCFIExceptions:
             ],
         }
         cfi.fit(X, groups=subgroups, var_type="auto")
-        cfi.groups["group1"] = [None for i in range(100)]
+        cfi.features_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -569,3 +567,22 @@ class TestCFIExceptions:
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    ids=["high level noise"],
+)
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
+def test_function_cfi(data_generator, n_permutation, cfi_seed):
+    """Test CFI function"""
+    X, y, _, _ = data_generator
+    cfi(
+        LinearRegression().fit(X, y),
+        X,
+        y,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=n_permutation,
+        random_state=cfi_seed,
+    )
