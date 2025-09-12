@@ -1,18 +1,25 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
+from hidimstat._utils.scenario import multivariate_simulation
 
-from hidimstat import CPI, BasePerturbation
+from hidimstat import LOCO
+from hidimstat.base_perturbation import BasePerturbation
 
 
-def test_cpi(linear_scenario):
-    """Test the Conditional Permutation Importance algorithm on a linear scenario."""
-    X, y, beta = linear_scenario
+def test_loco():
+    """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
 
@@ -20,24 +27,19 @@ def test_cpi(linear_scenario):
 
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
-    imputation_model = LinearRegression()
 
-    cpi = CPI(
+    loco = LOCO(
         estimator=regression_model,
-        imputation_model_continuous=clone(imputation_model),
-        imputation_model_categorical=LogisticRegression(),
-        n_permutations=20,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
 
-    cpi.fit(
+    loco.fit(
         X_train,
+        y_train,
         groups=None,
-        var_type="auto",
     )
-    vim = cpi.importance(X_test, y_test)
+    vim = loco.importance(X_test, y_test)
 
     importance = vim["importance"]
     assert importance.shape == (X.shape[1],)
@@ -54,96 +56,86 @@ def test_cpi(linear_scenario):
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
     regression_model.fit(X_train_df, y_train)
-    cpi = CPI(
+    loco = LOCO(
         estimator=regression_model,
-        imputation_model_continuous=clone(imputation_model),
-        n_permutations=20,
         method="predict",
-        random_state=0,
         n_jobs=1,
     )
-    cpi.fit(
+    loco.fit(
         X_train_df,
+        y_train,
         groups=groups,
-        var_type="continuous",
     )
-    # warnings because we don't consider the name of columns of pandas
+    # warnings because we doesn't considere the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = cpi.importance(X_test_df, y_test)
+        vim = loco.importance(X_test_df, y_test)
 
     importance = vim["importance"]
     assert importance[0].mean() > importance[1].mean()
 
-    # Classification scenario
-    y_clf = np.where(y > 0, 1, 0)
-
+    # Classification case
+    y_clf = np.where(y > np.median(y), 1, 0)
     _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
     logistic_model = LogisticRegression()
     logistic_model.fit(X_train, y_train_clf)
 
-    cpi = CPI(
+    loco_clf = LOCO(
         estimator=logistic_model,
-        imputation_model_continuous=clone(imputation_model),
-        n_permutations=20,
-        random_state=0,
-        n_jobs=1,
         method="predict_proba",
+        n_jobs=1,
         loss=log_loss,
     )
-    cpi.fit(
+    loco_clf.fit(
         X_train,
-        groups=None,
-        var_type=["continuous"] * X.shape[1],
+        y_train_clf,
+        groups={"group_0": important_features, "the_group_1": non_important_features},
     )
-    vim = cpi.importance(X_test, y_test_clf)
+    vim_clf = loco_clf.importance(X_test, y_test_clf)
+
+    importance_clf = vim_clf["importance"]
+    assert importance_clf.shape == (2,)
+    assert importance[0].mean() > importance[1].mean()
 
 
-def test_raises_value_error(
-    linear_scenario,
-):
-    """Test for the ValueError raised by the Conditional Permutation Importance
-    algorithm."""
-    X, y, _ = linear_scenario
-
-    # Predict method not recognized
-    with pytest.raises(ValueError):
-        fitted_model = LinearRegression().fit(X, y)
-        predict_method = "unknown method"
-        CPI(
-            estimator=fitted_model,
-            method=predict_method,
-        )
-
+def test_raises_value_error():
+    """Test for error when model does not have predict_proba or predict."""
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
     # Not fitted estimator
     with pytest.raises(NotFittedError):
-        cpi = CPI(
+        loco = LOCO(
             estimator=LinearRegression(),
             method="predict",
         )
 
-    # Not fitted imputation model with predict and importance methods
-    with pytest.raises(ValueError, match="The estimator is not fitted."):
+    # Not fitted sub-model when calling importance and predict
+    with pytest.raises(ValueError, match="The class is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.predict(X)
-    with pytest.raises(ValueError, match="The estimator is not fitted."):
+        loco.predict(X)
+    with pytest.raises(ValueError, match="The class is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
-        cpi.importance(X, y)
+        loco.importance(X, y)
 
     with pytest.raises(
         ValueError, match="The estimators require to be fit before to use them"
     ):
         fitted_model = LinearRegression().fit(X, y)
-        cpi = CPI(
+        loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
-        BasePerturbation.fit(cpi, X, y)
-        cpi.importance(X, y)
+        BasePerturbation.fit(loco, X, y)
+        loco.importance(X, y)

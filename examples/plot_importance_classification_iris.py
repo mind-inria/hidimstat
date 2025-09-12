@@ -4,7 +4,7 @@ Measuring Individual and Group Variable Importance for Classification
 
 In this example, we show on the Iris dataset how to measure variable importance for
 classification tasks. We use two different variable importance methods: Conditional
-Permutation importance (CPI) and Permutation Feature Importance (PFI) with two different
+Feature importance (CFI) and Permutation Feature Importance (PFI) with two different
 classifiers: Logistic Regression (LR) and Support Vector Classifier (SVC). We start by
 measuring the importance of individual variables and then show how to measure the
 importance of groups of variables.
@@ -15,7 +15,7 @@ To briefly summarize the two methods:
    the increase in the loss when predicting (using om the same full model) on the
    shuffled data.
 
- - CPI (Conditional Permutation Importance) is a conditional version of PFI that
+ - CFI (Conditional Feature Importance) is a conditional version of PFI that
    preserves the conditional distribution of the feature. It introduces a second model to
    estimate this conditional distribution.
 
@@ -34,7 +34,7 @@ from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVC
 
-from hidimstat import CPI, PFI
+from hidimstat import CFI, PFI
 
 ########################################################################
 # Load the iris dataset and add a spurious feature
@@ -42,7 +42,7 @@ from hidimstat import CPI, PFI
 # We load the iris dataset and add a spurious feature that is a linear combination of
 # the petal length, width amd some noise but not related to the target. The spurious feature
 # allows to illustrate that `PFI` is not robust to spurious features,
-# contrarily to `CPI`.
+# contrarily to `CFI`.
 dataset = load_iris()
 rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
@@ -60,7 +60,7 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # require a K-fold cross-fitting. Computing the importance for each fold is
 # embarassingly parallel. For this reason, we encapsulate the main computations in a
 # function and use joblib to parallelize the computation.
-def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=None):
+def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=None):
     model_c = clone(model)
     model_c.fit(X[train_index], y[train_index])
     y_pred = model_c.predict(X[test_index])
@@ -74,8 +74,8 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CPI", groups=No
         loss = hinge_loss
         model_name = "SVC"
 
-    if vim_name == "CPI":
-        vim = CPI(
+    if vim_name == "CFI":
+        vim = CFI(
             estimator=model_c,
             imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
             n_permutations=50,
@@ -116,14 +116,14 @@ models = [
     GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
-groups = {ft: i for i, ft in enumerate(dataset.feature_names)}
+groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
         X, y, model, train_index, test_index, vim_name=vim_name, groups=groups
     )
     for train_index, test_index in cv.split(X)
     for model in models
-    for vim_name in ["CPI", "PFI"]
+    for vim_name in ["CFI", "PFI"]
 )
 df = pd.concat(out_list)
 
@@ -169,7 +169,7 @@ df_pval = compute_pval(df, threshold=threshold)
 # --------------------------------------------------------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
-    for method, ax in zip(["CPI", "PFI"], axes):
+    for method, ax in zip(["CFI", "PFI"], axes):
         df_method = df_importance[df_importance["vim"] == method]
         legend = ax == axes[0]
         sns.stripplot(
@@ -236,7 +236,7 @@ plot_results(df, df_pval)
 ####################################################################################
 # The boxplot shows the importance of each feature, with colors indicating the
 # classifier used. A star marks the features that have a p-value (computed with a
-# t-test) below 0.05. As expected, the spurious feature is not selected by CPI,
+# t-test) below 0.05. As expected, the spurious feature is not selected by CFI,
 # but is selected by Permutation Importance. It can also be seen that using the logistic
 # regression model leads to greater statistical power than using the SVC model. This can
 # be explained by the small number of samples that do not allow leveraging the
@@ -248,7 +248,7 @@ plot_results(df, df_pval)
 #########################################################################
 # Measuring the importance of groups of features
 # -----------------------------------------------------------------------
-# In the example above, CPI did not select some features. This is because it
+# In the example above, CFI did not select some features. This is because it
 # measures conditional importance, which is the additional independent information a
 # feature provides knowing all the other features. When features are highly correlated,
 # this additional information decreases, resulting in lower importance rankings. To
@@ -262,7 +262,7 @@ out_list = Parallel(n_jobs=5)(
     )
     for train_index, test_index in cv.split(X)
     for model in models
-    for vim_name in ["CPI", "PFI"]
+    for vim_name in ["CFI", "PFI"]
 )
 
 df_grouped = pd.concat(out_list)

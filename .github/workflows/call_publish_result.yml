@@ -17,11 +17,11 @@ jobs:
     steps:
       # get reports from previous job 
       - name: Get HTML reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: pytest-results-html-*-os-*
       - name: Get time reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: pytest-results-log-*-os-*
       # put all the reports in one folder and add an index
@@ -94,13 +94,14 @@ jobs:
       PYTHON: '3.13'
     steps:
     # initialize the reposititory
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     # get coverage only for 1 job 
     - name: Get data
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
+        path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
     # check the size of the file for not pushing empty file
     - name: Check file size
       id: check_size
@@ -111,7 +112,7 @@ jobs:
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
       if: ${{ env.FILE_SIZE > 1 }}
-      uses: codecov/codecov-action@v5.4.3
+      uses: codecov/codecov-action@v5.5.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
