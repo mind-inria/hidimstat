@@ -166,7 +166,7 @@ class BaseVariableImportance(BaseEstimator):
         gamma: float, default=0.5
             The gamma parameter for quantile aggregation of p-values (between 0 and 1)
 
-        Returnsgit
+        Returns
         -------
         numpy.ndarray
             Boolean array indicating selected features (True for selected, False for not selected)
