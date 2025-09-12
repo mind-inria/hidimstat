@@ -27,7 +27,7 @@ def _check_vim_predict_method(method):
         )
 
 
-def get_generated_attributes(cls):
+def get_fitted_attributes(cls):
     """
     Get all attributes from a class that end with a single underscore
     and doesn't start with one underscore.
