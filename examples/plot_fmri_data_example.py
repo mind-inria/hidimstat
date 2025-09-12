@@ -67,8 +67,10 @@ warnings.filterwarnings(
     "ignore", message="The provided image has no sform in its header."
 )
 
-# Limit the ressoruce use for the example to 5 G.
-resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
+# Limit the ressoruce use for the example to 5 G or maximum of possible.
+soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+new_limit = int(5 * 1e9)
+resource.setrlimit(resource.RLIMIT_AS, (min(new_limit, hard), hard))
 n_job = 1
 
 
