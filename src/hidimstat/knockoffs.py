@@ -462,13 +462,13 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, fdr, preconfigure_estimator
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
 
     # Compute the threshold level and selecte the important variables
-    ko_thr = _knockoff_threshold(test_score, fdr=fdr)
+    ko_thr = _fdr_threshold_on_symmetric_null(test_score, fdr=fdr)
     selected = np.where(test_score >= ko_thr)[0]
 
     return test_score, ko_thr, selected
 
 
-def _knockoff_threshold(test_score, fdr=0.1):
+def _fdr_threshold_on_symmetric_null(test_score, fdr=0.1):
     """
     Calculate the knockoff threshold based on the procedure stated in the article.
 
