@@ -136,7 +136,7 @@ class BaseVariableImportance(BaseEstimator):
             )
 
 
-class GroupVariableImportance:
+class GroupVariableImportanceMixin:
     """
     Base class for variable importance methods using feature groups.
     This class extends `BaseVariableImportance` to support variable importance
