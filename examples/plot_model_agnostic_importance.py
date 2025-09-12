@@ -35,7 +35,7 @@ from sklearn.metrics import hinge_loss, log_loss
 from sklearn.model_selection import KFold
 from sklearn.svm import SVC
 
-from hidimstat import LOCO, D0CRT
+from hidimstat import D0CRT, LOCO
 
 #############################################################################
 # Generate data where classes are not linearly separable
@@ -70,11 +70,11 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
-d0crt_linear = D0CRT(estimator=clone(linear_model), screening=False)
+d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 
-d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening=False)
+d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening_threshold=None)
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 
@@ -162,7 +162,8 @@ plt.show()
 # As expected, when using linear models (d0CRT and LOCO-linear) that are misspecified,
 # the varibles are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
-# to explain the data.
+# to explain the data. While d0CRT can use any estimator, its distillation step
+# restricts it from capturing variable interactions.
 
 
 #################################################################################
