@@ -37,7 +37,7 @@ def test_loco():
     loco.fit(
         X_train,
         y_train,
-        groups=None,
+        features_groups=None,
     )
     vim = loco.importance(X_test, y_test)
 
@@ -64,7 +64,7 @@ def test_loco():
     loco.fit(
         X_train_df,
         y_train,
-        groups=groups,
+        features_groups=groups,
     )
     # warnings because we doesn't considere the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
@@ -88,7 +88,10 @@ def test_loco():
     loco_clf.fit(
         X_train,
         y_train_clf,
-        groups={"group_0": important_features, "the_group_1": non_important_features},
+        features_groups={
+            "group_0": important_features,
+            "the_group_1": non_important_features,
+        },
     )
     vim_clf = loco_clf.importance(X_test, y_test_clf)
 
