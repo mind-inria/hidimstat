@@ -36,13 +36,16 @@ After this installation, you can launch the test suite:
 Style guide
 """""""""""
 
-The code is formatted `black <https://black.readthedocs.io/en/stable/>`_.
-To apply the style install black and run it:
+The code is formatted `black <https://black.readthedocs.io/en/stable/>`_
+and `isort <https://pycqa.github.io/isort/>`_.
+
+To apply the required dependencies and style your code:
 
 .. code-block:: sh
 
-    pip install black
+    pip install -e '.[style]'
     black .
+    isort .
 
 Examples
 """"""""
