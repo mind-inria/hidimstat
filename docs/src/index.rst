@@ -181,5 +181,6 @@ References
   :maxdepth: 1
 
   api
+  user_guide
   generated/gallery/examples/index
   dev/index
