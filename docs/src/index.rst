@@ -171,8 +171,8 @@ For Knockoffs Inference:
    :target: https://github.com/psf/black
 
 
-References
-----------
+bibliography
+------------
 .. bibliography:: ../tools/references.bib
 
   
