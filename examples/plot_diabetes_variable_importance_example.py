@@ -257,4 +257,4 @@ plt.show()
 # References
 # ----------
 # .. footbibliography::
-# 
+#

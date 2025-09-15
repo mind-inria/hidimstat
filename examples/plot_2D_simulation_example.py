@@ -357,4 +357,4 @@ plot(maps, titles)
 # References
 # ----------
 # .. footbibliography::
-# 
+#
