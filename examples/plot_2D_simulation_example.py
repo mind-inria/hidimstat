@@ -242,7 +242,6 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 # and referred to as Desparsified Lasso.
 
 
-
 # compute desparsified lasso
 beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
 pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
