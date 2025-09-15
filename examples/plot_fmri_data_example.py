@@ -147,13 +147,13 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # %%
 # Making the inference with several algorithms
 # --------------------------------------------
-
-# %%
+# 
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
 # of 5 G for memory. To handle this problem, the following methods use some
 # feature aggregation methods.
+# 
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
         X, y, noise_method="median", max_iteration=1000
