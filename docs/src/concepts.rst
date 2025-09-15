@@ -29,6 +29,9 @@ the target variable, the importance of a variable can be estimated as follows:
     # get pvalues
     pvalue = vi.pvalues_                               
 
+Here, ``VI`` can be any variable importance method implemented in HiDimStat,
+such as :class:`hidimstat.LOCO`, :class:`hidimstat.CFI`, :class:`hidimstat.PFI`,
+:class:`hidimstat.D0CRT` etc.
 
 (Controlled) Variable Selection
 -------------------------------
