@@ -1,6 +1,6 @@
 .. _visualization:
 
 
-==========
-Tools for visualization 
-==========
+=======================
+Tools for visualization
+=======================
