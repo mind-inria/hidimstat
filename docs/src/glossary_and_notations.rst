@@ -37,8 +37,7 @@ Glossary
         .. math::
             \text{FDP} = \frac{|\hat S \cap \hat S \setminus S^*|}{|\hat S|}.
 
-        where :math:`|\cdot|` denotes the cardinality of a set, and using the convention 
-        that :math:`\text{FDP} = 0` if :math:`\hat S = \emptyset`
+        where :math:`|\cdot|` denotes the cardinality of a set.
 
     e-values
         TODO:
