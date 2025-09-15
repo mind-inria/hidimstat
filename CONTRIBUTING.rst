@@ -21,7 +21,7 @@ For testing, we recommend you install the test dependencies with pip:
 
 .. code-block:: sh
 
-   pip install hidimstat[test]
+   pip install -e '.[test]'
   
 This will install ``pytest`` and the following extensions: 
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
@@ -40,7 +40,7 @@ To run the examples, we recommend you install the example dependencies with pip:
 
 .. code-block:: sh
 
-    pip install hidimstat[example]
+    pip install -e '.[example]'
 
 For running the examples, it's necessary to install Matplotlib >= |MatplotlibMinVersion| and seaborn >=
 |SeabornMinVersion|.
@@ -55,7 +55,7 @@ The documentation is built with Sphinx. We recommend you install the documentati
 
 .. code-block:: sh
 
-    pip install hidimstat[doc]
+    pip install -e '.[doc]'
 
 After this installation, you can build the documentation from the source using the Makefile in doc_conf:
 
