@@ -88,7 +88,8 @@ jobs:
             bash ./tools/documentation/circleci/setup_virtual_environment.sh  
       - run:
           name: "Install dependencies"
-          command: 
+          command: |
+            source .venv/bin/activate
             make -C docs linkcheck   
 
   get-tests-reports:
