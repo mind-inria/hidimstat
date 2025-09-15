@@ -183,4 +183,5 @@ References
   api
   user_guide
   generated/gallery/examples/index
+  dev/CONTRIBUTING
   dev/index
