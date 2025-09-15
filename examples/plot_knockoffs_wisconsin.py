@@ -106,7 +106,10 @@ lasso_noisy = LogisticRegressionCV(
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
 print(
-    f"Accuracy of Lasso on test set with noise: {lasso_noisy.score(noisy_test, y_test):.3f}"
+    (
+        "Accuracy of Lasso on test set with noise: "
+        f"{lasso_noisy.score(noisy_test, y_test):.3f}"
+    )
 )
 
 selected_mask = [

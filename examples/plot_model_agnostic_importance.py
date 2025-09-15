@@ -74,7 +74,10 @@ d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 
-d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening_threshold=None)
+d0crt_non_linear = D0CRT(
+    estimator=clone(non_linear_model),
+    screening_threshold=None,
+)
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 
@@ -97,7 +100,10 @@ for train, test in cv.split(X):
     linear_model_.fit(X[train], y[train])
 
     vim_linear = LOCO(
-        estimator=linear_model_, loss=log_loss, method="predict_proba", n_jobs=2
+        estimator=linear_model_,
+        loss=log_loss,
+        method="predict_proba",
+        n_jobs=2,
     )
     vim_non_linear = LOCO(
         estimator=non_linear_model_,
@@ -108,7 +114,9 @@ for train, test in cv.split(X):
     vim_linear.fit(X[train], y[train])
     vim_non_linear.fit(X[train], y[train])
 
-    importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
+    importances_linear.append(
+        vim_linear.importance(X[test], y[test])["importance"],
+    )
     importances_non_linear.append(
         vim_non_linear.importance(X[test], y[test])["importance"]
     )
@@ -118,7 +126,12 @@ for train, test in cv.split(X):
 # To select variables using LOCO, we compute the p-values using a t-test over the
 # importance scores.
 
-_, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
+_, pval_linear = ttest_1samp(
+    importances_linear,
+    0,
+    axis=0,
+    alternative="greater",
+)
 _, pval_non_linear = ttest_1samp(
     importances_non_linear, 0, axis=0, alternative="greater"
 )
@@ -126,7 +139,12 @@ _, pval_non_linear = ttest_1samp(
 df_pval = pd.DataFrame(
     {
         "pval": np.hstack(
-            [pval_dcrt_linear, pval_dcrt_non_linear, pval_linear, pval_non_linear]
+            [
+                pval_dcrt_linear,
+                pval_dcrt_non_linear,
+                pval_linear,
+                pval_non_linear,
+            ]
         ),
         "method": ["d0CRT-linear"] * 2
         + ["d0CRT-non-linear"] * 2
@@ -152,7 +170,11 @@ sns.barplot(
 )
 ax.set_xlabel("-$\\log_{10}(pval)$")
 ax.axvline(
-    -np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\\log_{10}(0.05)$"
+    -np.log10(0.05),
+    color="k",
+    lw=3,
+    linestyle="--",
+    label="-$\\log_{10}(0.05)$",
 )
 ax.legend()
 plt.show()
