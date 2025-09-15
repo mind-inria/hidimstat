@@ -56,4 +56,4 @@ randomly permuted version :math:`\epsilon_j^P`:
 
 Inference
 ---------
-TODO finish the section on Inference
+TODO finish the section on inference
