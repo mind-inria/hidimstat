@@ -50,7 +50,7 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-# Specify how to identify the prompt when copying code snippets
+# Specify how to identify the prompt when copying a code snippet
 copybutton_prompt_text = r">>> |\.\.\. "
 copybutton_prompt_is_regexp = True
 copybutton_exclude = "style"
