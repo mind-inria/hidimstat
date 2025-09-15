@@ -18,6 +18,7 @@ workflows:
         equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
     jobs:
       - build-documentation
+      - checklinks
       - get-tests-reports
       - deploy-documentation:
           requires:
@@ -66,6 +67,29 @@ jobs:
           paths:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
+
+  checklinks:
+    docker:
+      - image: cimg/python:3.13.2
+    environment:
+      - PYTHON_VERSION: "3.13"
+    steps:
+      - checkout
+      - run: 
+          name:
+            'Checkout to PR commit'
+          command: 
+            bash ./tools/documentation/circleci/checkout_merge_commit.sh
+      - restore_cache:
+          key: saved-cache
+      - run:
+          name: "Create the environment for building the documentation"
+          command: 
+            bash ./tools/documentation/circleci/setup_virtual_environment.sh  
+      - run:
+          name: "Install dependencies"
+          command: 
+            make -C docs linkcheck   
 
   get-tests-reports:
     docker:
