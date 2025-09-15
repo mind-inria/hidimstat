@@ -38,7 +38,7 @@ model.fit(X_train, y_train)
 #############################################################################
 #  Visualizing the decision function of the SVC
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Let's plot the decision function of the fitted model 
+# Let's plot the decision function of the fitted model
 # to confirm that the model is able to separate the two classes.
 
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])

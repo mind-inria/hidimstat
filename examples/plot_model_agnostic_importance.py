@@ -136,7 +136,12 @@ print(f"{pval_non_linear=}")
 df_pval = pd.DataFrame(
     {
         "pval": np.hstack(
-            [pval_dcrt_linear, pval_dcrt_non_linear, pval_linear, pval_non_linear,]
+            [
+                pval_dcrt_linear,
+                pval_dcrt_non_linear,
+                pval_linear,
+                pval_non_linear,
+            ]
         ),
         "method": ["d0CRT-linear"] * 2
         + ["d0CRT-non-linear"] * 2

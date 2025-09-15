@@ -137,18 +137,18 @@ mask = masker.mask_img_.get_fdata().astype(bool)
 # For fMRI data taking 500 clusters is generally a good default choice.
 
 n_clusters = 500
+
 # Deriving voxels connectivity.
 shape = mask.shape
 n_x, n_y, n_z = shape[0], shape[1], shape[2]
 connectivity = image.grid_to_graph(n_x=n_x, n_y=n_y, n_z=n_z, mask=mask)
+
 # Initializing FeatureAgglomeration object.
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 #############################################################################
 # Making the inference with several algorithms
 # --------------------------------------------
-
-#############################################################################
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
