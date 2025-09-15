@@ -59,9 +59,56 @@ randomly permuted version :math:`\epsilon_j^p`:
     TODO: note on the fact estimating :math:`\nu_j` is supposed to be an easy task. 
     Note on the fact that we can use any valid conditional sampler can be used.
 
+
 Inference
 ---------
 TODO finish the section on inference
+
+
+Regression example
+------------------
+The following example illustrates the use of CFI on a regression task with::
+
+    >>> from sklearn.datasets import make_regression
+    >>> from sklearn.linear_model import LinearRegression
+    >>> from sklearn.model_selection import train_test_split
+    >>> from hidimstat import CFI
+
+
+    >>> X, y = make_regression(n_features=2)
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
+    >>> model = LinearRegression().fit(X_train, y_train)
+    
+    >>> cfi = CFI(estimator=model, imputation_model_continuous=LinearRegression())
+    >>> cfi.fit(X_train, y_train)
+    >>> features_importance = cfi.importance(X_test, y_test)
+
+
+Classification example
+----------------------
+To measure feature importance in a classification task, a classification loss should be
+used, in addition, the prediction method of the estimator should output the corresponding 
+type of prediction (probabilities or classes). The following example illustrates the use
+of CFI on a classification task with::
+
+    >>> from sklearn.datasets import make_classification
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from sklearn.linear_model import LinearRegression
+    >>> from sklearn.metrics import log_loss
+    >>> from sklearn.model_selection import train_test_split
+    >>> from hidimstat import CFI
+
+    >>> X, y = make_classification(n_features=4)
+    >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
+    >>> model = RandomForestClassifier().fit(X_train, y_train)
+    >>> cfi = CFI(
+    ...     estimator=model,
+    ...     imputation_model_continuous=LinearRegression(),
+    ...     loss=log_loss,
+    ...     method="predict_proba",
+    ... )
+    >>> cfi.fit(X_train, y_train)
+    >>> features_importance = cfi.importance(X_test, y_test)
 
 References
 ----------
