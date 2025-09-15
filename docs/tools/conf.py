@@ -50,6 +50,11 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+# Specify how to identify the prompt when copying code snippets
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = "style"
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../tools/_templates"]
 # List of patterns, relative to source directory, that match files and
