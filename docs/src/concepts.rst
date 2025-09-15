@@ -47,6 +47,32 @@ So, if we want to select the variables with a p-value lower than a threshold
     # selection of the importance and pvalues
     vi.selection(threshold_pvalue=p)
 
+
+Types of Variable Importance methods
+------------------------------------
+
+There are two main types of variable importance methods implemented in
+HiDimStat:
+
+1. Conditional methods: these methods estimate the importance of a variable
+   conditionally to all the other variables. Examples of such methods are
+   :class:`hidimstat.LOCO` and :class:`hidimstat.CFI`.
+
+2. Marginal methods: these methods estimate the importance of a variable
+   marginally to all the other variables. Examples of such methods are
+   :class:`hidimstat.PFI` and :class:`hidimstat.D0CRT`.
+
+The main difference between these two types of methods is that conditional
+methods are more computationally expensive but they can handle correlated
+variables better than marginal methods :footcite:p:`Covert2020`.
+
+In particular, marginal methods can be too conservative when variables are
+highly correlated, leading to a loss of power in the variable selection step.
+However, marginal methods are more scalable to high-dimensional datasets
+and they can be used when the number of samples is smaller than the number of
+variables, which is not the case for conditional methods.
+
+
 References
 ----------
 
