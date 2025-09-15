@@ -9,23 +9,25 @@ Theoretical index
 ------------------
 
 
-Conditional Feature Importance (CFI) is a model-agnostic method that estimates feature 
-importance using perturbations. It generates a perturbed feature :math:`X_j^P` that is
-sampled conditionally on the other features :math:`X_j^P \sim P(X_j | X_{-j})`. The
-predictive model is then evaluated on the perturbed feature vector :math:`\tilde X = \left[X_1, ...,X_j^P, ..., X_p\right]`,
-and the feature importance is defined as the performance drop of the model on the 
+Conditional Feature Importance (CFI) is a model-agnostic method that estimates
+feature importance using perturbations. It generates a perturbed feature
+:math:`X_j^P` that is sampled conditionally on the other features :math:`X_j^P
+\sim P(X_j | X_{-j})`. The predictive model is then evaluated on the perturbed
+feature vector :math:`\tilde X = \left[X_1, ...,X_j^P, ..., X_p\right]`, and the
+feature importance is defined as the performance drop of the model on the
 perturbed data:
 
 .. math::
-    \psi_j^{CFI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(\tilde X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right],
+    \psi_j^{CFI} = \mathbb{E} [\mathcal{L}(y, \mu(\tilde X))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
 
 The target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
 Indeed, 
 
 .. math::
-    \frac{1}{2} \psi_j^{CFI} &= \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^-j)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] \\
-    &= \psi_j^{TSI}.
+    \frac{1}{2} \psi_j^{CFI} 
+    = \psi_j^{TSI} 
+    = \mathbb{E} [\mathcal{L}(y, \mu_{-j}(X^-j))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
 
 Estimation procedure
