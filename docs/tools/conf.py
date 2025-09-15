@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -47,6 +47,7 @@ extensions = [
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
