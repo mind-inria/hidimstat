@@ -43,8 +43,9 @@ It is an estimation of the deviation based on the range of values, based on the 
 for the normal distribution, roughly 95% of the of the data are bewteen minus two and plus
 two standard deviations. Therefore the range divided by four is a rough estimation of the
 deviation.
-==========
+
+
 References
-==========
-.. bibliography:: ../../tools/references.bib
+---------
+.. footbibliography::
 

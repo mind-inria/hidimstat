@@ -49,5 +49,5 @@ Example(s)
 
 
 References
-==========
-.. bibliography:: ../tools/references.bib
+----------
+.. bibliography:: ../../tools/references.bib
