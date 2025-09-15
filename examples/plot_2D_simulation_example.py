@@ -47,10 +47,6 @@ References
 
 """
 import matplotlib.pyplot as plt
-
-#############################################################################
-# Imports needed for this script
-# ------------------------------
 import numpy as np
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.preprocessing import StandardScaler

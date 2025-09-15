@@ -8,10 +8,6 @@ repetitions is set to 10. The metrics used are the type-I error and
 the power
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

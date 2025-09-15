@@ -42,9 +42,6 @@ References
 
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

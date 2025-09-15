@@ -13,10 +13,6 @@ by :footcite:t:`pmlr-v119-nguyen20a` and :footcite:t:`Ren_2023` to derandomize
 inference.
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
-
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np

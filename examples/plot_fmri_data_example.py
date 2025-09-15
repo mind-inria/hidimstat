@@ -29,9 +29,6 @@ As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
 import resource
 import warnings
 
