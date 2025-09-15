@@ -39,6 +39,6 @@ Glossary
 
         where :math:`|\cdot|` denotes the cardinality of a set, and using the convention 
         that :math:`\text{FDP} = 0` if :math:`\hat S = \emptyset`
-        
+
     e-values
-        TODO
+        TODO:
