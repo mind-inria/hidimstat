@@ -14,4 +14,4 @@ data generating process :math:`y = \mu(X) + \epsilon`, the TSI can be expressed 
     \psi_j^{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right],
 
 where :math:`X^{-j}` denotes the feature vector without the :math:`j^{th}` feature, and
-:math:`\mu_{-j}(X^{-j}) = \mathbb{E}[y | X^{-j}]` sub-model. 
+:math:`\mu_{-j}(X^{-j}) = \mathbb{E}[y | X^{-j}]` is the "sub-model".
