@@ -36,8 +36,7 @@ The estimation of CFI relies on the ability to sample the perturbed feature matr
 distribution, :math:`X_j^p \sim P(X_j | X_{-j})`. This can be achieved using the 
 conditional permutation approach (:footcite:t:`Chamma_NeurIPS2023`). The procedure relies on the 
 decomposition of the :math:`j^{th}` feature into a part that is predictable from the
-other features, and an "additive innovation" or residual information that is independent
-of the other features:
+other features, and a residual information term that is independent of the other features:
 
 .. math::
     X_j = \nu_j(X_{-j}) + \epsilon_j, \quad \text{with} \quad \epsilon_j \perp\!\!\!\perp X_{-j} \text{ and } \mathbb{E}[\epsilon_j] = 0.
