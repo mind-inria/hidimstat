@@ -26,12 +26,19 @@ Glossary
 --------
 
 .. glossary::
-
-    FDR
-    False Discovery Rate
-        TODO
     
     FDP
     False Discovery Proportion
-        TODO 
+        The False Discovery Proportion (FDP) is the ratio between the number of false
+        discoveries and the total number of discoveries. Denoting :math:`\hat S` the 
+        estimated set of important features, and :math:`S^*` the true set of important 
+        features, the FDP is defined as:
 
+        .. math::
+            \text{FDP} = \frac{|\hat S \cap \hat S \ S^*|}{|\hat S|}.
+
+        where :math:`|\cdot|` denotes the cardinality of a set, and using the convention 
+        that :math:`\text{FDP} = 0` if :math:`\hat S = \emptyset`
+        
+    e-values
+        TODO

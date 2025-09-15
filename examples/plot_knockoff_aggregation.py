@@ -17,13 +17,14 @@ inference.
 # Imports needed for this script
 # ------------------------------
 
-from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
     model_x_knockoff,
     model_x_knockoff_bootstrap_e_value,
@@ -31,14 +32,12 @@ from hidimstat.knockoffs import (
     model_x_knockoff_pvalue,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-from hidimstat._utils.scenario import multivariate_simulation
-
 
 #############################################################################
 # Data simulation
 # -----------------------
 # The comparison of the three methods relies on evaluating the
-# False Discovery Proportion (FDP) and statistical power. Assessing these
+# :term:`False Discovery Proportion <FDP>` (FDP) and statistical power. Assessing these
 # metrics requires knowledge of the actual data-generating process.
 # We therefore use simulated data with the following parameters:
 
@@ -225,8 +224,8 @@ effect_number_samples(n_samples=n_samples)
 #######################################################################
 # By repeating the model-X Knockoffs, we can see that instability
 # of the inference. Additionally, we can see that the aggregation method
-# is more stable. However, the e-values aggregation is more conservative,
-# i.e. the exepect variables of importance is not find.
+# is more stable. However, the :term:`e-values` aggregation is more conservative,
+# i.e. the expected variables of importance are not found.
 
 #######################################################################
 # Limitation of the aggregation methods
