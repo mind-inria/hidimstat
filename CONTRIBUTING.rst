@@ -33,6 +33,17 @@ After this installation, you can launch the test suite:
 
    pytest test
 
+Style guide
+"""""""""""
+
+The code is formatted `black <https://black.readthedocs.io/en/stable/>`_.
+To apply the style install black and run it:
+
+.. code-block:: sh
+
+    pip install black
+    black .
+
 Examples
 """"""""
 
