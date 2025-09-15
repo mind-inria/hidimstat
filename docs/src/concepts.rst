@@ -8,13 +8,16 @@ Definition of concepts
 Variable Importance
 -------------------
 
-Variable Importance (VI) is a measure of how much a variable contributes to 
-the predictive power of a model. We can then define "important" variables
-as those whose absence degrades the model's performance
-:footcite:p:`Covert2020`.
+Variable Importance (VI) aims to assign a measure of
+relevance to each feature :math:`X^j` with respect to a target  :math:`y` in the
+data-generating process. In Machine Learning, it can be seen as a measure
+of how much a variable contributes to the predictive power of a model. We 
+can then define "important" variables as those whose absence degrades 
+the model's performance :footcite:p:`Covert2020`.
 
 So if ``VI`` is a variable importance method, ``X`` a variable matrix and ``y`` 
-the target variable, the importance of a variable can be estimated as follows:
+the target variable, the importance of all the variables
+can be estimated as follows:
 
 .. code-block::
 
@@ -26,8 +29,8 @@ the target variable, the importance of a variable can be estimated as follows:
     importance = vi.importance(X, y)
     # get importance for each feature
     importance = vi.importances_
-    # get pvalues
-    pvalue = vi.pvalues_                               
+
+It allow us to rank the variables from more to less important.                            
 
 Here, ``VI`` can be a variable importance method implemented in HiDimStat,
 such as :class:`hidimstat.D0CRT` (other methods will support the same API 
@@ -70,6 +73,21 @@ highly correlated, leading to a loss of power in the variable selection step.
 However, marginal methods are more scalable to high-dimensional datasets
 and they can be used when the number of samples is smaller than the number of
 variables, which is not the case for conditional methods.
+
+
+High-dimensionality and correlation
+-----------------------------------
+
+Problem: with high-dimension 
+
+Solution: prior filtering of redundant variables or considering grouping. Brief definition of grouping.  
+
+
+
+Statistical Inference
+---------------------
+
+
 
 References
 ----------
