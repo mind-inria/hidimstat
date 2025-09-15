@@ -36,10 +36,6 @@ variant approaches for variable importance on the diabetes dataset for the
 single-level case. The aim is to see if integrating the new
 statistically-controlled solution has an impact on the results.
 
-References
-----------
-.. footbibliography::
-
 """
 
 #############################################################################
@@ -255,3 +251,10 @@ ax.set_xlabel("Variable")
 ax.set_xticks(range(len(diabetes.feature_names)))
 ax.set_xticklabels(diabetes.feature_names)
 plt.show()
+
+
+#############################################################################
+# References
+# ----------
+# .. footbibliography::
+# 
