@@ -8,7 +8,7 @@ Glossary and Notations
 Notations
 ---------
 
-.. _glossary_and_notations::
+.. _glossary::
 
     minus index
     individual features
@@ -25,7 +25,7 @@ Notations
 Glossary
 --------
 
-.. _glossary_and_notations::
+.. _glossary::
 
     FDR
     False Discovery Rate
@@ -34,3 +34,4 @@ Glossary
     FDP
     False Discovery Proportion
         TODO 
+
