@@ -93,7 +93,7 @@ X_init, y, beta, epsilon = multivariate_simulation_spatial(
 # the number of samples (small datasets require more dimension reduction) and
 # the required spatial tolerance (small clusters lead to limited spatial
 # uncertainty). Formally, "spatial tolerance" is defined by the largest
-# distance from the true support for which the occurence of a false discovery
+# distance from the true support for which the occurrence of a false discovery
 # is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
 # Theoretically, the spatial tolerance ``delta`` is equal to the largest
 # cluster diameter. However this choice is conservative, notably in the case
