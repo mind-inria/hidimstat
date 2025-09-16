@@ -48,7 +48,7 @@ References
 """
 import matplotlib.pyplot as plt
 
-#############################################################################
+# %%
 # Imports needed for this script
 # ------------------------------
 import numpy as np
@@ -71,7 +71,7 @@ from hidimstat.ensemble_clustered_inference import (
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 from hidimstat._utils.scenario import multivariate_simulation_spatial
 
-##############################################################################
+# %%
 # Generating the data
 # -------------------
 #
@@ -92,7 +92,7 @@ X_init, y, beta, epsilon = multivariate_simulation_spatial(
     n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=1
 )
 
-##############################################################################
+# %%
 # Choosing inference parameters
 # -----------------------------
 #
@@ -121,7 +121,7 @@ delta = 6
 # computation parameter
 n_jobs = 1
 
-##############################################################################
+# %%
 # Computing z-score thresholds for support estimation
 # ---------------------------------------------------
 #
@@ -140,7 +140,7 @@ correction_cluster = 1.0 / n_clusters
 thr_c = zscore_from_pval((fwer_target / 2) * correction_cluster)
 thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
 
-#############################################################################
+# %%
 # Inference with several algorithms
 # ---------------------------------
 #
@@ -183,7 +183,7 @@ def weight_map_2D_extended(shape, roi_size, delta):
 # compute true support with visible spatial tolerance
 beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
-#############################################################################
+# %%
 # Now, we compute the support estimated by a high-dimensional statistical
 # infernece method that does not leverage the data structure. This method
 # was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
@@ -206,7 +206,7 @@ selected_dl = np.logical_or(
     pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
 )
 
-#############################################################################
+# %%
 # Now, we compute the support estimated using a clustered inference algorithm
 # (c.f. :footcite:t:`chevalier2022spatially`) called Clustered Desparsified Lasso
 # (CluDL) since it uses the Desparsified Lasso technique after clustering the data.
@@ -235,7 +235,7 @@ selected_cdl = np.logical_or(
     pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
 )
 
-#############################################################################
+# %%
 # Finally, we compute the support estimated by an ensembled clustered
 # inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
 # Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
@@ -262,7 +262,7 @@ beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
     fdr=fwer_target,
 )
 
-#############################################################################
+# %%
 # Results
 # -------
 #
@@ -333,7 +333,7 @@ titles.append("EnCluDL")
 
 plot(maps, titles)
 
-#############################################################################
+# %%
 # Analysis of the results
 # -----------------------
 # As argued in the first section of this example, standard inference methods that
