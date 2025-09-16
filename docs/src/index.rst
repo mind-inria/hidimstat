@@ -172,7 +172,7 @@ For Knockoffs Inference:
    :target: https://github.com/psf/black
 
 
-bibliography
+Bibliography
 ------------
 .. bibliography:: ../tools/references.bib
 
