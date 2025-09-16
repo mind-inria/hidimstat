@@ -28,7 +28,6 @@ EnCluDL is particularly powerful as it doesn't rely on a single clustering choic
 As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
-
 import resource
 import warnings
 
@@ -67,7 +66,7 @@ resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
 n_job = 1
 
 
-#############################################################################
+# %%
 # Function to fetch and preprocess Haxby dataset
 # ----------------------------------------------
 def preprocess_haxby(subject=2, memory=None):
@@ -110,7 +109,7 @@ def preprocess_haxby(subject=2, memory=None):
     return Bunch(X=X, y=y, groups=groups, bg_img=bg_img, masker=masker)
 
 
-#############################################################################
+# %%
 # Gathering and preprocessing Haxby dataset for a given subject
 # -------------------------------------------------------------
 # The `preprocess_haxby` function make the preprocessing of the Haxby dataset,
@@ -122,9 +121,9 @@ data = preprocess_haxby(subject=2)
 X, y, groups, masker = data.X, data.y, data.groups, data.masker
 mask = masker.mask_img_.get_fdata().astype(bool)
 
-#############################################################################
+# %%
 # Initializing FeatureAgglomeration object that performs the clustering
-# -------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # For fMRI data taking 500 clusters is generally a good default choice.
 
 n_clusters = 500
@@ -135,16 +134,16 @@ connectivity = image.grid_to_graph(n_x=n_x, n_y=n_y, n_z=n_z, mask=mask)
 # Initializing FeatureAgglomeration object.
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
-#############################################################################
+# %%
 # Making the inference with several algorithms
 # --------------------------------------------
-
-#############################################################################
+#
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
 # of 5 G for memory. To handle this problem, the following methods use some
 # feature aggregation methods.
+#
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
         X, y, noise_method="median", max_iteration=1000
@@ -157,7 +156,7 @@ except MemoryError as err:
     one_minus_pval_dl = None
     print("As expected, Desparsified Lasso uses too much memory.")
 
-#############################################################################
+# %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
@@ -167,7 +166,7 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
 )
 
-#############################################################################
+# %%
 # Below, we run the ensemble clustered inference algorithm which adds a
 # randomization step over the clustered inference algorithm (c.f. References).
 # To make the example as short as possible we take `n_bootstraps=5`
@@ -199,7 +198,7 @@ beta_hat, selected = ensemble_clustered_inference_pvalue(
     fdr=0.1,
 )
 
-#############################################################################
+# %%
 # Plotting the results
 # --------------------
 # To allow a better visualization of the disciminative pattern we will plot
@@ -212,14 +211,14 @@ beta_hat, selected = ensemble_clustered_inference_pvalue(
 n_samples, n_features = X.shape
 target_fwer = 0.1
 
-#############################################################################
+# %%
 # We now translate the FWER target into a z-score target.
 # For the permutation test methods we do not need any additional correction
 # since the p-values are already adjusted for multiple testing.
 
 zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
 
-#############################################################################
+# %%
 # Other methods need to be corrected. We consider the Bonferroni correction.
 # For methods that do not reduce the feature space, the correction
 # consists in dividing by the number of features.
@@ -227,14 +226,14 @@ zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
 correction = 1.0 / n_features
 zscore_threshold_no_clust = zscore_from_pval((target_fwer / 2) * correction)
 
-#############################################################################
+# %%
 # For methods that parcelates the brain into groups of voxels, the correction
 # consists in dividing by the number of parcels (or clusters).
 
 correction_clust = 1.0 / n_clusters
 zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
-#############################################################################
+# %%
 # Now, we can plot the thresholded z-score maps by translating the
 # p-value maps estimated previously into z-score maps and using the
 # suitable threshold. For a better readability, we make a small function
@@ -283,7 +282,7 @@ plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # running as a script outside IPython
 show()
 
-#############################################################################
+# %%
 # Analysis of the results
 # -----------------------
 # As advocated in introduction, the methods that do not reduce the original
@@ -300,7 +299,7 @@ show()
 # spurious discoveries.
 
 
-#############################################################################
+# %%
 # References
 # ----------
 # .. footbibliography::

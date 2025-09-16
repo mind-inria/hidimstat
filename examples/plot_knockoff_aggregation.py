@@ -12,7 +12,6 @@ This example exhibits the two aggregation procedures described
 by :footcite:t:`pmlr-v119-nguyen20a` and :footcite:t:`Ren_2023` to derandomize
 inference.
 """
-
 import matplotlib.pyplot as plt
 import numpy as np
 from joblib import Parallel, delayed
@@ -29,9 +28,9 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-#############################################################################
+# %%
 # Data simulation
-# -----------------------
+# ---------------
 # The comparison of the three methods relies on evaluating the
 # False Discovery Proportion (FDP) and statistical power. Assessing these
 # metrics requires knowledge of the actual data-generating process.
@@ -65,7 +64,7 @@ rng = check_random_state(seed)
 seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
 
 
-#######################################################################
+# %%
 # Define the function for running the three procedures on the same data
 # ---------------------------------------------------------------------
 def single_run(
@@ -133,7 +132,7 @@ def single_run(
     return fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval
 
 
-#######################################################################
+# %%
 # Define the function for plotting the result
 # -------------------------------------------
 def plot_results(bounds, fdr, n_samples, n_features, power=False):
@@ -168,7 +167,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
         plt.legend(loc="best")
 
 
-#######################################################################
+# %%
 # Define the function for evaluate the effect of the population
 # -------------------------------------------------------------
 def effect_number_samples(n_samples):
@@ -212,27 +211,27 @@ def effect_number_samples(n_samples):
     plt.show()
 
 
-#######################################################################
+# %%
 # Aggregation methods provide a more stable inference
 # ---------------------------------------------------
 effect_number_samples(n_samples=n_samples)
 
-#######################################################################
+# %%
 # By repeating the model-X Knockoffs, we can see that instability
 # of the inference. Additionally, we can see that the aggregation method
 # is more stable. However, the e-values aggregation is more conservative,
 # i.e. the exepect variables of importance is not find.
 
-#######################################################################
+# %%
 # Limitation of the aggregation methods
 # -------------------------------------
 effect_number_samples(n_samples=50)
 
-#######################################################################
+# %%
 # One important point of this method is that they require enough samples to
 # estimate the distribution of each feature.
 
-#######################################################################
+# %%
 # References
 # ----------
 # .. footbibliography::

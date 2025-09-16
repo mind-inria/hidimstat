@@ -87,12 +87,16 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
+    "pygments_light_style": "sas",
+    "pygments_dark_style": "monokai",
 }
+
 html_title = "HiDimStat"
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_repo": "hidimstat",
 }
+
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
