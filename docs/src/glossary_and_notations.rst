@@ -27,6 +27,14 @@ Glossary
 
 .. glossary::
     
+    CFI
+    Conditional Feature Importance
+        Conditional Feature Importance (CFI) is a measure of feature importance that 
+        consists in sampling a feature of interest from the conditional distribution 
+        of that feature given all other features, and measuring the performance drop 
+        triggered by this perturbation. 
+
+    
     FDP
     False Discovery Proportion
         The False Discovery Proportion (FDP) is the ratio between the number of false
@@ -39,5 +47,14 @@ Glossary
 
         where :math:`|\cdot|` denotes the cardinality of a set.
 
-    e-values
-        TODO:
+    LOCO
+    Leave-One-Covariate-Out
+        The Leave-One-Covariate-Out (LOCO) is a measure of feature importance that 
+        consists in retraining a predictive model without the feature of interest and 
+        measuring performance drop triggered by this ablation. 
+
+    PFI
+    Permutation Feature Importance
+        The Permutation Feature Importance (PFI) is a measure of feature importance 
+        that consists in permuting the values of the feature of interest and measuring 
+        the performance drop triggered by this perturbation.
