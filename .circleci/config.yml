@@ -51,6 +51,7 @@ jobs:
       - run:
           name: "check links"
           command: |
+            source .venv/bin/activate
             make -C docs linkcheck 
       # store the documentation for see it in a PR
       - store_artifacts:
