@@ -63,89 +63,6 @@ from hidimstat.ensemble_clustered_inference import (
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 # %%
-# Specific plotting functions
-# ---------------------------
-# The functions below are used to plot the results and illustrate the concept
-# of spatial tolerance. If you are reading this example for the first time,
-# you can skip this section.
-#
-# The following function builds a 2D map with four active regions that are
-# enfolded by thin tolerance regions.
-
-
-def weight_map_2D_extended(shape, roi_size, delta):
-    """Build weight map with visible tolerance region"""
-
-    roi_size_extended = roi_size + delta
-
-    # Create four regions in the corners
-    w = np.zeros(shape + (5,))
-    w[0:roi_size, 0:roi_size, 0] = 0.5
-    w[-roi_size:, -roi_size:, 1] = 0.5
-    w[0:roi_size, -roi_size:, 2] = 0.5
-    w[-roi_size:, 0:roi_size, 3] = 0.5
-    w[0:roi_size_extended, 0:roi_size_extended, 0] += 0.5
-    w[-roi_size_extended:, -roi_size_extended:, 1] += 0.5
-    w[0:roi_size_extended, -roi_size_extended:, 2] += 0.5
-    w[-roi_size_extended:, 0:roi_size_extended, 3] += 0.5
-
-    # round the shape a little bit
-    for i in range(roi_size_extended):
-        for j in range(roi_size_extended):
-            if (i - roi_size) + (j - roi_size) >= delta:
-                w[i, j, 0] = 0
-                w[-i - 1, -j - 1, 1] = 0
-                w[i, -j - 1, 2] = 0
-                w[-i - 1, j, 3] = 0
-
-    beta_extended = w.sum(-1).ravel()
-
-    return beta_extended
-
-
-# %%
-# To generate a plot that exhibits the true support and the estimated
-# supports for every method, we define the two following functions:
-
-
-def add_one_subplot(ax, map, title):
-    """Add one subplot into the summary plot"""
-
-    if map is not None:
-        im = ax.imshow(map)
-        im.set_clim(-1, 1)
-        ax.tick_params(
-            axis="both",
-            which="both",
-            bottom=False,
-            top=False,
-            left=False,
-            labelbottom=False,
-            labelleft=False,
-        )
-        ax.set_title(title)
-    else:
-        ax.axis("off")
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-
-
-def plot(maps, titles):
-    """Make a summary plot from estimated supports"""
-
-    fig, axes = plt.subplots(3, 2, figsize=(4, 6))
-
-    for i in range(3):
-        for j in range(2):
-            k = i * 2 + j
-            add_one_subplot(axes[i][j], maps[k], titles[k])
-
-    fig.tight_layout()
-
-    plt.show()
-
-
-# %%
 # Generating the data
 # -------------------
 #
@@ -220,6 +137,39 @@ thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
 #
 # First, we compute a reference map that exhibits the true support and
 # the theoretical tolerance region.
+
+
+# The following function builds a 2D map with four active regions that are
+# enfolded by thin tolerance regions.
+def weight_map_2D_extended(shape, roi_size, delta):
+    """Build weight map with visible tolerance region"""
+
+    roi_size_extended = roi_size + delta
+
+    # Create four regions in the corners
+    w = np.zeros(shape + (5,))
+    w[0:roi_size, 0:roi_size, 0] = 0.5
+    w[-roi_size:, -roi_size:, 1] = 0.5
+    w[0:roi_size, -roi_size:, 2] = 0.5
+    w[-roi_size:, 0:roi_size, 3] = 0.5
+    w[0:roi_size_extended, 0:roi_size_extended, 0] += 0.5
+    w[-roi_size_extended:, -roi_size_extended:, 1] += 0.5
+    w[0:roi_size_extended, -roi_size_extended:, 2] += 0.5
+    w[-roi_size_extended:, 0:roi_size_extended, 3] += 0.5
+
+    # round the shape a little bit
+    for i in range(roi_size_extended):
+        for j in range(roi_size_extended):
+            if (i - roi_size) + (j - roi_size) >= delta:
+                w[i, j, 0] = 0
+                w[-i - 1, -j - 1, 1] = 0
+                w[i, -j - 1, 2] = 0
+                w[-i - 1, j, 3] = 0
+
+    beta_extended = w.sum(-1).ravel()
+
+    return beta_extended
+
 
 # compute true support with visible spatial tolerance
 beta_extended = weight_map_2D_extended(shape, roi_size, delta)
@@ -309,6 +259,47 @@ beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
 #
 # Now we plot the true support, the theoretical tolerance regions and
 # the estimated supports for every method.
+
+
+# To generate a plot that exhibits
+# the true support and the estimated supports for every method,
+# we define the two following functions:
+def add_one_subplot(ax, map, title):
+    """Add one subplot into the summary plot"""
+
+    if map is not None:
+        im = ax.imshow(map)
+        im.set_clim(-1, 1)
+        ax.tick_params(
+            axis="both",
+            which="both",
+            bottom=False,
+            top=False,
+            left=False,
+            labelbottom=False,
+            labelleft=False,
+        )
+        ax.set_title(title)
+    else:
+        ax.axis("off")
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+
+
+def plot(maps, titles):
+    """Make a summary plot from estimated supports"""
+
+    fig, axes = plt.subplots(3, 2, figsize=(4, 6))
+
+    for i in range(3):
+        for j in range(2):
+            k = i * 2 + j
+            add_one_subplot(axes[i][j], maps[k], titles[k])
+
+    fig.tight_layout()
+
+    plt.show()
+
 
 maps = []
 titles = []
