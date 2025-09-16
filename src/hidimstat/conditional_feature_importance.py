@@ -2,70 +2,75 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import KFold
+from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat._utils.docstring import _aggregate_docstring
 
 
 class CFI(BasePerturbation):
+    """
+    Conditional Feature Importance (CFI) algorithm.
+    :footcite:t:`Chamma_NeurIPS2023` and for group-level see
+    :footcite:t:`Chamma_AAAI2024`.
+
+    Parameters
+    ----------
+    estimator : sklearn compatible estimator, optional
+        The estimator to use for the prediction.
+    method : str, default="predict"
+        The method to use for the prediction. This determines the predictions passed
+        to the loss function. Supported methods are "predict", "predict_proba" or
+        "decision_function".
+    loss : callable, default=root_mean_squared_error
+        The loss function to use when comparing the perturbed model to the full
+        model.
+    n_permutations : int, default=50
+        The number of permutations to perform. For each variable/group of variables,
+        the mean of the losses over the `n_permutations` is computed.
+    imputation_model_continuous : sklearn compatible estimator, default=RidgeCV()
+        The model used to estimate the conditional distribution of a given
+        continuous variable/group of variables given the others.
+    imputation_model_categorical : sklearn compatible estimator, default=LogisticRegressionCV()
+        The model used to estimate the conditional distribution of a given
+        categorical variable/group of variables given the others. Binary is
+        considered as a special case of categorical.
+    categorical_max_cardinality : int, default=10
+        The maximum cardinality of a variable to be considered as categorical
+        when the variable type is inferred (set to "auto" or not provided).
+    random_state : int, default=None
+        The random state to use for sampling.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. Parallelization is done over the
+        variables or groups of variables.
+
+    References
+    ----------
+    .. footbibliography::
+    """
+
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1,
+        loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        imputation_model_continuous=None,
-        imputation_model_categorical=None,
-        random_state: int = None,
+        imputation_model_continuous=RidgeCV(),
+        imputation_model_categorical=LogisticRegressionCV(),
         categorical_max_cardinality: int = 10,
+        random_state: int = None,
+        n_jobs: int = 1,
     ):
-        """
-        Conditional Feature Importance (CFI) algorithm.
-        :footcite:t:`Chamma_NeurIPS2023` and for group-level see
-        :footcite:t:`Chamma_AAAI2024`.
 
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The loss function to use when comparing the perturbed model to the full
-            model.
-        method : str, default="predict"
-            The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba" or
-            "decision_function".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
-        n_permutations : int, default=50
-            The number of permutations to perform. For each variable/group of variables,
-            the mean of the losses over the `n_permutations` is computed.
-        imputation_model_continuous : sklearn compatible estimator, optional
-            The model used to estimate the conditional distribution of a given
-            continuous variable/group of variables given the others.
-        imputation_model_categorical : sklearn compatible estimator, optional
-            The model used to estimate the conditional distribution of a given
-            categorical variable/group of variables given the others. Binary is
-            considered as a special case of categorical.
-        random_state : int, default=None
-            The random state to use for sampling.
-        categorical_max_cardinality : int, default=10
-            The maximum cardinality of a variable to be considered as categorical
-            when the variable type is inferred (set to "auto" or not provided).
-
-        References
-        ----------
-        .. footbibliography::
-        """
         super().__init__(
             estimator=estimator,
-            loss=loss,
             method=method,
-            n_jobs=n_jobs,
+            loss=loss,
             n_permutations=n_permutations,
+            n_jobs=n_jobs,
         )
 
         # check the validity of the inputs
@@ -83,7 +88,8 @@ class CFI(BasePerturbation):
         self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
-        """Fit the imputation models.
+        """
+        Fit the imputation models.
 
         Parameters
         ----------
@@ -107,13 +113,13 @@ class CFI(BasePerturbation):
         self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
         if isinstance(var_type, str):
-            self.var_type = [var_type for _ in range(self.n_groups)]
+            var_type = [var_type for _ in range(self._n_groups)]
         else:
-            self.var_type = var_type
+            var_type = var_type
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.var_type[groupd_id],
+                data_type=var_type[groupd_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -127,7 +133,7 @@ class CFI(BasePerturbation):
                 random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for groupd_id in range(self.n_groups)
+            for groupd_id in range(self._n_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
@@ -188,3 +194,71 @@ class CFI(BasePerturbation):
         return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
+
+
+def cfi(
+    estimator,
+    X,
+    y,
+    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+    groups: dict = None,
+    var_type: str = "auto",
+    method: str = "predict",
+    loss: callable = root_mean_squared_error,
+    n_permutations: int = 50,
+    imputation_model_continuous=None,
+    imputation_model_categorical=None,
+    categorical_max_cardinality: int = 10,
+    k_best=None,
+    percentile=None,
+    threshold=None,
+    threshold_pvalue=None,
+    random_state: int = None,
+    n_jobs: int = 1,
+):
+    methods = CFI(
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        n_permutations=n_permutations,
+        imputation_model_continuous=imputation_model_continuous,
+        imputation_model_categorical=imputation_model_categorical,
+        categorical_max_cardinality=categorical_max_cardinality,
+        random_state=random_state,
+        n_jobs=n_jobs,
+    )
+    methods.fit_importance(
+        X,
+        y,
+        cv=cv,
+        groups=groups,
+        var_type=var_type,
+    )
+    selection = methods.selection(
+        k_best=k_best,
+        percentile=percentile,
+        threshold=threshold,
+        threshold_pvalue=threshold_pvalue,
+    )
+    return selection, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+cfi.__doc__ = _aggregate_docstring(
+    [
+        CFI.__doc__,
+        CFI.__init__.__doc__,
+        CFI.fit_importance.__doc__,
+        CFI.selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection : ndarray of shape (n_features,)
+        Boolean array indicating selected features (True = selected)
+    importances : ndarray of shape (n_features,)
+        Feature importance scores/test statistics.
+    pvalues : ndarray of shape (n_features,)
+        P-values for importance scores. 
+    """,
+)
