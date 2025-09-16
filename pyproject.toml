@@ -75,6 +75,9 @@ Development = "https://github.com/nilearn/nilearn"
 Homepage = "https://mind-inria.github.io/hidimstat"
 Repository = "https://github.com/mind-inria/hidimstat"
 
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
+skip = "./.git,*.cff,*.bib,*/tmp,env,venv,./doc/_build"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/hidimstat/_version.py"
