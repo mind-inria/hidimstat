@@ -415,7 +415,7 @@ class TestCFIExceptions:
         cfi = CFI(estimator=fitted_model)
 
         # Test error when passing invalid var_type
-        with pytest.raises(ValueError, match="type of data 'invalid' unknown."):
+        with pytest.raises(ValueError, match="type of data 'invalid' unknow."):
             cfi.fit(X, var_type="invalid")
 
     def test_invalid_n_permutations(self, data_generator):
@@ -517,7 +517,7 @@ class TestCFIExceptions:
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(estimator=fitted_model, method="predict")
 
-        with pytest.raises(ValueError, match="type of data 'invalid_type' unknown."):
+        with pytest.raises(ValueError, match="type of data 'invalid_type' unknow."):
             cfi.fit(X, groups=None, var_type=["invalid_type"] * X.shape[1])
 
     def test_incompatible_imputer(self, data_generator):
@@ -525,7 +525,7 @@ class TestCFIExceptions:
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
 
-        with pytest.raises(AssertionError, match="Continuous imputation model invalid"):
+        with pytest.raises(AssertionError, match="Continous imputation model invalid"):
             cfi = CFI(
                 estimator=fitted_model,
                 imputation_model_continuous="invalid_imputer",
@@ -548,7 +548,7 @@ class TestCFIExceptions:
         cfi = CFI(estimator=fitted_model, method="predict")
 
         invalid_groups = ["group1", "group2"]  # Should be dictionary
-        with pytest.raises(ValueError, match="groups needs to be a dictionary"):
+        with pytest.raises(ValueError, match="groups needs to be a dictionnary"):
             cfi.fit(X, groups=invalid_groups, var_type="auto")
 
     def test_groups_warning(self, data_generator):

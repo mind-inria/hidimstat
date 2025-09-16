@@ -177,7 +177,7 @@ plt.show()
 
 
 ###########################################################################
-# A valid alternative: Conditional Feature Importance
+# A valid alternative: Condional Feature Importance
 # -----------------------------------------------------
 # The `ConditionalFeatureImportance` class computes permutations of the feature of
 # interest while conditioning on the other features. In other words, it shuffles the
