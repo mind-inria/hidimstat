@@ -36,9 +36,9 @@ from sklearn.svm import SVC
 
 from hidimstat import CFI, PFI
 
-########################################################################
+# %%
 # Load the iris dataset and add a spurious feature
-# ----------------------------------------------------------------------
+# ------------------------------------------------
 # We load the iris dataset and add a spurious feature that is a linear combination of
 # the petal length, width amd some noise but not related to the target. The spurious feature
 # allows to illustrate that `PFI` is not robust to spurious features,
@@ -53,9 +53,9 @@ X = np.hstack([X, spurious_feat.reshape(-1, 1)])
 dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 
 
-############################################################################
+# %%
 # Measure variable importance
-# --------------------------------------------------------------------------
+# ---------------------------
 # Since both methods compute variable importance as a loss difference, they
 # require a K-fold cross-fitting. Computing the importance for each fold is
 # embarrassingly parallel. For this reason, we encapsulate the main computations in a
@@ -106,7 +106,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
     )
 
 
-##############################################################################
+# %%
 # We use two different classifiers: LR with cross-validation and SVC with a RBF kernel. We
 # then compute the importance for each (importance method, classifier, fold)
 # combination, in parallel.
@@ -128,7 +128,7 @@ out_list = Parallel(n_jobs=5)(
 df = pd.concat(out_list)
 
 
-##########################################################################
+# %%
 # Using the importance values, we can compute the p-value of each feature. As we will
 # see, the p-values computed with `PFI` are not valid since the method
 # does not provide type-1 error control.
@@ -164,9 +164,9 @@ threshold = 0.05
 df_pval = compute_pval(df, threshold=threshold)
 
 
-############################################################################
+# %%
 # Visualization of the results
-# --------------------------------------------------------------------------
+# ----------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
     for method, ax in zip(["CFI", "PFI"], axes):
@@ -233,7 +233,7 @@ def plot_results(df_importance, df_pval):
 plot_results(df, df_pval)
 
 
-####################################################################################
+# %%
 # The boxplot shows the importance of each feature, with colors indicating the
 # classifier used. A star marks the features that have a p-value (computed with a
 # t-test) below 0.05. As expected, the spurious feature is not selected by CFI,
@@ -245,9 +245,9 @@ plot_results(df, df_pval)
 # kernel, which would be feasible with more data.
 
 
-#########################################################################
+# %%
 # Measuring the importance of groups of features
-# -----------------------------------------------------------------------
+# ----------------------------------------------
 # In the example above, CFI did not select some features. This is because it
 # measures conditional importance, which is the additional independent information a
 # feature provides knowing all the other features. When features are highly correlated,
