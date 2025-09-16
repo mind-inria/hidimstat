@@ -14,7 +14,6 @@ __pycache__
 # documentation 
 docs/_build/
 docs/src/generated/
-docs/src/ssg_execution_times.rst
 docs/src/sg_execution_times.rst
 # ignore file copied during doc build
 tools/documentation_developer/CONTRIBUTING.rst
