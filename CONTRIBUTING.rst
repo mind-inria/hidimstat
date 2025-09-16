@@ -44,8 +44,8 @@ To apply the required dependencies and style your code:
 .. code-block:: sh
 
     pip install -e '.[style]'
-    black .
     isort .
+    black .
 
 Examples
 """"""""
