@@ -15,8 +15,8 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - uses: isort/isort-action@v1
       - uses: psf/black@stable
         with:
           jupyter: true
-      - uses: isort/isort-action@v1
       
