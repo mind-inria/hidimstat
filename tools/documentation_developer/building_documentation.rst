@@ -8,7 +8,7 @@ new sphinx warnings by building the documentation locally and try to fix them.**
 
 .. prompt:: bash
 
-    pip install .[doc]
+    pip install '.[doc]'
 
 To build the documentation, you need to be in the `docs` folder:
 
