@@ -28,4 +28,4 @@ jobs:
       - name: Install codespell
         run: pip install codespell
       - name: Run codespell with pyproject.toml config
-        run: codespell --toml pyproject.toml
+        run: codespell -w --toml pyproject.toml
