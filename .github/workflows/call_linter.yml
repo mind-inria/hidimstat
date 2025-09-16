@@ -26,7 +26,6 @@ jobs:
           codespell --toml pyproject.toml
       
       # Black formatting check
-      - uses: codespell-project/actions-codespell@v2
       - uses: psf/black@stable
         with:
           jupyter: true
