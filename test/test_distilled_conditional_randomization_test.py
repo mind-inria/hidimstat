@@ -123,7 +123,7 @@ def test_dcrt_lasso_with_no_cv(generate_regression_dataset):
 
 def test_dcrt_lasso_with_covariance(generate_regression_dataset):
     """
-    Test dcrt with proviede covariance matrix
+    Test dcrt with provide covariance matrix
     """
     X, y = generate_regression_dataset
     # Checking with a provided covariance matrix

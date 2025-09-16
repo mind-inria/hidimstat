@@ -62,7 +62,7 @@ from hidimstat.desparsified_lasso import (
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 
-# Remmove warnings during loading data
+# Remove warnings during loading data
 warnings.filterwarnings(
     "ignore", message="The provided image has no sform in its header."
 )
@@ -303,7 +303,7 @@ show()
 # isolated voxels are discovered, which seems quite spurious.
 # The discriminative pattern derived from the clustered inference algorithm
 # (CluDL) show that the method is less conservative.
-# However, some reasonable paterns are also included in this solution.
+# However, some reasonable patterns are also included in this solution.
 # Finally, the solution provided by the ensemble clustered inference algorithm
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.

@@ -104,7 +104,7 @@ def test_error_wrong_type_data():
         random_state=0,
     )
     X = np.random.randint(0, 2, size=(100, 2))
-    with pytest.raises(ValueError, match="type of data 'wrong_type' unknow."):
+    with pytest.raises(ValueError, match="type of data 'wrong_type' unknown."):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
 
 
