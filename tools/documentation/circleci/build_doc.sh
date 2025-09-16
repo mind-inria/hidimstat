@@ -65,7 +65,7 @@ get_build_type() {
         git_range="origin/main...$CIRCLE_SHA1"
         git fetch origin main >&2 || (echo QUICK BUILD: failed to get changed filenames for $git_range; return)
         filenames=$(git diff --name-only $git_range)
-        # case where there is no modifed file
+        # case where there is no modified file
         if [ -z "$filenames" ]
         then
             echo QUICK BUILD: no changed filenames for $git_range
@@ -104,7 +104,7 @@ elif [[ "$build_type" =~ ^QUICK ]]
 then
     make_args="html-noplot"
 elif [[ "$build_type" =~ ^'BUILD: detected examples' ]]
-# generate only example wich has been modified
+# generate only example which has been modified
 then
     # pattern for examples to run is the last line of output
     pattern=$(echo "$build_type" | tail -n 1)
@@ -127,7 +127,7 @@ affected_doc_paths() {
     echo "$files" | grep ^docs/src/.*\.rst | sed 's/^docs\/src\/\(.*\)\.rst$/\1.html/'
     # list of the modified examples 
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/auto_\1.html/'
-    # list of the modifed source file
+    # list of the modified source file
     project_files=$(echo "$files" | grep 'src/hidimstat/')
     if [ -n "$project_files" ]
     then

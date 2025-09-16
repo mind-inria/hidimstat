@@ -213,13 +213,13 @@ class D0CRT(BaseVariableImportance):
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
             self.coefficient_ = lasso_model_.coef_
-            # optimisation to reduce the number of elements different to zeros
+            # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
             self.estimator.fit(X_[:, self.selection_set_], y_)
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = self.estimator.coef_
-                # optimisation to reduce the number of elements different to zeros
+                # optimization to reduce the number of elements different to zeros
                 # TODO: the multi-dimensional indexing should be removed when the
                 # classification is properly handled
                 self.coefficient_[..., ~self.selection_set_] = 0
@@ -350,12 +350,12 @@ class D0CRT(BaseVariableImportance):
 
         results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(list_job)
 
-        # contatenate result
+        # concatenate result
         X_residual = np.array([result[0] for result in results])
         sigma2 = np.array([result[1] for result in results])
         y_residual = np.array([result[2] for result in results])
 
-        # By assumming X|Z following a normal law, the exact p-value can be
+        # By assuming X|Z following a normal law, the exact p-value can be
         # computed with the following equation (see section 2.5 in `liu2022fast`)
         # based on the residuals of y and x.
         test_statistic_selected_variables = [
