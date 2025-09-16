@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      - uses: codespell-project/actions-codespell@v2
       - uses: psf/black@stable
         with:
           jupyter: true
