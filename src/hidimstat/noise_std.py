@@ -149,7 +149,7 @@ def reid(
                 )
         else:
             raise ValueError("Unknown method for estimating the covariance matrix")
-        ## compute empirical correlation of the residual
+        ## compute emperical correlation of the residual
         if stationary:
             # consideration of stationary noise
             # (section 2.5 of `chevalier2020statistical`)

@@ -51,7 +51,7 @@ def _replace_infinity(x, replace_val=None, method="times-two"):
 
 
 def pval_corr_from_pval(one_sided_pval):
-    """Computing one-sided p-values corrected for multiple testing
+    """Computing one-sided p-values corrrected for multiple testing
     from simple testing one-sided p-values.
 
     Parameters
@@ -92,7 +92,7 @@ def pval_from_scale(beta, scale, distribution="norm", eps=1e-14):
     scale : ndarray, shape (n_features,)
         Value of the standard deviation of the parameters.
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -154,7 +154,7 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -189,7 +189,7 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -239,7 +239,7 @@ def two_sided_pval_from_zscore(zscore, distribution="norm"):
     zscore : ndarray, shape (n_features,)
         z-scores.
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -276,7 +276,7 @@ def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm")
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -312,7 +312,7 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -400,7 +400,7 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distribution="norm"):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distribution : str, optional (default='norm')
+    distribution : str, opitonal (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
