@@ -36,7 +36,7 @@ def _check_data_type(
         else:
             return "continuous"
     else:
-        raise ValueError(f"type of data '{data_type}' unknown.")
+        raise ValueError(f"type of data '{data_type}' unknow.")
 
 
 class ConditionalSampler:

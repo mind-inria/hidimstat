@@ -53,7 +53,7 @@ jobs:
   linter:
     name: Linter
     needs: [get_information]
-    uses: ./.github/workflows/call_lint.yml
+    uses: ./.github/workflows/call_black.yml
   
   tests:
     name: tests
