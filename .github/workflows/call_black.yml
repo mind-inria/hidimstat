@@ -16,13 +16,13 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       
-      # Codespell check 
+      # Codespell check
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Run codespell with pyproject.toml config
         run: |
-          pip install codespell
+          pip install .[style]
           codespell --toml pyproject.toml
       
       # Black formatting check
