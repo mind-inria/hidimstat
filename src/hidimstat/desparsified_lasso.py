@@ -6,12 +6,10 @@ from scipy.linalg import inv
 from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
+from hidimstat._utils.regression import _alpha_max
 from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
-    pval_from_two_sided_pval_and_sign,
-    pval_from_cb,
-)
-from hidimstat._utils.regression import _alpha_max
+    pval_from_cb, pval_from_two_sided_pval_and_sign)
 
 
 def desparsified_lasso(

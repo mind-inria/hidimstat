@@ -7,12 +7,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
-from hidimstat.gaussian_knockoff import (
-    gaussian_knockoff_generation,
-    repeat_gaussian_knockoff_generation,
-)
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+from hidimstat.gaussian_knockoff import (gaussian_knockoff_generation,
+                                         repeat_gaussian_knockoff_generation)
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
 def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):

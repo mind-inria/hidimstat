@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 sys.path.insert(0, os.path.abspath("."))
 

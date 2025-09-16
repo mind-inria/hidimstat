@@ -17,22 +17,19 @@ inference.
 # Imports needed for this script
 # ------------------------------
 
-from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 import numpy as np
+from joblib import Parallel, delayed
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
-from hidimstat.knockoffs import (
-    model_x_knockoff,
-    model_x_knockoff_bootstrap_e_value,
-    model_x_knockoff_bootstrap_quantile,
-    model_x_knockoff_pvalue,
-)
-from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat._utils.scenario import multivariate_simulation
-
+from hidimstat.knockoffs import (model_x_knockoff,
+                                 model_x_knockoff_bootstrap_e_value,
+                                 model_x_knockoff_bootstrap_quantile,
+                                 model_x_knockoff_pvalue)
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 #############################################################################
 # Data simulation

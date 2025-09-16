@@ -18,3 +18,5 @@ jobs:
       - uses: psf/black@stable
         with:
           jupyter: true
+      - uses: isort/isort-action@v1
+      
