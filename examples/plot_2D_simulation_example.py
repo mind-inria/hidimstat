@@ -235,7 +235,7 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 #############################################################################
 # Now, we compute the support estimated by a high-dimensional statistical
-# infernece method that does not leverage the data structure.
+# inference method that does not leverage the data structure.
 # This method was introduced by :footcite:t:`javanmard2014confidence`,
 # :footcite:p:`zhang2014confidence` and
 # :footcite:p:`van2014asymptotically`
