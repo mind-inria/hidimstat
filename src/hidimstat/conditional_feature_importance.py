@@ -71,7 +71,7 @@ class CFI(BasePerturbation):
         # check the validity of the inputs
         assert imputation_model_continuous is None or issubclass(
             imputation_model_continuous.__class__, BaseEstimator
-        ), "Continuous imputation model invalid"
+        ), "Continous imputation model invalid"
         assert imputation_model_categorical is None or issubclass(
             imputation_model_categorical.__class__, BaseEstimator
         ), "Categorial imputation model invalid"

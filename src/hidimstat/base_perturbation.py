@@ -90,7 +90,7 @@ class BasePerturbation(BaseVariableImportance):
                     np.array(ids, dtype=int) for ids in list(self.groups.values())
                 ]
         else:
-            raise ValueError("groups needs to be a dictionary")
+            raise ValueError("groups needs to be a dictionnary")
 
     def predict(self, X):
         """

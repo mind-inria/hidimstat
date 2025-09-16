@@ -25,7 +25,7 @@
 .. |Black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
 
-.. # Add minimal dependency of the main packages
+.. # Add minimal dependecy of the main packages
   ## This need to update in same time that pyproject.toml
 .. |PythonMinVersion| replace:: 3.9
 .. |JoblibMinVersion| replace:: 1.2
@@ -54,7 +54,7 @@ HiDimStat: High-dimensional statistical inference tool for Python
 The HiDimStat package provides statistical inference methods to solve the problem
 of variable importance evaluation in the context of predictive model using high-dimensional and spatially structured data.
 
-.. # Add useful links
+.. # Add usefull links
 
 If you like the package, spread the word and ⭐ our `official repository 
 <https://github.com/mind-inria/hidimstat>`_!
@@ -109,7 +109,7 @@ see the `installation instructions <https://hidimstat.github.io/dev/index.html#i
 Contribute
 ----------
 
-.. # Add short description for contribution to the library
+.. # Add short discription for contribution to the library
 
 The best way to support the development of HiDimStat is to spread the word!
 
