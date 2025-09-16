@@ -16,9 +16,9 @@ seed = 0
 rng = np.random.RandomState(seed)
 
 
-########################################################################################
+# %%
 # Load the breast cancer dataset
-# ------------------------------------------------------
+# ------------------------------
 # There are 569 samples and 30 features that correspond to tumor attributes.
 # The downstream task is to classify tumors as benign or malignant. We leave out 10% of
 # the data to evaluate the performance of the Logistic Lasso (Logistic Regression with
@@ -43,9 +43,9 @@ n_test = X_test.shape[0]
 feature_names = [str(name) for name in data.feature_names]
 
 
-#############################################################################
+# %%
 # Selecting variables with the Logistic Lasso
-# -----------------------------------------------------------
+# -------------------------------------------
 # We want to select variables that are relevant to the outcome, i.e. tumor
 # charateristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
@@ -67,9 +67,9 @@ for i in selected_lasso:
     print(f"{feature_names[i]:<30} | {clf.coef_[0][i]:>10.3f}")
 
 
-#############################################################################
+# %%
 # Evaluating the rejection set
-# ------------------------------------------
+# ----------------------------
 # Since we do not have the ground truth for the selected variables (i.e. we do not know
 # the relationship between the tumor characteristics and the the malignance of the tumor
 # ), we cannot evaluate this selection set directly. To investigate the reliability of
@@ -92,7 +92,7 @@ noisy_train = np.concatenate(noises_train, axis=1)
 noisy_test = np.concatenate(noises_test, axis=1)
 
 
-#################################################################################
+# %%
 # There are 180 features, 30 of them are real and 150 of them are fake and independent
 # of the outcome. We now apply the Lasso (with cross-validation to select the best
 # regularization parameter) to the noisy dataset and observe the results:
@@ -129,16 +129,16 @@ num_false_discoveries = np.sum(
 print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 
 
-#################################################################################
+# %%
 # The Lasso selects many spurious variables that are not directly related to the outcome.
 # To mitigate this problem, we can use one of the statistically controlled variable
 # selection methods implemented in hidimstat. This ensures that the proportion of False
 # Discoveries is below a certain bound set by the user in all scenarios.
 
 
-#############################################################################
+# %%
 # Controlled variable selection with Knockoffs
-# ----------------------------------------------------
+# --------------------------------------------
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). The
 # selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
 # :footcite:t:`candes2018panning`.
@@ -169,9 +169,9 @@ num_false_discoveries = np.sum(selected >= p)
 print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 
 
-##############################################################################
+# %%
 # Visualizing the results
-# ----------------------------------------------------
+# -----------------------
 # We can compare the selection sets obtained by the two methods. In addition to the
 # binary selection (selected or not), we can also visualize the the KO statistic
 # along with the selection threshold for the knockoffs and the absolute value of the
@@ -232,7 +232,7 @@ plt.tight_layout()
 plt.show()
 
 
-###############################################################################
+# %%
 # We can clearly see that the knockoffs procedure is more conservative than the Lasso
 # and rejects the spurious features while many of them are selected by the Lasso. It is
 # also interesting to note that some of the selected variables (with the high KO
@@ -240,7 +240,7 @@ plt.show()
 # with the largest Lasso coefficients.
 
 
-#################################################################################
+# %%
 # References
-# ---------------------------------------------------------------------------
+# ----------
 # .. footbibliography::

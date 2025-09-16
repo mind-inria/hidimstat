@@ -18,7 +18,7 @@ from sklearn.svm import SVC
 
 from hidimstat import CFI
 
-#############################################################################
+# %%
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel. The decision function of
 # the fitted model shows that the model is able to separate the two classes.
 rng = np.random.RandomState(0)
@@ -41,9 +41,9 @@ model.fit(X_train, y_train)
 Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()])
 
 
-#############################################################################
-#  Visualizing the decision function of the SVC
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# %%
+# Visualizing the decision function of the SVC
+# --------------------------------------------
 fig, ax = plt.subplots()
 ax.imshow(
     Z.reshape(xx.shape),
@@ -69,15 +69,15 @@ ax.set_title("Decision function of SVC with RBF kernel")
 plt.show()
 
 
-##############################################################################
+# %%
 # The decision function of the SVC shows that the model is able to learn the
 # non-linear decision boundary of the XOR problem. It also highlights that knowing
 # the value of both features is necessary to classify each sample correctly.
 
 
-###############################################################################
+# %%
 # Computing the conditional and marginal importance
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# -------------------------------------------------
 # We first compute the marginal importance by fitting univariate models on each feature.
 # Then, we compute the conditional importance using the CFI class. The univarariate
 # models don't perform above chance, since solving the XOR problem requires to use both
@@ -103,7 +103,7 @@ for i in range(X.shape[1]):
         feat_scores.append(univariate_model.score(X_test_univariate, y_test))
     marginal_scores.append(feat_scores)
 
-###########################################################################
+# %%
 
 importances = []
 for i, (train_index, test_index) in enumerate(cv.split(X)):
@@ -127,9 +127,9 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
 importances = np.array(importances).T
 
 
-#############################################################################
+# %%
 # Visualizing the importance scores
-# -----------------------------------------------------------------------
+# ---------------------------------
 # We will use boxplots to visualize the distribution of the importance scores.
 fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6, 2.5))
 # Marginal scores boxplot
@@ -161,7 +161,7 @@ axes[1].axvline(x=0.0, color="k", linestyle="--", lw=3)
 plt.tight_layout()
 plt.show()
 
-########################################################################
+# %%
 # On the left, we can see that both features are not marginally important, since the
 # boxplots overlap with the chance level (accuracy = 0.5). On the right, we can see that
 # both features are conditionally important, since the importance scores are far from
