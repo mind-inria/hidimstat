@@ -8,7 +8,7 @@ Definition of concepts
 Variable Importance
 -------------------
 
-Variable Importance (VI) aims to assign a measure of
+Global Variable Importance (VI) aims to assign a measure of
 relevance to each feature :math:`X^j` with respect to a target  :math:`y` in the
 data-generating process. In Machine Learning, it can be seen as a measure
 of how much a variable contributes to the predictive power of a model. We 
@@ -33,59 +33,82 @@ can be estimated as follows:
 It allow us to rank the variables from more to less important.                            
 
 Here, ``VI`` can be a variable importance method implemented in HiDimStat,
-such as :class:`hidimstat.D0CRT` (other methods will support the same API 
+such as :class:`hidimstat.LOCO` (other methods will support the same API 
 soon).
 
-(Controlled) Variable Selection
+Variable Selection
 -------------------------------
 
-Variable selection is then the next step that entails filtering out the 
+(Controlled) Variable selection is then the next step that entails filtering out the 
 significant features in a way that provides statistical guarantees, 
 e.g. type-I error or False Discovery Rate (FDR).
 
-So, if we want to select the variables with a p-value lower than a threshold 
-``p``, we can do:
+For example, if we want to select the variables with a p-value lower than 
+a threshold ``p``, we can do:
 
 .. code-block::
 
     # selection of the importance and pvalues
     vi.selection(threshold_pvalue=p)
 
+This step is important to make insighful discoveries. Even if variable 
+importance provides a ranking, due to the estimation step, we need
+statistical control to do reliable selection.
+
+
+    
+
 Types of VI methods
 -------------------
 
 There are two main types of VI methods implemented in HiDimStat:
 
-1. Conditional methods: these methods estimate the importance of a variable
-   conditionally to all the other variables. Examples of such methods are
-   :class:`hidimstat.LOCO` and :class:`hidimstat.CFI`.
+1. Marginal methods: these methods provide importance to all the features 
+that are related to the output, even if it is caused by spurius correlation. They 
+are related with testing if :math:`X^j\perp\!\!\!\!\perp Y`.
+Example of such methods is LOCI.
 
-2. Marginal methods: these methods estimate the importance of a variable
-   marginally to all the other variables. Examples of such methods are
-   :class:`hidimstat.PFI` and :class:`hidimstat.D0CRT`.
-
-The main difference between these two types of methods is that conditional
-methods are more computationally expensive but they can handle correlated
-variables better than marginal methods :footcite:p:`Covert2020`.
-
-In particular, marginal methods can be too conservative when variables are
-highly correlated, leading to a loss of power in the variable selection step.
-However, marginal methods are more scalable to high-dimensional datasets
-and they can be used when the number of samples is smaller than the number of
-variables, which is not the case for conditional methods.
+2. Conditional methods: these methods assign importance only to features that
+provide exclusive information beyond what is already captured by the others, 
+i.e., they contribute unique knowledge. They are related with Conditional 
+Independence Testing, which consist in testing if 
+:math:`X^j\perp\!\!\!\!\perp Y\mid X^{-j}`. Examples of such methods are
+:class:`hidimstat.LOCO` and :class:`hidimstat.CFI`.
 
 
-High-dimensionality and correlation
+Generally, conditional methods address the issue of false positives that often
+arise with marginal methods, which may assign importance to variables just 
+because they are correlated with truly important ones. By focusing on unique 
+contributions, conditional methods help preserve parsimony, yielding a smaller 
+and more meaningful subset of important features. However, in certain cases, the 
+distinction between marginal and conditional methods can be more subtle. See 
+:ref:`sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py` 
+
+
+High-dimension and correlation
 -----------------------------------
 
-Problem: with high-dimension 
-
-Solution: prior filtering of redundant variables or considering grouping. Brief definition of grouping.  
+In high-dimensional and highly correlated settings, estimation becomes 
+particularly challenging, as it is difficult to clearly distinguish important 
+features from unimportant ones. For such problems, a preliminary filtering step 
+can be applied to avoid having duplicate or redundant input features, or 
+alternatively, one can consider grouping them :footcite:p:`Chamma_AAAI2024` . 
+Grouping consists of treating together features that represent the same 
+underlying concept. This approach extends naturally to many methods, 
+for example :class:`hidimstat.CFI`.
 
 
 
 Statistical Inference
 ---------------------
+
+Given the variability inherent in estimation, it is necessary to apply 
+statistical control to the discoveries made. Simply selecting the most important 
+features without such control is not valid. Different forms of guarantees can 
+be employed, such as controlling the type-I error or the False Discovery Rate. 
+This step is directly related to the task of Variable Selection.
+
+
 
 
 
