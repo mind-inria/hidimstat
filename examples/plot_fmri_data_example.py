@@ -29,9 +29,6 @@ As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
-# %%
-# Imports needed for this script
-# ------------------------------
 import resource
 import warnings
 
@@ -43,24 +40,18 @@ from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-)
 from hidimstat.statistical_tools.p_values import zscore_from_pval
-
 
 # Remmove warnings during loading data
 warnings.filterwarnings(

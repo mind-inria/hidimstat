@@ -47,29 +47,20 @@ References
 
 """
 import matplotlib.pyplot as plt
-
-# %%
-# Imports needed for this script
-# ------------------------------
 import numpy as np
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
 
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-)
+from hidimstat._utils.scenario import multivariate_simulation_spatial
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
 from hidimstat.statistical_tools.p_values import zscore_from_pval
-from hidimstat._utils.scenario import multivariate_simulation_spatial
 
 # %%
 # Specific plotting functions
