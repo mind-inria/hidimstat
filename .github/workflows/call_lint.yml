@@ -16,11 +16,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       
-      # Black formatting check
-      - uses: psf/black@stable
-        with:
-          jupyter: true
-      
       # Codespell check
       - uses: actions/setup-python@v5
         with:
@@ -29,3 +24,22 @@ jobs:
         run: pip install codespell
       - name: Run codespell with pyproject.toml config
         run: codespell -w --toml pyproject.toml
+      
+      # Commit and push codespell fixes
+      - name: Commit codespell fixes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No codespell changes to commit"
+          else
+            git commit -m "Fix spelling errors with codespell"
+            git push
+          fi
+
+      # Black formatting check
+      - uses: psf/black@stable
+        with:
+          jupyter: true
+      
