@@ -2,6 +2,8 @@ import warnings
 
 import numpy as np
 
+from hidimstat._utils.utils import check_random_state
+
 
 def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     """
@@ -53,8 +55,8 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     n_samples, n_features = X.shape
 
     # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+    rng = check_random_state(seed)
+    u_tilde = rng.standard_normal((n_samples, n_features))
 
     diag_s = np.diag(_s_equi(sigma, tol=tol))
 
@@ -113,8 +115,8 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
     n_samples, n_features = mu_tilde.shape
 
     # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+    rng = check_random_state(seed)
+    u_tilde = rng.standard_normal((n_samples, n_features))
 
     X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
     return X_tilde

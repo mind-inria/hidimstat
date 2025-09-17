@@ -120,7 +120,6 @@ class D0CRT(BaseVariableImportance):
         joblib_verbose=0,
         fit_y=False,
         scaled_statistics=False,
-        random_state=None,
         reuse_screening_model=True,
     ):
         self.estimator = estimator
@@ -137,7 +136,6 @@ class D0CRT(BaseVariableImportance):
         self.joblib_verbose = joblib_verbose
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
-        self.random_state = random_state
         self.reuse_screening_model = reuse_screening_model
 
         self.coefficient_ = None
@@ -655,8 +653,6 @@ def d0crt(
         joblib_verbose=joblib_verbose,
         fit_y=fit_y,
         scaled_statistics=scaled_statistics,
-        random_state=random_state,
-        reuse_screening_model=reuse_screening_model,
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(

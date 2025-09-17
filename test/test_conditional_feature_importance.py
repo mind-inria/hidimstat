@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import CFI
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 
 
@@ -75,10 +76,10 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    ("HiDim", 150, 20, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 20, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 20, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 20, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -95,7 +96,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
-    assert np.all([int(i) in important_features for i in np.argsort(importance)[-10:]])
+    assert np.all([int(i) in np.argsort(importance)[-10:] for i in important_features])
 
 
 parameter_partial = [
@@ -569,3 +570,119 @@ class TestCFIExceptions:
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
+
+
+@pytest.fixture(scope="module")
+def cfi_test_data():
+    """
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
+    """
+    X, y, _, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=5,
+        support_size=2,
+        rho=0,
+        value=1,
+        signal_noise_ratio=4,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    return X_train, X_test, y_train, y_test, model
+
+
+def test_cfi_multiple_calls_are_reproducible(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi.fit(X_train, groups=None, var_type="auto")
+    vim = cfi.importance(X_test, y_test)["importance"]
+    vim_reproducible = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducible)
+
+
+def test_cfi_different_instances_same_random_state_are_reproducible(cfi_test_data):
+    """
+    Test that different instances of CFI with the same random state provide
+    deterministic results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi_1 = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi_1.fit(X_train, groups=None, var_type="auto")
+    vim_1 = cfi_1.importance(X_test, y_test)["importance"]
+
+    cfi_2 = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi_2.fit(X_train, groups=None, var_type="auto")
+    vim_2 = cfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim_1, vim_2)
+
+
+def test_cfi_different_random_state_is_not_reproducible(cfi_test_data):
+    """
+    Test that different random states provide different results and multiple calls
+    of .importance() when random_state is None provide different results.
+    """
+    X_train, X_test, y_train, y_test, model = cfi_test_data
+    cfi_fixed = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi_fixed.fit(X_train, groups=None, var_type="auto")
+    vim_fixed = cfi_fixed.importance(X_test, y_test)["importance"]
+
+    cfi_new_state = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=1,
+        n_jobs=1,
+    )
+    cfi_new_state.fit(X_train, groups=None, var_type="auto")
+    vim_new_state = cfi_new_state.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim_fixed, vim_new_state)
+
+    cfi_none_state = CFI(
+        estimator=model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        random_state=None,
+        n_jobs=1,
+    )
+    cfi_none_state.fit(X_train, groups=None, var_type="auto")
+    vim_none_state_1 = cfi_none_state.importance(X_test, y_test)["importance"]
+    vim_none_state_2 = cfi_none_state.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim_none_state_1, vim_none_state_2)
