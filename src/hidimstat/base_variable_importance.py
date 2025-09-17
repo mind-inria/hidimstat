@@ -1,7 +1,7 @@
 import warnings
 
-from sklearn.base import BaseEstimator
 import numpy as np
+from sklearn.base import BaseEstimator
 
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation

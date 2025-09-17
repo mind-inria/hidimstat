@@ -48,7 +48,7 @@ doc = [
     "tqdm                   >= 4.1.0,   < 5",
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
-style = ["black  >= 24.4.2", "isort  >= 5.13.2"]
+style = ["black  >= 24.4.2", "codespell >=2.4.0", "isort  >= 5.13.2"]
 
 # For running unit and docstring tests
 test = [
@@ -57,12 +57,12 @@ test = [
     "matplotlib     >= 3.1.0,   < 4",
     "packaging      >= 14.0,    < 100",
     "pytest         >= 8.0,     < 9",
-    "pytest-cov     >= 3.0,     < 7",
+    "pytest-cov     >= 3.0, < 8",
     "pytest-durations >= 1.0.0, < 2",
     "pytest-env     >= 1.0.0,   < 2",
     "pytest-html    >= 4.0.0,   < 5",
     "pytest-mpl     >= 0.14,    < 1",
-    "pytest-randomly >= 3.0.0,  < 4",
+    "pytest-randomly >= 3.0.0, < 5",
     "pytest-reportlog >= 0.2.1, < 1",
     "pytest-timeout >= 2.3.1,   < 3",
     "pytest-xdist[psutil] >= 3.3.0,  < 4",
@@ -75,6 +75,13 @@ Development = "https://github.com/nilearn/nilearn"
 Homepage = "https://mind-inria.github.io/hidimstat"
 Repository = "https://github.com/mind-inria/hidimstat"
 
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
+skip = "./.git,*.bib,./docs/_build"
+
+[tool.isort]
+profile = "black"
+skip = ["src/hidimstat/_version.py", "docs/_build"]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/hidimstat/_version.py"
@@ -89,7 +96,7 @@ where = ["src"]
 [tool.hatch.version]
 source = "vcs"
 
-# initialisation based on the good practice of pytest
+# initialization based on the good practice of pytest
 # https://docs.pytest.org/en/stable/explanation/goodpractices.html
 [tool.pytest.ini_options]
 minversion = "8.0"
