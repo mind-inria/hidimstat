@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-import pytest
 
 from hidimstat import PFI
 from hidimstat._utils.scenario import multivariate_simulation

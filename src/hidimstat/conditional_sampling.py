@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.base import MultiOutputMixin, check_is_fitted, BaseEstimator
+from sklearn.base import BaseEstimator, MultiOutputMixin, check_is_fitted
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.utils.validation import check_random_state
 
