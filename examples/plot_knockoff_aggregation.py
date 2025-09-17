@@ -37,7 +37,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 # metrics requires knowledge of the actual data-generating process.
 # We therefore use simulated data with the following parameters:
 
-# number of repetitions of the methods
+# number of repetitions of he methods
 runs = 20
 # Number of observations
 n_samples = 200

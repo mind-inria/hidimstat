@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import (
+    HuberRegressor,
     LogisticRegressionCV,
     RidgeClassifier,
     RidgeCV,
-    HuberRegressor,
 )
 from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier

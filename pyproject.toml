@@ -79,6 +79,10 @@ Repository = "https://github.com/mind-inria/hidimstat"
 builtin = "clear,rare,en-GB_to_en-US"
 skip = "./.git,*.bib,./docs/_build"
 
+[tool.isort]
+profile = "black"
+skip = ["src/hidimstat/_version.py", "docs/_build"]
+
 [tool.hatch.build.hooks.vcs]
 version-file = "src/hidimstat/_version.py"
 

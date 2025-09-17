@@ -24,8 +24,12 @@ jobs:
         run: |
           pip install .[style]
           codespell --toml pyproject.toml
+
+      # Isort check
+      - uses: isort/isort-action@v1
       
       # Black formatting check
       - uses: psf/black@stable
         with:
           jupyter: true
+      

@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -160,3 +160,9 @@ intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
 }
+
+
+linkcheck_ignore = [
+    # A lot of link DOI "fail" - false positives: easier to ignore them
+    r"https://doi.org/.*",
+]
