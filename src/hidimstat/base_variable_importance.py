@@ -136,6 +136,30 @@ class BaseVariableImportance(BaseEstimator):
 
         return selections
 
+
+class MixinSelectionFDR:
+    """
+    A mixin class that provides False Discovery Rate (FDR) based feature selection functionality.
+    This class implements methods for selecting features while controlling the False Discovery
+    Rate using either Benjamini-Hochberg (BH) or Benjamini-Hochberg-Yekutieli (BHY) procedures.
+    It can work with single p-values or lists of p-values, and supports adaptive aggregation
+    for multiple hypothesis testing scenarios.
+    Attributes
+    pvalues_ : numpy.ndarray
+        Array of p-values for each feature
+    list_pvalues_ : list of numpy.ndarray, optional
+        List of p-value arrays when multiple tests are performed per feature
+    Notes
+    -----
+    This mixin should be used with classes that compute feature importance measures
+    that can be converted to p-values. The class requires either pvalues_ or
+    list_pvalues_ attribute to be set before calling selection methods.
+    See Also
+    --------
+    selection_fdr : Main method for performing FDR-based feature selection
+
+    """
+
     def selection_fdr(
         self,
         fdr,
@@ -180,9 +204,6 @@ class BaseVariableImportance(BaseEstimator):
         assert (
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
-        assert (
-            self.pvalues_ is not None
-        ), "this method doesn't support selection base on FDR"
 
         if hasattr(self, "list_pvalues_"):
             aggregated_pval = quantile_aggregation(
