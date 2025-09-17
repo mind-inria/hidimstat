@@ -135,3 +135,8 @@ plt.show()
 # varies across models. It can be observed that models with a greater predictive
 # performance (higher R2 score) tend to assign higher importance scores to the true
 # support features.
+
+# %%
+# References
+# ----------
+# .. footbibliography::
