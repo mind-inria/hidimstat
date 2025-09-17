@@ -39,7 +39,7 @@ HiDimStat depends on the following packages::
   scikit-learn
   pandas
 
-To run examples it is neccessary to install ``matplotlib``, and to run tests it
+To run examples it is necessary to install ``matplotlib``, and to run tests it
 is also needed to install ``pytest``.
 
 
@@ -47,7 +47,8 @@ Documentation & Examples
 ------------------------
 
 Documentation about the main HiDimStat functions is available
-`here <api.html>`_ and examples are available `there <auto_examples/index.html>`_.
+`here <api.html>`_ and examples are available
+`there <generated/gallery/examples/index.html>`_.
 
 As of now, there are three different examples (Python scripts) that
 illustrate how to use the main HiDimStat functions.
@@ -71,7 +72,7 @@ To build the documentation you will need to run:
 
 .. code-block::
 
-    pip install -U .[doc]
+    pip install -U '.[doc]'
     cd docs
     make html
 
