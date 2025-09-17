@@ -31,13 +31,13 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
+        feature_groups=None,
         n_jobs=1,
     )
 
     loco.fit(
         X_train,
         y_train,
-        feature_groups=None,
     )
     vim = loco.importance(X_test, y_test)
 
@@ -59,12 +59,12 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
+        feature_groups=groups,
         n_jobs=1,
     )
     loco.fit(
         X_train_df,
         y_train,
-        feature_groups=groups,
     )
     # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
@@ -82,16 +82,16 @@ def test_loco():
     loco_clf = LOCO(
         estimator=logistic_model,
         method="predict_proba",
-        n_jobs=1,
-        loss=log_loss,
-    )
-    loco_clf.fit(
-        X_train,
-        y_train_clf,
         feature_groups={
             "group_0": important_features,
             "the_group_1": non_important_features,
         },
+        loss=log_loss,
+        n_jobs=1,
+    )
+    loco_clf.fit(
+        X_train,
+        y_train_clf,
     )
     vim_clf = loco_clf.importance(X_test, y_test_clf)
 

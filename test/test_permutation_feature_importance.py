@@ -30,6 +30,7 @@ def test_permutation_importance():
         estimator=regression_model,
         n_permutations=20,
         method="predict",
+        feature_groups=None,
         random_state=0,
         n_jobs=1,
     )
@@ -37,7 +38,6 @@ def test_permutation_importance():
     pfi.fit(
         X_train,
         y_train,
-        feature_groups=None,
     )
     vim = pfi.importance(X_test, y_test)
 
@@ -60,13 +60,13 @@ def test_permutation_importance():
         estimator=regression_model,
         n_permutations=20,
         method="predict",
+        feature_groups=groups,
         random_state=0,
         n_jobs=1,
     )
     pfi.fit(
         X_train_df,
         y_train,
-        feature_groups=groups,
     )
     # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
@@ -85,15 +85,15 @@ def test_permutation_importance():
         estimator=logistic_model,
         n_permutations=20,
         method="predict_proba",
+        loss=log_loss,
+        feature_groups=None,
         random_state=0,
         n_jobs=1,
-        loss=log_loss,
     )
 
     pfi_clf.fit(
         X_train,
         y_train_clf,
-        feature_groups=None,
     )
     vim_clf = pfi_clf.importance(X_test, y_test_clf)
 
