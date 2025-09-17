@@ -1,28 +1,11 @@
 import numpy as np
 import pytest
 
-from hidimstat.base_variable_importance import BaseVariableImportance
-
-
-def generate_list_pvalues_for_fdr(rng, importances, factor=30):
-    """Generate values for applying FDR.
-    TODO: Improve data generation.
-    """
-    nb_features = importances.shape[0]
-    result_list = []
-    for i in range(10):
-        score = rng.rand(nb_features) * factor
-        result_list.append(score)
-    for i in range(1, factor):
-        score = rng.rand(nb_features) + 1
-        score[-i:] = np.arange(factor - i, factor) * 2
-        score[:i] = -np.arange(factor - i, factor)
-        result_list.append(np.flip(score)[importances])
-    return np.array(result_list) / np.max(result_list)
+from hidimstat.base_variable_importance import BaseVariableImportance, MixinSelectionFDR
 
 
 @pytest.fixture
-def set_BaseVariableImportance(pvalues, list_pvalues, seed):
+def set_BaseVariableImportance(seed):
     """Create a BaseVariableImportance instance with test data for testing purposes.
 
     Parameters
@@ -44,6 +27,54 @@ def set_BaseVariableImportance(pvalues, list_pvalues, seed):
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(nb_features)
     rng.shuffle(vi.importances_)
+    vi.pvalues_ = np.flip(np.sort(rng.random(nb_features)))[vi.importances_]
+    return vi
+
+
+def generate_list_pvalues_for_fdr(rng, importances, factor=30):
+    """Generate values for applying FDR.
+    TODO: Improve data generation.
+    """
+    nb_features = importances.shape[0]
+    result_list = []
+    for i in range(10):
+        score = rng.rand(nb_features) * factor
+        result_list.append(score)
+    for i in range(1, factor):
+        score = rng.rand(nb_features) + 1
+        score[-i:] = np.arange(factor - i, factor) * 2
+        score[:i] = -np.arange(factor - i, factor)
+        result_list.append(np.flip(score)[importances])
+    return np.array(result_list) / np.max(result_list)
+
+
+@pytest.fixture
+def set_BaseselectionFDR(pvalues, list_pvalues, seed):
+    """Create a BaseVariableImportance with selectionFDR instance with test data for testing purposes.
+
+    Parameters
+    ----------
+    pvalues : bool
+        If True, generate random p-values for testing.
+    test_score : bool
+        If True, generate random test scores for testing.
+    seed : int
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    BaseVariableImportance
+        A BaseVariableImportance instance with test data.
+    """
+    nb_features = 100
+    rng = np.random.RandomState(seed)
+
+    class SelectionFDR(BaseVariableImportance, MixinSelectionFDR):
+        pass
+
+    vi = SelectionFDR()
+    vi.importances_ = np.arange(nb_features)
+    rng.shuffle(vi.importances_)
     list_pvalues_generated = generate_list_pvalues_for_fdr(rng, vi.importances_)
     if pvalues or list_pvalues:
         vi.pvalues_ = np.mean(list_pvalues_generated, axis=0)
@@ -53,9 +84,9 @@ def set_BaseVariableImportance(pvalues, list_pvalues, seed):
 
 
 @pytest.mark.parametrize(
-    "pvalues, list_pvalues, seed",
-    [(False, False, 0), (True, False, 1), (True, True, 2)],
-    ids=["only importance", "p-value", "list_pvalues"],
+    "seed",
+    [0, 2],
+    ids=["default_seed", "another seed"],
 )
 class TestSelection:
     """Test selection based on importance"""
@@ -122,12 +153,11 @@ class TestSelection:
     def test_selection_threshold_pvalue(self, set_BaseVariableImportance):
         "test threshold vbse on pvalues"
         vi = set_BaseVariableImportance
-        if vi.pvalues_ is not None:
-            true_value = vi.importances_ > 5
-            selection = vi.selection(
-                threshold_pvalue=vi.pvalues_[np.argsort(vi.importances_)[5]]
-            )
-            np.testing.assert_array_equal(true_value, selection)
+        true_value = vi.importances_ > 5
+        selection = vi.selection(
+            threshold_pvalue=vi.pvalues_[np.argsort(vi.importances_)[5]]
+        )
+        np.testing.assert_array_equal(true_value, selection)
 
 
 @pytest.mark.parametrize(
@@ -138,9 +168,9 @@ class TestSelection:
 class TestSelectionFDR:
     """Test selection based on fdr"""
 
-    def test_selection_fdr_default(self, set_BaseVariableImportance):
+    def test_selection_fdr_default(self, set_BaseselectionFDR):
         "test selection of the default"
-        vi = set_BaseVariableImportance
+        vi = set_BaseselectionFDR
         selection = vi.selection_fdr(0.2)
         assert np.all(
             [
@@ -149,9 +179,9 @@ class TestSelectionFDR:
             ]
         )
 
-    def test_selection_fdr_default_1(self, set_BaseVariableImportance):
+    def test_selection_fdr_default_1(self, set_BaseselectionFDR):
         "test selection of the default"
-        vi = set_BaseVariableImportance
+        vi = set_BaseselectionFDR
         vi.pvalues_ = np.random.rand(vi.importances_.shape[0]) * 30
         if hasattr(vi, "list_pvalues_"):
             vi.list_pvalues_ = [
@@ -161,9 +191,9 @@ class TestSelectionFDR:
         selection = vi.selection_fdr(0.2)
         np.testing.assert_array_equal(true_value, selection)
 
-    def test_selection_fdr_adaptation(self, set_BaseVariableImportance):
+    def test_selection_fdr_adaptation(self, set_BaseselectionFDR):
         "test selection of the adaptation"
-        vi = set_BaseVariableImportance
+        vi = set_BaseselectionFDR
         selection = vi.selection_fdr(0.2, adaptive_aggregation=True)
         assert np.all(
             [
@@ -172,9 +202,9 @@ class TestSelectionFDR:
             ]
         )
 
-    def test_selection_fdr_bhy(self, set_BaseVariableImportance):
+    def test_selection_fdr_bhy(self, set_BaseselectionFDR):
         "test selection with bhy"
-        vi = set_BaseVariableImportance
+        vi = set_BaseselectionFDR
         selection = vi.selection_fdr(0.2, fdr_control="bhy")
         assert np.all(
             [
@@ -185,14 +215,14 @@ class TestSelectionFDR:
 
 
 @pytest.mark.parametrize(
-    "pvalues, list_pvalues, seed",
-    [(False, False, 0), (True, False, 0), (True, True, 0)],
-    ids=["only importance", "p-value", "list_pvalues"],
+    "seed",
+    [0],
+    ids=["default_seed"],
 )
 class TestBVIExceptions:
     """Test class for BVI Exception"""
 
-    def test_not_fit(self, pvalues, list_pvalues, seed):
+    def test_not_fit(self, seed):
         "test detection unfit"
         vi = BaseVariableImportance()
         with pytest.raises(
@@ -205,11 +235,6 @@ class TestBVIExceptions:
             match="The importances need to be called before calling this method",
         ):
             vi.selection()
-        with pytest.raises(
-            ValueError,
-            match="The importances need to be called before calling this method",
-        ):
-            vi.selection_fdr(0.1)
 
     def test_selection_k_best(self, set_BaseVariableImportance):
         "test selection k_best wrong"
@@ -250,13 +275,33 @@ class TestBVIExceptions:
             ):
                 vi.selection(threshold_pvalue=1.1)
 
-    def test_selection_fdr_fdr_control(self, set_BaseVariableImportance):
+
+@pytest.mark.parametrize(
+    "pvalues, list_pvalues, seed",
+    [(False, False, 0), (True, False, 0), (True, True, 0)],
+    ids=["only importance", "p-value", "list_pvalues"],
+)
+class TestSelectionFDRExceptions:
+    def test_not_fit(self, pvalues, list_pvalues, seed):
+        "test detection unfit"
+
+        class SelectionFDR(BaseVariableImportance, MixinSelectionFDR):
+            pass
+
+        vi = SelectionFDR()
+        with pytest.raises(
+            ValueError,
+            match="The importances need to be called before calling this method",
+        ):
+            vi.selection_fdr(0.1)
+
+    def test_selection_fdr_fdr_control(self, set_BaseselectionFDR):
         "test selection fdr_control wrong"
-        vi = set_BaseVariableImportance
+        vi = set_BaseselectionFDR
         if vi.pvalues_ is None:
             with pytest.raises(
-                AssertionError,
-                match="this method doesn't support selection base on FDR",
+                TypeError,
+                match="object of type 'NoneType' has no len()",
             ):
                 vi.selection_fdr(fdr=0.1)
         else:
