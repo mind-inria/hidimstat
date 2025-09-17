@@ -220,7 +220,7 @@ effect_number_samples(n_samples=n_samples)
 # %%
 # By repeating the model-X Knockoffs, we can see that instability
 # of the inference. Additionally, we can see that the aggregation method
-# is more stable. However, the :term:`e-values` aggregation is more conservative,
+# is more stable. However, the e-values aggregation is more conservative,
 # i.e. the expected variables of importance are not found.
 
 # %%
