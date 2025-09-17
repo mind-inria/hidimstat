@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted, clone
+from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 

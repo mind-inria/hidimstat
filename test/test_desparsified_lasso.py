@@ -2,17 +2,17 @@
 Test the desparsified_lasso module
 """
 
-import numpy as np
 import pytest
+import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
 
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
-    desparsified_group_lasso_pvalue,
     desparsified_lasso,
     desparsified_lasso_pvalue,
+    desparsified_group_lasso_pvalue,
 )
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def test_desparsified_lasso():

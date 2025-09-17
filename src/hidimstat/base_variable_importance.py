@@ -1,7 +1,7 @@
 import warnings
 
-import numpy as np
 from sklearn.base import BaseEstimator
+import numpy as np
 
 
 class BaseVariableImportance(BaseEstimator):
