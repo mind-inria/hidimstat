@@ -10,11 +10,8 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+    clustered_inference, clustered_inference_pvalue,
+    ensemble_clustered_inference, ensemble_clustered_inference_pvalue)
 
 
 # Scenario 1: data with no temporal dimension
