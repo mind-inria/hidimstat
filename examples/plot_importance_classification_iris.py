@@ -61,7 +61,6 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # require a K-fold cross-fitting. Computing the importance for each fold is
 # embarrassingly parallel. For this reason, we encapsulate the main computations in a
 # function and use joblib to parallelize the computation.
-
 def run_one_fold(
     X,
     y,
