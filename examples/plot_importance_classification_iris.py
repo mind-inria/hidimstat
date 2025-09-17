@@ -91,6 +91,7 @@ def run_one_fold(
             random_state=0,
             method=method,
             loss=loss,
+            feature_groups=feature_groups,
         )
     elif vim_name == "PFI":
         vim = PFI(
@@ -99,9 +100,10 @@ def run_one_fold(
             random_state=0,
             method=method,
             loss=loss,
+            feature_groups=feature_groups,
         )
 
-    vim.fit(X[train_index], y[train_index], feature_groups=feature_groups)
+    vim.fit(X[train_index], y[train_index])
     importance = vim.importance(X[test_index], y[test_index])["importance"]
 
     return pd.DataFrame(
