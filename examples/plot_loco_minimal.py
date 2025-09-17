@@ -21,6 +21,8 @@ from hidimstat import LOCO
 from hidimstat._utils.scenario import multivariate_simulation
 
 # %%
+# Loading and preparing the data
+# ------------------------------
 # We begin by simulating a regression dataset with 10 correlated features, 5 of which
 # are in the support set, meaning they contribute to generating the outcome.
 # The data is then split into training and test sets. These sets are used both to fit
@@ -43,6 +45,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
+# Fitting models and computing LOCO feature importance
+# ----------------------------------------------------
 # We define a list of predictive models to compare. We use RidgeCV for linear
 # regression, RandomForestRegressor for a tree-based model, MLPRegressor for a
 # neural network, and SVR for a support vector machine, with RBF kernel. We then fit
@@ -90,6 +94,8 @@ df_plot = pd.concat(df_list)
 df_plot.groupby("model").mean()["R2 score"].to_frame()
 
 # %%
+# Visualization of LOCO feature importance
+# ----------------------------------------
 # Finally, we visualize the LOCO feature importance for each model using a horizontal
 # bar plot. The true support features are highlighted in the plot with a green shaded
 # background.
