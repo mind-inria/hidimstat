@@ -98,7 +98,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 ax = sns.barplot(
-    data=pd.concat(df_list),
+    data=df_plot,
     y="feature",
     x="importance",
     hue="model",
@@ -119,3 +119,10 @@ for i, support in enumerate(beta):
         )
 ax.legend()
 plt.show()
+
+# %%
+# The plot shows that the different models all identify the true support features and
+# assign them higher importance scores. However, the magnitude of the importance scores
+# varies across models. It can be observed that models with a greater predictive
+# performance (higher R2 score) tend to assign higher importance scores to the true
+# support features.
