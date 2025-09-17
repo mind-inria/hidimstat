@@ -4,8 +4,8 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
-from hidimstat.base_variable_importance import MixinSelectionFDR
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.base_variable_importance import MixinSelectionFDR
 from hidimstat.conditional_sampling import ConditionalSampler
 
 
