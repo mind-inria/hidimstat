@@ -28,12 +28,14 @@ def test_dcrt_lasso_screening(generate_regression_dataset):
     X, y = generate_regression_dataset
     # Checking with and without screening
     d0crt_no_screening = D0CRT(
-        estimator=LassoCV(n_jobs=1), screening_threshold=None, random_state=2024
+        estimator=LassoCV(n_jobs=1),
+        screening_threshold=None,
     )
     pvalue_no_screening = d0crt_no_screening.fit_importance(X, y)
     sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
     d0crt_screening = D0CRT(
-        estimator=LassoCV(n_jobs=1), screening_threshold=10, random_state=2024
+        estimator=LassoCV(n_jobs=1),
+        screening_threshold=10,
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
     sv_screening = d0crt_screening.selection(threshold_pvalue=0.05)
@@ -50,7 +52,6 @@ def test_dcrt_lasso_screening(generate_regression_dataset):
     d0crt_no_screening = D0CRT(
         estimator=LassoCV(n_jobs=1),
         screening_threshold=None,
-        random_state=2024,
         scaled_statistics=True,
     )
     d0crt_no_screening.fit_importance(X, y)
@@ -74,7 +75,6 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_regression_dataset):
         estimator=LassoCV(n_jobs=1),
         estimated_coef=estimated_coefs,
         screening_threshold=None,
-        random_state=2026,
     )
     d0crt.fit(X, y)
     pvalue = d0crt.importance(X, y)
@@ -94,7 +94,6 @@ def test_dcrt_lasso_with_refit(generate_regression_dataset):
         estimator=LassoCV(n_jobs=1),
         refit=True,
         screening_threshold=None,
-        random_state=2024,
     )
     pvalue = d0crt_refit.fit_importance(X, y)
     sv = d0crt_refit.selection(threshold_pvalue=0.05)
@@ -113,7 +112,6 @@ def test_dcrt_lasso_with_no_cv(generate_regression_dataset):
         estimator=LassoCV(n_jobs=1),
         lasso_screening=LassoCV(n_jobs=1, fit_intercept=False),
         screening_threshold=None,
-        random_state=2024,
     )
     pvalue = d0crt_use_cv.fit_importance(X, y)
     sv = d0crt_use_cv.selection(threshold_pvalue=0.05)
@@ -134,7 +132,6 @@ def test_dcrt_lasso_with_covariance(generate_regression_dataset):
         estimator=LassoCV(n_jobs=1),
         sigma_X=cov.covariance_,
         screening_threshold=None,
-        random_state=2024,
     )
     pvalue = d0crt_covariance.fit_importance(X, y)
     sv = d0crt_covariance.selection(threshold_pvalue=0.05)
@@ -152,7 +149,6 @@ def test_dcrt_lasso_center():
         estimator=LassoCV(n_jobs=1),
         centered=False,
         screening_threshold=None,
-        random_state=2024,
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -216,7 +212,6 @@ def test_dcrt_distillation_y_different():
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
-        random_state=2024,
         model_distillation_x=Lasso(),
         scaled_statistics=True,
     )
@@ -238,7 +233,6 @@ def test_dcrt_lasso_fit_with_no_cv():
         fit_y=True,
         lasso_screening=LassoCV(n_jobs=1),
         screening_threshold=None,
-        random_state=2026,
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -259,7 +253,6 @@ def test_dcrt_RF_regression():
         estimator=RandomForestRegressor(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict",
         screening_threshold=None,
-        random_state=2026,
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -279,7 +272,6 @@ def test_dcrt_RF_classification():
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
         screening_threshold=None,
-        random_state=2026,
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -297,7 +289,6 @@ def test_exception_not_fitted():
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
         screening_threshold=None,
-        random_state=2024,
         scaled_statistics=True,
     )
     with pytest.raises(
@@ -313,7 +304,6 @@ def test_warning_not_used_parameters():
         estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
         method="predict_proba",
         screening_threshold=None,
-        random_state=2024,
     )
     d0crt.fit(X, y)
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -331,7 +321,6 @@ def test_dcrt_invalid_lasso_screening(generate_regression_dataset):
         estimator=LassoCV(n_jobs=1),
         lasso_screening=RandomForestRegressor(n_estimators=10, random_state=0),
         screening_threshold=10,
-        random_state=2024,
     )
     with pytest.raises(
         ValueError, match="lasso_model must be an instance of Lasso or LassoCV"
@@ -341,7 +330,11 @@ def test_dcrt_invalid_lasso_screening(generate_regression_dataset):
 
 def test_function_d0crt():
     """Test the d0crt function"""
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = make_regression(
+        n_samples=100,
+        n_features=10,
+        noise=0.2,
+    )
     sv, importances, pvalues = d0crt(LassoCV(n_jobs=1), X, y)
     assert len(sv) <= 10
     assert len(importances) == 10
@@ -372,28 +365,22 @@ def test_d0crt_different_instances_same_random_state_are_reproducible(d0crt_test
     X, y = d0crt_test_data
     d0crt_1 = D0CRT(
         estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening=False,
-        params_lasso_distillation_x={
-            "cv": KFold(shuffle=True, random_state=1),
-            "alphas": None,
-            "n_alphas": 10,
-            "alpha": None,
-            "alpha_max_fraction": 0.5,
-        },
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=0),
+        ),
     )
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
 
     d0crt_2 = D0CRT(
         estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening=False,
-        params_lasso_distillation_x={
-            "cv": KFold(shuffle=True, random_state=1),
-            "alphas": None,
-            "n_alphas": 10,
-            "alpha": None,
-            "alpha_max_fraction": 0.5,
-        },
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=0),
+        ),
     )
     d0crt_2.fit(X, y)
     vim_2 = d0crt_2.importance(X, y)
@@ -409,14 +396,11 @@ def test_d0crt_different_random_state_randomness(d0crt_test_data):
     # Fixed random state
     d0crt_fixed = D0CRT(
         estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening=False,
-        params_lasso_distillation_x={
-            "cv": KFold(shuffle=True, random_state=0),
-            "alphas": None,
-            "n_alphas": 10,
-            "alpha": None,
-            "alpha_max_fraction": 0.5,
-        },
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=0),
+        ),
     )
     d0crt_fixed.fit(X, y)
     vim_fixed = d0crt_fixed.importance(X, y)
@@ -424,14 +408,47 @@ def test_d0crt_different_random_state_randomness(d0crt_test_data):
     # Different random state
     d0crt_none_state = D0CRT(
         estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-        screening=False,
-        params_lasso_distillation_x={
-            "cv": KFold(shuffle=True, random_state=None),
-            "alphas": None,
-            "n_alphas": 10,
-            "alpha": None,
-            "alpha_max_fraction": 0.5,
-        },
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=None),
+        ),
+    )
+    d0crt_fixed.fit(X, y)
+    vim_fixed = d0crt_fixed.importance(X, y)
+
+    # Different random state
+    d0crt_none_state = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=None),
+        ),
+    )
+    d0crt_fixed.fit(X, y)
+    vim_fixed = d0crt_fixed.importance(X, y)
+
+    # Different random state
+    d0crt_none_state = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=None),
+        ),
+    )
+    d0crt_fixed.fit(X, y)
+    vim_fixed = d0crt_fixed.importance(X, y)
+
+    # Different random state
+    d0crt_none_state = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=None),
+        ),
     )
     d0crt_none_state.fit(X, y)
     vim_none_state_1 = d0crt_none_state.importance(X, y)
@@ -463,7 +480,6 @@ def test_d0crt_linear():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1, n_alphas=10),
         screening_threshold=90,
-        random_state=0,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
@@ -489,7 +505,6 @@ def test_d0crt_rf():
     d0crt = D0CRT(
         estimator=RandomForestRegressor(n_estimators=100, random_state=0, n_jobs=1),
         screening_threshold=None,
-        random_state=0,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
