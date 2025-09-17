@@ -255,7 +255,7 @@ def test_gaussian_knockoff_equi():
 
 
 def test_gaussian_knockoff_equi_warning():
-    "test warning in guassian knockoff"
+    "test warning in gaussian knockoff"
     seed = 42
     n = 100
     p = 50

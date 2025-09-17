@@ -66,7 +66,7 @@ def test_loco():
         y_train,
         groups=groups,
     )
-    # warnings because we doesn't considere the name of columns of pandas
+    # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = loco.importance(X_test_df, y_test)
 
