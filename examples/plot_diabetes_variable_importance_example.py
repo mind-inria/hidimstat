@@ -59,6 +59,7 @@ from hidimstat import CFI, LOCO, PFI
 # -------------------------
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
+
 # Encode sex as binary
 X[:, 1] = (X[:, 1] > 0.0).astype(int)
 
@@ -81,8 +82,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
+    print(f"Fold {i}: {score=}")
+    print(f"Fold {i}: {mse=}")
 
 # %%
 # Fit a baselien model on the diabetes dataset
@@ -103,8 +104,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
+    print(f"Fold {i}: {score=}")
+    print(f"Fold {i}: {mse=}")
 
 # %%
 # Measure the importance of variables using the CFI method
