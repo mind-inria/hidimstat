@@ -573,9 +573,7 @@ class TestCFIExceptions:
             feature_types="auto",
         )
 
-        with pytest.raises(
-            ValueError, match="feature_groups needs to be a dictionary"
-        ):
+        with pytest.raises(ValueError, match="feature_groups needs to be a dictionary"):
             cfi.fit(X)
 
     def test_groups_warning(self, data_generator):
