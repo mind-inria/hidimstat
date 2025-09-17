@@ -1,0 +1,121 @@
+"""
+Leave-One-Covariate-Out (LOCO) feature importance with different predictive models
+=================================================================================
+
+This example demonstrates how to compare LOCO feature importance across different
+predictive models on the same regression dataset. LOCO is model-agnostic and can be
+applied to any predictive model. Here, we use a linear model, a random forest, a neural
+network, and a support vector machine. We compare the models based on their predictive
+performance (R2 score) and the LOCO feature importance they yield.
+"""
+
+# %%
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import RidgeCV
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
+
+from hidimstat import LOCO
+from hidimstat._utils.scenario import multivariate_simulation
+
+# %%
+# We begin by simulating a regression dataset with 10 correlated features, 5 of which
+# are in the support set, meaning they contribute to generating the outcome.
+# The data is then split into training and test sets. These sets are used both to fit
+# the predictive models and within the LOCO procedure, which refits models on subsets
+# of features that exclude the feature of interest.
+
+X, y, beta, _ = multivariate_simulation(
+    n_samples=500,
+    n_features=10,
+    support_size=5,
+    rho=0.3,
+    signal_noise_ratio=8,
+    seed=0,
+)
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=0,
+)
+
+# %%
+# We define a list of predictive models to compare. We use RidgeCV for linear
+# regression, RandomForestRegressor for a tree-based model, MLPRegressor for a
+# neural network, and SVR for a support vector machine, with RBF kernel. We then fit
+# each model on the training data, compute the LOCO feature importance on the test
+# data, and store the results in a DataFrame for comparison.
+
+models_list = [
+    RidgeCV(),
+    RandomForestRegressor(n_estimators=150, random_state=0),
+    MLPRegressor(
+        hidden_layer_sizes=(8),
+        random_state=0,
+        max_iter=500,
+        learning_rate_init=0.1,
+    ),
+    SVR(),
+]
+
+df_list = []
+for model in models_list:
+    # Fit the full model
+    model = model.fit(X_train, y_train)
+    loco = LOCO(model)
+    # For each feature, remove it from the dataset, refit the model, and compute LOCO importance.
+    # This process is repeated for all features to assess their individual contributions.
+    loco.fit(X_train, y_train)
+    importances = loco.importance(X_test, y_test)["importance"]
+    df_list.append(
+        pd.DataFrame(
+            {
+                "feature": list(range(X.shape[1])),
+                "importance": importances,
+                "model": model.__class__.__name__,
+                "support": beta,
+                "R2 score": model.score(X_test, y_test),
+            }
+        )
+    )
+
+# %%
+# The predictive performance of the models can be compared using their R2 scores.
+# This helps assess how effectively each model captures the underlying data-generating process.
+
+df_plot = pd.concat(df_list)
+df_plot.groupby("model").mean()["R2 score"].to_frame()
+
+# %%
+# Finally, we visualize the LOCO feature importance for each model using a horizontal
+# bar plot. The true support features are highlighted in the plot with a green shaded
+# background.
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+ax = sns.barplot(
+    data=pd.concat(df_list),
+    y="feature",
+    x="importance",
+    hue="model",
+    palette="muted",
+    orient="h",
+)
+sns.despine()
+
+for i, support in enumerate(beta):
+    if support != 0:
+        ax.axhspan(
+            i - 0.45,
+            i + 0.45,
+            color="tab:olive",
+            alpha=0.3,
+            zorder=-1,
+            label="True Support" if i == 0 else None,
+        )
+ax.legend()
+plt.show()
