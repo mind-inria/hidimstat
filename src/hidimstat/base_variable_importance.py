@@ -3,8 +3,8 @@ import warnings
 import numpy as np
 from sklearn.base import BaseEstimator
 
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
 class BaseVariableImportance(BaseEstimator):
