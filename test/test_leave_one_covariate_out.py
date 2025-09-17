@@ -5,9 +5,9 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-from hidimstat._utils.scenario import multivariate_simulation
 
 from hidimstat import LOCO
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 
 
@@ -66,7 +66,7 @@ def test_loco():
         y_train,
         features_groups=groups,
     )
-    # warnings because we doesn't considere the name of columns of pandas
+    # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = loco.importance(X_test_df, y_test)
 

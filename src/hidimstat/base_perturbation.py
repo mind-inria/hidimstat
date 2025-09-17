@@ -1,8 +1,11 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
+from hidimstat._utils.exception import InternalError
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,

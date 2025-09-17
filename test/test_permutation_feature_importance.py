@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
+import pytest
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-import pytest
 
 from hidimstat import PFI
 from hidimstat._utils.scenario import multivariate_simulation
@@ -68,7 +68,7 @@ def test_permutation_importance():
         y_train,
         features_groups=groups,
     )
-    # warnings because we doesn't considere the name of columns of pandas
+    # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = pfi.importance(X_test_df, y_test)
 
