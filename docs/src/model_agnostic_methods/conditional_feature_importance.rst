@@ -81,7 +81,7 @@ The following example illustrates the use of CFI on a regression task with::
     >>> model = LinearRegression().fit(X_train, y_train)
     
     >>> cfi = CFI(estimator=model, imputation_model_continuous=LinearRegression())
-    >>> cfi.fit(X_train, y_train)
+    >>> cfi = cfi.fit(X_train, y_train)
     >>> features_importance = cfi.importance(X_test, y_test)
 
 
@@ -108,7 +108,7 @@ of CFI on a classification task with::
     ...     loss=log_loss,
     ...     method="predict_proba",
     ... )
-    >>> cfi.fit(X_train, y_train)
+    >>> cfi = cfi.fit(X_train, y_train)
     >>> features_importance = cfi.importance(X_test, y_test)
 
 References
