@@ -595,3 +595,30 @@ def test_cfi_plot(data_generator):
     fig, ax = plt.subplots(figsize=(6, 3))
     ax = cfi.plot_importance(ax=ax)
     return fig
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, 5, 0.2, 0, 1.0, 1.0, 0.0)],
+    ids=["high level noise"],
+)
+@pytest.mark.mpl_image_compare
+def test_cfi_plot_2d_imp(data_generator):
+    """Test CFI plot function"""
+    X, y, _, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+    fitted_model = LinearRegression().fit(X_train, y_train)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        random_state=0,
+    )
+    # Make the plot independent of data / randomness to test only the plotting function
+    cfi.importances_ = np.stack(
+        [np.arange(10), np.arange(10) - 1, np.arange(10) + 1], axis=0
+    )
+    fig, ax = plt.subplots(figsize=(6, 3))
+    ax = cfi.plot_importance(ax=ax)
+    return fig
