@@ -11,13 +11,14 @@ Notations
 .. glossary::
 
     minus index
-    individual features
+    :math:`X^{-j}`
         The minus index notation is used to denote all features except the one with the 
         given index. For instance, :math:`X_{-j}` denotes all features except the 
         :math:`j^{th}` one.
 
-    Feature groups
-        Similar to the minus index notation for individual features, we use the minus 
+    minus group
+    :math:`X_{-G}`
+        Similar to the :term:`minus index` notation for individual features, we use the minus 
         index notation to denote the complement of a group of features. For instance, 
         :math:`X_{-G}` denotes all features except the ones in the group :math:`G`.
 
@@ -58,9 +59,3 @@ Glossary
         The Permutation Feature Importance (PFI) is a measure of feature importance 
         that consists in permuting the values of the feature of interest and measuring 
         the performance drop triggered by this perturbation.
-    
-    :math:`X^{-j}`
-        See :term:`individual features`.
-    
-    :math:`X_{-G}`
-        See :term:`Feature groups`.
