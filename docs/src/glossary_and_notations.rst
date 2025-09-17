@@ -58,3 +58,9 @@ Glossary
         The Permutation Feature Importance (PFI) is a measure of feature importance 
         that consists in permuting the values of the feature of interest and measuring 
         the performance drop triggered by this perturbation.
+    
+    :math:`X^{-j}`
+        See :term:`individual features`.
+    
+    :math:`X_{-G}`
+        See :term:`Feature groups`.
