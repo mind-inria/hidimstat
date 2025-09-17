@@ -1,6 +1,6 @@
 """
-Leave-One-Covariate-Out (LOCO) feature importance with different predictive models
-=================================================================================
+Leave-One-Covariate-Out (LOCO) feature importance with different regression models
+==================================================================================
 
 This example demonstrates how to compare LOCO feature importance across different
 predictive models on the same regression dataset. LOCO is model-agnostic and can be
