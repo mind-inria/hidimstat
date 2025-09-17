@@ -45,6 +45,7 @@ To apply the required dependencies and style your code:
 
     pip install -e '.[style]'
     isort .
+    codespell --toml pyproject.toml
     black .
 
 Examples
