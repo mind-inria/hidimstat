@@ -2,7 +2,7 @@
 Conditional Feature Importance (CFI) on the wine dataset
 ========================================================
 
-This example demonstrates how to measure feature importance using CFI on the wine dataset.
+This example demonstrates how to measure feature importance using CFI :footcite:t:`Chamma_NeurIPS2023` on the wine dataset.
 The data are the results of chemical analyses of wines grown in the same region in Italy,
 derived from three different cultivars. Thirteen features are used to predict three types
 of wine, making this a 3-class classification problem. In this example, we show how to
@@ -88,3 +88,8 @@ _, ax = plt.subplots(figsize=(6, 3))
 ax = cfi.plot_importance(feature_names=load_wine().feature_names, ax=ax)
 ax.set_xlabel("Feature Importance")
 plt.tight_layout()
+
+# %%
+# References
+# ----------
+# .. footbibliography::
