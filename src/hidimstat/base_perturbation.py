@@ -124,13 +124,13 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out_dict["importance"] = np.array(
             [
                 np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_features_groups)
+                for j in range(self.n_feature_groups)
             ]
         )
         return out_dict
 
     def _joblib_predict_one_features_group(
-        self, X, features_group_id, features_group_key
+        self, X, feature_group_id, feature_group_key
     ):
         """
         Compute the predictions after perturbation of the data for a given
@@ -167,6 +167,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             )
         return y_pred_perm
 
-    def _permutation(self, X, features_group_id):
+    def _permutation(self, X, feature_group_id):
         """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError
