@@ -156,10 +156,10 @@ class GroupVariableImportanceMixin:
 
     Attributes
     ----------
-    n_feature_groups_ : int, default=None
+    n_feature_groups_ : int
         The number of feature groups.
-    _feature_groups_ids : array-like of shape (n_feature_groups,), default=None
-        Internal representation of group indices for each group.
+    _feature_groups_ids : array-like of shape (n_feature_groups,)
+        Internal representation of index of group for each features.
 
     Methods
     -------
