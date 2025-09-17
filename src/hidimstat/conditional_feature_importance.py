@@ -14,12 +14,14 @@ class CFI(BasePerturbation):
         estimator,
         loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1,
         n_permutations: int = 50,
         imputation_model_continuous=None,
         imputation_model_categorical=None,
-        random_state: int = None,
+        feature_groups=None,
+        feature_types="auto",
         categorical_max_cardinality: int = 10,
+        n_jobs: int = 1,
+        random_state: int = None,
     ):
         """
         Conditional Feature Importance (CFI) algorithm.
@@ -37,9 +39,6 @@ class CFI(BasePerturbation):
             The method to use for the prediction. This determines the predictions passed
             to the loss function. Supported methods are "predict", "predict_proba" or
             "decision_function".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            features or groups of features.
         n_permutations : int, default=50
             The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
@@ -50,11 +49,22 @@ class CFI(BasePerturbation):
             The model used to estimate the conditional distribution of a given
             categorical features/group of features given the others. Binary is
             considered as a special case of categorical.
-        random_state : int, default=None
-            The random state to use for sampling.
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a feature to be considered as categorical
             when the feature type is inferred (set to "auto" or not provided).
+        feature_groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each features group. If None,
+            the feature_groups are identified based on the columns of X.
+        feature_types: str or list, default="auto"
+            The feature type. Supported types include "auto", "continuous", and
+            "categorical". If "auto", the type is inferred from the cardinality
+            of the unique values passed to the `fit` method.
+        random_state : int, default=None
+            The random state to use for sampling.
+        n_jobs : int, default=1
+            The number of jobs to run in parallel. Parallelization is done over the
+            features or groups of features.
 
         References
         ----------
@@ -66,6 +76,8 @@ class CFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            feature_groups=feature_groups,
+            feature_types=feature_types,
         )
 
         # check the validity of the inputs
@@ -82,7 +94,7 @@ class CFI(BasePerturbation):
         self.imputation_model_continuous = imputation_model_continuous
         self.random_state = random_state
 
-    def fit(self, X, y=None, feature_groups=None, features_type="auto"):
+    def fit(self, X, y=None):
         """Fit the imputation models.
 
         Parameters
@@ -91,29 +103,17 @@ class CFI(BasePerturbation):
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
-        feature_groups: dict, optional
-            A dictionary where the keys are the group names and the values are the
-            list of column names corresponding to each features group. If None,
-            the feature_groups are identified based on the columns of X.
-        features_type: str or list, default="auto"
-            The feature type. Supported types include "auto", "continuous", and
-            "categorical". If "auto", the type is inferred from the cardinality
-            of the unique values passed to the `fit` method.
         Returns
         -------
         self : object
             Returns the instance itself.
         """
         self.random_state = check_random_state(self.random_state)
-        super().fit(X, None, feature_groups=feature_groups)
-        if isinstance(features_type, str):
-            self.features_type = [features_type for _ in range(self.n_feature_groups)]
-        else:
-            self.features_type = features_type
+        super().fit(X, None)
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.features_type[features_groupd_id],
+                data_type=self.feature_types[features_groupd_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -127,7 +127,7 @@ class CFI(BasePerturbation):
                 random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for features_groupd_id in range(self.n_feature_groups)
+            for features_groupd_id in range(self.n_feature_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators

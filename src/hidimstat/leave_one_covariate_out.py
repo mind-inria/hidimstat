@@ -13,6 +13,7 @@ class LOCO(BasePerturbation):
         estimator,
         loss: callable = root_mean_squared_error,
         method: str = "predict",
+        feature_groups=None,
         n_jobs: int = 1,
     ):
         """
@@ -33,6 +34,10 @@ class LOCO(BasePerturbation):
             The method to use for the prediction. This determines the predictions passed
             to the loss function. Supported methods are "predict", "predict_proba" or
             "decision_function".
+        feature_groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each features group. If None,
+            the feature_groups are identified based on the columns of X.
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             features or groups of features.
@@ -52,10 +57,12 @@ class LOCO(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=1,
+            feature_groups=feature_groups,
+            feature_types=None,
         )
         self._list_estimators = []
 
-    def fit(self, X, y, feature_groups=None):
+    def fit(self, X, y):
         """Fit a model after removing each covariate/group of covariates.
 
         Parameters
@@ -64,19 +71,16 @@ class LOCO(BasePerturbation):
             The training input samples.
         y : array-like of shape (n_samples,)
             The target values.
-        feature_groups : dict, default=None
-            A dictionary where the keys are the group names and the values are the
-            indices of the covariates in each group.
 
         Returns
         -------
         self : object
             Returns the instance itself.
         """
-        super().fit(X, y, feature_groups)
+        super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [
-            clone(self.estimator) for _ in range(self.n_feature_groups)
+            clone(self.estimator) for _ in range(self.n_feature_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators

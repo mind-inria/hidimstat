@@ -11,9 +11,10 @@ class PFI(BasePerturbation):
         estimator,
         loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1,
         n_permutations: int = 50,
+        feature_groups=None,
         random_state: int = None,
+        n_jobs: int = 1,
     ):
         """
         Permutation Feature Importance algorithm as presented in
@@ -33,14 +34,18 @@ class PFI(BasePerturbation):
             The method to use for the prediction. This determines the predictions passed
             to the loss function. Supported methods are "predict", "predict_proba" or
             "decision_function".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            features or groups of features.
         n_permutations : int, default=50
             The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
+        feature_groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each features group. If None,
+            the feature_groups are identified based on the columns of X.
         random_state : int, default=None
             The random state to use for sampling.
+        n_jobs : int, default=1
+            The number of jobs to run in parallel. Parallelization is done over the
+            features or groups of features.
 
         References
         ----------
@@ -52,6 +57,8 @@ class PFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            feature_groups=feature_groups,
+            feature_types=None,
         )
         self.random_state = random_state
 

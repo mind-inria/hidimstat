@@ -5,7 +5,6 @@ from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat._utils.exception import InternalError
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -20,6 +19,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
         method: str = "predict",
+        feature_groups=None,
+        feature_types="auto",
         n_jobs: int = 1,
     ):
         """
@@ -42,6 +43,14 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The method used for making predictions. This determines the predictions
             passed to the loss function. Supported methods are "predict",
             "predict_proba", "decision_function", "transform".
+        feature_groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each features group. If None,
+            the feature_groups are identified based on the columns of X.
+        feature_types: str or list, default="auto"
+            The feature type. Supported types include "auto", "continuous", and
+            "categorical". If "auto", the type is inferred from the cardinality
+            of the unique values passed to the `fit` method.
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
@@ -55,6 +64,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.method = method
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
+        GroupVariableImportanceMixin.__init__(
+            self, feature_groups=feature_groups, feature_types=feature_types
+        )
 
     def predict(self, X):
         """
@@ -124,7 +136,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out_dict["importance"] = np.array(
             [
                 np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_feature_groups)
+                for j in range(self.n_feature_groups_)
             ]
         )
         return out_dict

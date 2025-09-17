@@ -143,12 +143,21 @@ class GroupVariableImportanceMixin:
     methods that operate on groups of features, enabling group-wise selection
     and importance evaluation.
 
+    Parameters
+    ----------
+    feature_groups: dict, optional
+        A dictionary where the keys are the group names and the values are the
+        list of column names corresponding to each features group. If None,
+        the feature_groups are identified based on the columns of X.
+    feature_types: str or list, default="auto"
+        The feature type. Supported types include "auto", "continuous", and
+        "categorical". If "auto", the type is inferred from the cardinality
+        of the unique values passed to the `fit` method.
+
     Attributes
     ----------
-    n_feature_groups : int, default=None
+    n_feature_groups_ : int, default=None
         The number of feature groups.
-    feature_groups : dict, default=None
-        A dictionary mapping group names or indices to lists of feature indices or names.
     _feature_groups_ids : array-like of shape (n_feature_groups,), default=None
         Internal representation of group indices for each group.
 
@@ -160,10 +169,11 @@ class GroupVariableImportanceMixin:
         Checks if the class has been fitted and validates group-feature correspondence.
     """
 
-    def __init__(self, feature_groups):
+    def __init__(self, feature_groups=None, feature_types="auto"):
         super().__init__()
-        self.n_feature_groups = None
         self.feature_groups = feature_groups
+        self.feature_types = feature_types
+        self.n_feature_groups_ = None
         self._feature_groups_ids = None
 
     def fit(self, X, y=None):
@@ -176,20 +186,16 @@ class GroupVariableImportanceMixin:
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
-        feature_groups: dict, optional
-            A dictionary where the keys are the group names and the values are the
-            list of column names corresponding to each group. If None, the groups are
-            identified based on the columns of X.
         """
-        if feature_groups is None:
-            self.n_feature_groups = X.shape[1]
-            self.feature_groups = {j: [j] for j in range(self.n_feature_groups)}
+        if self.feature_groups is None:
+            self.n_feature_groups_ = X.shape[1]
+            self.feature_groups = {j: [j] for j in range(self.n_feature_groups_)}
             self._feature_groups_ids = np.array(
                 list(self.feature_groups.values()), dtype=int
             )
-        elif isinstance(feature_groups, dict):
-            self.n_feature_groups = len(feature_groups)
-            self.feature_groups = feature_groups
+        elif isinstance(self.feature_groups, dict):
+            self.n_feature_groups_ = len(self.feature_groups)
+            self.feature_groups = self.feature_groups
             if isinstance(X, pd.DataFrame):
                 self._feature_groups_ids = []
                 for feature_group_key in self.feature_groups.keys():
@@ -207,6 +213,13 @@ class GroupVariableImportanceMixin:
                 ]
         else:
             raise ValueError("feature_groups needs to be a dictionnary")
+        if isinstance(self.feature_types, str):
+            if self.feature_types == "auto":
+                self.feature_types = [
+                    self.feature_types for _ in range(self.n_feature_groups_)
+                ]
+            else:
+                raise ValueError("feature_types support only the string 'auto'")
 
     def _check_fit(self, X):
         """
@@ -231,7 +244,7 @@ class GroupVariableImportanceMixin:
             of features in the grouped variables.
         """
         if (
-            self.n_feature_groups is None
+            self.n_feature_groups_ is None
             or not hasattr(self, "feature_groups")
             or not hasattr(self, "_feature_groups_ids")
         ):
