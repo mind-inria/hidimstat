@@ -186,8 +186,16 @@ class BaseVariableImportance(BaseEstimator):
 
         df_plot = pd.DataFrame(df_plot)
 
-        # TODO: add to sort features once python 3.9 stop being supported. Currently
-        # it does not allows passing categorical data to sns.barplot
+        # Sort features by decreasing mean importance
+        mean_importance = df_plot.groupby("Feature").mean()
+        sorted_features = mean_importance.sort_values(
+            by="Importance", ascending=ascending
+        ).index
+        df_plot["Feature"] = pd.Categorical(
+            df_plot["Feature"],
+            categories=sorted_features,
+            ordered=True,
+        )
         sns.barplot(df_plot, x="Importance", y="Feature", ax=ax, **kwargs)
         sns.despine(ax=ax)
         ax.set_ylabel("")
