@@ -11,13 +11,13 @@ importance of groups of variables.
 
 To briefly summarize the two methods:
 
- - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
-   the increase in the loss when predicting (using om the same full model) on the
-   shuffled data.
+- PFI (Permutation Feature Importance) shuffles the values of a feature and measures
+  the increase in the loss when predicting (using om the same full model) on the
+  shuffled data.
 
- - CFI (Conditional Feature Importance) is a conditional version of PFI that
-   preserves the conditional distribution of the feature. It introduces a second model to
-   estimate this conditional distribution.
+- CFI (Conditional Feature Importance) is a conditional version of PFI that
+  preserves the conditional distribution of the feature. It introduces a second model to
+  estimate this conditional distribution.
 
 """
 
@@ -43,6 +43,7 @@ from hidimstat import CFI, PFI
 # the petal length, width amd some noise but not related to the target. The spurious feature
 # allows to illustrate that `PFI` is not robust to spurious features,
 # contrarily to `CFI`.
+
 dataset = load_iris()
 rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
