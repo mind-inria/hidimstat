@@ -47,41 +47,100 @@ References
 
 """
 import matplotlib.pyplot as plt
-
-#############################################################################
-# Imports needed for this script
-# ------------------------------
 import numpy as np
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
 
-from hidimstat.desparsified_lasso import (
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-)
+from hidimstat._utils.scenario import multivariate_simulation_spatial
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
 from hidimstat.statistical_tools.p_values import zscore_from_pval
-from hidimstat._utils.scenario import multivariate_simulation_spatial
 
-#############################################################################
-# Specific plotting functions
-# ---------------------------
-# The functions below are used to plot the results and illustrate the concept
-# of spatial tolerance. If you are reading this example for the first time,
-# you can skip this section.
+# %%
+# Generating the data
+# -------------------
 #
+# After setting the simulation parameters, we run the function that generates
+# the 2D scenario that we have briefly described in the first section of this
+# example.
+
+# simulation parameters
+n_samples = 100
+shape = (40, 40)
+n_features = shape[1] * shape[0]
+roi_size = 4  # size of the edge of the four predictive regions
+signal_noise_ratio = 10.0  # noise standard deviation
+smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
+
+# generating the data
+X_init, y, beta, epsilon = multivariate_simulation_spatial(
+    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=1
+)
+
+# %%
+# Choosing inference parameters
+# -----------------------------
+#
+# The choice of the number of clusters depends on several parameters, such as:
+# the structure of the data (a higher correlation between neighboring features
+# enable a greater dimension reduction, i.e. a smaller number of clusters),
+# the number of samples (small datasets require more dimension reduction) and
+# the required spatial tolerance (small clusters lead to limited spatial
+# uncertainty). Formally, "spatial tolerance" is defined by the largest
+# distance from the true support for which the occurrence of a false discovery
+# is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
+# Theoretically, the spatial tolerance ``delta`` is equal to the largest
+# cluster diameter. However this choice is conservative, notably in the case
+# of ensembled clustered inference. For these algorithms, we recommend to take
+# the average cluster radius. In this example, we choose ``n_clusters = 200``,
+# leading to a theoretical spatial tolerance ``delta = 6``, which is still
+# conservative (see Results).
+
+# hyper-parameters
+n_clusters = 200
+
+# inference parameters
+fwer_target = 0.1
+delta = 6
+
+# computation parameter
+n_jobs = 1
+
+# %%
+# Computing z-score thresholds for support estimation
+# ---------------------------------------------------
+#
+# Below, we translate the FWER target into z-score targets.
+# To compute the z-score targets we also take into account for the multiple
+# testing correction. To do so, we consider Bonferroni correction.
+# For methods that do not reduce the feature space, the correction
+# consists in dividing the targeted FWER target by the number of features.
+# For methods that group features into clusters, the correction
+# consists in dividing by the number of clusters.
+
+
+# computing the z-score thresholds for feature selection
+correction_no_cluster = 1.0 / n_features
+correction_cluster = 1.0 / n_clusters
+thr_c = zscore_from_pval((fwer_target / 2) * correction_cluster)
+thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
+
+# %%
+# Inference with several algorithms
+# ---------------------------------
+#
+# First, we compute a reference map that exhibits the true support and
+# the theoretical tolerance region.
+
+
 # The following function builds a 2D map with four active regions that are
 # enfolded by thin tolerance regions.
-
-
 def weight_map_2D_extended(shape, roi_size, delta):
     """Build weight map with visible tolerance region"""
 
@@ -112,11 +171,99 @@ def weight_map_2D_extended(shape, roi_size, delta):
     return beta_extended
 
 
-##############################################################################
-# To generate a plot that exhibits the true support and the estimated
-# supports for every method, we define the two following functions:
+# compute true support with visible spatial tolerance
+beta_extended = weight_map_2D_extended(shape, roi_size, delta)
+
+# %%
+# Now, we compute the support estimated by a high-dimensional statistical
+# infernece method that does not leverage the data structure. This method
+# was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
+# and Van de Geer, S. et al.. (2014) (full references are available at
+# https://mind-inria.github.io/hidimstat/).
+# and referred to as Desparsified Lasso.
+
+# compute desparsified lasso
+beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
+pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
+    desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diagonal)
+)
+
+# compute estimated support (first method)
+zscore = zscore_from_pval(pval, one_minus_pval)
+selected_dl = zscore > thr_nc  # use the "no clustering threshold"
+
+# compute estimated support (second method)
+selected_dl = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
+
+# %%
+# Now, we compute the support estimated using a clustered inference algorithm
+# (c.f. :footcite:t:`chevalier2022spatially`) called Clustered Desparsified Lasso
+# (CluDL) since it uses the Desparsified Lasso technique after clustering the data.
+
+# Define the FeatureAgglomeration object that performs the clustering.
+# This object is necessary to run the current algorithm and the following one.
+connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
+ward = FeatureAgglomeration(
+    n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+)
+
+# clustered desparsified lasso (CluDL)
+ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+)
+beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+    clustered_inference_pvalue(n_samples, False, ward_, beta_hat, theta_hat, omega_diag)
+)
+
+# compute estimated support (first method)
+zscore = zscore_from_pval(pval, one_minus_pval)
+selected_cdl = zscore > thr_c  # use the "clustering threshold"
+
+# compute estimated support (second method)
+selected_cdl = np.logical_or(
+    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+)
+
+# %%
+# Finally, we compute the support estimated by an ensembled clustered
+# inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
+# Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
+# CluDL algorithms with different clustering choices. The different CluDL
+# solutions are then aggregated into one.
+
+# ensemble of clustered desparsified lasso (EnCluDL)
+list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
+    ensemble_clustered_inference(
+        X_init,
+        y,
+        ward,
+        n_clusters,
+        scaler_sampling=StandardScaler(),
+    )
+)
+beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
+    n_samples,
+    False,
+    list_ward,
+    list_beta_hat,
+    list_theta_hat,
+    list_omega_diag,
+    fdr=fwer_target,
+)
+
+# %%
+# Results
+# -------
+#
+# Now we plot the true support, the theoretical tolerance regions and
+# the estimated supports for every method.
 
 
+# To generate a plot that exhibits
+# the true support and the estimated supports for every method,
+# we define the two following functions:
 def add_one_subplot(ax, map, title):
     """Add one subplot into the summary plot"""
 
@@ -154,171 +301,6 @@ def plot(maps, titles):
     plt.show()
 
 
-##############################################################################
-# Generating the data
-# -------------------
-#
-# After setting the simulation parameters, we run the function that generates
-# the 2D scenario that we have briefly described in the first section of this
-# example.
-
-# simulation parameters
-n_samples = 100
-shape = (40, 40)
-n_features = shape[1] * shape[0]
-roi_size = 4  # size of the edge of the four predictive regions
-signal_noise_ratio = 10.0  # noise standard deviation
-smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
-
-# generating the data
-X_init, y, beta, epsilon = multivariate_simulation_spatial(
-    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=1
-)
-
-##############################################################################
-# Choosing inference parameters
-# -----------------------------
-#
-# The choice of the number of clusters depends on several parameters, such as:
-# the structure of the data (a higher correlation between neighboring features
-# enable a greater dimension reduction, i.e. a smaller number of clusters),
-# the number of samples (small datasets require more dimension reduction) and
-# the required spatial tolerance (small clusters lead to limited spatial
-# uncertainty). Formally, "spatial tolerance" is defined by the largest
-# distance from the true support for which the occurence of a false discovery
-# is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
-# Theoretically, the spatial tolerance ``delta`` is equal to the largest
-# cluster diameter. However this choice is conservative, notably in the case
-# of ensembled clustered inference. For these algorithms, we recommend to take
-# the average cluster radius. In this example, we choose ``n_clusters = 200``,
-# leading to a theoretical spatial tolerance ``delta = 6``, which is still
-# conservative (see Results).
-
-# hyper-parameters
-n_clusters = 200
-
-# inference parameters
-fwer_target = 0.1
-delta = 6
-
-# computation parameter
-n_jobs = 1
-
-##############################################################################
-# Computing z-score thresholds for support estimation
-# ---------------------------------------------------
-#
-# Below, we translate the FWER target into z-score targets.
-# To compute the z-score targets we also take into account for the multiple
-# testing correction. To do so, we consider Bonferroni correction.
-# For methods that do not reduce the feature space, the correction
-# consists in dividing the targeted FWER target by the number of features.
-# For methods that group features into clusters, the correction
-# consists in dividing by the number of clusters.
-
-
-# computing the z-score thresholds for feature selection
-correction_no_cluster = 1.0 / n_features
-correction_cluster = 1.0 / n_clusters
-thr_c = zscore_from_pval((fwer_target / 2) * correction_cluster)
-thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
-
-#############################################################################
-# Inference with several algorithms
-# ---------------------------------
-#
-# First, we compute a reference map that exhibits the true support and
-# the theoretical tolerance region.
-
-# compute true support with visible spatial tolerance
-beta_extended = weight_map_2D_extended(shape, roi_size, delta)
-
-#############################################################################
-# Now, we compute the support estimated by a high-dimensional statistical
-# infernece method that does not leverage the data structure. This method
-# was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
-# and Van de Geer, S. et al.. (2014) (full references are available at
-# https://mind-inria.github.io/hidimstat/).
-# and referred to as Desparsified Lasso.
-
-# compute desparsified lasso
-beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-    desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diagonal)
-)
-
-# compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
-selected_dl = zscore > thr_nc  # use the "no clustering threshold"
-
-# compute estimated support (second method)
-selected_dl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
-)
-
-#############################################################################
-# Now, we compute the support estimated using a clustered inference algorithm
-# (c.f. :footcite:t:`chevalier2022spatially`) called Clustered Desparsified Lasso
-# (CluDL) since it uses the Desparsified Lasso technique after clustering the data.
-
-# Define the FeatureAgglomeration object that performs the clustering.
-# This object is necessary to run the current algorithm and the following one.
-connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
-ward = FeatureAgglomeration(
-    n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-)
-
-# clustered desparsified lasso (CluDL)
-ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
-)
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference_pvalue(n_samples, False, ward_, beta_hat, theta_hat, omega_diag)
-)
-
-# compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
-selected_cdl = zscore > thr_c  # use the "clustering threshold"
-
-# compute estimated support (second method)
-selected_cdl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
-)
-
-#############################################################################
-# Finally, we compute the support estimated by an ensembled clustered
-# inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
-# Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
-# CluDL algorithms with different clustering choices. The different CluDL
-# solutions are then aggregated into one.
-
-# ensemble of clustered desparsified lasso (EnCluDL)
-list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
-    ensemble_clustered_inference(
-        X_init,
-        y,
-        ward,
-        n_clusters,
-        scaler_sampling=StandardScaler(),
-    )
-)
-beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
-    n_samples,
-    False,
-    list_ward,
-    list_beta_hat,
-    list_theta_hat,
-    list_omega_diag,
-    fdr=fwer_target,
-)
-
-#############################################################################
-# Results
-# -------
-#
-# Now we plot the true support, the theoretical tolerance regions and
-# the estimated supports for every method.
-
 maps = []
 titles = []
 
@@ -342,7 +324,7 @@ titles.append("EnCluDL")
 
 plot(maps, titles)
 
-#############################################################################
+# %%
 # Analysis of the results
 # -----------------------
 # As argued in the first section of this example, standard inference methods that

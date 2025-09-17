@@ -8,10 +8,6 @@ repetitions is set to 10. The metrics used are the type-I error and
 the power
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,7 +18,7 @@ from sklearn.linear_model import LassoCV
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_simulation
 
-#############################################################################
+# %%
 # Processing the computations
 # ---------------------------
 
@@ -88,7 +84,7 @@ for sim_ind in range(10):
         }
     )
 
-#############################################################################
+# %%
 # Plotting the comparison
 # -----------------------
 
@@ -105,7 +101,7 @@ sns.boxplot(data=df_plot, x="model", y="power", ax=ax[1], hue="model")
 sns.despine()
 plt.show()
 
-#############################################################################
+# %%
 # Both methods empirically control the type-I error. In addition, it can
 # be observed that the power of the Random Forest model is generally higher
 # than that of the Lasso model, indicating a better ability to detect true

@@ -49,7 +49,7 @@ doc = [
     "sphinx-copybutton"
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
-style = ["black  >= 24.4.2", "isort  >= 5.13.2"]
+style = ["black  >= 24.4.2", "codespell >=2.4.0", "isort  >= 5.13.2"]
 
 # For running unit and docstring tests
 test = [
@@ -76,6 +76,9 @@ Development = "https://github.com/nilearn/nilearn"
 Homepage = "https://mind-inria.github.io/hidimstat"
 Repository = "https://github.com/mind-inria/hidimstat"
 
+[tool.codespell]
+builtin = "clear,rare,en-GB_to_en-US"
+skip = "./.git,*.bib,./docs/_build"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/hidimstat/_version.py"
@@ -90,7 +93,7 @@ where = ["src"]
 [tool.hatch.version]
 source = "vcs"
 
-# initialisation based on the good practice of pytest
+# initialization based on the good practice of pytest
 # https://docs.pytest.org/en/stable/explanation/goodpractices.html
 [tool.pytest.ini_options]
 minversion = "8.0"

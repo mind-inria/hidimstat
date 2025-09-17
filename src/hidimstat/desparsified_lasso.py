@@ -122,7 +122,7 @@ def desparsified_lasso(
     the intercepts of the Nodewise Lasso problems are all equal to zero
     and the intercept of the noise model is also equal to zero. Since
     the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
+    the consideration of unnecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
     Other relevant references: :footcite:t:`van2014asymptotically`,
@@ -183,7 +183,7 @@ def desparsified_lasso(
         verbose=verbose,
     )
 
-    # Computing the degrees of freedom adjustement
+    # Computing the degrees of freedom adjustment
     if dof_ajdustement:
         coefficient_max = np.max(np.abs(beta_reid))
         support = np.sum(np.abs(beta_reid) > 0.01 * coefficient_max)
