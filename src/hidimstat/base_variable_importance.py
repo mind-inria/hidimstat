@@ -1,7 +1,10 @@
 import warnings
 
 import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator
+
+from hidimstat._utils.exception import InternalError
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -130,4 +133,166 @@ class BaseVariableImportance(BaseEstimator):
         if self.importances_ is None:
             raise ValueError(
                 "The importances need to be called before calling this method"
+            )
+
+
+class GroupVariableImportanceMixin:
+    """
+    Base class for variable importance methods using feature groups.
+    This class extends `BaseVariableImportance` to support variable importance
+    methods that operate on groups of features, enabling group-wise selection
+    and importance evaluation.
+
+    Parameters
+    ----------
+    feature_groups: dict, optional
+        A dictionary where the keys are the group names and the values are the
+        list of column names corresponding to each features group. If None,
+        the feature_groups are identified based on the columns of X.
+    feature_types: str or list, default="auto"
+        The feature type. Supported types include "auto", "continuous", and
+        "categorical". If "auto", the type is inferred from the cardinality
+        of the unique values passed to the `fit` method.
+
+    Attributes
+    ----------
+    n_feature_groups_ : int
+        The number of feature groups.
+    _feature_groups_ids : array-like of shape (n_feature_groups,)
+        Internal representation of index of group for each features.
+
+    Methods
+    -------
+    fit(X, y=None, groups=None)
+        Identifies and stores feature groups based on input or provided grouping.
+    _check_fit(X)
+        Checks if the class has been fitted and validates group-feature correspondence.
+    """
+
+    def __init__(self, feature_groups=None, feature_types="auto"):
+        super().__init__()
+        self.feature_groups = feature_groups
+        self.feature_types = feature_types
+        self.n_feature_groups_ = None
+        self._feature_groups_ids = None
+
+    def fit(self, X, y=None):
+        """
+        Base fit method for perturbation-based methods. Identifies the groups.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            Not used, only present for consistency with the sklearn API.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
+        if self.feature_groups is None:
+            self.n_feature_groups_ = X.shape[1]
+            self.feature_groups = {j: [j] for j in range(self.n_feature_groups_)}
+            self._feature_groups_ids = np.array(
+                list(self.feature_groups.values()), dtype=int
+            )
+        elif isinstance(self.feature_groups, dict):
+            self.n_feature_groups_ = len(self.feature_groups)
+            self.feature_groups = self.feature_groups
+            if isinstance(X, pd.DataFrame):
+                self._feature_groups_ids = []
+                for feature_group_key in self.feature_groups.keys():
+                    self._feature_groups_ids.append(
+                        [
+                            i
+                            for i, col in enumerate(X.columns)
+                            if col in self.feature_groups[feature_group_key]
+                        ]
+                    )
+            else:
+                self._feature_groups_ids = [
+                    np.array(ids, dtype=int)
+                    for ids in list(self.feature_groups.values())
+                ]
+        else:
+            raise ValueError("feature_groups needs to be a dictionary")
+        if isinstance(self.feature_types, str):
+            if self.feature_types == "auto":
+                self.feature_types = [
+                    self.feature_types for _ in range(self.n_feature_groups_)
+                ]
+            else:
+                raise ValueError("feature_types support only the string 'auto'")
+        return self
+
+    def _check_fit(self, X):
+        """
+        Check if the perturbation method has been properly fitted.
+
+        This method verifies that the perturbation method has been fitted by checking
+        if required attributes are set and if the number of features matches
+        the feature grouped variables.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate against the fitted model.
+
+        Raises
+        ------
+        ValueError
+            If the method has not been fitted (i.e., if n_feature_groups, feature_groups,
+            or _feature_groups_ids attributes are missing).
+        AssertionError
+            If the number of features in X does not match the total number
+            of features in the grouped variables.
+        """
+        if (
+            self.n_feature_groups_ is None
+            or not hasattr(self, "feature_groups")
+            or not hasattr(self, "_feature_groups_ids")
+        ):
+            raise ValueError(
+                "The class is not fitted. The fit method must be called"
+                " to set variable feature_groups. If no grouping is needed,"
+                " call fit with feature_groups=None"
+            )
+        if isinstance(X, pd.DataFrame):
+            names = list(X.columns)
+        elif isinstance(X, np.ndarray) and X.dtype.names is not None:
+            names = X.dtype.names
+            # transform Structured Array in pandas array for a better manipulation
+            X = pd.DataFrame(X)
+        elif isinstance(X, np.ndarray):
+            names = None
+        else:
+            raise ValueError("X should be a pandas dataframe or a numpy array.")
+        number_columns = X.shape[1]
+        for index_variables in self.feature_groups.values():
+            if type(index_variables[0]) is int or np.issubdtype(
+                type(index_variables[0]), int
+            ):
+                assert np.all(
+                    np.array(index_variables, dtype=int) < number_columns
+                ), "X does not correspond to the fitting data."
+            elif type(index_variables[0]) is str or np.issubdtype(
+                type(index_variables[0]), str
+            ):
+                assert np.all(
+                    [name in names for name in index_variables]
+                ), f"The array is missing at least one of the following columns {index_variables}."
+            else:
+                raise InternalError(
+                    "A problem with indexing has happened during the fit."
+                )
+        number_unique_feature_in_groups = np.unique(
+            np.concatenate([values for values in self.feature_groups.values()])
+        ).shape[0]
+        if X.shape[1] != number_unique_feature_in_groups:
+            warnings.warn(
+                f"The number of features in X: {X.shape[1]} differs from the"
+                " number of features for which importance is computed: "
+                f"{number_unique_feature_in_groups}"
             )
