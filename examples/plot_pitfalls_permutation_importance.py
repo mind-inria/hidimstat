@@ -40,7 +40,13 @@ rng = np.random.RandomState(0)
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
 # only use 2/3 of samples to speed up the example
-X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=0, shuffle=True)
+X, _, y, _ = train_test_split(
+    X_,
+    y_,
+    test_size=0.6667,
+    random_state=0,
+    shuffle=True,
+)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
@@ -177,8 +183,8 @@ plt.show()
 
 
 # %%
-# A valid alternative: Condional Feature Importance
-# -------------------------------------------------
+# A valid alternative: Conditional Feature Importance
+# -----------------------------------------------------
 # The `ConditionalFeatureImportance` class computes permutations of the feature of
 # interest while conditioning on the other features. In other words, it shuffles the
 # intrinsic information of the feature of interest while leaving the information that is

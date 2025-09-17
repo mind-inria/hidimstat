@@ -59,11 +59,18 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # ---------------------------
 # Since both methods compute variable importance as a loss difference, they
 # require a K-fold cross-fitting. Computing the importance for each fold is
-# embarassingly parallel. For this reason, we encapsulate the main computations in a
+# embarrassingly parallel. For this reason, we encapsulate the main computations in a
 # function and use joblib to parallelize the computation.
 
-
-def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=None):
+def run_one_fold(
+    X,
+    y,
+    model,
+    train_index,
+    test_index,
+    vim_name="CFI",
+    groups=None,
+):
     model_c = clone(model)
     model_c.fit(X[train_index], y[train_index])
     y_pred = model_c.predict(X[test_index])
@@ -104,7 +111,10 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
             "importance": importance,
             "vim": vim_name,
             "model": model_name,
-            "score": balanced_accuracy_score(y_true=y[test_index], y_pred=y_pred),
+            "score": balanced_accuracy_score(
+                y_true=y[test_index],
+                y_pred=y_pred,
+            ),
         }
     )
 

@@ -47,7 +47,7 @@ feature_names = [str(name) for name in data.feature_names]
 # Selecting variables with the Logistic Lasso
 # -------------------------------------------
 # We want to select variables that are relevant to the outcome, i.e. tumor
-# charateristics that are associated with tumor malignance. We start off by applying a
+# characteristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
 # coefficients:
 from sklearn.linear_model import LogisticRegressionCV
@@ -106,7 +106,10 @@ lasso_noisy = LogisticRegressionCV(
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
 print(
-    f"Accuracy of Lasso on test set with noise: {lasso_noisy.score(noisy_test, y_test):.3f}"
+    (
+        "Accuracy of Lasso on test set with noise: "
+        f"{lasso_noisy.score(noisy_test, y_test):.3f}"
+    )
 )
 
 selected_mask = [

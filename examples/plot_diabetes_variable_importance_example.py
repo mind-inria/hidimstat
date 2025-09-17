@@ -17,7 +17,7 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and
+building process. However, this solution is exclusive to the Random Forest and
 is costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
@@ -119,7 +119,9 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     cfi = CFI(
         estimator=regressor_list[i],
         imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
-        imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        imputation_model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10),
+        ),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=0,

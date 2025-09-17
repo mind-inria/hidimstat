@@ -93,7 +93,7 @@ X_init, y, beta, epsilon = multivariate_simulation_spatial(
 # the number of samples (small datasets require more dimension reduction) and
 # the required spatial tolerance (small clusters lead to limited spatial
 # uncertainty). Formally, "spatial tolerance" is defined by the largest
-# distance from the true support for which the occurence of a false discovery
+# distance from the true support for which the occurrence of a false discovery
 # is not statistically controlled (c.f. :footcite:t:`chevalier2022spatially`).
 # Theoretically, the spatial tolerance ``delta`` is equal to the largest
 # cluster diameter. However this choice is conservative, notably in the case
@@ -176,16 +176,26 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 # %%
 # Now, we compute the support estimated by a high-dimensional statistical
-# infernece method that does not leverage the data structure. This method
-# was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
-# and Van de Geer, S. et al.. (2014) (full references are available at
-# https://mind-inria.github.io/hidimstat/).
+# inference method that does not leverage the data structure.
+# This method was introduced by :footcite:t:`javanmard2014confidence`,
+# :footcite:p:`zhang2014confidence` and
+# :footcite:p:`van2014asymptotically`
 # and referred to as Desparsified Lasso.
 
+
 # compute desparsified lasso
-beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
+beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
+    X_init,
+    y,
+    n_jobs=n_jobs,
+)
 pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-    desparsified_lasso_pvalue(X_init.shape[0], beta_hat, sigma_hat, precision_diagonal)
+    desparsified_lasso_pvalue(
+        X_init.shape[0],
+        beta_hat,
+        sigma_hat,
+        precision_diagonal,
+    )
 )
 
 # compute estimated support (first method)
@@ -214,7 +224,14 @@ ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
     X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
 )
 beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference_pvalue(n_samples, False, ward_, beta_hat, theta_hat, omega_diag)
+    clustered_inference_pvalue(
+        n_samples,
+        False,
+        ward_,
+        beta_hat,
+        theta_hat,
+        omega_diag,
+    )
 )
 
 # compute estimated support (first method)
@@ -338,3 +355,9 @@ plot(maps, titles)
 # conservative. In practice, Type-1 Error guarantees seem to hold
 # for a lower spatial tolerance. This is an additional benefit of clustering
 # randomization.
+
+
+# %%
+# References
+# ----------
+# .. footbibliography::

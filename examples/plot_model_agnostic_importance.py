@@ -75,7 +75,10 @@ d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 print(f"{pval_dcrt_linear=}")
 
-d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening_threshold=None)
+d0crt_non_linear = D0CRT(
+    estimator=clone(non_linear_model),
+    screening_threshold=None,
+)
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
 print(f"{pval_dcrt_non_linear=}")
@@ -99,7 +102,10 @@ for train, test in cv.split(X):
     linear_model_.fit(X[train], y[train])
 
     vim_linear = LOCO(
-        estimator=linear_model_, loss=log_loss, method="predict_proba", n_jobs=2
+        estimator=linear_model_,
+        loss=log_loss,
+        method="predict_proba",
+        n_jobs=2,
     )
     vim_non_linear = LOCO(
         estimator=non_linear_model_,
@@ -110,7 +116,9 @@ for train, test in cv.split(X):
     vim_linear.fit(X[train], y[train])
     vim_non_linear.fit(X[train], y[train])
 
-    importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
+    importances_linear.append(
+        vim_linear.importance(X[test], y[test])["importance"],
+    )
     importances_non_linear.append(
         vim_non_linear.importance(X[test], y[test])["importance"]
     )
@@ -120,7 +128,12 @@ for train, test in cv.split(X):
 # To select variables using LOCO, we compute the p-values using a t-test over the
 # importance scores.
 
-_, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
+_, pval_linear = ttest_1samp(
+    importances_linear,
+    0,
+    axis=0,
+    alternative="greater",
+)
 _, pval_non_linear = ttest_1samp(
     importances_non_linear, 0, axis=0, alternative="greater"
 )
@@ -167,7 +180,11 @@ sns.barplot(
 )
 ax.set_xlabel("-$\\log_{10}(pval)$")
 ax.axvline(
-    -np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\\log_{10}(0.05)$"
+    -np.log10(0.05),
+    color="k",
+    lw=3,
+    linestyle="--",
+    label="-$\\log_{10}(0.05)$",
 )
 ax.legend()
 plt.show()
@@ -175,7 +192,7 @@ plt.show()
 
 # %%
 # As expected, when using linear models (d0CRT and LOCO-linear) that are misspecified,
-# the varibles are not selected. This highlights the benefit of using model-agnostic
+# the variables are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
 # to explain the data. While d0CRT can use any estimator, its distillation step
 # restricts it from capturing variable interactions.

@@ -70,7 +70,11 @@ for sim_ind in range(10):
 
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
-        estimator=RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=1),
+        estimator=RandomForestRegressor(
+            n_estimators=100,
+            random_state=42,
+            n_jobs=1,
+        ),
         screening_threshold=None,
     )
     d0crt_random_forest.fit_importance(X, y)
@@ -92,7 +96,13 @@ df_plot = pd.DataFrame(results_list)
 
 _, ax = plt.subplots(nrows=1, ncols=2)
 sns.swarmplot(data=df_plot, x="model", y="type-1 error", ax=ax[0], hue="model")
-ax[0].axhline(alpha, linewidth=1, color="tab:red", ls="--", label="Nominal Level")
+ax[0].axhline(
+    alpha,
+    linewidth=1,
+    color="tab:red",
+    ls="--",
+    label="Nominal Level",
+)
 ax[0].legend()
 ax[0].set_ylim(-0.01)
 
