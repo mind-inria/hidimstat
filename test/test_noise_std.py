@@ -2,13 +2,13 @@
 Test the noise_std module
 """
 
-import numpy as np
 import pytest
+import numpy as np
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.noise_std import empirical_snr, reid
+from hidimstat._utils.scenario import multivariate_simulation
 
 
 def test_reid():

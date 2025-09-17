@@ -1,19 +1,19 @@
-import numpy as np
-import pytest
-from sklearn.covariance import GraphicalLassoCV, LedoitWolf
-from sklearn.linear_model import Lasso
-from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.tree import DecisionTreeRegressor
-
-from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.gaussian_knockoff import _s_equi, gaussian_knockoff_generation
 from hidimstat.knockoffs import (
     model_x_knockoff,
+    model_x_knockoff_pvalue,
     model_x_knockoff_bootstrap_e_value,
     model_x_knockoff_bootstrap_quantile,
-    model_x_knockoff_pvalue,
 )
+from hidimstat.gaussian_knockoff import gaussian_knockoff_generation, _s_equi
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
+import numpy as np
+import pytest
+from sklearn.covariance import LedoitWolf, GraphicalLassoCV
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import KFold
+from sklearn.tree import DecisionTreeRegressor
 
 
 def test_knockoff_bootstrap_quantile():
