@@ -186,6 +186,11 @@ class GroupVariableImportanceMixin:
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
         """
         if self.feature_groups is None:
             self.n_feature_groups_ = X.shape[1]
@@ -220,6 +225,7 @@ class GroupVariableImportanceMixin:
                 ]
             else:
                 raise ValueError("feature_types support only the string 'auto'")
+        return self
 
     def _check_fit(self, X):
         """
