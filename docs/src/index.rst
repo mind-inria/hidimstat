@@ -133,4 +133,5 @@ References
   api
   user_guide
   generated/gallery/examples/index
+  glossary_and_notations
   dev/index
