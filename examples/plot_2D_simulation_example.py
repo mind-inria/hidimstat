@@ -41,10 +41,6 @@ spatial compression, ensembled clustered inference algorithms reduce
 significantly the spatial uncertainty compared to clustered inference
 algorithms which consider only one spatial compression.
 
-References
-----------
-.. footbibliography::
-
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -338,3 +334,9 @@ plot(maps, titles)
 # conservative. In practice, Type-1 Error guarantees seem to hold
 # for a lower spatial tolerance. This is an additional benefit of clustering
 # randomization.
+
+#############################################################################
+# References
+# ----------
+# .. footbibliography::
+#
