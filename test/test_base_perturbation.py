@@ -1,7 +1,8 @@
-from hidimstat.base_perturbation import BasePerturbation
-from sklearn.linear_model import LinearRegression
-import pytest
 import numpy as np
+import pytest
+from sklearn.linear_model import LinearRegression
+
+from hidimstat.base_perturbation import BasePerturbation
 
 
 def test_no_implemented_methods():
