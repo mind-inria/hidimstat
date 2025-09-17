@@ -91,7 +91,8 @@ for model in models_list:
 
 # %%
 # The predictive performance of the models can be compared using their R2 scores.
-# This helps assess how effectively each model captures the underlying data-generating process.
+# This helps assess how effectively each model captures the underlying data-generating
+# process.
 
 df_plot = pd.concat(df_list)
 df_plot.groupby("model").mean()["R2 score"].to_frame()
