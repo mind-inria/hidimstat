@@ -176,11 +176,12 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 # %%
 # Now, we compute the support estimated by a high-dimensional statistical
-# infernece method that does not leverage the data structure. This method
-# was introduced by Javanmard, A. et al. (2014), Zhang, C. H. et al. (2014)
-# and Van de Geer, S. et al.. (2014) (full references are available at
-# https://mind-inria.github.io/hidimstat/).
+# inference method that does not leverage the data structure.
+# This method was introduced by :footcite:t:`javanmard2014confidence`,
+# :footcite:p:`zhang2014confidence` and
+# :footcite:p:`van2014asymptotically`
 # and referred to as Desparsified Lasso.
+
 
 # compute desparsified lasso
 beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(X_init, y, n_jobs=n_jobs)
@@ -338,3 +339,9 @@ plot(maps, titles)
 # conservative. In practice, Type-1 Error guarantees seem to hold
 # for a lower spatial tolerance. This is an additional benefit of clustering
 # randomization.
+
+
+# %%
+# References
+# ----------
+# .. footbibliography::
