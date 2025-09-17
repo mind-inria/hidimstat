@@ -212,7 +212,7 @@ class GroupVariableImportanceMixin:
                     for ids in list(self.feature_groups.values())
                 ]
         else:
-            raise ValueError("feature_groups needs to be a dictionnary")
+            raise ValueError("feature_groups needs to be a dictionary")
         if isinstance(self.feature_types, str):
             if self.feature_types == "auto":
                 self.feature_types = [

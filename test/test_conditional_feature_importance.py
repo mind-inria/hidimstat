@@ -574,7 +574,7 @@ class TestCFIExceptions:
         )
 
         with pytest.raises(
-            ValueError, match="feature_groups needs to be a dictionnary"
+            ValueError, match="feature_groups needs to be a dictionary"
         ):
             cfi.fit(X)
 
