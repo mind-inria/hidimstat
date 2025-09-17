@@ -37,7 +37,7 @@ def test_permutation_importance():
     pfi.fit(
         X_train,
         y_train,
-        features_groups=None,
+        feature_groups=None,
     )
     vim = pfi.importance(X_test, y_test)
 
@@ -66,7 +66,7 @@ def test_permutation_importance():
     pfi.fit(
         X_train_df,
         y_train,
-        features_groups=groups,
+        feature_groups=groups,
     )
     # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
@@ -93,7 +93,7 @@ def test_permutation_importance():
     pfi_clf.fit(
         X_train,
         y_train_clf,
-        features_groups=None,
+        feature_groups=None,
     )
     vim_clf = pfi_clf.importance(X_test, y_test_clf)
 

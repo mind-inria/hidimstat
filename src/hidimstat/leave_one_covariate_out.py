@@ -55,7 +55,7 @@ class LOCO(BasePerturbation):
         )
         self._list_estimators = []
 
-    def fit(self, X, y, features_groups=None):
+    def fit(self, X, y, feature_groups=None):
         """Fit a model after removing each covariate/group of covariates.
 
         Parameters
@@ -64,7 +64,7 @@ class LOCO(BasePerturbation):
             The training input samples.
         y : array-like of shape (n_samples,)
             The target values.
-        features_groups : dict, default=None
+        feature_groups : dict, default=None
             A dictionary where the keys are the group names and the values are the
             indices of the covariates in each group.
 
@@ -73,7 +73,7 @@ class LOCO(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        super().fit(X, y, features_groups)
+        super().fit(X, y, feature_groups)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [
             clone(self.estimator) for _ in range(self.n_feature_groups)
@@ -82,29 +82,29 @@ class LOCO(BasePerturbation):
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                estimator, X, y, key_features_groups
+                estimator, X, y, key_feature_groups
             )
-            for key_features_groups, estimator in zip(
-                self.features_groups.keys(), self._list_estimators
+            for key_feature_groups, estimator in zip(
+                self.feature_groups.keys(), self._list_estimators
             )
         )
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, y, key_features_groups):
+    def _joblib_fit_one_features_group(self, estimator, X, y, key_feature_groups):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(columns=self.features_groups[key_features_groups])
+            X_minus_j = X.drop(columns=self.feature_groups[key_feature_groups])
         else:
-            X_minus_j = np.delete(X, self.features_groups[key_features_groups], axis=1)
+            X_minus_j = np.delete(X, self.feature_groups[key_feature_groups], axis=1)
         estimator.fit(X_minus_j, y)
         return estimator
 
     def _joblib_predict_one_features_group(
-        self, X, feature_group_id, key_features_groups
+        self, X, feature_group_id, key_feature_groups
     ):
         """Predict the target feature after removing a group of covariates.
         Used in parallel."""
-        X_minus_j = np.delete(X, self._features_groups_ids[feature_group_id], axis=1)
+        X_minus_j = np.delete(X, self._feature_groups_ids[feature_group_id], axis=1)
 
         y_pred_loco = getattr(self._list_estimators[feature_group_id], self.method)(
             X_minus_j

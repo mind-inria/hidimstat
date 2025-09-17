@@ -61,7 +61,7 @@ class PFI(BasePerturbation):
         X_perm_j = np.array(
             [
                 self.random_state.permutation(
-                    X[:, self._features_groups_ids[feature_group_id]].copy()
+                    X[:, self._feature_groups_ids[feature_group_id]].copy()
                 )
                 for _ in range(self.n_permutations)
             ]

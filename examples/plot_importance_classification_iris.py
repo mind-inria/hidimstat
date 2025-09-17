@@ -68,7 +68,7 @@ def run_one_fold(
     train_index,
     test_index,
     vim_name="CFI",
-    features_groups=None,
+    feature_groups=None,
 ):
     model_c = clone(model)
     model_c.fit(X[train_index], y[train_index])
@@ -101,12 +101,12 @@ def run_one_fold(
             loss=loss,
         )
 
-    vim.fit(X[train_index], y[train_index], features_groups=features_groups)
+    vim.fit(X[train_index], y[train_index], feature_groups=feature_groups)
     importance = vim.importance(X[test_index], y[test_index])["importance"]
 
     return pd.DataFrame(
         {
-            "feature": features_groups.keys(),
+            "feature": feature_groups.keys(),
             "importance": importance,
             "vim": vim_name,
             "model": model_name,
@@ -128,7 +128,7 @@ models = [
     GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
-features_groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
+feature_groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
         X,
@@ -137,7 +137,7 @@ out_list = Parallel(n_jobs=5)(
         train_index,
         test_index,
         vim_name=vim_name,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
     )
     for train_index, test_index in cv.split(X)
     for model in models
@@ -273,7 +273,7 @@ plot_results(df, df_pval)
 # mitigate this issue, we can group correlated features together and measure the
 # importance of these feature groups. For instance, we can group 'sepal width' with
 # 'sepal length' and 'petal length' with 'petal width' and the spurious feature.
-features_groups = {"sepal features": [0, 1], "petal features": [2, 3, 4]}
+feature_groups = {"sepal features": [0, 1], "petal features": [2, 3, 4]}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
         X,
@@ -282,7 +282,7 @@ out_list = Parallel(n_jobs=5)(
         train_index,
         test_index,
         vim_name=vim_name,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
     )
     for train_index, test_index in cv.split(X)
     for model in models

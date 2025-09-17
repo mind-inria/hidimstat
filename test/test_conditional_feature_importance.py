@@ -63,7 +63,7 @@ def run_cfi(X, y, n_permutation, seed):
     # fit the model using the training set
     cfi.fit(
         X_train,
-        features_groups=None,
+        feature_groups=None,
         features_type="auto",
     )
     # calculate feature importance using the test set
@@ -195,7 +195,7 @@ def test_group(data_generator):
     )
     cfi.fit(
         X_train_df,
-        features_groups=groups,
+        feature_groups=groups,
         features_type="continuous",
     )
     # Warning expected since column names in pandas are not considered
@@ -246,7 +246,7 @@ def test_classication(data_generator):
     )
     cfi.fit(
         X_train,
-        features_groups=None,
+        feature_groups=None,
         features_type=["continuous"] * X.shape[1],
     )
     vim = cfi.importance(X_test, y_test_clf)
@@ -302,7 +302,7 @@ class TestCFIClass:
 
         # Test fit with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
-        cfi.fit(X, features_groups=groups)
+        cfi.fit(X, feature_groups=groups)
         assert len(cfi._list_imputation_models) == 2
         assert cfi.n_feature_groups == 2
 
@@ -435,7 +435,7 @@ class TestCFIExceptions:
             imputation_model_continuous=LinearRegression(),
             method="predict",
         )
-        cfi.fit(X, features_groups=None, features_type="auto")
+        cfi.fit(X, feature_groups=None, features_type="auto")
 
         with pytest.raises(
             ValueError, match="X should be a pandas dataframe or a numpy array."
@@ -451,7 +451,7 @@ class TestCFIExceptions:
             imputation_model_continuous=LinearRegression(),
             method="predict",
         )
-        cfi.fit(X, features_groups=None, features_type="auto")
+        cfi.fit(X, feature_groups=None, features_type="auto")
 
         with pytest.raises(
             AssertionError, match="X does not correspond to the fitting data."
@@ -474,7 +474,7 @@ class TestCFIExceptions:
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, features_groups=subgroups, features_type="auto")
+        cfi.fit(X, feature_groups=subgroups, features_type="auto")
 
         with pytest.raises(
             AssertionError,
@@ -500,8 +500,8 @@ class TestCFIExceptions:
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, features_groups=subgroups, features_type="auto")
-        cfi.features_groups["group1"] = [None for i in range(100)]
+        cfi.fit(X, feature_groups=subgroups, features_type="auto")
+        cfi.feature_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -518,9 +518,7 @@ class TestCFIExceptions:
         cfi = CFI(estimator=fitted_model, method="predict")
 
         with pytest.raises(ValueError, match="type of data 'invalid_type' unknown."):
-            cfi.fit(
-                X, features_groups=None, features_type=["invalid_type"] * X.shape[1]
-            )
+            cfi.fit(X, feature_groups=None, features_type=["invalid_type"] * X.shape[1])
 
     def test_incompatible_imputer(self, data_generator):
         """Test when incompatible imputer is provided"""
@@ -551,7 +549,7 @@ class TestCFIExceptions:
 
         invalid_groups = ["group1", "group2"]  # Should be dictionary
         with pytest.raises(ValueError, match="groups needs to be a dictionary"):
-            cfi.fit(X, features_groups=invalid_groups, features_type="auto")
+            cfi.fit(X, feature_groups=invalid_groups, features_type="auto")
 
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
@@ -563,7 +561,7 @@ class TestCFIExceptions:
             method="predict",
         )
         subgroups = {"group1": [0, 1], "group2": [2, 3]}
-        cfi.fit(X, y, features_groups=subgroups, features_type="auto")
+        cfi.fit(X, y, feature_groups=subgroups, features_type="auto")
 
         with pytest.warns(
             UserWarning,

@@ -80,7 +80,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 X_, feature_group_id, feature_group_key
             )
             for feature_group_id, feature_group_key in enumerate(
-                self.features_groups.keys()
+                self.feature_groups.keys()
             )
         )
         return np.stack(out_list, axis=0)
@@ -145,7 +145,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         feature_group_key: str, int
             The key of the group of variables. (parameter use for debugging)
         """
-        feature_group_ids = self._features_groups_ids[feature_group_id]
+        feature_group_ids = self._feature_groups_ids[feature_group_id]
         non_feature_group_ids = np.delete(np.arange(X.shape[1]), feature_group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted

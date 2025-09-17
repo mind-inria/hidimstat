@@ -82,7 +82,7 @@ class CFI(BasePerturbation):
         self.imputation_model_continuous = imputation_model_continuous
         self.random_state = random_state
 
-    def fit(self, X, y=None, features_groups=None, features_type="auto"):
+    def fit(self, X, y=None, feature_groups=None, features_type="auto"):
         """Fit the imputation models.
 
         Parameters
@@ -91,10 +91,10 @@ class CFI(BasePerturbation):
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
-        features_groups: dict, optional
+        feature_groups: dict, optional
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
-            the features_groups are identified based on the columns of X.
+            the feature_groups are identified based on the columns of X.
         features_type: str or list, default="auto"
             The feature type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
@@ -105,7 +105,7 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         self.random_state = check_random_state(self.random_state)
-        super().fit(X, None, features_groups=features_groups)
+        super().fit(X, None, feature_groups=feature_groups)
         if isinstance(features_type, str):
             self.features_type = [features_type for _ in range(self.n_feature_groups)]
         else:
@@ -134,20 +134,20 @@ class CFI(BasePerturbation):
         X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X_, features_groups_ids
+                imputation_model, X_, feature_groups_ids
             )
-            for features_groups_ids, imputation_model in zip(
-                self._features_groups_ids, self._list_imputation_models
+            for feature_groups_ids, imputation_model in zip(
+                self._feature_groups_ids, self._list_imputation_models
             )
         )
 
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, features_groups_ids):
+    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized."""
-        X_j = X[:, features_groups_ids].copy()
-        X_minus_j = np.delete(X, features_groups_ids, axis=1)
+        X_j = X[:, feature_groups_ids].copy()
+        X_minus_j = np.delete(X, feature_groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -167,8 +167,8 @@ class CFI(BasePerturbation):
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_feature_groups, features_groups,
-            or _features_groups_ids attributes are missing) or if imputation models
+            If the method has not been fitted (i.e., if n_feature_groups, feature_groups,
+            or _feature_groups_ids attributes are missing) or if imputation models
             are not fitted.
         AssertionError
             If the number of features in X does not match the total number
@@ -185,8 +185,8 @@ class CFI(BasePerturbation):
     def _permutation(self, X, feature_group_id):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
-        X_j = X[:, self._features_groups_ids[feature_group_id]].copy()
-        X_minus_j = np.delete(X, self._features_groups_ids[feature_group_id], axis=1)
+        X_j = X[:, self._feature_groups_ids[feature_group_id]].copy()
+        X_minus_j = np.delete(X, self._feature_groups_ids[feature_group_id], axis=1)
         return self._list_imputation_models[feature_group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )
