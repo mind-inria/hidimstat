@@ -11,6 +11,7 @@ performance (R2 score) and the LOCO feature importance they yield.
 
 # %%
 import pandas as pd
+from sklearn.datasets import make_regression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import RidgeCV
 from sklearn.model_selection import train_test_split
@@ -18,30 +19,31 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
 from hidimstat import LOCO
-from hidimstat._utils.scenario import multivariate_simulation
 
 # %%
 # Loading and preparing the data
 # ------------------------------
-# We begin by simulating a regression dataset with 10 correlated features, 5 of which
+# We begin by simulating a regression dataset with 10 features, 5 of which
 # are in the support set, meaning they contribute to generating the outcome.
 # The data is then split into training and test sets. These sets are used both to fit
 # the predictive models and within the LOCO procedure, which refits models on subsets
 # of features that exclude the feature of interest.
 
-X, y, beta, _ = multivariate_simulation(
-    n_samples=500,
+X, y, beta = make_regression(
+    n_samples=300,
     n_features=10,
-    support_size=5,
-    rho=0.3,
-    signal_noise_ratio=8,
-    seed=0,
+    n_informative=5,
+    random_state=0,
+    coef=True,
+    noise=10.0,
 )
+beta = beta != 0
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
     test_size=0.2,
     random_state=0,
+    shuffle=True,
 )
 
 # %%
@@ -62,7 +64,7 @@ models_list = [
         max_iter=500,
         learning_rate_init=0.1,
     ),
-    SVR(),
+    SVR(kernel="linear"),
 ]
 
 df_list = []
@@ -85,6 +87,7 @@ for model in models_list:
             }
         )
     )
+
 
 # %%
 # The predictive performance of the models can be compared using their R2 scores.
@@ -121,7 +124,7 @@ for i, support in enumerate(beta):
             color="tab:olive",
             alpha=0.3,
             zorder=-1,
-            label="True Support" if i == 0 else None,
+            label="True Support" if i == 1 else None,
         )
 ax.legend()
 plt.show()
