@@ -76,9 +76,13 @@ importances = cfi.importance(X_test, y_test)
 
 # %%
 # Finally, we visualize the importance of each feature using a bar plot.
+import matplotlib.pyplot as plt
 
+_, ax = plt.subplots(figsize=(6, 3))
 ax = plot_importance(
     importances["importance"],
     feature_names=load_wine().feature_names,
+    ax=ax,
 )
 ax.set_xlabel("Feature Importance")
+plt.tight_layout()
