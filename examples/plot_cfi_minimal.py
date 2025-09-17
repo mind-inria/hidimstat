@@ -23,6 +23,8 @@ from hidimstat import CFI
 from hidimstat.visualization import plot_importance
 
 # %%
+# Loading and preparing the data
+# ------------------------------
 # We start by loading the dataset and splitting it into training and test sets.
 # This split will be used both for training the classifier and for the CFI method.
 # The CFI method measures the importance of a feature by generating perturbations
@@ -41,6 +43,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # %%
+# Fitting the model and computing CFI feature importance
+# ------------------------------------------------------
 # To solve the classification task, we use a pipeline that first standardizes the features with StandardScaler,
 # followed by a neural network (MLPClassifier) with one hidden layer of 100 neurons.
 # Before measuring feature importance, we evaluate the estimator's performance by reporting its accuracy score.
@@ -75,6 +79,8 @@ importances = cfi.importance(X_test, y_test)
 
 
 # %%
+# Visualization of CFI feature importance
+# ----------------------------------------
 # Finally, we visualize the importance of each feature using a bar plot.
 import matplotlib.pyplot as plt
 
