@@ -53,11 +53,13 @@ from sklearn.feature_extraction import image
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.scenario import multivariate_simulation_spatial
-from hidimstat.desparsified_lasso import (desparsified_lasso,
-                                          desparsified_lasso_pvalue)
+from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import (
-    clustered_inference, clustered_inference_pvalue,
-    ensemble_clustered_inference, ensemble_clustered_inference_pvalue)
+    clustered_inference,
+    clustered_inference_pvalue,
+    ensemble_clustered_inference,
+    ensemble_clustered_inference_pvalue,
+)
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 # %%

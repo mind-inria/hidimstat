@@ -5,9 +5,11 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.bootstrap import _subsampling
-from hidimstat.desparsified_lasso import (desparsified_group_lasso_pvalue,
-                                          desparsified_lasso,
-                                          desparsified_lasso_pvalue)
+from hidimstat.desparsified_lasso import (
+    desparsified_group_lasso_pvalue,
+    desparsified_lasso,
+    desparsified_lasso_pvalue,
+)
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
