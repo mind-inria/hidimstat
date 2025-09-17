@@ -126,7 +126,7 @@ affected_doc_paths() {
     # list of the modified documentation files
     echo "$files" | grep ^docs/src/.*\.rst | sed 's/^docs\/src\/\(.*\)\.rst$/\1.html/'
     # list of the modified examples 
-    echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/generated/gallery/\1.html/'
+    echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/generated\/gallery\/\1.html/'
     # list of the modified source file
     project_files=$(echo "$files" | grep 'src/hidimstat/')
     if [ -n "$project_files" ]
