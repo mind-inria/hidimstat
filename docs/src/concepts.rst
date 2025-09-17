@@ -33,11 +33,11 @@ can be estimated as follows:
 It allow us to rank the variables from more to less important.                            
 
 Here, ``VI`` can be a variable importance method implemented in HiDimStat,
-such as :class:`hidimstat.LOCO` (other methods will support the same API 
+such as Leave One Covariate Out :class:`hidimstat.LOCO` (other methods will support the same API 
 soon).
 
 Variable Selection
--------------------------------
+-------------------
 
 (Controlled) Variable selection is then the next step that entails filtering out the 
 significant features in a way that provides statistical guarantees, 
@@ -55,6 +55,18 @@ This step is important to make insighful discoveries. Even if variable
 importance provides a ranking, due to the estimation step, we need
 statistical control to do reliable selection.
 
+Variable Selection vs Variable Importance
+------------------------------------------
+
+In the literature, there is a gap between *variable selection* and
+*variable importance*, as most methods are dedicated to one of these goals
+exclusively :footcite:p:`reyerolobo2025principledapproachcomparingvariable`.
+For instance, Conditional Feature Importance (:class:`hidimstat.CFI`) typically
+serves only as a measure of importance without offering statistical guarantees,
+whereas Model-X Knockoffs (:class:`hidimstat.model_x_knockoff`) generally
+provide selection but little beyond that. For this reason, we have adapted the
+methods to provide both types of information while preserving their standard
+names.
 
     
 
@@ -66,7 +78,7 @@ There are two main types of VI methods implemented in HiDimStat:
 1. Marginal methods: these methods provide importance to all the features 
 that are related to the output, even if it is caused by spurius correlation. They 
 are related with testing if :math:`X^j\perp\!\!\!\!\perp Y`.
-Example of such methods is LOCI.
+An example of such methods is Leave One Covariate In (LOCI).
 
 2. Conditional methods: these methods assign importance only to features that
 provide exclusive information beyond what is already captured by the others, 
@@ -86,7 +98,7 @@ distinction between marginal and conditional methods can be more subtle. See
 
 
 High-dimension and correlation
------------------------------------
+-------------------------------
 
 In high-dimensional and highly correlated settings, estimation becomes 
 particularly challenging, as it is difficult to clearly distinguish important 
