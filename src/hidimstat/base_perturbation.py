@@ -77,9 +77,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_features_group)(
-                X_, features_group_id, features_group_key
+                X_, feature_group_id, feature_group_key
             )
-            for features_group_id, features_group_key in enumerate(
+            for feature_group_id, feature_group_key in enumerate(
                 self.features_groups.keys()
             )
         )
@@ -140,19 +140,19 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
-        features_group_id: int
+        feature_group_id: int
             The index of the group of variables.
-        features_group_key: str, int
+        feature_group_key: str, int
             The key of the group of variables. (parameter use for debugging)
         """
-        features_group_ids = self._features_groups_ids[features_group_id]
-        non_features_group_ids = np.delete(np.arange(X.shape[1]), features_group_ids)
+        feature_group_ids = self._features_groups_ids[feature_group_id]
+        non_feature_group_ids = np.delete(np.arange(X.shape[1]), feature_group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        X_perm[:, :, non_features_group_ids] = np.delete(X, features_group_ids, axis=1)
-        X_perm[:, :, features_group_ids] = self._permutation(
-            X, features_group_id=features_group_id
+        X_perm[:, :, non_feature_group_ids] = np.delete(X, feature_group_ids, axis=1)
+        X_perm[:, :, feature_group_ids] = self._permutation(
+            X, feature_group_id=feature_group_id
         )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])

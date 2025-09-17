@@ -76,7 +76,7 @@ class LOCO(BasePerturbation):
         super().fit(X, y, features_groups)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [
-            clone(self.estimator) for _ in range(self.n_features_groups)
+            clone(self.estimator) for _ in range(self.n_feature_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
@@ -100,13 +100,13 @@ class LOCO(BasePerturbation):
         return estimator
 
     def _joblib_predict_one_features_group(
-        self, X, features_group_id, key_features_groups
+        self, X, feature_group_id, key_features_groups
     ):
         """Predict the target feature after removing a group of covariates.
         Used in parallel."""
-        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
+        X_minus_j = np.delete(X, self._features_groups_ids[feature_group_id], axis=1)
 
-        y_pred_loco = getattr(self._list_estimators[features_group_id], self.method)(
+        y_pred_loco = getattr(self._list_estimators[feature_group_id], self.method)(
             X_minus_j
         )
 

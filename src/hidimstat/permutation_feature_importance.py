@@ -55,13 +55,13 @@ class PFI(BasePerturbation):
         )
         self.random_state = random_state
 
-    def _permutation(self, X, features_group_id):
+    def _permutation(self, X, feature_group_id):
         """Create the permuted data for the j-th group of covariates"""
         self.random_state = check_random_state(self.random_state)
         X_perm_j = np.array(
             [
                 self.random_state.permutation(
-                    X[:, self._features_groups_ids[features_group_id]].copy()
+                    X[:, self._features_groups_ids[feature_group_id]].copy()
                 )
                 for _ in range(self.n_permutations)
             ]

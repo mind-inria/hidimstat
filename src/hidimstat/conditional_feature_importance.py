@@ -107,7 +107,7 @@ class CFI(BasePerturbation):
         self.random_state = check_random_state(self.random_state)
         super().fit(X, None, features_groups=features_groups)
         if isinstance(features_type, str):
-            self.features_type = [features_type for _ in range(self.n_features_groups)]
+            self.features_type = [features_type for _ in range(self.n_feature_groups)]
         else:
             self.features_type = features_type
 
@@ -127,7 +127,7 @@ class CFI(BasePerturbation):
                 random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for features_groupd_id in range(self.n_features_groups)
+            for features_groupd_id in range(self.n_feature_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
@@ -167,7 +167,7 @@ class CFI(BasePerturbation):
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_features_groups, features_groups,
+            If the method has not been fitted (i.e., if n_feature_groups, features_groups,
             or _features_groups_ids attributes are missing) or if imputation models
             are not fitted.
         AssertionError
@@ -182,11 +182,11 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, features_group_id):
+    def _permutation(self, X, feature_group_id):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
-        X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
-        return self._list_imputation_models[features_group_id].sample(
+        X_j = X[:, self._features_groups_ids[feature_group_id]].copy()
+        X_minus_j = np.delete(X, self._features_groups_ids[feature_group_id], axis=1)
+        return self._list_imputation_models[feature_group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
         )

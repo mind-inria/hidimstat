@@ -145,11 +145,11 @@ class GroupVariableImportanceMixin:
 
     Attributes
     ----------
-    n_features_groups : int, default=None
+    n_feature_groups : int, default=None
         The number of feature groups.
     features_groups : dict, default=None
         A dictionary mapping group names or indices to lists of feature indices or names.
-    _features_groups_ids : array-like of shape (n_features_groups,), default=None
+    _features_groups_ids : array-like of shape (n_feature_groups,), default=None
         Internal representation of group indices for each group.
 
     Methods
@@ -162,7 +162,7 @@ class GroupVariableImportanceMixin:
 
     def __init__(self):
         super().__init__()
-        self.n_features_groups = None
+        self.n_feature_groups = None
         self.features_groups = None
         self._features_groups_ids = None
 
@@ -182,22 +182,22 @@ class GroupVariableImportanceMixin:
             identified based on the columns of X.
         """
         if features_groups is None:
-            self.n_features_groups = X.shape[1]
-            self.features_groups = {j: [j] for j in range(self.n_features_groups)}
+            self.n_feature_groups = X.shape[1]
+            self.features_groups = {j: [j] for j in range(self.n_feature_groups)}
             self._features_groups_ids = np.array(
                 list(self.features_groups.values()), dtype=int
             )
         elif isinstance(features_groups, dict):
-            self.n_features_groups = len(features_groups)
+            self.n_feature_groups = len(features_groups)
             self.features_groups = features_groups
             if isinstance(X, pd.DataFrame):
                 self._features_groups_ids = []
-                for features_group_key in self.features_groups.keys():
+                for feature_group_key in self.features_groups.keys():
                     self._features_groups_ids.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
-                            if col in self.features_groups[features_group_key]
+                            if col in self.features_groups[feature_group_key]
                         ]
                     )
             else:
@@ -224,14 +224,14 @@ class GroupVariableImportanceMixin:
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_features_groups, features_groups,
+            If the method has not been fitted (i.e., if n_feature_groups, features_groups,
             or _features_groups_ids attributes are missing).
         AssertionError
             If the number of features in X does not match the total number
             of features in the grouped variables.
         """
         if (
-            self.n_features_groups is None
+            self.n_feature_groups is None
             or not hasattr(self, "features_groups")
             or not hasattr(self, "_features_groups_ids")
         ):

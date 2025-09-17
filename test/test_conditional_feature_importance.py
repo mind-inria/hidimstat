@@ -298,13 +298,13 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_features_groups == X.shape[1]
+        assert cfi.n_feature_groups == X.shape[1]
 
         # Test fit with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
         cfi.fit(X, features_groups=groups)
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_features_groups == 2
+        assert cfi.n_feature_groups == 2
 
     def test_categorical(
         self,
