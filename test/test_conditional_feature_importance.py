@@ -577,6 +577,7 @@ class TestCFIExceptions:
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
+@pytest.mark.mpl
 @pytest.mark.mpl_image_compare
 def test_cfi_plot(data_generator):
     """Test CFI plot function"""
@@ -602,6 +603,7 @@ def test_cfi_plot(data_generator):
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
+@pytest.mark.mpl
 @pytest.mark.mpl_image_compare
 def test_cfi_plot_2d_imp(data_generator):
     """Test CFI plot function"""
