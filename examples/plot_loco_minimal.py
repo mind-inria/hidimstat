@@ -10,17 +10,6 @@ performance (R2 score) and the LOCO feature importance they yield.
 """
 
 # %%
-import pandas as pd
-from sklearn.datasets import make_regression
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import RidgeCV
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPRegressor
-from sklearn.svm import SVR
-
-from hidimstat import LOCO
-
-# %%
 # Loading and preparing the data
 # ------------------------------
 # We begin by simulating a regression dataset with 10 features, 5 of which
@@ -28,6 +17,9 @@ from hidimstat import LOCO
 # The data is then split into training and test sets. These sets are used both to fit
 # the predictive models and within the LOCO procedure, which refits models on subsets
 # of features that exclude the feature of interest.
+
+from sklearn.datasets import make_regression
+from sklearn.model_selection import train_test_split
 
 X, y, beta = make_regression(
     n_samples=300,
@@ -54,6 +46,14 @@ X_train, X_test, y_train, y_test = train_test_split(
 # neural network, and SVR for a support vector machine, with RBF kernel. We then fit
 # each model on the training data, compute the LOCO feature importance on the test
 # data, and store the results in a DataFrame for comparison.
+
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import RidgeCV
+from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
+
+from hidimstat import LOCO
 
 models_list = [
     RidgeCV(),
