@@ -31,6 +31,9 @@ X, y, beta = make_regression(
     coef=True,
     noise=10.0,
 )
+
+# We convert the coefficients of the data-generating process into a binary array
+# indicating the true support set of features.
 beta = beta != 0
 X_train, X_test, y_train, y_test = train_test_split(
     X,
