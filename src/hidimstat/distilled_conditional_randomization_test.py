@@ -3,8 +3,14 @@ import warnings
 import numpy as np
 from joblib import Parallel, delayed
 from scipy import stats
+from scipy.special import expit
 from sklearn.base import clone
-from sklearn.linear_model import Lasso, LassoCV
+from sklearn.linear_model import (
+    Lasso,
+    LassoCV,
+    LogisticRegression,
+    LogisticRegressionCV,
+)
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -112,7 +118,9 @@ class D0CRT(BaseVariableImportance):
         lasso_screening=LassoCV(
             n_alphas=10, tol=1e-6, fit_intercept=False, random_state=0
         ),
-        model_distillation_x=LassoCV(n_jobs=1, n_alphas=10, random_state=0),
+        model_distillation_x=LassoCV(
+            n_jobs=1, n_alphas=10, random_state=0, fit_intercept=False
+        ),
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -139,11 +147,13 @@ class D0CRT(BaseVariableImportance):
         self.scaled_statistics = scaled_statistics
         self.random_state = random_state
         self.reuse_screening_model = reuse_screening_model
+        self.is_logistic = self._check_logistic()
 
         self.coefficient_ = None
         self.selection_set_ = None
         self.model_x_ = None
         self.model_y_ = None
+        self.lasso_weights_ = None
 
     def fit(self, X, y):
         """
@@ -206,25 +216,39 @@ class D0CRT(BaseVariableImportance):
                 )
                 if self.refit:
                     self.estimator.fit(X_[:, self.selection_set_], y_)
+                else:
+                    self.estimator = lasso_model_
         else:
             self.selection_set_ = np.ones(X_.shape[1], dtype=bool)
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
-            self.coefficient_ = lasso_model_.coef_
+            if self.is_logistic:
+                self.coefficient_ = lasso_model_.coef_[0]
+                self.selection_set_ = self.selection_set_[0]
+            else:
+                self.coefficient_ = lasso_model_.coef_
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
             self.estimator.fit(X_[:, self.selection_set_], y_)
             if hasattr(self.estimator, "coef_"):
-                self.coefficient_ = self.estimator.coef_
-                # optimization to reduce the number of elements different to zeros
-                # TODO: the multi-dimensional indexing should be removed when the
-                # classification is properly handled
-                self.coefficient_[..., ~self.selection_set_] = 0
+                if self.is_logistic:
+                    self.coefficient_ = self.estimator.coef_[0]
+                else:
+                    self.coefficient_ = self.estimator.coef_
+                self.coefficient_[~self.selection_set_] = 0
+
             else:
                 self.coefficient_ = None
+        # Save sample weights that will be used for fitting the X-distillation and
+        # computing the Fisher information matrix
+        if self.is_logistic:
+            self.lasso_weights = (
+                np.exp(X.dot(self.coefficient_))
+                / (1 + np.exp(X.dot(self.coefficient_))) ** 2
+            )
 
         ## fit models
         results = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
@@ -236,12 +260,13 @@ class D0CRT(BaseVariableImportance):
                 sigma_X=self.sigma_X is None,
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
+                lasso_weights=self.lasso_weights,
             )
             for idx in np.where(self.selection_set_)[0]
         )
         self.model_x_ = [result[0] for result in results]
         self.model_y_ = [result[1] for result in results]
-        if self.fit_y:
+        if self.fit_y or self.is_logistic:
             self.coefficient_ = np.array([result[2] for result in results])
 
         return self
@@ -331,7 +356,8 @@ class D0CRT(BaseVariableImportance):
                     coefficient_minus_idx = self.coefficient_[index]
                 else:
                     coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
-
+            elif self.is_logistic:
+                coefficient_minus_idx = self.coefficient_[index]
             else:
                 coefficient_minus_idx = None
 
@@ -345,6 +371,7 @@ class D0CRT(BaseVariableImportance):
                     method=self.method,
                     sigma_X=self.sigma_X,
                     coefficient_minus_idx=coefficient_minus_idx,
+                    is_logistic=self.is_logistic,
                 )
             )
 
@@ -355,6 +382,36 @@ class D0CRT(BaseVariableImportance):
         sigma2 = np.array([result[1] for result in results])
         y_residual = np.array([result[2] for result in results])
 
+        if self.is_logistic:
+            test_statistic_selected_variables = self.logistic_test_statistic(
+                X_,
+                X_residual,
+                y_residual,
+                n_samples,
+            )
+        else:
+            test_statistic_selected_variables = self.regression_test_statistic(
+                X_residual,
+                y_residual,
+                sigma2,
+                n_samples,
+            )
+        # get the results
+        test_statistic = np.zeros(n_features)
+        test_statistic[selection_features] = test_statistic_selected_variables
+
+        self.importances_ = test_statistic
+        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
+
+        return self.importances_
+
+    def regression_test_statistic(
+        self,
+        X_residual,
+        y_residual,
+        sigma2,
+        n_samples,
+    ):
         # By assuming X|Z following a normal law, the exact p-value can be
         # computed with the following equation (see section 2.5 in `liu2022fast`)
         # based on the residuals of y and x.
@@ -370,14 +427,29 @@ class D0CRT(BaseVariableImportance):
                 - np.mean(test_statistic_selected_variables)
             ) / np.std(test_statistic_selected_variables)
 
-        # get the results
-        test_statistic = np.zeros(n_features)
-        test_statistic[selection_features] = test_statistic_selected_variables
+        return test_statistic_selected_variables
 
-        self.importances_ = test_statistic
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
-
-        return self.importances_
+    def logistic_test_statistic(
+        self,
+        X,
+        X_residual,
+        y_residual,
+        n_samples,
+    ):
+        fisher_minus_idx = np.array(
+            [
+                np.mean(self.lasso_weights * X[:, i] * X_residual[i])
+                for i in range(X_residual.shape[0])
+            ]
+        )
+        test_statistic_selected_variables = np.array(
+            [
+                -np.dot(y_residual[i], X_residual[i])
+                / np.sqrt(n_samples * fisher_minus_idx)
+                for i in range(X_residual.shape[0])
+            ]
+        )
+        return test_statistic_selected_variables
 
     def fit_importance(self, X, y, cv=None):
         """
@@ -411,9 +483,42 @@ class D0CRT(BaseVariableImportance):
         self.fit(X, y)
         return self.importance(X, y)
 
+    def _check_logistic(self):
+        is_logistic = isinstance(
+            self.estimator, (LogisticRegression, LogisticRegressionCV)
+        ) or isinstance(
+            self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+        )
+        if is_logistic and (
+            (
+                not isinstance(
+                    self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+                )
+            )
+            or (
+                not isinstance(
+                    self.estimator, (LogisticRegression, LogisticRegressionCV)
+                )
+            )
+        ):
+            raise ValueError(
+                "For d0CRT-logit (logistic regression),  both the estimator and the "
+                "lasso_screening must be LogisticRegression or LogisticRegressionCV"
+            )
+        if is_logistic and (not self.lasso_screening.penalty == "l1"):
+            raise ValueError("For d0CRT-logit, lasso_screening.penalty must be 'l1'")
+        return is_logistic
+
 
 def _joblib_fit(
-    idx, X, y, estimator, sigma_X=False, fit_y=False, model_distillation_x=None
+    idx,
+    X,
+    y,
+    estimator,
+    sigma_X=False,
+    fit_y=False,
+    model_distillation_x=None,
+    lasso_weights=None,
 ):
     """
     Standard Lasso distillation for least squares regression.
@@ -461,15 +566,19 @@ def _joblib_fit(
     """
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
-    # Distill X with least square loss
-    # configure Lasso and determine the alpha
-    if sigma_X:
+    # Distill X with least square loss. Use lasso_weights for d0CRT-logit
+    if sigma_X or (lasso_weights is not None):
+        sample_weight = 2 * lasso_weights if lasso_weights is not None else None
         model_x = clone(model_distillation_x)
-        model_x.fit(X_minus_idx, X[:, idx])
+        model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
     else:
         model_x = None
 
-    if (isinstance(estimator, Lasso) or isinstance(estimator, LassoCV)) and not fit_y:
+    # d0CRT-logit does not fit model for y
+    if lasso_weights is not None:
+        model_y = None
+        coefficient_minus_idx = np.delete(np.copy(estimator.coef_), idx)
+    elif (isinstance(estimator, Lasso) or isinstance(estimator, LassoCV)) and not fit_y:
         model_y = None
         coefficient_minus_idx = None
     else:
@@ -483,7 +592,15 @@ def _joblib_fit(
 
 
 def _joblib_distill(
-    idx, X, y, model_y, model_x, method, sigma_X=None, coefficient_minus_idx=None
+    idx,
+    X,
+    y,
+    model_y,
+    model_x,
+    method,
+    sigma_X=None,
+    coefficient_minus_idx=None,
+    is_logistic=False,
 ):
     """
     Distill the values of X and y for a single feature using least squares regression.
@@ -556,7 +673,10 @@ def _joblib_distill(
         )
 
     # Distill Y - calculate residual
-    if coefficient_minus_idx is not None:
+    if is_logistic:
+        y_residual = y - expit(X_minus_idx.dot(coefficient_minus_idx.T))
+
+    elif coefficient_minus_idx is not None:
         # get the coefficients
         # compute the residuals
         y_residual = y - X_minus_idx.dot(coefficient_minus_idx.T)
@@ -599,7 +719,12 @@ def run_lasso_screening(
     lasso_model : sklearn estimator
         Fitted Lasso model used for screening.
     """
-    if not (isinstance(lasso_model, LassoCV) or isinstance(lasso_model, Lasso)):
+    if not (
+        isinstance(lasso_model, LassoCV)
+        or isinstance(lasso_model, Lasso)
+        or isinstance(lasso_model, LogisticRegressionCV)
+        or isinstance(lasso_model, LogisticRegression)
+    ):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
     lasso_model.fit(X, y)
     selection_set = np.abs(lasso_model.coef_) >= np.percentile(
