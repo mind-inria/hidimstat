@@ -2,24 +2,13 @@
 Conditional Feature Importance (CFI) on the wine dataset
 ========================================================
 
-This example demonstrates how to measure feature importance using CFI :footcite:t:`Chamma_NeurIPS2023` on the wine dataset.
+This example demonstrates how to measure feature importance using CFI [:footcite:t:`Chamma_NeurIPS2023`] on the wine dataset.
 The data are the results of chemical analyses of wines grown in the same region in Italy,
 derived from three different cultivars. Thirteen features are used to predict three types
 of wine, making this a 3-class classification problem. In this example, we show how to
 use CFI to identify which variables are most important for solving the classification
 task with a neural network classifier.
 """
-
-# %%
-from sklearn.datasets import load_wine
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import log_loss
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-
-from hidimstat import CFI
 
 # %%
 # Loading and preparing the data
@@ -29,6 +18,9 @@ from hidimstat import CFI
 # The CFI method measures the importance of a feature by generating perturbations
 # through sampling from the conditional distribution :math:`p(X^j | X^{-j})`,
 # which is estimated on the training set.
+
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
 
 X, y = load_wine(return_X_y=True)
 
@@ -48,6 +40,10 @@ X_train, X_test, y_train, y_test = train_test_split(
 # followed by a neural network (MLPClassifier) with one hidden layer of 100 neurons.
 # Before measuring feature importance, we evaluate the estimator's performance by reporting its accuracy score.
 
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
 clf = make_pipeline(
     StandardScaler(),
     MLPClassifier(
@@ -66,6 +62,11 @@ print("Accuracy:", clf.score(X_test, y_test))
 # Since this is a classification task, we use log_loss and specify the "predict_proba"
 # method of our estimator.
 
+from sklearn.linear_model import RidgeCV
+from sklearn.metrics import log_loss
+
+from hidimstat import CFI
+
 cfi = CFI(
     estimator=clf,
     loss=log_loss,
@@ -81,6 +82,7 @@ importances = cfi.importance(X_test, y_test)
 # Visualization of CFI feature importance
 # ----------------------------------------
 # Finally, we visualize the importance of each feature using a bar plot.
+
 import matplotlib.pyplot as plt
 
 _, ax = plt.subplots(figsize=(6, 3))
