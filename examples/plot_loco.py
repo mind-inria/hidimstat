@@ -2,7 +2,7 @@
 Leave-One-Covariate-Out (LOCO) feature importance with different regression models
 ==================================================================================
 
-This example demonstrates how to compare LOCO feature importance :footcite:t:`Williamson_General_2023` across different
+This example demonstrates how to compare LOCO feature importance [:footcite:t:`Williamson_General_2023`] across different
 predictive models on the same regression dataset. LOCO is model-agnostic and can be
 applied to any predictive model. Here, we use a linear model, a random forest, a neural
 network, and a support vector machine. We compare the models based on their predictive
@@ -77,8 +77,9 @@ for model in models_list:
     # Fit the full model
     model = model.fit(X_train, y_train)
     loco = LOCO(model)
-    # For each feature, remove it from the dataset, refit the model, and compute LOCO importance.
-    # This process is repeated for all features to assess their individual contributions.
+    # For each feature, remove it from the dataset, refit the model, and compute LOCO
+    # importance. This process is repeated for all features to assess their individual
+    # contributions.
     loco.fit(X_train, y_train)
     importances = loco.importance(X_test, y_test)["importance"]
     df_list.append(
