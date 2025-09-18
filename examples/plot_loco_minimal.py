@@ -13,7 +13,9 @@ performance (R2 score) and the LOCO feature importance they yield.
 # Loading and preparing the data
 # ------------------------------
 # We begin by simulating a regression dataset with 10 features, 5 of which
-# are in the support set, meaning they contribute to generating the outcome.
+# are in the support set, meaning they contribute to generating the outcome. In this example,
+# we use a simulated dataset to have access to the true support set of features and
+# evaluate how well the different models identify these important features.
 # The data is then split into training and test sets. These sets are used both to fit
 # the predictive models and within the LOCO procedure, which refits models on subsets
 # of features that exclude the feature of interest.
