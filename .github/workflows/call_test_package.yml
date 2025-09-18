@@ -70,11 +70,11 @@ jobs:
       run: |
           uv run --frozen --no-sync -- \
             pytest \
+              -m "not mpl_image_compare" \
               --cov=. \
               --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml \
               --html=report-${{env.REPORT_NAME}}.html \
-              --report-log=log-${{env.REPORT_NAME}}.txt \
-              -m "not mpl_image_compare"
+              --report-log=log-${{env.REPORT_NAME}}.txt
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
