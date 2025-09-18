@@ -577,7 +577,6 @@ class TestCFIExceptions:
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
-@pytest.mark.mpl
 @pytest.mark.mpl_image_compare
 def test_cfi_plot(data_generator):
     """Test CFI plot function"""
@@ -603,7 +602,6 @@ def test_cfi_plot(data_generator):
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
-@pytest.mark.mpl
 @pytest.mark.mpl_image_compare
 def test_cfi_plot_2d_imp(data_generator):
     """Test CFI plot function"""
@@ -645,6 +643,12 @@ def test_cfi_plot_coverage(data_generator):
     )
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(10)
-    fig, ax = plt.subplots(figsize=(6, 3))
+    _, ax = plt.subplots(figsize=(6, 3))
+
     ax = cfi.plot_importance(ax=None)
+    assert isinstance(ax, plt.Axes)
+
+    _, ax = plt.subplots()
+    cfi.importances_ = np.random.standard_normal((3, 10))
+    ax = cfi.plot_importance(ax=ax)
     assert isinstance(ax, plt.Axes)

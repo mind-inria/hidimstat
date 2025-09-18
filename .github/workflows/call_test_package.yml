@@ -76,7 +76,7 @@ jobs:
             --html=report-${{env.REPORT_NAME}}.html \
             --pytest-durations=10 \
             --report-log=log-${{env.REPORT_NAME}}.txt \
-            -m "not mpl"
+            -m "not mpl_image_compare"
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
