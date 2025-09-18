@@ -20,7 +20,6 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat import CFI
-from hidimstat.visualization import plot_importance
 
 # %%
 # Loading and preparing the data
