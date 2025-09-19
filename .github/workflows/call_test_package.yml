@@ -68,7 +68,7 @@ jobs:
     - name: Run pytest
       if: ${{ inputs.skip_test == false }}
       run: |
-          uv run --frozen --no-sync -- pytest -m "not mpl_image_compare" --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --html=report-${{env.REPORT_NAME}}.html --report-log=log-${{env.REPORT_NAME}}.txt
+          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --html=report-${{env.REPORT_NAME}}.html --report-log=log-${{env.REPORT_NAME}}.txt
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
