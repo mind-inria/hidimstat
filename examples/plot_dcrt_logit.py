@@ -59,7 +59,7 @@ def multivariate_classification(
 # Next, we compute the test statistics using both the dCRT and dCRT-logit methods.
 # For dCRT-logit, we use a `LogisticRegressionCV` estimator; the D0CRT class automatically
 # applies the decorrelation method. For dCRT, we use a `LassoCV` estimator, which implements
-# the original Lasso-distillation approach described in :footcite:t:`liu2020fast`.
+# the original Lasso-distillation approach described in :footcite:t:`liu2022fast`.
 # We store the test statistic values for the null features only.
 # The simulation uses n=200 samples and p=100 correlated features, with a support size of 10
 # and a signal-to-noise ratio of 3.0. The experiment is repeated for 5 different random seeds.

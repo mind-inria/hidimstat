@@ -126,7 +126,7 @@ class D0CRT(BaseVariableImportance):
         centered=True,
         n_jobs=1,
         joblib_verbose=0,
-        fit_y=False,
+        fit_y=True,
         scaled_statistics=False,
         random_state=None,
         reuse_screening_model=True,
@@ -224,22 +224,16 @@ class D0CRT(BaseVariableImportance):
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
         elif self.reuse_screening_model and (self.screening_threshold is not None):
-            if self.is_logistic:
-                self.coefficient_ = lasso_model_.coef_[0]
-                self.selection_set_ = self.selection_set_[0]
-            else:
-                self.coefficient_ = lasso_model_.coef_
+            # Flatten to handle logistic regression case
+            self.coefficient_ = lasso_model_.coef_.flatten()
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
             self.estimator.fit(X_[:, self.selection_set_], y_)
             if hasattr(self.estimator, "coef_"):
-                if self.is_logistic:
-                    self.coefficient_ = self.estimator.coef_[0]
-                else:
-                    self.coefficient_ = self.estimator.coef_
-                self.coefficient_[~self.selection_set_] = 0
-
+                self.coefficient_ = np.zeros(X.shape[1])
+                self.coefficient_[self.selection_set_] = self.estimator.coef_.flatten()
+                self.estimator.coef_ = self.coefficient_
             else:
                 self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation and
@@ -740,9 +734,10 @@ def run_lasso_screening(
     ):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
     lasso_model.fit(X, y)
-    selection_set = np.abs(lasso_model.coef_) >= np.percentile(
-        np.abs(lasso_model.coef_), 100 - screening_threshold
-    )
+    selection_set = (
+        np.abs(lasso_model.coef_)
+        >= np.percentile(np.abs(lasso_model.coef_), 100 - screening_threshold)
+    ).flatten()
     return selection_set, lasso_model
 
 

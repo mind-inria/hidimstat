@@ -490,3 +490,35 @@ def test_dcrt_logit_errors():
             screening_threshold=50,
             random_state=0,
         )
+
+
+def test_dcrt_logit_refit(generate_classification_dataset):
+    X, y, beta = generate_classification_dataset
+    dcrt = D0CRT(
+        estimator=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        lasso_screening=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        refit=True,
+        reuse_screening_model=False,
+        screening_threshold=50,
+        random_state=0,
+    )
+    dcrt.fit(X, y)
+    dcrt.importance(X, y)
+    alpha = 0.1
+    dcrt.selection(threshold_pvalue=alpha)
+    fp = np.sum((beta == 0) & (dcrt.pvalues_ <= alpha))
+    tp = np.sum((beta != 0) & (dcrt.pvalues_ <= alpha))
+    # Check that the false discovery proportion is below alpha
+    assert fp / (fp + tp) <= alpha
+    # Check that the method is not powerless
+    assert tp / np.sum(beta != 0) >= 0.2
