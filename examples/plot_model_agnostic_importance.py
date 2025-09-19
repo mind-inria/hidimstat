@@ -29,6 +29,7 @@ where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from sklearn.datasets import make_circles
 
 rng = np.random.RandomState(0)
@@ -187,7 +188,6 @@ df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
 # Plot the :math:`-log_{10}(pval)` for each method and variable
 # -------------------------------------------------------------
 
-import seaborn as sns
 
 fig, ax = plt.subplots()
 sns.barplot(
