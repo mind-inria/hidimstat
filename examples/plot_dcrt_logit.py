@@ -38,6 +38,7 @@ def multivariate_classification(
     signal_noise_ratio=3.0,
     seed=None,
 ):
+    rng = np.random.default_rng(seed)
     X, y, beta_true, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
@@ -49,7 +50,7 @@ def multivariate_classification(
         seed=seed,
     )
     y_logit = expit(y)
-    y_binary = np.random.binomial(1, y_logit)
+    y_binary = rng.binomial(1, y_logit)
     return X, y_binary, beta_true, noise
 
 
@@ -77,7 +78,7 @@ def run_one(seed):
         n_samples=200,
         n_features=100,
         support_size=10,
-        rho=0.4,
+        rho=0.2,
         value=1.0,
         signal_noise_ratio=3.0,
         seed=seed,
@@ -139,7 +140,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import norm
 
-quantiles = np.linspace(1e-2 / 5, 1.0 - 1e-2 / 5, 100)
+quantiles = np.linspace(1e-2, 1.0 - 1e-2, 100)
 theoretical_quantiles = norm.ppf(quantiles)
 
 empirical_quantiles = np.quantile(df_plot["stat_dcrt"], quantiles)
