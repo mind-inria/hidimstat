@@ -144,9 +144,9 @@ class BaseVariableImportance(BaseEstimator):
 
         Parameters
         ----------
-        ax : matplotlib.axes.Axes, optional (default=None)
+        ax : matplotlib.axes.Axes or None, (default=None)
             Axes object to draw the plot onto, otherwise uses the current Axes.
-        ascending: bool, optional (default=False)
+        ascending: bool, default=False
             Whether to sort features by ascending importance.
         **kwargs : additional keyword arguments
             Additional arguments passed to seaborn.barplot.
