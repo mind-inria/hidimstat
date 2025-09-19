@@ -245,7 +245,7 @@ class D0CRT(BaseVariableImportance):
         # Save sample weights that will be used for fitting the X-distillation and
         # computing the Fisher information matrix
         if self.is_logistic:
-            self.lasso_weights = (
+            self.lasso_weights_ = (
                 np.exp(X.dot(self.coefficient_))
                 / (1 + np.exp(X.dot(self.coefficient_))) ** 2
             )
@@ -260,7 +260,7 @@ class D0CRT(BaseVariableImportance):
                 sigma_X=self.sigma_X is None,
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
-                lasso_weights=self.lasso_weights,
+                lasso_weights=self.lasso_weights_,
             )
             for idx in np.where(self.selection_set_)[0]
         )
