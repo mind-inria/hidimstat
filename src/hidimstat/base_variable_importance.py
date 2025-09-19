@@ -149,7 +149,7 @@ class BaseVariableImportance(BaseEstimator):
             Feature importance scores. If 2D, each column represents a different repetition.
         feature_names : list of str
             Names of the features.
-        ax : matplotlib.axes.Axes, optional (default=None)
+        ax : matplotlib.axes.Axes or None, default=None
             Axes object to draw the plot onto, otherwise uses the current Axes.
         ascending: bool, optional (default=False)
             Whether to sort features by ascending importance.
