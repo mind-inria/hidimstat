@@ -702,7 +702,7 @@ class PartialDependencePlot(BaseVariableImportance):
             import seaborn as sns
             import matplotlib.pyplot as plt
         except ImportError:
-            raise Exception("You need to install seabor for using this functionnality")
+            raise Exception("You need to install seaborn for using this functionality")
         assert (
             percentage_ice <= 1.0 and percentage_ice >= 0.0
         ), "percentage of ice need to be 0 and 1"
