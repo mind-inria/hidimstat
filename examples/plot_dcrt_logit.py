@@ -87,10 +87,7 @@ def run_one(seed):
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(
-            penalty="l1",
-            solver="liblinear",
-            random_state=seed,
-            Cs=10,
+            penalty="l1", solver="liblinear", random_state=seed, Cs=10
         ),
         screening_threshold=None,
         n_jobs=5,
@@ -102,7 +99,7 @@ def run_one(seed):
 
     # Fit the dCRT with Lasso-distillation
     dcrt = D0CRT(
-        estimator=LassoCV(random_state=seed, n_alphas=10),
+        estimator=LassoCV(random_state=seed, alphas=10),
         screening_threshold=None,
         n_jobs=5,
     )
@@ -192,12 +189,12 @@ ax = sns.pointplot(
     data=df_plot[["power_dcrt", "power_dcrt_logit"]],
     errorbar="sd",
     capsize=0.2,
-    join=False,
+    linestyle="",
     c="k",
 )
 sns.despine()
 ax.set_ylabel("Power")
-ax.set_xticklabels(["dCRT", "dCRT-logit"])
+ax.set_xticks([0, 1], labels=["dCRT", "dCRT-logit"])
 plt.tight_layout()
 
 # %%
