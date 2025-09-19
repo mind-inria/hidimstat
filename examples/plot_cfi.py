@@ -74,7 +74,11 @@ cfi = CFI(
     imputation_model_continuous=RidgeCV(),
     random_state=0,
 )
-cfi.fit(X_train, y_train)
+cfi.fit(
+    X_train,
+    y_train,
+    groups={feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)},
+)
 importances = cfi.importance(X_test, y_test)
 
 
@@ -86,7 +90,7 @@ importances = cfi.importance(X_test, y_test)
 import matplotlib.pyplot as plt
 
 _, ax = plt.subplots(figsize=(6, 3))
-ax = cfi.plot_importance(feature_names=load_wine().feature_names, ax=ax)
+ax = cfi.plot_importance(ax=ax)
 ax.set_xlabel("Feature Importance")
 plt.tight_layout()
 
