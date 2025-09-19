@@ -435,17 +435,20 @@ class D0CRT(BaseVariableImportance):
         X_residual,
         y_residual,
         n_samples,
+        eps_fisher=1e-8,
     ):
+        # Keep only the selected variables to match indexing
+        X_selection = X[:, self.selection_set_]
         fisher_minus_idx = np.array(
             [
-                np.mean(self.lasso_weights * X[:, i] * X_residual[i])
+                np.mean(self.lasso_weights * X_selection[:, i] * X_residual[i])
                 for i in range(X_residual.shape[0])
             ]
         )
         test_statistic_selected_variables = np.array(
             [
                 -np.dot(y_residual[i], X_residual[i])
-                / np.sqrt(n_samples * fisher_minus_idx)
+                / np.sqrt(n_samples * fisher_minus_idx[i] + eps_fisher)
                 for i in range(X_residual.shape[0])
             ]
         )
