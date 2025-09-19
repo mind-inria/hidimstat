@@ -4,10 +4,11 @@ Test the dcrt module
 
 import numpy as np
 import pytest
+from scipy.special import expit
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import Lasso, LassoCV
+from sklearn.linear_model import Lasso, LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
 
 from hidimstat import D0CRT, d0crt
@@ -18,6 +19,19 @@ from hidimstat._utils.regression import _alpha_max
 def generate_regression_dataset(n=100, p=10, noise=0.2, seed=2024):
     X, y = make_regression(n_samples=n, n_features=p, noise=noise, random_state=seed)
     return X, y
+
+
+@pytest.fixture
+def generate_classification_dataset(n=100, p=10, seed=0):
+    """
+    Generate a random classification dataset for which the ground truth is known.
+    """
+    rng = np.random.RandomState(seed)
+    X = rng.standard_normal((n, p))
+    beta = rng.choice([0, 1], size=p, p=[0.5, 0.5])
+    logits = X @ beta
+    y = rng.binomial(1, expit(logits))
+    return X, y, beta
 
 
 def test_dcrt_lasso_screening(generate_regression_dataset):
@@ -405,3 +419,74 @@ def test_d0crt_rf():
 
     assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
     assert np.array_equal(np.where(sv)[0], important_ids)
+
+
+def test_dcrt_logit(generate_classification_dataset):
+    X, y, beta = generate_classification_dataset
+    dcrt = D0CRT(
+        estimator=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        lasso_screening=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        screening_threshold=50,
+        random_state=0,
+    )
+    dcrt.fit(X, y)
+    dcrt.importance(X, y)
+    alpha = 0.1
+    dcrt.selection(threshold_pvalue=alpha)
+    fp = np.sum((beta == 0) & (dcrt.pvalues_ <= alpha))
+    tp = np.sum((beta != 0) & (dcrt.pvalues_ <= alpha))
+    # Check that the false discovery proportion is below alpha
+    assert fp / (fp + tp) <= alpha
+    # Check that the method is not powerless
+    assert tp / np.sum(beta != 0) >= 0.2
+
+
+def test_dcrt_logit_errors():
+    # Use a wrong type for lasso_screening
+
+    with pytest.raises(
+        ValueError,
+        match="For logistic regression, both the estimator and the lasso_screening "
+        "must be LogisticRegression or LogisticRegressionCV",
+    ):
+        D0CRT(
+            estimator=LogisticRegressionCV(
+                penalty="l1",
+                solver="liblinear",
+                max_iter=1000,
+                random_state=0,
+            ),
+            lasso_screening=LassoCV(n_jobs=1),
+            screening_threshold=50,
+            random_state=0,
+        )
+    with pytest.raises(
+        ValueError,
+        match="For logistic regression, lasso_screening.penalty must be 'l1'",
+    ):
+        D0CRT(
+            estimator=LogisticRegressionCV(
+                penalty="l1",
+                solver="liblinear",
+                max_iter=1000,
+                random_state=0,
+            ),
+            lasso_screening=LogisticRegressionCV(
+                penalty="l2",
+                solver="liblinear",
+                max_iter=1000,
+                random_state=0,
+            ),
+            screening_threshold=50,
+            random_state=0,
+        )

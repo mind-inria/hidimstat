@@ -505,11 +505,13 @@ class D0CRT(BaseVariableImportance):
             )
         ):
             raise ValueError(
-                "For d0CRT-logit (logistic regression),  both the estimator and the "
-                "lasso_screening must be LogisticRegression or LogisticRegressionCV"
+                "For logistic regression, both the estimator and the lasso_screening "
+                "must be LogisticRegression or LogisticRegressionCV"
             )
         if is_logistic and (not self.lasso_screening.penalty == "l1"):
-            raise ValueError("For d0CRT-logit, lasso_screening.penalty must be 'l1'")
+            raise ValueError(
+                "For logistic regression, lasso_screening.penalty must be 'l1'"
+            )
         return is_logistic
 
 
