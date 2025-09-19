@@ -1,6 +1,6 @@
 """
 Conditional Randomization Test for Sparse Logistic Regression
-============================================================
+=============================================================
 
 This example demonstrates how to apply the distilled conditional randomization test
 (D0CRT) to logistic regression. The hidimstat package implements the decorrelation
