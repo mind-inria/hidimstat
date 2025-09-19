@@ -163,6 +163,7 @@ class BaseVariableImportance(BaseEstimator):
             raise Exception("You need to install seaborn for using this functionality")
 
         self._check_importance()
+
         if ax is None:
             _, ax = plt.subplots()
         feature_names = list(self.groups.keys())
