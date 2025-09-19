@@ -222,6 +222,3 @@ plt.show()
 # References
 # ----------
 # .. footbibliography::
-# .. footbibliography::
-# .. footbibliography::
-# .. footbibliography::
