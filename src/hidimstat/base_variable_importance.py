@@ -135,7 +135,6 @@ class BaseVariableImportance(BaseEstimator):
 
     def plot_importance(
         self,
-        feature_names=None,
         ax=None,
         ascending=False,
         **kwargs,
@@ -145,10 +144,6 @@ class BaseVariableImportance(BaseEstimator):
 
         Parameters
         ----------
-        importances : array-like of shape (n_features,) or (n_repeats, n_features)
-            Feature importance scores. If 2D, each column represents a different repetition.
-        feature_names : list of str
-            Names of the features.
         ax : matplotlib.axes.Axes, optional (default=None)
             Axes object to draw the plot onto, otherwise uses the current Axes.
         ascending: bool, optional (default=False)
@@ -170,8 +165,7 @@ class BaseVariableImportance(BaseEstimator):
         self._check_importance()
         if ax is None:
             _, ax = plt.subplots()
-        if feature_names is None:
-            feature_names = [f"x_{i}" for i in range(self.importances_.shape[-1])]
+        feature_names = list(self.group.keys())
 
         if self.importances_.ndim == 2:
             df_plot = {
@@ -185,7 +179,6 @@ class BaseVariableImportance(BaseEstimator):
             }
 
         df_plot = pd.DataFrame(df_plot)
-
         # Sort features by decreasing mean importance
         mean_importance = df_plot.groupby("Feature").mean()
         sorted_features = mean_importance.sort_values(

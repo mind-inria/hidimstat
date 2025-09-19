@@ -600,7 +600,6 @@ def test_cfi_plot(data_generator):
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
-    ids=["high level noise"],
 )
 @pytest.mark.mpl_image_compare
 def test_cfi_plot_2d_imp(data_generator):
@@ -627,7 +626,6 @@ def test_cfi_plot_2d_imp(data_generator):
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
-    ids=["high level noise"],
 )
 def test_cfi_plot_coverage(data_generator):
     """Add arguments combinations to test coverage of the plot function"""
