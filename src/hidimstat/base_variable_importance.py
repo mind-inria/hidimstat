@@ -165,7 +165,7 @@ class BaseVariableImportance(BaseEstimator):
         self._check_importance()
         if ax is None:
             _, ax = plt.subplots()
-        feature_names = list(self.group.keys())
+        feature_names = list(self.groups.keys())
 
         if self.importances_.ndim == 2:
             df_plot = {
