@@ -585,16 +585,17 @@ def _joblib_fit(
     if lasso_weights is not None:
         model_y = None
         coefficient_minus_idx = np.delete(np.copy(estimator.coef_), idx)
-    elif (isinstance(estimator, Lasso) or isinstance(estimator, LassoCV)) and not fit_y:
-        model_y = None
-        coefficient_minus_idx = None
-    else:
+    elif fit_y:
         model_y = clone(estimator)
         model_y.fit(X_minus_idx, y)
-        if fit_y:
+        if isinstance(estimator, (Lasso, LassoCV)):
             coefficient_minus_idx = model_y.coef_
         else:
             coefficient_minus_idx = None
+    else:
+        model_y = None
+        coefficient_minus_idx = None
+
     return model_x, model_y, coefficient_minus_idx
 
 
