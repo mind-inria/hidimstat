@@ -23,23 +23,14 @@ expressed as:
 where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from scipy.stats import ttest_1samp
-from sklearn.base import clone
-from sklearn.datasets import make_circles
-from sklearn.linear_model import LogisticRegressionCV
-from sklearn.metrics import hinge_loss, log_loss
-from sklearn.model_selection import KFold
-from sklearn.svm import SVC
-
-from hidimstat import D0CRT, LOCO
-
 # %%
 # Generate data where classes are not linearly separable
 # ------------------------------------------------------
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import make_circles
+
 rng = np.random.RandomState(0)
 X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
 
@@ -60,8 +51,18 @@ plt.show()
 # %%
 # Define a linear and a non-linear estimator
 # ------------------------------------------
+
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.svm import SVC
+
 non_linear_model = SVC(kernel="rbf", random_state=0)
-linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
+linear_model = LogisticRegressionCV(
+    Cs=np.logspace(-3, 3, 5),
+    penalty="l1",
+    solver="liblinear",
+    max_iter=1000,
+    random_state=0,
+)
 
 # %%
 # Compute p-values using d0CRT
@@ -70,6 +71,12 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
+
+
+from sklearn.base import clone
+
+from hidimstat import D0CRT
+
 d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
@@ -91,6 +98,12 @@ print(f"{pval_dcrt_non_linear=}")
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
+
+from sklearn.metrics import hinge_loss, log_loss
+from sklearn.model_selection import KFold
+
+from hidimstat import LOCO
+
 cv = KFold(n_splits=5, shuffle=True, random_state=0)
 
 importances_linear = []
@@ -128,6 +141,8 @@ for train, test in cv.split(X):
 # To select variables using LOCO, we compute the p-values using a t-test over the
 # importance scores.
 
+from scipy.stats import ttest_1samp
+
 _, pval_linear = ttest_1samp(
     importances_linear,
     0,
@@ -145,6 +160,8 @@ print(f"{pval_non_linear=}")
 #################################################################################
 # Plot the :math:`-log_{10}(pval)` for each method and variable
 # -------------------------------------------------------------
+
+import pandas as pd
 
 df_pval = pd.DataFrame(
     {
@@ -169,6 +186,9 @@ df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
 # %%
 # Plot the :math:`-log_{10}(pval)` for each method and variable
 # -------------------------------------------------------------
+
+import seaborn as sns
+
 fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
@@ -201,4 +221,7 @@ plt.show()
 # %%
 # References
 # ----------
+# .. footbibliography::
+# .. footbibliography::
+# .. footbibliography::
 # .. footbibliography::

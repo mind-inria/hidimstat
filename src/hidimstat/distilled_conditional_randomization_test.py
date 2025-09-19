@@ -487,6 +487,10 @@ class D0CRT(BaseVariableImportance):
         return self.importance(X, y)
 
     def _check_logistic(self):
+        """
+        If the estimator is a logistic regression, check that the screening model is
+        a l1-penalized logistic regression or None (no screening).
+        """
         is_logistic = isinstance(
             self.estimator, (LogisticRegression, LogisticRegressionCV)
         ) or isinstance(
@@ -494,7 +498,8 @@ class D0CRT(BaseVariableImportance):
         )
         if is_logistic and (
             (
-                not isinstance(
+                self.screening_threshold is not None
+                and not isinstance(
                     self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
                 )
             )
@@ -508,7 +513,10 @@ class D0CRT(BaseVariableImportance):
                 "For logistic regression, both the estimator and the lasso_screening "
                 "must be LogisticRegression or LogisticRegressionCV"
             )
-        if is_logistic and (not self.lasso_screening.penalty == "l1"):
+        if is_logistic and (
+            self.screening_threshold is not None
+            and not self.lasso_screening.penalty == "l1"
+        ):
             raise ValueError(
                 "For logistic regression, lasso_screening.penalty must be 'l1'"
             )
