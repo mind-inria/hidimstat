@@ -37,9 +37,9 @@ from sklearn.svm import SVC
 
 from hidimstat import D0CRT, LOCO
 
-#############################################################################
+# %%
 # Generate data where classes are not linearly separable
-# --------------------------------------------------------------
+# ------------------------------------------------------
 rng = np.random.RandomState(0)
 X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
 
@@ -57,15 +57,15 @@ ax.set_xlabel("X1")
 ax.set_ylabel("X2")
 plt.show()
 
-###############################################################################
+# %%
 # Define a linear and a non-linear estimator
 # ------------------------------------------
 non_linear_model = SVC(kernel="rbf", random_state=0)
 linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 
-###############################################################################
+# %%
 # Compute p-values using d0CRT
-# ---------------------------------------------------------------------------
+# ----------------------------
 # We first compute the p-values using d0CRT which performs a conditional independence
 # test (:math:`H_0: X_j \perp\!\!\!\perp y | X_{-j}`) for each variable. However,
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
@@ -73,14 +73,19 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
+print(f"{pval_dcrt_linear=}")
 
-d0crt_non_linear = D0CRT(estimator=clone(non_linear_model), screening_threshold=None)
+d0crt_non_linear = D0CRT(
+    estimator=clone(non_linear_model),
+    screening_threshold=None,
+)
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
+print(f"{pval_dcrt_non_linear=}")
 
-################################################################################
+# %%
 # Compute p-values using LOCO
-# ---------------------------------------------------------------------------
+# ---------------------------
 # We then compute the p-values using LOCO
 # with a linear, and then a non-linear model. When using a
 # misspecified model, such as a linear model for this dataset, LOCO fails to reject the null
@@ -97,7 +102,10 @@ for train, test in cv.split(X):
     linear_model_.fit(X[train], y[train])
 
     vim_linear = LOCO(
-        estimator=linear_model_, loss=log_loss, method="predict_proba", n_jobs=2
+        estimator=linear_model_,
+        loss=log_loss,
+        method="predict_proba",
+        n_jobs=2,
     )
     vim_non_linear = LOCO(
         estimator=non_linear_model_,
@@ -108,25 +116,45 @@ for train, test in cv.split(X):
     vim_linear.fit(X[train], y[train])
     vim_non_linear.fit(X[train], y[train])
 
-    importances_linear.append(vim_linear.importance(X[test], y[test])["importance"])
+    importances_linear.append(
+        vim_linear.importance(X[test], y[test])["importance"],
+    )
     importances_non_linear.append(
         vim_non_linear.importance(X[test], y[test])["importance"]
     )
 
 
-################################################################################
+# %%
 # To select variables using LOCO, we compute the p-values using a t-test over the
 # importance scores.
 
-_, pval_linear = ttest_1samp(importances_linear, 0, axis=0, alternative="greater")
+_, pval_linear = ttest_1samp(
+    importances_linear,
+    0,
+    axis=0,
+    alternative="greater",
+)
 _, pval_non_linear = ttest_1samp(
     importances_non_linear, 0, axis=0, alternative="greater"
 )
 
+print(f"{pval_linear=}")
+print(f"{pval_non_linear=}")
+
+
+#################################################################################
+# Plot the :math:`-log_{10}(pval)` for each method and variable
+# -------------------------------------------------------------
+
 df_pval = pd.DataFrame(
     {
         "pval": np.hstack(
-            [pval_dcrt_linear, pval_dcrt_non_linear, pval_linear, pval_non_linear]
+            [
+                pval_dcrt_linear,
+                pval_dcrt_non_linear,
+                pval_linear,
+                pval_non_linear,
+            ]
         ),
         "method": ["d0CRT-linear"] * 2
         + ["d0CRT-non-linear"] * 2
@@ -138,9 +166,9 @@ df_pval = pd.DataFrame(
 df_pval["minus_log10_pval"] = -np.log10(df_pval["pval"])
 
 
-#################################################################################
+# %%
 # Plot the :math:`-log_{10}(pval)` for each method and variable
-# ---------------------------------------------------------------------------
+# -------------------------------------------------------------
 fig, ax = plt.subplots()
 sns.barplot(
     data=df_pval,
@@ -152,21 +180,25 @@ sns.barplot(
 )
 ax.set_xlabel("-$\\log_{10}(pval)$")
 ax.axvline(
-    -np.log10(0.05), color="k", lw=3, linestyle="--", label="-$\\log_{10}(0.05)$"
+    -np.log10(0.05),
+    color="k",
+    lw=3,
+    linestyle="--",
+    label="-$\\log_{10}(0.05)$",
 )
 ax.legend()
 plt.show()
 
 
-#################################################################################
+# %%
 # As expected, when using linear models (d0CRT and LOCO-linear) that are misspecified,
-# the varibles are not selected. This highlights the benefit of using model-agnostic
+# the variables are not selected. This highlights the benefit of using model-agnostic
 # methods such as LOCO, which allows for the use of models that are expressive enough
 # to explain the data. While d0CRT can use any estimator, its distillation step
 # restricts it from capturing variable interactions.
 
 
-#################################################################################
+# %%
 # References
-# ---------------------------------------------------------------------------
+# ----------
 # .. footbibliography::

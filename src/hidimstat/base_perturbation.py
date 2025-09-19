@@ -1,12 +1,13 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
-import warnings
 
-from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -90,7 +91,7 @@ class BasePerturbation(BaseVariableImportance):
                     np.array(ids, dtype=int) for ids in list(self.groups.values())
                 ]
         else:
-            raise ValueError("groups needs to be a dictionnary")
+            raise ValueError("groups needs to be a dictionary")
 
     def predict(self, X):
         """
