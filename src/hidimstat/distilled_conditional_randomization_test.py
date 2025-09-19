@@ -441,7 +441,7 @@ class D0CRT(BaseVariableImportance):
         X_selection = X[:, self.selection_set_]
         fisher_minus_idx = np.array(
             [
-                np.mean(self.lasso_weights * X_selection[:, i] * X_residual[i])
+                np.mean(self.lasso_weights_ * X_selection[:, i] * X_residual[i])
                 for i in range(X_residual.shape[0])
             ]
         )
