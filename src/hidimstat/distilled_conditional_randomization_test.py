@@ -84,8 +84,9 @@ class D0CRT(BaseVariableImportance):
     model_x_ : list of estimators
         Fitted models for X distillation (Lasso or None if using sigma_X).
     model_y_ : list of estimators
-        Fitted models for y distillation (sklearn estimator or None if using
-        estimated_coef and Lasso estimator).
+        Fitted models for y distillation (sklearn estimator or coefficients if linear)
+    lasso_weights_ : ndarray of shape (n_samples,) or None
+        Sample weights for logistic regression.
     importances_ : ndarray of shape (n_features,)
         Importance scores for each feature. Test statistics following standard normal
         distribution.
@@ -260,8 +261,6 @@ class D0CRT(BaseVariableImportance):
         )
         self.model_x_ = [result[0] for result in results]
         self.model_y_ = [result[1] for result in results]
-        if self.fit_y or self.is_logistic:
-            self.coefficient_ = np.array([result[2] for result in results])
 
         return self
 
@@ -347,11 +346,11 @@ class D0CRT(BaseVariableImportance):
             # validated and should be removed
             if isinstance(self.estimator, (Lasso, LassoCV)):
                 if self.fit_y:
-                    coefficient_minus_idx = self.coefficient_[index]
+                    coefficient_minus_idx = self.model_y_[index]
                 else:
                     coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
             elif self.is_logistic:
-                coefficient_minus_idx = self.coefficient_[index]
+                coefficient_minus_idx = self.model_y_[index]
             else:
                 coefficient_minus_idx = None
 
@@ -583,20 +582,16 @@ def _joblib_fit(
 
     # d0CRT-logit does not fit model for y
     if lasso_weights is not None:
-        model_y = None
-        coefficient_minus_idx = np.delete(np.copy(estimator.coef_), idx)
+        model_y = np.delete(np.copy(estimator.coef_), idx)
     elif fit_y:
         model_y = clone(estimator)
         model_y.fit(X_minus_idx, y)
         if isinstance(estimator, (Lasso, LassoCV)):
-            coefficient_minus_idx = model_y.coef_
-        else:
-            coefficient_minus_idx = None
+            model_y = model_y.coef_
     else:
         model_y = None
-        coefficient_minus_idx = None
 
-    return model_x, model_y, coefficient_minus_idx
+    return model_x, model_y
 
 
 def _joblib_distill(
