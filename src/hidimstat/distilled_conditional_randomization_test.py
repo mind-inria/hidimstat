@@ -95,8 +95,12 @@ class D0CRT(BaseVariableImportance):
 
     Notes
     -----
-    The implementation follows Liu et al. (2022), introducing distillation to
-    speed up conditional randomization testing. Key steps:
+    When passing a LogisticRegression or LogisticRegressionCV estimator, the method
+    automatically switches to the d0CRT-logit approach from
+    :footcite:t:`nguyen2022conditional`. For any other estimator, the method uses the
+    d0CRT approach from :footcite:t:`liu2022fast`.
+
+    Key steps:
     1. Optional screening using Lasso coefficients to reduce dimensionality.
     2. Distillation to estimate conditional distributions.
     3. Test statistic computation using residual correlations.
@@ -405,9 +409,27 @@ class D0CRT(BaseVariableImportance):
         sigma2,
         n_samples,
     ):
-        # By assuming X|Z following a normal law, the exact p-value can be
-        # computed with the following equation (see section 2.5 in `liu2022fast`)
-        # based on the residuals of y and x.
+        """
+        Compute the d0CRT test statistic for regression. By assuming X|Z following a
+        normal law, the exact p-value can be computed with the following equation
+        (see section 2.5 in `liu2022fast`) based on the residuals of y and x.
+
+        Parameters
+        ----------
+        X_residual : ndarray of shape (n_selected_features, n_samples)
+            Residuals after distillation of X.
+        y_residual : ndarray of shape (n_selected_features, n_samples)
+            Residuals after distillation of y.
+        sigma2 : ndarray of shape (n_selected_features,)
+            Variance estimates for the residuals.
+        n_samples : int
+            Number of samples.
+
+        Returns
+        -------
+        test_statistic_selected_variables : list of float
+            Test statistics for each selected feature.
+        """
         test_statistic_selected_variables = [
             np.dot(y_residual[i], X_residual[i])
             / np.sqrt(n_samples * sigma2[i] * np.mean(y_residual[i] ** 2))
@@ -430,6 +452,29 @@ class D0CRT(BaseVariableImportance):
         n_samples,
         eps_fisher=1e-8,
     ):
+        """
+        Compute the d0CRT test statistic for logistic regression, following the method
+        presented in :footcite:t:`nguyen2022conditional`.
+
+        Parameters
+        ----------
+        X : ndarray of shape (n_samples, n_features)
+            Input data matrix.
+        X_residual : ndarray of shape (n_selected_features, n_samples)
+            Residuals after distillation of X.
+        y_residual : ndarray of shape (n_selected_features, n_samples)
+            Residuals after distillation of y.
+        n_samples : int
+            Number of samples.
+        eps_fisher : float, default=1e-8
+            Small constant added for numerical stability to the Fisher information
+            to avoid division by zero.
+
+        Returns
+        -------
+        test_statistic_selected_variables : list of float
+            Test statistics for each selected feature.
+        """
         # Keep only the selected variables to match indexing
         X_selection = X[:, self.selection_set_]
         fisher_minus_idx = np.array(
