@@ -7,6 +7,7 @@ from sklearn.linear_model import Lasso
 from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.utils import check_random_state
 from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
     pval_from_cb,
@@ -25,7 +26,7 @@ def desparsified_lasso(
     tolerance_reid=1e-4,
     n_splits=5,
     n_jobs=1,
-    seed=0,
+    random_state=None,
     memory=None,
     verbose=0,
     multioutput=False,
@@ -74,7 +75,7 @@ def desparsified_lasso(
     n_jobs : int, optional (default=1)
         Number of parallel jobs. Use -1 for all CPUs.
 
-    seed : int, default=0
+    random_state : int, default=None
         Random seed for reproducibility.
 
     memory : str or joblib.Memory object, optional (default=None)
@@ -133,6 +134,7 @@ def desparsified_lasso(
     .. footbibliography::
     """
     memory = check_memory(memory)
+    rng = check_random_state(random_state)
 
     X_ = np.asarray(X)
 
@@ -158,7 +160,7 @@ def desparsified_lasso(
         max_iterance=max_iteration,
         n_splits=n_splits,
         n_jobs=n_jobs,
-        seed=seed,
+        random_state=rng,
         # for group
         multioutput=multioutput,
         method=noise_method,
@@ -181,6 +183,7 @@ def desparsified_lasso(
         tolerance=tolerance,
         n_jobs=n_jobs,
         verbose=verbose,
+        random_state=rng,
     )
 
     # Computing the degrees of freedom adjustment
@@ -370,7 +373,14 @@ def desparsified_group_lasso_pvalue(
 
 
 def _compute_all_residuals(
-    X, alphas, gram, max_iteration=5000, tolerance=1e-3, n_jobs=1, verbose=0
+    X,
+    alphas,
+    gram,
+    max_iteration=5000,
+    tolerance=1e-3,
+    n_jobs=1,
+    verbose=0,
+    random_state=None,
 ):
     """
     Nodewise Lasso for computing residuals and precision matrix diagonal.
@@ -435,8 +445,9 @@ def _compute_all_residuals(
             gram=gram,
             max_iteration=max_iteration,
             tolerance=tolerance,
+            random_state=rng,
         )
-        for i in range(n_features)
+        for i, rng in enumerate(random_state.spawn(n_features))
     )
 
     # Unpacking the results
@@ -447,7 +458,9 @@ def _compute_all_residuals(
     return Z, precision_diagonal
 
 
-def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=1e-3):
+def _compute_residuals(
+    X, id_column, alpha, gram, max_iteration=5000, tolerance=1e-3, random_state=None
+):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -487,7 +500,10 @@ def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=
     -----
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
-
+    if not isinstance(random_state, np.random.RandomState):
+        random_state = np.random.RandomState(
+            check_random_state(random_state).bit_generator
+        )
     n_samples, n_features = X.shape
 
     # Removing the column to regress against the others
@@ -497,7 +513,13 @@ def _compute_residuals(X, id_column, alpha, gram, max_iteration=5000, tolerance=
     # Method used for computing the residuals of the Nodewise Lasso.
     # here we use the Lasso method
     gram_ = np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
-    clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iteration, tol=tolerance)
+    clf = Lasso(
+        alpha=alpha,
+        precompute=gram_,
+        max_iter=max_iteration,
+        tol=tolerance,
+        random_state=random_state,
+    )
 
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
