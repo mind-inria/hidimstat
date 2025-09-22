@@ -422,6 +422,10 @@ def test_d0crt_rf():
 
 
 def test_dcrt_logit(generate_classification_dataset):
+    """
+    Test the dcrt-logit function which is used when a LogisticRegressionCV model is
+    passed to the estimator parameter of the D0CRT class.
+    """
     X, y, beta = generate_classification_dataset
     dcrt = D0CRT(
         estimator=LogisticRegressionCV(
@@ -452,8 +456,10 @@ def test_dcrt_logit(generate_classification_dataset):
 
 
 def test_dcrt_logit_errors():
-    # Use a wrong type for lasso_screening
-
+    """
+    Test that passing inconsistent models to estimator and lasso_screening raises a
+    ValueError.
+    """
     with pytest.raises(
         ValueError,
         match="For logistic regression, both the estimator and the lasso_screening "
@@ -493,6 +499,10 @@ def test_dcrt_logit_errors():
 
 
 def test_dcrt_logit_refit(generate_classification_dataset):
+    """
+    Test the dcrt function using the LogisticRegressionCV learner with refit=True
+    and reuse_screening_model=False.
+    """
     X, y, beta = generate_classification_dataset
     dcrt = D0CRT(
         estimator=LogisticRegressionCV(
