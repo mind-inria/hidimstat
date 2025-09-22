@@ -25,3 +25,32 @@ def _check_vim_predict_method(method):
             "The method {} is not a valid method "
             "for variable importance measure prediction".format(method)
         )
+
+
+def get_fitted_attributes(cls):
+    """
+    Get all attributes from a class that end with a single underscore
+    and doesn't start with one underscore.
+    Parameters
+    ----------
+    cls : class
+        The class to inspect for attributes.
+    Returns
+    -------
+    list
+        A list of attribute names that end with a single underscore but not double underscore.
+    """
+    # Get all attributes and methods of the class
+    all_attributes = dir(cls)
+
+    # Filter out attributes that start with an underscore
+    filtered_attributes = [attr for attr in all_attributes if not attr.startswith("_")]
+
+    # Filter out attributes that do not end with a single underscore
+    result = [
+        attr
+        for attr in filtered_attributes
+        if attr.endswith("_") and not attr.endswith("__")
+    ]
+
+    return result
