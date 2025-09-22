@@ -27,31 +27,31 @@ from scipy.special import expit
 
 from hidimstat._utils.scenario import multivariate_simulation
 
+# Simulation parameters
+n_samples = 200
+n_features = 100
+support_size = 10
+rho = 0.2  # correlation between features
+signal_noise_ratio = 3.0
 
-def multivariate_classification(
-    n_samples,
-    n_features,
-    n_targets=None,
-    support_size=10,
-    rho=0,
-    value=1.0,
-    signal_noise_ratio=3.0,
-    seed=None,
-):
-    rng = np.random.default_rng(seed)
-    X, y, beta_true, noise = multivariate_simulation(
+# Generate data for 5 different random seeds
+X_list, y_list, beta_true_list = [], [], []
+for seed in range(5):
+    X, y_, beta_true, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_targets=n_targets,
         support_size=support_size,
         rho=rho,
-        value=value,
         signal_noise_ratio=signal_noise_ratio,
         seed=seed,
     )
-    y_logit = expit(y)
-    y_binary = rng.binomial(1, y_logit)
-    return X, y_binary, beta_true, noise
+    X_list.append(X)
+    # Transform y to binary using the logit link function
+    y_logit = expit(y_)
+    rng = np.random.default_rng(seed)
+    y = rng.binomial(1, y_logit)
+    y_list.append(y)
+    beta_true_list.append(beta_true)
 
 
 # %%
@@ -70,19 +70,9 @@ from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
 from hidimstat import D0CRT
 
-
-def run_one(seed):
-
-    # Generate synthetic data
-    X, y, beta_true, noise = multivariate_classification(
-        n_samples=200,
-        n_features=100,
-        support_size=10,
-        rho=0.2,
-        value=1.0,
-        signal_noise_ratio=3.0,
-        seed=seed,
-    )
+# Run dCRT and dCRT-logit for each random seed
+results_list = []
+for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
 
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
@@ -109,20 +99,20 @@ def run_one(seed):
     power = np.mean((dcrt.pvalues_[beta_true] < 0.05))
 
     # Store the results in a DataFrame
-    df = pd.DataFrame(
-        {
-            "stat_dcrt": importance[~beta_true],
-            "stat_dcrt_logit": importance_logit[~beta_true],
-            "seed": seed,
-            "power_dcrt": power,
-            "power_dcrt_logit": power_logit,
-        }
+    results_list.append(
+        pd.DataFrame(
+            {
+                "stat_dcrt": importance[~beta_true],
+                "stat_dcrt_logit": importance_logit[~beta_true],
+                "seed": seed,
+                "power_dcrt": power,
+                "power_dcrt_logit": power_logit,
+            }
+        )
     )
-    return df
 
 
-df_list = [run_one(seed) for seed in range(5)]
-df_plot = pd.concat(df_list, ignore_index=True)
+df_plot = pd.concat(results_list, ignore_index=True)
 
 # %%
 # QQ-plot visualization
