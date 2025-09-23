@@ -669,7 +669,8 @@ def test_cfi_repeatibility_with_RNG(cfi_test_data):
     Test that multiple calls of .importance() when CFI has random_state=rng
     """
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
-    rng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
+    typeBitGen = type(rng.bit_generator)
     cfi = CFI(random_state=rng, **cfi_default_parameters)
     cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
@@ -683,13 +684,13 @@ def test_cfi_repeatibility_with_RNG(cfi_test_data):
     assert not np.array_equal(vim, vim_refit)
 
     # refit repeatability
-    rng.seed(0)
+    rng._bit_generator = typeBitGen(0)  # reset generator
     cfi.fit(X_train)
     vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_refit_2)
 
     # Reproducibility
-    rng.seed(0)
+    rng._bit_generator = typeBitGen(0)  # reset generator
     cfi_2 = CFI(random_state=rng, **cfi_default_parameters)
     cfi_2.fit(X_train)
     vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
