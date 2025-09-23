@@ -148,7 +148,6 @@ def clustered_inference(
     X_init,
     y,
     ward,
-    n_clusters,
     scaler_sampling=None,
     train_size=1.0,
     groups=None,
@@ -177,9 +176,6 @@ def clustered_inference(
     ward : sklearn.cluster.FeatureAgglomeration
         Hierarchical clustering object that implements Ward's method for
         feature agglomeration.
-
-    n_clusters : int
-        Number of clusters to use for dimensionality reduction.
 
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
