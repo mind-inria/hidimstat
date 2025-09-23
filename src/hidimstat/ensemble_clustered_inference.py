@@ -3,6 +3,7 @@ from joblib import Parallel, delayed
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils.validation import check_memory
+from tqdm import tqdm
 
 from hidimstat._utils.bootstrap import _subsampling
 from hidimstat.desparsified_lasso import (
@@ -240,13 +241,6 @@ def clustered_inference(
 
     n_samples, n_features = X_init.shape
 
-    if verbose > 0:
-        print(
-            f"Clustered inference: n_clusters = {n_clusters}, "
-            + f"inference method desparsified lasso, seed = {seed},"
-            + f"groups = {groups is not None} "
-        )
-
     ## This are the 3 step in first loop of the algorithm 2 of [1]
     # sampling row of X
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
@@ -483,7 +477,7 @@ def ensemble_clustered_inference(
             memory=memory,
             **kwargs,
         )
-        for i in np.arange(seed, seed + n_bootstraps)
+        for i in tqdm(np.arange(seed, seed + n_bootstraps), disable=(verbose == 0))
     )
     list_ward, list_beta_hat, list_theta_hat, list_precision_diag = [], [], [], []
     for ward, beta_hat, theta_hat, precision_diag in results:
