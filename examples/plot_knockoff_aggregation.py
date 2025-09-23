@@ -58,7 +58,7 @@ n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
 # Define the seeds for the reproducibility of the example
-rng = np.random.RandomState(42)
+rng = np.random.default_rng(42)
 
 
 # %%

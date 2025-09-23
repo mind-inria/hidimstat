@@ -37,7 +37,7 @@ from sklearn.svm import SVC
 from hidimstat import CFI, PFI
 
 # Define the seeds for the reproducibility of the example
-rng = np.random.RandomState(0)
+rng = np.random.default_rng(0)
 # %%
 # Load the iris dataset and add a spurious feature
 # ------------------------------------------------
