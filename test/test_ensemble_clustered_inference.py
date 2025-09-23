@@ -5,18 +5,16 @@ Test the clustered_inference module
 import numpy as np
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
 
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat._utils.scenario import multivariate_simulation
 
 
 # Scenario 1: data with no temporal dimension

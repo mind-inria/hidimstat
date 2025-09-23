@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, BaseEstimator
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils.validation import check_random_state
 
@@ -71,7 +71,7 @@ class CFI(BasePerturbation):
         # check the validity of the inputs
         assert imputation_model_continuous is None or issubclass(
             imputation_model_continuous.__class__, BaseEstimator
-        ), "Continous imputation model invalid"
+        ), "Continuous imputation model invalid"
         assert imputation_model_categorical is None or issubclass(
             imputation_model_categorical.__class__, BaseEstimator
         ), "Categorial imputation model invalid"

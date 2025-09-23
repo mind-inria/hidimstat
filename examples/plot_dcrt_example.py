@@ -8,10 +8,6 @@ repetitions is set to 10. The metrics used are the type-I error and
 the power
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,7 +18,7 @@ from sklearn.linear_model import LassoCV
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_simulation
 
-#############################################################################
+# %%
 # Processing the computations
 # ---------------------------
 
@@ -58,9 +54,15 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     d0crt_lasso = D0CRT(
+<<<<<<< HEAD
         estimator=LassoCV(random_state=sim_ind, n_jobs=1),
         screening=False,
         random_state=sim_ind,
+||||||| 57d40de4
+    d0crt_lasso = D0CRT(estimator=LassoCV(random_state=42, n_jobs=1), screening=False)
+=======
+        estimator=LassoCV(random_state=42, n_jobs=1), screening_threshold=None
+>>>>>>> main
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
@@ -76,10 +78,21 @@ for sim_ind in range(10):
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
         estimator=RandomForestRegressor(
+<<<<<<< HEAD
             n_estimators=100, random_state=sim_ind, n_jobs=1
         ),
         screening=False,
         random_state=sim_ind,
+||||||| 57d40de4
+        estimator=RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=1),
+        screening=False,
+=======
+            n_estimators=100,
+            random_state=42,
+            n_jobs=1,
+        ),
+        screening_threshold=None,
+>>>>>>> main
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_
@@ -92,7 +105,7 @@ for sim_ind in range(10):
         }
     )
 
-#############################################################################
+# %%
 # Plotting the comparison
 # -----------------------
 
@@ -100,7 +113,13 @@ df_plot = pd.DataFrame(results_list)
 
 _, ax = plt.subplots(nrows=1, ncols=2)
 sns.swarmplot(data=df_plot, x="model", y="type-1 error", ax=ax[0], hue="model")
-ax[0].axhline(alpha, linewidth=1, color="tab:red", ls="--", label="Nominal Level")
+ax[0].axhline(
+    alpha,
+    linewidth=1,
+    color="tab:red",
+    ls="--",
+    label="Nominal Level",
+)
 ax[0].legend()
 ax[0].set_ylim(-0.01)
 
@@ -109,7 +128,7 @@ sns.boxplot(data=df_plot, x="model", y="power", ax=ax[1], hue="model")
 sns.despine()
 plt.show()
 
-#############################################################################
+# %%
 # Both methods empirically control the type-I error. In addition, it can
 # be observed that the power of the Random Forest model is generally higher
 # than that of the Lasso model, indicating a better ability to detect true

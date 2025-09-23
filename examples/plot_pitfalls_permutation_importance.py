@@ -31,7 +31,7 @@ from hidimstat.conditional_sampling import ConditionalSampler
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(0)
 
-#############################################################################
+# %%
 # Load the California housing dataset and add a spurious feature
 # --------------------------------------------------------------
 # The California housing dataset is a regression dataset with 8 features. We add a
@@ -41,7 +41,13 @@ rng = np.random.RandomState(0)
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
 # only use 2/3 of samples to speed up the example
-X, _, y, _ = train_test_split(X_, y_, test_size=0.6667, random_state=1, shuffle=True)
+X, _, y, _ = train_test_split(
+    X_,
+    y_,
+    test_size=0.6667,
+    random_state=0,
+    shuffle=True,
+)
 
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
@@ -74,7 +80,7 @@ ax.set_xticklabels(labels=feature_names, fontsize=10, rotation=45)
 plt.tight_layout()
 plt.show()
 
-###############################################################################
+# %%
 # Fit a predictive model
 # ----------------------
 # We fit a neural network model to the California housing dataset. PFI is a
@@ -110,7 +116,7 @@ for train_index, test_index in kf.split(X):
 
 print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
 
-#########################################################################
+# %%
 # Measure the importance of variables using the PFI method
 # --------------------------------------------------------
 # We use the `PermutationFeatureImportance` class to compute the PFI in a cross-fitting
@@ -167,15 +173,15 @@ fig.tight_layout()
 plt.show()
 
 
-################################################################################
+# %%
 # While the most important variables identified by PFI are plausible, such as the
 # geographic coordinates or the median income of the block group, it is not robust to
 # the presence of spurious features and misleadingly identifies the spurious feature as
 # important.
 
 
-###########################################################################
-# A valid alternative: Condional Feature Importance
+# %%
+# A valid alternative: Conditional Feature Importance
 # -----------------------------------------------------
 # The `ConditionalFeatureImportance` class computes permutations of the feature of
 # interest while conditioning on the other features. In other words, it shuffles the
@@ -235,11 +241,11 @@ plt.tight_layout()
 plt.show()
 
 
-###############################################################################
+# %%
 # Contrary to PFI, CFI does not identify the spurious feature as important.
 
 
-###############################################################################
+# %%
 # Extrapolation bias in PFI
 # -------------------------
 # One of the main pitfalls of PFI is that it leads to extrapolation bias, i.e., it
@@ -328,7 +334,7 @@ ax.set_ylabel("Longitude")
 plt.show()
 
 
-###############################################################################
+# %%
 # PFI is likely to generate samples that are unrealistic and outside of the training
 # data, leading to extrapolation bias. In contrast, CFI generates samples that respect
 # the conditional distribution of the feature of interest.
