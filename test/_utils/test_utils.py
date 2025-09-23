@@ -19,6 +19,12 @@ def test_integer():
 
 def test_rng():
     "test random state is rng"
+    rng = np.random.default_rng(0)
+    assert isinstance(rng, np.random.Generator)
+
+
+def test_random_state():
+    "test random state is RandomState"
     random_state = np.random.RandomState(0)
     with pytest.raises(
         ValueError,
