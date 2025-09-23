@@ -76,14 +76,15 @@ Types of VI methods
 There are two main types of VI methods implemented in HiDimStat:
 
 1. Marginal methods: these methods provide importance to all the features 
-that are related to the output, even if it is caused by spurius correlation. They 
+that are related to the output, even if it is caused by spurious correlation. They 
 are related with testing if :math:`X^j\perp\!\!\!\!\perp Y`.
-An example of such methods is Leave One Covariate In (LOCI).
+An example of such methods is Leave One Covariate In (LOCI, 
+:footcite:p:`ewald_2024`).
 
 2. Conditional methods: these methods assign importance only to features that
 provide exclusive information beyond what is already captured by the others, 
-i.e., they contribute unique knowledge. They are related with Conditional 
-Independence Testing, which consist in testing if 
+i.e., they contribute unique knowledge. They are related to Conditional 
+Independence Testing, which consists of testing whether 
 :math:`X^j\perp\!\!\!\!\perp Y\mid X^{-j}`. Examples of such methods are
 :class:`hidimstat.LOCO` and :class:`hidimstat.CFI`.
 
