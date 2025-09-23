@@ -165,9 +165,9 @@ class BaseVariableImportance(BaseEstimator):
         Raises
         ------
         ValueError
-            If importances_ haven't been computed yet
+            If `importances_` haven't been computed yet
         AssertionError
-            If pvalues_ are missing or fdr_control is invalid
+            If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
         assert (
