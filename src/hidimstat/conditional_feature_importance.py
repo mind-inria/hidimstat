@@ -2,7 +2,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -66,6 +65,7 @@ class CFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            random_state=random_state,
         )
 
         # check the validity of the inputs
@@ -80,7 +80,6 @@ class CFI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.

@@ -73,6 +73,7 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5))
 d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
+print(f"{pval_dcrt_linear=}")
 
 d0crt_non_linear = D0CRT(
     estimator=clone(non_linear_model),
@@ -80,6 +81,7 @@ d0crt_non_linear = D0CRT(
 )
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
+print(f"{pval_dcrt_non_linear=}")
 
 # %%
 # Compute p-values using LOCO
@@ -135,6 +137,14 @@ _, pval_linear = ttest_1samp(
 _, pval_non_linear = ttest_1samp(
     importances_non_linear, 0, axis=0, alternative="greater"
 )
+
+print(f"{pval_linear=}")
+print(f"{pval_non_linear=}")
+
+
+#################################################################################
+# Plot the :math:`-log_{10}(pval)` for each method and variable
+# -------------------------------------------------------------
 
 df_pval = pd.DataFrame(
     {

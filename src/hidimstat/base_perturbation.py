@@ -45,6 +45,8 @@ class BasePerturbation(BaseVariableImportance):
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
+        random_state : int, default=None
+            The random state to use for sampling.
         """
         super().__init__()
         check_is_fitted(estimator)
@@ -251,6 +253,8 @@ class BasePerturbation(BaseVariableImportance):
             The index of the group of variables.
         group_key: str, int
             The key of the group of variables. (parameter use for debugging)
+        random_state:
+            The random state to use for sampling.
         """
         group_ids = self._groups_ids[group_id]
         non_group_ids = np.delete(np.arange(X.shape[1]), group_ids)

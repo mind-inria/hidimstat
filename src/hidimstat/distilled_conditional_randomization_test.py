@@ -8,7 +8,7 @@ from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat._utils.utils import _check_vim_predict_method, check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -121,6 +121,7 @@ class D0CRT(BaseVariableImportance):
         fit_y=False,
         scaled_statistics=False,
         reuse_screening_model=True,
+        random_state=None,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -137,6 +138,7 @@ class D0CRT(BaseVariableImportance):
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
         self.reuse_screening_model = reuse_screening_model
+        self.random_state = random_state
 
         self.coefficient_ = None
         self.selection_set_ = None
@@ -181,6 +183,7 @@ class D0CRT(BaseVariableImportance):
         ----------
         .. footbibliography::
         """
+        rng = check_random_state(self.random_state)
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
         else:
@@ -201,6 +204,7 @@ class D0CRT(BaseVariableImportance):
                     lasso_model=self.lasso_screening,
                     estimated_coef=self.estimated_coef,
                     screening_threshold=self.screening_threshold,
+                    random_state=rng,
                 )
                 if self.refit:
                     self.estimator.fit(X_[:, self.selection_set_], y_)
@@ -234,8 +238,12 @@ class D0CRT(BaseVariableImportance):
                 sigma_X=self.sigma_X is None,
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
+                random_state=rng,
             )
-            for idx in np.where(self.selection_set_)[0]
+            for idx, rng in zip(
+                np.where(self.selection_set_)[0],
+                rng.spawn(np.sum(self.selection_set_)),
+            )
         )
         self.model_x_ = [result[0] for result in results]
         self.model_y_ = [result[1] for result in results]
@@ -411,7 +419,14 @@ class D0CRT(BaseVariableImportance):
 
 
 def _joblib_fit(
-    idx, X, y, estimator, sigma_X=False, fit_y=False, model_distillation_x=None
+    idx,
+    X,
+    y,
+    estimator,
+    sigma_X=False,
+    fit_y=False,
+    model_distillation_x=None,
+    random_state=None,
 ):
     """
     Standard Lasso distillation for least squares regression.
@@ -457,12 +472,15 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
+    rng = np.random.RandomState(random_state.bit_generator)
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
     # configure Lasso and determine the alpha
     if sigma_X:
         model_x = clone(model_distillation_x)
+        if hasattr(model_x, "random_state"):
+            model_x.set_params(random_state=rng)
         model_x.fit(X_minus_idx, X[:, idx])
     else:
         model_x = None
@@ -472,6 +490,8 @@ def _joblib_fit(
         coefficient_minus_idx = None
     else:
         model_y = clone(estimator)
+        if hasattr(model_x, "random_state"):
+            model_x.set_params(random_state=rng)
         model_y.fit(X_minus_idx, y)
         if fit_y:
             coefficient_minus_idx = model_y.coef_
@@ -575,6 +595,7 @@ def run_lasso_screening(
     lasso_model=LassoCV(fit_intercept=False, random_state=0),
     estimated_coef=None,
     screening_threshold=10,
+    random_state=None,
 ):
     """
     Perform Lasso screening for feature selection.
@@ -599,6 +620,9 @@ def run_lasso_screening(
     """
     if not (isinstance(lasso_model, LassoCV) or isinstance(lasso_model, Lasso)):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
+    lasso_model.set_params(
+        random_state=np.random.RandomState(random_state.bit_generator)
+    )
     lasso_model.fit(X, y)
     selection_set = np.abs(lasso_model.coef_) >= np.percentile(
         np.abs(lasso_model.coef_), 100 - screening_threshold
@@ -653,6 +677,8 @@ def d0crt(
         joblib_verbose=joblib_verbose,
         fit_y=fit_y,
         scaled_statistics=scaled_statistics,
+        reuse_screening_model=reuse_screening_model,
+        random_state=random_state,
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(
