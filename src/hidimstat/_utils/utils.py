@@ -65,9 +65,10 @@ def check_random_state(seed):
     if isinstance(seed, np.random.Generator):
         return seed
     if isinstance(seed, np.random.RandomState):
-        return np.random.default_rng(
-            seed.randint(1)
-        )  # Not recommended but the most simples
+        raise ValueError(
+            "RandomState is not accepted, we advice you to use a numpy Generator"
+            "which should be instantiate by using the function numpy.random.default_rng()."
+        )
     raise ValueError(
         "%r cannot be used to seed a numpy.random.Generator instance" % seed
     )
