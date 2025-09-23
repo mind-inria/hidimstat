@@ -12,6 +12,6 @@ def run_joblib(i):
     import plot_knockoff_aggregation  # include the example to test
 
 
-# run in parralel the same example for compare result
-parrallel = Parallel(n_jobs=4)
-parrallel(delayed(run_joblib)(i) for i in range(6))
+# run in parallel the same example for compare result
+parallel = Parallel(n_jobs=4)
+parallel(delayed(run_joblib)(i) for i in range(6))
