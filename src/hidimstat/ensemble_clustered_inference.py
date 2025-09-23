@@ -5,6 +5,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.bootstrap import _subsampling
+from hidimstat._utils.utils import check_random_state
 from hidimstat.desparsified_lasso import (
     desparsified_group_lasso_pvalue,
     desparsified_lasso,
@@ -12,7 +13,6 @@ from hidimstat.desparsified_lasso import (
 )
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat._utils.utils import check_random_state
 
 
 def _ungroup_beta(beta_hat, n_features, ward):

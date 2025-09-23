@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from hidimstat._utils.utils import check_random_state
 
 
