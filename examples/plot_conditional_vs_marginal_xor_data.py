@@ -77,7 +77,7 @@ plt.show()
 # The decision function of the SVC shows that the model is able to learn the
 # non-linear decision boundary of the XOR problem. It also highlights that knowing
 # the value of both features is necessary to classify each sample correctly.
-examples / plot_2D_simulation_example.py
+
 
 # %%
 # Computing the conditional and marginal importance

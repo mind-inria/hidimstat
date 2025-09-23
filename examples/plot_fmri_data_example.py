@@ -64,7 +64,7 @@ soft, hard = resource.getrlimit(resource.RLIMIT_AS)
 new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
 new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
 resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
-n_job = 1
+n_jobs = 1
 
 
 # %%

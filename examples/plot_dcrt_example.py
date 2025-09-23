@@ -54,15 +54,9 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     d0crt_lasso = D0CRT(
-<<<<<<< HEAD
         estimator=LassoCV(random_state=sim_ind, n_jobs=1),
-        screening=False,
+        screening_threshold=None,
         random_state=sim_ind,
-||||||| 57d40de4
-    d0crt_lasso = D0CRT(estimator=LassoCV(random_state=42, n_jobs=1), screening=False)
-=======
-        estimator=LassoCV(random_state=42, n_jobs=1), screening_threshold=None
->>>>>>> main
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
@@ -78,21 +72,10 @@ for sim_ind in range(10):
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
         estimator=RandomForestRegressor(
-<<<<<<< HEAD
             n_estimators=100, random_state=sim_ind, n_jobs=1
         ),
-        screening=False,
-        random_state=sim_ind,
-||||||| 57d40de4
-        estimator=RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=1),
-        screening=False,
-=======
-            n_estimators=100,
-            random_state=42,
-            n_jobs=1,
-        ),
         screening_threshold=None,
->>>>>>> main
+        random_state=sim_ind,
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_
