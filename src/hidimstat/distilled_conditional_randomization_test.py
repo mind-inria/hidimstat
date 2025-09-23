@@ -238,12 +238,10 @@ class D0CRT(BaseVariableImportance):
                 sigma_X=self.sigma_X is None,
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
-                random_state_x=rng_model_x,
-                random_state_y=rng_model_y,
+                random_state=rng,
             )
-            for idx, rng_model_x, rng_model_y in zip(
+            for idx, rng in zip(
                 np.where(self.selection_set_)[0],
-                rng.spawn(np.sum(self.selection_set_)),
                 rng.spawn(np.sum(self.selection_set_)),
             )
         )
@@ -428,8 +426,7 @@ def _joblib_fit(
     sigma_X=False,
     fit_y=False,
     model_distillation_x=None,
-    random_state_x=None,
-    random_state_y=None,
+    random_state=None,
 ):
     """
     Standard Lasso distillation for least squares regression.
@@ -475,15 +472,15 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
+    rng = np.random.RandomState(random_state.bit_generator)
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
     # configure Lasso and determine the alpha
     if sigma_X:
         model_x = clone(model_distillation_x)
-        model_x.set_params(
-            random_state=np.random.RandomState(random_state_x.bit_generator)
-        )
+        if hasattr(model_x, "random_state"):
+            model_x.set_params(random_state=rng)
         model_x.fit(X_minus_idx, X[:, idx])
     else:
         model_x = None
@@ -493,9 +490,8 @@ def _joblib_fit(
         coefficient_minus_idx = None
     else:
         model_y = clone(estimator)
-        model_y.set_params(
-            random_state=np.random.RandomState(random_state_y.bit_generator)
-        )
+        if hasattr(model_x, "random_state"):
+            model_x.set_params(random_state=rng)
         model_y.fit(X_minus_idx, y)
         if fit_y:
             coefficient_minus_idx = model_y.coef_
