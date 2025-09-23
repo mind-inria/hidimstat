@@ -89,7 +89,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}: {mse=}")
 
 # %%
-# Fit a baselien model on the diabetes dataset
+# Fit a baseline model on the diabetes dataset
 # --------------------------------------------
 # We use a Ridge regression model with a 10-fold cross-validation to fit the
 # diabetes dataset.
@@ -97,7 +97,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 n_folds = 10
 regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
 regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     regressor_list[i].fit(X[train_index], y[train_index])
     score = r2_score(

@@ -29,7 +29,7 @@ from hidimstat import CFI, PFI
 from hidimstat.conditional_sampling import ConditionalSampler
 
 # Define the seeds for the reproducibility of the example
-rng = np.random.RandomState(0)
+rng = np.random.default_rng(0)
 
 # %%
 # Load the California housing dataset and add a spurious feature
