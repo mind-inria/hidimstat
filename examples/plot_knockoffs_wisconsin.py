@@ -12,7 +12,6 @@ Knockoffs (KO) method is able to address this issue.
 import numpy as np
 import pandas as pd
 
-
 # Define the seeds for the reproducibility of the example
 rng = np.random.RandomState(43)
 
