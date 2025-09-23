@@ -20,8 +20,11 @@ def test_integer():
 def test_rng():
     "test random state is rng"
     random_state = np.random.RandomState(0)
-    rng = check_random_state(random_state)
-    assert isinstance(rng, np.random.Generator)
+    with pytest.raises(
+        ValueError,
+        match="numpy.random.RandomState is deprecated. Please use numpy.random.Generator",
+    ):
+        _ = check_random_state(random_state)
 
 
 def test_error():

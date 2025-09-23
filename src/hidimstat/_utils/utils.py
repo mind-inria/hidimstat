@@ -66,8 +66,9 @@ def check_random_state(seed):
         return seed
     if isinstance(seed, np.random.RandomState):
         raise ValueError(
-            "RandomState is not accepted, we advice you to use a numpy Generator"
-            "which should be instantiate by using the function numpy.random.default_rng()."
+            "numpy.random.RandomState is deprecated. Please use numpy.random.Generator "
+            "instead by calling numpy.random.default_rng(seed). See "
+            "https://numpy.org/doc/stable/reference/random/generator.html for details."
         )
     raise ValueError(
         "%r cannot be used to seed a numpy.random.Generator instance" % seed
