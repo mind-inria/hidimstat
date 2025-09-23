@@ -41,7 +41,12 @@ from hidimstat import D0CRT, LOCO
 # Generate data where classes are not linearly separable
 # ------------------------------------------------------
 rng = np.random.default_rng(0)
-X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
+X, y = make_circles(
+    n_samples=500,
+    noise=0.1,
+    factor=0.6,
+    random_state=np.random.RandomState(rng.bit_generator),
+)
 
 
 fig, ax = plt.subplots()

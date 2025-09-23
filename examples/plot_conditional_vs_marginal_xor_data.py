@@ -22,7 +22,7 @@ from hidimstat import CFI
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel.
 #
 rng = np.random.default_rng(0)
-X = rng.randn(400, 2)
+X = rng.standard_normal((400, 2))
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
 
 xx, yy = np.meshgrid(

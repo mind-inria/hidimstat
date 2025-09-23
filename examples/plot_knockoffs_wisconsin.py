@@ -84,8 +84,8 @@ feature_names_noise = [x for x in feature_names]
 for k in range(repeats_noise):
     X_train_c = X_train.copy()
     X_test_c = X_test.copy()
-    noises_train.append(X_train_c + 2 * rng.randn(n_train, p))
-    noises_test.append(X_test_c + 2 * rng.randn(n_test, p))
+    noises_train.append(X_train_c + 2 * rng.standard_normal((n_train, p)))
+    noises_test.append(X_test_c + 2 * rng.standard_normal((n_test, p)))
     feature_names_noise += [f"spurious #{k*p+i}" for i in range(p)]
 
 noisy_train = np.concatenate(noises_train, axis=1)
