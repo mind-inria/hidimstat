@@ -500,7 +500,6 @@ def _compute_residuals(
     -----
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
-    random_state = np.random.RandomState(random_state.bit_generator)
     n_samples, n_features = X.shape
 
     # Removing the column to regress against the others
@@ -515,7 +514,7 @@ def _compute_residuals(
         precompute=gram_,
         max_iter=max_iteration,
         tol=tolerance,
-        random_state=random_state,
+        random_state=np.random.RandomState(random_state.bit_generator),
     )
 
     # Fitting the Lasso model and computing the residuals
