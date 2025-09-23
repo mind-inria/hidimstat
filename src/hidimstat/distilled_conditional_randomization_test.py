@@ -9,10 +9,10 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _check_vim_predict_method
-from hidimstat.base_variable_importance import BaseVariableImportance, MixinSelectionFDR
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
-class D0CRT(BaseVariableImportance, MixinSelectionFDR):
+class D0CRT(BaseVariableImportance):
     """
     Implements distilled conditional randomization test (dCRT) without interactions.
 

@@ -3,7 +3,6 @@ import warnings
 import numpy as np
 from sklearn.base import BaseEstimator
 
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -136,86 +135,53 @@ class BaseVariableImportance(BaseEstimator):
 
         return selections
 
-
-class MixinSelectionFDR:
-    """
-    A mixin class that provides False Discovery Rate (FDR) based feature selection functionality.
-    This class implements methods for selecting features while controlling the False Discovery
-    Rate using either Benjamini-Hochberg (BH) or Benjamini-Hochberg-Yekutieli (BHY) procedures.
-    It can work with single p-values or lists of p-values, and supports adaptive aggregation
-    for multiple hypothesis testing scenarios.
-    Attributes
-    pvalues_ : numpy.ndarray
-        Array of p-values for each feature
-    list_pvalues_ : list of numpy.ndarray, optional
-        List of p-value arrays when multiple tests are performed per feature
-    Notes
-    -----
-    This mixin should be used with classes that compute feature importance measures
-    that can be converted to p-values. The class requires either pvalues_ or
-    list_pvalues_ attribute to be set before calling selection methods.
-    See Also
-    --------
-    selection_fdr : Main method for performing FDR-based feature selection
-
-    """
-
     def selection_fdr(
         self,
         fdr,
         fdr_control="bhq",
         reshaping_function=None,
-        adaptive_aggregation=False,
-        gamma=0.5,
     ):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
-
-        This method selects features by controlling the FDR using either p-values.
-        It supports different FDR control methods and optional adaptive aggregation
-        of the statistical values.
 
         Parameters
         ----------
         fdr : float
             The target false discovery rate level (between 0 and 1)
-        fdr_control: str, default="bhq"
-            The FDR control method to use. Options are:
-            - "bhq": Benjamini-Hochberg procedure
+        fdr_control: {'bhq', 'bhy'}, default='bhq'
+            The FDR control method to use:
+            - 'bhq': Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-        reshaping_function: callable, default=None
-            Reshaping function for BHY method, default uses sum of reciprocals
-        adaptive_aggregation: bool, default=False
-            If True, uses adaptive weights for p-value aggregation
-        gamma: float, default=0.5
-            The gamma parameter for quantile aggregation of p-values (between 0 and 1)
+        reshaping_function: callable, optional
+            Optional reshaping function for FDR control methods.
+            If None, defaults to sum of reciprocals for 'bhy'.
 
         Returns
         -------
-        numpy.ndarray
-            Boolean array indicating selected features (True for selected, False for not selected)
+        selected : ndarray of bool
+            Boolean mask of selected features.
+            True indicates selected features, False indicates non-selected features.
 
         Raises
         ------
+        ValueError
+            If importances_ haven't been computed yet
         AssertionError
-            If list_pvalues\_ attribute is missing or fdr_control is invalid
+            If pvalues_ are missing or fdr_control is invalid
         """
         self._check_importance()
+        assert (
+            self.pvalues_ is not None
+        ), "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
         assert (
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
 
-        if hasattr(self, "list_pvalues_"):
-            aggregated_pval = quantile_aggregation(
-                np.array(self.list_pvalues_), gamma=gamma, adaptive=adaptive_aggregation
-            )
-        else:
-            aggregated_pval = self.pvalues_
         threshold_pval = fdr_threshold(
-            aggregated_pval,
+            self.pvalues_,
             fdr=fdr,
             method=fdr_control,
             reshaping_function=reshaping_function,
         )
-        selected = aggregated_pval <= threshold_pval
+        selected = self.pvalues_ <= threshold_pval
         return selected
