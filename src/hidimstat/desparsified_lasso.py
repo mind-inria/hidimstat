@@ -500,10 +500,7 @@ def _compute_residuals(
     -----
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
-    if not isinstance(random_state, np.random.RandomState):
-        random_state = np.random.RandomState(
-            check_random_state(random_state).bit_generator
-        )
+    random_state = np.random.RandomState(random_state.bit_generator)
     n_samples, n_features = X.shape
 
     # Removing the column to regress against the others
