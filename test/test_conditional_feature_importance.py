@@ -690,8 +690,7 @@ def test_cfi_repeatibility_with_RNG(cfi_test_data):
     assert np.array_equal(vim, vim_refit_2)
 
     # Reproducibility
-    rng._bit_generator = typeBitGen(0)  # reset generator
-    cfi_2 = CFI(random_state=rng, **cfi_default_parameters)
+    cfi_2 = CFI(random_state=np.random.default_rng(0), **cfi_default_parameters)
     cfi_2.fit(X_train)
     vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_reproducibility)
