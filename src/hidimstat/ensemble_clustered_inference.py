@@ -336,7 +336,6 @@ def ensemble_clustered_inference(
     X_init,
     y,
     ward,
-    n_clusters,
     scaler_sampling=None,
     train_size=0.3,
     groups=None,
@@ -365,9 +364,6 @@ def ensemble_clustered_inference(
 
     ward : sklearn.cluster.FeatureAgglomeration
         Feature agglomeration object implementing Ward hierarchical clustering.
-
-    n_clusters : int
-        Number of clusters for dimensionality reduction.
 
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
@@ -463,7 +459,6 @@ def ensemble_clustered_inference(
             X_init,
             y,
             clone(ward),
-            n_clusters,
             scaler_sampling=scaler_sampling,
             train_size=train_size,
             groups=groups,
