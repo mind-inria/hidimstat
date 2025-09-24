@@ -1,8 +1,10 @@
+from functools import partial
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted, clone
-from sklearn.model_selection import KFold
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat.base_perturbation import BasePerturbation
@@ -48,6 +50,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = root_mean_squared_error,
+        test_statict=partial(wilcoxon, axis=1),
         n_jobs: int = 1,
     ):
 
@@ -56,6 +59,7 @@ class LOCO(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=1,
+            test_statict=test_statict,
             n_jobs=n_jobs,
         )
         # internal variable
@@ -103,14 +107,52 @@ class LOCO(BasePerturbation):
             The input samples to compute importance scores for.
         y : array-like of shape (n_samples,)
 
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
+
         Returns
         -------
         importances_ : ndarray of shape (n_features,)
-            The importance scores for each group of covariates.
-            A higher score indicates greater importance of that group.
+            Importance scores for each feature.
+
+        Attributes
+        ----------
+        loss_reference_ : float
+            The loss of the model with the original (non-perturbed) data.
+        loss_ : dict
+            Dictionary with indices as keys and arrays of perturbed losses as values.
+            Contains the loss values for each permutation of each group.
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each group.
+        pvalues_ : ndarray of shape (n_groups,)
+            P-values from one-sided t-test testing if importance scores are
+            significantly greater than 0.
+
+        Notes
+        -----
+        The importance score for each group is calculated as the mean increase in loss
+        when that group is perturbed, compared to the reference loss.
+        A higher importance score indicates that perturbing that group leads to
+        worse model performance, suggesting those features are more important.
         """
-        super().importance(X, y)
-        self.pvalues_ = None
+        self._check_fit(X)
+
+        y_pred = getattr(self.estimator, self.method)(X)
+        self.loss_reference_ = self.loss(y, y_pred)
+
+        y_pred = self.predict(X)
+        test_result = []
+        self.loss_ = dict()
+        for j, y_pred_j in enumerate(y_pred):
+            self.loss_[j] = np.array([self.loss(y, y_pred_j[0])])
+            test_result.append(y - y_pred_j[0])
+
+        self.importances_ = np.mean(
+            [self.loss_[j] - self.loss_reference_ for j in range(self._n_groups)],
+            axis=1,
+        )
+        self.pvalues_ = self.test_statistic(test_result).pvalue
         return self.importances_
 
     def _joblib_fit_one_group(self, estimator, X, y, key_groups):
