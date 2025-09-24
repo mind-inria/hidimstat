@@ -4,14 +4,12 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from scipy.stats import ttest_1samp
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import KFold
 
 from hidimstat._utils.utils import _check_vim_predict_method
 from hidimstat._utils.exception import InternalError
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat._utils.utils import get_fitted_attributes
 
 
 class BasePerturbation(BaseVariableImportance):
@@ -207,11 +205,10 @@ class BasePerturbation(BaseVariableImportance):
         ).pvalue
         return self.importances_
 
-    def fit_importance(
-        self, X, y, cv=KFold(n_splits=5, shuffle=True, random_state=0), **fit_kwargs
-    ):
+    def fit_importance(self, X, y):
         """
-        Compute feature importance scores using cross-validation.
+        Fits the model to the data and computes feature importance scores.
+        Convenience method that combines fit() and importance() into a single call.
 
         Parameters
         ----------
@@ -219,59 +216,20 @@ class BasePerturbation(BaseVariableImportance):
             Training data.
         y : array-like of shape (n_samples,)
             Target values.
-        cv : cross-validation generator or iterable, default=KFold(n_splits=5, shuffle=True, random_state=0)
-            Determines the cross-validation splitting strategy.
-        **fit_kwargs : dict
-            Additional arguments passed to the fit method during variable group identification.
 
         Returns
         -------
-        importances_ : ndarray
-            Average importance scores for each feature group across CV folds.
-
-        Attributes
-        ----------
-        estimators_cv_ : list
-            List of fitted estimators for each CV fold.
-        importances_cv_ : list
-            List of importance scores for each CV fold.
-        pvalues_cv_ : list
-            List of p-values for each CV fold.
-        loss_cv_ : list
-            List of loss values for each CV fold.
-        loss_reference_cv_ : list
-            List of reference loss values for each CV fold.
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each feature group.
+            Higher values indicate greater importance.
 
         Notes
         -----
-        For each CV fold:
-        1. Fits a clone of the base estimator on the training fold
-        2. Identifies variable groups on the training fold
-        3. Computes feature importances using the test fold
-        4. Stores results for each fold in respective cv\_ attributes
-
-        Final importances\_ and pvalues\_ are averaged across all CV folds.
+        This method first calls fit() to identify feature groups, then calls
+        importance() to compute the importance scores for each group.
         """
-        name_attribute_save = get_fitted_attributes(self)
-        for name in name_attribute_save:
-            setattr(self, name + "cv_", [])
-        self.estimators_cv_ = []
-
-        for train, test in cv.split(X):
-            estimator = clone(self.estimator)
-            estimator.fit(X[train], y[train])
-            self.fit(X[train], y[train], **fit_kwargs)
-            self.importance(X[test], y[test])
-            # save result of each cv
-            for name in name_attribute_save:
-                getattr(self, name + "cv_").append(getattr(self, name))
-                setattr(self, name, None)
-            self.estimators_cv_.append(estimator)
-        self.importances_ = np.mean(self.importances_cv_, axis=0)
-        self.pvalues_ = (
-            None if self.pvalues_cv_[0] is None else np.mean(self.pvalues_cv_, axis=0)
-        )
-        return self.importances_
+        self.fit(X, y)
+        return self.importance(X, y)
 
     def _check_fit(self, X):
         """
