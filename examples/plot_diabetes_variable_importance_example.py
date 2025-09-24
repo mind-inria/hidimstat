@@ -57,7 +57,7 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 # %%
 # Fit a baseline model on the diabetes dataset
 # --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
+# We use a Ridge regression model with a 5-fold cross-validation to fit the
 # diabetes dataset.
 
 import numpy as np
