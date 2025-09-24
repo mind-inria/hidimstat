@@ -55,7 +55,7 @@ clf = make_pipeline(
 
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
-print("Accuracy:", clf.score(X_test, y_test))
+print(f"Accuracy: {clf.score(X_test, y_test):.3f}")
 # %%
 # Next, we use the CFI class to measure feature importance. Here, we use a RidgeCV
 # model to estimate the conditional expectation :math:`\mathbb{E}[X^j | X^{-j}]`.
