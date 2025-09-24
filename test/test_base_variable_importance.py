@@ -5,7 +5,7 @@ from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 @pytest.fixture
-def set_BaseVariableImportance(seed):
+def _set_variable_importance(seed):
     """Create a BaseVariableImportance instance with test data for testing purposes.
 
     Parameters
