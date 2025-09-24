@@ -167,7 +167,7 @@ import pandas as pd
 from scipy.stats import ttest_1samp
 
 cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
-cfi_pval = ttest_1samp(cfi_vim_arr, 0).pvalue
+cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
 
 vim = [
     pd.DataFrame(
@@ -183,7 +183,7 @@ vim = [
 ]
 
 loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
-loco_pval = ttest_1samp(loco_vim_arr, 0).pvalue
+loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
@@ -199,7 +199,7 @@ vim += [
 ]
 
 pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
-pfi_pval = ttest_1samp(pfi_vim_arr, 0).pvalue
+pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
