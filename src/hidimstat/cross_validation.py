@@ -93,7 +93,7 @@ class VariableImportanceCrossValidation(BaseVariableImportance):
         Notes
         -----
         The method creates multiple feature importance estimators, one for each fold
-        of the cross-validation, and stores them in the list_feature_importance_ attribute.
+        of the cross-validation, and stores them in the `list_feature_importance_` attribute.
         If list_parameters is provided, each estimator is configured with the corresponding
         parameters for that fold.
         """
