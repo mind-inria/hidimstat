@@ -163,7 +163,7 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X, y, ward, n_clusters, scaler_sampling=StandardScaler(), tolerance=1e-2
+    X, y, ward, scaler_sampling=StandardScaler(), tolerance=1e-2
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -182,7 +182,6 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         X,
         y,
         ward,
-        n_clusters,
         groups=groups,
         scaler_sampling=StandardScaler(),
         n_bootstraps=5,

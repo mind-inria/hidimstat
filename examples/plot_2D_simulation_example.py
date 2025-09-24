@@ -256,7 +256,6 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         X_init,
         y,
         ward,
-        n_clusters,
         scaler_sampling=StandardScaler(),
     )
 )
