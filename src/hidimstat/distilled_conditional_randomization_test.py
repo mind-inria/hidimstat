@@ -202,7 +202,6 @@ class D0CRT(BaseVariableImportance):
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
-                    estimated_coef=self.estimated_coef,
                     screening_threshold=self.screening_threshold,
                     random_state=rng,
                 )
