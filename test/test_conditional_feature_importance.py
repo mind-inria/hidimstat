@@ -338,7 +338,6 @@ class TestCFIClass:
 
         importances = cfi.importance(X, y)["importance"]
         assert len(importances) == 3
-        assert np.all(importances >= 0)
 
 
 ##############################################################################

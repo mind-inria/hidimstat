@@ -142,8 +142,6 @@ class ConditionalSampler:
         y_conditional : ndarray
             The samples from the conditional distribution.
         """
-        rng = check_random_state(self.random_state)
-
         check_is_fitted(self.model)
         rng = check_random_state(random_state)
 
@@ -187,7 +185,4 @@ class ConditionalSampler:
                         axis=1,
                     )
                 )
-            return np.stack(
-                y_pred_cond,
-                axis=-1,
-            )
+            return np.stack(y_pred_cond, axis=-1)
