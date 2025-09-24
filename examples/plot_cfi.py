@@ -93,7 +93,7 @@ _, ax = plt.subplots(figsize=(6, 3))
 ax = cfi.plot_importance(ax=ax)
 ax.set_xlabel("Feature Importance")
 plt.tight_layout()
-
+plt.show()
 # %%
 # References
 # ----------
