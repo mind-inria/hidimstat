@@ -471,7 +471,7 @@ def test_d0crt_rf():
     This function tests the D0CRT on a random forest model.
     """
     X, y, coef = make_regression(
-        n_samples=200,
+        n_samples=300,
         n_features=10,
         noise=0.0,
         random_state=0,
