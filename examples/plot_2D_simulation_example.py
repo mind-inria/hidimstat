@@ -222,7 +222,7 @@ ward = FeatureAgglomeration(
 
 # clustered desparsified lasso (CluDL)
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler(), seed=0
+    X_init, y, ward, scaler_sampling=StandardScaler(), seed=0
 )
 beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
     clustered_inference_pvalue(
