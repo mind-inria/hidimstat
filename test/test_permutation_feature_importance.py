@@ -120,7 +120,13 @@ def pfi_test_data():
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     model = LinearRegression()
     model.fit(X_train, y_train)
-    return X_train, X_test, y_train, y_test, model
+    pfi_default_parameters = {
+        "estimator": model,
+        "n_permutations": 20,
+        "method": "predict",
+        "n_jobs": 1,
+    }
+    return X_train, X_test, y_train, y_test, pfi_default_parameters
 
 
 def test_pfi_repeatability(pfi_test_data):
@@ -128,46 +134,12 @@ def test_pfi_repeatability(pfi_test_data):
     Test that multiple calls of .importance() when PFI is seeded provide deterministic
     results.
     """
-    X_train, X_test, y_train, y_test, model = pfi_test_data
-    pfi = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
+    X_train, X_test, y_train, y_test, pfi_default_parameters = pfi_test_data
+    pfi = PFI(**pfi_default_parameters, random_state=0)
     pfi.fit(X_train, y_train, groups=None)
     vim = pfi.importance(X_test, y_test)["importance"]
     vim_reproducible = pfi.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_reproducible)
-
-
-def test_pfi_reproducibility_with_integer(pfi_test_data):
-    """
-    Test that different instances of PFI with the same random state provide
-    deterministic results.
-    """
-    X_train, X_test, y_train, y_test, model = pfi_test_data
-    pfi_1 = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi_1.fit(X_train, y_train, groups=None)
-    vim_1 = pfi_1.importance(X_test, y_test)["importance"]
-
-    pfi_2 = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi_2.fit(X_train, y_train, groups=None)
-    vim_2 = pfi_2.importance(X_test, y_test)["importance"]
-    assert np.array_equal(vim_1, vim_2)
 
 
 def test_pfi_randomness_with_none(pfi_test_data):
@@ -175,39 +147,37 @@ def test_pfi_randomness_with_none(pfi_test_data):
     Test that different random states provide different results and multiple calls
     of .importance() when random_state is None provide different results.
     """
-    X_train, X_test, y_train, y_test, model = pfi_test_data
-    pfi_fixed = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
+    X_train, X_test, y_train, y_test, pfi_default_parameters = pfi_test_data
+    pfi_fixed = PFI(**pfi_default_parameters, random_state=0)
     pfi_fixed.fit(X_train, y_train, groups=None)
     vim_fixed = pfi_fixed.importance(X_test, y_test)["importance"]
 
-    pfi_new_state = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=1,
-        n_jobs=1,
-    )
+    pfi_new_state = PFI(**pfi_default_parameters, random_state=1)
     pfi_new_state.fit(X_train, y_train, groups=None)
     vim_new_state = pfi_new_state.importance(X_test, y_test)["importance"]
     assert not np.array_equal(vim_fixed, vim_new_state)
 
-    pfi_none_state = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=None,
-        n_jobs=1,
-    )
+    pfi_none_state = PFI(**pfi_default_parameters, random_state=None)
     pfi_none_state.fit(X_train, y_train, groups=None)
     vim_none_state_1 = pfi_none_state.importance(X_test, y_test)["importance"]
     vim_none_state_2 = pfi_none_state.importance(X_test, y_test)["importance"]
     assert not np.array_equal(vim_none_state_1, vim_none_state_2)
+
+
+def test_pfi_reproducibility_with_integer(pfi_test_data):
+    """
+    Test that different instances of PFI with the same random state provide
+    deterministic results.
+    """
+    X_train, X_test, y_train, y_test, pfi_default_parameters = pfi_test_data
+    pfi_1 = PFI(**pfi_default_parameters, random_state=0)
+    pfi_1.fit(X_train, y_train, groups=None)
+    vim_1 = pfi_1.importance(X_test, y_test)["importance"]
+
+    pfi_2 = PFI(**pfi_default_parameters, random_state=0)
+    pfi_2.fit(X_train, y_train, groups=None)
+    vim_2 = pfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim_1, vim_2)
 
 
 def test_pfi_reproducibility_with_rng(pfi_test_data):
@@ -216,15 +186,9 @@ def test_pfi_reproducibility_with_rng(pfi_test_data):
      1. Mmultiple calls of .importance() when PFI has random_state=rng are random
      2. refit with same rng provides same result
     """
-    X_train, X_test, y_train, y_test, model = pfi_test_data
+    X_train, X_test, y_train, y_test, pfi_default_parameters = pfi_test_data
     rng = np.random.default_rng(0)
-    pfi = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=rng,
-        n_jobs=1,
-    )
+    pfi = PFI(**pfi_default_parameters, random_state=rng)
     pfi.fit(X_train, y_train, groups=None)
     vim = pfi.importance(X_test, y_test)["importance"]
     vim_repeat = pfi.importance(X_test, y_test)["importance"]
@@ -232,13 +196,7 @@ def test_pfi_reproducibility_with_rng(pfi_test_data):
 
     # Refit with same rng
     rng = np.random.default_rng(0)
-    pfi_reproducibility = PFI(
-        estimator=model,
-        n_permutations=20,
-        method="predict",
-        random_state=rng,
-        n_jobs=1,
-    )
+    pfi_reproducibility = PFI(**pfi_default_parameters, random_state=rng)
     pfi_reproducibility.fit(X_train, y_train, groups=None)
     vim_reproducibility = pfi_reproducibility.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_reproducibility)
