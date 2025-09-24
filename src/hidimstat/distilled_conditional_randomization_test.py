@@ -64,7 +64,7 @@ class D0CRT(BaseVariableImportance):
         regardless of fit_y.
     scaled_statistics : bool, default=False
         Whether to use scaled statistics when computing importance.
-    random_state : int, default=2022
+    random_state : int, default=None
         Random seed for reproducibility.
     reuse_screening_model: bool, default=True
         Whether to reuse the screening model for y-distillation.
@@ -458,6 +458,8 @@ def _joblib_fit(
         regardless of fit_y.
     model_distillation_x : sklearn estimator or None
         The model to use for distillation of X, or None if not used.
+    random_state : int or None, default=None
+        Random seed for reproducibility.
 
     Returns
     -------
@@ -593,7 +595,6 @@ def run_lasso_screening(
     X,
     y,
     lasso_model=LassoCV(fit_intercept=False, random_state=0),
-    estimated_coef=None,
     screening_threshold=10,
     random_state=None,
 ):
@@ -610,6 +611,8 @@ def run_lasso_screening(
         Estimator for variable screening (typically LassoCV or Lasso).
     screening_threshold : float
         Percentile threshold for screening (0-100).
+    random_state : int or None, default=None
+        Random seed for reproducibility.
 
     Returns
     -------

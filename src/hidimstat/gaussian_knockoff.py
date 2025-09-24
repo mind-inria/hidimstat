@@ -5,7 +5,7 @@ import numpy as np
 from hidimstat._utils.utils import check_random_state
 
 
-def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
+def gaussian_knockoff_generation(X, mu, sigma, random_state=None, tol=1e-14):
     """
     Generate second-order knockoff variables using the equi-correlated method.
 
@@ -22,17 +22,13 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     ----------
     X: 2D ndarray (n_samples, n_features)
         The original design matrix.
-
     mu : 1D ndarray (n_features, )
         A vector of empirical mean values.
-
     sigma : 2D ndarray (n_samples, n_features)
         The empirical covariance matrix.
-
-    seed : int, optional
+    random_state : int or None, optional
         A random seed for generating the uniform noise used to create
         the knockoff variables.
-
     tol : float, default=1.e-14
         A tolerance value used for numerical stability in the calculation
         of the Cholesky decomposition.
@@ -41,10 +37,8 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     -------
     X_tilde : 2D ndarray (n_samples, n_features)
         The knockoff variables.
-
     mu_tilde : 2D ndarray (n_samples, n_features)
         The mean matrix used for generating knockoffs.
-
     sigma_tilde_decompose : 2D ndarray (n_features, n_features)
         The Cholesky decomposition of the covariance matrix.
 
@@ -55,7 +49,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     n_samples, n_features = X.shape
 
     # create a uniform noise for all the data
-    rng = check_random_state(seed)
+    rng = check_random_state(random_state)
     u_tilde = rng.standard_normal((n_samples, n_features))
 
     diag_s = np.diag(_s_equi(sigma, tol=tol))
