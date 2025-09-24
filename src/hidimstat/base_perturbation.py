@@ -89,7 +89,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         --------
         GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
-        GroupVariableImportanceMixin.fit(X, y)
+        GroupVariableImportanceMixin.fit(self, X, y)
         return self
 
     def predict(self, X):
