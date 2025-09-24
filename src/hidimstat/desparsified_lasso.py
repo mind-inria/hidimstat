@@ -393,33 +393,28 @@ def _compute_all_residuals(
     ----------
     X : ndarray, shape (n_samples, n_features)
         Input data matrix.
-
     alphas : ndarray, shape (n_features,)
         Lasso regularization parameters, one per feature.
-
     gram : ndarray, shape (n_features, n_features)
         Precomputed Gram matrix X.T @ X to speed up computations.
-
     max_itereration : int, optional (default=5000)
         Maximum number of iterations for Lasso optimization.
-
     tolerance : float, optional (default=1e-3)
         Convergence tolerance for Lasso optimization.
-
     n_jobs : int or None, optional (default=1)
         Number of parallel jobs. None means using all processors.
-
     verbose : int, optional (default=0)
         Controls the verbosity when fitting the models:
         0 = silent
         1 = progress bar
         >1 = more detailed output
+    random_state : Generator, default=None
+        Random state for reproducibility.
 
     Returns
     -------
     Z : ndarray, shape (n_samples, n_features)
         Matrix of residuals from nodewise regressions.
-
     precision_diagonal : ndarray, shape (n_features,)
         Diagonal entries of the precision matrix estimate.
 
@@ -471,27 +466,23 @@ def _compute_residuals(
     ----------
     X : ndarray, shape (n_samples, n_features)
         Centered input data matrix
-
     id_column : int
         Index i of feature to regress
-
     alpha : float
         Lasso regularization parameter
-
     gram : ndarray, shape (n_features, n_features)
         Precomputed X.T @ X matrix
-
     max_iteration : int, default=5000
         Maximum Lasso iterations
-
     tolerance : float, default=1e-3
         Optimization tolerance
+    random_state : Generator, default=None
+        Random state for reproducibility
 
     Returns
     -------
     z : ndarray, shape (n_samples,)
         Residuals from regression
-
     precision_diagonal_i : float
         Diagonal entry i of precision matrix estimate,
         computed as n * ||z||^2 / <x_i, z>^2
