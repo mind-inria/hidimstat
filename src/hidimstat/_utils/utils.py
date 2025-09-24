@@ -56,7 +56,7 @@ def check_random_state(seed):
     --------
     >>> from sklearn.utils.validation import check_random_state
     >>> check_random_state(42)
-    RandomState(MT19937) at 0x...
+    BitGenerator (PCG64) at 0x...
     """
     if seed is None or seed is np.random:
         return np.random.default_rng()
