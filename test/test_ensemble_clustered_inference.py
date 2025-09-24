@@ -324,6 +324,7 @@ def test_ensemble_clustered_inference_temporal_data():
             n_clusters,
             scaler_sampling=StandardScaler(),
             n_bootstraps=n_bootstraps,
+            random_state=0,
         )
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
