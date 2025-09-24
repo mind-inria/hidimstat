@@ -6,7 +6,7 @@ from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
-class CrossValidation(BaseVariableImportance):
+class VariableImportanceCV(BaseVariableImportance):
     """
     Cross validation wrapper for feature importance estimation.
 
