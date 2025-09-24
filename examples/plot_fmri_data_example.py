@@ -149,7 +149,7 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 #
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-        X, y, noise_method="median", max_iteration=1000, seed=0, n_jobs=n_jobs
+        X, y, noise_method="median", max_iteration=1000, random_state=0, n_jobs=n_jobs
     )
     pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diagonal
@@ -169,7 +169,7 @@ ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
     n_clusters,
     scaler_sampling=StandardScaler(),
     tolerance=1e-2,
-    seed=1,
+    random_state=1,
     n_jobs=n_jobs,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
@@ -195,7 +195,7 @@ list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
         n_bootstraps=5,
         max_iteration=6000,
         tolerance=1e-2,
-        seed=2,
+        random_state=2,
         n_jobs=n_jobs,
     )
 )
