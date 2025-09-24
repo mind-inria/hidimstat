@@ -31,6 +31,7 @@ def get_fitted_attributes(cls):
     """
     Get all attributes from a class that end with a single underscore
     and doesn't start with one underscore.
+
     Parameters
     ----------
     cls : class
