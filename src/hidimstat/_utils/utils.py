@@ -49,7 +49,7 @@ def check_random_state(seed):
 
     Returns
     -------
-    :class:`numpy:numpy.random.RandomState`
+    :class:`numpy:numpy.random.Generator`
         The random state object based on `seed` parameter.
 
     Examples
