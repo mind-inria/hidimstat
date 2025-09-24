@@ -380,14 +380,14 @@ class D0CRT(BaseVariableImportance):
         y_residual = np.array([result[2] for result in results])
 
         if self.is_logistic:
-            test_statistic_selected_variables = self.logistic_test_statistic(
+            test_statistic_selected_variables = self._logistic_test_statistic(
                 X_,
                 X_residual,
                 y_residual,
                 n_samples,
             )
         else:
-            test_statistic_selected_variables = self.regression_test_statistic(
+            test_statistic_selected_variables = self._regression_test_statistic(
                 X_residual,
                 y_residual,
                 sigma2,
@@ -402,7 +402,7 @@ class D0CRT(BaseVariableImportance):
 
         return self.importances_
 
-    def regression_test_statistic(
+    def _regression_test_statistic(
         self,
         X_residual,
         y_residual,
@@ -444,7 +444,7 @@ class D0CRT(BaseVariableImportance):
 
         return test_statistic_selected_variables
 
-    def logistic_test_statistic(
+    def _logistic_test_statistic(
         self,
         X,
         X_residual,
