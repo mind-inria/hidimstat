@@ -489,5 +489,3 @@ def test_d0crt_rf():
 
     assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
     assert np.array_equal(np.where(sv)[0], important_ids)
-    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
-    assert np.array_equal(np.where(sv)[0], important_ids)
