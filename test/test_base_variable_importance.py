@@ -25,7 +25,7 @@ def _set_variable_importance(seed):
     n_features = 100
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
-    vi.importances_ = np.arange(nb_features)
+    vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
     vi.pvalues_ = np.flip(np.sort(rng.random(nb_features)))[vi.importances_]
     return vi
