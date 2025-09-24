@@ -66,9 +66,10 @@ def test_CV(set_CrossValidationFDR):
     )
 
 
-from hidimstat.distilled_conditional_randomization_test import D0CRT
-from sklearn.linear_model import Lasso
 from sklearn.datasets import make_regression
+from sklearn.linear_model import Lasso
+
+from hidimstat.distilled_conditional_randomization_test import D0CRT
 
 
 def test_CV_D0CRT():

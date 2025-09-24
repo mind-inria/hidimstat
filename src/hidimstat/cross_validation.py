@@ -1,8 +1,8 @@
 from functools import partial
 
 import numpy as np
-from sklearn.model_selection import KFold
 from sklearn.base import clone
+from sklearn.model_selection import KFold
 
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
