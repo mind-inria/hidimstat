@@ -68,6 +68,30 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             self, feature_groups=feature_groups, feature_types=feature_types
         )
 
+    def fit(self, X, y=None):
+        """
+        Initialize feature groups based on input data.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The training input samples.
+        y : array-like, optional
+            The target values. Not used, present for API consistency.
+            Defaults to None.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself to enable method chaining.
+
+        See Also
+        --------
+        GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
+        """
+        GroupVariableImportanceMixin.fit(X, y)
+        return self
+
     def predict(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
