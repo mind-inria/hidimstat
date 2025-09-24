@@ -44,7 +44,7 @@ def check_random_state(seed):
         If seed is None, return the RandomState singleton used by np.random.
         If seed is an int, return a new RandomState instance seeded with seed.
         If seed is already a Generator instance, return it.
-        If seed is a RandomState instance, return the conversion of it in Generator instance.
+        If seed is a RandomState instance, raise an exception.
         Otherwise raise ValueError.
 
     Returns
