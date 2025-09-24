@@ -142,6 +142,7 @@ class ConditionalSampler:
         y_conditional : ndarray
             The samples from the conditional distribution.
         """
+        rng = check_random_state(self.random_state)
 
         check_is_fitted(self.model)
         rng = check_random_state(random_state)

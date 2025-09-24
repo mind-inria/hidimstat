@@ -110,6 +110,7 @@ def reid(
         cv=cv,
         tol=tolerance,
         max_iter=max_iterance,
+        random_state=seed + 1,
         n_jobs=n_jobs,
         random_state=np.random.RandomState(rngs[1].bit_generator),
     )

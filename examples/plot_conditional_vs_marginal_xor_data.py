@@ -21,8 +21,8 @@ from hidimstat import CFI
 # %%
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel.
 #
-rng = np.random.RandomState(0)
-X = rng.randn(400, 2)
+rng = np.random.default_rng(0)
+X = rng.standard_normal((400, 2))
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
 
 xx, yy = np.meshgrid(
@@ -34,9 +34,9 @@ X_train, X_test, y_train, y_test = train_test_split(
     X,
     Y,
     test_size=0.2,
-    random_state=0,
+    random_state=1,
 )
-model = SVC(kernel="rbf", random_state=0)
+model = SVC(kernel="rbf", random_state=2)
 model.fit(X_train, y_train)
 
 
@@ -88,8 +88,8 @@ plt.show()
 # features. Conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
-cv = KFold(n_splits=5, shuffle=True, random_state=0)
-clf = SVC(kernel="rbf", random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=3)
+clf = SVC(kernel="rbf", random_state=4)
 
 # %%
 # Compute marginal importance using univariate models.
@@ -126,7 +126,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
         loss=hinge_loss,
         imputation_model_continuous=RidgeCV(np.logspace(-3, 3, 10)),
         n_permutations=50,
-        random_state=0,
+        random_state=5,
     )
     vim.fit(X_train, y_train)
     importances.append(vim.importance(X_test, y_test)["importance"])

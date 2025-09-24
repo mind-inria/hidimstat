@@ -112,7 +112,7 @@ class CFI(BasePerturbation):
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.var_type[groupd_id],
+                data_type=self.var_type[group_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -125,7 +125,7 @@ class CFI(BasePerturbation):
                 ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for groupd_id in range(self.n_groups)
+            for group_id in range(self.n_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators

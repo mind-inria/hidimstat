@@ -1,5 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import clone
 from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
@@ -220,7 +221,7 @@ def model_x_knockoff(
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
-            X, X_tildes[i], y, estimator, fdr, preconfigure_estimator
+            X, X_tildes[i], y, clone(estimator), fdr, preconfigure_estimator
         )
         for i in range(n_bootstraps)
     )
