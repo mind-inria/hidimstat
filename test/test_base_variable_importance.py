@@ -22,7 +22,7 @@ def _set_variable_importance(seed):
     BaseVariableImportance
         A BaseVariableImportance instance with test data.
     """
-    nb_features = 100
+    n_features = 100
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(nb_features)
