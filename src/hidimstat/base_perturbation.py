@@ -205,7 +205,7 @@ class BasePerturbation(BaseVariableImportance):
         ).pvalue
         return self.importances_
 
-    def fit_importance(self, X, y):
+    def fit_importance(self, X, y, groups=None):
         """
         Fits the model to the data and computes feature importance scores.
         Convenience method that combines fit() and importance() into a single call.
@@ -216,6 +216,10 @@ class BasePerturbation(BaseVariableImportance):
             Training data.
         y : array-like of shape (n_samples,)
             Target values.
+        groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each group. If None, the groups are
+            identified based on the columns of X.
 
         Returns
         -------
@@ -228,7 +232,7 @@ class BasePerturbation(BaseVariableImportance):
         This method first calls fit() to identify feature groups, then calls
         importance() to compute the importance scores for each group.
         """
-        self.fit(X, y)
+        self.fit(X, y, groups)
         return self.importance(X, y)
 
     def _check_fit(self, X):
@@ -306,9 +310,7 @@ class BasePerturbation(BaseVariableImportance):
         Checks if the loss has been computed.
         """
         super()._check_importance()
-        if (
-            self.loss_reference_ is None and not hasattr(self, "loss_reference_cv_")
-        ) or (self.loss_ is None and not hasattr(self, "loss_cv_")):
+        if (self.loss_reference_ is None) or (self.loss_ is None):
             raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_group(self, X, group_id, group_key):

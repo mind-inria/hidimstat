@@ -1,6 +1,5 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import KFold
 from sklearn.utils import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
@@ -77,7 +76,6 @@ def pfi(
     estimator,
     X,
     y,
-    cv=KFold(n_splits=5, shuffle=True, random_state=0),
     groups: dict = None,
     method: str = "predict",
     loss: callable = root_mean_squared_error,
@@ -100,7 +98,6 @@ def pfi(
     methods.fit_importance(
         X,
         y,
-        cv=cv,
         groups=groups,
     )
     selection = methods.selection(

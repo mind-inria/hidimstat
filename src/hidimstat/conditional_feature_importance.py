@@ -2,7 +2,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import KFold
 from sklearn.linear_model import RidgeCV, LogisticRegressionCV
 from sklearn.utils.validation import check_random_state
 
@@ -147,6 +146,40 @@ class CFI(BasePerturbation):
 
         return self
 
+    def fit_importance(self, X, y, groups=None, var_type="auto"):
+        """
+        Fits the model to the data and computes feature importance scores.
+        Convenience method that combines fit() and importance() into a single call.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+        groups: dict, optional
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each group. If None, the groups are
+            identified based on the columns of X.
+        var_type: str or list, default="auto"
+            The variable type. Supported types include "auto", "continuous", and
+            "categorical". If "auto", the type is inferred from the cardinality
+            of the unique values passed to the `fit` method.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each feature group.
+            Higher values indicate greater importance.
+
+        Notes
+        -----
+        This method first calls fit() to identify feature groups, then calls
+        importance() to compute the importance scores for each group.
+        """
+        self.fit(X, y, groups, var_type)
+        return self.importance(X, y)
+
     def _joblib_fit_one_group(self, estimator, X, groups_ids):
         """Fit a single imputation model, for a single group of variables. This method
         is parallelized."""
@@ -200,7 +233,6 @@ def cfi(
     estimator,
     X,
     y,
-    cv=KFold(n_splits=5, shuffle=True, random_state=0),
     groups: dict = None,
     var_type: str = "auto",
     method: str = "predict",
@@ -230,7 +262,6 @@ def cfi(
     methods.fit_importance(
         X,
         y,
-        cv=cv,
         groups=groups,
         var_type=var_type,
     )

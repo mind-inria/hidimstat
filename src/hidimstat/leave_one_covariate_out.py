@@ -146,7 +146,6 @@ def loco(
     estimator,
     X,
     y,
-    cv=KFold(n_splits=5, shuffle=True, random_state=0),
     groups: dict = None,
     method: str = "predict",
     loss: callable = root_mean_squared_error,
@@ -165,7 +164,6 @@ def loco(
     methods.fit_importance(
         X,
         y,
-        cv=cv,
         groups=groups,
     )
     selection = methods.selection(
