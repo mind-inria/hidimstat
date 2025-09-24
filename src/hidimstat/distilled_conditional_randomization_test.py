@@ -8,7 +8,11 @@ from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _check_vim_predict_method, check_random_state
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -38,9 +42,9 @@ class D0CRT(BaseVariableImportance):
         Lasso.
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If None, Lasso is used for X distillation.
-    lasso_screening : sklearn estimator
+    lasso_screening : sklearn estimator, default=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False)
         Estimator for variable screening (typically LassoCV or Lasso).
-    model_distillation_x : sklearn estimator
+    model_distillation_x : sklearn estimator, default=LassoCV(n_alphas=10)
         Estimator for X distillation (typically LassoCV or Lasso).
     refit : bool, default=False
         Whether to refit the model on selected features after screening.
@@ -109,10 +113,8 @@ class D0CRT(BaseVariableImportance):
         method: str = "predict",
         estimated_coef=None,
         sigma_X=None,
-        lasso_screening=LassoCV(
-            n_alphas=10, tol=1e-6, fit_intercept=False, random_state=0
-        ),
-        model_distillation_x=LassoCV(n_jobs=1, n_alphas=10, random_state=0),
+        lasso_screening=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False),
+        model_distillation_x=LassoCV(n_alphas=10),
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -184,6 +186,8 @@ class D0CRT(BaseVariableImportance):
         .. footbibliography::
         """
         rng = check_random_state(self.random_state)
+        self.estimator = seed_estimator(self.estimator, random_state=rng)
+
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
         else:
@@ -473,15 +477,13 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
-    rng = np.random.RandomState(random_state.bit_generator)
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
     # Distill X with least square loss
     # configure Lasso and determine the alpha
     if sigma_X:
         model_x = clone(model_distillation_x)
-        if hasattr(model_x, "random_state"):
-            model_x.set_params(random_state=rng)
+        model_x = seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx])
     else:
         model_x = None
@@ -491,8 +493,7 @@ def _joblib_fit(
         coefficient_minus_idx = None
     else:
         model_y = clone(estimator)
-        if hasattr(model_x, "random_state"):
-            model_x.set_params(random_state=rng)
+        model_y = seed_estimator(model_y, random_state=random_state)
         model_y.fit(X_minus_idx, y)
         if fit_y:
             coefficient_minus_idx = model_y.coef_
@@ -622,9 +623,7 @@ def run_lasso_screening(
     """
     if not (isinstance(lasso_model, LassoCV) or isinstance(lasso_model, Lasso)):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
-    lasso_model.set_params(
-        random_state=np.random.RandomState(random_state.bit_generator)
-    )
+    lasso_model = seed_estimator(lasso_model, random_state=random_state)
     lasso_model.fit(X, y)
     selection_set = np.abs(lasso_model.coef_) >= np.percentile(
         np.abs(lasso_model.coef_), 100 - screening_threshold

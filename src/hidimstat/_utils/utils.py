@@ -1,6 +1,7 @@
 import numbers
 
 import numpy as np
+from numpy.random import RandomState
 
 
 def _check_vim_predict_method(method):
@@ -64,7 +65,7 @@ def check_random_state(seed):
         return np.random.default_rng(seed)
     if isinstance(seed, np.random.Generator):
         return seed
-    if isinstance(seed, np.random.RandomState):
+    if isinstance(seed, RandomState):
         raise ValueError(
             "numpy.random.RandomState is deprecated. Please use numpy.random.Generator "
             "instead by calling numpy.random.default_rng(seed). See "
@@ -73,3 +74,34 @@ def check_random_state(seed):
     raise ValueError(
         "%r cannot be used to seed a numpy.random.Generator instance" % seed
     )
+
+
+def seed_estimator(estimator, random_state=None):
+    """
+    Sets the random_state for a scikit-learn estimator and its components.
+
+    This function inspects the estimator and any of its attributes, setting their
+    `random_state` attribute to the provided value.
+
+    Parameters
+    ----------
+    estimator : sklearn estimator
+        The scikit-learn estimator to seed.
+    random_state : int, Generator, or None, default=None
+        The random state to set. If None, the estimator's random_state is not changed.
+
+    Returns
+    -------
+    The seeded estimator object.
+    """
+    rng = check_random_state(random_state)
+    # Set the random_state of the main estimator
+    if hasattr(estimator, "random_state"):
+        estimator.set_params(random_state=RandomState(rng.bit_generator))
+
+    if hasattr(estimator, "__dict__"):
+        for _, value in estimator.__dict__.items():
+            if hasattr(value, "random_state"):
+                setattr(value, "random_state", RandomState(rng.bit_generator))
+
+    return estimator

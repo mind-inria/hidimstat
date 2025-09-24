@@ -355,7 +355,12 @@ def d0crt_test_data():
         shuffle=False,
         seed=0,
     )
-    return X, y
+    dcrt_default_parameters = {
+        "estimator": LassoCV(cv=KFold(shuffle=True)),
+        "screening_threshold": None,
+        "model_distillation_x": LassoCV(n_alphas=10, cv=KFold(shuffle=True)),
+    }
+    return X, y, dcrt_default_parameters
 
 
 def test_d0crt_repeatability(d0crt_test_data):
@@ -363,15 +368,8 @@ def test_d0crt_repeatability(d0crt_test_data):
     Test that different instances of D0CRT with the same random state provide
     deterministic results.
     """
-    X, y = d0crt_test_data
-    d0crt_1 = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=0),
-        ),
-    )
+    X, y, dcrt_default_parameters = d0crt_test_data
+    d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
     vim_repeat = d0crt_1.importance(X, y)
@@ -383,64 +381,14 @@ def test_d0crt_randomness_with_none(d0crt_test_data):
     Test that different random states provide different results and that
     random_state=None produces randomness.
     """
-    X, y = d0crt_test_data
+    X, y, dcrt_default_parameters = d0crt_test_data
     # Fixed random state
-    d0crt_fixed = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=0),
-        ),
-    )
+    d0crt_fixed = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_fixed.fit(X, y)
     vim_fixed = d0crt_fixed.importance(X, y)
 
     # Different random state
-    d0crt_none_state = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=None),
-        ),
-    )
-    d0crt_fixed.fit(X, y)
-    vim_fixed = d0crt_fixed.importance(X, y)
-
-    # Different random state
-    d0crt_none_state = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=None),
-        ),
-    )
-    d0crt_fixed.fit(X, y)
-    vim_fixed = d0crt_fixed.importance(X, y)
-
-    # Different random state
-    d0crt_none_state = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=None),
-        ),
-    )
-    d0crt_fixed.fit(X, y)
-    vim_fixed = d0crt_fixed.importance(X, y)
-
-    # Different random state
-    d0crt_none_state = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=None)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=None),
-        ),
-    )
+    d0crt_none_state = D0CRT(**dcrt_default_parameters, random_state=None)
     d0crt_none_state.fit(X, y)
     vim_none_state_1 = d0crt_none_state.importance(X, y)
     assert not np.array_equal(vim_fixed, vim_none_state_1)
@@ -455,26 +403,12 @@ def test_d0crt_reproducibility_with_integer(d0crt_test_data):
     Test that different instances of D0CRT with the same random state provide
     deterministic results.
     """
-    X, y = d0crt_test_data
-    d0crt_1 = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=0),
-        ),
-    )
+    X, y, dcrt_default_parameters = d0crt_test_data
+    d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
 
-    d0crt_2 = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=0),
-        ),
-    )
+    d0crt_2 = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_2.fit(X, y)
     vim_2 = d0crt_2.importance(X, y)
     assert np.array_equal(vim_1, vim_2)
@@ -486,18 +420,9 @@ def test_d0crt_reproducibility_with_rng(d0crt_test_data):
      1. Mmultiple calls of .importance() when CFI has random_state=rng are random
      2. refit with same rng provides same result
     """
-    X, y = d0crt_test_data
+    X, y, dcrt_default_parameters = d0crt_test_data
     rng = np.random.default_rng(0)
-    d0crt_1 = D0CRT(
-        estimator=LassoCV(
-            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator))
-        ),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator)),
-        ),
-    )
+    d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=rng)
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
 
@@ -506,16 +431,7 @@ def test_d0crt_reproducibility_with_rng(d0crt_test_data):
     assert not np.array_equal(vim_1, vim_2)
 
     rng = np.random.default_rng(0)
-    d0crt_2 = D0CRT(
-        estimator=LassoCV(
-            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator))
-        ),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator)),
-        ),
-    )
+    d0crt_2 = D0CRT(**dcrt_default_parameters, random_state=rng)
     d0crt_2.fit(X, y)
     vim_3 = d0crt_2.importance(X, y)
     assert np.array_equal(vim_1, vim_3)
