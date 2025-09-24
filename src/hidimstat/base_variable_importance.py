@@ -152,7 +152,7 @@ class BaseVariableImportance(BaseEstimator):
             The FDR control method to use:
             - 'bhq': Benjamini-Hochberg procedure
             - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-        reshaping_function: callable, optional
+        reshaping_function: callable or None, default=None
             Optional reshaping function for FDR control methods.
             If None, defaults to sum of reciprocals for 'bhy'.
 
