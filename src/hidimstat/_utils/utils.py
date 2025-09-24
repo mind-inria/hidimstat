@@ -44,19 +44,19 @@ def check_random_state(seed):
         If seed is None, return the RandomState singleton used by np.random.
         If seed is an int, return a new RandomState instance seeded with seed.
         If seed is already a Generator instance, return it.
-        If seed is a RandomState instance, return the conversion of it in Generator instance.
+        If seed is a RandomState instance, raise an exception.
         Otherwise raise ValueError.
 
     Returns
     -------
-    :class:`numpy:numpy.random.RandomState`
+    :class:`numpy:numpy.random.Generator`
         The random state object based on `seed` parameter.
 
     Examples
     --------
     >>> from sklearn.utils.validation import check_random_state
     >>> check_random_state(42)
-    RandomState(MT19937) at 0x...
+    BitGenerator (PCG64) at 0x...
     """
     if seed is None or seed is np.random:
         return np.random.default_rng()
