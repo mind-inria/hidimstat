@@ -287,12 +287,12 @@ def test_ensemble_clustered_inference_temporal_data():
     "Test with temporal data"
     # Scenario 2: temporal data
     # #########################
-    n_samples, n_features, n_target = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 400, 10
     support_size = 10
     signal_noise_ratio = 5.0
     rho_serial = 0.9
     rho_data = 0.9
-    n_clusters = 200
+    n_clusters = 50
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
