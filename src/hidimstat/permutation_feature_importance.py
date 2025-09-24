@@ -1,4 +1,7 @@
+from functools import partial
+
 import numpy as np
+from scipy.stats import wilcoxon
 from sklearn.metrics import root_mean_squared_error
 from sklearn.utils import check_random_state
 
@@ -47,6 +50,7 @@ class PFI(BasePerturbation):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
+        test_statict=partial(wilcoxon, axis=1),
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -56,6 +60,7 @@ class PFI(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=n_permutations,
+            test_statict=test_statict,
             n_jobs=n_jobs,
         )
         self.random_state = random_state

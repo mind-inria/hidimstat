@@ -1,5 +1,8 @@
+from functools import partial
+
 import numpy as np
 from joblib import Parallel, delayed
+from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted, clone, BaseEstimator
 from sklearn.metrics import root_mean_squared_error
 from sklearn.linear_model import RidgeCV, LogisticRegressionCV
@@ -60,6 +63,7 @@ class CFI(BasePerturbation):
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(),
         categorical_max_cardinality: int = 10,
+        test_statict=partial(wilcoxon, axis=1),
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -69,6 +73,7 @@ class CFI(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=n_permutations,
+            test_statict=test_statict,
             n_jobs=n_jobs,
         )
 

@@ -1,9 +1,11 @@
+from functools import partial
 import warnings
+
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy.stats import ttest_1samp
+from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
@@ -58,6 +60,7 @@ class BasePerturbation(BaseVariableImportance):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
+        test_statict=partial(wilcoxon, axis=1),
         n_jobs: int = 1,
     ):
 
@@ -69,6 +72,7 @@ class BasePerturbation(BaseVariableImportance):
         _check_vim_predict_method(method)
         self.method = method
         self.n_permutations = n_permutations
+        self.test_statistic = test_statict
         self.n_jobs = n_jobs
         # variable set in fit
         self.features_groups = None
@@ -200,9 +204,7 @@ class BasePerturbation(BaseVariableImportance):
             [self.loss_[j] - self.loss_reference_ for j in range(self._n_groups)]
         )
         self.importances_ = np.mean(test_result, axis=1)
-        self.pvalues_ = ttest_1samp(
-            test_result, 0.0, axis=1, alternative="greater"
-        ).pvalue
+        self.pvalues_ = self.test_statistic(test_result).pvalue
         return self.importances_
 
     def fit_importance(self, X, y, groups=None):
