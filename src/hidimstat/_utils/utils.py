@@ -36,6 +36,7 @@ def get_fitted_attributes(cls):
     ----------
     cls : class
         The class to inspect for attributes.
+
     Returns
     -------
     list
