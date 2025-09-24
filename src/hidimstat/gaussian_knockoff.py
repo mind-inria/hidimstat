@@ -76,7 +76,7 @@ def gaussian_knockoff_generation(X, mu, sigma, random_state=None, tol=1e-14):
     return X_tilde, mu_tilde, sigma_tilde_decompose
 
 
-def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
+def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, random_state):
     """
     Generate additional knockoff variables using pre-computed values.
 
@@ -97,7 +97,7 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
         to generate the knockoff variables,returned by
         gaussian_knockoff_generation.
 
-    seed : int
+    random_state : int
         A random seed for generating the uniform noise used to create
         the knockoff variables.
 
@@ -109,7 +109,7 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
     n_samples, n_features = mu_tilde.shape
 
     # create a uniform noise for all the data
-    rng = check_random_state(seed)
+    rng = check_random_state(random_state)
     u_tilde = rng.standard_normal((n_samples, n_features))
 
     X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)

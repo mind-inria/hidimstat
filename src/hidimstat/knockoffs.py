@@ -204,7 +204,7 @@ def model_x_knockoff(
     # Create knockoff variables
     X_tilde, mu_tilde, sigma_tilde_decompose = memory.cache(
         gaussian_knockoff_generation
-    )(X, mu, sigma, seed=children_rng[0], tol=tol_gauss)
+    )(X, mu, sigma, random_state=children_rng[0], tol=tol_gauss)
 
     if n_bootstraps == 1:
         X_tildes = [X_tilde]
@@ -213,7 +213,7 @@ def model_x_knockoff(
             delayed(repeat_gaussian_knockoff_generation)(
                 mu_tilde,
                 sigma_tilde_decompose,
-                seed=seed,
+                random_state=seed,
             )
             for seed in children_rng[1:]
         )
