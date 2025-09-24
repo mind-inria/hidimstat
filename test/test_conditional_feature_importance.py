@@ -76,10 +76,10 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 20, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 20, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 20, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 20, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -96,7 +96,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
-    assert np.all([int(i) in np.argsort(importance)[-10:] for i in important_features])
+    assert np.all([int(i) in important_features for i in np.argsort(importance)[-10:]])
 
 
 parameter_partial = [
@@ -602,7 +602,7 @@ def cfi_test_data():
     return X_train, X_test, y_test, cfi_default_parameters
 
 
-def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
+def test_cfi_repeatibility(cfi_test_data):
     """
     Test that multiple calls of .importance() when CFI is seeded provide deterministic
     results.
@@ -616,7 +616,7 @@ def test_cfi_multiple_calls_are_repeatibility(cfi_test_data):
     assert not np.array_equal(vim, vim_repeat)
 
 
-def test_cfi_repeatibility_with_None(cfi_test_data):
+def test_cfi_randomness_with_none(cfi_test_data):
     """
     Test that multiple calls of .importance() when CFI has random_state=None
     """
@@ -640,7 +640,7 @@ def test_cfi_repeatibility_with_None(cfi_test_data):
     assert not np.array_equal(vim, vim_reproducibility)
 
 
-def test_cfi_repeatibility_with_integer(cfi_test_data):
+def test_cfi_reproducibility_with_integer(cfi_test_data):
     """
     Test that multiple calls of .importance() when CFI has random_state=42
     """
@@ -664,13 +664,12 @@ def test_cfi_repeatibility_with_integer(cfi_test_data):
     assert np.array_equal(vim, vim_reproducibility)
 
 
-def test_cfi_repeatibility_with_RNG(cfi_test_data):
+def test_cfi_reproducibility_with_rng(cfi_test_data):
     """
     Test that multiple calls of .importance() when CFI has random_state=rng
     """
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     rng = np.random.default_rng(0)
-    typeBitGen = type(rng.bit_generator)
     cfi = CFI(random_state=rng, **cfi_default_parameters)
     cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test)["importance"]
@@ -684,7 +683,8 @@ def test_cfi_repeatibility_with_RNG(cfi_test_data):
     assert not np.array_equal(vim, vim_refit)
 
     # refit repeatability
-    rng._bit_generator = typeBitGen(0)  # reset generator
+    rng = np.random.default_rng(0)
+    cfi.random_state = rng
     cfi.fit(X_train)
     vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
     assert np.array_equal(vim, vim_refit_2)
