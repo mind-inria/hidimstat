@@ -471,7 +471,7 @@ def test_d0crt_rf():
     This function tests the D0CRT on a random forest model.
     """
     X, y, coef = make_regression(
-        n_samples=300,
+        n_samples=200,
         n_features=10,
         noise=0.0,
         random_state=0,
@@ -483,6 +483,7 @@ def test_d0crt_rf():
     d0crt = D0CRT(
         estimator=RandomForestRegressor(n_estimators=100, random_state=0, n_jobs=1),
         screening_threshold=None,
+        random_state=0,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
