@@ -29,7 +29,9 @@ def test_continuous_case():
 
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
 
     for i in range(n_samples):
         assert np.corrcoef(X_1_perm[i], X[:, 1])[0, 1] > 0.99
@@ -38,7 +40,9 @@ def test_continuous_case():
     X = np.random.randn(n, 2)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert np.corrcoef([X_1_perm[i], X[:, 1]])[0, 1] < 0.1
 
@@ -46,7 +50,9 @@ def test_continuous_case():
     X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.6], [0.6, 1]], size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_1_perm[i], X[:, 1]])[0, 1] < 0.8
 
@@ -66,7 +72,9 @@ def test_binary_case():
     X[:, 1] = (X[:, 0] > 0).astype(float)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert accuracy_score(X_1_perm[i], X[:, 1]) > 0.7
 
@@ -75,7 +83,9 @@ def test_binary_case():
     X[:, 1] = np.random.randint(0, 2, size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         # chance level at 0.5
         assert accuracy_score(X_1_perm[i], X[:, 1]) < 0.6
@@ -89,7 +99,9 @@ def test_binary_case():
     X[:, 1] = (X[:, 0] + np.random.randn(n) * -0.5) > 0
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert 0.9 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
@@ -166,7 +178,7 @@ def test_group_case():
     )
     sampler.fit(X[:, :2], X[:, 2:])
     n_samples = 10
-    X_2_perm = sampler.sample(X[:, :2], X[:, 2:], n_samples=n_samples)
+    X_2_perm = sampler.sample(X[:, :2], X[:, 2:], n_samples=n_samples, random_state=0)
     assert X_2_perm.shape == (n_samples, n, 2)
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 0], X[:, 2]])[0, 1] < 0.9
@@ -186,7 +198,7 @@ def test_group_case():
     sampler.fit(X[:, :3], X[:, 3:])
 
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # TODO check why so good accuracy
@@ -214,7 +226,7 @@ def test_sample_categorical():
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
@@ -231,7 +243,7 @@ def test_sample_categorical():
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
