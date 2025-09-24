@@ -15,8 +15,6 @@ class GaussianKnockoffs:
     cov_estimator : object
         Estimator for computing the covariance matrix. Must implement fit and
         have a covariance_ attribute after fitting.
-    random_state : int or None, default=None
-        Random seed for generating synthetic data.
     tol : float, default=1e-14
         Tolerance for numerical stability in matrix computations.
 
@@ -32,10 +30,9 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator, random_state=None, tol=1e-14):
+    def __init__(self, cov_estimator, tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
-        self.random_state = random_state
 
     def fit(self, X):
         """
@@ -106,27 +103,52 @@ class GaussianKnockoffs:
         ):
             raise ValueError("The GaussianGenerator requires to be fit before sampling")
 
-    def sample(self):
+    def sample(
+        self,
+        X: np.ndarray = None,
+        y: np.ndarray = None,
+        n_samples: int = 1,
+        random_state=None,
+    ):
         """
         Generate synthetic variables.
         This function generates synthetic variables that preserve the covariance structure
         of the original data while ensuring conditional independence.
+
+        Parameters
+        ----------
+        X : ndarray, default = None
+            The complementary of the considered set of variables, $X^{-j}$.
+        y : ndarray, default = None
+            The group of variables to sample, $X^j$.
+        n_samples : int, default=1
+            The number of samples to draw.
+        random_state : int, default=None
+            The random state to use for sampling.
 
         Returns
         -------
         X_tilde : 2D ndarray (n_samples, n_features)
             The synthetic variables.
         """
+        if X is not None:
+            warnings.warn("this new X won't be used for sample the distribution")
+        if y is not None:
+            warnings.warn("this new y won't be used for sample the distribution")
         self._check_fit()
-        rng = check_random_state(self.random_state)
+        rng = check_random_state(random_state)
         n_samples, n_features = self.mu_tilde_.shape
 
-        # create a uniform noise for all the data
-        u_tilde = rng.randn(n_samples, n_features)
+        X_tildes = []
+        for i in range(n_samples):
+            # create a uniform noise for all the data
+            u_tilde = rng.randn(n_samples, n_features)
 
-        # Equation 1.4 in barber2015controlling
-        X_tilde = self.mu_tilde_ + np.dot(u_tilde, self.sigma_tilde_decompose_)
-        return X_tilde
+            # Equation 1.4 in barber2015controlling
+            X_tildes.append(
+                self.mu_tilde_ + np.dot(u_tilde, self.sigma_tilde_decompose_)
+            )
+        return X_tildes
 
 
 def _s_equi(sigma, tol=1e-14):

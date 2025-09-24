@@ -15,12 +15,9 @@ def test_gaussian_equi():
     p = 50
     rho = 0.5
     X, _, _, _ = multivariate_simulation(n, p, rho=rho, seed=seed)
-    generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(),
-        random_state=seed * 2,
-    )
+    generator = GaussianKnockoffs(cov_estimator=LedoitWolf())
     generator.fit(X=X)
-    X_tilde = generator.sample()
+    X_tilde = generator.sample(random_state=seed * 2)[0]
     assert X_tilde.shape == (n, p)
     assert np.linalg.norm(X - X_tilde) < np.sqrt(2) * np.linalg.norm(X)
 
@@ -31,14 +28,11 @@ def test_gaussian_error():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    generator = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(),
-        random_state=seed * 2,
-    )
+    generator = GaussianKnockoffs(cov_estimator=LedoitWolf())
     with pytest.raises(
         ValueError, match="The GaussianGenerator requires to be fit before sampling"
     ):
-        generator.sample()
+        generator.sample(random_state=seed * 2)
 
 
 def test_s_equi_not_define_positive():
@@ -73,30 +67,29 @@ def test_s_equi_not_define_positive():
 def test_reproducibility_sample():
     """Test the repeatability of the samples"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
-    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf(), random_state=0)
+    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf())
     gaussian_sampler.fit(X=X)
-    X_tilde_1 = gaussian_sampler.sample()
-    X_tilde_2 = gaussian_sampler.sample()
+    X_tilde_1 = gaussian_sampler.sample(random_state=0)
+    X_tilde_2 = gaussian_sampler.sample(random_state=0)
     assert np.array_equal(X_tilde_1, X_tilde_2)
 
 
 def test_randomness_sample_no_seed():
     """Test the non repeatability of the samples when no seed"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
-    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf(), random_state=None)
+    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf())
     gaussian_sampler.fit(X=X)
-    X_tilde_1 = gaussian_sampler.sample()
-    X_tilde_2 = gaussian_sampler.sample()
+    X_tilde_1 = gaussian_sampler.sample(random_state=None)
+    X_tilde_2 = gaussian_sampler.sample(random_state=None)
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
 
 def test_randomness_sample_rgn():
     """Test the non repeatability of the samples when the usage of random generator"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
-    gaussian_sampler_rng = GaussianKnockoffs(
-        cov_estimator=LedoitWolf(), random_state=np.random.RandomState(0)
-    )
+    rng = np.random.RandomState(0)
+    gaussian_sampler_rng = GaussianKnockoffs(cov_estimator=LedoitWolf())
     gaussian_sampler_rng.fit(X=X)
-    X_tilde_1 = gaussian_sampler_rng.sample()
-    X_tilde_2 = gaussian_sampler_rng.sample()
+    X_tilde_1 = gaussian_sampler_rng.sample(random_state=rng)
+    X_tilde_2 = gaussian_sampler_rng.sample(random_state=rng)
     assert not np.array_equal(X_tilde_1, X_tilde_2)

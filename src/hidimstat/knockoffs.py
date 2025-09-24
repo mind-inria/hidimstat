@@ -189,13 +189,9 @@ def model_x_knockoff(
         X = StandardScaler().fit_transform(X)
 
     # Create knockoff variables
-    conditionnal_sampler = GaussianKnockoffs(
-        cov_estimator,
-        random_state=rng,
-        tol=tol_gauss,
-    )
+    conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
     conditionnal_sampler.fit(X)
-    X_tildes = [conditionnal_sampler.sample() for i in range(n_bootstraps)]
+    X_tildes = conditionnal_sampler.sample(n_samples=n_bootstraps, random_state=rng)
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
