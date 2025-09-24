@@ -4,6 +4,7 @@ Test the dcrt module
 
 import numpy as np
 import pytest
+from numpy.random import RandomState
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -357,7 +358,7 @@ def d0crt_test_data():
     return X, y
 
 
-def test_d0crt_different_instances_same_random_state_are_reproducible(d0crt_test_data):
+def test_d0crt_repeatability(d0crt_test_data):
     """
     Test that different instances of D0CRT with the same random state provide
     deterministic results.
@@ -373,21 +374,11 @@ def test_d0crt_different_instances_same_random_state_are_reproducible(d0crt_test
     )
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
-
-    d0crt_2 = D0CRT(
-        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
-        screening_threshold=None,
-        model_distillation_x=LassoCV(
-            n_alphas=10,
-            cv=KFold(shuffle=True, random_state=0),
-        ),
-    )
-    d0crt_2.fit(X, y)
-    vim_2 = d0crt_2.importance(X, y)
-    assert np.array_equal(vim_1, vim_2)
+    vim_repeat = d0crt_1.importance(X, y)
+    assert np.array_equal(vim_1, vim_repeat)
 
 
-def test_d0crt_different_random_state_randomness(d0crt_test_data):
+def test_d0crt_randomness_with_none(d0crt_test_data):
     """
     Test that different random states provide different results and that
     random_state=None produces randomness.
@@ -459,6 +450,77 @@ def test_d0crt_different_random_state_randomness(d0crt_test_data):
     assert not np.array_equal(vim_none_state_1, vim_none_state_2)
 
 
+def test_d0crt_reproducibility_with_integer(d0crt_test_data):
+    """
+    Test that different instances of D0CRT with the same random state provide
+    deterministic results.
+    """
+    X, y = d0crt_test_data
+    d0crt_1 = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=0),
+        ),
+    )
+    d0crt_1.fit(X, y)
+    vim_1 = d0crt_1.importance(X, y)
+
+    d0crt_2 = D0CRT(
+        estimator=LassoCV(cv=KFold(shuffle=True, random_state=0)),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=0),
+        ),
+    )
+    d0crt_2.fit(X, y)
+    vim_2 = d0crt_2.importance(X, y)
+    assert np.array_equal(vim_1, vim_2)
+
+
+def test_d0crt_reproducibility_with_rng(d0crt_test_data):
+    """
+    Test that:
+     1. Mmultiple calls of .importance() when CFI has random_state=rng are random
+     2. refit with same rng provides same result
+    """
+    X, y = d0crt_test_data
+    rng = np.random.default_rng(0)
+    d0crt_1 = D0CRT(
+        estimator=LassoCV(
+            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator))
+        ),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator)),
+        ),
+    )
+    d0crt_1.fit(X, y)
+    vim_1 = d0crt_1.importance(X, y)
+
+    d0crt_1.fit(X, y)
+    vim_2 = d0crt_1.importance(X, y)
+    assert not np.array_equal(vim_1, vim_2)
+
+    rng = np.random.default_rng(0)
+    d0crt_2 = D0CRT(
+        estimator=LassoCV(
+            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator))
+        ),
+        screening_threshold=None,
+        model_distillation_x=LassoCV(
+            n_alphas=10,
+            cv=KFold(shuffle=True, random_state=RandomState(rng.bit_generator)),
+        ),
+    )
+    d0crt_2.fit(X, y)
+    vim_3 = d0crt_2.importance(X, y)
+    assert np.array_equal(vim_1, vim_3)
+
+
 def test_d0crt_linear():
     """
     This function tests the D0CRT on a linear simulation, to see if it selects the
@@ -509,5 +571,7 @@ def test_d0crt_rf():
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.selection(threshold_pvalue=0.05)
 
+    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
+    assert np.array_equal(np.where(sv)[0], important_ids)
     assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
     assert np.array_equal(np.where(sv)[0], important_ids)

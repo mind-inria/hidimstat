@@ -123,7 +123,7 @@ def pfi_test_data():
     return X_train, X_test, y_train, y_test, model
 
 
-def test_pfi_multiple_calls_are_reproducible(pfi_test_data):
+def test_pfi_repeatability(pfi_test_data):
     """
     Test that multiple calls of .importance() when PFI is seeded provide deterministic
     results.
@@ -142,7 +142,7 @@ def test_pfi_multiple_calls_are_reproducible(pfi_test_data):
     assert np.array_equal(vim, vim_reproducible)
 
 
-def test_pfi_different_instances_same_random_state_are_reproducible(pfi_test_data):
+def test_pfi_reproducibility_with_integer(pfi_test_data):
     """
     Test that different instances of PFI with the same random state provide
     deterministic results.
@@ -170,7 +170,7 @@ def test_pfi_different_instances_same_random_state_are_reproducible(pfi_test_dat
     assert np.array_equal(vim_1, vim_2)
 
 
-def test_pfi_different_random_state_is_not_reproducible(pfi_test_data):
+def test_pfi_randomness_with_none(pfi_test_data):
     """
     Test that different random states provide different results and multiple calls
     of .importance() when random_state is None provide different results.
@@ -208,3 +208,37 @@ def test_pfi_different_random_state_is_not_reproducible(pfi_test_data):
     vim_none_state_1 = pfi_none_state.importance(X_test, y_test)["importance"]
     vim_none_state_2 = pfi_none_state.importance(X_test, y_test)["importance"]
     assert not np.array_equal(vim_none_state_1, vim_none_state_2)
+
+
+def test_pfi_reproducibility_with_rng(pfi_test_data):
+    """
+    Test that:
+     1. Mmultiple calls of .importance() when PFI has random_state=rng are random
+     2. refit with same rng provides same result
+    """
+    X_train, X_test, y_train, y_test, model = pfi_test_data
+    rng = np.random.default_rng(0)
+    pfi = PFI(
+        estimator=model,
+        n_permutations=20,
+        method="predict",
+        random_state=rng,
+        n_jobs=1,
+    )
+    pfi.fit(X_train, y_train, groups=None)
+    vim = pfi.importance(X_test, y_test)["importance"]
+    vim_repeat = pfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_repeat)
+
+    # Refit with same rng
+    rng = np.random.default_rng(0)
+    pfi_reproducibility = PFI(
+        estimator=model,
+        n_permutations=20,
+        method="predict",
+        random_state=rng,
+        n_jobs=1,
+    )
+    pfi_reproducibility.fit(X_train, y_train, groups=None)
+    vim_reproducibility = pfi_reproducibility.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducibility)

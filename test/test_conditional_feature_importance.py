@@ -666,7 +666,9 @@ def test_cfi_reproducibility_with_integer(cfi_test_data):
 
 def test_cfi_reproducibility_with_rng(cfi_test_data):
     """
-    Test that multiple calls of .importance() when CFI has random_state=rng
+    Test that:
+     1. Mmultiple calls of .importance() when CFI has random_state=rng are random
+     2. refit with same rng provides same result
     """
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     rng = np.random.default_rng(0)
