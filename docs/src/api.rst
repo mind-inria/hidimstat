@@ -35,14 +35,22 @@ Feature Importance functions
    :toctree: ./generated/api/class/
    :template: function.rst
 
-   clustered_inference
-   clustered_inference_pvalue
    desparsified_lasso
    desparsified_lasso_pvalue
    desparsified_group_lasso_pvalue
+   model_x_knockoff
+
+Ensemble Methods
+================
+.. autosummary::
+   :toctree: ./generated/api/class/
+
+   cross_validation.VariableImportanceCrossValidation
+   CV
+   clustered_inference
+   clustered_inference_pvalue
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
-   model_x_knockoff
 
 Samplers
 ========

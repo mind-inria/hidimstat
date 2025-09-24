@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.base import clone
@@ -6,12 +8,12 @@ from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
-class VariableImportanceCV(BaseVariableImportance):
+class VariableImportanceCrossValidation(BaseVariableImportance):
     """
     Cross validation wrapper for feature importance estimation.
 
-    This class implements k-fold cross validation for feature importance estimation methods.
-    It splits the data into k folds and fits the feature importance method on each fold,
+    This class implements a cross validation for feature importance estimation methods.
+    It splits the data into folds and fits the feature importance method on each fold,
     then aggregates the results across folds.
 
     Parameters
@@ -49,7 +51,7 @@ class VariableImportanceCV(BaseVariableImportance):
         feature_importance,
         cv=KFold(),
         list_parameters=None,
-        importance_aggregation=lambda x: np.mean(x, axis=0),
+        importance_aggregation=partial(np.mean, axis=0),
         pvalue_aggregation=quantile_aggregation,
     ):
         super().__init__()

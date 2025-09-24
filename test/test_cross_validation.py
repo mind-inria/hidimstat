@@ -3,7 +3,7 @@ import pytest
 from sklearn.model_selection import KFold
 
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.cross_validation import CrossValidation
+from hidimstat.cross_validation import VariableImportanceCrossValidation
 
 
 def generate_list_pvalues_for_fdr(rng, importances, factor=30):
@@ -44,7 +44,7 @@ def set_CrossValidationFDR(seed):
             self.pvalues_ = [0]
             pass
 
-    cv_mock_vi = CrossValidation(MockVI(), cv=KFold(factor + 9))
+    cv_mock_vi = VariableImportanceCrossValidation(MockVI(), cv=KFold(factor + 9))
     cv_mock_vi.fit_importance(np.ones((nb_samples, nb_features)), np.ones(nb_samples))
     for index, vi in enumerate(cv_mock_vi.list_feature_importance_):
         vi.importances_ = importance
@@ -64,3 +64,15 @@ def test_CV(set_CrossValidationFDR):
     assert np.all(
         np.argsort(vi.pvalues_[np.argsort(vi.importances_)]) == np.arange(100)
     )
+
+
+from hidimstat.distilled_conditional_randomization_test import D0CRT
+from sklearn.linear_model import Lasso
+from sklearn.datasets import make_regression
+
+
+def test_CV_D0CRT():
+    """Test with D0CRT"""
+    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=42)
+    CV_D0CRT = VariableImportanceCrossValidation(D0CRT(Lasso()), cv=KFold())
+    CV_D0CRT.fit_importance(X, y)
