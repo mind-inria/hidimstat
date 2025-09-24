@@ -159,7 +159,7 @@ class GroupVariableImportanceMixin:
     n_feature_groups_ : int
         The number of feature groups.
     _feature_groups_ids : array-like of shape (n_feature_groups,)
-        Internal representation of index of group for each features.
+        Lists containing the indices of features from X for each feature group.
 
     Methods
     -------
