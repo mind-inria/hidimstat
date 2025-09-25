@@ -94,6 +94,16 @@ ax = cfi.plot_importance(ax=ax)
 ax.set_xlabel("Feature Importance")
 plt.tight_layout()
 plt.show()
+
+# %%
+# Variable importance analysis is meant to help scientific understanding, in particular
+# to identify which features are important to differentiate Barolo, Grignolino, and
+# Barbera wine types.
+# Note: Despite very large marginal importance, the features 'flavanoids' and '
+# total_phenols' are not picked by CFI, probably due to their high correlation
+# (0.86 between these two) and their redundancy with other features.
+
+
 # %%
 # References
 # ----------
