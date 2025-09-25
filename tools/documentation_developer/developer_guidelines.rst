@@ -37,16 +37,19 @@ The random_state Parameter
 The behavior of a method's randomness is exclusively controlled by the random_state 
 parameter. It accepts three types of input:
 
-* int: An integer input ensures both **reproducibility**: running the script twice 
-produces identical results, and **repeatability**: calling the method twice within the 
-same script, such as `<method>.importance()`, yields the exact same output.
-* numpy.random.Generator: Passing a Generator object provides reproducibility but not 
-repeatability. The stream of random numbers is reproducible if the user seeds their 
-Generator object, but subsequent calls to the method will advance the generator's 
-state, leading to different results.
-* None: This input provides neither reproducibility nor repeatability. The random 
-numbers are generated from a non-deterministic source, resulting in different outcomes 
-on each run and each call.
+* int
+   An integer input ensures both **reproducibility**: running the script twice 
+   produces identical results, and **repeatability**: calling the method twice within the 
+   same script, such as `<method>.importance()`, yields the exact same output.
+* numpy.random.Generator
+   Passing a Generator object provides reproducibility but not 
+   repeatability. The stream of random numbers is reproducible if the user seeds their 
+   Generator object, but subsequent calls to the method will advance the generator's 
+   state, leading to different results.
+* None
+   This input provides neither reproducibility nor repeatability. The random 
+   numbers are generated from a non-deterministic source, resulting in different outcomes 
+   on each run and each call.
 
 
 Testing
