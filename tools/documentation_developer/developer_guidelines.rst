@@ -8,10 +8,7 @@ This section provides guidelines for developers contributing to the hidimstat pr
 .. contents:: Table of Contents
    :depth: 2
    :local:
-
-.. sectnum::
-   :depth: 2
-   :start: 1
+   :numbered:
 
 
 Reproducibility and Randomness
