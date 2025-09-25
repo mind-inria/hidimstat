@@ -137,7 +137,7 @@ class BaseVariableImportance(BaseEstimator):
         self,
         ax=None,
         ascending=False,
-        **kwargs,
+        **seaborn_barplot_kwargs,
     ):
         """
         Plot feature importances as a horizontal bar plot.
