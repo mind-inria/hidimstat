@@ -148,7 +148,7 @@ class BaseVariableImportance(BaseEstimator):
             Axes object to draw the plot onto, otherwise uses the current Axes.
         ascending: bool, default=False
             Whether to sort features by ascending importance.
-        **kwargs : additional keyword arguments
+        **seaborn_barplot_kwargs : additional keyword arguments
             Additional arguments passed to seaborn.barplot.
 
         Returns
