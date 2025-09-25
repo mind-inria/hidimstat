@@ -8,14 +8,13 @@ This section provides guidelines for developers contributing to the hidimstat pr
 .. contents:: Table of Contents
    :depth: 2
    :local:
-   :numbered:
 
 
 Reproducibility and Randomness
 ------------------------------
 
 Design choice: :py:class:`numpy.random.Generator`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Hidimstat uses numpy.random.Generator for all randomness because it provides a reliable 
 way to manage separate, reproducible streams of random numbers. The key benefit is the 
 ability to spawn new, independent Generator instances from a single parent.
