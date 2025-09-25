@@ -191,7 +191,9 @@ class BaseVariableImportance(BaseEstimator):
             categories=sorted_features,
             ordered=True,
         )
-        sns.barplot(df_plot, x="Importance", y="Feature", ax=ax, **kwargs)
+        sns.barplot(
+            df_plot, x="Importance", y="Feature", ax=ax, **seaborn_barplot_kwargs
+        )
         sns.despine(ax=ax)
         ax.set_ylabel("")
         return ax
