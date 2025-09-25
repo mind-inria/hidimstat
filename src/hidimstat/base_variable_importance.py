@@ -204,7 +204,6 @@ class GroupVariableImportanceMixin:
             if isinstance(X, pd.DataFrame):
                 self._feature_groups_ids = []
                 for feature_group_key in sorted(self.feature_groups.keys()):
-``` keys are not sorted by default, which means that the order is random is you don't enforce it. Another possibility is to make `self._feature_groups_ids ` a dictionary instead.
                     self._feature_groups_ids.append(
                         [
                             i
