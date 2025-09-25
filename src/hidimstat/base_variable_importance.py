@@ -150,6 +150,7 @@ class BaseVariableImportance(BaseEstimator):
             Whether to sort features by ascending importance.
         **seaborn_barplot_kwargs : additional keyword arguments
             Additional arguments passed to seaborn.barplot.
+            https://seaborn.pydata.org/generated/seaborn.barplot.html
 
         Returns
         -------
