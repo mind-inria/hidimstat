@@ -42,21 +42,12 @@ References
 
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from scipy.stats import norm
-from sklearn.base import clone
-from sklearn.datasets import load_diabetes
-from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import r2_score, root_mean_squared_error
-from sklearn.model_selection import KFold
-
-from hidimstat import CFI, LOCO, PFI
-
 # %%
 # Load the diabetes dataset
 # -------------------------
+
+from sklearn.datasets import load_diabetes
+
 diabetes = load_diabetes()
 X, y = diabetes.data, diabetes.target
 
@@ -66,8 +57,14 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 # %%
 # Fit a baseline model on the diabetes dataset
 # --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
+# We use a Ridge regression model with a 5-fold cross-validation to fit the
 # diabetes dataset.
+
+import numpy as np
+from sklearn.base import clone
+from sklearn.linear_model import LogisticRegressionCV, RidgeCV
+from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn.model_selection import KFold
 
 n_folds = 5
 regressor = RidgeCV(
@@ -88,31 +85,12 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}: {score=}")
     print(f"Fold {i}: {mse=}")
 
-# %%
-# Fit a baseline model on the diabetes dataset
-# --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
-# diabetes dataset.
-
-n_folds = 10
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
-regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    regressor_list[i].fit(X[train_index], y[train_index])
-    score = r2_score(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
-    mse = root_mean_squared_error(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
-
-    print(f"Fold {i}: {score=}")
-    print(f"Fold {i}: {mse=}")
 
 # %%
 # Measure the importance of variables using the CFI method
 # --------------------------------------------------------
+
+from hidimstat import CFI
 
 cfi_importance_list = []
 kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
@@ -140,6 +118,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # Measure the importance of variables using the LOCO method
 # ---------------------------------------------------------
 
+from hidimstat import LOCO
+
 loco_importance_list = []
 kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
@@ -159,6 +139,8 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # Measure the importance of variables using the permutation method
 # ----------------------------------------------------------------
 
+from hidimstat import PFI
+
 pfi_importance_list = []
 kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
@@ -177,21 +159,15 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 
 # %%
-# Define a function to compute the p-value from importance values
-# ---------------------------------------------------------------
-def compute_pval(vim):
-    mean_vim = np.mean(vim, axis=0)
-    std_vim = np.std(vim, axis=0)
-    pval = norm.sf(mean_vim / std_vim)
-    return np.clip(pval, 1e-10, 1 - 1e-10)
-
-
-# %%
 # Analyze the results
 # -------------------
 
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.stats import ttest_1samp
+
 cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
-cfi_pval = compute_pval(cfi_vim_arr)
+cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
 
 vim = [
     pd.DataFrame(
@@ -207,7 +183,7 @@ vim = [
 ]
 
 loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
-loco_pval = compute_pval(loco_vim_arr)
+loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
@@ -223,7 +199,7 @@ vim += [
 ]
 
 pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
-pfi_pval = compute_pval(pfi_vim_arr)
+pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
