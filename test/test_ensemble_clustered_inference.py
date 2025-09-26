@@ -57,7 +57,7 @@ def test_clustered_inference_no_temporal():
     )
 
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+        X_init, y, ward, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -113,12 +113,7 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X,
-        y,
-        ward,
-        n_clusters,
-        scaler_sampling=StandardScaler(),
-        random_state=0,
+        X, y, ward, scaler_sampling=StandardScaler(), random_state=0
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -194,7 +189,7 @@ def test_clustered_inference_no_temporal_groups():
     )
 
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X_, y_, ward, n_clusters, groups=groups, scaler_sampling=StandardScaler()
+        X_, y_, ward, groups=groups, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -255,7 +250,6 @@ def test_ensemble_clustered_inference():
             X_init,
             y,
             ward,
-            n_clusters,
             scaler_sampling=StandardScaler(),
             n_bootstraps=n_bootstraps,
             random_state=0,
@@ -321,7 +315,6 @@ def test_ensemble_clustered_inference_temporal_data():
             X,
             y,
             ward,
-            n_clusters,
             scaler_sampling=StandardScaler(),
             n_bootstraps=n_bootstraps,
             random_state=0,
