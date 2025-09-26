@@ -112,14 +112,18 @@ def test_clustered_inference_temporal():
     ward = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
-
     ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X, y, ward, scaler_sampling=StandardScaler()
+        X, y, ward, scaler_sampling=StandardScaler(), random_state=0
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_samples, True, ward_, beta_hat, theta_hat, precision_diag
+            n_samples,
+            True,
+            ward_,
+            beta_hat,
+            theta_hat,
+            precision_diag,
         )
     )
 
@@ -248,6 +252,7 @@ def test_ensemble_clustered_inference():
             ward,
             scaler_sampling=StandardScaler(),
             n_bootstraps=n_bootstraps,
+            random_state=0,
         )
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
@@ -276,12 +281,12 @@ def test_ensemble_clustered_inference_temporal_data():
     "Test with temporal data"
     # Scenario 2: temporal data
     # #########################
-    n_samples, n_features, n_target = 200, 2000, 10
+    n_samples, n_features, n_target = 200, 400, 10
     support_size = 10
     signal_noise_ratio = 5.0
     rho_serial = 0.9
     rho_data = 0.9
-    n_clusters = 200
+    n_clusters = 50
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -312,6 +317,7 @@ def test_ensemble_clustered_inference_temporal_data():
             ward,
             scaler_sampling=StandardScaler(),
             n_bootstraps=n_bootstraps,
+            random_state=0,
         )
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(

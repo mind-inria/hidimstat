@@ -9,13 +9,6 @@ We show how the Lasso is not robust to the presence of irrelevant variables, whi
 Knockoffs (KO) method is able to address this issue.
 """
 
-import numpy as np
-import pandas as pd
-
-# Define the seeds for the reproducibility of the example
-rng = np.random.default_rng(43)
-
-
 # %%
 # Load the breast cancer dataset
 # ------------------------------
@@ -30,10 +23,9 @@ from sklearn.preprocessing import StandardScaler
 data = load_breast_cancer()
 X = data.data
 y = data.target
+# Random seed for reproducibility
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.1, random_state=16
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -50,10 +42,12 @@ feature_names = [str(name) for name in data.feature_names]
 # characteristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
 # coefficients:
+
+import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=17
+    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=0
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -76,6 +70,12 @@ for i in selected_lasso:
 # this method, we artificially increase the number of variables by adding noisy copies
 # of the features. These are correlated with the variables in the dataset, but are not
 # related to the outcome.
+
+
+# Define the seeds for the reproducibility of the example
+rng = np.random.default_rng(0)
+
+
 repeats_noise = 5  # Number of synthetic noisy sets to add
 
 noises_train = [X_train]
@@ -96,11 +96,14 @@ noisy_test = np.concatenate(noises_test, axis=1)
 # There are 180 features, 30 of them are real and 150 of them are fake and independent
 # of the outcome. We now apply the Lasso (with cross-validation to select the best
 # regularization parameter) to the noisy dataset and observe the results:
+
+import pandas as pd
+
 lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
     penalty="l1",
     solver="liblinear",
-    random_state=18,
+    random_state=0,
     n_jobs=1,
 )
 lasso_noisy.fit(noisy_train, y_train)
@@ -153,12 +156,12 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
         solver="liblinear",
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
-        random_state=19,
+        random_state=0,
         tol=1e-3,
         max_iter=1000,
     ),
     n_bootstraps=1,
-    random_state=20,
+    random_state=0,
     tol_gauss=1e-15,
     preconfigure_estimator=None,
     fdr=fdr,
@@ -167,7 +170,6 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
 # Count how many selected features are actually noise
 num_false_discoveries = np.sum(selected >= p)
 print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
-
 
 # %%
 # Visualizing the results
@@ -233,11 +235,9 @@ plt.show()
 
 
 # %%
-# We can clearly see that the knockoffs procedure is more conservative than the Lasso
-# and rejects the spurious features while many of them are selected by the Lasso. It is
-# also interesting to note that some of the selected variables (with the high KO
-# statistic (e.g., worst radius, worst area, mean concave points) are also variables
-# with the largest Lasso coefficients.
+# The plot shows that the knockoffs procedure is more conservative than the Lasso,
+# selecting far fewer spurious features. At the same time, it successfully identifies
+# relevant true features.
 
 
 # %%
