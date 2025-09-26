@@ -219,12 +219,14 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("feature_groups needs to be a dictionary")
         if isinstance(self.feature_types, str):
-            if self.feature_types == "auto":
+            if self.feature_types in ["auto", "continuous", "categorical"]:
                 self.feature_types = [
                     self.feature_types for _ in range(self.n_feature_groups_)
                 ]
             else:
-                raise ValueError("feature_types support only the string 'auto'")
+                raise ValueError(
+                    "feature_types support only the string 'auto', 'continuous', 'categorical'"
+                )
         return self
 
     def _check_fit(self, X):
@@ -250,9 +252,7 @@ class GroupVariableImportanceMixin:
             of features in the grouped variables.
         """
         if self.n_feature_groups_ is None or self._feature_groups_ids is None:
-            raise ValueError(
-                "The method is not fitted. Call for before to use this method."
-            )
+            raise ValueError("The class is not fitted.")
         if isinstance(X, pd.DataFrame):
             names = list(X.columns)
         elif isinstance(X, np.ndarray) and X.dtype.names is not None:
