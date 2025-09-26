@@ -25,7 +25,6 @@ from hidimstat._utils.scenario import multivariate_simulation
 results_list = []
 for sim_ind in range(10):
     print(f"Processing: {sim_ind+1}")
-    np.random.seed(sim_ind)
 
     # Number of observations
     n = 100
@@ -55,7 +54,9 @@ for sim_ind in range(10):
 
     ## dcrt Lasso ##
     d0crt_lasso = D0CRT(
-        estimator=LassoCV(random_state=42, n_jobs=1), screening_threshold=None
+        estimator=LassoCV(random_state=sim_ind, n_jobs=1),
+        screening_threshold=None,
+        random_state=sim_ind,
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_
@@ -71,11 +72,10 @@ for sim_ind in range(10):
     ## dcrt Random Forest ##
     d0crt_random_forest = D0CRT(
         estimator=RandomForestRegressor(
-            n_estimators=100,
-            random_state=42,
-            n_jobs=1,
+            n_estimators=100, random_state=sim_ind, n_jobs=1
         ),
         screening_threshold=None,
+        random_state=sim_ind,
     )
     d0crt_random_forest.fit_importance(X, y)
     pvals_forest = d0crt_random_forest.pvalues_
