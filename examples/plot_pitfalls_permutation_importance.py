@@ -212,7 +212,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
             alphas=np.logspace(-3, 3, 5),
             cv=KFold(n_splits=3),
         ),
-        random_state=seed,
+        random_state=0,
         n_jobs=5,
     )
     cfi.fit(X_test, y_test)
