@@ -92,7 +92,7 @@ plt.show()
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
 cv = KFold(n_splits=5, shuffle=True, random_state=seed)
-clf = SVC(kernel="rbf", random_state=seed)
+clf = SVC(kernel="rbf", random_state=0)
 
 # %%
 # Compute marginal importance using univariate models.
