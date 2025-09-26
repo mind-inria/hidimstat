@@ -24,7 +24,6 @@ data = load_breast_cancer()
 X = data.data
 y = data.target
 # Random seed for reproducibility
-seed = 0
 
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.1, random_state=seed
