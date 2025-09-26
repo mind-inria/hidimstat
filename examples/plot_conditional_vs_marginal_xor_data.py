@@ -129,7 +129,7 @@ for i, (train_index, test_index) in enumerate(cv.split(X)):
         loss=hinge_loss,
         imputation_model_continuous=RidgeCV(np.logspace(-3, 3, 10)),
         n_permutations=50,
-        random_state=seed,
+        random_state=0,
     )
     vim.fit(X_train, y_train)
     importances.append(vim.importance(X_test, y_test)["importance"])
