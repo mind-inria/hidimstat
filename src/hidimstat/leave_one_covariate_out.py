@@ -25,7 +25,7 @@ class LOCO(BasePerturbation):
 
         Parameters
         ----------
-        estimator : sklearn compatible estimator, optional
+        estimator : sklearn compatible estimator
             The estimator to use for the prediction.
         loss : callable, default=root_mean_squared_error
             The loss function to use when comparing the perturbed model to the full
@@ -34,7 +34,7 @@ class LOCO(BasePerturbation):
             The method to use for the prediction. This determines the predictions passed
             to the loss function. Supported methods are "predict", "predict_proba" or
             "decision_function".
-        feature_groups: dict, optional
+        feature_groups: dict or None,  default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
             the feature_groups are identified based on the columns of X.
