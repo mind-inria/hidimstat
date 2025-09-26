@@ -273,7 +273,7 @@ from hidimstat.conditional_sampling import ConditionalSampler
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
-    random_state=seed,
+    random_state=0,
 )
 
 conditional_sampler = ConditionalSampler(
