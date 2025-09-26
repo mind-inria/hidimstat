@@ -141,7 +141,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         n_permutations=50,
         n_jobs=5,
-        random_state=seed,
+        random_state=0,
     )
     pfi.fit(X_test, y_test)
 
