@@ -24,7 +24,6 @@ from hidimstat import CFI
 
 # Random seed for reproducibility
 rng = np.random.default_rng(0)
-rng = np.random.default_rng(seed)
 X = rng.standard_normal((400, 2))
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
 
@@ -91,7 +90,7 @@ plt.show()
 # features. Conditional importance, on the other hand, reveals that both features
 # are important (therefore rejecting the null hypothesis
 # :math:`Y \perp\!\!\!\perp X^1 | X^2`).
-cv = KFold(n_splits=5, shuffle=True, random_state=seed)
+cv = KFold(n_splits=5, shuffle=True, random_state=0)
 clf = SVC(kernel="rbf", random_state=0)
 
 # %%

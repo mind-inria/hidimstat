@@ -14,8 +14,7 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
 
 import numpy as np
 
-seed = 0
-rng = np.random.default_rng(seed)
+rng = np.random.default_rng(0)
 
 # %%
 # Load the California housing dataset and add a spurious feature
@@ -36,7 +35,7 @@ X, _, y, _ = train_test_split(
     X_,
     y_,
     test_size=0.6667,
-    random_state=seed,
+    random_state=0,
     shuffle=True,
 )
 
@@ -92,7 +91,7 @@ model = TransformedTargetRegressor(
     regressor=make_pipeline(
         StandardScaler(),
         MLPRegressor(
-            random_state=seed,
+            random_state=0,
             hidden_layer_sizes=(32, 16, 8),
             early_stopping=True,
             learning_rate_init=0.01,
