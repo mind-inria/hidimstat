@@ -37,7 +37,7 @@ class PFI(BasePerturbation):
         n_permutations : int, default=50
             The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
-        feature_groups: dict, optional
+        feature_groups: dict or None,  default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
             the feature_groups are identified based on the columns of X.
