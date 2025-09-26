@@ -23,7 +23,7 @@ from hidimstat import CFI
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel.
 
 # Random seed for reproducibility
-seed = 0
+rng = np.random.default_rng(0)
 rng = np.random.default_rng(seed)
 X = rng.standard_normal((400, 2))
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
