@@ -283,7 +283,7 @@ conditional_sampler = ConditionalSampler(
 
 conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
-    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=seed
+    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=0
 ).ravel()
 # sphinx_gallery_thumbnail_number = 4
 fig, ax = plt.subplots()
