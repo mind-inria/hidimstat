@@ -26,7 +26,7 @@ def gaussian_knockoff_generation(X, mu, sigma, random_state=None, tol=1e-14):
         A vector of empirical mean values.
     sigma : 2D ndarray (n_samples, n_features)
         The empirical covariance matrix.
-    random_state : int or None, optional
+    random_state : int or None, default=None
         A random seed for generating the uniform noise used to create
         the knockoff variables.
     tol : float, default=1.e-14
