@@ -1,4 +1,5 @@
 from .conditional_feature_importance import CFI
+from .cross_validation import VariableImportanceCrossValidation as CV
 from .desparsified_lasso import (
     desparsified_group_lasso_pvalue,
     desparsified_lasso,
@@ -46,4 +47,6 @@ __all__ = [
     "CFI",
     "LOCO",
     "PFI",
+    # ensemble methods
+    "CV",
 ]
