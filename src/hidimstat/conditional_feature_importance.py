@@ -52,7 +52,7 @@ class CFI(BasePerturbation):
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a feature to be considered as categorical
             when the feature type is inferred (set to "auto" or not provided).
-        feature_groups: dict, optional
+        feature_groups: dict or None,  default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
             the feature_groups are identified based on the columns of X.
