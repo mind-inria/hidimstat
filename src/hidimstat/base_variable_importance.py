@@ -249,15 +249,9 @@ class GroupVariableImportanceMixin:
             If the number of features in X does not match the total number
             of features in the grouped variables.
         """
-        if (
-            self.n_feature_groups_ is None
-            or not hasattr(self, "feature_groups")
-            or not hasattr(self, "_feature_groups_ids")
-        ):
+        if self.n_feature_groups_ is None or self._feature_groups_ids is None:
             raise ValueError(
-                "The class is not fitted. The fit method must be called"
-                " to set variable feature_groups. If no grouping is needed,"
-                " call fit with feature_groups=None"
+                "The method is not fitted. Call for before to use this method."
             )
         if isinstance(X, pd.DataFrame):
             names = list(X.columns)
