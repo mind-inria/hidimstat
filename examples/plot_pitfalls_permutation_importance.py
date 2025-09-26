@@ -103,7 +103,7 @@ model = TransformedTargetRegressor(
 )
 
 
-kf = KFold(n_splits=5, shuffle=True, random_state=seed)
+kf = KFold(n_splits=5, shuffle=True, random_state=0)
 for train_index, test_index in kf.split(X):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
