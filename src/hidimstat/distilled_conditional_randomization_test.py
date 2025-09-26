@@ -102,6 +102,10 @@ class D0CRT(BaseVariableImportance):
     The implementation currently allows flexible models for the y-distillation step.
     However, the x-distillation step only supports linear models.
 
+    The random_state parameter of the different x-distillation and y-distillation models
+    is set by spawning independent Generators from the main random_state of the D0CRT
+    instance.
+
     References
     ----------
     .. footbibliography::
