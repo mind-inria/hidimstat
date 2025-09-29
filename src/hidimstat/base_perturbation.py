@@ -89,7 +89,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         See Also
         --------
-        GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
+        hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
