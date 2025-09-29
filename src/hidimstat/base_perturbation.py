@@ -170,6 +170,7 @@ class BasePerturbation(BaseVariableImportance):
                 for j in range(self.n_groups)
             ]
         )
+        self.importances_ = out_dict["importance"]
         return out_dict
 
     def _check_fit(self, X):
