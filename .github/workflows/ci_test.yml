@@ -20,7 +20,7 @@ jobs:
     name: Get Information
     # information is: commit message for PR
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'testci') || github.event_name == 'reposit'
+    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'reposit'
     outputs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
     steps:
