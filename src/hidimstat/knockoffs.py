@@ -5,9 +5,9 @@ from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
+from hidimstat._utils.utils import check_random_state
 from hidimstat.gaussian_knockoff import (
     gaussian_knockoff_generation,
     repeat_gaussian_knockoff_generation,
@@ -189,9 +189,8 @@ def model_x_knockoff(
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
 
     # get the seed for the different run
-    seed_list = check_random_state(random_state).randint(
-        np.iinfo(np.int32).max
-    ) + np.arange(n_bootstraps)
+    rng = check_random_state(random_state)
+    children_rng = rng.spawn(n_bootstraps)
 
     if centered:
         X = StandardScaler().fit_transform(X)
@@ -205,7 +204,7 @@ def model_x_knockoff(
     # Create knockoff variables
     X_tilde, mu_tilde, sigma_tilde_decompose = memory.cache(
         gaussian_knockoff_generation
-    )(X, mu, sigma, seed=seed_list[0], tol=tol_gauss)
+    )(X, mu, sigma, random_state=children_rng[0], tol=tol_gauss)
 
     if n_bootstraps == 1:
         X_tildes = [X_tilde]
@@ -214,9 +213,9 @@ def model_x_knockoff(
             delayed(repeat_gaussian_knockoff_generation)(
                 mu_tilde,
                 sigma_tilde_decompose,
-                seed=seed,
+                random_state=seed,
             )
-            for seed in seed_list[1:]
+            for seed in children_rng[1:]
         )
         X_tildes.insert(0, X_tilde)
 
