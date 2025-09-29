@@ -571,6 +571,7 @@ class TestCFIExceptions:
         ):
             cfi.importance(X, y)
 
+
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(10, 10, 1, 0.2, 0, 1.0, 1.0, 0.0)],
