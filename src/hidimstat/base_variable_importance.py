@@ -67,7 +67,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
         if k_best is not None:
-            assert k_best >= 0, "k_best needs to be positive or null"
+            assert k_best >= 1, "k_best needs to be positive or None"
             if k_best > self.importances_.shape[0]:
                 warnings.warn(
                     f"k={k_best} is greater than n_features={self.importances_.shape[0]}. "
@@ -75,8 +75,10 @@ class BaseVariableImportance(BaseEstimator):
                 )
         if percentile is not None:
             assert (
-                0 <= percentile and percentile <= 100
-            ), "percentile needs to be between 0 and 100"
+                0 < percentile < 100
+            ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
+                percentile
+            )
         if threshold_pvalue is not None:
             assert (
                 self.pvalues_ is not None
@@ -86,9 +88,7 @@ class BaseVariableImportance(BaseEstimator):
             ), "threshold_pvalue needs to be between 0 and 1"
 
         # base on SelectKBest of Scikit-Learn
-        if k_best == 0:
-            mask_k_best = np.zeros(self.importances_.shape, dtype=bool)
-        elif k_best is not None:
+        if k_best is not None:
             mask_k_best = np.zeros(self.importances_.shape, dtype=bool)
 
             # Request a stable sort. Mergesort takes more memory (~40MB per
@@ -98,11 +98,7 @@ class BaseVariableImportance(BaseEstimator):
             mask_k_best = np.ones(self.importances_.shape, dtype=bool)
 
         # base on SelectPercentile of Scikit-Learn
-        if percentile == 100:
-            mask_percentile = np.ones(len(self.importances_), dtype=bool)
-        elif percentile == 0:
-            mask_percentile = np.zeros(len(self.importances_), dtype=bool)
-        elif percentile is not None:
+        if percentile is not None:
             threshold_percentile = np.percentile(self.importances_, 100 - percentile)
             mask_percentile = self.importances_ > threshold_percentile
             ties = np.where(self.importances_ == threshold_percentile)[0]
