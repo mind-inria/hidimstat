@@ -1,7 +1,8 @@
 import numpy as np
-from sklearn.base import MultiOutputMixin, check_is_fitted
+from sklearn.base import BaseEstimator, MultiOutputMixin, check_is_fitted
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
-from sklearn.utils.validation import check_random_state
+
+from hidimstat._utils.utils import check_random_state
 
 
 def _check_data_type(
@@ -36,7 +37,7 @@ def _check_data_type(
         else:
             return "continuous"
     else:
-        raise ValueError(f"type of data '{data_type}' unknow.")
+        raise ValueError(f"type of data '{data_type}' unknown.")
 
 
 class ConditionalSampler:
@@ -45,7 +46,6 @@ class ConditionalSampler:
         model_regression=None,
         model_categorical=None,
         data_type: str = "auto",
-        random_state=None,
         categorical_max_cardinality=10,
     ):
         """
@@ -62,17 +62,21 @@ class ConditionalSampler:
             The variable type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
             of the unique values passed to the `fit` method.
-        random_state : int, optional
-            The random state to use for sampling.
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a variable to be considered as categorical
             when `data_type` is "auto".
 
         """
+        # check the validity of the inputs
+        assert model_regression is None or issubclass(
+            model_regression.__class__, BaseEstimator
+        ), "Regression model invalid"
+        assert model_categorical is None or issubclass(
+            model_categorical.__class__, BaseEstimator
+        ), "Categorial model invalid"
         self.data_type = data_type
         self.model_regression = model_regression
         self.model_categorical = model_categorical
-        self.rng = check_random_state(random_state)
         self.categorical_max_cardinality = categorical_max_cardinality
 
     def fit(self, X: np.ndarray, y: np.ndarray):
@@ -112,7 +116,13 @@ class ConditionalSampler:
             raise AttributeError(f"No model was provided for {self.data_type} data")
         self.model.fit(X, y)
 
-    def sample(self, X: np.ndarray, y: np.ndarray, n_samples: int = 1) -> np.ndarray:
+    def sample(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        n_samples: int = 1,
+        random_state=None,
+    ) -> np.ndarray:
         """
         Sample from the conditional distribution $p(X^j | X^{-j})$.
 
@@ -124,14 +134,16 @@ class ConditionalSampler:
             The group of variables to sample, $X^j$.
         n_samples : int, optional
             The number of samples to draw.
+        random_state : int, default=None
+            The random state to use for sampling.
 
         Returns
         -------
         y_conditional : ndarray
             The samples from the conditional distribution.
         """
-
         check_is_fitted(self.model)
+        rng = check_random_state(random_state)
 
         if self.data_type == "continuous":
             if not hasattr(self.model, "predict"):
@@ -142,7 +154,7 @@ class ConditionalSampler:
             y_hat = self.model.predict(X).reshape(y.shape)
             residual = y - y_hat
             residual_permuted = np.stack(
-                [self.rng.permutation(residual) for _ in range(n_samples)],
+                [rng.permutation(residual) for _ in range(n_samples)],
                 axis=0,
             )
             return y_hat[np.newaxis, ...] + residual_permuted
@@ -167,13 +179,10 @@ class ConditionalSampler:
                 y_pred_cond.append(
                     np.stack(
                         [
-                            self.rng.choice(classes, p=p, size=n_samples)
+                            rng.choice(classes, p=p, size=n_samples)
                             for p in y_pred_proba[index]
                         ],
                         axis=1,
                     )
                 )
-            return np.stack(
-                y_pred_cond,
-                axis=-1,
-            )
+            return np.stack(y_pred_cond, axis=-1)

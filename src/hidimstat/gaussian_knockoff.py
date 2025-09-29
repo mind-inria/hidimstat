@@ -2,8 +2,10 @@ import warnings
 
 import numpy as np
 
+from hidimstat._utils.utils import check_random_state
 
-def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
+
+def gaussian_knockoff_generation(X, mu, sigma, random_state=None, tol=1e-14):
     """
     Generate second-order knockoff variables using the equi-correlated method.
 
@@ -20,17 +22,13 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     ----------
     X: 2D ndarray (n_samples, n_features)
         The original design matrix.
-
     mu : 1D ndarray (n_features, )
         A vector of empirical mean values.
-
     sigma : 2D ndarray (n_samples, n_features)
         The empirical covariance matrix.
-
-    seed : int, optional
+    random_state : int or None, default=None
         A random seed for generating the uniform noise used to create
         the knockoff variables.
-
     tol : float, default=1.e-14
         A tolerance value used for numerical stability in the calculation
         of the Cholesky decomposition.
@@ -39,10 +37,8 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     -------
     X_tilde : 2D ndarray (n_samples, n_features)
         The knockoff variables.
-
     mu_tilde : 2D ndarray (n_samples, n_features)
         The mean matrix used for generating knockoffs.
-
     sigma_tilde_decompose : 2D ndarray (n_features, n_features)
         The Cholesky decomposition of the covariance matrix.
 
@@ -53,8 +49,8 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     n_samples, n_features = X.shape
 
     # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+    rng = check_random_state(random_state)
+    u_tilde = rng.standard_normal((n_samples, n_features))
 
     diag_s = np.diag(_s_equi(sigma, tol=tol))
 
@@ -80,7 +76,7 @@ def gaussian_knockoff_generation(X, mu, sigma, seed=None, tol=1e-14):
     return X_tilde, mu_tilde, sigma_tilde_decompose
 
 
-def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
+def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, random_state):
     """
     Generate additional knockoff variables using pre-computed values.
 
@@ -101,7 +97,7 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
         to generate the knockoff variables,returned by
         gaussian_knockoff_generation.
 
-    seed : int
+    random_state : int
         A random seed for generating the uniform noise used to create
         the knockoff variables.
 
@@ -113,8 +109,8 @@ def repeat_gaussian_knockoff_generation(mu_tilde, sigma_tilde_decompose, seed):
     n_samples, n_features = mu_tilde.shape
 
     # create a uniform noise for all the data
-    rng = np.random.RandomState(seed)
-    u_tilde = rng.randn(n_samples, n_features)
+    rng = check_random_state(random_state)
+    u_tilde = rng.standard_normal((n_samples, n_features))
 
     X_tilde = mu_tilde + np.dot(u_tilde, sigma_tilde_decompose)
     return X_tilde

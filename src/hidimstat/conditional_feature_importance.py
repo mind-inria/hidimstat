@@ -1,14 +1,13 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
 
 
-class CPI(BasePerturbation):
+class CFI(BasePerturbation):
     def __init__(
         self,
         estimator,
@@ -22,7 +21,7 @@ class CPI(BasePerturbation):
         categorical_max_cardinality: int = 10,
     ):
         """
-        Conditional Permutation Importance (CPI) algorithm.
+        Conditional Feature Importance (CFI) algorithm.
         :footcite:t:`Chamma_NeurIPS2023` and for group-level see
         :footcite:t:`Chamma_AAAI2024`.
 
@@ -35,8 +34,8 @@ class CPI(BasePerturbation):
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
+            to the loss function. Supported methods are "predict", "predict_proba" or
+            "decision_function".
         n_jobs : int, default=1
             The number of jobs to run in parallel. Parallelization is done over the
             variables or groups of variables.
@@ -60,19 +59,27 @@ class CPI(BasePerturbation):
         ----------
         .. footbibliography::
         """
-
         super().__init__(
             estimator=estimator,
             loss=loss,
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            random_state=random_state,
         )
+
+        # check the validity of the inputs
+        assert imputation_model_continuous is None or issubclass(
+            imputation_model_continuous.__class__, BaseEstimator
+        ), "Continuous imputation model invalid"
+        assert imputation_model_categorical is None or issubclass(
+            imputation_model_categorical.__class__, BaseEstimator
+        ), "Categorial imputation model invalid"
+
         self._list_imputation_models = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
@@ -96,8 +103,8 @@ class CPI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
+
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
@@ -105,7 +112,7 @@ class CPI(BasePerturbation):
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.var_type[groupd_id],
+                data_type=self.var_type[group_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -116,10 +123,9 @@ class CPI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for groupd_id in range(self.n_groups)
+            for group_id in range(self.n_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
@@ -141,19 +147,42 @@ class CPI(BasePerturbation):
         estimator.fit(X_minus_j, X_j)
         return estimator
 
-    def _check_fit(self):
-        """Check if the imputation models are fitted."""
-        super()._check_fit()
+    def _check_fit(self, X):
+        """
+        Check if the perturbation method and imputation models have been properly fitted.
+
+        This method verifies that both the base perturbation method and the imputation
+        models have been fitted by checking required attributes and validating the input
+        dimensions.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate against the fitted model.
+
+        Raises
+        ------
+        ValueError
+            If the method has not been fitted (i.e., if n_groups, groups,
+            or _groups_ids attributes are missing) or if imputation models
+            are not fitted.
+        AssertionError
+            If the number of features in X does not match the total number
+            of features in the grouped variables.
+        """
+        super()._check_fit(X)
         if len(self._list_imputation_models) == 0:
-            raise ValueError("The estimators require to be fit before to use them")
+            raise ValueError(
+                "The imputation models require to be fitted before being used."
+            )
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations
+            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
         )

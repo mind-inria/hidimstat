@@ -2,19 +2,16 @@
 Test the desparsified_lasso module
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal, assert_equal
 from scipy.linalg import toeplitz
 
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
+    desparsified_group_lasso_pvalue,
     desparsified_lasso,
     desparsified_lasso_pvalue,
-    desparsified_group_lasso_pvalue,
-)
-from hidimstat._utils.scenario import (
-    multivariate_1D_simulation,
-    multivariate_temporal_simulation,
 )
 
 
@@ -25,21 +22,20 @@ def test_desparsified_lasso():
 
     n_samples, n_features = 52, 50
     support_size = 1
-    sigma = 0.1
+    signal_noise_ratio = 50
     rho = 0.0
 
-    X, y, beta, noise = multivariate_1D_simulation(
+    X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
-        sigma=sigma,
+        signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
-        seed=2,
+        seed=10,
     )
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta) * 0.5
+    expected_pval_corr[beta != 0] = 0.0
 
     beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
@@ -72,32 +68,31 @@ def test_desparsified_group_lasso():
 
     n_samples = 50
     n_features = 100
-    n_times = 10
+    n_target = 10
     support_size = 2
-    sigma = 0.1
-    rho = 0.9
-    corr = toeplitz(np.geomspace(1, rho ** (n_times - 1), n_times))
-    cov = np.outer(sigma, sigma) * corr
+    signal_noise_ratio = 5000
+    rho_serial = 0.9
+    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
 
-    X, Y, beta, noise = multivariate_temporal_simulation(
+    X, Y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
-        n_times=n_times,
+        n_targets=n_target,
         support_size=support_size,
-        sigma=sigma,
-        rho_noise=rho,
+        rho_serial=rho_serial,
+        signal_noise_ratio=signal_noise_ratio,
+        seed=10,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
-        X, Y, multioutput=True, covariance=cov
+        X, Y, multioutput=True, covariance=corr
     )
     pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
     )
 
-    expected_pval_corr = np.concatenate(
-        (np.zeros(support_size), 0.5 * np.ones(n_features - support_size))
-    )
+    expected_pval_corr = np.ones_like(beta[:, 0]) * 0.5
+    expected_pval_corr[beta[:, 0] != 0] = 0.0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
@@ -111,7 +106,7 @@ def test_desparsified_group_lasso():
     assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
 
     # Testing error is raised when the covariance matrix has wrong shape
-    bad_cov = np.delete(cov, 0, axis=1)
+    bad_cov = np.delete(corr, 0, axis=1)
     np.testing.assert_raises(
         ValueError, desparsified_lasso, X=X, y=Y, multioutput=True, covariance=bad_cov
     )

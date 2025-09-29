@@ -4,6 +4,8 @@ from scipy.linalg import solve, toeplitz
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
+from hidimstat._utils.utils import check_random_state
+
 
 def reid(
     X,
@@ -13,7 +15,7 @@ def reid(
     max_iterance=10000,
     n_splits=5,
     n_jobs=1,
-    seed=0,
+    random_state=None,
     multioutput=False,
     stationary=True,
     method="median",
@@ -57,7 +59,7 @@ def reid(
         Number of parallel jobs for cross-validation.
         -1 means using all processors.
 
-    seed : int, optional (default=0)
+    random_state : int, optional (default=None)
         Random seed for reproducible cross-validation splits.
 
     stationary : bool, (default=True)
@@ -84,7 +86,7 @@ def reid(
     ----------
     .. footbibliography::
     """
-
+    rngs = check_random_state(random_state).spawn(2)
     X_ = np.asarray(X)
     n_samples, n_features = X_.shape
     if multioutput:
@@ -96,7 +98,11 @@ def reid(
         print(f"'max_iter' has been increased to {max_iterance}")
 
     # use the cross-validation for define the best alpha of Lasso
-    cv = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
+    cv = KFold(
+        n_splits=n_splits,
+        shuffle=True,
+        random_state=np.random.RandomState(rngs[0].bit_generator),
+    )
     Refit_CV = MultiTaskLassoCV if multioutput else LassoCV
     clf_cv = Refit_CV(
         eps=epsilon,
@@ -105,6 +111,7 @@ def reid(
         tol=tolerance,
         max_iter=max_iterance,
         n_jobs=n_jobs,
+        random_state=np.random.RandomState(rngs[1].bit_generator),
     )
     clf_cv.fit(X_, y)
 
@@ -113,6 +120,8 @@ def reid(
     residual = clf_cv.predict(X_) - y
 
     # get the number of non-zero coefficients
+    # we consider that the coefficient with a value under
+    # tolerance * coefficients_.max() is null
     coefficients_ = (
         np.sum(np.abs(beta_hat), axis=0)
         if len(beta_hat.shape) > 1
@@ -123,7 +132,7 @@ def reid(
     # avoid dividing by 0
     size_support = min(size_support, n_samples - 1)
 
-    # estimate the noise standard deviation (eq. 7 in `fan2012variance`)
+    # estimate the noise standard deviation (eq. 3 in `reid2016study`)
     sigma_hat_raw = norm(residual, axis=0) / np.sqrt(n_samples - size_support)
 
     if not multioutput:
@@ -147,7 +156,7 @@ def reid(
                 )
         else:
             raise ValueError("Unknown method for estimating the covariance matrix")
-        ## compute emperical correlation of the residual
+        ## compute empirical correlation of the residual
         if stationary:
             # consideration of stationary noise
             # (section 2.5 of `chevalier2020statistical`)
@@ -236,7 +245,7 @@ def empirical_snr(X, y, beta, noise=None):
 
     Returns
     -------
-    snr_hat : float
+    signal_noise_ratio_hat : float
         Empirical SNR computed as var(signal) / var(noise).
 
     Notes
@@ -253,6 +262,6 @@ def empirical_snr(X, y, beta, noise=None):
         noise = y - signal
 
     # compute signal-to-noise ratio
-    snr_hat = np.var(signal) / np.var(noise)
+    signal_noise_ratio_ = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
 
-    return snr_hat
+    return signal_noise_ratio_

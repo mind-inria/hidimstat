@@ -32,7 +32,7 @@ jobs:
 
     steps:
     # Checkout to the branch for getting the right code
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
@@ -68,7 +68,7 @@ jobs:
     - name: Run pytest
       if: ${{ inputs.skip_test == false }}
       run: |
-          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --pytest-resultlog=log-${{env.REPORT_NAME}}.txt
+          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
