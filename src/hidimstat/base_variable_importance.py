@@ -67,15 +67,12 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
         if k_best is not None:
-            if not isinstance(k_best, str) and k_best > self.importances_.shape[0]:
+            assert k_best >= 0, "k_best needs to be positive or null"
+            if k_best > self.importances_.shape[0]:
                 warnings.warn(
                     f"k={k_best} is greater than n_features={self.importances_.shape[0]}. "
                     "All the features will be returned."
                 )
-            if isinstance(k_best, str):
-                assert k_best == "all"
-            else:
-                assert k_best >= 0, "k_best needs to be positive or null"
         if percentile is not None:
             assert (
                 0 <= percentile and percentile <= 100
@@ -89,9 +86,7 @@ class BaseVariableImportance(BaseEstimator):
             ), "threshold_pvalue needs to be between 0 and 1"
 
         # base on SelectKBest of Scikit-Learn
-        if k_best == "all":
-            mask_k_best = np.ones(self.importances_.shape, dtype=bool)
-        elif k_best == 0:
+        if k_best == 0:
             mask_k_best = np.zeros(self.importances_.shape, dtype=bool)
         elif k_best is not None:
             mask_k_best = np.zeros(self.importances_.shape, dtype=bool)
