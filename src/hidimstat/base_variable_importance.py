@@ -1,3 +1,4 @@
+import numbers
 import warnings
 
 import numpy as np
@@ -245,7 +246,7 @@ class GroupVariableImportanceMixin:
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_feature_groups, feature_groups,
+            If the method has not been fitted (i.e., if n_feature_groups_,
             or _feature_groups_ids attributes are missing).
         AssertionError
             If the number of features in X does not match the total number
@@ -264,10 +265,8 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("X should be a pandas dataframe or a numpy array.")
         number_columns = X.shape[1]
-        for index_variables in self.feature_groups.values():
-            if type(index_variables[0]) is int or np.issubdtype(
-                type(index_variables[0]), int
-            ):
+        for index_variables in self.groups.values():
+            if isinstance(index_variables[0], numbers.Integral):
                 assert np.all(
                     np.array(index_variables, dtype=int) < number_columns
                 ), "X does not correspond to the fitting data."

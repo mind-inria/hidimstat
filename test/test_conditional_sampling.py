@@ -21,7 +21,6 @@ def test_continuous_case():
     sampler = ConditionalSampler(
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
         data_type="continuous",
-        random_state=0,
     )
 
     # Test for perfectly correlated features
@@ -30,7 +29,9 @@ def test_continuous_case():
 
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
 
     for i in range(n_samples):
         assert np.corrcoef(X_1_perm[i], X[:, 1])[0, 1] > 0.99
@@ -39,7 +40,9 @@ def test_continuous_case():
     X = np.random.randn(n, 2)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert np.corrcoef([X_1_perm[i], X[:, 1]])[0, 1] < 0.1
 
@@ -47,7 +50,9 @@ def test_continuous_case():
     X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.6], [0.6, 1]], size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_1_perm[i], X[:, 1]])[0, 1] < 0.8
 
@@ -60,7 +65,6 @@ def test_binary_case():
     sampler = ConditionalSampler(
         model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         data_type="categorical",
-        random_state=0,
     )
 
     # Test for perfectly correlated features
@@ -68,7 +72,9 @@ def test_binary_case():
     X[:, 1] = (X[:, 0] > 0).astype(float)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert accuracy_score(X_1_perm[i], X[:, 1]) > 0.7
 
@@ -77,7 +83,9 @@ def test_binary_case():
     X[:, 1] = np.random.randint(0, 2, size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         # chance level at 0.5
         assert accuracy_score(X_1_perm[i], X[:, 1]) < 0.6
@@ -86,23 +94,21 @@ def test_binary_case():
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
         model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         data_type="auto",
-        random_state=0,
     )
     X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.0], [0.0, 1]], size=n)
     X[:, 1] = (X[:, 0] + np.random.randn(n) * -0.5) > 0
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
-    X_1_perm = sampler.sample(np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples)
+    X_1_perm = sampler.sample(
+        np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
+    )
     for i in range(n_samples):
         assert 0.9 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
 
 def test_error_wrong_type_data():
     """Test for error when model does not have predict"""
-    sampler = ConditionalSampler(
-        data_type="wrong_type",
-        random_state=0,
-    )
+    sampler = ConditionalSampler(data_type="wrong_type")
     X = np.random.randint(0, 2, size=(100, 2))
     with pytest.raises(ValueError, match="type of data 'wrong_type' unknown."):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
@@ -114,7 +120,6 @@ def test_error_no_predic_proba():
     sampler = ConditionalSampler(
         model_categorical=RidgeClassifier(),
         data_type="categorical",
-        random_state=0,
     )
     X = np.random.randint(0, 2, size=(100, 2))
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
@@ -130,9 +135,7 @@ def test_error_no_predic():
     np.random.seed(40)
     X = np.random.randint(0, 2, size=(100, 2))
     sampler = ConditionalSampler(
-        model_regression=StandardScaler(),
-        data_type="continuous",
-        random_state=0,
+        model_regression=StandardScaler(), data_type="continuous"
     )
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     with pytest.raises(
@@ -145,19 +148,13 @@ def test_error_no_model_provide():
     """Test when there is no model for the category"""
     np.random.seed(40)
     X = np.random.randint(0, 2, size=(100, 2))
-    sampler = ConditionalSampler(
-        data_type="auto",
-        random_state=0,
-    )
+    sampler = ConditionalSampler(data_type="auto")
     with pytest.raises(
         AttributeError, match="No model was provided for categorical data"
     ):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     X = np.random.randn(100, 2)
-    sampler = ConditionalSampler(
-        data_type="auto",
-        random_state=0,
-    )
+    sampler = ConditionalSampler(data_type="auto")
     with pytest.raises(
         AttributeError, match="No model was provided for continuous data"
     ):
@@ -178,20 +175,17 @@ def test_group_case():
             n_estimators=10, max_depth=10, random_state=0
         ),
         data_type="continuous",
-        random_state=0,
     )
     sampler.fit(X[:, :2], X[:, 2:])
     n_samples = 10
-    X_2_perm = sampler.sample(X[:, :2], X[:, 2:], n_samples=n_samples)
+    X_2_perm = sampler.sample(X[:, :2], X[:, 2:], n_samples=n_samples, random_state=0)
     assert X_2_perm.shape == (n_samples, n, 2)
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 0], X[:, 2]])[0, 1] < 0.9
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 1], X[:, 3]])[0, 1] < 0.9
     # test with a model DOES nativly support multioutput
     sampler = ConditionalSampler(
-        model_regression=HuberRegressor(),
-        data_type="continuous",
-        random_state=0,
+        model_regression=HuberRegressor(), data_type="continuous"
     )
     sampler.fit(X[:, :2], X[:, 2:])
 
@@ -200,15 +194,11 @@ def test_group_case():
     X[:, 3] = X[:, 0] + X[:, 1] + X[:, 2] + np.random.randn(X.shape[0]) * 0.3 > 0
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
     model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
-    sampler = ConditionalSampler(
-        model_categorical=model,
-        data_type="categorical",
-        random_state=0,
-    )
+    sampler = ConditionalSampler(model_categorical=model, data_type="categorical")
     sampler.fit(X[:, :3], X[:, 3:])
 
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # TODO check why so good accuracy
@@ -232,12 +222,11 @@ def test_sample_categorical():
     sampler = ConditionalSampler(
         model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         data_type="categorical",
-        random_state=0,
     )
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
@@ -250,12 +239,11 @@ def test_sample_categorical():
             LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
         ),
         data_type="categorical",
-        random_state=0,
     )
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples)
+    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
