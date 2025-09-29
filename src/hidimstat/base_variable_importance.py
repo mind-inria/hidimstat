@@ -265,7 +265,7 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("X should be a pandas dataframe or a numpy array.")
         number_columns = X.shape[1]
-        for index_variables in self.groups.values():
+        for index_variables in self.feature_groups.values():
             if isinstance(index_variables[0], numbers.Integral):
                 assert np.all(
                     np.array(index_variables, dtype=int) < number_columns
