@@ -197,7 +197,7 @@ class GroupVariableImportanceMixin:
             self.n_feature_groups_ = X.shape[1]
             self.feature_groups = {j: [j] for j in range(self.n_feature_groups_)}
             self._feature_groups_ids = np.array(
-                list(self.feature_groups.values()), dtype=int
+                sorted(list(self.feature_groups.values())), dtype=int
             )
         elif isinstance(self.feature_groups, dict):
             self.n_feature_groups_ = len(self.feature_groups)
