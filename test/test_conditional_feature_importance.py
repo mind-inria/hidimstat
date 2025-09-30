@@ -615,9 +615,10 @@ def test_cfi_plot(data_generator):
     cfi = CFI(
         estimator=fitted_model,
         imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
         random_state=0,
     )
-    cfi.fit(X_train, y_train, var_type="continuous")
+    cfi.fit(X_train, y_train)
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -641,9 +642,10 @@ def test_cfi_plot_2d_imp(data_generator):
     cfi = CFI(
         estimator=fitted_model,
         imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
         random_state=0,
     )
-    cfi.fit(X_train, y_train, var_type="continuous")
+    cfi.fit(X_train, y_train)
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.stack(
         [
@@ -672,9 +674,10 @@ def test_cfi_plot_coverage(data_generator):
     cfi = CFI(
         estimator=fitted_model,
         imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
         random_state=0,
     )
-    cfi.fit(X_train, y_train, var_type="continuous")
+    cfi.fit(X_train, y_train)
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     _, ax = plt.subplots(figsize=(6, 3))
