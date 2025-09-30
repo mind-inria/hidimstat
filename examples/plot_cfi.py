@@ -72,12 +72,14 @@ cfi = CFI(
     loss=log_loss,
     method="predict_proba",
     imputation_model_continuous=RidgeCV(),
+    feature_groups={
+        feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)
+    },
     random_state=0,
 )
 cfi.fit(
     X_train,
     y_train,
-    groups={feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)},
 )
 importances = cfi.importance(X_test, y_test)
 
