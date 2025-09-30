@@ -166,6 +166,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 for j in range(self.n_feature_groups_)
             ]
         )
+        self.importances_ = out_dict["importance"]
         return out_dict
 
     def _joblib_predict_one_features_group(
