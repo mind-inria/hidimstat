@@ -170,7 +170,11 @@ class BaseVariableImportance(BaseEstimator):
 
         if ax is None:
             _, ax = plt.subplots()
-        feature_names = list(self.groups.keys())
+
+        if hasattr(self, "feature_groups"):
+            feature_names = list(self.feature_groups.keys())
+        else:
+            feature_names = [str(j) for j in range(self.importances_.shape[-1])]
 
         if self.importances_.ndim == 2:
             df_plot = {
