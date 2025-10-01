@@ -377,7 +377,8 @@ class D0CRT(BaseVariableImportance):
             for i in range(X_residual.shape[0])
         ]
 
-        if self.scaled_statistics:
+        # Don't scale when there is only one element.
+        if self.scaled_statistics and len(test_statistic_selected_variables) > 1:
             test_statistic_selected_variables = (
                 test_statistic_selected_variables
                 - np.mean(test_statistic_selected_variables)
