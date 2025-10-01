@@ -58,7 +58,6 @@ class PFI(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
             feature_groups=feature_groups,
-            feature_types=None,
             random_state=random_state,
         )
 

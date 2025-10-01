@@ -217,9 +217,6 @@ class GroupVariableImportanceMixin:
     feature_groups: dict or None, default=None
         Dictionary mapping group names to lists of feature column names/indices.
         If None, each feature is treated as its own group.
-    feature_types: str or list, default="auto"
-        Feature type specification. Can be "auto", "continuous", "categorical",
-        or a list specifying type for each group. If "auto", type is inferred.
 
     Attributes
     ----------
@@ -238,10 +235,9 @@ class GroupVariableImportanceMixin:
         Validates compatibility between input data and fitted groups.
     """
 
-    def __init__(self, feature_groups=None, feature_types="auto"):
+    def __init__(self, feature_groups=None):
         super().__init__()
         self.feature_groups = feature_groups
-        self.feature_types = feature_types
         self.n_feature_groups_ = None
         self._feature_groups_ids = None
 
@@ -287,15 +283,6 @@ class GroupVariableImportanceMixin:
                 ]
         else:
             raise ValueError("feature_groups needs to be a dictionary")
-        if isinstance(self.feature_types, str):
-            if self.feature_types in ["auto", "continuous", "categorical"]:
-                self.feature_types = [
-                    self.feature_types for _ in range(self.n_feature_groups_)
-                ]
-            else:
-                raise ValueError(
-                    "feature_types support only the string 'auto', 'continuous', 'categorical'"
-                )
         return self
 
     def _check_fit(self):

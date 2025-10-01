@@ -58,7 +58,6 @@ class LOCO(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=1,
             feature_groups=feature_groups,
-            feature_types=None,
         )
         self._list_estimators = []
 

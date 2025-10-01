@@ -76,7 +76,6 @@ class CFI(BasePerturbation):
             n_jobs=n_jobs,
             n_permutations=n_permutations,
             feature_groups=feature_groups,
-            feature_types=feature_types,
             random_state=random_state,
         )
 
@@ -88,6 +87,7 @@ class CFI(BasePerturbation):
             imputation_model_categorical.__class__, BaseEstimator
         ), "Categorial imputation model invalid"
 
+        self.feature_types = feature_types
         self._list_imputation_models = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
@@ -108,6 +108,17 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         super().fit(X, None)
+
+        # check the feature type
+        if isinstance(self.feature_types, str):
+            if self.feature_types in ["auto", "continuous", "categorical"]:
+                self.feature_types = [
+                    self.feature_types for _ in range(self.n_feature_groups_)
+                ]
+            else:
+                raise ValueError(
+                    "feature_types support only the string 'auto', 'continuous', 'categorical'"
+                )
 
         self._list_imputation_models = [
             ConditionalSampler(
