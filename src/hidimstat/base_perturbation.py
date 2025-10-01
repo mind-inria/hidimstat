@@ -94,6 +94,14 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
 
+    def _check_fit(self):
+        """Check if the instance has been fitted."""
+        GroupVariableImportanceMixin._check_fit(self)
+
+    def _check_compatibility(self, X):
+        """Check compatibility between input data and fitted model."""
+        GroupVariableImportanceMixin._check_compatibility(self, X)
+
     def predict(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
@@ -109,7 +117,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out: array-like of shape (n_groups, n_permutations, n_samples)
             The predictions after perturbation of the data for each group of variables.
         """
-        self._check_fit(X)
+        self._check_fit()
+        self._check_compatibility(self, X)
         X_ = np.asarray(X)
         rng = check_random_state(self.random_state)
 
@@ -144,7 +153,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             for each group.
             - 'importance': the importance scores for each group.
         """
-        self._check_fit(X)
+        GroupVariableImportanceMixin._check_fit(self)
+        GroupVariableImportanceMixin._check_compatibility(self, X)
 
         out_dict = dict()
 

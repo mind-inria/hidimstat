@@ -208,35 +208,34 @@ class BaseVariableImportance(BaseEstimator):
 
 class GroupVariableImportanceMixin:
     """
-    Base class for variable importance methods using feature groups.
-    This class extends `BaseVariableImportance` to support variable importance
-    methods that operate on groups of features, enabling group-wise selection
-    and importance evaluation.
+    Mixin class for adding group functionality to variable importance methods.
+    This class provides functionality for handling grouped features in variable
+    importance calculations, enabling group-wise selection and importance evaluation.
 
     Parameters
     ----------
     feature_groups: dict or None, default=None
-        A dictionary where the keys are the group names and the values are the
-        list of column names corresponding to each features group. If None,
-        the feature_groups are identified based on the columns of X.
+        Dictionary mapping group names to lists of feature column names/indices.
+        If None, each feature is treated as its own group.
     feature_types: str or list, default="auto"
-        The feature type. Supported types include "auto", "continuous", and
-        "categorical". If "auto", the type is inferred from the cardinality
-        of the unique values passed to the `fit` method.
+        Feature type specification. Can be "auto", "continuous", "categorical",
+        or a list specifying type for each group. If "auto", type is inferred.
 
     Attributes
     ----------
     n_feature_groups_ : int
-        The number of feature groups.
-    _feature_groups_ids : array-like of shape (n_feature_groups,)
-        Lists containing the indices of features from X for each feature group.
+        Number of feature groups.
+    _feature_groups_ids : array-like
+        List of feature indices for each group.
 
     Methods
     -------
-    fit(X, y=None, groups=None)
-        Identifies and stores feature groups based on input or provided grouping.
-    _check_fit(X)
-        Checks if the class has been fitted and validates group-feature correspondence.
+    fit(X, y=None)
+        Identifies feature groups and validates input data structure.
+    _check_fit()
+        Verifies if the instance has been fitted.
+    _check_compatibility(X)
+        Validates compatibility between input data and fitted groups.
     """
 
     def __init__(self, feature_groups=None, feature_types="auto"):
@@ -299,30 +298,42 @@ class GroupVariableImportanceMixin:
                 )
         return self
 
-    def _check_fit(self, X):
+    def _check_fit(self):
         """
-        Check if the perturbation method has been properly fitted.
-
-        This method verifies that the perturbation method has been fitted by checking
-        if required attributes are set and if the number of features matches
-        the feature grouped variables.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Input data to validate against the fitted model.
+        Check if the instance has been fitted.
 
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_feature_groups_,
+            If the class has not been fitted (i.e., if n_feature_groups_
             or _feature_groups_ids attributes are missing).
-        AssertionError
-            If the number of features in X does not match the total number
-            of features in the grouped variables.
         """
         if self.n_feature_groups_ is None or self._feature_groups_ids is None:
             raise ValueError("The class is not fitted.")
+
+    def _check_compatibility(self, X):
+        """
+        Check compatibility between input data and fitted model.
+
+        Verifies that the input data X matches the structure expected by the fitted model,
+        including feature names and dimensions.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate. Can be pandas DataFrame or numpy array.
+
+        Raises
+        ------
+        ValueError
+            If X is not a pandas DataFrame or numpy array.
+            If column names in X don't match those used during fitting.
+        AssertionError
+            If feature indices are out of bounds.
+            If required feature names are missing from X.
+        Warning
+            If number of features in X differs from number of grouped features.
+        """
         if isinstance(X, pd.DataFrame):
             names = list(X.columns)
         elif isinstance(X, np.ndarray) and X.dtype.names is not None:

@@ -148,30 +148,19 @@ class CFI(BasePerturbation):
         estimator.fit(X_minus_j, X_j)
         return estimator
 
-    def _check_fit(self, X):
+    def _check_fit(self):
         """
-        Check if the perturbation method and imputation models have been properly fitted.
-
-        This method verifies that both the base perturbation method and the imputation
-        models have been fitted by checking required attributes and validating the input
-        dimensions.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Input data to validate against the fitted model.
+        Check if base class and imputation models have been fitted.
 
         Raises
         ------
         ValueError
-            If the method has not been fitted (i.e., if n_feature_groups, feature_groups,
-            or _feature_groups_ids attributes are missing) or if imputation models
-            are not fitted.
-        AssertionError
-            If the number of features in X does not match the total number
-            of features in the grouped features.
+            If the class has not been fitted (i.e., if n_feature_groups_
+            or _feature_groups_ids attributes are missing).
+            If the class has not been fitted or imputation models are not fitted.
+
         """
-        super()._check_fit(X)
+        super()._check_fit()
         if len(self._list_imputation_models) == 0:
             raise ValueError(
                 "The imputation models require to be fitted before being used."
