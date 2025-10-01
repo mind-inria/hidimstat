@@ -492,7 +492,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             AssertionError,
-            match=f"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
+            match=r"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
         ):
             cfi.importance(
                 X[np.concatenate([subgroups["group1"], subgroups["group2"][:-2]])], y
