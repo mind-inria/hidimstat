@@ -9,26 +9,12 @@ importance and does not provide statistical control over the risk of making fals
 discoveries, i.e., the risk of declaring a variable as important when it is not.
 """
 
-import matplotlib.pyplot as plt
+# %%
+# Define the seeds for the reproducibility of the example
+
 import numpy as np
-import pandas as pd
-import seaborn as sns
-from matplotlib.lines import Line2D
-from scipy.stats import ttest_1samp
-from sklearn.base import clone
-from sklearn.compose import TransformedTargetRegressor
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import r2_score
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.neural_network import MLPRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 
-from hidimstat import CFI, PFI
-from hidimstat.conditional_sampling import ConditionalSampler
-
-rng = np.random.RandomState(0)
+rng = np.random.default_rng(0)
 
 # %%
 # Load the California housing dataset and add a spurious feature
@@ -36,6 +22,11 @@ rng = np.random.RandomState(0)
 # The California housing dataset is a regression dataset with 8 features. We add a
 # spurious feature that is a linear combination of 3 features plus some noise.
 # The spurious feature does not provide any additional information about the target.
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
 
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
@@ -85,6 +76,15 @@ plt.show()
 # We fit a neural network model to the California housing dataset. PFI is a
 # model-agnostic method, we therefore illustrate its behavior when using a neural
 # network model.
+
+from sklearn.base import clone
+from sklearn.compose import TransformedTargetRegressor
+from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold
+from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
 fitted_estimators = []
 scores = []
 model = TransformedTargetRegressor(
@@ -122,6 +122,11 @@ print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}
 # way. We then derive a p-value from importance scores using a one-sample t-test.
 # As shown in the figure below, the PFI method does not provide valid p-values for
 # testing conditional importance, as it identifies the spurious feature as important.
+
+from scipy.stats import ttest_1samp
+
+from hidimstat import PFI
+
 permutation_importances = []
 conditional_permutation_importances = []
 for i, (train_index, test_index) in enumerate(kf.split(X)):
@@ -134,6 +139,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         model_c,
         n_permutations=50,
+        n_jobs=5,
         random_state=0,
     )
     pfi.fit(X_test, y_test)
@@ -149,12 +155,7 @@ pval_pfi = ttest_1samp(
 pval_threshold = 0.05
 # Create a horizontal boxplot of permutation importances
 fig, ax = plt.subplots()
-sns.barplot(
-    permutation_importances,
-    orient="h",
-    color="tab:blue",
-    capsize=0.2,
-)
+sns.barplot(permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5)
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
 for i, pval in enumerate(pval_pfi):
@@ -190,6 +191,12 @@ plt.show()
 # intrinsic information of the feature of interest while leaving the information that is
 # explained by the other features unchanged. This method is valid for testing conditional
 # importance. As shown below, it does not identify the spurious feature as important.
+
+import pandas as pd
+from sklearn.linear_model import RidgeCV
+
+from hidimstat import CFI
+
 conditional_importances = []
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
@@ -200,7 +207,10 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     # Compute conditional feature importance
     cfi = CFI(
         model_c,
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 5)),
+        imputation_model_continuous=RidgeCV(
+            alphas=np.logspace(-3, 3, 5),
+            cv=KFold(n_splits=3),
+        ),
         random_state=0,
         n_jobs=5,
     )
@@ -254,6 +264,11 @@ plt.show()
 # longitude that fall outside of the borders of California and therefore are by
 # definition not in the training data. This is not the case for the conditional
 # permutation that generates perturbed but reasonable values of longitude.
+
+from matplotlib.lines import Line2D
+
+from hidimstat.conditional_sampling import ConditionalSampler
+
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
@@ -262,13 +277,12 @@ X_train, X_test = train_test_split(
 
 conditional_sampler = ConditionalSampler(
     model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
-    random_state=0,
 )
 
 
 conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
-    X_test[:, :7], X_test[:, 7], n_samples=1
+    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=0
 ).ravel()
 # sphinx_gallery_thumbnail_number = 4
 fig, ax = plt.subplots()
