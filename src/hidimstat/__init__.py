@@ -22,6 +22,11 @@ from .noise_std import reid
 from .permutation_feature_importance import PFI
 from .statistical_tools.aggregation import quantile_aggregation
 
+# marginal methods
+from .marginal import PartialDependencePlot  # for having documentation
+from .marginal import PartialDependencePlot as PDP
+
+
 try:
     from ._version import __version__
 except ImportError:
@@ -46,4 +51,6 @@ __all__ = [
     "CFI",
     "LOCO",
     "PFI",
+    # marginal methods
+    "PDP",
 ]
