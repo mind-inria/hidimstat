@@ -4,6 +4,12 @@ import pytest
 from hidimstat._utils.scenario import multivariate_simulation
 
 
+def pytest_configure(config):  # noqa: ARG001
+    """Use Agg so that no figures pop up and avoid error with windows."""
+    if matplotlib is not None:
+        matplotlib.use("Agg", force=True)
+
+
 @pytest.fixture
 def data_generator(
     n_samples,
