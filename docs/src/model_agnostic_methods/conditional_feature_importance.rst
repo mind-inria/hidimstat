@@ -12,14 +12,13 @@ retraining or refitting the predictive model for each feature, making it computa
 efficient. 
 
 
-.. figure:: _images/sphx_glr_plot_cfi_001.png
+.. figure:: ../_images/sphx_glr_plot_cfi_001.png
     :target: ../generated/gallery/examples/plot_cfi.html
     :align: center
-    :scale: 50%
+
 
 Theoretical index
 ------------------
-
 
 Conditional Feature Importance (CFI) is a model-agnostic method that estimates
 feature importance using perturbations. It generates a perturbed feature
