@@ -10,7 +10,8 @@ def pytest_configure(config):  # noqa: ARG001
         if matplotlib is not None:
             matplotlib.use("Agg", force=True)
     except NameError as exception:
-        if str(exception) != "NameError: name 'matplotlib' is not defined":
+        if str(exception) != "name 'matplotlib' is not defined":
+            print(str(exception))
             raise
 
 
