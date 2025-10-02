@@ -3,16 +3,16 @@ import pytest
 
 from hidimstat._utils.scenario import multivariate_simulation
 
+try:
+    import matplotlib
+except ImportError:
+    matplotlib = None
+
 
 def pytest_configure(config):  # noqa: ARG001
-    """Use Agg so that no figures pop up and avoid error with windows."""
-    try:
-        if matplotlib is not None:
-            matplotlib.use("Agg", force=True)
-    except NameError as exception:
-        if str(exception) != "name 'matplotlib' is not defined":
-            print(str(exception))
-            raise
+    """Use Agg so that no figures pop up."""
+    if matplotlib is not None:
+        matplotlib.use("Agg", force=True)
 
 
 @pytest.fixture
