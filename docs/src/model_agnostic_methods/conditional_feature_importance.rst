@@ -6,7 +6,7 @@ Conditional Feature Importance
 ==============================
 
 Conditional Feature Importance (CFI) is a model-agnostic approach for quantifying the 
-importance of individual or groups of features in predictive models. Unlike methods such 
+relevance of individual or groups of features in predictive models. Unlike methods such 
 as :ref:`leave-one-covariate-out <leave_one_covariate_out>` (LOCO), CFI does not require 
 retraining or refitting the predictive model for each feature, making it computationally 
 efficient. 
@@ -25,7 +25,7 @@ feature importance using perturbations. It generates a perturbed feature
 :math:`X_j^P` that is sampled conditionally on the other features :math:`X_j^P
 \sim P(X_j | X_{-j})`. The predictive model is then evaluated on the perturbed
 feature vector :math:`\tilde X = \left[X_1, ...,X_j^P, ..., X_p\right]`, and the
-feature importance is defined as the performance drop of the model on the
+feature importance is defined as the performance drop of the model :math:`\mu` on the
 perturbed data:
 
 .. math::
@@ -40,6 +40,8 @@ Indeed,
     = \psi_j^{TSI} 
     = \mathbb{E} [\mathcal{L}(y, \mu_{-j}(X^-j))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
+Where in regression, :math:`\mu_{-j}(X_{-j}) = \mathbb{E}[\mu(X) | X_{-j}]` is the 
+model fitted without the :math:`j^{th}` feature.
 
 Estimation procedure
 --------------------
