@@ -12,7 +12,7 @@ retraining or refitting the predictive model for each feature, making it computa
 efficient. 
 
 
-.. image:: ../_images/sphx_glr_plot_cfi_001.png
+.. image:: ../images/sphx_glr_plot_cfi_001.png
 
 
 Theoretical index
