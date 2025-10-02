@@ -68,9 +68,10 @@ randomly permuted version :math:`\epsilon_j^p`:
     X_j^p = \nu_j(X_{-j}) + \epsilon_j^p, \quad \text{with} \quad \epsilon_j^p \sim \text{Perm}(\epsilon_j).
 
 
-.. note:: **Estimation of** :math:`X_j^p`
+.. note:: **Estimation of** :math:`\nu_j`
 
-    Estimating :math:`\nu_j` that is modeling the relationship between features is 
+    To generate the perturbed feature :math:`X_j^p`, a model for :math:`\nu_j` is required.
+    Estimating :math:`\nu_j` amounts to modeling the relationship between features and is
     arguably an easier task than estimating the relationship between features and the 
     target. This assumption was for instance argued in :footcite:t:`Chamma_NeurIPS2023`, 
     :footcite:t:`candes2018panning`. Consequently, simple predictive models such as 
