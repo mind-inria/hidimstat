@@ -4,22 +4,19 @@ import numpy as np
 from sklearn.base import clone
 from sklearn.model_selection import KFold
 
-from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
-class VariableImportanceCrossValidation(BaseVariableImportance):
+class CrossValidationMixin:
     """
-    Cross validation wrapper for feature importance estimation.
+    Base for Cross validation for feature importance estimation base perturbation.
 
-    This class implements a cross validation for feature importance estimation methods.
+    This class implements the base of cross validation for feature importance estimation methods.
     It splits the data into folds and fits the feature importance method on each fold,
     then aggregates the results across folds.
 
     Parameters
     ----------
-    feature_importance : object
-        Feature importance method
     cv : cross-validation generator, default=KFold()
         Determines the cross-validation splitting strategy.
     list_parameters : list of dict, optional
@@ -49,23 +46,24 @@ class VariableImportanceCrossValidation(BaseVariableImportance):
     def __init__(
         self,
         feature_importance,
+        estimators,
         cv=KFold(),
-        list_parameters=None,
         importance_aggregation=partial(np.mean, axis=0),
         pvalue_aggregation=quantile_aggregation,
     ):
-        super().__init__()
         self.feature_importance = feature_importance
         self.cv = cv
-        if list_parameters is not None:
-            assert (
-                len(list_parameters) >= cv.get_n_splits()
-            ), "the number of split of the cv should be lower than the number of list of parameters"
-            for parameters in list_parameters:
-                assert isinstance(
-                    parameters, dict
-                ), "the parameters need to be a dicstionnary"
-        self.list_parameters = list_parameters
+        if isinstance(estimators, list):
+            if len(estimators) == 0:
+                raise ValueError("the list of estimator can be empty")
+            elif len(estimators) > 1:
+                assert (
+                    len(estimators) >= cv.get_n_splits()
+                ), "the number of split of the cv should be lower than the number of list of parameters"
+            self.estimators = estimators
+        else:
+            self.estimators = [estimators]
+
         self.importance_aggregation = importance_aggregation
         self.pvalues_aggregation = pvalue_aggregation
 
@@ -100,8 +98,12 @@ class VariableImportanceCrossValidation(BaseVariableImportance):
         self.list_feature_importance_ = []
         for index, (train, test) in enumerate(self.cv.split(X)):
             feature_importance = clone(self.feature_importance)
-            if self.list_parameters is not None:
-                feature_importance(**self.list_parameters[index])
+            if len(self.estimators) > 1:
+                estimator = self.estimators[index]
+            else:
+                estimator = clone(self.estimators[0])
+                estimator.fit(X[train], y[train])
+            feature_importance.estimator = estimator
             feature_importance.fit(X[train], y[train])
             self.list_feature_importance_.append(feature_importance)
         return self
@@ -160,11 +162,9 @@ class VariableImportanceCrossValidation(BaseVariableImportance):
         initialized through prior method calls.
         """
         self._check_fit()
-        for index, (feature_importance, (train, test)) in enumerate(
-            zip(
-                self.list_feature_importance_,
-                self.cv.split(X),
-            )
+        for feature_importance, (train, test) in zip(
+            self.list_feature_importance_,
+            self.cv.split(X),
         ):
             feature_importance.importance(X[test], y[test])
         self.importances_ = self.importance_aggregation(
