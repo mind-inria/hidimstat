@@ -1,11 +1,15 @@
+from functools import partial
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import KFold
 from sklearn.utils.validation import check_random_state
 
-from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.base_perturbation import BasePerturbation, BaseCrossValidation
 from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
 class CFI(BasePerturbation):
@@ -187,4 +191,40 @@ class CFI(BasePerturbation):
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations
+        )
+
+
+class CV_CFI(BaseCrossValidation):
+    def __init__(
+        self,
+        estimators,
+        loss: callable = root_mean_squared_error,
+        method: str = "predict",
+        n_jobs: int = 1,
+        n_permutations: int = 50,
+        imputation_model_continuous=None,
+        imputation_model_categorical=None,
+        random_state: int = None,
+        categorical_max_cardinality: int = 10,
+        cv=KFold(),
+        importance_aggregation=partial(np.mean, axis=0),
+        pvalue_aggregation=quantile_aggregation,
+    ):
+        feature_importance = CFI(
+            None,
+            loss=loss,
+            method=method,
+            n_jobs=n_jobs,
+            n_permutations=n_permutations,
+            imputation_model_continuous=imputation_model_continuous,
+            imputation_model_categorical=imputation_model_categorical,
+            random_state=random_state,
+            categorical_max_cardinality=categorical_max_cardinality,
+        )
+        super().__init__(
+            feature_importance,
+            estimators,
+            cv,
+            importance_aggregation,
+            pvalue_aggregation,
         )

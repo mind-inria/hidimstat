@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import KFold
 
@@ -48,7 +49,6 @@ class BasePerturbation(BaseVariableImportance):
             variables or groups of variables.
         """
         super().__init__()
-        check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
@@ -72,6 +72,10 @@ class BasePerturbation(BaseVariableImportance):
             list of column names corresponding to each group. If None, the groups are
             identified based on the columns of X.
         """
+        try:
+            check_is_fitted(self.estimator)
+        except NotFittedError:
+            self.estimator.fit(X, y)
         if groups is None:
             self.n_groups = X.shape[1]
             self.groups = {j: [j] for j in range(self.n_groups)}
@@ -274,7 +278,7 @@ class BasePerturbation(BaseVariableImportance):
         raise NotImplementedError
 
 
-class CrossValidationMixin:
+class BaseCrossValidation:
     """
     Base for Cross validation for feature importance estimation base perturbation.
 
@@ -318,6 +322,7 @@ class CrossValidationMixin:
         importance_aggregation=partial(np.mean, axis=0),
         pvalue_aggregation=quantile_aggregation,
     ):
+        assert issubclass(feature_importance.__class__, BasePerturbation)
         self.feature_importance = feature_importance
         self.cv = cv
         if isinstance(estimators, list):
@@ -335,6 +340,8 @@ class CrossValidationMixin:
         self.pvalues_aggregation = pvalue_aggregation
 
         self.list_feature_importance_ = None
+        self.train_index_ = None
+        self.test_index_ = None
 
     def fit(self, X, y):
         """
@@ -363,13 +370,13 @@ class CrossValidationMixin:
         parameters for that fold.
         """
         self.list_feature_importance_ = []
-        for index, (train, test) in enumerate(self.cv.split(X)):
+        self.train_index_, self.test_index_ = self.cv.split(X)
+        for index, train in enumerate(self.train_index_):
             feature_importance = clone(self.feature_importance)
             if len(self.estimators) > 1:
                 estimator = self.estimators[index]
             else:
                 estimator = clone(self.estimators[0])
-                estimator.fit(X[train], y[train])
             feature_importance.estimator = estimator
             feature_importance.fit(X[train], y[train])
             self.list_feature_importance_.append(feature_importance)
@@ -393,7 +400,11 @@ class CrossValidationMixin:
         ValueError
             If feature importances have not been calculated yet (self.list_feature_importance_ is None)
         """
-        if self.list_feature_importance_ is None:
+        if (
+            self.list_feature_importance_ is None
+            or self.train_index_ is None
+            or self.test_index_ is None
+        ):
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
@@ -429,9 +440,9 @@ class CrossValidationMixin:
         initialized through prior method calls.
         """
         self._check_fit()
-        for feature_importance, (train, test) in zip(
+        for feature_importance, test in zip(
             self.list_feature_importance_,
-            self.cv.split(X),
+            self.test_index_,
         ):
             feature_importance.importance(X[test], y[test])
         self.importances_ = self.importance_aggregation(

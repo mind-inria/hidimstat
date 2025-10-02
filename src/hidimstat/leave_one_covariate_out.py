@@ -1,10 +1,14 @@
+from functools import partial
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
+from sklearn.model_selection import KFold
 
-from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.base_perturbation import BasePerturbation, BaseCrossValidation
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
 class LOCO(BasePerturbation):
@@ -111,3 +115,29 @@ class LOCO(BasePerturbation):
             raise ValueError("The estimators require to be fit before to use them")
         for m in self._list_estimators:
             check_is_fitted(m)
+
+
+class CV_LOCO(BaseCrossValidation):
+    def __init__(
+        self,
+        estimators,
+        loss: callable = root_mean_squared_error,
+        method: str = "predict",
+        n_jobs: int = 1,
+        cv=KFold(),
+        importance_aggregation=partial(np.mean, axis=0),
+        pvalue_aggregation=quantile_aggregation,
+    ):
+        feature_importance = LOCO(
+            None,
+            loss=loss,
+            method=method,
+            n_jobs=n_jobs,
+        )
+        super().__init__(
+            feature_importance,
+            estimators,
+            cv,
+            importance_aggregation,
+            pvalue_aggregation,
+        )
