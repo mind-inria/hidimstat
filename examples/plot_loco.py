@@ -89,7 +89,6 @@ for model in models_list:
                 "feature": list(range(X.shape[1])),
                 "importance": importances,
                 "model": model.__class__.__name__,
-                "support": beta,
                 "R2 score": model.score(X_test, y_test),
             }
         )
