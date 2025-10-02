@@ -183,7 +183,11 @@ def test_dcrt_lasso_no_selection():
     """
     X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
     d0crt = D0CRT(estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10)
-    d0crt.fit(X, y)
+    with pytest.warns(
+        UserWarning,
+        match="Precomputed coefficients were provided, screening is skipped and screening_threshold is set to 100.",
+    ):
+        d0crt.fit(X, y)
     assert np.all(d0crt.selection_set_)
 
 
