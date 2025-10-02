@@ -5,6 +5,18 @@
 Conditional Feature Importance
 ==============================
 
+Conditional Feature Importance (CFI) is a model-agnostic approach for quantifying the 
+importance of individual or groups of features in predictive models. Unlike methods such 
+as :ref:`leave-one-covariate-out <leave_one_covariate_out>` (LOCO), CFI does not require 
+retraining or refitting the predictive model for each feature, making it computationally 
+efficient. 
+
+
+.. figure:: ../_images/sphx_glr_plot_cfi_001.png
+    :target: ../generated/gallery/examples/plot_cfi.html
+    :align: center
+    :scale: 50%
+
 Theoretical index
 ------------------
 
@@ -28,12 +40,6 @@ Indeed,
     \frac{1}{2} \psi_j^{CFI} 
     = \psi_j^{TSI} 
     = \mathbb{E} [\mathcal{L}(y, \mu_{-j}(X^-j))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
-
-
-.. figure:: ../_images/sphx_glr_plot_cfi_001.png
-   :target: ../generated/gallery/examples/plot_cfi.html
-   :align: center
-   :scale: 50%
 
 
 Estimation procedure
