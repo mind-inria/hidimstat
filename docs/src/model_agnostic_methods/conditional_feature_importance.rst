@@ -30,6 +30,12 @@ Indeed,
     = \mathbb{E} [\mathcal{L}(y, \mu_{-j}(X^-j))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
 
+.. figure:: ../_images/sphx_glr_plot_cfi_001.png
+   :target: ../generated/gallery/examples/plot_cfi.html
+   :align: center
+   :scale: 50%
+
+
 Estimation procedure
 --------------------
 
@@ -55,10 +61,13 @@ randomly permuted version :math:`\epsilon_j^p`:
     X_j^p = \nu_j(X_{-j}) + \epsilon_j^p, \quad \text{with} \quad \epsilon_j^p \sim \text{Perm}(\epsilon_j).
 
 
-.. note:: **Estimation of :math:`X_j^p`**
+.. note:: **Estimation of** :math:`X_j^p`
 
-    TODO: note on the fact estimating :math:`\nu_j` is supposed to be an easy task. 
-    Note on the fact that we can use any valid conditional sampler can be used.
+    Estimating :math:`\nu_j` that is modeling the relationship between features is 
+    arguably an easier task than estimating the relationship between features and the 
+    target. This assumption was for instance argued in :footcite:t:`Chamma_NeurIPS2023`, 
+    :footcite:t:`candes2018panning`. Consequently, simple predictive models such as 
+    regularized linear models or decision trees can be used to estimate :math:`\nu_j`.
 
 
 Inference
