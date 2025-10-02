@@ -139,6 +139,42 @@ class TestSelectionFDR:
             ]
         )
 
+    def test_selection_fdr_alternative_hypothesis(self, set_100_variable_sorted):
+        "test selection fdr_control wrong"
+        vi = set_100_variable_sorted
+        with pytest.raises(
+            AssertionError,
+            match="alternative_hippothesis can have only three values: True, False and None.",
+        ):
+            vi.fdr_selection(fdr=0.1, alternative_hypothesis="alt")
+
+    def test_selection_fdr_pvalue(self, set_100_variable_sorted):
+        "test selection fdr without 1-pvalue"
+        vi = set_100_variable_sorted
+        true_value = np.arange(100) <= 4
+        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=False)
+        np.testing.assert_equal(
+            true_value, np.flip(selection[np.argsort(vi.importances_)])
+        )
+
+    def test_selection_fdr_one_minus_pvalue(self, set_100_variable_sorted):
+        "test selection fdr without 1-pvalue"
+        vi = set_100_variable_sorted
+        true_value = np.arange(100) >= 34
+        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=True)
+        np.testing.assert_equal(
+            true_value, np.flip(selection[np.argsort(vi.importances_)])
+        )
+
+    def test_selection_fdr_two_side(self, set_100_variable_sorted):
+        "test selection fdr without 1-pvalue"
+        vi = set_100_variable_sorted
+        true_value = np.logical_or(np.arange(100) <= 4, np.arange(100) >= 34)
+        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=None)
+        np.testing.assert_equal(
+            true_value, np.flip(selection[np.argsort(vi.importances_)])
+        )
+
 
 @pytest.mark.parametrize(
     "seed",
@@ -245,6 +281,25 @@ class TestSelectionFDRExceptions:
             match="The importances need to be called before calling this method",
         ):
             vi.fdr_selection(0.1)
+
+    def test_selection_fdr_wrong_fdr(self, set_100_variable_sorted):
+        "test selection fdr with wrong fdr"
+        vi = set_100_variable_sorted
+        with pytest.raises(
+            AssertionError,
+            match="FDR needs to be between 0 and 1 excluded",
+        ):
+            vi.fdr_selection(fdr=0.0)
+        with pytest.raises(
+            AssertionError,
+            match="FDR needs to be between 0 and 1 excluded",
+        ):
+            vi.fdr_selection(fdr=1.0)
+        with pytest.raises(
+            AssertionError,
+            match="FDR needs to be between 0 and 1 excluded",
+        ):
+            vi.fdr_selection(fdr=-1.0)
 
     def test_selection_fdr_pvalue_None(self, set_100_variable_sorted):
         "test selection fdr without pvalue"

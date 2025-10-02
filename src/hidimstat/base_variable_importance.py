@@ -244,6 +244,7 @@ class BaseVariableImportance(BaseEstimator):
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
+        assert 0 < fdr and fdr < 1, "FDR needs to be between 0 and 1 excluded"
         assert (
             self.pvalues_ is not None
         ), "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
@@ -264,7 +265,7 @@ class BaseVariableImportance(BaseEstimator):
             )
             selected_pvalues = self.pvalues_ <= threshold_pvalues
         else:
-            selected_pvalues = np.ones_like(self.pvalues_, dtype=bool)
+            selected_pvalues = np.zeros_like(self.pvalues_, dtype=bool)
 
         # selection on 1-pvalue
         if alternative_hypothesis is None or alternative_hypothesis:
@@ -278,7 +279,7 @@ class BaseVariableImportance(BaseEstimator):
                 1 - self.pvalues_
             ) <= threshold_one_minus_pvalues
         else:
-            selected_one_minus_pvalues = np.ones_like(self.pvalues_, dtype=bool)
+            selected_one_minus_pvalues = np.zeros_like(self.pvalues_, dtype=bool)
 
-        selected = selected_pvalues & selected_one_minus_pvalues
+        selected = selected_pvalues | selected_one_minus_pvalues
         return selected

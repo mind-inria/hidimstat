@@ -531,7 +531,6 @@ class TestCFIExceptions:
                 imputation_model_continuous="invalid_imputer",
                 method="predict",
             )
-            cfi.fit(X, y)
 
         with pytest.raises(AssertionError, match="Categorial imputation model invalid"):
             cfi = CFI(
@@ -539,7 +538,6 @@ class TestCFIExceptions:
                 imputation_model_categorical="invalid_imputer",
                 method="predict",
             )
-            cfi.fit(X, y)
 
     def test_invalid_groups_format(self, data_generator):
         """Test when groups are provided in invalid format"""
