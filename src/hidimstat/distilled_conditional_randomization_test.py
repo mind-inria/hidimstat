@@ -665,8 +665,9 @@ def d0crt(
     reuse_screening_model=True,
     k_best=None,
     percentile=None,
-    threshold=None,
-    threshold_pvalue=None,
+    threshold_min=None,
+    threshold_max=None,
+    alternative_hypothesis=False,
 ):
     methods = D0CRT(
         estimator=estimator,
@@ -686,11 +687,12 @@ def d0crt(
         random_state=random_state,
     )
     methods.fit_importance(X, y, cv=cv)
-    selection = methods.selection(
+    selection = methods.pvalue_selection(
         k_best=k_best,
         percentile=percentile,
-        threshold=threshold,
-        threshold_pvalue=threshold_pvalue,
+        threshold_min=threshold_min,
+        threshold_max=threshold_max,
+        alternative_hypothesis=alternative_hypothesis,
     )
     return selection, methods.importances_, methods.pvalues_
 
@@ -701,7 +703,7 @@ d0crt.__doc__ = _aggregate_docstring(
         D0CRT.__doc__,
         D0CRT.__init__.__doc__,
         D0CRT.fit_importance.__doc__,
-        D0CRT.selection.__doc__,
+        D0CRT.pvalue_selection.__doc__,
     ],
     """
     Returns

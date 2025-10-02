@@ -43,6 +43,10 @@ def _selection_multy_criteria(
         ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
             percentile
         )
+    if threshold_max is not None and threshold_min is not None:
+        assert (
+            threshold_max > threshold_min
+        ), "threshold_max needs to be higher than threshold_min "
 
     # base on SelectKBest of Scikit-Learn
     if k_best is not None:
@@ -166,14 +170,16 @@ class BaseVariableImportance(BaseEstimator):
         percentile : float, default=None
             Selects features based on a specified percentile of p-values.
         threshold_max : float, default=None
-            Selects features with p-values below the specified maximum threshold.
+            Selects features with p-values below the specified maximum threshold (0 to 1).
         threshold_min : float, default=None
-            Selects features with p-values above the specified minimum threshold.
+            Selects features with p-values above the specified minimum threshold (0 to 1).
+        alternative_hypothesis : bool, default=False
+            If True, selects based on 1-pvalues instead of p-values.
 
         Returns
         -------
         selection : array-like of shape (n_features,)
-            Binary array indicating the selected features.
+            Binary array indicating the selected features (True for selected).
         """
         self._check_importance()
         assert (
@@ -187,6 +193,9 @@ class BaseVariableImportance(BaseEstimator):
             assert (
                 0 < threshold_max and threshold_max < 1
             ), "threshold_max needs to be between 0 and 1"
+        assert alternative_hypothesis is None or isinstance(
+            alternative_hypothesis, bool
+        ), "alternative_hippothesis can have only three values: True, False and None."
         return _selection_multy_criteria(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_best=k_best,
@@ -195,12 +204,12 @@ class BaseVariableImportance(BaseEstimator):
             threshold_min=threshold_min,
         )
 
-    def selection_fdr(
+    def fdr_selection(
         self,
         fdr,
         fdr_control="bhq",
         reshaping_function=None,
-        alternative_hippothesis=False,
+        alternative_hypothesis=False,
     ):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
@@ -241,9 +250,12 @@ class BaseVariableImportance(BaseEstimator):
         assert (
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
+        assert alternative_hypothesis is None or isinstance(
+            alternative_hypothesis, bool
+        ), "alternative_hippothesis can have only three values: True, False and None."
 
         # selection on pvalue
-        if alternative_hippothesis is None or not alternative_hippothesis:
+        if alternative_hypothesis is None or not alternative_hypothesis:
             threshold_pvalues = fdr_threshold(
                 self.pvalues_,
                 fdr=fdr,
@@ -252,10 +264,10 @@ class BaseVariableImportance(BaseEstimator):
             )
             selected_pvalues = self.pvalues_ <= threshold_pvalues
         else:
-            selected_pvalues = np.ones_like(self.pvalues_, type=bool)
+            selected_pvalues = np.ones_like(self.pvalues_, dtype=bool)
 
         # selection on 1-pvalue
-        if alternative_hippothesis is None or alternative_hippothesis:
+        if alternative_hypothesis is None or alternative_hypothesis:
             threshold_one_minus_pvalues = fdr_threshold(
                 1 - self.pvalues_,
                 fdr=fdr,
@@ -266,7 +278,7 @@ class BaseVariableImportance(BaseEstimator):
                 1 - self.pvalues_
             ) <= threshold_one_minus_pvalues
         else:
-            selected_one_minus_pvalues = np.ones_like(self.pvalues_, type=bool)
+            selected_one_minus_pvalues = np.ones_like(self.pvalues_, dtype=bool)
 
         selected = selected_pvalues & selected_one_minus_pvalues
         return selected

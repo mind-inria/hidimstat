@@ -4,7 +4,6 @@ Test the dcrt module
 
 import numpy as np
 import pytest
-from numpy.random import RandomState
 from sklearn.covariance import LedoitWolf
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
@@ -33,13 +32,13 @@ def test_dcrt_lasso_screening(generate_regression_dataset):
         screening_threshold=None,
     )
     pvalue_no_screening = d0crt_no_screening.fit_importance(X, y)
-    sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
+    sv_no_screening = d0crt_no_screening.pvalue_selection(threshold_max=0.05)
     d0crt_screening = D0CRT(
         estimator=LassoCV(n_jobs=1),
         screening_threshold=10,
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
-    sv_screening = d0crt_screening.selection(threshold_pvalue=0.05)
+    sv_screening = d0crt_screening.pvalue_selection(threshold_max=0.05)
     assert np.sum(d0crt_no_screening.importances_ != 0) <= 10
     assert np.sum(d0crt_screening.importances_ != 0) <= 10
     assert len(sv_no_screening) <= 10
@@ -57,7 +56,7 @@ def test_dcrt_lasso_screening(generate_regression_dataset):
     )
     d0crt_no_screening.fit_importance(X, y)
     pvalue_no_screening = d0crt_no_screening.importance(X, y)
-    sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
+    sv_no_screening = d0crt_no_screening.pvalue_selection(threshold_max=0.05)
     assert len(sv_no_screening) <= 10
     assert len(pvalue_no_screening) == 10
     assert len(d0crt_no_screening.importances_) == 10
@@ -79,7 +78,7 @@ def test_dcrt_lasso_with_estimed_coefficient(generate_regression_dataset):
     )
     d0crt.fit(X, y)
     pvalue = d0crt.importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -97,7 +96,7 @@ def test_dcrt_lasso_with_refit(generate_regression_dataset):
         screening_threshold=None,
     )
     pvalue = d0crt_refit.fit_importance(X, y)
-    sv = d0crt_refit.selection(threshold_pvalue=0.05)
+    sv = d0crt_refit.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt_refit.importances_) == 10
@@ -115,7 +114,7 @@ def test_dcrt_lasso_with_no_cv(generate_regression_dataset):
         screening_threshold=None,
     )
     pvalue = d0crt_use_cv.fit_importance(X, y)
-    sv = d0crt_use_cv.selection(threshold_pvalue=0.05)
+    sv = d0crt_use_cv.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt_use_cv.importances_) == 10
@@ -135,7 +134,7 @@ def test_dcrt_lasso_with_covariance(generate_regression_dataset):
         screening_threshold=None,
     )
     pvalue = d0crt_covariance.fit_importance(X, y)
-    sv = d0crt_covariance.selection(threshold_pvalue=0.05)
+    sv = d0crt_covariance.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt_covariance.importances_) == 10
@@ -153,7 +152,7 @@ def test_dcrt_lasso_center():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -171,7 +170,7 @@ def test_dcrt_lasso_refit():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -199,7 +198,7 @@ def test_dcrt_distillation_x_different():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -217,7 +216,7 @@ def test_dcrt_distillation_y_different():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -237,7 +236,7 @@ def test_dcrt_lasso_fit_with_no_cv():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert np.sum(d0crt.importances_ != 0) <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -257,7 +256,7 @@ def test_dcrt_RF_regression():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -276,7 +275,7 @@ def test_dcrt_RF_classification():
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
@@ -460,7 +459,7 @@ def test_d0crt_linear():
         screening_threshold=90,
     )
     importances = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
 
     assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
     assert np.array_equal(np.where(sv)[0], important_ids)
@@ -486,7 +485,7 @@ def test_d0crt_rf():
         random_state=0,
     )
     importances = d0crt.fit_importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
 
     assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
     assert np.array_equal(np.where(sv)[0], important_ids)
