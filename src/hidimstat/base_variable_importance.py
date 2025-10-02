@@ -6,6 +6,80 @@ from sklearn.base import BaseEstimator
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
+def _selection_multy_criteria(
+    values, k_best=None, percentile=None, threshold_max=None, threshold_min=None
+):
+    """
+    Helper function for selecting features based on multiple criteria.
+
+    Parameters
+    ----------
+    values : array-like of shape (n_features,)
+        Values to use for feature selection (e.g., importance scores or p-values)
+    k_best : int, default=None
+        Selects the top k features based on values.
+    percentile : float, default=None
+        Selects features based on a specified percentile of values.
+    threshold_max : float, default=None
+        Selects features with values below the specified maximum threshold.
+    threshold_min : float, default=None
+        Selects features with values above the specified minimum threshold.
+
+    Returns
+    -------
+    selections : array-like of shape (n_features,)
+        Boolean array indicating the selected features.
+    """
+    if k_best is not None:
+        assert k_best >= 1, "k_best needs to be positive or None"
+        if k_best > values.shape[0]:
+            warnings.warn(
+                f"k={k_best} is greater than n_features={values.shape[0]}. "
+                "All the features will be returned."
+            )
+    if percentile is not None:
+        assert (
+            0 < percentile < 100
+        ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
+            percentile
+        )
+
+    # base on SelectKBest of Scikit-Learn
+    if k_best is not None:
+        mask_k_best = np.zeros_like(values, dtype=bool)
+
+        # Request a stable sort. Mergesort takes more memory (~40MB per
+        # megafeature on x86-64).
+        mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
+    else:
+        mask_k_best = np.ones_like(values, dtype=bool)
+
+    # base on SelectPercentile of Scikit-Learn
+    if percentile is not None:
+        threshold_percentile = np.percentile(values, 100 - percentile)
+        mask_percentile = values > threshold_percentile
+        ties = np.where(values == threshold_percentile)[0]
+        if len(ties):
+            max_feats = int(len(values) * percentile / 100)
+            kept_ties = ties[: max_feats - mask_percentile.sum()]
+            mask_percentile[kept_ties] = True
+    else:
+        mask_percentile = np.ones_like(values, dtype=bool)
+
+    if threshold_max is not None:
+        mask_threshold_max = values < threshold_max
+    else:
+        mask_threshold_max = np.ones_like(values, dtype=bool)
+
+    if threshold_min is not None:
+        mask_threshold_min = values > threshold_min
+    else:
+        mask_threshold_min = np.ones_like(values, dtype=bool)
+
+    selections = mask_k_best & mask_percentile & mask_threshold_max & mask_threshold_min
+    return selections
+
+
 class BaseVariableImportance(BaseEstimator):
     """
     Base class for variable importance methods.
@@ -43,8 +117,8 @@ class BaseVariableImportance(BaseEstimator):
                 "The importances need to be called before calling this method"
             )
 
-    def selection(
-        self, k_best=None, percentile=None, threshold=None, threshold_pvalue=None
+    def importance_selection(
+        self, k_best=None, percentile=None, threshold_max=None, threshold_min=None
     ):
         """
         Selects features based on variable importance.
@@ -55,10 +129,10 @@ class BaseVariableImportance(BaseEstimator):
             Selects the top k features based on importance scores.
         percentile : float, default=None
             Selects features based on a specified percentile of importance scores.
-        threshold : float, default=None
-            Selects features with importance scores above the specified threshold.
-        threshold_pvalue : float, default=None
-            Selects features with p-values below the specified threshold.
+        threshold_max : float, default=None
+            Selects features with importance scores below the specified maximum threshold.
+        threshold_min : float, default=None
+            Selects features with importance scores above the specified minimum threshold.
 
         Returns
         -------
@@ -66,71 +140,67 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        if k_best is not None:
-            assert k_best >= 1, "k_best needs to be positive or None"
-            if k_best > self.importances_.shape[0]:
-                warnings.warn(
-                    f"k={k_best} is greater than n_features={self.importances_.shape[0]}. "
-                    "All the features will be returned."
-                )
-        if percentile is not None:
-            assert (
-                0 < percentile < 100
-            ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
-                percentile
-            )
-        if threshold_pvalue is not None:
-            assert (
-                self.pvalues_ is not None
-            ), "This method doesn't support a threshold on p-values"
-            assert (
-                0 < threshold_pvalue and threshold_pvalue < 1
-            ), "threshold_pvalue needs to be between 0 and 1"
-
-        # base on SelectKBest of Scikit-Learn
-        if k_best is not None:
-            mask_k_best = np.zeros(self.importances_.shape, dtype=bool)
-
-            # Request a stable sort. Mergesort takes more memory (~40MB per
-            # megafeature on x86-64).
-            mask_k_best[np.argsort(self.importances_, kind="mergesort")[-k_best:]] = 1
-        else:
-            mask_k_best = np.ones(self.importances_.shape, dtype=bool)
-
-        # base on SelectPercentile of Scikit-Learn
-        if percentile is not None:
-            threshold_percentile = np.percentile(self.importances_, 100 - percentile)
-            mask_percentile = self.importances_ > threshold_percentile
-            ties = np.where(self.importances_ == threshold_percentile)[0]
-            if len(ties):
-                max_feats = int(len(self.importances_) * percentile / 100)
-                kept_ties = ties[: max_feats - mask_percentile.sum()]
-                mask_percentile[kept_ties] = True
-        else:
-            mask_percentile = np.ones(self.importances_.shape, dtype=bool)
-
-        if threshold is not None:
-            mask_threshold = self.importances_ < threshold
-        else:
-            mask_threshold = np.ones(self.importances_.shape, dtype=bool)
-
-        # base on SelectFpr of Scikit-Learn
-        if threshold_pvalue is not None:
-            mask_threshold_pvalue = self.pvalues_ < threshold_pvalue
-        else:
-            mask_threshold_pvalue = np.ones(self.importances_.shape, dtype=bool)
-
-        selections = (
-            mask_k_best & mask_percentile & mask_threshold & mask_threshold_pvalue
+        return _selection_multy_criteria(
+            self.importances_,
+            k_best=k_best,
+            percentile=percentile,
+            threshold_max=threshold_max,
+            threshold_min=threshold_min,
         )
 
-        return selections
+    def pvalue_selection(
+        self,
+        k_best=None,
+        percentile=None,
+        threshold_max=None,
+        threshold_min=None,
+        alternative_hypothesis=False,
+    ):
+        """
+        Selects features based on p-values.
+
+        Parameters
+        ----------
+        k_best : int, default=None
+            Selects the k features with lowest p-values.
+        percentile : float, default=None
+            Selects features based on a specified percentile of p-values.
+        threshold_max : float, default=None
+            Selects features with p-values below the specified maximum threshold.
+        threshold_min : float, default=None
+            Selects features with p-values above the specified minimum threshold.
+
+        Returns
+        -------
+        selection : array-like of shape (n_features,)
+            Binary array indicating the selected features.
+        """
+        self._check_importance()
+        assert (
+            self.pvalues_ is not None
+        ), "The selection on p-value can't be done because the current method does not compute p-values."
+        if threshold_min is not None:
+            assert (
+                0 < threshold_min and threshold_min < 1
+            ), "threshold_min needs to be between 0 and 1"
+        if threshold_max is not None:
+            assert (
+                0 < threshold_max and threshold_max < 1
+            ), "threshold_max needs to be between 0 and 1"
+        return _selection_multy_criteria(
+            self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
+            k_best=k_best,
+            percentile=percentile,
+            threshold_max=threshold_max,
+            threshold_min=threshold_min,
+        )
 
     def selection_fdr(
         self,
         fdr,
         fdr_control="bhq",
         reshaping_function=None,
+        alternative_hippothesis=False,
     ):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
@@ -146,6 +216,10 @@ class BaseVariableImportance(BaseEstimator):
         reshaping_function: callable or None, default=None
             Optional reshaping function for FDR control methods.
             If None, defaults to sum of reciprocals for 'bhy'.
+        alternative_hippothesis: bool or None, default=False
+            If False, selects features with small p-values.
+            If True, selects features with large p-values (close to 1).
+            If None, selects features that have either small or large p-values.
 
         Returns
         -------
@@ -168,11 +242,31 @@ class BaseVariableImportance(BaseEstimator):
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
 
-        threshold_pval = fdr_threshold(
-            self.pvalues_,
-            fdr=fdr,
-            method=fdr_control,
-            reshaping_function=reshaping_function,
-        )
-        selected = self.pvalues_ <= threshold_pval
+        # selection on pvalue
+        if alternative_hippothesis is None or not alternative_hippothesis:
+            threshold_pvalues = fdr_threshold(
+                self.pvalues_,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            selected_pvalues = self.pvalues_ <= threshold_pvalues
+        else:
+            selected_pvalues = np.ones_like(self.pvalues_, type=bool)
+
+        # selection on 1-pvalue
+        if alternative_hippothesis is None or alternative_hippothesis:
+            threshold_one_minus_pvalues = fdr_threshold(
+                1 - self.pvalues_,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            selected_one_minus_pvalues = (
+                1 - self.pvalues_
+            ) <= threshold_one_minus_pvalues
+        else:
+            selected_one_minus_pvalues = np.ones_like(self.pvalues_, type=bool)
+
+        selected = selected_pvalues & selected_one_minus_pvalues
         return selected
