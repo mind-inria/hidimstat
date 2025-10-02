@@ -157,7 +157,7 @@ class BaseVariableImportance(BaseEstimator):
         self,
         k_best=None,
         percentile=None,
-        threshold_max=None,
+        threshold_max=0.05,
         threshold_min=None,
         alternative_hypothesis=False,
     ):
@@ -170,7 +170,7 @@ class BaseVariableImportance(BaseEstimator):
             Selects the k features with lowest p-values.
         percentile : float, default=None
             Selects features based on a specified percentile of p-values.
-        threshold_max : float, default=None
+        threshold_max : float, default=0.05
             Selects features with p-values below the specified maximum threshold (0 to 1).
         threshold_min : float, default=None
             Selects features with p-values above the specified minimum threshold (0 to 1).
