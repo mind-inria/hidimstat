@@ -3,11 +3,11 @@ from functools import partial
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_squared_error, root_mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.utils.validation import check_random_state
 
-from hidimstat.base_perturbation import BasePerturbation, BaseCrossValidation
+from hidimstat.base_perturbation import BaseCrossValidation, BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
@@ -198,7 +198,7 @@ class CV_CFI(BaseCrossValidation):
     def __init__(
         self,
         estimators,
-        loss: callable = root_mean_squared_error,
+        loss: callable = mean_squared_error,
         method: str = "predict",
         n_jobs: int = 1,
         n_permutations: int = 50,

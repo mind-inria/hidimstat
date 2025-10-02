@@ -7,7 +7,7 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat.base_perturbation import BasePerturbation, BaseCrossValidation
+from hidimstat.base_perturbation import BaseCrossValidation, BasePerturbation
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
