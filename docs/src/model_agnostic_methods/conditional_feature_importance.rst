@@ -12,7 +12,7 @@ retraining or refitting the predictive model for each feature, making it computa
 efficient. 
 
 
-.. figure:: ../_images/sphx_glr_plot_cfi_001.png
+.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
     :target: ../generated/gallery/examples/plot_cfi.html
     :align: center
 
