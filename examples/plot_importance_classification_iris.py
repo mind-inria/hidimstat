@@ -11,13 +11,13 @@ importance of groups of variables.
 
 To briefly summarize the two methods:
 
- - PFI (Permutation Feature Importance) shuffles the values of a feature and measures
-   the increase in the loss when predicting (using om the same full model) on the
-   shuffled data.
+- PFI (Permutation Feature Importance) shuffles the values of a feature and measures
+  the increase in the loss when predicting (using om the same full model) on the
+  shuffled data.
 
- - CFI (Conditional Feature Importance) is a conditional version of PFI that
-   preserves the conditional distribution of the feature. It introduces a second model to
-   estimate this conditional distribution.
+- CFI (Conditional Feature Importance) is a conditional version of PFI that
+  preserves the conditional distribution of the feature. It introduces a second model to
+  estimate this conditional distribution.
 
 """
 
@@ -36,6 +36,8 @@ from sklearn.svm import SVC
 
 from hidimstat import CFI, PFI
 
+# Define the seeds for the reproducibility of the example
+rng = np.random.default_rng(0)
 # %%
 # Load the iris dataset and add a spurious feature
 # ------------------------------------------------
@@ -43,8 +45,8 @@ from hidimstat import CFI, PFI
 # the petal length, width amd some noise but not related to the target. The spurious feature
 # allows to illustrate that `PFI` is not robust to spurious features,
 # contrarily to `CFI`.
+
 dataset = load_iris()
-rng = np.random.RandomState(0)
 X, y = dataset.data, dataset.target
 spurious_feat = X[:, 2] + X[:, 3]
 spurious_feat += rng.normal(size=X.shape[0], scale=np.std(spurious_feat) / 2)
@@ -60,7 +62,15 @@ dataset.feature_names = dataset.feature_names + ["spurious_feat"]
 # require a K-fold cross-fitting. Computing the importance for each fold is
 # embarrassingly parallel. For this reason, we encapsulate the main computations in a
 # function and use joblib to parallelize the computation.
-def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=None):
+def run_one_fold(
+    X,
+    y,
+    model,
+    train_index,
+    test_index,
+    vim_name="CFI",
+    groups=None,
+):
     model_c = clone(model)
     model_c.fit(X[train_index], y[train_index])
     y_pred = model_c.predict(X[test_index])
@@ -77,9 +87,11 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
     if vim_name == "CFI":
         vim = CFI(
             estimator=model_c,
-            imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
+            imputation_model_continuous=RidgeCV(
+                alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
+            ),
             n_permutations=50,
-            random_state=0,
+            random_state=2,
             method=method,
             loss=loss,
         )
@@ -87,7 +99,7 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
         vim = PFI(
             estimator=model_c,
             n_permutations=50,
-            random_state=0,
+            random_state=3,
             method=method,
             loss=loss,
         )
@@ -101,7 +113,10 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
             "importance": importance,
             "vim": vim_name,
             "model": model_name,
-            "score": balanced_accuracy_score(y_true=y[test_index], y_pred=y_pred),
+            "score": balanced_accuracy_score(
+                y_true=y[test_index],
+                y_pred=y_pred,
+            ),
         }
     )
 
@@ -112,10 +127,19 @@ def run_one_fold(X, y, model, train_index, test_index, vim_name="CFI", groups=No
 # combination, in parallel.
 
 models = [
-    LogisticRegressionCV(Cs=np.logspace(-3, 3, 10), tol=1e-3, max_iter=1000),
-    GridSearchCV(SVC(kernel="rbf"), {"C": np.logspace(-3, 3, 10)}),
+    LogisticRegressionCV(
+        Cs=np.logspace(-3, 3, 10),
+        tol=1e-3,
+        max_iter=1000,
+        cv=KFold(shuffle=True, random_state=4),
+    ),
+    GridSearchCV(
+        SVC(kernel="rbf"),
+        {"C": np.logspace(-3, 3, 10)},
+        cv=KFold(shuffle=True, random_state=5),
+    ),
 ]
-cv = KFold(n_splits=5, shuffle=True, random_state=0)
+cv = KFold(n_splits=5, shuffle=True, random_state=6)
 groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(

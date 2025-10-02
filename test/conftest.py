@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+
 from hidimstat._utils.scenario import multivariate_simulation
 
 

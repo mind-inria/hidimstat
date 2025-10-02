@@ -1,7 +1,8 @@
 import warnings
 
-from sklearn.base import BaseEstimator
 import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -131,3 +132,68 @@ class BaseVariableImportance(BaseEstimator):
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
+
+    def plot_importance(
+        self,
+        ax=None,
+        ascending=False,
+        **seaborn_barplot_kwargs,
+    ):
+        """
+        Plot feature importances as a horizontal bar plot.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes or None, (default=None)
+            Axes object to draw the plot onto, otherwise uses the current Axes.
+        ascending: bool, default=False
+            Whether to sort features by ascending importance.
+        **seaborn_barplot_kwargs : additional keyword arguments
+            Additional arguments passed to seaborn.barplot.
+            https://seaborn.pydata.org/generated/seaborn.barplot.html
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The Axes object with the plot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+        except ImportError:
+            raise Exception("You need to install seaborn for using this functionality")
+
+        self._check_importance()
+
+        if ax is None:
+            _, ax = plt.subplots()
+        feature_names = list(self.groups.keys())
+
+        if self.importances_.ndim == 2:
+            df_plot = {
+                "Feature": feature_names * self.importances_.shape[0],
+                "Importance": self.importances_.flatten(),
+            }
+        else:
+            df_plot = {
+                "Feature": feature_names,
+                "Importance": self.importances_,
+            }
+
+        df_plot = pd.DataFrame(df_plot)
+        # Sort features by decreasing mean importance
+        mean_importance = df_plot.groupby("Feature").mean()
+        sorted_features = mean_importance.sort_values(
+            by="Importance", ascending=ascending
+        ).index
+        df_plot["Feature"] = pd.Categorical(
+            df_plot["Feature"],
+            categories=sorted_features,
+            ordered=True,
+        )
+        sns.barplot(
+            df_plot, x="Importance", y="Feature", ax=ax, **seaborn_barplot_kwargs
+        )
+        sns.despine(ax=ax)
+        ax.set_ylabel("")
+        return ax

@@ -45,6 +45,7 @@ To apply the required dependencies and style your code:
 
     pip install -e '.[style]'
     isort .
+    codespell --toml pyproject.toml
     black .
 
 Examples
@@ -60,7 +61,7 @@ For running the examples, it's necessary to install Matplotlib >= |MatplotlibMin
 |SeabornMinVersion|.
 
 | After this installation, you can run any example in the `examples <https://github.com/mind-inria/hidimstat/tree/main/examples>`_ folder.
-| Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/auto_examples/index.html>`_.
+| Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/generated/gallery/examples/index.html>`_.
 
 Documentation
 """""""""""""
