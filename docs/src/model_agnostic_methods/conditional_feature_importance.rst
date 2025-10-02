@@ -79,7 +79,29 @@ randomly permuted version :math:`\epsilon_j^p`:
 
 Inference
 ---------
-TODO finish the section on inference
+Conditional Feature Importance (CFI) allows for conditional independence testing, which 
+determines if a feature provides any unique information to the model's predictions that 
+isn't already captured by the other features. Essentially, we are testing the null 
+hypothesis of conditional independence:
+
+.. math::
+    \mathcal{H}_0: Y \perp\!\!\!\perp X_j | X_{-j}.
+
+
+The core of this inference is to test the statistical significance of the loss 
+differences estimated by CFI. Consequently, a one-sample test on the loss differences
+(or a paired test on the losses) needs to be performed. 
+
+Two technical challenges arise in this context:
+1. When cross-validation (for instance k-fold) is used to estimate CFI, the loss 
+   differences obtained from different folds are not independent. Consequently, 
+   performing a simple t-test on the loss differences is not valid. This issue can be
+   addressed by a corrected t-test accounting for this dependence such as the one
+   proposed in :footcite:t:`nadeau1999inference`.
+2. Vanishing variance: under the null hypothesis when the expected loss difference 
+   converges to zero, the variance of the loss differences also vanishes. This makes the 
+   standard one-sample t-test invalid. This second issue can be handled by correcting 
+   the variance estimate.
 
 
 Regression example
