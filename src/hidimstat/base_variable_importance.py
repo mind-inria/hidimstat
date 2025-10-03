@@ -59,7 +59,7 @@ def _selection_multi_criteria(
     else:
         mask_k_best = np.ones_like(values, dtype=bool)
 
-    # base on SelectPercentile of Scikit-Learn
+    # based on SelectPercentile in Scikit-Learn
     if percentile is not None:
         threshold_percentile = np.percentile(values, 100 - percentile)
         mask_percentile = values > threshold_percentile
