@@ -6,11 +6,11 @@ Conditional Feature Importance
 ==============================
 
 Conditional Feature Importance (CFI) is a model-agnostic approach for quantifying the 
-relevance of individual or groups of features in predictive models. Unlike methods such 
-as :ref:`leave-one-covariate-out <leave_one_covariate_out>` (LOCO), CFI does not require 
-retraining or refitting the predictive model for each feature, making it computationally 
-efficient. 
-
+relevance of individual or groups of features in predictive models. It is a 
+perturbation-based method that compares the predictive performance of a model on 
+unmodified test data—following the same distribution as the training data—
+to its performance when a specific feature is conditionally perturbed. Thus, this approach 
+does not require retraining the model.
 
 .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
     :target: ../generated/gallery/examples/plot_cfi.html
@@ -20,13 +20,13 @@ efficient.
 Theoretical index
 ------------------
 
-Conditional Feature Importance (CFI) is a model-agnostic method that estimates
-feature importance using perturbations. It generates a perturbed feature
-:math:`X_j^P` that is sampled conditionally on the other features :math:`X_j^P
-\sim P(X_j | X_{-j})`. The predictive model is then evaluated on the perturbed
-feature vector :math:`\tilde X = \left[X_1, ...,X_j^P, ..., X_p\right]`, and the
-feature importance is defined as the performance drop of the model :math:`\mu` on the
-perturbed data:
+Conditional Feature Importance (CFI) is a model-agnostic method for estimating feature 
+importance through conditional perturbations. Specifically, it constructs a perturbed 
+version of the feature :math:`X_j^P`, sampled independently from the conditional distribution 
+:math:`P(X_j | X_{-j})`, such that its association with the output is removed: 
+:math:`X_j^P \perp Y \mid X^{-j}`. The predictive model is then evaluated on the 
+modified feature vector :math:`\tilde X = [X_1, ..., X_j^P, ..., X_p]`, and the 
+importance of the feature is quantified by the resulting drop in model performance.
 
 .. math::
     \psi_j^{CFI} = \mathbb{E} [\mathcal{L}(y, \mu(\tilde X))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
@@ -47,11 +47,13 @@ Estimation procedure
 --------------------
 
 The estimation of CFI relies on the ability to sample the perturbed feature matrix 
-:math:`\tilde X` and more specifically to sample :math:`X_j^p` from the conditional 
-distribution, :math:`X_j^p \sim P(X_j | X_{-j})`. This can be achieved using the 
-conditional permutation approach (:footcite:t:`Chamma_NeurIPS2023`). The procedure relies on the 
-decomposition of the :math:`j^{th}` feature into a part that is predictable from the
-other features, and a residual information term that is independent of the other features:
+:math:`\tilde X`, and specifically to sample :math:`X_j^p` independently from the conditional 
+distribution, :math:`X_j^p \overset{\text{i.i.d.}}{\sim} P(X_j | X_{-j})`, while breaking the
+association with the output :math:`Y`. Any conditional sampler can be used. A valid 
+and efficient approach is conditional permutation (:footcite:t:`Chamma_NeurIPS2023`). 
+This procedure decomposes the :math:`j^{th}` feature into a part that 
+is predictable from the other features and a residual term that is 
+independent of the other features:
 
 .. math::
     X_j = \nu_j(X_{-j}) + \epsilon_j, \quad \text{with} \quad \epsilon_j \perp\!\!\!\perp X_{-j} \text{ and } \mathbb{E}[\epsilon_j] = 0.
@@ -73,13 +75,14 @@ randomly permuted version :math:`\epsilon_j^p`:
     To generate the perturbed feature :math:`X_j^p`, a model for :math:`\nu_j` is required.
     Estimating :math:`\nu_j` amounts to modeling the relationship between features and is
     arguably an easier task than estimating the relationship between features and the 
-    target. This assumption was for instance argued in :footcite:t:`Chamma_NeurIPS2023`, 
+    target. This 'model-X' assumption was for instance argued in :footcite:t:`Chamma_NeurIPS2023`, 
     :footcite:t:`candes2018panning`. Consequently, simple predictive models such as 
     regularized linear models or decision trees can be used to estimate :math:`\nu_j`.
 
 
 Inference
 ---------
+Under stadard assumptions such as additive model: :math:`Y = \mu(X) + \epsilon`, 
 Conditional Feature Importance (CFI) allows for conditional independence testing, which 
 determines if a feature provides any unique information to the model's predictions that 
 isn't already captured by the other features. Essentially, we are testing the null 
@@ -100,7 +103,7 @@ Two technical challenges arise in this context:
   performing a simple t-test on the loss differences is not valid. This issue can be
   addressed by a corrected t-test accounting for this dependence, such as the one
   proposed in :footcite:t:`nadeau1999inference`.
-* Vanishing variance: Under the null hypothesis, when the expected loss difference
+* Vanishing variance: Under the null hypothesis, as the expected loss difference
   converges to zero, the variance of the loss differences also vanishes. This makes the
   standard one-sample t-test invalid. This second issue can be handled by correcting
   the variance estimate.
