@@ -111,7 +111,7 @@ Two technical challenges arise in this context:
 * Vanishing variance: Under the null hypothesis, even if the loss difference
   converges to zero, the variance of the loss differences also vanishes due to the quadratic functional (:footcite:t:verdinelli2024feature``) . This makes the
   standard one-sample t-test invalid. This second issue can be handled by correcting
-  the variance estimate.
+  the variance estimate or using other nonparametric test.
 
 
 Regression example
