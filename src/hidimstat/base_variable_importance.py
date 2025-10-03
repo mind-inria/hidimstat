@@ -140,6 +140,7 @@ class BaseVariableImportance(BaseEstimator):
         self,
         ax=None,
         ascending=False,
+        feature_names=None,
         **seaborn_barplot_kwargs,
     ):
         """
@@ -171,10 +172,17 @@ class BaseVariableImportance(BaseEstimator):
         if ax is None:
             _, ax = plt.subplots()
 
-        if hasattr(self, "feature_groups"):
-            feature_names = list(self.feature_groups.keys())
+        if feature_names is None:
+            if hasattr(self, "feature_groups"):
+                feature_names = list(self.feature_groups.keys())
+            else:
+                feature_names = [str(j) for j in range(self.importances_.shape[-1])]
+        elif isinstance(feature_names, list):
+            assert np.all(
+                isinstance(name, str) for name in feature_names
+            ), "The feature_names should be a list of the string"
         else:
-            feature_names = [str(j) for j in range(self.importances_.shape[-1])]
+            raise ValueError("feature_names should be a list")
 
         if self.importances_.ndim == 2:
             df_plot = {
