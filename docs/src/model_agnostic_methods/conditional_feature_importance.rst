@@ -91,8 +91,7 @@ Inference
 Under standard assumptions such as additive model: :math:`Y = \mu(X) + \epsilon`, 
 Conditional Feature Importance (CFI) allows for conditional independence testing, which 
 determines if a feature provides any unique information to the model's predictions that 
-isn't already captured by the other features. Essentially, we are testing the null 
-hypothesis of conditional independence:
+isn't already captured by the other features. Essentially, we are testing whether the output is independent of the studied feature given the rest of the input:
 
 .. math::
     \mathcal{H}_0: Y \perp\!\!\!\perp X_j | X_{-j}.
