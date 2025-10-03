@@ -120,11 +120,9 @@ class BasePerturbation(BaseVariableImportance):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_group)(
-                X_, group_id, group_key, random_state=child_state
+                X_, group_id, random_state=child_state
             )
-            for group_id, (group_key, child_state) in enumerate(
-                zip(self.groups.keys(), rng.spawn(self.n_groups))
-            )
+            for group_id, child_state in enumerate(rng.spawn(self.n_groups))
         )
         return np.stack(out_list, axis=0)
 
