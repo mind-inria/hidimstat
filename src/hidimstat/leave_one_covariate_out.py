@@ -103,7 +103,7 @@ class LOCO(BasePerturbation):
         return estimator
 
     def _joblib_predict_one_features_group(
-        self, X, feature_group_id, key_feature_groups, random_state=None
+        self, X, features_group_id, key_features_group, random_state=None
     ):
         """Predict the target feature after removing a group of covariates.
         Used in parallel."""
