@@ -93,7 +93,7 @@ class LOCO(BasePerturbation):
         )
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, y, key_feature_groups):
+    def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
             X_minus_j = X.drop(columns=self.feature_groups[key_feature_groups])
