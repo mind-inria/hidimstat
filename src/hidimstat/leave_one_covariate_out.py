@@ -109,7 +109,7 @@ class LOCO(BasePerturbation):
         Used in parallel."""
         X_minus_j = np.delete(X, self._feature_groups_ids[features_group_id], axis=1)
 
-        y_pred_loco = getattr(self._list_estimators[feature_group_id], self.method)(
+        y_pred_loco = getattr(self._list_estimators[features_group_id], self.method)(
             X_minus_j
         )
 
