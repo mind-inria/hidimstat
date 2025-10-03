@@ -8,7 +8,12 @@ from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
 def _selection_multi_criteria(
-    values, k_best=None, percentile=None, threshold_max=None, threshold_min=None
+    values,
+    k_best=None,
+    k_lowest=None,
+    percentile=None,
+    threshold_max=None,
+    threshold_min=None,
 ):
     """
     Helper function for selecting features based on multiple criteria.
@@ -19,6 +24,8 @@ def _selection_multi_criteria(
         Values to use for feature selection (e.g., importance scores or p-values)
     k_best : int, default=None
         Selects the top k features based on values.
+    k_lowest : int, default=None
+        Selects the lowest k features based on values.
     percentile : float, default=None
         Selects features based on a specified percentile of values.
     threshold_max : float, default=None
@@ -28,7 +35,7 @@ def _selection_multi_criteria(
 
     Returns
     -------
-    selections : array-like of shape (n_features,)
+    selection : array-like of shape (n_features,)
         Boolean array indicating the selected features.
     """
     if k_best is not None:
@@ -59,6 +66,15 @@ def _selection_multi_criteria(
     else:
         mask_k_best = np.ones_like(values, dtype=bool)
 
+    if k_lowest is not None:
+        mask_k_lowest = np.zeros_like(values, dtype=bool)
+
+        # Request a stable sort. Mergesort takes more memory (~40MB per
+        # megafeature on x86-64).
+        mask_k_lowest[np.argsort(values, kind="mergesort")[:mask_k_lowest]] = 1
+    else:
+        mask_k_lowest = np.ones_like(values, dtype=bool)
+
     # based on SelectPercentile in Scikit-Learn
     if percentile is not None:
         threshold_percentile = np.percentile(values, 100 - percentile)
@@ -81,8 +97,8 @@ def _selection_multi_criteria(
     else:
         mask_threshold_min = np.ones_like(values, dtype=bool)
 
-    selections = mask_k_best & mask_percentile & mask_threshold_max & mask_threshold_min
-    return selections
+    selection = mask_k_best & mask_percentile & mask_threshold_max & mask_threshold_min
+    return selection
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -145,7 +161,7 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        return _selection_multy_criteria(
+        return _selection_multi_criteria(
             self.importances_,
             k_best=k_best,
             percentile=percentile,
@@ -155,7 +171,7 @@ class BaseVariableImportance(BaseEstimator):
 
     def pvalue_selection(
         self,
-        k_best=None,
+        k_lowest=None,
         percentile=None,
         threshold_max=0.05,
         threshold_min=None,
@@ -166,7 +182,7 @@ class BaseVariableImportance(BaseEstimator):
 
         Parameters
         ----------
-        k_best : int, default=None
+        k_lowest : int, default=None
             Selects the k features with lowest p-values.
         percentile : float, default=None
             Selects features based on a specified percentile of p-values.
@@ -197,9 +213,9 @@ class BaseVariableImportance(BaseEstimator):
         assert alternative_hypothesis is None or isinstance(
             alternative_hypothesis, bool
         ), "alternative_hippothesis can have only three values: True, False and None."
-        return _selection_multy_criteria(
+        return _selection_multi_criteria(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
-            k_best=k_best,
+            k_lowest=k_lowest,
             percentile=percentile,
             threshold_max=threshold_max,
             threshold_min=threshold_min,
