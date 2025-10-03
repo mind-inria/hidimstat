@@ -241,7 +241,7 @@ class BasePerturbation(BaseVariableImportance):
                 f"{number_unique_feature_in_groups}"
             )
 
-    def _joblib_predict_one_group(self, X, group_id, group_key, random_state=None):
+    def _joblib_predict_one_group(self, X, group_id, random_state=None):
         """
         Compute the predictions after perturbation of the data for a given
         group of variables. This function is parallelized.
@@ -252,8 +252,6 @@ class BasePerturbation(BaseVariableImportance):
             The input samples.
         group_id: int
             The index of the group of variables.
-        group_key: str, int
-            The key of the group of variables. (parameter use for debugging)
         random_state:
             The random state to use for sampling.
         """
