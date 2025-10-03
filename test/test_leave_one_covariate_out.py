@@ -31,7 +31,7 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        feature_groups=None,
+        features_groups=None,
         n_jobs=1,
     )
 
@@ -59,7 +59,7 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
-        feature_groups=groups,
+        features_groups=groups,
         n_jobs=1,
     )
     loco.fit(
@@ -82,7 +82,7 @@ def test_loco():
     loco_clf = LOCO(
         estimator=logistic_model,
         method="predict_proba",
-        feature_groups={
+        features_groups={
             "group_0": important_features,
             "the_group_1": non_important_features,
         },

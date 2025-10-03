@@ -12,7 +12,7 @@ class PFI(BasePerturbation):
         loss: callable = root_mean_squared_error,
         method: str = "predict",
         n_permutations: int = 50,
-        feature_groups=None,
+        features_groups=None,
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -37,10 +37,10 @@ class PFI(BasePerturbation):
         n_permutations : int, default=50
             The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
-        feature_groups: dict or None,  default=None
+        features_groups: dict or None,  default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
-            the feature_groups are identified based on the columns of X.
+            the features_groups are identified based on the columns of X.
         random_state : int, default=None
             The random state to use for sampling.
         n_jobs : int, default=1
@@ -57,16 +57,18 @@ class PFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
-            feature_groups=feature_groups,
+            features_groups=features_groups,
             random_state=random_state,
         )
 
-    def _permutation(self, X, feature_group_id, random_state=None):
+    def _permutation(self, X, features_group_id, random_state=None):
         """Create the permuted data for the j-th group of covariates"""
         rng = check_random_state(random_state)
         X_perm_j = np.array(
             [
-                rng.permutation(X[:, self._feature_groups_ids[feature_group_id]].copy())
+                rng.permutation(
+                    X[:, self._features_groups_ids[features_group_id]].copy()
+                )
                 for _ in range(self.n_permutations)
             ]
         )

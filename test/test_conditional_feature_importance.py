@@ -59,7 +59,7 @@ def run_cfi(X, y, n_permutation, seed):
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutation,
         method="predict",
-        feature_groups=None,
+        features_groups=None,
         feature_types="auto",
         random_state=seed,
         n_jobs=1,
@@ -190,7 +190,7 @@ def test_group(data_generator):
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
         method="predict",
-        feature_groups=groups,
+        features_groups=groups,
         feature_types="auto",
         random_state=0,
         n_jobs=1,
@@ -239,7 +239,7 @@ def test_classication(data_generator):
         n_permutations=20,
         method="predict_proba",
         loss=log_loss,
-        feature_groups=None,
+        features_groups=None,
         feature_types=["continuous"] * X.shape[1],
         random_state=0,
         n_jobs=1,
@@ -294,7 +294,7 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_feature_groups_ == X.shape[1]
+        assert cfi.n_features_groups_ == X.shape[1]
 
     def test_fit_group(self, data_generator):
         """Test fitting CFI with group"""
@@ -305,13 +305,13 @@ class TestCFIClass:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            feature_groups=groups,
+            features_groups=groups,
             random_state=42,
         )
         cfi.fit(X)
 
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_feature_groups_ == 2
+        assert cfi.n_features_groups_ == 2
 
     def test_categorical(
         self,
@@ -441,7 +441,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            feature_groups=None,
+            features_groups=None,
             feature_types="auto",
             method="predict",
         )
@@ -460,7 +460,7 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            feature_groups=None,
+            features_groups=None,
             feature_types="auto",
         )
         cfi.fit(X)
@@ -485,7 +485,7 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            feature_groups=subgroups,
+            features_groups=subgroups,
             feature_types="auto",
         )
         cfi.fit(X)
@@ -513,11 +513,11 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            feature_groups=subgroups,
+            features_groups=subgroups,
             feature_types="auto",
         )
         cfi.fit(X)
-        cfi.feature_groups["group1"] = [None for i in range(100)]
+        cfi.features_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -534,7 +534,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             method="predict",
-            feature_groups=None,
+            features_groups=None,
             feature_types=["invalid_type"] * X.shape[1],
         )
 
@@ -570,11 +570,13 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             method="predict",
-            feature_groups=invalid_groups,
+            features_groups=invalid_groups,
             feature_types="auto",
         )
 
-        with pytest.raises(ValueError, match="feature_groups needs to be a dictionary"):
+        with pytest.raises(
+            ValueError, match="features_groups needs to be a dictionary"
+        ):
             cfi.fit(X)
 
     def test_groups_warning(self, data_generator):
@@ -586,7 +588,7 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            feature_groups=subgroups,
+            features_groups=subgroups,
             feature_types="auto",
         )
         cfi.fit(X, y)

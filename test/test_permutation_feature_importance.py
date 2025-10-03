@@ -30,7 +30,7 @@ def test_permutation_importance():
         estimator=regression_model,
         n_permutations=20,
         method="predict",
-        feature_groups=None,
+        features_groups=None,
         random_state=0,
         n_jobs=1,
     )
@@ -60,7 +60,7 @@ def test_permutation_importance():
         estimator=regression_model,
         n_permutations=20,
         method="predict",
-        feature_groups=groups,
+        features_groups=groups,
         random_state=0,
         n_jobs=1,
     )
@@ -86,7 +86,7 @@ def test_permutation_importance():
         n_permutations=20,
         method="predict_proba",
         loss=log_loss,
-        feature_groups=None,
+        features_groups=None,
         random_state=0,
         n_jobs=1,
     )

@@ -16,7 +16,7 @@ class CFI(BasePerturbation):
         n_permutations: int = 50,
         imputation_model_continuous=None,
         imputation_model_categorical=None,
-        feature_groups=None,
+        features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
         n_jobs: int = 1,
@@ -51,10 +51,10 @@ class CFI(BasePerturbation):
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a feature to be considered as categorical
             when the feature type is inferred (set to "auto" or not provided).
-        feature_groups: dict or None,  default=None
+        features_groups: dict or None,  default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
-            the feature_groups are identified based on the columns of X.
+            the features_groups are identified based on the columns of X.
         feature_types: str or list, default="auto"
             The feature type. Supported types include "auto", "continuous", and
             "categorical". If "auto", the type is inferred from the cardinality
@@ -75,7 +75,7 @@ class CFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
-            feature_groups=feature_groups,
+            features_groups=features_groups,
             random_state=random_state,
         )
 
@@ -113,7 +113,7 @@ class CFI(BasePerturbation):
         if isinstance(self.feature_types, str):
             if self.feature_types in ["auto", "continuous", "categorical"]:
                 self.feature_types = [
-                    self.feature_types for _ in range(self.n_feature_groups_)
+                    self.feature_types for _ in range(self.n_features_groups_)
                 ]
             else:
                 raise ValueError(
@@ -122,7 +122,7 @@ class CFI(BasePerturbation):
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.feature_types[features_groupd_id],
+                data_type=self.feature_types[features_group_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -135,27 +135,27 @@ class CFI(BasePerturbation):
                 ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for features_groupd_id in range(self.n_feature_groups_)
+            for features_group_id in range(self.n_features_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators
         X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X_, feature_groups_ids
+                imputation_model, X_, features_groups_ids
             )
-            for feature_groups_ids, imputation_model in zip(
-                self._feature_groups_ids, self._list_imputation_models
+            for features_groups_ids, imputation_model in zip(
+                self._features_groups_ids, self._list_imputation_models
             )
         )
 
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
+    def _joblib_fit_one_features_group(self, estimator, X, features_groups_ids):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized."""
-        X_j = X[:, feature_groups_ids].copy()
-        X_minus_j = np.delete(X, feature_groups_ids, axis=1)
+        X_j = X[:, features_groups_ids].copy()
+        X_minus_j = np.delete(X, features_groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -166,8 +166,8 @@ class CFI(BasePerturbation):
         Raises
         ------
         ValueError
-            If the class has not been fitted (i.e., if n_feature_groups_
-            or _feature_groups_ids attributes are missing).
+            If the class has not been fitted (i.e., if n_features_groups_
+            or _features_groups_ids attributes are missing).
             If the class has not been fitted or imputation models are not fitted.
 
         """
@@ -179,11 +179,11 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, feature_group_id, random_state=None):
+    def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
-        X_j = X[:, self._feature_groups_ids[feature_group_id]].copy()
-        X_minus_j = np.delete(X, self._feature_groups_ids[feature_group_id], axis=1)
-        return self._list_imputation_models[feature_group_id].sample(
+        X_j = X[:, self._features_groups_ids[features_group_id]].copy()
+        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
+        return self._list_imputation_models[features_group_id].sample(
             X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
         )

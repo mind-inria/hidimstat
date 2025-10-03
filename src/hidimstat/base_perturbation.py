@@ -17,7 +17,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
         method: str = "predict",
-        feature_groups=None,
+        features_groups=None,
         n_jobs: int = 1,
         random_state=None,
     ):
@@ -41,10 +41,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The method used for making predictions. This determines the predictions
             passed to the loss function. Supported methods are "predict",
             "predict_proba", "decision_function", "transform".
-        feature_groups: dict or None, default=None
+        features_groups: dict or None, default=None
             A dictionary where the keys are the group names and the values are the
             list of column names corresponding to each features group. If None,
-            the feature_groups are identified based on the columns of X.
+            the features_groups are identified based on the columns of X.
         n_jobs : int, default=1
             The number of parallel jobs to run. Parallelization is done over the
             variables or groups of variables.
@@ -60,7 +60,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.method = method
         self.n_jobs = n_jobs
         self.n_permutations = n_permutations
-        GroupVariableImportanceMixin.__init__(self, feature_groups=feature_groups)
+        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
         self.random_state = random_state
 
     def fit(self, X, y=None):
@@ -118,10 +118,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_features_group)(
-                X_, feature_group_id, feature_group_key, random_state=child_state
+                X_, features_group_id, features_group_key, random_state=child_state
             )
-            for feature_group_id, (feature_group_key, child_state) in enumerate(
-                zip(self.feature_groups.keys(), rng.spawn(self.n_feature_groups_))
+            for features_group_id, (features_group_key, child_state) in enumerate(
+                zip(self.features_groups.keys(), rng.spawn(self.n_features_groups_))
             )
         )
         return np.stack(out_list, axis=0)
@@ -166,14 +166,14 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out_dict["importance"] = np.array(
             [
                 np.mean(out_dict["loss"][j]) - loss_reference
-                for j in range(self.n_feature_groups_)
+                for j in range(self.n_features_groups_)
             ]
         )
         self.importances_ = out_dict["importance"]
         return out_dict
 
     def _joblib_predict_one_features_group(
-        self, X, feature_group_id, feature_group_key, random_state=None
+        self, X, features_group_id, features_group_key, random_state=None
     ):
         """
         Compute the predictions after perturbation of the data for a given
@@ -183,21 +183,21 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
-        feature_group_id: int
+        features_group_id: int
             The index of the group of variables.
-        feature_group_key: str, int
+        features_group_key: str, int
             The key of the group of variables. (parameter use for debugging)
         random_state:
             The random state to use for sampling.
         """
-        feature_group_ids = self._feature_groups_ids[feature_group_id]
-        non_feature_group_ids = np.delete(np.arange(X.shape[1]), feature_group_ids)
+        features_group_ids = self._features_groups_ids[features_group_id]
+        non_features_group_ids = np.delete(np.arange(X.shape[1]), features_group_ids)
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        X_perm[:, :, non_feature_group_ids] = np.delete(X, feature_group_ids, axis=1)
-        X_perm[:, :, feature_group_ids] = self._permutation(
-            X, feature_group_id=feature_group_id, random_state=random_state
+        X_perm[:, :, non_features_group_ids] = np.delete(X, features_group_ids, axis=1)
+        X_perm[:, :, features_group_ids] = self._permutation(
+            X, features_group_id=features_group_id, random_state=random_state
         )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
@@ -212,6 +212,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             )
         return y_pred_perm
 
-    def _permutation(self, X, feature_group_id, random_state=None):
+    def _permutation(self, X, features_group_id, random_state=None):
         """Method for creating the permuted data for the j-th group of covariates."""
         raise NotImplementedError

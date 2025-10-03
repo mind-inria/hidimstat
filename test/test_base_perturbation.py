@@ -12,4 +12,4 @@ def test_no_implemented_methods():
     estimator.fit(X[:, 0], X[:, 1])
     basic_class = BasePerturbation(estimator=estimator)
     with pytest.raises(NotImplementedError):
-        basic_class._permutation(X, feature_group_id=None)
+        basic_class._permutation(X, features_group_id=None)
