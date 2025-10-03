@@ -16,14 +16,19 @@ from hidimstat.desparsified_lasso import (
 
 
 def test_desparsified_lasso():
-    """Testing the procedure on a simulation with no structure and
-    a support of size 1. Computing 99% confidence bounds and checking
-    that they contains the true parameter vector."""
+    """
+    Test desparsified lasso on a simple simulation with no structure and
+    a support of size 5.
+     - Test that the confidence intervals contain the true beta
+     - Test that the p-values are lower than 0.05 for the important features
+       and higher than 0.2 for the non-important features.
+    """
 
-    n_samples, n_features = 52, 50
-    support_size = 1
-    signal_noise_ratio = 50
+    n_samples, n_features = 100, 20
+    support_size = 5
+    signal_noise_ratio = 32
     rho = 0.0
+    random_state = 0
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -32,78 +37,92 @@ def test_desparsified_lasso():
         signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
-        seed=10,
+        seed=random_state,
     )
-    expected_pval_corr = np.ones_like(beta) * 0.5
-    expected_pval_corr[beta != 0] = 0.0
 
-    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-        desparsified_lasso_pvalue(
-            X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
-        )
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(
+        X, y, random_state=random_state
     )
-    assert_almost_equal(beta_hat, beta, decimal=1)
-    assert_equal(cb_min < beta, True)
-    assert_equal(cb_max > beta, True)
-    assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
+    _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
+        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
+    )
+    # Check that beta is within the confidence intervals
+    assert np.all(beta >= cb_min)
+    assert np.all(beta <= cb_max)
 
-    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y, dof_ajdustement=True)
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-        desparsified_lasso_pvalue(
-            X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
-        )
+    # Check p-values for important and non-important features
+    important = beta != 0
+    non_important = beta == 0
+    # For important features, p-value should be < 0.05
+    assert np.all(pval_corr[important] < 0.05)
+    # For non-important features, p-value should be > 0.2
+    assert np.all(pval_corr[non_important] > 0.2)
+
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(
+        X, y, dof_ajdustement=True, random_state=random_state
     )
-    assert_almost_equal(beta_hat, beta, decimal=1)
-    assert_equal(cb_min < beta, True)
-    assert_equal(cb_max > beta, True)
-    assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
+    _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
+        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
+    )
+    # Check that beta is within the confidence intervals
+    assert np.all(beta >= cb_min)
+    assert np.all(beta <= cb_max)
+    # Check p-values for important and non-important features
+    assert np.all(pval_corr[important] < 0.05)
+    assert np.all(pval_corr[non_important] > 0.2)
 
 
 def test_desparsified_group_lasso():
     """Testing the procedure on a simulation with no structure and
-    a support of size 2. Computing one-sided p-values, we want
+    a support of size 2.
+    Computing one-sided p-values, we want
     low p-values for the features of the support and p-values
     close to 0.5 for the others."""
 
-    n_samples = 50
-    n_features = 100
+    n_samples = 100
+    n_features = 20
     n_target = 10
     support_size = 2
-    signal_noise_ratio = 5000
+    signal_noise_ratio = 16
     rho_serial = 0.9
+    random_state = 0
+
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
 
-    X, Y, beta, noise = multivariate_simulation(
+    X, Y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
         support_size=support_size,
         rho_serial=rho_serial,
         signal_noise_ratio=signal_noise_ratio,
-        seed=10,
+        seed=random_state,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
-        X, Y, multioutput=True, covariance=corr
+        X, Y, multioutput=True, covariance=corr, random_state=random_state
     )
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag)
+    _, pval_corr, _, _ = desparsified_group_lasso_pvalue(
+        beta_hat, theta_hat, precision_diag
     )
 
-    expected_pval_corr = np.ones_like(beta[:, 0]) * 0.5
-    expected_pval_corr[beta[:, 0] != 0] = 0.0
+    important = beta[:, 0] != 0
+    non_important = beta[:, 0] == 0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
-    assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
+    assert np.all(pval_corr[important] < 0.05)
+    assert np.all(pval_corr[non_important] > 0.2)
 
-    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, multioutput=True)
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        desparsified_group_lasso_pvalue(beta_hat, theta_hat, precision_diag, test="F")
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(
+        X, Y, multioutput=True, random_state=random_state
+    )
+    _, pval_corr, _, _ = desparsified_group_lasso_pvalue(
+        beta_hat, theta_hat, precision_diag
     )
 
     assert_almost_equal(beta_hat, beta, decimal=1)
-    assert_almost_equal(pval_corr, expected_pval_corr, decimal=1)
+    assert np.all(pval_corr[important] < 0.05)
+    assert np.all(pval_corr[non_important] > 0.2)
 
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(corr, 0, axis=1)

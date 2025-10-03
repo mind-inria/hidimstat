@@ -205,38 +205,37 @@ def test_model_x_knockoff_exception():
 def test_estimate_distribution():
     """
     test different estimation of the covariance
-    TODO: This test is unstable, testing for perfect recovery of the support with
-    n=100 and p=50 is too ambitious. It currently passes thanks to a lucky draw.
     """
-    seed = 3
+    random_state = 0
     fdr = 0.1
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    n = 200
+    p = 20
+
+    X, y, beta, noise = multivariate_simulation(n, p, seed=random_state)
     non_zero = np.where(beta)[0]
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=LedoitWolf(assume_centered=True),
         n_bootstraps=1,
-        random_state=seed,
+        random_state=random_state,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    assert set(selected) == set(non_zero)
+
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
-            cv=KFold(n_splits=5, shuffle=True, random_state=seed + 2),
+            cv=KFold(n_splits=5, shuffle=True, random_state=random_state),
         ),
         n_bootstraps=1,
-        random_state=seed,
+        random_state=random_state,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
+    # Check that the selected variables are true positives
+    assert set(selected) == set(non_zero)
 
 
 def test_gaussian_knockoff_equi():
