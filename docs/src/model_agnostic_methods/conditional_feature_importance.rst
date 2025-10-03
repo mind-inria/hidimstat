@@ -9,7 +9,7 @@ Conditional Feature Importance (CFI) is a model-agnostic approach for quantifyin
 relevance of individual or groups of features in predictive models. It is a 
 perturbation-based method that compares the predictive performance of a model on 
 unmodified test data—following the same distribution as the training data—
-to its performance when a specific feature is conditionally perturbed. Thus, this approach 
+to its performance when the studied feature is conditionally perturbed. Thus, this approach 
 does not require retraining the model.
 
 .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
