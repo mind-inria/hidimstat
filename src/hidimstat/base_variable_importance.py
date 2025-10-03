@@ -49,7 +49,7 @@ def _selection_multi_criteria(
             threshold_max > threshold_min
         ), "threshold_max needs to be higher than threshold_min "
 
-    # base on SelectKBest of Scikit-Learn
+    # based on SelectKBest in Scikit-Learn
     if k_best is not None:
         mask_k_best = np.zeros_like(values, dtype=bool)
 
