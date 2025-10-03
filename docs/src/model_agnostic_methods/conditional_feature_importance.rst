@@ -108,8 +108,8 @@ Two technical challenges arise in this context:
   performing a simple t-test on the loss differences is not valid. This issue can be
   addressed by a corrected t-test accounting for this dependence, such as the one
   proposed in :footcite:t:`nadeau1999inference`.
-* Vanishing variance: Under the null hypothesis, as the expected loss difference
-  converges to zero, the variance of the loss differences also vanishes. This makes the
+* Vanishing variance: Under the null hypothesis, even if the loss difference
+  converges to zero, the variance of the loss differences also vanishes due to the quadratic functional (:footcite:t:verdinelli2024feature``) . This makes the
   standard one-sample t-test invalid. This second issue can be handled by correcting
   the variance estimate.
 
