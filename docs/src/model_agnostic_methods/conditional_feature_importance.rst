@@ -82,7 +82,7 @@ randomly permuted version :math:`\epsilon_j^p`:
 
 Inference
 ---------
-Under stadard assumptions such as additive model: :math:`Y = \mu(X) + \epsilon`, 
+Under standard assumptions such as additive model: :math:`Y = \mu(X) + \epsilon`, 
 Conditional Feature Importance (CFI) allows for conditional independence testing, which 
 determines if a feature provides any unique information to the model's predictions that 
 isn't already captured by the other features. Essentially, we are testing the null 
