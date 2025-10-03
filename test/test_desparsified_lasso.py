@@ -29,6 +29,7 @@ def test_desparsified_lasso():
     signal_noise_ratio = 32
     rho = 0.0
     random_state = 0
+    confidence = 0.99
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -44,7 +45,7 @@ def test_desparsified_lasso():
         X, y, random_state=random_state
     )
     _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
-        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
+        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
     # Check that beta is within the confidence intervals
 
@@ -55,23 +56,23 @@ def test_desparsified_lasso():
     # Check p-values for important and non-important features
     important = beta != 0
     non_important = beta == 0
-    # For important features, p-value should be < 0.05
-    assert np.all(pval_corr[important] < 0.05)
+    # For important features, p-value should be < 1 - confidence
+    assert np.all(pval_corr[important] < 1 - confidence)
     # For non-important features, p-value should be greater
-    assert np.all(pval_corr[non_important] > 0.05)
+    assert np.all(pval_corr[non_important] > 1 - confidence)
 
     beta_hat, sigma_hat, precision_diag = desparsified_lasso(
         X, y, dof_ajdustement=True, random_state=random_state
     )
     _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
-        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=0.99
+        X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
     # Check that beta is within the confidence intervals
     assert np.all(beta >= cb_min - tolerance)
     assert np.all(beta <= cb_max + tolerance)
     # Check p-values for important and non-important features
-    assert np.all(pval_corr[important] < 0.05)
-    assert np.all(pval_corr[non_important] > 0.05)
+    assert np.all(pval_corr[important] < 1 - confidence)
+    assert np.all(pval_corr[non_important] > 1 - confidence)
 
 
 def test_desparsified_group_lasso():
