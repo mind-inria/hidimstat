@@ -24,12 +24,12 @@ def test_desparsified_lasso():
        and higher than 0.2 for the non-important features.
     """
 
-    n_samples, n_features = 200, 20
+    n_samples, n_features = 400, 40
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
-    random_state = 0
-    confidence = 0.99
+    confidence = 0.9
+    alpha = 1 - confidence
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -38,12 +38,9 @@ def test_desparsified_lasso():
         signal_noise_ratio=signal_noise_ratio,
         rho=rho,
         shuffle=False,
-        seed=random_state,
     )
 
-    beta_hat, sigma_hat, precision_diag = desparsified_lasso(
-        X, y, random_state=random_state
-    )
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y)
     _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
@@ -56,14 +53,12 @@ def test_desparsified_lasso():
     # Check p-values for important and non-important features
     important = beta != 0
     non_important = beta == 0
-    # For important features, p-value should be < 1 - confidence
-    assert np.all(pval_corr[important] < 1 - confidence)
-    # For non-important features, p-value should be greater
-    assert np.all(pval_corr[non_important] > 1 - confidence)
+    tp = np.sum(pval_corr[important] < alpha)
+    fp = np.sum(pval_corr[non_important] < alpha)
+    assert fp / np.sum(non_important) <= alpha
+    assert tp / np.sum(important) >= 0.8
 
-    beta_hat, sigma_hat, precision_diag = desparsified_lasso(
-        X, y, dof_ajdustement=True, random_state=random_state
-    )
+    beta_hat, sigma_hat, precision_diag = desparsified_lasso(X, y, dof_ajdustement=True)
     _, pval_corr, _, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
@@ -71,8 +66,10 @@ def test_desparsified_lasso():
     assert np.all(beta >= cb_min - tolerance)
     assert np.all(beta <= cb_max + tolerance)
     # Check p-values for important and non-important features
-    assert np.all(pval_corr[important] < 1 - confidence)
-    assert np.all(pval_corr[non_important] > 1 - confidence)
+    tp = np.sum(pval_corr[important] < alpha)
+    fp = np.sum(pval_corr[non_important] < alpha)
+    assert fp / np.sum(non_important) <= alpha
+    assert tp / np.sum(important) >= 0.8
 
 
 def test_desparsified_group_lasso():

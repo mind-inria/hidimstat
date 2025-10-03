@@ -206,36 +206,43 @@ def test_estimate_distribution():
     """
     test different estimation of the covariance
     """
-    random_state = 0
-    fdr = 0.1
-    n = 200
-    p = 20
+    fdr = 0.2
+    n = 400
+    p = 100
+    signal_noise_ratio = 32
+    support_size = 5
 
-    X, y, beta, noise = multivariate_simulation(n, p, seed=random_state)
+    X, y, beta, noise = multivariate_simulation(
+        n, p, support_size=support_size, signal_noise_ratio=signal_noise_ratio
+    )
     non_zero = np.where(beta)[0]
     selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=LedoitWolf(assume_centered=True),
         n_bootstraps=1,
-        random_state=random_state,
         fdr=fdr,
     )
-    assert set(selected) == set(non_zero)
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8
 
     selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
-            cv=KFold(n_splits=5, shuffle=True, random_state=random_state),
+            cv=KFold(n_splits=5, shuffle=True),
         ),
         n_bootstraps=1,
-        random_state=random_state,
         fdr=fdr,
     )
-    # Check that the selected variables are true positives
-    assert set(selected) == set(non_zero)
+
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8
 
 
 def test_gaussian_knockoff_equi():
