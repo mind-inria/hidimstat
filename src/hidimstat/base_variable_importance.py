@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
-def _selection_multy_criteria(
+def _selection_multi_criteria(
     values, k_best=None, percentile=None, threshold_max=None, threshold_min=None
 ):
     """
