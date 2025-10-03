@@ -46,9 +46,8 @@ def test_desparsified_lasso():
     )
     # Check that beta is within the confidence intervals
 
-    tolerance = 0.1
-    assert np.all(beta >= cb_min - tolerance)
-    assert np.all(beta <= cb_max + tolerance)
+    correct_interval = np.sum((beta >= cb_min) & (beta <= cb_max))
+    assert correct_interval >= int(0.7 * n_features)
 
     # Check p-values for important and non-important features
     important = beta != 0
@@ -63,8 +62,9 @@ def test_desparsified_lasso():
         X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
     # Check that beta is within the confidence intervals
-    assert np.all(beta >= cb_min - tolerance)
-    assert np.all(beta <= cb_max + tolerance)
+    correct_interval = np.sum((beta >= cb_min) & (beta <= cb_max))
+    assert correct_interval >= int(0.7 * n_features)
+
     # Check p-values for important and non-important features
     tp = np.sum(pval_corr[important] < alpha)
     fp = np.sum(pval_corr[non_important] < alpha)
