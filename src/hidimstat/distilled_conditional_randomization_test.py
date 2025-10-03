@@ -664,7 +664,7 @@ def d0crt(
     scaled_statistics=False,
     random_state=None,
     reuse_screening_model=True,
-    k_best=None,
+    k_lowest=None,
     percentile=None,
     threshold_min=None,
     threshold_max=None,
@@ -689,7 +689,7 @@ def d0crt(
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.pvalue_selection(
-        k_best=k_best,
+        k_lowest=k_lowest,
         percentile=percentile,
         threshold_min=threshold_min,
         threshold_max=threshold_max,
