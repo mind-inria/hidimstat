@@ -76,8 +76,14 @@ randomly permuted version :math:`\epsilon_j^p`:
     Estimating :math:`\nu_j` amounts to modeling the relationship between features and is
     arguably an easier task than estimating the relationship between features and the 
     target. This 'model-X' assumption was for instance argued in :footcite:t:`Chamma_NeurIPS2023`, 
-    :footcite:t:`candes2018panning`. Consequently, simple predictive models such as 
-    regularized linear models or decision trees can be used to estimate :math:`\nu_j`.
+    :footcite:t:`candes2018panning`. 
+    For example, in genetics, features such as single nucleotide polymorphisms (SNPs) 
+    are the basis of complex biological processes that result in an outcome (phenotype), 
+    such as a disease. Predicting the phenotype from SNPs is challenging, whereas 
+    modeling the relationships between SNPs is often easier due to known correlation 
+    structures in the genome (linkage disequilibrium). As a result, simple predictive 
+    models such as regularized linear models or decision trees can be used to estimate 
+    :math:`\nu_j`.
 
 
 Inference
