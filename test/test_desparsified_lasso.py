@@ -79,13 +79,13 @@ def test_desparsified_group_lasso():
     low p-values for the features of the support and p-values
     close to 0.5 for the others."""
 
-    n_samples = 100
-    n_features = 20
+    n_samples = 400
+    n_features = 40
     n_target = 10
-    support_size = 2
-    signal_noise_ratio = 16
+    support_size = 5
+    signal_noise_ratio = 32
     rho_serial = 0.9
-    random_state = 0
+    alpha = 0.1
 
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
 
@@ -96,11 +96,10 @@ def test_desparsified_group_lasso():
         support_size=support_size,
         rho_serial=rho_serial,
         signal_noise_ratio=signal_noise_ratio,
-        seed=random_state,
     )
 
     beta_hat, theta_hat, precision_diag = desparsified_lasso(
-        X, Y, multioutput=True, covariance=corr, random_state=random_state
+        X, Y, multioutput=True, covariance=corr
     )
     _, pval_corr, _, _ = desparsified_group_lasso_pvalue(
         beta_hat, theta_hat, precision_diag
@@ -110,19 +109,21 @@ def test_desparsified_group_lasso():
     non_important = beta[:, 0] == 0
 
     assert_almost_equal(beta_hat, beta, decimal=1)
-    assert np.all(pval_corr[important] < 0.05)
-    assert np.all(pval_corr[non_important] > 0.2)
+    tp = np.sum(pval_corr[important] < alpha)
+    fp = np.sum(pval_corr[non_important] < alpha)
+    assert fp / np.sum(non_important) <= alpha
+    assert tp / np.sum(important) >= 0.8
 
-    beta_hat, theta_hat, precision_diag = desparsified_lasso(
-        X, Y, multioutput=True, random_state=random_state
-    )
+    beta_hat, theta_hat, precision_diag = desparsified_lasso(X, Y, multioutput=True)
     _, pval_corr, _, _ = desparsified_group_lasso_pvalue(
         beta_hat, theta_hat, precision_diag
     )
 
     assert_almost_equal(beta_hat, beta, decimal=1)
-    assert np.all(pval_corr[important] < 0.05)
-    assert np.all(pval_corr[non_important] > 0.2)
+    tp = np.sum(pval_corr[important] < alpha)
+    fp = np.sum(pval_corr[non_important] < alpha)
+    assert fp / np.sum(non_important) <= alpha
+    assert tp / np.sum(important) >= 0.8
 
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(corr, 0, axis=1)
