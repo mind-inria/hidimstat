@@ -40,7 +40,7 @@ Indeed,
     = \psi_j^{TSI} 
     = \mathbb{E} [\mathcal{L}(y, \mu_{-j}(X^-j))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
-Where in regression, :math:`\mu_{-j}(X_{-j}) = \mathbb{E}[\mu(X) | X_{-j}]` is the 
+Where in regression, :math:`\mu_{-j}(X_{-j}) = \mathbb{E}[Y| X_{-j}]` is the 
 model fitted without the :math:`j^{th}` feature.
 
 Estimation procedure
