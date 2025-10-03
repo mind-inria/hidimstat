@@ -173,8 +173,8 @@ class BaseVariableImportance(BaseEstimator):
             _, ax = plt.subplots()
 
         if feature_names is None:
-            if hasattr(self, "feature_groups"):
-                feature_names = list(self.feature_groups.keys())
+            if hasattr(self, "features_groups"):
+                feature_names = list(self.features_groups.keys())
             else:
                 feature_names = [str(j) for j in range(self.importances_.shape[-1])]
         elif isinstance(feature_names, list):
@@ -222,15 +222,15 @@ class GroupVariableImportanceMixin:
 
     Parameters
     ----------
-    feature_groups: dict or None, default=None
+    features_groups: dict or None, default=None
         Dictionary mapping group names to lists of feature column names/indices.
         If None, each feature is treated as its own group.
 
     Attributes
     ----------
-    n_feature_groups_ : int
+    n_features_groups_ : int
         Number of feature groups.
-    _feature_groups_ids : array-like
+    _features_groups_ids : array-like
         List of feature indices for each group.
 
     Methods
@@ -243,11 +243,11 @@ class GroupVariableImportanceMixin:
         Validates compatibility between input data and fitted groups.
     """
 
-    def __init__(self, feature_groups=None):
+    def __init__(self, features_groups=None):
         super().__init__()
-        self.feature_groups = feature_groups
-        self.n_feature_groups_ = None
-        self._feature_groups_ids = None
+        self.features_groups = features_groups
+        self.n_features_groups_ = None
+        self._features_groups_ids = None
 
     def fit(self, X, y=None):
         """
@@ -265,32 +265,32 @@ class GroupVariableImportanceMixin:
         self : object
             Returns the instance itself.
         """
-        if self.feature_groups is None:
-            self.n_feature_groups_ = X.shape[1]
-            self.feature_groups = {j: [j] for j in range(self.n_feature_groups_)}
-            self._feature_groups_ids = np.array(
-                sorted(list(self.feature_groups.values())), dtype=int
+        if self.features_groups is None:
+            self.n_features_groups_ = X.shape[1]
+            self.features_groups = {j: [j] for j in range(self.n_features_groups_)}
+            self._features_groups_ids = np.array(
+                sorted(list(self.features_groups.values())), dtype=int
             )
-        elif isinstance(self.feature_groups, dict):
-            self.n_feature_groups_ = len(self.feature_groups)
-            self.feature_groups = self.feature_groups
+        elif isinstance(self.features_groups, dict):
+            self.n_features_groups_ = len(self.features_groups)
+            self.features_groups = self.features_groups
             if isinstance(X, pd.DataFrame):
-                self._feature_groups_ids = []
-                for feature_group_key in sorted(self.feature_groups.keys()):
-                    self._feature_groups_ids.append(
+                self._features_groups_ids = []
+                for features_group_key in sorted(self.features_groups.keys()):
+                    self._features_groups_ids.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
-                            if col in self.feature_groups[feature_group_key]
+                            if col in self.features_groups[features_group_key]
                         ]
                     )
             else:
-                self._feature_groups_ids = [
+                self._features_groups_ids = [
                     np.array(ids, dtype=int)
-                    for ids in list(self.feature_groups.values())
+                    for ids in list(self.features_groups.values())
                 ]
         else:
-            raise ValueError("feature_groups needs to be a dictionary")
+            raise ValueError("features_groups needs to be a dictionary")
         return self
 
     def _check_fit(self):
@@ -300,10 +300,10 @@ class GroupVariableImportanceMixin:
         Raises
         ------
         ValueError
-            If the class has not been fitted (i.e., if n_feature_groups_
-            or _feature_groups_ids attributes are missing).
+            If the class has not been fitted (i.e., if n_features_groups_
+            or _features_groups_ids attributes are missing).
         """
-        if self.n_feature_groups_ is None or self._feature_groups_ids is None:
+        if self.n_features_groups_ is None or self._features_groups_ids is None:
             raise ValueError("The class is not fitted.")
 
     def _check_compatibility(self, X):
@@ -340,7 +340,7 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("X should be a pandas dataframe or a numpy array.")
         number_columns = X.shape[1]
-        for index_variables in self.feature_groups.values():
+        for index_variables in self.features_groups.values():
             if isinstance(index_variables[0], numbers.Integral):
                 assert np.all(
                     np.array(index_variables, dtype=int) < number_columns
@@ -356,7 +356,7 @@ class GroupVariableImportanceMixin:
                     "A problem with indexing has happened during the fit."
                 )
         number_unique_feature_in_groups = np.unique(
-            np.concatenate([values for values in self.feature_groups.values()])
+            np.concatenate([values for values in self.features_groups.values()])
         ).shape[0]
         if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(
