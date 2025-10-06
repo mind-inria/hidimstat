@@ -64,7 +64,7 @@ class D0CRT(BaseVariableImportance):
         Number of parallel jobs.
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
-    fit_y : bool, default=False
+    fit_y : bool, default=True
         Controls y-distillation behavior:
         - If False and the estimator is linear, the sub-model predicting y from X^{-j}
         is created by simply removing the idx-th coefficient from the full model
