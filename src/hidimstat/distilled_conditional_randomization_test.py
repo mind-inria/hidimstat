@@ -231,8 +231,11 @@ class D0CRT(BaseVariableImportance):
         else:
             self.selection_set_ = np.ones(X_.shape[1], dtype=bool)
 
-        # Refit the model on the selected features if required
-        if self.refit:
+        # Refit the model on the selected features if required or if no estimated
+        # coefficients were provided and screening was not performed
+        if self.refit or (
+            (self.screening_threshold is None) and self.estimated_coef is None
+        ):
             self.estimator.fit(X_[:, self.selection_set_], y_)
         elif (self.screening_threshold is not None) and (self.estimated_coef is None):
             self.estimator = lasso_model_
