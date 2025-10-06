@@ -96,6 +96,8 @@ class D0CRT(BaseVariableImportance):
         distribution.
     pvalues_ : ndarray of shape (n_features,)
         Computed p-values for each feature.
+    is_logistic_ : bool
+        Indicates if the estimator is a logistic regression model.
 
     Notes
     -----
@@ -155,9 +157,9 @@ class D0CRT(BaseVariableImportance):
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
         self.reuse_screening_model = reuse_screening_model
-        self.is_logistic = self._check_logistic()
         self.random_state = random_state
 
+        self.is_logistic_ = self._check_logistic()
         self.coefficient_ = None
         self.selection_set_ = None
         self.model_x_ = None
@@ -226,12 +228,14 @@ class D0CRT(BaseVariableImportance):
                     screening_threshold=self.screening_threshold,
                     random_state=rng,
                 )
-                if self.refit:
-                    self.estimator.fit(X_[:, self.selection_set_], y_)
-                else:
-                    self.estimator = lasso_model_
         else:
             self.selection_set_ = np.ones(X_.shape[1], dtype=bool)
+
+        # Refit the model on the selected features if required
+        if self.refit:
+            self.estimator.fit(X_[:, self.selection_set_], y_)
+        elif (self.screening_threshold is not None) and (self.estimated_coef is None):
+            self.estimator = lasso_model_
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
@@ -241,7 +245,7 @@ class D0CRT(BaseVariableImportance):
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
-            self.estimator.fit(X_[:, self.selection_set_], y_)
+            # If the model is linear, store the coefficients
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = np.zeros(X.shape[1])
                 self.coefficient_[self.selection_set_] = self.estimator.coef_.flatten()
@@ -250,7 +254,7 @@ class D0CRT(BaseVariableImportance):
                 self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation and
         # computing the Fisher information matrix
-        if self.is_logistic:
+        if self.is_logistic_:
             self.lasso_weights_ = (
                 np.exp(X.dot(self.coefficient_))
                 / (1 + np.exp(X.dot(self.coefficient_))) ** 2
@@ -364,7 +368,7 @@ class D0CRT(BaseVariableImportance):
                     coefficient_minus_idx = self.model_y_[index]
                 else:
                     coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
-            elif self.is_logistic:
+            elif self.is_logistic_:
                 coefficient_minus_idx = self.model_y_[index]
             else:
                 coefficient_minus_idx = None
@@ -379,7 +383,7 @@ class D0CRT(BaseVariableImportance):
                     method=self.method,
                     sigma_X=self.sigma_X,
                     coefficient_minus_idx=coefficient_minus_idx,
-                    is_logistic=self.is_logistic,
+                    is_logistic=self.is_logistic_,
                 )
             )
 
@@ -390,7 +394,7 @@ class D0CRT(BaseVariableImportance):
         sigma2 = np.array([result[1] for result in results])
         y_residual = np.array([result[2] for result in results])
 
-        if self.is_logistic:
+        if self.is_logistic_:
             test_statistic_selected_variables = self._logistic_test_statistic(
                 X_,
                 X_residual,
