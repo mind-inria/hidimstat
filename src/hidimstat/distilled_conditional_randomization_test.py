@@ -98,6 +98,8 @@ class D0CRT(BaseVariableImportance):
         Computed p-values for each feature.
     is_logistic_ : bool
         Indicates if the estimator is a logistic regression model.
+    intercept_ : float or None
+        Intercept of the fitted model, only used for logistic regression.
 
     Notes
     -----
@@ -161,6 +163,7 @@ class D0CRT(BaseVariableImportance):
 
         self.is_logistic_ = self._check_logistic()
         self.coefficient_ = None
+        self.intercept_ = None
         self.selection_set_ = None
         self.model_x_ = None
         self.model_y_ = None
@@ -245,6 +248,7 @@ class D0CRT(BaseVariableImportance):
         elif self.reuse_screening_model and (self.screening_threshold is not None):
             # Flatten to handle logistic regression case
             self.coefficient_ = lasso_model_.coef_.flatten()
+            self.intercept_ = lasso_model_.intercept_
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         else:
@@ -253,14 +257,15 @@ class D0CRT(BaseVariableImportance):
                 self.coefficient_ = np.zeros(X.shape[1])
                 self.coefficient_[self.selection_set_] = self.estimator.coef_.flatten()
                 self.estimator.coef_ = self.coefficient_
+                self.intercept_ = self.estimator.intercept_
             else:
                 self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation and
         # computing the Fisher information matrix
         if self.is_logistic_:
             self.lasso_weights_ = (
-                np.exp(X.dot(self.coefficient_))
-                / (1 + np.exp(X.dot(self.coefficient_))) ** 2
+                np.exp(X.dot(self.coefficient_ + self.intercept_))
+                / (1 + np.exp(X.dot(self.coefficient_ + self.intercept_))) ** 2
             )
 
         ## fit models
@@ -387,6 +392,7 @@ class D0CRT(BaseVariableImportance):
                     sigma_X=self.sigma_X,
                     coefficient_minus_idx=coefficient_minus_idx,
                     is_logistic=self.is_logistic_,
+                    intercept=self.intercept_,
                 )
             )
 
@@ -673,6 +679,7 @@ def _joblib_distill(
     sigma_X=None,
     coefficient_minus_idx=None,
     is_logistic=False,
+    intercept=None,
 ):
     """
     Distill the values of X and y for a single feature using least squares regression.
@@ -746,7 +753,7 @@ def _joblib_distill(
 
     # Distill Y - calculate residual
     if is_logistic:
-        y_residual = y - expit(X_minus_idx.dot(coefficient_minus_idx.T))
+        y_residual = y - expit(X_minus_idx.dot(coefficient_minus_idx.T) + intercept)
 
     elif coefficient_minus_idx is not None:
         # get the coefficients
