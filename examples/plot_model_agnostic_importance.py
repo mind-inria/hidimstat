@@ -32,8 +32,13 @@ import numpy as np
 import seaborn as sns
 from sklearn.datasets import make_circles
 
-rng = np.random.RandomState(0)
-X, y = make_circles(n_samples=500, noise=0.1, factor=0.6, random_state=rng)
+rng = np.random.default_rng(0)
+X, y = make_circles(
+    n_samples=500,
+    noise=0.1,
+    factor=0.6,
+    random_state=np.random.RandomState(rng.bit_generator),
+)
 
 
 fig, ax = plt.subplots()
@@ -78,14 +83,15 @@ from sklearn.base import clone
 
 from hidimstat import D0CRT
 
-d0crt_linear = D0CRT(estimator=clone(linear_model), screening_threshold=None)
+d0crt_linear = D0CRT(
+    estimator=clone(linear_model), screening_threshold=None, random_state=0
+)
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 print(f"{pval_dcrt_linear=}")
 
 d0crt_non_linear = D0CRT(
-    estimator=clone(non_linear_model),
-    screening_threshold=None,
+    estimator=clone(non_linear_model), screening_threshold=None, random_state=0
 )
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_

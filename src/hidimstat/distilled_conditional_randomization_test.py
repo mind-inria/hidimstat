@@ -14,7 +14,11 @@ from sklearn.linear_model import (
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _check_vim_predict_method
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -44,9 +48,9 @@ class D0CRT(BaseVariableImportance):
         Lasso.
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If None, Lasso is used for X distillation.
-    lasso_screening : sklearn estimator
+    lasso_screening : sklearn estimator, default=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False)
         Estimator for variable screening (typically LassoCV or Lasso).
-    model_distillation_x : sklearn estimator
+    model_distillation_x : sklearn estimator, default=LassoCV(n_alphas=10)
         Estimator for X distillation (typically LassoCV or Lasso).
     refit : bool, default=False
         Whether to refit the model on selected features after screening.
@@ -70,7 +74,7 @@ class D0CRT(BaseVariableImportance):
         regardless of fit_y.
     scaled_statistics : bool, default=False
         Whether to use scaled statistics when computing importance.
-    random_state : int, default=2022
+    random_state : int, default=None
         Random seed for reproducibility.
     reuse_screening_model: bool, default=True
         Whether to reuse the screening model for y-distillation.
@@ -109,6 +113,10 @@ class D0CRT(BaseVariableImportance):
     The implementation currently allows flexible models for the y-distillation step.
     However, the x-distillation step only supports linear models.
 
+    The random_state parameter of the different x-distillation and y-distillation models
+    is set by spawning independent Generators from the main random_state of the D0CRT
+    instance.
+
     References
     ----------
     .. footbibliography::
@@ -120,12 +128,8 @@ class D0CRT(BaseVariableImportance):
         method: str = "predict",
         estimated_coef=None,
         sigma_X=None,
-        lasso_screening=LassoCV(
-            n_alphas=10, tol=1e-6, fit_intercept=False, random_state=0
-        ),
-        model_distillation_x=LassoCV(
-            n_jobs=1, n_alphas=10, random_state=0, fit_intercept=False
-        ),
+        lasso_screening=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False),
+        model_distillation_x=LassoCV(n_alphas=10),
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -133,8 +137,8 @@ class D0CRT(BaseVariableImportance):
         joblib_verbose=0,
         fit_y=True,
         scaled_statistics=False,
-        random_state=None,
         reuse_screening_model=True,
+        random_state=None,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -150,9 +154,9 @@ class D0CRT(BaseVariableImportance):
         self.joblib_verbose = joblib_verbose
         self.fit_y = fit_y
         self.scaled_statistics = scaled_statistics
-        self.random_state = random_state
         self.reuse_screening_model = reuse_screening_model
         self.is_logistic = self._check_logistic()
+        self.random_state = random_state
 
         self.coefficient_ = None
         self.selection_set_ = None
@@ -198,6 +202,9 @@ class D0CRT(BaseVariableImportance):
         ----------
         .. footbibliography::
         """
+        rng = check_random_state(self.random_state)
+        self.estimator = seed_estimator(self.estimator, random_state=rng)
+
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
         else:
@@ -216,8 +223,8 @@ class D0CRT(BaseVariableImportance):
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
-                    estimated_coef=self.estimated_coef,
                     screening_threshold=self.screening_threshold,
+                    random_state=rng,
                 )
                 if self.refit:
                     self.estimator.fit(X_[:, self.selection_set_], y_)
@@ -260,8 +267,12 @@ class D0CRT(BaseVariableImportance):
                 fit_y=self.fit_y,
                 model_distillation_x=self.model_distillation_x,
                 lasso_weights=self.lasso_weights_,
+                random_state=rng,
             )
-            for idx in np.where(self.selection_set_)[0]
+            for idx, rng in zip(
+                np.where(self.selection_set_)[0],
+                rng.spawn(np.sum(self.selection_set_)),
+            )
         )
         self.model_x_ = [result[0] for result in results]
         self.model_y_ = [result[1] for result in results]
@@ -436,7 +447,8 @@ class D0CRT(BaseVariableImportance):
             for i in range(X_residual.shape[0])
         ]
 
-        if self.scaled_statistics:
+        # Don't scale when there is only one element.
+        if self.scaled_statistics and len(test_statistic_selected_variables) > 1:
             test_statistic_selected_variables = (
                 test_statistic_selected_variables
                 - np.mean(test_statistic_selected_variables)
@@ -516,7 +528,7 @@ class D0CRT(BaseVariableImportance):
 
         Notes
         -----
-        Also sets the importances\_ and pvalues\_ attributes on the instance.
+        Also sets the `importances_` and `pvalues_` attributes on the instance.
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
@@ -570,6 +582,7 @@ def _joblib_fit(
     fit_y=False,
     model_distillation_x=None,
     lasso_weights=None,
+    random_state=None,
 ):
     """
     Standard Lasso distillation for least squares regression.
@@ -601,6 +614,8 @@ def _joblib_fit(
         regardless of fit_y.
     model_distillation_x : sklearn estimator or None
         The model to use for distillation of X, or None if not used.
+    random_state : int or None, default=None
+        Random seed for reproducibility.
 
     Returns
     -------
@@ -621,6 +636,7 @@ def _joblib_fit(
     if sigma_X or (lasso_weights is not None):
         sample_weight = 2 * lasso_weights if lasso_weights is not None else None
         model_x = clone(model_distillation_x)
+        model_x = seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
     else:
         model_x = None
@@ -630,6 +646,7 @@ def _joblib_fit(
         model_y = np.delete(np.copy(estimator.coef_), idx)
     elif fit_y:
         model_y = clone(estimator)
+        model_y = seed_estimator(model_y, random_state=random_state)
         model_y.fit(X_minus_idx, y)
         if isinstance(estimator, (Lasso, LassoCV)):
             model_y = model_y.coef_
@@ -743,8 +760,8 @@ def run_lasso_screening(
     X,
     y,
     lasso_model=LassoCV(fit_intercept=False, random_state=0),
-    estimated_coef=None,
     screening_threshold=10,
+    random_state=None,
 ):
     """
     Perform Lasso screening for feature selection.
@@ -759,6 +776,8 @@ def run_lasso_screening(
         Estimator for variable screening (typically LassoCV or Lasso).
     screening_threshold : float
         Percentile threshold for screening (0-100).
+    random_state : int or None, default=None
+        Random seed for reproducibility.
 
     Returns
     -------
@@ -774,6 +793,7 @@ def run_lasso_screening(
         or isinstance(lasso_model, LogisticRegression)
     ):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
+    lasso_model = seed_estimator(lasso_model, random_state=random_state)
     lasso_model.fit(X, y)
     selection_set = (
         np.abs(lasso_model.coef_)
@@ -829,8 +849,8 @@ def d0crt(
         joblib_verbose=joblib_verbose,
         fit_y=fit_y,
         scaled_statistics=scaled_statistics,
-        random_state=random_state,
         reuse_screening_model=reuse_screening_model,
+        random_state=random_state,
     )
     methods.fit_importance(X, y, cv=cv)
     selection = methods.selection(

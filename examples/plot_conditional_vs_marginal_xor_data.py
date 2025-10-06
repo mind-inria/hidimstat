@@ -7,6 +7,7 @@ if they are not marginally important. The conditional importance is computed usi
 Conditional Feature Importance (CFI) class and the marginal importance is computed using univariate models.
 """
 
+# %%
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -20,9 +21,10 @@ from hidimstat import CFI
 
 # %%
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel.
-#
-rng = np.random.RandomState(0)
-X = rng.randn(400, 2)
+
+# Random seed for reproducibility
+rng = np.random.default_rng(0)
+X = rng.standard_normal((400, 2))
 Y = np.logical_xor(X[:, 0] > 0, X[:, 1] > 0).astype(int)
 
 xx, yy = np.meshgrid(
@@ -36,7 +38,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     test_size=0.2,
     random_state=0,
 )
-model = SVC(kernel="rbf", random_state=0)
+model = SVC(kernel="rbf", random_state=2)
 model.fit(X_train, y_train)
 
 

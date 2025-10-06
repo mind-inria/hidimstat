@@ -2,7 +2,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils.validation import check_random_state
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_sampling import ConditionalSampler
@@ -66,6 +65,7 @@ class CFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            random_state=random_state,
         )
 
         # check the validity of the inputs
@@ -80,7 +80,6 @@ class CFI(BasePerturbation):
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
-        self.random_state = random_state
 
     def fit(self, X, y=None, groups=None, var_type="auto"):
         """Fit the imputation models.
@@ -104,8 +103,8 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        self.random_state = check_random_state(self.random_state)
         super().fit(X, None, groups=groups)
+
         if isinstance(var_type, str):
             self.var_type = [var_type for _ in range(self.n_groups)]
         else:
@@ -113,7 +112,7 @@ class CFI(BasePerturbation):
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.var_type[groupd_id],
+                data_type=self.var_type[group_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
@@ -124,10 +123,9 @@ class CFI(BasePerturbation):
                     if self.imputation_model_categorical is None
                     else clone(self.imputation_model_categorical)
                 ),
-                random_state=self.random_state,
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for groupd_id in range(self.n_groups)
+            for group_id in range(self.n_groups)
         ]
 
         # Parallelize the fitting of the covariate estimators
@@ -180,11 +178,11 @@ class CFI(BasePerturbation):
         for m in self._list_imputation_models:
             check_is_fitted(m.model)
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._groups_ids[group_id]].copy()
         X_minus_j = np.delete(X, self._groups_ids[group_id], axis=1)
         return self._list_imputation_models[group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations
+            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
         )

@@ -3,8 +3,10 @@ from joblib import Parallel, delayed
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils.validation import check_memory
+from tqdm import tqdm
 
 from hidimstat._utils.bootstrap import _subsampling
+from hidimstat._utils.utils import check_random_state
 from hidimstat.desparsified_lasso import (
     desparsified_group_lasso_pvalue,
     desparsified_lasso,
@@ -147,11 +149,10 @@ def clustered_inference(
     X_init,
     y,
     ward,
-    n_clusters,
     scaler_sampling=None,
     train_size=1.0,
     groups=None,
-    seed=0,
+    random_state=None,
     n_jobs=1,
     memory=None,
     verbose=1,
@@ -177,9 +178,6 @@ def clustered_inference(
         Hierarchical clustering object that implements Ward's method for
         feature agglomeration.
 
-    n_clusters : int
-        Number of clusters to use for dimensionality reduction.
-
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
 
@@ -190,7 +188,7 @@ def clustered_inference(
     groups : ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
 
-    seed : int, optional (default=0)
+    random_state : int, optional (default=None)
         Random seed for reproducible subsampling.
 
     n_jobs : int, optional (default=1)
@@ -234,22 +232,16 @@ def clustered_inference(
     4. Perform statistical inference using desparsified lasso
     """
     memory = check_memory(memory=memory)
+    rng = check_random_state(random_state)
     assert issubclass(
         ward.__class__, FeatureAgglomeration
     ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
 
     n_samples, n_features = X_init.shape
 
-    if verbose > 0:
-        print(
-            f"Clustered inference: n_clusters = {n_clusters}, "
-            + f"inference method desparsified lasso, seed = {seed},"
-            + f"groups = {groups is not None} "
-        )
-
     ## This are the 3 step in first loop of the algorithm 2 of [1]
     # sampling row of X
-    train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
+    train_index = _subsampling(n_samples, train_size, groups=groups, random_state=rng)
 
     # transformation matrix
     X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, clone(ward), train_index)
@@ -268,6 +260,7 @@ def clustered_inference(
         n_jobs=n_jobs,
         memory=memory,
         verbose=verbose,
+        random_state=rng,
         **kwargs,
     )
 
@@ -346,11 +339,10 @@ def ensemble_clustered_inference(
     X_init,
     y,
     ward,
-    n_clusters,
     scaler_sampling=None,
     train_size=0.3,
     groups=None,
-    seed=0,
+    random_state=None,
     n_bootstraps=25,
     n_jobs=None,
     verbose=1,
@@ -376,9 +368,6 @@ def ensemble_clustered_inference(
     ward : sklearn.cluster.FeatureAgglomeration
         Feature agglomeration object implementing Ward hierarchical clustering.
 
-    n_clusters : int
-        Number of clusters for dimensionality reduction.
-
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
 
@@ -396,7 +385,7 @@ def ensemble_clustered_inference(
         and 'group-desparsified-lasso'. Use 'desparsified-lasso' for
         non-temporal data and 'group-desparsified-lasso' for temporal data.
 
-    seed: int, optional (default=0)
+    random_seed: int, optional (default=None)
         Seed used for generating the first random subsample of the data.
         This seed controls the clustering randomness.
 
@@ -466,6 +455,7 @@ def ensemble_clustered_inference(
     assert issubclass(
         ward.__class__, FeatureAgglomeration
     ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
+    rng = check_random_state(random_state)
 
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
@@ -473,17 +463,16 @@ def ensemble_clustered_inference(
             X_init,
             y,
             clone(ward),
-            n_clusters,
             scaler_sampling=scaler_sampling,
             train_size=train_size,
             groups=groups,
-            seed=i,
+            random_state=spawned_state,
             n_jobs=1,
             verbose=verbose,
             memory=memory,
             **kwargs,
         )
-        for i in np.arange(seed, seed + n_bootstraps)
+        for spawned_state in tqdm(rng.spawn(n_bootstraps), disable=(verbose == 0))
     )
     list_ward, list_beta_hat, list_theta_hat, list_precision_diag = [], [], [], []
     for ward, beta_hat, theta_hat, precision_diag in results:
