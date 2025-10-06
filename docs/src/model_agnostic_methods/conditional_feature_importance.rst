@@ -138,7 +138,7 @@ Classification example
 To measure feature importance in a classification task, a classification loss should be
 used, in addition, the prediction method of the estimator should output the corresponding 
 type of prediction (probabilities or classes). The following example illustrates the use
-of CFI on a classification task with::
+of CFI on a classification task::
 
     >>> from sklearn.datasets import make_classification
     >>> from sklearn.ensemble import RandomForestClassifier
