@@ -46,6 +46,8 @@ class D0CRT(BaseVariableImportance):
     estimated_coef : array-like of shape (n_features,) or None, default=None
         Pre-computed feature coefficients. If None, coefficients are estimated via
         Lasso.
+    estimated_intercept : float or None, default=None
+        Pre-computed intercept. If None, intercept is estimated via Lasso.
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If None, Lasso is used for X distillation.
     lasso_screening : sklearn estimator, default=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False)
@@ -131,6 +133,7 @@ class D0CRT(BaseVariableImportance):
         estimator,
         method: str = "predict",
         estimated_coef=None,
+        estimated_intercept=None,
         sigma_X=None,
         lasso_screening=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False),
         model_distillation_x=LassoCV(n_alphas=10),
@@ -147,6 +150,7 @@ class D0CRT(BaseVariableImportance):
         self.estimator = estimator
         _check_vim_predict_method(method)
         self.estimated_coef = estimated_coef
+        self.estimated_intercept = estimated_intercept
         self.method = method
         self.sigma_X = sigma_X
         self.lasso_screening = lasso_screening
@@ -245,6 +249,9 @@ class D0CRT(BaseVariableImportance):
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
+            self.intercept_ = (
+                self.estimated_intercept if self.estimated_intercept is not None else 0
+            )
         elif self.reuse_screening_model and (self.screening_threshold is not None):
             # Flatten to handle logistic regression case
             self.coefficient_ = lasso_model_.coef_.flatten()
@@ -758,7 +765,7 @@ def _joblib_distill(
     elif coefficient_minus_idx is not None:
         # get the coefficients
         # compute the residuals
-        y_residual = y - X_minus_idx.dot(coefficient_minus_idx.T)
+        y_residual = y - X_minus_idx.dot(coefficient_minus_idx.T) - intercept
     else:
         # get the residuals
         y_pred = getattr(model_y, method)(X_minus_idx)

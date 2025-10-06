@@ -32,7 +32,7 @@ n_samples = 200
 n_features = 100
 support_size = 10
 rho = 0.2  # correlation between features
-signal_noise_ratio = 3.0
+signal_noise_ratio = 2.0
 
 # Generate data for 5 different random seeds
 X_list, y_list, beta_true_list = [], [], []
@@ -77,7 +77,11 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(
-            penalty="l1", solver="liblinear", random_state=seed, Cs=10
+            penalty="l1",
+            solver="liblinear",
+            random_state=seed,
+            Cs=10,
+            fit_intercept=False,
         ),
         screening_threshold=None,
         n_jobs=5,
@@ -89,7 +93,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
 
     # Fit the dCRT with Lasso-distillation
     dcrt = D0CRT(
-        estimator=LassoCV(random_state=seed, alphas=10),
+        estimator=LassoCV(random_state=seed, alphas=10, fit_intercept=False),
         screening_threshold=None,
         n_jobs=5,
     )
