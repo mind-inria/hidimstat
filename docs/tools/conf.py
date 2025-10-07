@@ -47,7 +47,13 @@ extensions = [
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
+    "sphinx_copybutton",
 ]
+
+# Specify how to identify the prompt when copying a code snippet
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = "style"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../tools/_templates"]
@@ -165,4 +171,5 @@ intersphinx_mapping = {
 linkcheck_ignore = [
     # A lot of link DOI "fail" - false positives: easier to ignore them
     r"https://doi.org/.*",
+    r"../generated/gallery/examples/.*",
 ]
