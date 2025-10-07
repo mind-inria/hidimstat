@@ -7,8 +7,7 @@ Total Sobol Index
 
 The Total Sobol Index (TSI) :footcite:t:`sobol1993sensitivity` is a widely used measure of feature importance that is
 rooted in sensitivity analysis. It can intuitively be defined by the performance drop
-of a predictive model when a feature is removed, similarly to an ablation study. For a
-regression problem, the TSI can be expressed as:
+of a predictive model when a feature is removed, similarly to an ablation study. In general, the TSI can be expressed as:
 
 .. math::
     \psi_j^{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right],
