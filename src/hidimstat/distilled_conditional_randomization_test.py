@@ -271,8 +271,8 @@ class D0CRT(BaseVariableImportance):
         # computing the Fisher information matrix
         if self.is_logistic_:
             self.lasso_weights_ = (
-                np.exp(X.dot(self.coefficient_ + self.intercept_))
-                / (1 + np.exp(X.dot(self.coefficient_ + self.intercept_))) ** 2
+                np.exp(X.dot(self.coefficient_) + self.intercept_)
+                / (1 + np.exp(X.dot(self.coefficient_) + self.intercept_)) ** 2
             )
 
         ## fit models
