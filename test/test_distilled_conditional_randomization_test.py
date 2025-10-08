@@ -18,7 +18,7 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 @pytest.fixture(scope="module")
 def d0crt_test_data():
-    X, y, _, _ = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=150,
         n_features=20,
         support_size=10,
@@ -34,7 +34,7 @@ def d0crt_test_data():
         "screening_threshold": None,
         "model_distillation_x": LassoCV(n_alphas=10, cv=KFold(shuffle=True)),
     }
-    return X, y, dcrt_default_parameters
+    return X, y, beta, dcrt_default_parameters
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def test_dcrt_lasso_screening(d0crt_test_data):
     """
     Test for screening parameter and pvalue function
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
     n_features = X.shape[1]
     # Checking with and without screening
     d0crt_no_screening = D0CRT(
@@ -96,7 +96,7 @@ def test_dcrt_lasso_with_estimed_coefficient(d0crt_test_data):
     """
     Test the estimated coefficient parameter
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
     n_features = X.shape[1]
     # Checking with random estimated coefficients for the features
     rng = np.random.RandomState(2025)
@@ -119,7 +119,7 @@ def test_dcrt_lasso_with_refit(d0crt_test_data):
     """
     Test the refit parameter
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
     n_features = X.shape[1]
     # Checking with refit
     d0crt_refit = D0CRT(
@@ -138,7 +138,7 @@ def test_dcrt_lasso_with_no_cv(d0crt_test_data):
     """
     Test the parameters to the Lasso of x-distillation
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
     n_features = X.shape[1]
     # Checking with use_cv
     d0crt_use_cv = D0CRT(
@@ -157,7 +157,7 @@ def test_dcrt_lasso_with_covariance(d0crt_test_data):
     """
     Test dcrt with provide covariance matrix
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
     n_features = X.shape[1]
     # Checking with a provided covariance matrix
     cov = LedoitWolf().fit(X)
@@ -353,7 +353,7 @@ def test_dcrt_invalid_lasso_screening(d0crt_test_data):
     """
     Test that passing a non-Lasso model to lasso_screening raises a ValueError.
     """
-    X, y, _ = d0crt_test_data
+    X, y, _, _ = d0crt_test_data
 
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
@@ -384,7 +384,7 @@ def test_d0crt_repeatability(d0crt_test_data):
     Test that different instances of D0CRT with the same random state provide
     deterministic results.
     """
-    X, y, dcrt_default_parameters = d0crt_test_data
+    X, y, _, dcrt_default_parameters = d0crt_test_data
     d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
@@ -397,7 +397,7 @@ def test_d0crt_randomness_with_none(d0crt_test_data):
     Test that different random states provide different results and that
     random_state=None produces randomness.
     """
-    X, y, dcrt_default_parameters = d0crt_test_data
+    X, y, _, dcrt_default_parameters = d0crt_test_data
     # Fixed random state
     d0crt_fixed = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_fixed.fit(X, y)
@@ -419,7 +419,7 @@ def test_d0crt_reproducibility_with_integer(d0crt_test_data):
     Test that different instances of D0CRT with the same random state provide
     deterministic results.
     """
-    X, y, dcrt_default_parameters = d0crt_test_data
+    X, y, _, dcrt_default_parameters = d0crt_test_data
     d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=0)
     d0crt_1.fit(X, y)
     vim_1 = d0crt_1.importance(X, y)
@@ -436,7 +436,7 @@ def test_d0crt_reproducibility_with_rng(d0crt_test_data):
      1. Mmultiple calls of .importance() when CFI has random_state=rng are random
      2. refit with same rng provides same result
     """
-    X, y, dcrt_default_parameters = d0crt_test_data
+    X, y, _, dcrt_default_parameters = d0crt_test_data
     rng = np.random.default_rng(0)
     d0crt_1 = D0CRT(**dcrt_default_parameters, random_state=rng)
     d0crt_1.fit(X, y)
@@ -619,3 +619,28 @@ def test_dcrt_logit_refit(generate_classification_dataset):
     assert fp / (fp + tp) <= alpha
     # Check that the method is not powerless
     assert tp / np.sum(beta != 0) >= 0.2
+
+
+def test_regression_intercept(d0crt_test_data):
+    X, y, beta, _ = d0crt_test_data
+    d0crt_intercept = D0CRT(
+        estimator=LassoCV(fit_intercept=True), screening_threshold=None
+    )
+    d0crt_no_intercept = D0CRT(
+        estimator=LassoCV(fit_intercept=False), screening_threshold=None
+    )
+    d0crt_intercept.fit_importance(X, y)
+    d0crt_no_intercept.fit_importance(X, y)
+
+    alpha = 0.1
+    tp_intercept = np.sum((beta != 0) & (d0crt_intercept.pvalues_ <= alpha))
+    fp_intercept = np.sum((beta == 0) & (d0crt_intercept.pvalues_ <= alpha))
+    tp_no_intercept = np.sum((beta != 0) & (d0crt_no_intercept.pvalues_ <= alpha))
+    fp_no_intercept = np.sum((beta == 0) & (d0crt_no_intercept.pvalues_ <= alpha))
+
+    assert tp_intercept == tp_no_intercept
+    assert fp_intercept == fp_no_intercept
+    assert np.array_equal(
+        np.argsort(d0crt_intercept.importances_),
+        np.argsort(d0crt_no_intercept.importances_),
+    )
