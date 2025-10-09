@@ -15,6 +15,7 @@ Base Classes
 
    base_variable_importance.BaseVariableImportance
    base_perturbation.BasePerturbation
+   base_variable_importance.GroupVariableImportanceMixin
 
 Feature Importance Classes
 ==========================
