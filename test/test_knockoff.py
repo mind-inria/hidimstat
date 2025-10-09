@@ -206,7 +206,7 @@ def test_estimate_distribution():
     """
     test different estimation of the covariance
      - Test that the empirical false discovery proportion is below the target FDR
-    Allthough this is not guaranteed (control is only in expectation), the scenario
+    Although this is not guaranteed (control is only in expectation), the scenario
     is simple enough for the test to pass.
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
