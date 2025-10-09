@@ -19,9 +19,12 @@ def test_desparsified_lasso():
     """
     Test desparsified lasso on a simple simulation with no structure and
     a support of size 5.
-     - Test that the confidence intervals contain the true beta
-     - Test that the p-values are lower than 0.05 for the important features
-       and higher than 0.2 for the non-important features.
+     - Test that the confidence intervals contain the true beta 70% of the time. This
+    threshold is arbitrary.
+     - Test that the empirical false discovery proportion is below the target FDR
+    Allthough this is not guaranteed (control is only in expectation), the scenario
+    is simple enough for the test to pass
+    - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
 
     n_samples, n_features = 400, 40
@@ -45,7 +48,6 @@ def test_desparsified_lasso():
         X.shape[0], beta_hat, sigma_hat, precision_diag, confidence=confidence
     )
     # Check that beta is within the confidence intervals
-
     correct_interval = np.sum((beta >= cb_min) & (beta <= cb_max))
     assert correct_interval >= int(0.7 * n_features)
 
@@ -73,11 +75,13 @@ def test_desparsified_lasso():
 
 
 def test_desparsified_group_lasso():
-    """Testing the procedure on a simulation with no structure and
-    a support of size 2.
-    Computing one-sided p-values, we want
-    low p-values for the features of the support and p-values
-    close to 0.5 for the others."""
+    """
+    Testing the procedure on a simulation with no structure and a support of size 2.
+     - Test that the empirical false discovery proportion is below the target FDR
+    Allthough this is not guaranteed (control is only in expectation), the scenario
+    is simple enough for the test to pass.
+     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
+    """
 
     n_samples = 400
     n_features = 40
