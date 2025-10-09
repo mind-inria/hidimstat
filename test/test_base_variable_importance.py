@@ -53,6 +53,20 @@ class TestSelection:
         selection = vi.importance_selection(k_best=None)
         np.testing.assert_array_equal(true_value, selection)
 
+    def test_selection_k_lowest(self, set_100_variable_sorted):
+        "test selection of the k_lowest"
+        vi = set_100_variable_sorted
+        true_value = vi.pvalues_ < vi.pvalues_[np.argsort(vi.pvalues_)[5]]
+        selection = vi.pvalue_selection(k_lowest=5, threshold_max=None)
+        np.testing.assert_array_equal(true_value, selection)
+
+    def test_selection_k_lowest_none(self, set_100_variable_sorted):
+        "test selection when there none"
+        vi = set_100_variable_sorted
+        true_value = np.ones_like(vi.pvalues_ > 0, dtype=bool)
+        selection = vi.pvalue_selection(k_lowest=None, threshold_max=None)
+        np.testing.assert_array_equal(true_value, selection)
+
     def test_selection_percentile(self, set_100_variable_sorted):
         "test selection bae on percentile"
         vi = set_100_variable_sorted
@@ -206,27 +220,35 @@ class TestBVIExceptions:
         with pytest.warns(Warning, match="k=1000 is greater than n_features="):
             vi.importance_selection(k_best=1000)
 
+    def test_selection_k_lowest(self, set_100_variable_sorted):
+        "test selection k_lowest wrong"
+        vi = set_100_variable_sorted
+        with pytest.raises(AssertionError, match="k_lowest needs to be positive"):
+            vi.pvalue_selection(k_lowest=-10, threshold_max=None)
+        with pytest.warns(Warning, match="k=1000 is greater than n_features="):
+            vi.pvalue_selection(k_lowest=1000, threshold_max=None)
+
     def test_selection_percentile(self, set_100_variable_sorted):
         "test selection percentile wrong"
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError,
-            match="percentile must be between 0 and 100 \(exclusive\). Got -1.",
+            match=r"percentile must be between 0 and 100 \(exclusive\). Got -1.",
         ):
             vi.importance_selection(percentile=-1)
         with pytest.raises(
             AssertionError,
-            match="percentile must be between 0 and 100 \(exclusive\). Got 102.",
+            match=r"percentile must be between 0 and 100 \(exclusive\). Got 102.",
         ):
             vi.importance_selection(percentile=102)
         with pytest.raises(
             AssertionError,
-            match="percentile must be between 0 and 100 \(exclusive\). Got 0.",
+            match=r"percentile must be between 0 and 100 \(exclusive\). Got 0.",
         ):
             vi.importance_selection(percentile=0)
         with pytest.raises(
             AssertionError,
-            match="percentile must be between 0 and 100 \(exclusive\). Got 100",
+            match=r"percentile must be between 0 and 100 \(exclusive\). Got 100",
         ):
             vi.importance_selection(percentile=100)
 

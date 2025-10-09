@@ -62,11 +62,18 @@ def _selection_generic(
         mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
         return mask_k_best
     elif k_lowest is not None:
+        assert k_lowest >= 1, "k_lowest needs to be positive or None"
+        if k_lowest > values.shape[0]:
+            warnings.warn(
+                f"k={k_lowest} is greater than n_features={values.shape[0]}. "
+                "All the features will be returned."
+            )
         mask_k_lowest = np.zeros_like(values, dtype=bool)
 
+        # based on SelectKBest in Scikit-Learn
         # Request a stable sort. Mergesort takes more memory (~40MB per
         # megafeature on x86-64).
-        mask_k_lowest[np.argsort(values, kind="mergesort")[:mask_k_lowest]] = 1
+        mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
         return mask_k_lowest
     elif percentile is not None:
         assert (
