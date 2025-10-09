@@ -1,6 +1,6 @@
-.. _concepts:
+.. _desparsified_lasso:
 
 
 ======================
-Definition of concepts
+Desparsified Lasso
 ======================

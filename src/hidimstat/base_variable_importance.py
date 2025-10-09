@@ -1,8 +1,11 @@
+import numbers
 import warnings
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator
+
+from hidimstat._utils.exception import InternalError
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -137,6 +140,7 @@ class BaseVariableImportance(BaseEstimator):
         self,
         ax=None,
         ascending=False,
+        feature_names=None,
         **seaborn_barplot_kwargs,
     ):
         """
@@ -167,7 +171,18 @@ class BaseVariableImportance(BaseEstimator):
 
         if ax is None:
             _, ax = plt.subplots()
-        feature_names = list(self.groups.keys())
+
+        if feature_names is None:
+            if hasattr(self, "features_groups"):
+                feature_names = list(self.features_groups.keys())
+            else:
+                feature_names = [str(j) for j in range(self.importances_.shape[-1])]
+        elif isinstance(feature_names, list):
+            assert np.all(
+                isinstance(name, str) for name in feature_names
+            ), "The feature_names should be a list of the string"
+        else:
+            raise ValueError("feature_names should be a list")
 
         if self.importances_.ndim == 2:
             df_plot = {
@@ -197,3 +212,155 @@ class BaseVariableImportance(BaseEstimator):
         sns.despine(ax=ax)
         ax.set_ylabel("")
         return ax
+
+
+class GroupVariableImportanceMixin:
+    """
+    Mixin class for adding group functionality to variable importance methods.
+    This class provides functionality for handling grouped features in variable
+    importance calculations, enabling group-wise selection and importance evaluation.
+
+    Parameters
+    ----------
+    features_groups: dict or None, default=None
+        Dictionary mapping group names to lists of feature column names/indices.
+        If None, each feature is treated as its own group.
+
+    Attributes
+    ----------
+    n_features_groups_ : int
+        Number of feature groups.
+    _features_groups_ids : array-like
+        List of feature indices for each group.
+
+    Methods
+    -------
+    fit(X, y=None)
+        Identifies feature groups and validates input data structure.
+    _check_fit()
+        Verifies if the instance has been fitted.
+    _check_compatibility(X)
+        Validates compatibility between input data and fitted groups.
+    """
+
+    def __init__(self, features_groups=None):
+        super().__init__()
+        self.features_groups = features_groups
+        self.n_features_groups_ = None
+        self._features_groups_ids = None
+
+    def fit(self, X, y=None):
+        """
+        Base fit method for perturbation-based methods. Identifies the groups.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            Not used, only present for consistency with the sklearn API.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+        """
+        if self.features_groups is None:
+            self.n_features_groups_ = X.shape[1]
+            self.features_groups = {j: [j] for j in range(self.n_features_groups_)}
+            self._features_groups_ids = np.array(
+                sorted(list(self.features_groups.values())), dtype=int
+            )
+        elif isinstance(self.features_groups, dict):
+            self.n_features_groups_ = len(self.features_groups)
+            self.features_groups = self.features_groups
+            if isinstance(X, pd.DataFrame):
+                self._features_groups_ids = []
+                for features_group_key in sorted(self.features_groups.keys()):
+                    self._features_groups_ids.append(
+                        [
+                            i
+                            for i, col in enumerate(X.columns)
+                            if col in self.features_groups[features_group_key]
+                        ]
+                    )
+            else:
+                self._features_groups_ids = [
+                    np.array(ids, dtype=int)
+                    for ids in list(self.features_groups.values())
+                ]
+        else:
+            raise ValueError("features_groups needs to be a dictionary")
+        return self
+
+    def _check_fit(self):
+        """
+        Check if the instance has been fitted.
+
+        Raises
+        ------
+        ValueError
+            If the class has not been fitted (i.e., if n_features_groups_
+            or _features_groups_ids attributes are missing).
+        """
+        if self.n_features_groups_ is None or self._features_groups_ids is None:
+            raise ValueError("The class is not fitted.")
+
+    def _check_compatibility(self, X):
+        """
+        Check compatibility between input data and fitted model.
+
+        Verifies that the input data X matches the structure expected by the fitted model,
+        including feature names and dimensions.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Input data to validate. Can be pandas DataFrame or numpy array.
+
+        Raises
+        ------
+        ValueError
+            If X is not a pandas DataFrame or numpy array.
+            If column names in X don't match those used during fitting.
+        AssertionError
+            If feature indices are out of bounds.
+            If required feature names are missing from X.
+        Warning
+            If number of features in X differs from number of grouped features.
+        """
+        if isinstance(X, pd.DataFrame):
+            names = list(X.columns)
+        elif isinstance(X, np.ndarray) and X.dtype.names is not None:
+            names = X.dtype.names
+            # transform Structured Array in pandas array for a better manipulation
+            X = pd.DataFrame(X)
+        elif isinstance(X, np.ndarray):
+            names = None
+        else:
+            raise ValueError("X should be a pandas dataframe or a numpy array.")
+        number_columns = X.shape[1]
+        for index_variables in self.features_groups.values():
+            if isinstance(index_variables[0], numbers.Integral):
+                assert np.all(
+                    np.array(index_variables, dtype=int) < number_columns
+                ), "X does not correspond to the fitting data."
+            elif type(index_variables[0]) is str or np.issubdtype(
+                type(index_variables[0]), str
+            ):
+                assert np.all(
+                    [name in names for name in index_variables]
+                ), f"The array is missing at least one of the following columns {index_variables}."
+            else:
+                raise InternalError(
+                    "A problem with indexing has happened during the fit."
+                )
+        number_unique_feature_in_groups = np.unique(
+            np.concatenate([values for values in self.features_groups.values()])
+        ).shape[0]
+        if X.shape[1] != number_unique_feature_in_groups:
+            warnings.warn(
+                f"The number of features in X: {X.shape[1]} differs from the"
+                " number of features for which importance is computed: "
+                f"{number_unique_feature_in_groups}"
+            )
