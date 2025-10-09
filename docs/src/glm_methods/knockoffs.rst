@@ -1,6 +1,6 @@
-.. _concepts:
+.. _knockoffs:
 
 
 ======================
-Definition of concepts
+Knockoffs
 ======================
