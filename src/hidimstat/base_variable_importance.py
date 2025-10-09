@@ -9,7 +9,7 @@ from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 from hidimstat._utils.exception import InternalError
 
 
-def _selection_multi_criteria(
+def _selection_generic(
     values,
     k_best=None,
     k_lowest=None,
@@ -40,6 +40,13 @@ def _selection_multi_criteria(
     selection : array-like of shape (n_features,)
         Boolean array indicating the selected features.
     """
+    n_criteria = np.sum(
+        [
+            criteria is not None
+            for criteria in [k_best, k_lowest, percentile, threshold_max, threshold_min]
+        ]
+    )
+    assert n_criteria <= 1, "Only support selection based on one criteria."
     if k_best is not None:
         assert k_best >= 1, "k_best needs to be positive or None"
         if k_best > values.shape[0]:
@@ -47,38 +54,27 @@ def _selection_multi_criteria(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
                 "All the features will be returned."
             )
-    if percentile is not None:
-        assert (
-            0 < percentile < 100
-        ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
-            percentile
-        )
-    if threshold_max is not None and threshold_min is not None:
-        assert (
-            threshold_max > threshold_min
-        ), "threshold_max needs to be higher than threshold_min "
-
-    # based on SelectKBest in Scikit-Learn
-    if k_best is not None:
         mask_k_best = np.zeros_like(values, dtype=bool)
 
+        # based on SelectKBest in Scikit-Learn
         # Request a stable sort. Mergesort takes more memory (~40MB per
         # megafeature on x86-64).
         mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
-    else:
-        mask_k_best = np.ones_like(values, dtype=bool)
-
-    if k_lowest is not None:
+        return mask_k_best
+    elif k_lowest is not None:
         mask_k_lowest = np.zeros_like(values, dtype=bool)
 
         # Request a stable sort. Mergesort takes more memory (~40MB per
         # megafeature on x86-64).
         mask_k_lowest[np.argsort(values, kind="mergesort")[:mask_k_lowest]] = 1
-    else:
-        mask_k_lowest = np.ones_like(values, dtype=bool)
-
-    # based on SelectPercentile in Scikit-Learn
-    if percentile is not None:
+        return mask_k_lowest
+    elif percentile is not None:
+        assert (
+            0 < percentile < 100
+        ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
+            percentile
+        )
+        # based on SelectPercentile in Scikit-Learn
         threshold_percentile = np.percentile(values, 100 - percentile)
         mask_percentile = values > threshold_percentile
         ties = np.where(values == threshold_percentile)[0]
@@ -86,21 +82,16 @@ def _selection_multi_criteria(
             max_feats = int(len(values) * percentile / 100)
             kept_ties = ties[: max_feats - mask_percentile.sum()]
             mask_percentile[kept_ties] = True
-    else:
-        mask_percentile = np.ones_like(values, dtype=bool)
-
-    if threshold_max is not None:
+        return mask_percentile
+    elif threshold_max is not None:
         mask_threshold_max = values < threshold_max
-    else:
-        mask_threshold_max = np.ones_like(values, dtype=bool)
-
-    if threshold_min is not None:
+        return mask_threshold_max
+    elif threshold_min is not None:
         mask_threshold_min = values > threshold_min
+        return mask_threshold_min
     else:
-        mask_threshold_min = np.ones_like(values, dtype=bool)
-
-    selection = mask_k_best & mask_percentile & mask_threshold_max & mask_threshold_min
-    return selection
+        no_mask = np.ones_like(values, dtype=bool)
+        return no_mask
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -163,7 +154,7 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        return _selection_multi_criteria(
+        return _selection_generic(
             self.importances_,
             k_best=k_best,
             percentile=percentile,
@@ -215,7 +206,7 @@ class BaseVariableImportance(BaseEstimator):
         assert alternative_hypothesis is None or isinstance(
             alternative_hypothesis, bool
         ), "alternative_hippothesis can have only three values: True, False and None."
-        return _selection_multi_criteria(
+        return _selection_generic(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
             percentile=percentile,
