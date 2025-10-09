@@ -260,8 +260,7 @@ class TestBVIExceptions:
         ):
             vi.pvalue_selection(threshold_max=1.1)
         with pytest.raises(
-            AssertionError,
-            match="threshold_max needs to be higher than threshold_min",
+            AssertionError, match="Only support selection based on one criteria."
         ):
             vi.pvalue_selection(threshold_max=0.5, threshold_min=0.9)
 
