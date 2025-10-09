@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 
 from hidimstat.base_variable_importance import BaseVariableImportance
 
@@ -68,3 +69,6 @@ def test_plot_importance_feature_names():
         np.array([label.get_text() for label in ax_none_group.get_yticklabels()])
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
+
+    with pytest.raises(ValueError, match="feature_names should be a list"):
+        ax_none_group = vi.plot_importance(feature_names="ttt")
