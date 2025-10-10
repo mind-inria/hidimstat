@@ -1,11 +1,12 @@
 import numpy as np
 import pytest
-from hidimstat.statistical_tools.gaussian_knockoffs import (
-    _s_equi,
-    GaussianKnockoffs,
-)
-from hidimstat._utils.scenario import multivariate_simulation
 from sklearn.covariance import LedoitWolf
+
+from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.statistical_tools.gaussian_knockoffs import (
+    GaussianKnockoffs,
+    _s_equi,
+)
 
 
 def test_gaussian_equi():
