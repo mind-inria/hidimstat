@@ -63,11 +63,9 @@ from sklearn.svm import SVC
 
 non_linear_model = SVC(kernel="rbf", random_state=0)
 linear_model = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 5),
     penalty="l1",
     solver="liblinear",
     max_iter=1000,
-    random_state=0,
 )
 
 # %%

@@ -31,7 +31,7 @@ from hidimstat._utils.scenario import multivariate_simulation
 n_samples = 200
 n_features = 100
 support_size = 10
-rho = 0.2  # correlation between features
+rho = 0.2  # strength of the serial correlation between adjacent features
 signal_noise_ratio = 2.0
 
 # Generate data for 5 different random seeds
