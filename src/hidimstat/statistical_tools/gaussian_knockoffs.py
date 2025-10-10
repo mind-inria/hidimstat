@@ -144,7 +144,7 @@ class GaussianKnockoffs:
         X_tildes = []
         for i in range(n_samples):
             # create a uniform noise for all the data
-            u_tilde = rng.randn(n_samples, n_features)
+            u_tilde = rng.standard_normal([n_samples, n_features])
 
             # Equation 1.4 in barber2015controlling
             X_tildes.append(

@@ -87,7 +87,7 @@ def test_randomness_sample_no_seed():
 def test_randomness_sample_rgn():
     """Test the non repeatability of the samples when the usage of random generator"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
-    rng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     gaussian_sampler_rng = GaussianKnockoffs(cov_estimator=LedoitWolf())
     gaussian_sampler_rng.fit(X=X)
     X_tilde_1 = gaussian_sampler_rng.sample(random_state=rng)
