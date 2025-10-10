@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -47,7 +47,13 @@ extensions = [
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
+    "sphinx_copybutton",
 ]
+
+# Specify how to identify the prompt when copying a code snippet
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = "style"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../tools/_templates"]
@@ -87,12 +93,16 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
+    "pygments_light_style": "sas",
+    "pygments_dark_style": "monokai",
 }
+
 html_title = "HiDimStat"
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_repo": "hidimstat",
 }
+
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -152,9 +162,14 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
-    "numba": ("https://numba.readthedocs.io/en/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
-    "pyvista": ("https://docs.pyvista.org", None),
 }
+
+
+linkcheck_ignore = [
+    # A lot of link DOI "fail" - false positives: easier to ignore them
+    r"https://doi.org/.*",
+    r"../generated/gallery/examples/.*",
+]

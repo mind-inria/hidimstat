@@ -3,10 +3,10 @@ from functools import partial
 import numpy as np
 from scipy.stats import wilcoxon
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils import check_random_state
 
-from hidimstat.base_perturbation import BasePerturbation
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.utils import check_random_state
+from hidimstat.base_perturbation import BasePerturbation
 
 
 class PFI(BasePerturbation):
@@ -14,14 +14,14 @@ class PFI(BasePerturbation):
     Permutation Feature Importance algorithm
 
     This as presented in :footcite:t:`breimanRandomForests2001`.
-    For each variable/group of variables, the importance is computed as
-    the difference between the loss of the initial model and the loss of
-    the model with the variable/group permuted.
+    For each variable/group of variables, the importance is computed as the
+    difference between the loss of the initial model and the loss of the model
+    with the variable/group permuted.
     The method was also used in :footcite:t:`mi2021permutation`
 
     Parameters
     ----------
-    estimator : sklearn compatible estimator, optionals
+    estimator : sklearn compatible estimator
         The estimator to use for the prediction.
     method : str, default="predict"
         The method to use for the prediction. This determines the predictions passed
@@ -33,7 +33,13 @@ class PFI(BasePerturbation):
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
-    random_state : int, default=None
+    test_statict :
+
+    features_groups: dict or None, default=None
+        A dictionary where the keys are the group names and the values are the
+        list of column names corresponding to each features group. If None,
+        the features_groups are identified based on the columns of X.
+    random_state : int or None, default=None
         The random state to use for sampling.
     n_jobs : int, default=1
         The number of jobs to run in parallel. Parallelization is done over the
@@ -51,26 +57,29 @@ class PFI(BasePerturbation):
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
         test_statict=partial(wilcoxon, axis=1),
+        features_groups=None,
         random_state: int = None,
         n_jobs: int = 1,
     ):
-
         super().__init__(
             estimator=estimator,
             method=method,
             loss=loss,
             n_permutations=n_permutations,
             test_statict=test_statict,
+            features_groups=features_groups,
+            random_state=random_state,
             n_jobs=n_jobs,
         )
-        self.random_state = random_state
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, features_group_id, random_state=None):
         """Create the permuted data for the j-th group of covariates"""
-        self.random_state = check_random_state(self.random_state)
+        rng = check_random_state(random_state)
         X_perm_j = np.array(
             [
-                self.random_state.permutation(X[:, self._groups_ids[group_id]].copy())
+                rng.permutation(
+                    X[:, self._features_groups_ids[features_group_id]].copy()
+                )
                 for _ in range(self.n_permutations)
             ]
         )
@@ -81,14 +90,15 @@ def pfi(
     estimator,
     X,
     y,
-    groups: dict = None,
     method: str = "predict",
     loss: callable = root_mean_squared_error,
     n_permutations: int = 50,
+    test_statict=partial(wilcoxon, axis=1),
+    features_groups=None,
     k_best=None,
     percentile=None,
-    threshold=None,
-    threshold_pvalue=None,
+    threshold_min=None,
+    threshold_max=None,
     random_state: int = None,
     n_jobs: int = 1,
 ):
@@ -97,19 +107,17 @@ def pfi(
         method=method,
         loss=loss,
         n_permutations=n_permutations,
+        test_statict=test_statict,
+        features_groups=features_groups,
         random_state=random_state,
         n_jobs=n_jobs,
     )
-    methods.fit_importance(
-        X,
-        y,
-        groups=groups,
-    )
-    selection = methods.selection(
+    methods.fit_importance(X, y)
+    selection = methods.importance_selection(
         k_best=k_best,
         percentile=percentile,
-        threshold=threshold,
-        threshold_pvalue=threshold_pvalue,
+        threshold_min=threshold_min,
+        threshold_max=threshold_max,
     )
     return selection, methods.importances_, methods.pvalues_
 
@@ -120,7 +128,7 @@ pfi.__doc__ = _aggregate_docstring(
         PFI.__doc__,
         PFI.__init__.__doc__,
         PFI.fit_importance.__doc__,
-        PFI.selection.__doc__,
+        PFI.importance_selection.__doc__,
     ],
     """
     Returns
