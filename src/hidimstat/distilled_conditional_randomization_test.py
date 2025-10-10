@@ -80,6 +80,9 @@ class D0CRT(BaseVariableImportance):
         Random seed for reproducibility.
     reuse_screening_model: bool, default=True
         Whether to reuse the screening model for y-distillation.
+    eps_fisher : float, default=1e-8
+        Only used for logistic regression. Small constant added for numerical stability
+        to the Fisher information to avoid division by zero.
 
     Attributes
     ----------
@@ -146,6 +149,7 @@ class D0CRT(BaseVariableImportance):
         scaled_statistics=False,
         reuse_screening_model=True,
         random_state=None,
+        eps_fisher=1e-8,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -164,6 +168,7 @@ class D0CRT(BaseVariableImportance):
         self.scaled_statistics = scaled_statistics
         self.reuse_screening_model = reuse_screening_model
         self.random_state = random_state
+        self.eps_fisher = eps_fisher
 
         self.is_logistic_ = self._check_logistic()
         self.coefficient_ = None
@@ -416,6 +421,7 @@ class D0CRT(BaseVariableImportance):
                 X_residual,
                 y_residual,
                 n_samples,
+                eps_fisher=self.eps_fisher,
             )
         else:
             test_statistic_selected_variables = self._regression_test_statistic(

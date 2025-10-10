@@ -622,6 +622,10 @@ def test_dcrt_logit_refit(generate_classification_dataset):
 
 
 def test_regression_intercept(d0crt_test_data):
+    """
+    Test that adding the intercept term in the d0CRT does not degrade the performance
+    of the method.
+    """
     X, y, beta, _ = d0crt_test_data
     d0crt_intercept = D0CRT(
         estimator=LassoCV(fit_intercept=True), screening_threshold=None

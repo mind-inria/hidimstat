@@ -80,8 +80,6 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
             penalty="l1",
             solver="liblinear",
             random_state=seed,
-            Cs=10,
-            fit_intercept=False,
         ),
         screening_threshold=None,
         n_jobs=5,
