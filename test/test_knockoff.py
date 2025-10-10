@@ -205,38 +205,48 @@ def test_model_x_knockoff_exception():
 def test_estimate_distribution():
     """
     test different estimation of the covariance
-    TODO: This test is unstable, testing for perfect recovery of the support with
-    n=100 and p=50 is too ambitious. It currently passes thanks to a lucky draw.
+     - Test that the empirical false discovery proportion is below the target FDR
+    Although this is not guaranteed (control is only in expectation), the scenario
+    is simple enough for the test to pass.
+     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    seed = 3
-    fdr = 0.1
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    fdr = 0.2
+    n = 400
+    p = 100
+    signal_noise_ratio = 32
+    support_size = 5
+
+    X, y, beta, noise = multivariate_simulation(
+        n, p, support_size=support_size, signal_noise_ratio=signal_noise_ratio
+    )
     non_zero = np.where(beta)[0]
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=LedoitWolf(assume_centered=True),
         n_bootstraps=1,
-        random_state=seed,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8
+
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
-            cv=KFold(n_splits=5, shuffle=True, random_state=seed + 2),
+            cv=KFold(n_splits=5, shuffle=True),
         ),
         n_bootstraps=1,
-        random_state=seed,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
+
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8
 
 
 def test_gaussian_knockoff_equi():
