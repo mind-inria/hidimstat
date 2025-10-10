@@ -16,7 +16,7 @@ class GaussianKnockoffs:
     ----------
     cov_estimator : object
         Estimator for computing the covariance matrix. Must implement fit and
-        have a covariance_ attribute after fitting.
+        have a `covariance_` attribute after fitting.
     tol : float, default=1e-14
         Tolerance for numerical stability in matrix computations.
 
