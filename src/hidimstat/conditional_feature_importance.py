@@ -4,7 +4,7 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.metrics import root_mean_squared_error
 
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
 
 
 class CFI(BasePerturbation):
