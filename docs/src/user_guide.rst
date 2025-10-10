@@ -21,4 +21,4 @@ Table of contents
    visualization.rst
    grouping.rst
    high_dimension.rst
-   
+   helper_methods.rst
