@@ -3,6 +3,8 @@ import warnings
 import numpy as np
 from sklearn.utils import check_random_state
 
+from hidimstat._utils.utils import check_random_state
+
 
 class GaussianKnockoffs:
     """
@@ -123,7 +125,7 @@ class GaussianKnockoffs:
             The group of variables to sample, $X^j$.
         n_samples : int, default=1
             The number of samples to draw.
-        random_state : int, default=None
+        random_state : int or None, default=None
             The random state to use for sampling.
 
         Returns

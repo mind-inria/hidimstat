@@ -2,13 +2,13 @@
 Test the noise_std module
 """
 
-import pytest
 import numpy as np
+import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.noise_std import empirical_snr, reid
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.noise_std import empirical_snr, reid
 
 
 def test_reid():
@@ -66,6 +66,7 @@ def test_group_reid():
     n_target = 50
     signal_noise_ratio = 3.0
     rho_serial = 0.9
+    random_state = np.random.default_rng(1)
 
     # First expe
     # ##########
@@ -84,15 +85,24 @@ def test_group_reid():
     cov = support_size / signal_noise_ratio * corr
 
     # max_iter=1 to get a better coverage
-    cov_hat, _ = reid(X, Y, multioutput=True, tolerance=1e-3, max_iterance=1)
+    cov_hat, _ = reid(
+        X,
+        Y,
+        multioutput=True,
+        tolerance=1e-3,
+        max_iterance=1,
+        random_state=random_state,
+    )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, method="AR")
+    cov_hat, _ = reid(X, Y, multioutput=True, method="AR", random_state=random_state)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat, _ = reid(X, Y, multioutput=True, stationary=False)
+    cov_hat, _ = reid(
+        X, Y, multioutput=True, stationary=False, random_state=random_state
+    )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 

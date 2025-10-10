@@ -1,15 +1,15 @@
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import clone
 from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
 def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
@@ -180,7 +180,6 @@ def model_x_knockoff(
     """
     assert n_bootstraps > 0, "the number of bootstraps should at least higher than 1"
     memory = check_memory(memory)
-    rng = check_random_state(random_state)
     # unnecessary to have n_jobs > number of bootstraps
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
@@ -191,11 +190,13 @@ def model_x_knockoff(
     # Create knockoff variables
     conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
     conditionnal_sampler.fit(X)
-    X_tildes = conditionnal_sampler.sample(n_samples=n_bootstraps, random_state=rng)
+    X_tildes = conditionnal_sampler.sample(
+        n_samples=n_bootstraps, random_state=random_state
+    )
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
-            X, X_tildes[i], y, estimator, fdr, preconfigure_estimator
+            X, X_tildes[i], y, clone(estimator), fdr, preconfigure_estimator
         )
         for i in range(n_bootstraps)
     )
@@ -431,7 +432,7 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, fdr, preconfigure_estimator
     # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
 
-    # Compute the threshold level and selecte the important variables
+    # Compute the threshold level and select the important variables
     ko_thr = _knockoff_threshold(test_score, fdr=fdr)
     selected = np.where(test_score >= ko_thr)[0]
 

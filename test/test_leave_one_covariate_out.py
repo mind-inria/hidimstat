@@ -5,9 +5,10 @@ from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
-from hidimstat._utils.scenario import multivariate_simulation
 
-from hidimstat import LOCO, BasePerturbation
+from hidimstat import LOCO
+from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.base_perturbation import BasePerturbation
 
 
 def test_loco():
@@ -30,13 +31,13 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
+        features_groups=None,
         n_jobs=1,
     )
 
     loco.fit(
         X_train,
         y_train,
-        groups=None,
     )
     vim = loco.importance(X_test, y_test)
 
@@ -58,14 +59,14 @@ def test_loco():
     loco = LOCO(
         estimator=regression_model,
         method="predict",
+        features_groups=groups,
         n_jobs=1,
     )
     loco.fit(
         X_train_df,
         y_train,
-        groups=groups,
     )
-    # warnings because we doesn't considere the name of columns of pandas
+    # warnings because we doesn't consider the name of columns of pandas
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = loco.importance(X_test_df, y_test)
 
@@ -81,13 +82,16 @@ def test_loco():
     loco_clf = LOCO(
         estimator=logistic_model,
         method="predict_proba",
-        n_jobs=1,
+        features_groups={
+            "group_0": important_features,
+            "the_group_1": non_important_features,
+        },
         loss=log_loss,
+        n_jobs=1,
     )
     loco_clf.fit(
         X_train,
         y_train_clf,
-        groups={"group_0": important_features, "the_group_1": non_important_features},
     )
     vim_clf = loco_clf.importance(X_test, y_test_clf)
 
