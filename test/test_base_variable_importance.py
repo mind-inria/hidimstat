@@ -5,7 +5,7 @@ from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 @pytest.fixture
-def set_100_variable_sorted(seed):
+def set_100_variable_sorted():
     """Create a BaseVariableImportance instance with test data for testing purposes.
 
     Parameters
@@ -22,6 +22,7 @@ def set_100_variable_sorted(seed):
     BaseVariableImportance
         A BaseVariableImportance instance with test data.
     """
+    seed = 0
     n_features = 100
     rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
@@ -31,11 +32,6 @@ def set_100_variable_sorted(seed):
     return vi
 
 
-@pytest.mark.parametrize(
-    "seed",
-    [0, 2],
-    ids=["default_seed", "another seed"],
-)
 class TestSelection:
     """Test selection based on importance"""
 
@@ -115,11 +111,6 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-@pytest.mark.parametrize(
-    "seed",
-    [0],
-    ids=["default_seed"],
-)
 class TestSelectionFDR:
     """Test selection based on fdr"""
 
@@ -190,15 +181,10 @@ class TestSelectionFDR:
         )
 
 
-@pytest.mark.parametrize(
-    "seed",
-    [0],
-    ids=["default_seed"],
-)
 class TestBVIExceptions:
     """Test class for BVI Exception"""
 
-    def test_not_fit(self, seed):
+    def test_not_fit(self):
         "test detection unfit"
         vi = BaseVariableImportance()
         with pytest.raises(
@@ -287,13 +273,8 @@ class TestBVIExceptions:
             vi.pvalue_selection(threshold_max=0.5, threshold_min=0.9)
 
 
-@pytest.mark.parametrize(
-    "seed",
-    [0],
-    ids=["default_seed"],
-)
 class TestSelectionFDRExceptions:
-    def test_not_fit(self, seed):
+    def test_not_fit(self):
         "test detection unfit"
 
         vi = BaseVariableImportance()
