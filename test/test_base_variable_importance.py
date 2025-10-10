@@ -185,7 +185,7 @@ class TestSelectionFDR:
 class TestBVIExceptions:
     """Test class for BVI Exception"""
 
-    def test_not_fit(self, seed):
+    def test_not_fit(self):
         "test detection unfit"
         vi = BaseVariableImportance()
         with pytest.raises(
@@ -275,7 +275,7 @@ class TestBVIExceptions:
 
 
 class TestSelectionFDRExceptions:
-    def test_not_fit(self, seed):
+    def test_not_fit(self):
         "test detection unfit"
 
         vi = BaseVariableImportance()
