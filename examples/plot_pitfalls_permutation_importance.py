@@ -14,9 +14,6 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
 
 import numpy as np
 
-from hidimstat import CFI, PFI
-from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
-
 rng = np.random.default_rng(0)
 
 # %%
@@ -270,7 +267,7 @@ plt.show()
 
 from matplotlib.lines import Line2D
 
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
 
 X_train, X_test = train_test_split(
     X,
