@@ -57,7 +57,7 @@ def test_clustered_inference_no_temporal():
     )
 
     ward_, desparsified_lassos = clustered_inference(
-        X_init, y, ward, n_clusters, scaler_sampling=StandardScaler()
+        X_init, y, ward, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -112,7 +112,7 @@ def test_clustered_inference_temporal():
     )
 
     ward_, desparsified_lassos = clustered_inference(
-        X, y, ward, n_clusters, scaler_sampling=StandardScaler()
+        X, y, ward, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -181,7 +181,7 @@ def test_clustered_inference_no_temporal_groups():
     )
 
     ward_, desparsified_lassos = clustered_inference(
-        X_, y_, ward, n_clusters, groups=groups, scaler_sampling=StandardScaler()
+        X_, y_, ward, groups=groups, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
@@ -241,7 +241,6 @@ def test_ensemble_clustered_inference():
         X_init,
         y,
         ward,
-        n_clusters,
         scaler_sampling=StandardScaler(),
         n_bootstraps=n_bootstraps,
     )
@@ -299,7 +298,6 @@ def test_ensemble_clustered_inference_temporal_data():
         X,
         y,
         ward,
-        n_clusters,
         scaler_sampling=StandardScaler(),
         n_bootstraps=n_bootstraps,
     )

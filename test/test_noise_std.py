@@ -100,7 +100,6 @@ def test_group_reid():
         residual,
         multioutput=True,
         tolerance=1e-3,
-        random_state=random_state,
     )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
@@ -110,7 +109,6 @@ def test_group_reid():
         residual,
         multioutput=True,
         method="AR",
-        random_state=random_state,
     )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
@@ -120,7 +118,6 @@ def test_group_reid():
         residual,
         multioutput=True,
         stationary=False,
-        random_state=random_state,
     )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
