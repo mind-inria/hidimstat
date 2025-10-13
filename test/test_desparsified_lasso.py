@@ -43,7 +43,7 @@ def test_desparsified_lasso():
     )
 
     desparsified_lasso = DesparsifiedLasso(confidence=confidence).fit(X, y)
-    _ = desparsified_lasso.importance(X, y)
+    _ = desparsified_lasso.importance()
     # Check that beta is within the confidence intervals
     correct_interval = np.sum(
         (beta >= desparsified_lasso.confidence_bound_min_)
@@ -62,7 +62,7 @@ def test_desparsified_lasso():
     desparsified_lasso = DesparsifiedLasso(
         dof_ajdustement=True, confidence=confidence
     ).fit(X, y)
-    _ = desparsified_lasso.importance(X, y)
+    _ = desparsified_lasso.importance()
 
     # Check that beta is within the confidence intervals
     correct_interval = np.sum(
@@ -118,7 +118,7 @@ def test_desparsified_group_lasso():
     desparsified_lasso = DesparsifiedLasso(
         model_y=multitasklassoCV, covariance=corr
     ).fit(X, y)
-    importances = desparsified_lasso.importance(X, y)
+    importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
 
@@ -132,7 +132,7 @@ def test_desparsified_group_lasso():
     assert tp / np.sum(important) >= 0.8
 
     desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV, test="F").fit(X, y)
-    importances = desparsified_lasso.importance(X, y)
+    importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
     tp = np.sum(desparsified_lasso.pvalues_corr_[important] < alpha)
@@ -149,7 +149,7 @@ def test_desparsified_group_lasso():
         model_y=multitasklassoCV, covariance=bad_cov
     ).fit(X, y)
     with pytest.raises(ValueError):
-        desparsified_lasso.importance(X, y)
+        desparsified_lasso.importance()
 
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
         DesparsifiedLasso(model_y=multitasklassoCV, covariance=bad_cov, test="r2").fit(
@@ -200,18 +200,24 @@ def test_exception():
         ValueError,
         match="The Desparsified Lasso requires to be fit before any analysis",
     ):
-        desparsified_lasso.importance(X, y)
+        desparsified_lasso.importance()
     desparsified_lasso.sigma_hat_ = []
     with pytest.raises(
         ValueError,
         match="The Desparsified Lasso requires to be fit before any analysis",
     ):
-        desparsified_lasso.importance(X, y)
+        desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV).fit(X, y)
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_lasso.test = "r2"
-        desparsified_lasso.importance(X, y)
+        desparsified_lasso.importance()
+
+    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV).fit(X, y)
+    with pytest.warns(Warning, match="X won't be used."):
+        desparsified_lasso.importance(X=X)
+    with pytest.warns(Warning, match="y won't be used."):
+        desparsified_lasso.importance(y=y)
 
 
 def test_function_not_center():

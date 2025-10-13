@@ -38,7 +38,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Estimator used for initial Lasso fit. Must implement fit and predict.
         It should be Lasso or MultiTaskLasso.
 
-    model_x : sklearn estimator, default=Lasso()
+    model_x : LassoCV or MultiTaskLassoCV instance, default=Lasso()
         Base Lasso estimator used for nodewise regressions.
 
     centered : bool, default=True
