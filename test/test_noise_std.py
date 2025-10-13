@@ -6,12 +6,11 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import KFold
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.noise_std import empirical_snr, reid
-
-from sklearn.linear_model import LassoCV, MultiTaskLassoCV
-from sklearn.model_selection import KFold
 
 
 def test_reid():

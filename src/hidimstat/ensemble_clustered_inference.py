@@ -7,9 +7,9 @@ from sklearn.model_selection import KFold
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat._utils.bootstrap import _subsampling
 from hidimstat._utils.utils import check_random_state
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 

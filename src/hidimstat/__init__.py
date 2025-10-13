@@ -1,6 +1,6 @@
 from .conditional_feature_importance import CFI
-from .desparsified_lasso import desparsified_lasso, DesparsifiedLasso
-from .distilled_conditional_randomization_test import d0crt, D0CRT
+from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso
+from .distilled_conditional_randomization_test import D0CRT, d0crt
 from .ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,

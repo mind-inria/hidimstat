@@ -6,12 +6,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import MultiTaskLassoCV
 from sklearn.model_selection import KFold
-from sklearn.ensemble import RandomForestClassifier
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso, desparsified_lasso
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.desparsified_lasso import DesparsifiedLasso, desparsified_lasso
 
 
 def test_desparsified_lasso():

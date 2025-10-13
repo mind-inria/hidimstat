@@ -37,12 +37,12 @@ import pandas as pd
 from matplotlib.pyplot import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
-from sklearn.linear_model import LassoCV
 from nilearn.maskers import NiftiMasker
-from sklearn.model_selection import KFold
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
@@ -161,10 +161,17 @@ estimator = LassoCV(
 # feature aggregation methods.
 #
 try:
-    desparsified_lasso = DesparsifiedLasso(noise_method="median", model_y=estimator, max_iteration=1000, random_state=0, n_jobs=n_jobs)
+    desparsified_lasso = DesparsifiedLasso(
+        noise_method="median",
+        model_y=estimator,
+        max_iteration=1000,
+        random_state=0,
+        n_jobs=n_jobs,
+    )
     desparsified_lasso.fit_importance(X, y)
     pval_dl = desparsified_lasso.pvalues_
     one_minus_pval_dl = 1 - pval_dl
+except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
     print("As expected, Desparsified Lasso uses too much memory.")
@@ -181,7 +188,7 @@ ward_, cl_desparsified_lasso = clustered_inference(
     model_y=estimator,
     tolerance=1e-2,
     random_state=1,
-    n_jobs=n_jobs
+    n_jobs=n_jobs,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, cl_desparsified_lasso

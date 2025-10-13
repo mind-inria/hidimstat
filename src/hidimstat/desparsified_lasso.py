@@ -5,23 +5,22 @@ from joblib import Parallel, delayed
 from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
-from sklearn.base import clone, check_is_fitted
-from sklearn.linear_model import Lasso
-from sklearn.utils.validation import check_memory
-from sklearn.linear_model import LassoCV, MultiTaskLassoCV
-from sklearn.model_selection import KFold
+from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
+from sklearn.linear_model import Lasso, LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_memory
 
+from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
     pval_from_cb,
     pval_from_two_sided_pval_and_sign,
 )
-from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.regression import _alpha_max
-from hidimstat._utils.utils import check_random_state, seed_estimator
 
 
 class DesparsifiedLasso(BaseVariableImportance):
@@ -282,7 +281,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         precision_diagonal = np.stack(results[:, 1])
         self.clf_ = [clf for clf in results[:, 2]]
 
-        # Computing the degrees of freedom adjustement
+        # Computing the degrees of freedom adjustment
         if self.dof_ajdustement:
             coefficient_max = np.max(np.abs(self.model_y.coef_))
             support = np.sum(np.abs(self.model_y.coef_) > 0.01 * coefficient_max)
