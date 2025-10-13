@@ -114,7 +114,7 @@ else
 fi
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd docs && make N_JOB=1 $make_args 2>&1 | tee ~/output_sphinx.txt
+set -o pipefail && cd docs && make $make_args 2>&1 | tee ~/output_sphinx.txt
 cd -
 
 set +o pipefail

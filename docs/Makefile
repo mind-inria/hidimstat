@@ -9,7 +9,8 @@ SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n
 # --keep-going:         Runs sphinx-build to completion and exits  
 #			    		with exit status 1 if errors are encountered.
 # -n/--nitpicky:	    This generates warnings for all missing references.
-SPHINXBUILD   = "LANG=C python -X faulthandler -m sphinx" # https://github.com/sphinx-doc/sphinx/issues/11449
+SPHINXBUILD   = LANG=C python -X faulthandler -m sphinx
+# https://github.com/sphinx-doc/sphinx/issues/11449
 PAPER         =
 BUILDDIR      = ./_build
 
@@ -25,9 +26,9 @@ ifneq ($(EXAMPLES_PATTERN),)
 endif
 
 # User-friendly check for sphinx-build
-ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
-$(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
-endif
+# ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
+# $(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
+# endif
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
