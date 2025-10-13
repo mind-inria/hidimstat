@@ -114,15 +114,15 @@ def reid(
             sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
             # compute rho from the empirical correlation matrix
             # (section 2.5 of `chevalier2020statistical`)
-            correlation_emperical = np.corrcoef(residual.T)
+            correlation_empirical = np.corrcoef(residual.T)
         else:
             sigma_hat = sigma_hat_raw
             residual_rescaled = residual / sigma_hat
-            correlation_emperical = np.corrcoef(residual_rescaled.T)
+            correlation_empirical = np.corrcoef(residual_rescaled.T)
 
         # Median method
         if not stationary or method == "median":
-            rho_hat = np.median(np.diag(correlation_emperical, 1))
+            rho_hat = np.median(np.diag(correlation_empirical, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
             correlation_hat = toeplitz(
                 np.geomspace(1, rho_hat ** (n_times - 1), n_times)
@@ -136,7 +136,7 @@ def reid(
             rho_ar[0] = 1
 
             for i in range(1, order + 1):
-                rho_ar[i] = np.median(np.diag(correlation_emperical, i))
+                rho_ar[i] = np.median(np.diag(correlation_empirical, i))
 
             # solve the Yule-Walker equations (see eq.2 in `eshel2003yule`)
             R = toeplitz(rho_ar[:-1])
