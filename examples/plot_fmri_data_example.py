@@ -29,9 +29,6 @@ As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
 import resource
 import warnings
 
@@ -45,33 +42,34 @@ from nilearn.maskers import NiftiMasker
 from sklearn.model_selection import KFold
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.preprocessing import StandardScaler
 from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
-)
-from hidimstat.ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
-
-# Remmove warnings during loading data
+# Remove warnings during loading data
 warnings.filterwarnings(
     "ignore", message="The provided image has no sform in its header."
 )
 
-# Limit the ressoruce use for the example to 5 G.
-resource.setrlimit(resource.RLIMIT_AS, (int(5 * 1e9), int(5 * 1e9)))
-n_job = 1
+# Limit the ressoruce use for the example to 5 G or maximum of possible.
+limit_5G = int(5 * 1e9)
+soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
+new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
+resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+n_jobs = 2
 
 
-#############################################################################
+# %%
 # Function to fetch and preprocess Haxby dataset
 # ----------------------------------------------
 def preprocess_haxby(subject=2, memory=None):
@@ -114,7 +112,7 @@ def preprocess_haxby(subject=2, memory=None):
     return Bunch(X=X, y=y, groups=groups, bg_img=bg_img, masker=masker)
 
 
-#############################################################################
+# %%
 # Gathering and preprocessing Haxby dataset for a given subject
 # -------------------------------------------------------------
 # The `preprocess_haxby` function make the preprocessing of the Haxby dataset,
@@ -126,20 +124,22 @@ data = preprocess_haxby(subject=2)
 X, y, groups, masker = data.X, data.y, data.groups, data.masker
 mask = masker.mask_img_.get_fdata().astype(bool)
 
-#############################################################################
+# %%
 # Initializing FeatureAgglomeration object that performs the clustering
-# -------------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # For fMRI data taking 500 clusters is generally a good default choice.
 
 n_clusters = 500
+
 # Deriving voxels connectivity.
 shape = mask.shape
 n_x, n_y, n_z = shape[0], shape[1], shape[2]
 connectivity = image.grid_to_graph(n_x=n_x, n_y=n_y, n_z=n_z, mask=mask)
+
 # Initializing FeatureAgglomeration object.
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
-#############################################################################
+# %%
 # Making the inference with several algorithms
 # --------------------------------------------
 
@@ -153,23 +153,23 @@ estimator = LassoCV(
     n_jobs=1,
 )
 
-#############################################################################
+#
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
 # of 5 G for memory. To handle this problem, the following methods use some
 # feature aggregation methods.
+#
 try:
-    desparsified_lasso = DesparsifiedLasso(noise_method="median", model_y=estimator)
+    desparsified_lasso = DesparsifiedLasso(noise_method="median", model_y=estimator, max_iteration=1000, random_state=0, n_jobs=n_jobs)
     desparsified_lasso.fit_importance(X, y)
     pval_dl = desparsified_lasso.pvalues_
     one_minus_pval_dl = 1 - pval_dl
-except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
     print("As expected, Desparsified Lasso uses too much memory.")
 
-#############################################################################
+# %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, cl_desparsified_lasso = clustered_inference(
@@ -179,19 +179,22 @@ ward_, cl_desparsified_lasso = clustered_inference(
     n_clusters,
     scaler_sampling=StandardScaler(),
     model_y=estimator,
+    tolerance=1e-2,
+    random_state=1,
+    n_jobs=n_jobs
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, cl_desparsified_lasso
 )
 
-#############################################################################
+# %%
 # Below, we run the ensemble clustered inference algorithm which adds a
 # randomization step over the clustered inference algorithm (c.f. References).
 # To make the example as short as possible we take `n_bootstraps=5`
 # which means that 5 different parcellations are considered and
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
-# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=2`.
+# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
 list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
     X,
     y,
@@ -202,6 +205,10 @@ list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
     n_bootstraps=5,
     model_y=estimator,
     n_jobs=2,
+    max_iteration=6000,
+    tolerance=1e-2,
+    random_state=2,
+    n_jobs=n_jobs,
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(
     X.shape[0],
@@ -211,7 +218,7 @@ beta_hat, selected = ensemble_clustered_inference_pvalue(
     fdr=0.1,
 )
 
-#############################################################################
+# %%
 # Plotting the results
 # --------------------
 # To allow a better visualization of the disciminative pattern we will plot
@@ -224,14 +231,14 @@ beta_hat, selected = ensemble_clustered_inference_pvalue(
 n_samples, n_features = X.shape
 target_fwer = 0.1
 
-#############################################################################
+# %%
 # We now translate the FWER target into a z-score target.
 # For the permutation test methods we do not need any additional correction
 # since the p-values are already adjusted for multiple testing.
 
 zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
 
-#############################################################################
+# %%
 # Other methods need to be corrected. We consider the Bonferroni correction.
 # For methods that do not reduce the feature space, the correction
 # consists in dividing by the number of features.
@@ -239,14 +246,14 @@ zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
 correction = 1.0 / n_features
 zscore_threshold_no_clust = zscore_from_pval((target_fwer / 2) * correction)
 
-#############################################################################
+# %%
 # For methods that parcelates the brain into groups of voxels, the correction
 # consists in dividing by the number of parcels (or clusters).
 
 correction_clust = 1.0 / n_clusters
 zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
-#############################################################################
+# %%
 # Now, we can plot the thresholded z-score maps by translating the
 # p-value maps estimated previously into z-score maps and using the
 # suitable threshold. For a better readability, we make a small function
@@ -295,7 +302,7 @@ plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # running as a script outside IPython
 show()
 
-#############################################################################
+# %%
 # Analysis of the results
 # -----------------------
 # As advocated in introduction, the methods that do not reduce the original
@@ -306,13 +313,13 @@ show()
 # isolated voxels are discovered, which seems quite spurious.
 # The discriminative pattern derived from the clustered inference algorithm
 # (CluDL) show that the method is less conservative.
-# However, some reasonable paterns are also included in this solution.
+# However, some reasonable patterns are also included in this solution.
 # Finally, the solution provided by the ensemble clustered inference algorithm
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
 
 
-#############################################################################
+# %%
 # References
 # ----------
 # .. footbibliography::

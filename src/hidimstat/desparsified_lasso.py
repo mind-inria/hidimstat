@@ -11,17 +11,17 @@ from sklearn.utils.validation import check_memory
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 from sklearn.exceptions import NotFittedError
-from sklearn.utils import check_random_state
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
-    pval_from_two_sided_pval_and_sign,
     pval_from_cb,
+    pval_from_two_sided_pval_and_sign,
 )
-from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.utils import check_random_state, seed_estimator
 
 
 class DesparsifiedLasso(BaseVariableImportance):
@@ -150,7 +150,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         memory=None,
         verbose=0,
     ):
-
+        super().__init__()
         assert issubclass(
             Lasso, model_x.__class__
         ), "lasso needs to be a Lasso or a MultiTaskLasso"
@@ -184,6 +184,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.confidence_bound_min_ = None
         self.confidence_bound_max_ = None
         self.pvalues_corr_ = None
+        self.precision_diagonal_ = None
+        self.clf_ = None
 
     def fit(self, X, y):
         """
@@ -216,6 +218,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         5. Preparation for subsequent importance score calculation
         """
         memory = check_memory(self.memory)
+        rng = check_random_state(self.random_state)
         if self.n_times_ == -1:
             self.n_times_ = y.shape[1]
 
@@ -226,7 +229,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         else:
             X_ = X
             y_ = y
-        _, n_features = X_.shape
+        self.n_samples_, n_features = X_.shape
 
         try:
             check_is_fitted(self.model_y)
@@ -252,6 +255,55 @@ class DesparsifiedLasso(BaseVariableImportance):
             order=self.order,
             stationary=self.stationary,
         )
+
+        # define the alphas for the Nodewise Lasso
+        list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
+        alphas = self.alpha_max_fraction * list_alpha_max
+        gram = np.dot(X_.T, X_)  # Gram matrix
+
+        # Calculating precision matrix (Nodewise Lasso)
+        results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
+            delayed(_compute_residuals)(
+                X=X_,
+                id_column=i,
+                clf=seed_estimator(
+                    clone(self.model_x).set_params(
+                        alpha=alphas[i],
+                        precompute=np.delete(np.delete(gram, i, axis=0), i, axis=1),
+                    ),
+                    random_state=rng_spwan,
+                ),
+            )
+            for i, rng_spwan in enumerate(rng.spawn(n_features))
+        )
+        # Unpacking the results
+        results = np.asarray(results, dtype=object)
+        Z = np.stack(results[:, 0], axis=1)
+        precision_diagonal = np.stack(results[:, 1])
+        self.clf_ = [clf for clf in results[:, 2]]
+
+        # Computing the degrees of freedom adjustement
+        if self.dof_ajdustement:
+            coefficient_max = np.max(np.abs(self.model_y.coef_))
+            support = np.sum(np.abs(self.model_y.coef_) > 0.01 * coefficient_max)
+            support = min(support, self.n_samples_ - 1)
+            dof_factor = self.n_samples_ / (self.n_samples_ - support)
+        else:
+            dof_factor = 1
+
+        # Computing Desparsified Lasso estimator and confidence intervals
+        # Estimating the coefficient vector
+        beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
+
+        # beta hat
+        p = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
+        p_nodiagonal = p - np.diag(np.diag(p))
+        p_nodiagonal = dof_factor * p_nodiagonal + (dof_factor - 1) * np.identity(
+            n_features
+        )
+        self.importances_ = beta_bias.T - p_nodiagonal.dot(self.model_y.coef_.T)
+        # confidence intervals
+        self.precision_diagonal_ = precision_diagonal * dof_factor**2
 
         return self
 
@@ -319,82 +371,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         4. For multi-task case, uses chi-squared or F test
         """
         self._check_fit()
-        rng = check_random_state(self.random_state)
-
-        # centering the data and the target variable
-        if self.centered:
-            X_ = StandardScaler(with_std=False).fit_transform(X)
-            y_ = y - np.mean(y)
-        else:
-            X_ = X
-            y_ = y
-        n_samples, n_features = X_.shape
-        assert X_.shape[1] == self.model_y.coef_.shape[-1]
-        assert self.n_times_ == 1 or self.n_times_ == y.shape[1]
-        if self.n_times_ > 1:
-            if self.covariance is not None and self.covariance.shape != (
-                self.n_times_,
-                self.n_times_,
-            ):
-                raise ValueError(
-                    f'Shape of "cov" should be ({self.n_times_}, {self.n_times_}),'
-                    + f' the shape of "cov" was ({self.covariance.shape}) instead'
-                )
-            assert y_.shape[1] == self.model_y.coef_.shape[0]
-
-        # define the alphas for the Nodewise Lasso
-        list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
-        alphas = self.alpha_max_fraction * list_alpha_max
-        gram = np.dot(X_.T, X_)  # Gram matrix
-
-        # base on the recomendation of numpy for paralellization of random generator
-        # see https://numpy.org/doc/stable/reference/random/parallel.html
-        streams = np.random.SeedSequence(rng.randint(np.iinfo(np.int32).max)).spawn(
-            n_features
-        )
-
-        # Calculating precision matrix (Nodewise Lasso)
-        results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(_compute_residuals)(
-                X=X_,
-                id_column=i,
-                clf=clone(self.model_x).set_params(
-                    alpha=alphas[i],
-                    precompute=np.delete(np.delete(gram, i, axis=0), i, axis=1),
-                    random_state=np.random.RandomState(
-                        np.random.default_rng(streams[i]).bit_generator
-                    ),
-                ),
-            )
-            for i in range(n_features)
-        )
-        # Unpacking the results
-        results = np.asarray(results, dtype=object)
-        Z = np.stack(results[:, 0], axis=1)
-        precision_diagonal = np.stack(results[:, 1])
-
-        # Computing the degrees of freedom adjustement
-        if self.dof_ajdustement:
-            coefficient_max = np.max(np.abs(self.model_y.coef_))
-            support = np.sum(np.abs(self.model_y.coef_) > 0.01 * coefficient_max)
-            support = min(support, n_samples - 1)
-            dof_factor = n_samples / (n_samples - support)
-        else:
-            dof_factor = 1
-
-        # Computing Desparsified Lasso estimator and confidence intervals
-        # Estimating the coefficient vector
-        beta_bias = dof_factor * np.dot(y_.T, Z) / np.sum(X_ * Z, axis=0)
-
-        # beta hat
-        p = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
-        p_nodiagonal = p - np.diag(np.diag(p))
-        p_nodiagonal = dof_factor * p_nodiagonal + (dof_factor - 1) * np.identity(
-            n_features
-        )
-        beta_hat = beta_bias.T - p_nodiagonal.dot(self.model_y.coef_.T)
-        # confidence intervals
-        precision_diagonal = precision_diagonal * dof_factor**2
+        beta_hat = self.importances_
 
         if self.n_times_ == 1:
             # define the quantile for the confidence intervals
@@ -405,8 +382,8 @@ class DesparsifiedLasso(BaseVariableImportance):
             confint_radius = np.abs(
                 quantile
                 * self.sigma_hat_
-                * np.sqrt(precision_diagonal)
-                / np.sqrt(n_samples)
+                * np.sqrt(self.precision_diagonal_)
+                / np.sqrt(self.n_samples_)
             )
             self.confidence_bound_max_ = beta_hat + confint_radius
             self.confidence_bound_min_ = beta_hat - confint_radius
@@ -422,12 +399,12 @@ class DesparsifiedLasso(BaseVariableImportance):
             covariance_hat = self.sigma_hat_
             if self.covariance is not None:
                 covariance_hat = self.covariance
-            theta_hat = n_samples * inv(covariance_hat)
+            theta_hat = self.n_samples_ * inv(covariance_hat)
             # Compute the two-sided p-values
             if self.test == "chi2":
                 chi2_scores = (
                     np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
-                    / precision_diagonal
+                    / self.precision_diagonal_
                 )
                 two_sided_pval = np.minimum(
                     2 * stats.chi2.sf(chi2_scores, df=self.n_times_), 1.0
@@ -435,11 +412,12 @@ class DesparsifiedLasso(BaseVariableImportance):
             elif self.test == "F":
                 f_scores = (
                     np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
-                    / precision_diagonal
+                    / self.precision_diagonal_
                     / self.n_times_
                 )
                 two_sided_pval = np.minimum(
-                    2 * stats.f.sf(f_scores, dfd=n_samples, dfn=self.n_times_), 1.0
+                    2 * stats.f.sf(f_scores, dfd=self.n_samples_, dfn=self.n_times_),
+                    1.0,
                 )
             else:
                 raise ValueError(f"Unknown test '{self.test}'")
@@ -450,12 +428,11 @@ class DesparsifiedLasso(BaseVariableImportance):
                 pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
             )
 
-        self.importances_ = beta_hat
         self.pvalues_ = pval
         self.pvalues_corr_ = pval_corr
         return self.importances_
 
-    def fit_importance(self, X, y, cv=None):
+    def fit_importance(self, X, y):
         """
         Fit and compute variable importance in one step.
 
@@ -466,16 +443,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         y : array-like of shape (n_samples,) or (n_samples, n_times)
             Target values. For single task, y should be 1D or (n_samples, 1).
             For multi-task, y should be (n_samples, n_times).
-        cv : object
-            Not used. Cross-validation is controlled by lasso_cv parameter.
 
         Returns
         -------
         importances_ : ndarray of shape (n_features,) or (n_features, n_times)
             Desparsified lasso coefficient estimates.
         """
-        if cv is not None:
-            warnings.warn("cv won't be used")
         self.fit(X, y)
         return self.importance(X, y)
 
@@ -491,27 +464,23 @@ def _compute_residuals(X, id_column, clf):
     ----------
     X : ndarray, shape (n_samples, n_features)
         Centered input data matrix
-
     id_column : int
         Index i of feature to regress
-
     alpha : float
         Lasso regularization parameter
-
     gram : ndarray, shape (n_features, n_features)
         Precomputed X.T @ X matrix
-
     max_iteration : int, default=5000
         Maximum Lasso iterations
-
     tolerance : float, default=1e-3
         Optimization tolerance
+    random_state : Generator, default=None
+        Random state for reproducibility
 
     Returns
     -------
     z : ndarray, shape (n_samples,)
         Residuals from regression
-
     precision_diagonal_i : float
         Diagonal entry i of precision matrix estimate,
         computed as n * ||z||^2 / <x_i, z>^2
@@ -535,7 +504,7 @@ def _compute_residuals(X, id_column, clf):
     # which is used as an estimation of the noise covariance.
     precision_diagonal_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
-    return z, precision_diagonal_i
+    return z, precision_diagonal_i, clf
 
 
 def desparsified_lasso(
@@ -567,10 +536,10 @@ def desparsified_lasso(
     n_jobs=1,
     memory=None,
     verbose=0,
-    k_best=None,
+    k_lowest=None,
     percentile=None,
-    threshold=None,
-    threshold_pvalue=None,
+    threshold_min=None,
+    threshold_max=None,
 ):
     methods = DesparsifiedLasso(
         model_y=model_y,
@@ -592,12 +561,12 @@ def desparsified_lasso(
         memory=memory,
         verbose=verbose,
     )
-    methods.fit_importance(X, y, cv=cv)
-    selection = methods.selection(
-        k_best=k_best,
+    methods.fit_importance(X, y)
+    selection = methods.pvalue_selection(
+        k_lowest=k_lowest,
         percentile=percentile,
-        threshold=threshold,
-        threshold_pvalue=threshold_pvalue,
+        threshold_min=threshold_min,
+        threshold_max=threshold_max,
     )
     return selection, methods.importances_, methods.pvalues_
 
@@ -608,7 +577,7 @@ desparsified_lasso.__doc__ = _aggregate_docstring(
         DesparsifiedLasso.__doc__,
         DesparsifiedLasso.__init__.__doc__,
         DesparsifiedLasso.fit_importance.__doc__,
-        DesparsifiedLasso.selection.__doc__,
+        DesparsifiedLasso.pvalue_selection.__doc__,
     ],
     """
     Returns

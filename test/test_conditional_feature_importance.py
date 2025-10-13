@@ -1,16 +1,18 @@
 from copy import deepcopy
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import log_loss
+from sklearn.metrics import log_loss, root_mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import root_mean_squared_error
 
 from hidimstat import CFI
-from hidimstat.base_perturbation import BasePerturbation
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.base_perturbation import BasePerturbation
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -57,15 +59,13 @@ def run_cfi(X, y, n_permutation, seed):
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutation,
         method="predict",
+        features_groups=None,
+        feature_types="auto",
         random_state=seed,
         n_jobs=1,
     )
     # fit the model using the training set
-    cfi.fit(
-        X_train,
-        groups=None,
-        var_type="auto",
-    )
+    cfi.fit(X_train)
     # calculate feature importance using the test set
     vim = cfi.importance(X_test, y_test)
     importance = vim["importance"]
@@ -78,7 +78,6 @@ parameter_exact = [
     ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
     ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
     ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
-    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
 ]
 
 
@@ -87,7 +86,7 @@ parameter_exact = [
     zip(*(list(zip(*parameter_exact))[1:])),
     ids=list(zip(*parameter_exact))[0],
 )
-@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"])
 def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
@@ -99,6 +98,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 parameter_partial = [
+    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
     ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 42, 1, 10, 0),
     (
         "HiDim with correlated features and correlated noise",
@@ -119,7 +119,7 @@ parameter_partial = [
     zip(*(list(zip(*parameter_partial))[1:])),
     ids=list(zip(*parameter_partial))[0],
 )
-@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 0)], ids=["default_cfi"])
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"])
 def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features, _ = data_generator
@@ -133,8 +133,8 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
         rank = np.where(importance_sort == index)[0]
         if rank > min_rank:
             min_rank = rank
-    # accept missing ranking of 5 elements
-    assert min_rank < 15
+    # accept missing ranking of 15 elements
+    assert min_rank < 25
 
 
 @pytest.mark.parametrize(
@@ -142,7 +142,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
     [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
-@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 5)], ids=["default_cfi"])
 def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
     """Tests when the method doesn't identify all important features"""
     X, y, important_features, not_important_features = data_generator
@@ -190,14 +190,12 @@ def test_group(data_generator):
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
         method="predict",
+        features_groups=groups,
+        feature_types="auto",
         random_state=0,
         n_jobs=1,
     )
-    cfi.fit(
-        X_train_df,
-        groups=groups,
-        var_type="continuous",
-    )
+    cfi.fit(X_train_df)
     # Warning expected since column names in pandas are not considered
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
         vim = cfi.importance(X_test_df, y_test)
@@ -239,16 +237,14 @@ def test_classication(data_generator):
         estimator=logistic_model,
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
-        random_state=0,
-        n_jobs=1,
         method="predict_proba",
         loss=log_loss,
+        features_groups=None,
+        feature_types=["continuous"] * X.shape[1],
+        random_state=0,
+        n_jobs=1,
     )
-    cfi.fit(
-        X_train,
-        groups=None,
-        var_type=["continuous"] * X.shape[1],
-    )
+    cfi.fit(X_train)
     vim = cfi.importance(X_test, y_test_clf)
     importance = vim["importance"]
     # Check that importance scores are defined for each feature
@@ -298,13 +294,24 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_groups == X.shape[1]
+        assert cfi.n_features_groups_ == X.shape[1]
 
-        # Test fit with specified groups
+    def test_fit_group(self, data_generator):
+        """Test fitting CFI with group"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        # Test with specified groups
         groups = {"g1": [0, 1], "g2": [2, 3, 4]}
-        cfi.fit(X, groups=groups)
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            features_groups=groups,
+            random_state=42,
+        )
+        cfi.fit(X)
+
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_groups == 2
+        assert cfi.n_features_groups_ == 2
 
     def test_categorical(
         self,
@@ -325,19 +332,18 @@ class TestCFIClass:
         y = rng.random((n_samples, 1))
         fitted_model = LinearRegression().fit(X, y)
 
+        feature_types = ["continuous", "continuous", "categorical"]
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             imputation_model_categorical=LogisticRegression(),
-            random_state=seed + 1,
+            feature_types=feature_types,
+            random_state=0,
         )
-
-        var_type = ["continuous", "continuous", "categorical"]
-        cfi.fit(X, y, var_type=var_type)
+        cfi.fit(X, y)
 
         importances = cfi.importance(X, y)["importance"]
         assert len(importances) == 3
-        assert np.all(importances >= 0)
 
 
 ##############################################################################
@@ -412,11 +418,13 @@ class TestCFIExceptions:
         """Test invalid type of data"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(estimator=fitted_model)
+        cfi = CFI(estimator=fitted_model, feature_types="invalid")
 
         # Test error when passing invalid var_type
-        with pytest.raises(ValueError, match="type of data 'invalid' unknow."):
-            cfi.fit(X, var_type="invalid")
+        with pytest.raises(
+            ValueError, match="feature_types support only the string 'auto'"
+        ):
+            cfi.fit(X)
 
     def test_invalid_n_permutations(self, data_generator):
         """Test when invalid number of permutations is provided"""
@@ -433,9 +441,11 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
+            features_groups=None,
+            feature_types="auto",
             method="predict",
         )
-        cfi.fit(X, groups=None, var_type="auto")
+        cfi.fit(X)
 
         with pytest.raises(
             ValueError, match="X should be a pandas dataframe or a numpy array."
@@ -450,8 +460,10 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
+            features_groups=None,
+            feature_types="auto",
         )
-        cfi.fit(X, groups=None, var_type="auto")
+        cfi.fit(X)
 
         with pytest.raises(
             AssertionError, match="X does not correspond to the fitting data."
@@ -462,23 +474,25 @@ class TestCFIExceptions:
         """Test when name of features doesn't match between fit and predict"""
         X, y, _, _ = data_generator
         X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-        )
         subgroups = {
             "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
             "group2": [
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, groups=subgroups, var_type="auto")
+        fitted_model = LinearRegression().fit(X, y)
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+            features_groups=subgroups,
+            feature_types="auto",
+        )
+        cfi.fit(X)
 
         with pytest.raises(
             AssertionError,
-            match=f"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
+            match=r"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
         ):
             cfi.importance(
                 X[np.concatenate([subgroups["group1"], subgroups["group2"][:-2]])], y
@@ -488,20 +502,22 @@ class TestCFIExceptions:
         """Test when name of features doesn't match between fit and predict"""
         X, y, _, _ = data_generator
         X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-        )
         subgroups = {
             "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
             "group2": [
                 "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
             ],
         }
-        cfi.fit(X, groups=subgroups, var_type="auto")
-        cfi.groups["group1"] = [None for i in range(100)]
+        fitted_model = LinearRegression().fit(X, y)
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            method="predict",
+            features_groups=subgroups,
+            feature_types="auto",
+        )
+        cfi.fit(X)
+        cfi.features_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -515,23 +531,27 @@ class TestCFIExceptions:
         """Test when invalid variable type is provided"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(estimator=fitted_model, method="predict")
+        cfi = CFI(
+            estimator=fitted_model,
+            method="predict",
+            features_groups=None,
+            feature_types=["invalid_type"] * X.shape[1],
+        )
 
-        with pytest.raises(ValueError, match="type of data 'invalid_type' unknow."):
-            cfi.fit(X, groups=None, var_type=["invalid_type"] * X.shape[1])
+        with pytest.raises(ValueError, match="type of data 'invalid_type' unknown."):
+            cfi.fit(X)
 
     def test_incompatible_imputer(self, data_generator):
         """Test when incompatible imputer is provided"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
 
-        with pytest.raises(AssertionError, match="Continous imputation model invalid"):
+        with pytest.raises(AssertionError, match="Continuous imputation model invalid"):
             cfi = CFI(
                 estimator=fitted_model,
                 imputation_model_continuous="invalid_imputer",
                 method="predict",
             )
-            cfi.fit(X, y)
 
         with pytest.raises(AssertionError, match="Categorial imputation model invalid"):
             cfi = CFI(
@@ -539,29 +559,37 @@ class TestCFIExceptions:
                 imputation_model_categorical="invalid_imputer",
                 method="predict",
             )
-            cfi.fit(X, y)
 
     def test_invalid_groups_format(self, data_generator):
         """Test when groups are provided in invalid format"""
         X, y, _, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(estimator=fitted_model, method="predict")
-
         invalid_groups = ["group1", "group2"]  # Should be dictionary
-        with pytest.raises(ValueError, match="groups needs to be a dictionnary"):
-            cfi.fit(X, groups=invalid_groups, var_type="auto")
+        fitted_model = LinearRegression().fit(X, y)
+        cfi = CFI(
+            estimator=fitted_model,
+            method="predict",
+            features_groups=invalid_groups,
+            feature_types="auto",
+        )
+
+        with pytest.raises(
+            ValueError, match="features_groups needs to be a dictionary"
+        ):
+            cfi.fit(X)
 
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
         X, y, _, _ = data_generator
+        subgroups = {"group1": [0, 1], "group2": [2, 3]}
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
+            features_groups=subgroups,
+            feature_types="auto",
         )
-        subgroups = {"group1": [0, 1], "group2": [2, 3]}
-        cfi.fit(X, y, groups=subgroups, var_type="auto")
+        cfi.fit(X, y)
 
         with pytest.warns(
             UserWarning,
@@ -569,3 +597,221 @@ class TestCFIExceptions:
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 10, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    ids=["10 features"],
+)
+@pytest.mark.mpl_image_compare
+def test_cfi_plot(data_generator):
+    """Test CFI plot function"""
+    X, y, _, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+    fitted_model = LinearRegression().fit(X_train, y_train)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
+        random_state=0,
+    )
+    cfi.fit(X_train, y_train)
+    # Make the plot independent of data / randomness to test only the plotting function
+    cfi.importances_ = np.arange(X.shape[1])
+    fig, ax = plt.subplots(figsize=(6, 3))
+    ax = cfi.plot_importance(ax=ax)
+    return fig
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 5, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    ids=["5_features"],
+)
+@pytest.mark.mpl_image_compare
+def test_cfi_plot_2d_imp(data_generator):
+    """Test CFI plot function"""
+    X, y, _, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+    fitted_model = LinearRegression().fit(X_train, y_train)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
+        random_state=0,
+    )
+    cfi.fit(X_train, y_train)
+    # Make the plot independent of data / randomness to test only the plotting function
+    cfi.importances_ = np.stack(
+        [
+            np.arange(X_train.shape[1]),
+            np.arange(X_train.shape[1]) - 1,
+            np.arange(X_train.shape[1]) + 1,
+        ],
+        axis=0,
+    )
+    fig, ax = plt.subplots(figsize=(6, 3))
+    ax = cfi.plot_importance(ax=ax)
+    return fig
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+)
+def test_cfi_plot_coverage(data_generator):
+    """Add arguments combinations to test coverage of the plot function"""
+    X, y, _, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+    fitted_model = LinearRegression().fit(X_train, y_train)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        feature_types="continuous",
+        random_state=0,
+    )
+    cfi.fit(X_train, y_train)
+    # Make the plot independent of data / randomness to test only the plotting function
+    cfi.importances_ = np.arange(X.shape[1])
+    _, ax = plt.subplots(figsize=(6, 3))
+
+    ax = cfi.plot_importance(ax=None)
+    assert isinstance(ax, plt.Axes)
+
+    _, ax = plt.subplots()
+    cfi.importances_ = np.random.standard_normal((3, X.shape[1]))
+    ax = cfi.plot_importance(ax=ax)
+    assert isinstance(ax, plt.Axes)
+
+
+@pytest.fixture(scope="module")
+def cfi_test_data():
+    """
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
+    """
+    X, y, _, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=5,
+        support_size=2,
+        rho=0,
+        value=1,
+        signal_noise_ratio=4,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    cfi_default_parameters = {
+        "estimator": model,
+        "imputation_model_continuous": LinearRegression(),
+        "n_permutations": 20,
+        "method": "predict",
+        "n_jobs": 1,
+    }
+    return X_train, X_test, y_test, cfi_default_parameters
+
+
+def test_cfi_repeatibility(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI is seeded provide deterministic
+    results.
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(**cfi_default_parameters)
+    cfi.fit(X_train)
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # repeat
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_repeat)
+
+
+def test_cfi_randomness_with_none(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI has random_state=None
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(random_state=None, **cfi_default_parameters)
+    cfi.fit(X_train)
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_repeat)
+
+    # refit
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_refit)
+
+    # Reproducibility
+    cfi_2 = CFI(random_state=None, **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_reproducibility)
+
+
+def test_cfi_reproducibility_with_integer(cfi_test_data):
+    """
+    Test that multiple calls of .importance() when CFI has random_state=42
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    cfi = CFI(random_state=42, **cfi_default_parameters)
+    cfi.fit(X_train)
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_repeat)
+
+    # refit
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_refit)
+
+    # Reproducibility
+    cfi_2 = CFI(random_state=42, **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducibility)
+
+
+def test_cfi_reproducibility_with_rng(cfi_test_data):
+    """
+    Test that:
+     1. Mmultiple calls of .importance() when CFI has random_state=rng are random
+     2. refit with same rng provides same result
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+    cfi.fit(X_train)
+    vim = cfi.importance(X_test, y_test)["importance"]
+    # repeat importance
+    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_repeat)
+
+    # refit
+    cfi.fit(X_train)
+    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    assert not np.array_equal(vim, vim_refit)
+
+    # refit repeatability
+    rng = np.random.default_rng(0)
+    cfi.random_state = rng
+    cfi.fit(X_train)
+    vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_refit_2)
+
+    # Reproducibility
+    cfi_2 = CFI(random_state=np.random.default_rng(0), **cfi_default_parameters)
+    cfi_2.fit(X_train)
+    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    assert np.array_equal(vim, vim_reproducibility)

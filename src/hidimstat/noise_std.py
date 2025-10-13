@@ -13,7 +13,7 @@ def reid(
     order=1,
 ):
     """
-    Residual sum of squares-based estimators for noise standard deviation
+    Residual sum of squares based estimators for noise standard deviation
     estimation.
 
     This implementation follows the procedure described in
@@ -21,25 +21,31 @@ def reid(
     The beta_hat should correspond to the coefficient of Lasso with
     cross-validation, and the residual is based on this model.
 
-    For groups, the implementation is based on the procedure
+    For group, the implementation is based on the procedure
     from :footcite:t:`chevalier2020statistical`.
 
     Parameters
     ----------
     beta_hat : ndarray, shape (n_features,) or (n_times, n_features)
         Estimated sparse coefficient vector from regression.
+
     residual : ndarray, shape (n_samples,) or (n_samples, n_times)
         Residuals from the regression model.
+
     tolerance : float, default=1e-4
         Threshold for considering coefficients as non-zero.
+
     multioutput : bool, default=False
         If True, handles multiple outputs (group case).
+
     stationary : bool, default=True
         Whether noise has constant magnitude across time steps.
-    method : {'median', 'AR'}, default='median'
-        Method for covariance estimation in multioutput case:
+
+    method : {'median', 'AR'}, (default='simple')
+        Covariance estimation method:
         - 'median': Uses median correlation between consecutive time steps
         - 'AR': Uses Yule-Walker method with specified order
+
     order : int, default=1
         Order of AR model when method='AR'. Must be < n_times.
 
@@ -101,7 +107,7 @@ def reid(
                 )
         else:
             raise ValueError("Unknown method for estimating the covariance matrix")
-        ## compute emperical correlation of the residual
+        ## compute empirical correlation of the residual
         if stationary:
             # consideration of stationary noise
             # (section 2.5 of `chevalier2020statistical`)
