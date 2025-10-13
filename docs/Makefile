@@ -9,7 +9,7 @@ SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n
 # --keep-going:         Runs sphinx-build to completion and exits  
 #			    		with exit status 1 if errors are encountered.
 # -n/--nitpicky:	    This generates warnings for all missing references.
-SPHINXBUILD   = "LANG=C python -X faulthandler -m sphinx"
+SPHINXBUILD   = "LANG=C python -X faulthandler -m sphinx" # https://github.com/sphinx-doc/sphinx/issues/11449
 PAPER         =
 BUILDDIR      = ./_build
 
