@@ -39,8 +39,8 @@ from nilearn import datasets
 from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
-from sklearn.cluster import FeatureAgglomeration
 from sklearn.base import clone
+from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold

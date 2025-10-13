@@ -346,7 +346,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 "The Desparsified Lasso requires to be fit before any analysis"
             )
 
-    def importance(self, X, y):
+    def importance(self, X=None, y=None):
         """
         Compute desparsified lasso estimates, confidence intervals and p-values.
 
@@ -380,6 +380,10 @@ class DesparsifiedLasso(BaseVariableImportance):
         For multi-task case, p-values are based on chi-squared or F tests,
         configured by the test parameter ('chi2' or 'F').
         """
+        if X is not None:
+            warnings.warn("X won't be used.")
+        if y is not None:
+            warnings.warn("y won't be used.")
         self._check_fit()
         beta_hat = self.importances_
 
