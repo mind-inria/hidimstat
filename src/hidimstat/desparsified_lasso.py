@@ -145,6 +145,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         distribution="norm",
         epsilon_pvalue=1e-14,
         test="chi2",
+        save_model_x=False,
         n_jobs=1,
         memory=None,
         verbose=0,
@@ -174,6 +175,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.epsilon_pvalue = epsilon_pvalue
         assert test == "chi2" or test == "F", f"Unknown test '{test}'"
         self.test = test
+        self.save_model_x = save_model_x
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.memory = memory
@@ -185,6 +187,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.pvalues_corr_ = None
         self.precision_diagonal_ = None
         self.clf_ = None
+        self.n_samples_ = None
 
     def fit(self, X, y):
         """
@@ -272,6 +275,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                     ),
                     random_state=rng_spwan,
                 ),
+                return_clf=self.save_model_x,
             )
             for i, rng_spwan in enumerate(rng.spawn(n_features))
         )
@@ -452,7 +456,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         return self.importance(X, y)
 
 
-def _compute_residuals(X, id_column, clf):
+def _compute_residuals(X, id_column, clf, return_clf):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation
 
@@ -503,13 +507,15 @@ def _compute_residuals(X, id_column, clf):
     # which is used as an estimation of the noise covariance.
     precision_diagonal_i = n_samples * np.sum(z**2) / np.dot(X_i, z) ** 2
 
-    return z, precision_diagonal_i, clf
+    if return_clf:
+        return z, precision_diagonal_i, clf
+    else:
+        return z, precision_diagonal_i, None
 
 
 def desparsified_lasso(
     X,
     y,
-    cv=None,
     model_y=LassoCV(
         eps=1e-2,
         fit_intercept=False,

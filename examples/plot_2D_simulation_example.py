@@ -238,7 +238,6 @@ list_ward, list_desparsified_lasso = ensemble_clustered_inference(
     X_init,
     y,
     ward,
-    n_clusters,
     scaler_sampling=StandardScaler(),
     random_state=0,
 )

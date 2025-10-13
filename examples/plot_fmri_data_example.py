@@ -40,6 +40,7 @@ from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.base import clone
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
@@ -66,7 +67,7 @@ soft, hard = resource.getrlimit(resource.RLIMIT_AS)
 new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
 new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
 resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
-n_jobs = 2
+n_jobs = 1
 
 
 # %%
@@ -148,7 +149,7 @@ estimator = LassoCV(
     fit_intercept=False,
     cv=KFold(n_splits=5, shuffle=True, random_state=0),
     tol=1e-2,
-    max_iter=4000,
+    max_iter=6000,
     random_state=1,
     n_jobs=1,
 )
@@ -163,8 +164,7 @@ estimator = LassoCV(
 try:
     desparsified_lasso = DesparsifiedLasso(
         noise_method="median",
-        model_y=estimator,
-        max_iteration=1000,
+        model_y=clone(estimator),
         random_state=0,
         n_jobs=n_jobs,
     )
@@ -183,10 +183,9 @@ ward_, cl_desparsified_lasso = clustered_inference(
     X,
     y,
     ward,
-    n_clusters,
     scaler_sampling=StandardScaler(),
-    model_y=estimator,
-    tolerance=1e-2,
+    model_y=clone(estimator),
+    tolerance_reid=1e-2,
     random_state=1,
     n_jobs=n_jobs,
 )
@@ -206,14 +205,11 @@ list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
     X,
     y,
     ward,
-    n_clusters,
     groups=groups,
     scaler_sampling=StandardScaler(),
     n_bootstraps=5,
-    model_y=estimator,
-    n_jobs=2,
-    max_iteration=6000,
-    tolerance=1e-2,
+    model_y=clone(estimator),
+    tolerance_reid=1e-2,
     random_state=2,
     n_jobs=n_jobs,
 )
