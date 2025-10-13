@@ -161,6 +161,9 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 # %%
 # Define a function to compute the p-value from importance values
 # ---------------------------------------------------------------
+from scipy.stat import norm
+
+
 def compute_pval(vim):
     mean_vim = np.mean(vim, axis=0)
     std_vim = np.std(vim, axis=0)
