@@ -107,9 +107,7 @@ class GaussianKnockoffs:
 
     def sample(
         self,
-        X: np.ndarray = None,
-        y: np.ndarray = None,
-        n_samples: int = 1,
+        n_repeats: int = 1,
         random_state=None,
     ):
         """
@@ -119,11 +117,7 @@ class GaussianKnockoffs:
 
         Parameters
         ----------
-        X : ndarray, default = None
-            The complementary of the considered set of variables, $X^{-j}$.
-        y : ndarray, default = None
-            The group of variables to sample, $X^j$.
-        n_samples : int, default=1
+        n_repeats : int, default=1
             The number of samples to draw.
         random_state : int or None, default=None
             The random state to use for sampling.
@@ -133,18 +127,14 @@ class GaussianKnockoffs:
         X_tilde : 2D ndarray (n_samples, n_features)
             The synthetic variables.
         """
-        if X is not None:
-            warnings.warn("this new X won't be used for sample the distribution")
-        if y is not None:
-            warnings.warn("this new y won't be used for sample the distribution")
         self._check_fit()
         rng = check_random_state(random_state)
-        n_samples, n_features = self.mu_tilde_.shape
+        n_repeats, n_features = self.mu_tilde_.shape
 
         X_tildes = []
-        for i in range(n_samples):
+        for i in range(n_repeats):
             # create a uniform noise for all the data
-            u_tilde = rng.standard_normal([n_samples, n_features])
+            u_tilde = rng.standard_normal([n_repeats, n_features])
 
             # Equation 1.4 in barber2015controlling
             X_tildes.append(

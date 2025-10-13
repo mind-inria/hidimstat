@@ -191,7 +191,7 @@ def model_x_knockoff(
     conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
     conditionnal_sampler.fit(X)
     X_tildes = conditionnal_sampler.sample(
-        n_samples=n_bootstraps, random_state=random_state
+        n_repeats=n_bootstraps, random_state=random_state
     )
 
     results = parallel(
