@@ -376,18 +376,6 @@ class TestCFIExceptions:
                 method="unknown method",
             )
 
-    def test_unfitted_predict(self, data_generator):
-        """Test predict method with unfitted model"""
-        X, y, _, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-        )
-
-        with pytest.raises(ValueError, match="The class is not fitted."):
-            cfi.predict(X)
-
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator
@@ -640,6 +628,8 @@ def test_cfi_plot(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -667,6 +657,8 @@ def test_cfi_plot_2d_imp(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.stack(
         [
@@ -699,6 +691,8 @@ def test_cfi_plot_coverage(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     _, ax = plt.subplots(figsize=(6, 3))
@@ -750,9 +744,9 @@ def test_cfi_repeatibility(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(**cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
 
@@ -763,20 +757,20 @@ def test_cfi_randomness_with_none(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(random_state=None, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_refit)
 
     # Reproducibility
     cfi_2 = CFI(random_state=None, **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_reproducibility)
 
 
@@ -787,20 +781,20 @@ def test_cfi_reproducibility_with_integer(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(random_state=42, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_refit)
 
     # Reproducibility
     cfi_2 = CFI(random_state=42, **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
 
 
@@ -814,25 +808,25 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
     rng = np.random.default_rng(0)
     cfi = CFI(random_state=rng, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_refit)
 
     # refit repeatability
     rng = np.random.default_rng(0)
     cfi.random_state = rng
     cfi.fit(X_train)
-    vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
+    vim_refit_2 = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_refit_2)
 
     # Reproducibility
     cfi_2 = CFI(random_state=np.random.default_rng(0), **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)

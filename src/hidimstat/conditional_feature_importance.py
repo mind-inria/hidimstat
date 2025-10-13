@@ -39,9 +39,21 @@ class CFI(BasePerturbation):
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
+    features_groups: dict or None, default=None
+        A dictionary where the keys are the group names and the values are the
+        list of column names corresponding to each features group. If None,
+        the features_groups are identified based on the columns of X.
+    feature_types: str or list, default="auto"
+        The feature type. Supported types include "auto", "continuous", and
+        "categorical". If "auto", the type is inferred from the cardinality
+        of the unique values passed to the `fit` method.
     categorical_max_cardinality : int, default=10
         The maximum cardinality of a variable to be considered as categorical
         when the variable type is inferred (set to "auto" or not provided).
+    test_statistic : callable, default=partial(wilcoxon, axis=1)
+        Statistical test function used to compute p-values for importance scores.
+        Must accept an array of values and return an object with a 'pvalue' attribute.
+        Default is Wilcoxon signed-rank test.
     random_state : int or None, default=None
         The random state to use for sampling.
     n_jobs : int, default=1
@@ -64,7 +76,7 @@ class CFI(BasePerturbation):
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
-        test_statict=partial(wilcoxon, axis=1),
+        test_statistic=partial(wilcoxon, axis=1),
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -73,7 +85,7 @@ class CFI(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=n_permutations,
-            test_statict=test_statict,
+            test_statistic=test_statistic,
             n_jobs=n_jobs,
             features_groups=features_groups,
             random_state=random_state,
@@ -228,7 +240,7 @@ def cfi(
     features_groups=None,
     feature_types="auto",
     categorical_max_cardinality: int = 10,
-    test_statict=partial(wilcoxon, axis=1),
+    test_statistic=partial(wilcoxon, axis=1),
     k_best=None,
     percentile=None,
     threshold_max=None,
@@ -246,7 +258,7 @@ def cfi(
         features_groups=features_groups,
         feature_types=feature_types,
         categorical_max_cardinality=categorical_max_cardinality,
-        test_statict=test_statict,
+        test_statistic=test_statistic,
         random_state=random_state,
         n_jobs=n_jobs,
     )

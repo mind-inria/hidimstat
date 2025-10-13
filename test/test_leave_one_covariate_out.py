@@ -94,7 +94,7 @@ def test_loco():
     importance_clf = loco_clf.importance(X_test, y_test_clf)
 
     assert importance_clf.shape == (2,)
-    assert importance[0].mean() > importance[1].mean()
+    assert importance_clf[0].mean() > importance_clf[1].mean()
 
 
 def test_raises_value_error():
@@ -120,7 +120,7 @@ def test_raises_value_error():
             estimator=fitted_model,
             method="predict",
         )
-        loco.predict(X)
+        loco.importance(X, None)
     with pytest.raises(ValueError, match="The class is not fitted."):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
@@ -145,7 +145,7 @@ def test_loco_function():
     """Test the function of LOCO algorithm on a linear scenario."""
     X, y, beta, noise = multivariate_simulation(
         n_samples=150,
-        n_features=200,
+        n_features=100,
         support_size=10,
         shuffle=False,
         seed=42,

@@ -32,8 +32,10 @@ class LOCO(BasePerturbation):
     loss : callable, default=root_mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
-    test_statict :
-
+    test_statistic : callable, default=partial(wilcoxon, axis=1)
+        Statistical test function used to compute p-values for importance scores.
+        Must accept an array of values and return an object with a 'pvalue' attribute.
+        Default is Wilcoxon signed-rank test.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -57,7 +59,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = root_mean_squared_error,
-        test_statict=partial(wilcoxon, axis=1),
+        test_statistic=partial(wilcoxon, axis=1),
         features_groups=None,
         n_jobs: int = 1,
     ):
@@ -66,7 +68,7 @@ class LOCO(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=1,
-            test_statict=test_statict,
+            test_statistic=test_statistic,
             features_groups=features_groups,
             n_jobs=n_jobs,
         )
@@ -147,6 +149,7 @@ class LOCO(BasePerturbation):
         """
         GroupVariableImportanceMixin._check_fit(self)
         GroupVariableImportanceMixin._check_compatibility(self, X)
+        self._check_fit()
 
         y_pred = getattr(self.estimator, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
@@ -156,10 +159,16 @@ class LOCO(BasePerturbation):
         self.loss_ = dict()
         for j, y_pred_j in enumerate(y_pred):
             self.loss_[j] = np.array([self.loss(y, y_pred_j[0])])
-            test_result.append(y - y_pred_j[0])
+            if np.all(np.equal(y.shape, y_pred_j[0].shape)):
+                test_result.append(y - y_pred_j[0])
+            else:
+                test_result.append(y - np.unique(y)[np.argmax(y_pred_j[0], axis=-1)])
 
         self.importances_ = np.mean(
-            [self.loss_[j] - self.loss_reference_ for j in range(self._n_groups)],
+            [
+                self.loss_[j] - self.loss_reference_
+                for j in range(self.n_features_groups_)
+            ],
             axis=1,
         )
         self.pvalues_ = self.test_statistic(test_result).pvalue
@@ -205,7 +214,7 @@ def loco(
     method: str = "predict",
     loss: callable = root_mean_squared_error,
     features_groups=None,
-    test_statict=partial(wilcoxon, axis=1),
+    test_statistic=partial(wilcoxon, axis=1),
     k_best=None,
     percentile=None,
     threshold_min=None,
@@ -216,7 +225,7 @@ def loco(
         estimator=estimator,
         method=method,
         loss=loss,
-        test_statict=test_statict,
+        test_statistic=test_statistic,
         features_groups=features_groups,
         n_jobs=n_jobs,
     )

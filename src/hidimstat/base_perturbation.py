@@ -34,8 +34,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Specifies the number of times the variable group (residual for CFI) is
         permuted. For each permutation, the perturbed model's loss is calculated
         and averaged over all permutations.
-    test_statict :
-
+    test_statistic : callable, default=partial(wilcoxon, axis=1)
+        Statistical test function used to compute p-values for importance scores.
+        Must accept an array of values and return an object with a 'pvalue' attribute.
+        Default is Wilcoxon signed-rank test.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -43,26 +45,27 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     n_jobs : int, default=1
         The number of parallel jobs to run. Parallelization is done over the
         variables or groups of variables.
-    random_state : int, default=None
-        The random state to use for sampling.
+    random_state : int or None, default=None
+        Controls random number generation for permutations. Use an int for
+        repeatable results.
 
     Attributes
     ----------
     features_groups : dict
         Mapping of feature groups identified during fit.
-    importances_ : ndarray
+    importances_ : ndarray (n_groups,)
         Computed importance scores for each feature group.
     loss_reference_ : float
         Loss of the original model without perturbation.
     loss_ : dict
         Loss values for each perturbed feature group.
-    pvalues_ : ndarray
-        P-values for importance scores.
+    pvalues_ : ndarray (n_groups,)
+        P-values for importance scores from the specified test_statistic.
 
     Notes
     -----
     This is an abstract base class. Concrete implementations must override
-    the _permutation method.
+    the `_permutation` method to define how features are perturbed.
     """
 
     def __init__(
@@ -71,7 +74,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        test_statict=partial(wilcoxon, axis=1),
+        test_statistic=partial(wilcoxon, axis=1),
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
@@ -85,10 +88,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         _check_vim_predict_method(method)
         self.method = method
         self.n_permutations = n_permutations
-        self.test_statistic = test_statict
+        self.test_statistic = test_statistic
         self.n_jobs = n_jobs
-        # variable set in fit
-        self.features_groups = None
+
         # variable set in importance
         self.loss_reference_ = None
         self.loss_ = None
@@ -199,6 +201,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         GroupVariableImportanceMixin._check_fit(self)
         GroupVariableImportanceMixin._check_compatibility(self, X)
+        self._check_fit()
 
         y_pred = getattr(self.estimator, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)

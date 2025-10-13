@@ -33,8 +33,10 @@ class PFI(BasePerturbation):
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
-    test_statict :
-
+    test_statistic : callable, default=partial(wilcoxon, axis=1)
+        Statistical test function used to compute p-values for importance scores.
+        Must accept an array of values and return an object with a 'pvalue' attribute.
+        Default is Wilcoxon signed-rank test.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -56,7 +58,7 @@ class PFI(BasePerturbation):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        test_statict=partial(wilcoxon, axis=1),
+        test_statistic=partial(wilcoxon, axis=1),
         features_groups=None,
         random_state: int = None,
         n_jobs: int = 1,
@@ -66,7 +68,7 @@ class PFI(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=n_permutations,
-            test_statict=test_statict,
+            test_statistic=test_statistic,
             features_groups=features_groups,
             random_state=random_state,
             n_jobs=n_jobs,
@@ -93,7 +95,7 @@ def pfi(
     method: str = "predict",
     loss: callable = root_mean_squared_error,
     n_permutations: int = 50,
-    test_statict=partial(wilcoxon, axis=1),
+    test_statistic=partial(wilcoxon, axis=1),
     features_groups=None,
     k_best=None,
     percentile=None,
@@ -107,7 +109,7 @@ def pfi(
         method=method,
         loss=loss,
         n_permutations=n_permutations,
-        test_statict=test_statict,
+        test_statistic=test_statistic,
         features_groups=features_groups,
         random_state=random_state,
         n_jobs=n_jobs,
