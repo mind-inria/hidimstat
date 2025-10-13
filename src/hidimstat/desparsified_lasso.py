@@ -213,10 +213,10 @@ class DesparsifiedLasso(BaseVariableImportance):
         -------
         self : object
             Returns the instance with fitted attributes:
-            - importances_ : Desparsified coefficient estimates
-            - sigma_hat_ : Estimated noise level
-            - precision_diagonal_ : Diagonal of precision matrix
-            - clf_ : Fitted nodewise regression models (if save_model_x=True)
+            - 'importances_' : Desparsified coefficient estimates
+            - 'sigma_hat_' : Estimated noise level
+            - 'precision_diagonal_' : Diagonal of precision matrix
+            - 'clf_' : Fitted nodewise regression models (if save_model_x=True)
 
         Notes
         -----
@@ -371,11 +371,11 @@ class DesparsifiedLasso(BaseVariableImportance):
         Notes
         -----
         Updates several instance attributes:
-        - importances_: Desparsified coefficient estimates
-        - pvalues_: Two-sided p-values
-        - pvalues_corr_: Multiple testing corrected p-values
-        - confidence_bound_min_: Lower confidence bounds (single task only)
-        - confidence_bound_max_: Upper confidence bounds (single task only)
+        - 'importances_': Desparsified coefficient estimates
+        - 'pvalues_': Two-sided p-values
+        - 'pvalues_corr_': Multiple testing corrected p-values
+        - 'confidence_bound_min_': Lower confidence bounds (single task only)
+        - 'confidence_bound_max_': Upper confidence bounds (single task only)
 
         For multi-task case, p-values are based on chi-squared or F tests,
         configured by the test parameter ('chi2' or 'F').
