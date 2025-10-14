@@ -159,19 +159,6 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
 
 
 # %%
-# Define a function to compute the p-value from importance values
-# ---------------------------------------------------------------
-from scipy.stats import norm
-
-
-def compute_pval(vim):
-    mean_vim = np.mean(vim, axis=0)
-    std_vim = np.std(vim, axis=0)
-    pval = norm.sf(mean_vim / std_vim)
-    return np.clip(pval, 1e-10, 1 - 1e-10)
-
-
-# %%
 # Analyze the results
 # -------------------
 
@@ -180,7 +167,7 @@ import pandas as pd
 from scipy.stats import ttest_1samp
 
 cfi_vim_arr = np.array(cfi_importance_list) / 2
-cfi_pval = compute_pval(cfi_vim_arr)
+cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
 
 vim = [
     pd.DataFrame(
@@ -196,7 +183,7 @@ vim = [
 ]
 
 loco_vim_arr = np.array(loco_importance_list)
-loco_pval = compute_pval(loco_vim_arr)
+loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
@@ -212,7 +199,7 @@ vim += [
 ]
 
 pfi_vim_arr = np.array(pfi_importance_list)
-pfi_pval = compute_pval(pfi_vim_arr)
+pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
