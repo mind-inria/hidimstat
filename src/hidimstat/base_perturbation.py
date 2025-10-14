@@ -189,7 +189,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         importances_ : ndarray of shape (n_groups,)
             The calculated importance scores for each group.
         pvalues_ : ndarray of shape (n_groups,)
-            P-values from one-sided t-test testing if importance scores are
+            P-values from one-sample t-test testing if importance scores are
             significantly greater than 0.
 
         Notes
