@@ -12,7 +12,7 @@ You need more information, look here:
 - :ref:`How to contribute <how_to_contribute_hidimstat>`
 - :ref:`Continuous Integration<developer_documentation_CI>`
 - :ref:`Building the documentation<developer_documentation_build>`
-- :ref:`Folder Organisation<folder_organization>`
+- :ref:`Folder Organization<folder_organization>`
 
 .. toctree::
   :hidden:

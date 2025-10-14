@@ -7,7 +7,7 @@ Folder Organization
 📦hidimstat
  ┣ 📜.gitignore                 (file to ignore in the git)
  ┣ 📜CONTRIBUTING.rst           (page guide for your project's contributors)
- ┣ 📜LICENSE                    (licence detail)
+ ┣ 📜LICENSE                    (license detail)
  ┣ 📜README.rst                 (page for introducing and explaining the project)
  ┣ 📜codecov.yml                (configuration file for CodeCov)
  ┗ 📜pyproject.toml             (configuration file for python project)
@@ -21,7 +21,7 @@ Folder Organization
  ┃ ┃ ┣ 📜call_test_package.yml  (workflow for running tests)
  ┃ ┃ ┣ 📜ci.yml                 (Action for run all the workflow from main)
  ┃ ┃ ┣ 📜ci_test.yml            (Action for testing a modification of CI)
- ┃ ┃ ┗ 📜circleci-artifact.yml  (Action for gettign the link to CircleCI)
+ ┃ ┃ ┗ 📜circleci-artifact.yml  (Action for getting the link to CircleCI)
  ┃ ┗ 📜dependabot.yml           (configuration of dependabot)
  ┣ 📂docs                       (folder for the documentation)
  ┃ ┣ 📂(T)_build                (folder which contains the generated documentation)
@@ -67,7 +67,7 @@ Folder Organization
  ┃ ┃ ┣ 📜__init__.py            (definition of functions and classes)
  ┃ ┃ ┣ 📜(T)_version.py         (version of the library)
  ┃ ┃ ┣ 📜base_....py            (Abstract and Mixin classes)
- ┃ ┃ ┗ 📜.........py            (Conditonal feature importance)
+ ┃ ┃ ┗ 📜.........py            (Conditional feature importance)
  ┣ 📂test                       (folder for the tests)
  ┃ ┣ 📂_utils                   (test for function in utils)
  ┃ ┃ ┗ 📜test_.....py
