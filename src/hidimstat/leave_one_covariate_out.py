@@ -221,7 +221,7 @@ def loco(
     threshold_max=None,
     n_jobs: int = 1,
 ):
-    methods = LOCO(
+    method = LOCO(
         estimator=estimator,
         method=method,
         loss=loss,
