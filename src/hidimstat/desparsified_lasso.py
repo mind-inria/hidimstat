@@ -45,16 +45,19 @@ class DesparsifiedLasso(BaseVariableImportance):
         Whether to center X and y before fitting.
 
     dof_ajdustement : bool, default=False
-        If True, applies degrees of freedom adjustment from :footcite:t:`bellec2022biasing`.
+        If True, applies degrees of freedom adjustment.
+
+    alphas : array-like or None, default=None
+        Regularization parameters for each variable. If None, computed from alpha_max_fraction.
 
     alpha_max_fraction : float, default=0.01
-        Fraction of maximum alpha for nodewise Lasso regularization.
+        Fraction of maximum alpha for nodewise Lasso regularization. Used only if alphas=None.
 
     tolerance_reid : float, default=1e-4
         Tolerance for Reid variance estimation.
 
     covariance : ndarray of shape (n_times, n_times) or None, default=None
-        Pre-specified temporal noise covariance matrix. If None, estimated from data.
+        Pre-specified noise covariance matrix across tasks. If None, estimated from data.
 
     noise_method : {'AR', 'median'}, default='AR'
         Method to estimate noise covariance:
@@ -139,6 +142,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         model_x=Lasso(max_iter=5000, tol=1e-3),
         centered=True,
         dof_ajdustement=False,
+        alphas=None,
         alpha_max_fraction=0.01,
         tolerance_reid=1e-4,
         covariance=None,
@@ -169,6 +173,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.model_y = model_y
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
+        self.alphas = alphas
         self.alpha_max_fraction = alpha_max_fraction
         self.tolerance_reid = tolerance_reid
         self.covariance = covariance
@@ -240,6 +245,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             X_ = X
             y_ = y
         self.n_samples_, n_features = X_.shape
+        assert self.alphas is None or len(self.alphas) == n_features
 
         try:
             check_is_fitted(self.model_y)
@@ -267,8 +273,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         )
 
         # define the alphas for the Nodewise Lasso
-        list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
-        alphas = self.alpha_max_fraction * list_alpha_max
+        if self.alphas is None:
+            list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
+            alphas = self.alpha_max_fraction * list_alpha_max
         gram = np.dot(X_.T, X_)  # Gram matrix
 
         # Calculating precision matrix (Nodewise Lasso)
