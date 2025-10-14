@@ -68,7 +68,7 @@ def test_dcrt_lasso_screening(d0crt_test_data):
         screening_threshold=10,
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
-    sv_screening = d0crt_screening.selection(threshold_pvalue=0.05)
+    sv_screening = d0crt_screening.pvalue_selection(threshold_max=0.05)
     assert np.sum(d0crt_no_screening.importances_ != 0) <= n_features
     assert np.sum(d0crt_screening.importances_ != 0) <= n_features
     assert len(sv_no_screening) <= n_features
@@ -86,7 +86,7 @@ def test_dcrt_lasso_screening(d0crt_test_data):
     )
     d0crt_no_screening.fit_importance(X, y)
     pvalue_no_screening = d0crt_no_screening.importance(X, y)
-    sv_no_screening = d0crt_no_screening.selection(threshold_pvalue=0.05)
+    sv_no_screening = d0crt_no_screening.pvalue_selection(threshold_max=0.05)
     assert len(sv_no_screening) <= n_features
     assert len(pvalue_no_screening) == n_features
     assert len(d0crt_no_screening.importances_) == n_features
@@ -109,7 +109,7 @@ def test_dcrt_lasso_with_estimed_coefficient(d0crt_test_data):
     )
     d0crt.fit(X, y)
     pvalue = d0crt.importance(X, y)
-    sv = d0crt.selection(threshold_pvalue=0.05)
+    sv = d0crt.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= n_features
     assert len(pvalue) == n_features
     assert len(d0crt.importances_) == n_features
@@ -128,7 +128,7 @@ def test_dcrt_lasso_with_refit(d0crt_test_data):
         screening_threshold=None,
     )
     pvalue = d0crt_refit.fit_importance(X, y)
-    sv = d0crt_refit.selection(threshold_pvalue=0.05)
+    sv = d0crt_refit.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= n_features
     assert len(pvalue) == n_features
     assert len(d0crt_refit.importances_) == n_features
@@ -147,7 +147,7 @@ def test_dcrt_lasso_with_no_cv(d0crt_test_data):
         screening_threshold=None,
     )
     pvalue = d0crt_use_cv.fit_importance(X, y)
-    sv = d0crt_use_cv.selection(threshold_pvalue=0.05)
+    sv = d0crt_use_cv.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= n_features
     assert len(pvalue) == n_features
     assert len(d0crt_use_cv.importances_) == n_features
@@ -168,7 +168,7 @@ def test_dcrt_lasso_with_covariance(d0crt_test_data):
         screening_threshold=None,
     )
     pvalue = d0crt_covariance.fit_importance(X, y)
-    sv = d0crt_covariance.selection(threshold_pvalue=0.05)
+    sv = d0crt_covariance.pvalue_selection(threshold_max=0.05)
     assert len(sv) <= n_features
     assert len(pvalue) == n_features
     assert len(d0crt_covariance.importances_) == n_features
@@ -533,7 +533,7 @@ def test_dcrt_logit(generate_binary_classif_dataset):
     dcrt.fit(X, y)
     dcrt.importance(X, y)
     alpha = 0.1
-    dcrt.selection(threshold_pvalue=alpha)
+    dcrt.pvalue_selection(threshold_max=alpha)
     fp = np.sum((beta == 0) & (dcrt.pvalues_ <= alpha))
     tp = np.sum((beta != 0) & (dcrt.pvalues_ <= alpha))
     # Check that the false discovery proportion is below alpha
@@ -612,7 +612,7 @@ def test_dcrt_logit_refit(generate_binary_classif_dataset):
     dcrt.fit(X, y)
     dcrt.importance(X, y)
     alpha = 0.1
-    dcrt.selection(threshold_pvalue=alpha)
+    dcrt.pvalue_selection(threshold_max=alpha)
     fp = np.sum((beta == 0) & (dcrt.pvalues_ <= alpha))
     tp = np.sum((beta != 0) & (dcrt.pvalues_ <= alpha))
     # Check that the false discovery proportion is below alpha
