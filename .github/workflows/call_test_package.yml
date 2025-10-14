@@ -48,7 +48,7 @@ jobs:
     # Install python
     - name: Install the latest version of uv and the right verion of python
       if:  ${{ inputs.skip_test == false }}
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v7
       with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
