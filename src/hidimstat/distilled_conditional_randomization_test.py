@@ -658,7 +658,8 @@ def _joblib_fit(
     """
     X_minus_idx = np.delete(np.copy(X), idx, 1)
 
-    # Distill X with least square loss. Use lasso_weights for d0CRT-logit
+    # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
+    # in :footcite:t:`nguyen2022conditional` equation (10).
     if sigma_X or (lasso_weights is not None):
         sample_weight = 2 * lasso_weights if lasso_weights is not None else None
         model_x = clone(model_distillation_x)

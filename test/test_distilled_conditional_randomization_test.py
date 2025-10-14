@@ -38,7 +38,7 @@ def d0crt_test_data():
 
 
 @pytest.fixture
-def generate_classification_dataset(n=100, p=10, seed=0):
+def generate_binary_classif_dataset(n=100, p=10, seed=0):
     """
     Generate a random classification dataset for which the ground truth is known.
     """
@@ -508,12 +508,12 @@ def test_d0crt_rf():
     assert np.array_equal(np.where(sv)[0], important_ids)
 
 
-def test_dcrt_logit(generate_classification_dataset):
+def test_dcrt_logit(generate_binary_classif_dataset):
     """
     Test the dcrt-logit function which is used when a LogisticRegressionCV model is
     passed to the estimator parameter of the D0CRT class.
     """
-    X, y, beta = generate_classification_dataset
+    X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
         estimator=LogisticRegressionCV(
             penalty="l1",
@@ -585,12 +585,12 @@ def test_dcrt_logit_errors():
         )
 
 
-def test_dcrt_logit_refit(generate_classification_dataset):
+def test_dcrt_logit_refit(generate_binary_classif_dataset):
     """
     Test the dcrt function using the LogisticRegressionCV learner with refit=True
     and reuse_screening_model=False.
     """
-    X, y, beta = generate_classification_dataset
+    X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
         estimator=LogisticRegressionCV(
             penalty="l1",
