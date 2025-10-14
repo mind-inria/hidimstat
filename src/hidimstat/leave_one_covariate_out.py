@@ -229,14 +229,14 @@ def loco(
         features_groups=features_groups,
         n_jobs=n_jobs,
     )
-    methods.fit_importance(X, y)
-    selection = methods.importance_selection(
+    method.fit_importance(X, y)
+    selection = method.importance_selection(
         k_best=k_best,
         percentile=percentile,
         threshold_min=threshold_min,
         threshold_max=threshold_max,
     )
-    return selection, methods.importances_, methods.pvalues_
+    return selection, method.importances_, method.pvalues_
 
 
 # use the docstring of the class for the function
