@@ -177,12 +177,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.alpha_max_fraction = alpha_max_fraction
         self.save_model_x = save_model_x
         self.random_state = random_state
-        # parameter for reid
+        # parameters for reid
         self.tolerance_reid = tolerance_reid
         self.noise_method = noise_method
         self.order = order
         self.stationary = stationary
-        # parameter for test
+        # parameters for test
         self.confidence = confidence
         self.distribution = distribution
         self.epsilon_pvalue = epsilon_pvalue
@@ -543,18 +543,18 @@ def desparsified_lasso(
     ),
     centered=True,
     dof_ajdustement=False,
-    # parameter for model_x
+    # parameters for model_x
     model_x=Lasso(max_iter=5000, tol=1e-3),
     alphas=None,
     alpha_max_fraction=0.01,
     save_model_x=False,
     random_state=None,
-    # parameter for reid
+    # parameters for reid
     tolerance_reid=1e-4,
     noise_method="AR",
     order=1,
     stationary=True,
-    # paramter for tests
+    # parameters for tests
     confidence=0.95,
     distribution="norm",
     epsilon_pvalue=1e-14,
