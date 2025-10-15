@@ -52,7 +52,7 @@ Folder Organization
  ┃ ┗ 📂hidimstat                (code of the library)
  ┃ ┃ ┣ 📂_utils                 (folder for private functions)
  ┃ ┃ ┃ ┣ 📜__init__.py          
- ┃ ┃ ┃ ┣ 📜bootstrap.py         (function for bootstrap)
+ ┃ ┃ ┃ ┣ 📜bootstrap.py         (module for bootstrap handling)
  ┃ ┃ ┃ ┣ 📜docstring.py         (function for docstring)
  ┃ ┃ ┃ ┣ 📜exception.py         (function for the exceptions)
  ┃ ┃ ┃ ┣ 📜regression.py        (function for Lasso regression)
