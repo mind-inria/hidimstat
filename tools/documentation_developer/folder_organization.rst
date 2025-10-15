@@ -10,7 +10,7 @@ Folder Organization
  ┣ 📜LICENSE                    (license detail)
  ┣ 📜README.rst                 (page for introducing and explaining the project)
  ┣ 📜codecov.yml                (configuration file for CodeCov)
- ┗ 📜pyproject.toml             (configuration file for python project)
+ ┗ 📜pyproject.toml             (configuration file for Python project)
  ┣ 📂.circleci                  (folder for circleci)
  ┃ ┗ 📜config.yml               (configuration file for circleci)
  ┣ 📂.github                    (folder for github)
