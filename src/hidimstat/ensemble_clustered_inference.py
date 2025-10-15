@@ -255,7 +255,7 @@ def clustered_inference(
         kwargs["model_y"] = MultiTaskLassoCV(
             eps=1e-2,
             fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5),
             tol=1e-4,
             max_iter=5000,
             random_state=1,
@@ -265,7 +265,7 @@ def clustered_inference(
         kwargs["model_y"] = LassoCV(
             eps=1e-2,
             fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5),
             tol=1e-4,
             max_iter=5000,
             random_state=1,
