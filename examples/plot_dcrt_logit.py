@@ -95,8 +95,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
         n_jobs=5,
     )
     dcrt.fit(X, y)
-    dcrt.importance(X, y)
-    importance = dcrt.importances_
+    importance = dcrt.importance(X, y)
     power = np.mean((dcrt.pvalues_[beta_true] < 0.05))
 
     # Store the results in a DataFrame
