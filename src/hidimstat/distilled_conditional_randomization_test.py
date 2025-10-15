@@ -80,9 +80,6 @@ class D0CRT(BaseVariableImportance):
         Random seed for reproducibility.
     reuse_screening_model: bool, default=True
         Whether to reuse the screening model for y-distillation.
-    eps_fisher : float, default=1e-8
-        Only used for logistic regression. Small constant added for numerical stability
-        to the Fisher information to avoid division by zero.
 
     Attributes
     ----------
@@ -149,7 +146,6 @@ class D0CRT(BaseVariableImportance):
         scaled_statistics=False,
         reuse_screening_model=True,
         random_state=None,
-        eps_fisher=1e-8,
     ):
         self.estimator = estimator
         _check_vim_predict_method(method)
@@ -168,7 +164,6 @@ class D0CRT(BaseVariableImportance):
         self.scaled_statistics = scaled_statistics
         self.reuse_screening_model = reuse_screening_model
         self.random_state = random_state
-        self.eps_fisher = eps_fisher
 
         self.is_logistic_ = self._check_logistic()
         self.coefficient_ = None
@@ -272,8 +267,9 @@ class D0CRT(BaseVariableImportance):
                 self.intercept_ = self.estimator.intercept_
             else:
                 self.coefficient_ = None
-        # Save sample weights that will be used for fitting the X-distillation and
-        # computing the Fisher information matrix
+        # Save sample weights that will be used for fitting the X-distillation (equation
+        # 10 in :footcite:t:`nguyen2022conditional`) and computing the Fisher
+        # information matrix
         if self.is_logistic_:
             self.lasso_weights_ = (
                 np.exp(X.dot(self.coefficient_) + self.intercept_)
@@ -421,7 +417,6 @@ class D0CRT(BaseVariableImportance):
                 X_residual,
                 y_residual,
                 n_samples,
-                eps_fisher=self.eps_fisher,
             )
         else:
             test_statistic_selected_variables = self._regression_test_statistic(
@@ -488,11 +483,10 @@ class D0CRT(BaseVariableImportance):
         X_residual,
         y_residual,
         n_samples,
-        eps_fisher=1e-8,
     ):
         """
         Compute the d0CRT test statistic for logistic regression, following the method
-        presented in :footcite:t:`nguyen2022conditional`.
+        presented in equation 11 :footcite:t:`nguyen2022conditional`.
 
         Parameters
         ----------
@@ -504,9 +498,6 @@ class D0CRT(BaseVariableImportance):
             Residuals after distillation of y.
         n_samples : int
             Number of samples.
-        eps_fisher : float, default=1e-8
-            Small constant added for numerical stability to the Fisher information
-            to avoid division by zero.
 
         Returns
         -------
@@ -524,7 +515,7 @@ class D0CRT(BaseVariableImportance):
         test_statistic_selected_variables = np.array(
             [
                 -np.dot(y_residual[i], X_residual[i])
-                / np.sqrt(n_samples * fisher_minus_idx[i] + eps_fisher)
+                / np.sqrt(n_samples * fisher_minus_idx[i])
                 for i in range(X_residual.shape[0])
             ]
         )
