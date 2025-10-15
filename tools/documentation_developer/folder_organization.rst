@@ -16,7 +16,7 @@ Folder Organization
  ┣ 📂.github                    (folder for Github)
  ┃ ┣ 📂workflows                (folder for define the Github action)
  ┃ ┃ ┣ 📜call_linter.yml        (workflow for running the linter)
- ┃ ┃ ┣ 📜call_publish_result.yml(workflow for sending the results to CodeCov and CircleCi)
+ ┃ ┃ ┣ 📜call_publish_result.yml(workflow for sending the results to CodeCov and CircleCI)
  ┃ ┃ ┣ 📜call_test_minimal.yml  (workflow for running test with minimal version)
  ┃ ┃ ┣ 📜call_test_package.yml  (workflow for running tests)
  ┃ ┃ ┣ 📜ci.yml                 (Action for run all the workflow from main)
