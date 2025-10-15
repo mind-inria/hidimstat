@@ -9,7 +9,7 @@ class PFI(BasePerturbation):
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
+        loss=root_mean_squared_error,
         method: str = "predict",
         n_permutations: int = 50,
         features_groups=None,
