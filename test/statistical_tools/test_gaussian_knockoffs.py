@@ -75,6 +75,16 @@ def test_reproducibility_sample():
     assert np.array_equal(X_tilde_1, X_tilde_2)
 
 
+def test_reproducibility_sample_repeat():
+    """Test the repeatability of the samples"""
+    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf())
+    gaussian_sampler.fit(X=X)
+    X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=0)
+    X_tilde_2 = gaussian_sampler.sample(n_repeats=3, random_state=0)
+    assert np.array_equal(X_tilde_1, X_tilde_2)
+
+
 def test_randomness_sample_no_seed():
     """Test the non repeatability of the samples when no seed"""
     X, _, _, _ = multivariate_simulation(100, 10, seed=0)
@@ -82,6 +92,16 @@ def test_randomness_sample_no_seed():
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(random_state=None)
     X_tilde_2 = gaussian_sampler.sample(random_state=None)
+    assert not np.array_equal(X_tilde_1, X_tilde_2)
+
+
+def test_randomness_sample_no_seed_repeat():
+    """Test the non repeatability of the samples when no seed"""
+    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    gaussian_sampler = GaussianKnockoffs(cov_estimator=LedoitWolf())
+    gaussian_sampler.fit(X=X)
+    X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=None)
+    X_tilde_2 = gaussian_sampler.sample(n_repeats=3, random_state=None)
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
 
@@ -93,4 +113,15 @@ def test_randomness_sample_rgn():
     gaussian_sampler_rng.fit(X=X)
     X_tilde_1 = gaussian_sampler_rng.sample(random_state=rng)
     X_tilde_2 = gaussian_sampler_rng.sample(random_state=rng)
+    assert not np.array_equal(X_tilde_1, X_tilde_2)
+
+
+def test_randomness_sample_rgn_repeat():
+    """Test the non repeatability of the samples when the usage of random generator"""
+    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    rng = np.random.default_rng(0)
+    gaussian_sampler_rng = GaussianKnockoffs(cov_estimator=LedoitWolf())
+    gaussian_sampler_rng.fit(X=X)
+    X_tilde_1 = gaussian_sampler_rng.sample(n_repeats=3, random_state=rng)
+    X_tilde_2 = gaussian_sampler_rng.sample(n_repeats=3, random_state=rng)
     assert not np.array_equal(X_tilde_1, X_tilde_2)
