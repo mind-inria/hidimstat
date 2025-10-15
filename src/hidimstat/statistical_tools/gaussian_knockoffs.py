@@ -140,7 +140,7 @@ class GaussianKnockoffs:
             X_tildes.append(
                 self.mu_tilde_ + np.dot(u_tilde, self.sigma_tilde_decompose_)
             )
-        return X_tildes
+        return np.stack(X_tildes)
 
 
 def _s_equi(sigma, tol=1e-14):
