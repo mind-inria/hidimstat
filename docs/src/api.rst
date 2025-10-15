@@ -13,9 +13,9 @@ Base Classes
    :toctree: ./generated/api/base/
    :template: class.rst
 
-   base_variable_importance.BaseVariableImportance
-   base_perturbation.BasePerturbation
-   base_variable_importance.GroupVariableImportanceMixin
+   BaseVariableImportance
+   BasePerturbation
+   GroupVariableImportanceMixin
 
 Feature Importance Classes
 ==========================
@@ -52,8 +52,8 @@ Samplers
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   statistical_tools.conditional_sampling.ConditionalSampler
-   statistical_tools.gaussian_knockoffs.GaussianKnockoffs
+   ConditionalSampler
+   GaussianKnockoffs
 
 Helper Functions
 ================
