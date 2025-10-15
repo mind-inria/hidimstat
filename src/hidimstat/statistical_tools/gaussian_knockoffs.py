@@ -18,8 +18,8 @@ class GaussianKnockoffs:
         Estimator for computing the covariance matrix. Must implement fit and
         have a `covariance_` attribute after fitting.
     tol : float, default=1e-14
-        Tolerance threshold. While the smallest eigenvalue of :math:`2\Sigma - diag(S)` 
-        is smaller than this threshold, S is incrementally increased. 
+        Tolerance threshold. While the smallest eigenvalue of :math:`2\Sigma - diag(S)`
+        is smaller than this threshold, S is incrementally increased.
 
     Attributes
     ----------
