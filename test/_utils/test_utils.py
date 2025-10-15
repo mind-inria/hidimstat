@@ -6,8 +6,8 @@ from scipy.stats import ttest_1samp, wilcoxon
 
 from hidimstat._utils.utils import (
     check_random_state,
-    get_fitted_attributes,
     check_statistical_test,
+    get_fitted_attributes,
 )
 
 
