@@ -7,7 +7,7 @@ from scipy import stats
 from scipy.linalg import inv
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
-from sklearn.linear_model import Lasso, LassoCV, MultiTaskLassoCV
+from sklearn.linear_model import Lasso, LassoCV, MultiTaskLasso, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
@@ -25,7 +25,7 @@ from hidimstat.statistical_tools.p_values import (
 
 class DesparsifiedLasso(BaseVariableImportance):
     """
-    Desparsified Lasso Estimator
+    Desparsified Lasso Estimator (also known as Debiased Lasso)
 
     Statistical inference in high-dimensional regression using the desparsified Lasso.
     Provides debiased coefficient estimates, confidence intervals and p-values.
@@ -35,66 +35,66 @@ class DesparsifiedLasso(BaseVariableImportance):
     Parameters
     ----------
     model_y : LassoCV or MultiTaskLassoCV instance, default=LassoCV()
-        Estimator used for initial Lasso fit. Must implement fit and predict.
-        It should be Lasso or MultiTaskLasso.
-
-    model_x : LassoCV or MultiTaskLassoCV instance, default=Lasso()
-        Base Lasso estimator used for nodewise regressions.
+        Initial model for selecting relevant features. Must implement fit and predict.
+        For single task use LassoCV, for multi-task use MultiTaskLassoCV.
 
     centered : bool, default=True
         Whether to center X and y before fitting.
 
     dof_ajdustement : bool, default=False
-        If True, applies degrees of freedom adjustment.
+        Whether to apply degrees of freedom adjustment for small samples.
+
+    model_x : Lasso or MultiTaskLasso instance, default=Lasso()
+        Base model for nodewise regressions.
 
     alphas : array-like or None, default=None
-        Regularization parameters for each variable. If None, computed from alpha_max_fraction.
+        Regularization strengths for nodewise regressions. If None, computed from alpha_max_fraction.
 
     alpha_max_fraction : float, default=0.01
-        Fraction of maximum alpha for nodewise Lasso regularization. Used only if alphas=None.
+        Fraction of maximum alpha to use when alphas=None.
+
+    random_state : int or RandomState, default=None
+        Controls randomization.
+
+    save_model_x : bool, default=False
+        Whether to save fitted nodewise regression models.
 
     tolerance_reid : float, default=1e-4
-        Tolerance for Reid variance estimation.
-
-    covariance : ndarray of shape (n_times, n_times) or None, default=None
-        Pre-specified noise covariance matrix across tasks. If None, estimated from data.
+        Convergence tolerance for noise estimation.
 
     noise_method : {'AR', 'median'}, default='AR'
-        Method to estimate noise covariance:
+        Method for noise covariance estimation:
         - 'AR': Autoregressive model
-        - 'median': Median correlation between consecutive timepoints
+        - 'median': Median correlation
 
     order : int, default=1
-        Order of AR model when noise_method='AR'. Must be < n_times.
+        Order of AR model if noise_method='AR'.
 
     stationary : bool, default=True
         Whether to assume stationary noise.
 
     confidence : float, default=0.95
-        Confidence level for intervals, between 0 and 1.
+        Confidence level for intervals.
 
     distribution : str, default='norm'
-        Distribution for p-values. Only 'norm' supported.
+        Distribution for p-values, only 'norm' supported.
 
     epsilon_pvalue : float, default=1e-14
-        Small value to avoid numerical issues in p-values.
+        Small constant to avoid numerical issues.
 
     test : {'chi2', 'F'}, default='chi2'
-        Test for p-values:
+        Test statistic for p-values:
         - 'chi2': Chi-squared test (large samples)
         - 'F': F-test (small samples)
 
-    save_model_x : bool, default=False
-        Whether to save nodewise regression models.
-
-    random_state : int, RandomState or None, default=None
-        Controls random number generation.
+    covariance : ndarray or None, default=None
+        Pre-specified noise covariance matrix.
 
     n_jobs : int, default=1
         Number of parallel jobs.
 
     memory : str or Memory, default=None
-        Cache for computations.
+        Cache for intermediate results.
 
     verbose : int, default=0
         Verbosity level.
@@ -102,7 +102,7 @@ class DesparsifiedLasso(BaseVariableImportance):
     Attributes
     ----------
     importances_ : ndarray
-        Desparsified coefficient estimates.
+        Debiased coefficient estimates.
 
     pvalues_ : ndarray
         Two-sided p-values.
@@ -110,22 +110,17 @@ class DesparsifiedLasso(BaseVariableImportance):
     pvalues_corr_ : ndarray
         Multiple testing corrected p-values.
 
-    sigma_hat_ : float or ndarray of shape (n_times, n_times)
-        Estimated noise level or precision matrix.
+    sigma_hat_ : float or ndarray
+        Estimated noise level.
 
-    confidence_bound_min_ : ndarray of shape (n_features,)
+    precision_diagonal_ : ndarray
+        Diagonal entries of precision matrix.
+
+    confidence_bound_min_ : ndarray
         Lower confidence bounds.
 
-    confidence_bound_max_ : ndarray of shape (n_features,)
+    confidence_bound_max_ : ndarray
         Upper confidence bounds.
-
-    Notes
-    -----
-    Chi-squared test assumes asymptotic normality, F-test preferred for small samples.
-
-    References
-    ----------
-    .. footbibliography::
     """
 
     def __init__(
@@ -139,31 +134,31 @@ class DesparsifiedLasso(BaseVariableImportance):
             random_state=1,
             n_jobs=1,
         ),
-        model_x=Lasso(max_iter=5000, tol=1e-3),
         centered=True,
         dof_ajdustement=False,
+        # parameters for model_x
+        model_x=Lasso(max_iter=5000, tol=1e-3),
         alphas=None,
         alpha_max_fraction=0.01,
+        random_state=None,
+        save_model_x=False,
+        # parameters for reid
         tolerance_reid=1e-4,
-        covariance=None,
         noise_method="AR",
         order=1,
         stationary=True,
+        # parameters for tests
         confidence=0.95,
         distribution="norm",
         epsilon_pvalue=1e-14,
         test="chi2",
-        save_model_x=False,
-        random_state=None,
+        covariance=None,
+        # parameters for optimization
         n_jobs=1,
         memory=None,
         verbose=0,
     ):
         super().__init__()
-        assert issubclass(
-            Lasso, model_x.__class__
-        ), "lasso needs to be a Lasso or a MultiTaskLasso"
-        self.model_x = model_x
         if issubclass(LassoCV, model_y.__class__):
             self.n_times_ = 1
         elif issubclass(MultiTaskLassoCV, model_y.__class__):
@@ -173,31 +168,39 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.model_y = model_y
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
+        # model x
+        assert issubclass(Lasso, model_x.__class__) or issubclass(
+            MultiTaskLasso, model_x.__class__
+        ), "lasso needs to be a Lasso or a MultiTaskLasso"
+        self.model_x = model_x
         self.alphas = alphas
         self.alpha_max_fraction = alpha_max_fraction
+        self.save_model_x = save_model_x
+        self.random_state = random_state
+        # parameter for reid
         self.tolerance_reid = tolerance_reid
-        self.covariance = covariance
         self.noise_method = noise_method
         self.order = order
         self.stationary = stationary
+        # parameter for test
         self.confidence = confidence
         self.distribution = distribution
         self.epsilon_pvalue = epsilon_pvalue
+        self.covariance = covariance
         assert test == "chi2" or test == "F", f"Unknown test '{test}'"
         self.test = test
-        self.save_model_x = save_model_x
+        # parameters for optimization
         self.n_jobs = n_jobs
-        self.random_state = random_state
         self.memory = memory
         self.verbose = verbose
 
+        self.n_samples_ = None
+        self.clf_ = None
         self.sigma_hat_ = None
+        self.precision_diagonal_ = None
         self.confidence_bound_min_ = None
         self.confidence_bound_max_ = None
         self.pvalues_corr_ = None
-        self.precision_diagonal_ = None
-        self.clf_ = None
-        self.n_samples_ = None
 
     def fit(self, X, y):
         """
@@ -409,7 +412,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.confidence_bound_max_ = beta_hat + confint_radius
             self.confidence_bound_min_ = beta_hat - confint_radius
 
-            pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
+            pval, pval_corr, _, _ = pval_from_cb(
                 self.confidence_bound_min_,
                 self.confidence_bound_max_,
                 confidence=self.confidence,
@@ -445,8 +448,8 @@ class DesparsifiedLasso(BaseVariableImportance):
 
             # Compute the p-values
             sign_beta = np.sign(np.sum(beta_hat, axis=1))
-            pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-                pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
+            pval, pval_corr, _, _ = pval_from_two_sided_pval_and_sign(
+                two_sided_pval, sign_beta, eps=self.epsilon_pvalue
             )
 
         self.pvalues_ = pval
@@ -538,24 +541,30 @@ def desparsified_lasso(
         max_iter=5000,
         random_state=0,
     ),
-    model_x=Lasso(max_iter=5000, tol=1e-3),
     centered=True,
     dof_ajdustement=False,
+    # parameter for model_x
+    model_x=Lasso(max_iter=5000, tol=1e-3),
+    alphas=None,
     alpha_max_fraction=0.01,
+    save_model_x=False,
+    random_state=None,
+    # parameter for reid
     tolerance_reid=1e-4,
-    covariance=None,
     noise_method="AR",
     order=1,
     stationary=True,
+    # paramter for tests
     confidence=0.95,
     distribution="norm",
     epsilon_pvalue=1e-14,
     test="chi2",
-    save_model_x=False,
-    random_state=None,
+    covariance=None,
+    # parameter for optimization
     n_jobs=1,
     memory=None,
     verbose=0,
+    # parameter for selections
     k_lowest=None,
     percentile=None,
     threshold_min=None,
@@ -563,12 +572,14 @@ def desparsified_lasso(
 ):
     methods = DesparsifiedLasso(
         model_y=model_y,
-        model_x=model_x,
         centered=centered,
         dof_ajdustement=dof_ajdustement,
+        model_x=model_x,
+        alphas=alphas,
         alpha_max_fraction=alpha_max_fraction,
+        save_model_x=save_model_x,
+        random_state=random_state,
         tolerance_reid=tolerance_reid,
-        covariance=covariance,
         noise_method=noise_method,
         order=order,
         stationary=stationary,
@@ -576,8 +587,7 @@ def desparsified_lasso(
         distribution=distribution,
         epsilon_pvalue=epsilon_pvalue,
         test=test,
-        save_model_x=save_model_x,
-        random_state=random_state,
+        covariance=covariance,
         n_jobs=n_jobs,
         memory=memory,
         verbose=verbose,
