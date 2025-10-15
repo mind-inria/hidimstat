@@ -1,12 +1,13 @@
-from functools import partial
-
 import numpy as np
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted
 from sklearn.metrics import root_mean_squared_error
 
-from hidimstat._utils.utils import _check_vim_predict_method, check_random_state
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    check_test_statistic,
+)
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
     GroupVariableImportanceMixin,
@@ -74,7 +75,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         method: str = "predict",
         loss: callable = root_mean_squared_error,
         n_permutations: int = 50,
-        test_statistic=partial(wilcoxon, axis=1),
+        test_statistic="wilcoxon",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
@@ -88,7 +89,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         _check_vim_predict_method(method)
         self.method = method
         self.n_permutations = n_permutations
-        self.test_statistic = test_statistic
+        self.test_statistic = check_test_statistic(test_statistic)
         self.n_jobs = n_jobs
 
         # variable set in importance

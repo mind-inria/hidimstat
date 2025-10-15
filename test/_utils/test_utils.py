@@ -1,7 +1,14 @@
+from functools import partial
+
 import numpy as np
 import pytest
+from scipy.stats import ttest_1samp, wilcoxon
 
-from hidimstat._utils.utils import check_random_state, get_fitted_attributes
+from hidimstat._utils.utils import (
+    check_random_state,
+    get_fitted_attributes,
+    check_test_statistic,
+)
 
 
 def test_generated_attributes():
@@ -56,3 +63,21 @@ def test_error():
         ValueError, match="cannot be used to seed a numpy.random.Generator instance"
     ):
         check_random_state(random_state)
+
+
+def test_check_test_statistic():
+    "test the function of check"
+    test_func = check_test_statistic("wilcoxon")
+    assert test_func.func == wilcoxon
+    test_func = check_test_statistic("ttest")
+    assert test_func.func == ttest_1samp
+    test_func = check_test_statistic(print)
+    assert test_func == print
+
+
+def test_check_test_statistic_warning():
+    "test the exception"
+    with pytest.raises(ValueError, match="the test 'test' is not supported"):
+        check_test_statistic("test")
+    with pytest.raises(ValueError, match="is not a valid test"):
+        check_test_statistic([])

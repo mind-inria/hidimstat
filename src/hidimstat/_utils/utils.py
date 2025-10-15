@@ -1,7 +1,9 @@
+from functools import partial
 import numbers
 
 import numpy as np
 from numpy.random import RandomState
+from scipy.stats import ttest_1samp, wilcoxon
 
 
 def _check_vim_predict_method(method):
@@ -136,3 +138,40 @@ def seed_estimator(estimator, random_state=None):
                 setattr(value, "random_state", RandomState(rng.bit_generator))
 
     return estimator
+
+
+def check_test_statistic(test):
+    """
+    Validates and returns a test statistic function.
+
+    Parameters
+    ----------
+    test : str or callable
+        If str, must be either 'ttest' or 'wilcoxon'.
+        If callable, must be a function that can be used as a test statistic.
+
+    Returns
+    -------
+    callable
+        A function that can be used as a test statistic.
+        For string inputs, returns a partial function of either ttest_1samp or wilcoxon.
+        For callable inputs, returns the input function.
+
+    Raises
+    ------
+    ValueError
+        If test is a string but not one of the supported test names ('ttest' or 'wilcoxon').
+    ValueError
+        If test is neither a string nor a callable.
+    """
+    if isinstance(test, str):
+        if test == "ttest":
+            return partial(ttest_1samp, axis=1)
+        elif test == "wilcoxon":
+            return partial(wilcoxon, axis=1)
+        else:
+            raise ValueError(f"the test '{test}' is not supported")
+    elif callable(test):
+        return test
+    else:
+        raise ValueError("The test '{}' is not a valid test".format(test))
