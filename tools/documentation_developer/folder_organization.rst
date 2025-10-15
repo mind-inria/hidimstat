@@ -13,7 +13,7 @@ Folder Organization
  ┗ 📜pyproject.toml             (configuration file for Python project)
  ┣ 📂.circleci                  (folder for circleci)
  ┃ ┗ 📜config.yml               (configuration file for CircleCI)
- ┣ 📂.github                    (folder for github)
+ ┣ 📂.github                    (folder for Github)
  ┃ ┣ 📂workflows                (folder for define the github action)
  ┃ ┃ ┣ 📜call_linter.yml        (workflow for running the linter)
  ┃ ┃ ┣ 📜call_publish_result.yml(workflow for sending the results to CodeCov and CircleCi)
