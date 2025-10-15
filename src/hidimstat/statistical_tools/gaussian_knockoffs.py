@@ -119,7 +119,7 @@ class GaussianKnockoffs:
         Parameters
         ----------
         n_repeats : int, default=1
-            The number of samples to draw.
+            The number of sets of Gaussian knockoff variables
         random_state : int or None, default=None
             The random state to use for sampling.
 
