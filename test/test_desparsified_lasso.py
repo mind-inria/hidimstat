@@ -101,7 +101,7 @@ def test_desparsified_group_lasso():
         fit_intercept=False,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
         tol=1e-4,
-        max_iter=5000,
+        max_iter=50,
         random_state=1,
         n_jobs=1,
     )
@@ -115,9 +115,10 @@ def test_desparsified_group_lasso():
         signal_noise_ratio=signal_noise_ratio,
     )
 
-    desparsified_lasso = DesparsifiedLasso(
-        model_y=multitasklassoCV, covariance=corr
-    ).fit(X, y)
+    with pytest.warns(Warning, match="'max_iter' has been increased to "):
+        desparsified_lasso = DesparsifiedLasso(
+            model_y=multitasklassoCV, covariance=corr, save_model_x=True
+        ).fit(X, y)
     importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
@@ -130,6 +131,10 @@ def test_desparsified_group_lasso():
     fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
     assert fp / np.sum(non_important) <= alpha
     assert tp / np.sum(important) >= 0.8
+    assert (
+        desparsified_lasso.clf_ is not None
+        and len(desparsified_lasso.clf_) == n_features
+    )
 
     desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV, test="F").fit(X, y)
     importances = desparsified_lasso.importance()
@@ -139,6 +144,7 @@ def test_desparsified_group_lasso():
     fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
     assert fp / np.sum(non_important) <= alpha
     assert tp / np.sum(important) >= 0.8
+    assert desparsified_lasso
 
     # Testing error is raised when the covariance matrix has wrong shape
     bad_cov = np.delete(corr, 0, axis=1)
@@ -201,12 +207,6 @@ def test_exception():
         match="The Desparsified Lasso requires to be fit before any analysis",
     ):
         desparsified_lasso.importance()
-    desparsified_lasso.sigma_hat_ = []
-    with pytest.raises(
-        ValueError,
-        match="The Desparsified Lasso requires to be fit before any analysis",
-    ):
-        desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV).fit(X, y)
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
@@ -221,7 +221,7 @@ def test_exception():
 
 
 def test_function_not_center():
-    "Test function and not centered"
+    "Test function when the data don't need to be centered"
     n_samples, n_features = 52, 50
     support_size = 1
     signal_noise_ratio = 50

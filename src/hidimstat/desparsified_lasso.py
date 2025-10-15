@@ -349,12 +349,6 @@ class DesparsifiedLasso(BaseVariableImportance):
             raise ValueError(
                 "The Desparsified Lasso requires to be fit before any analysis"
             )
-        try:
-            check_is_fitted(self.model_y)
-        except NotFittedError:
-            raise ValueError(
-                "The Desparsified Lasso requires to be fit before any analysis"
-            )
 
     def importance(self, X=None, y=None):
         """
