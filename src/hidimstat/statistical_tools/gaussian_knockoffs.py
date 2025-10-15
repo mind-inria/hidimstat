@@ -124,7 +124,7 @@ class GaussianKnockoffs:
 
         Returns
         -------
-        X_tilde : 2D ndarray (n_samples, n_features)
+        X_tilde : 3D ndarray (n_repeats, n_samples, n_features)
             The synthetic variables.
         """
         self._check_fit()
