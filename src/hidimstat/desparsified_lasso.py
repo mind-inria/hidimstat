@@ -128,7 +128,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         model_y=LassoCV(
             eps=1e-2,
             fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5),
             tol=1e-4,
             max_iter=5000,
             random_state=1,
@@ -283,7 +283,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         # Calculating precision matrix (Nodewise Lasso)
         results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
-            delayed(_compute_residuals)(
+            delayed(_joblib_compute_residuals)(
                 X=X_,
                 id_column=i,
                 clf=seed_estimator(
@@ -477,7 +477,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         return self.importance(X, y)
 
 
-def _compute_residuals(X, id_column, clf, return_clf):
+def _joblib_compute_residuals(X, id_column, clf, return_clf):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation.
 
