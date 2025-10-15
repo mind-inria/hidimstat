@@ -16,13 +16,13 @@ from hidimstat.base_variable_importance import (
 
 class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     """
-    Base class for model-agnostic variable importance measures based on
-    perturbation.
+    Abstract base class for model-agnostic variable importance measures using
+    perturbation techniques.
 
     Parameters
     ----------
-    estimator : sklearn compatible estimator
-        The estimator to use for the prediction.
+    estimator : sklearn-compatible estimator
+        The fitted estimator used for predictions.
     method : str, default="predict"
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
@@ -31,42 +31,33 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         The function to compute the loss when comparing the perturbed model
         to the original model.
     n_permutations : int, default=50
-        This parameter is relevant only for PFI or CFI.
-        Specifies the number of times the variable group (residual for CFI) is
-        permuted. For each permutation, the perturbed model's loss is calculated
-        and averaged over all permutations.
-    statistical_test : callable, default=partial(wilcoxon, axis=1)
-        Statistical test function used to compute p-values for importance scores.
-        Must accept an array of values and return an object with a 'pvalue' attribute.
-        Default is Wilcoxon signed-rank test.
-    features_groups: dict or None, default=None
-        A dictionary where the keys are the group names and the values are the
-        list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        Number of permutations for each feature group.
+    statistical_test : callable or str, default="wilcoxon"
+        Statistical test function for computing p-values of importance scores.
+    features_groups : dict or None, default=None
+        Mapping of group names to lists of feature indices or names. If None, groups are inferred.
     n_jobs : int, default=1
-        The number of parallel jobs to run. Parallelization is done over the
-        variables or groups of variables.
+        Number of parallel jobs for computation.
     random_state : int or None, default=None
-        Controls random number generation for permutations. Use an int for
-        repeatable results.
+        Seed for reproducible permutations.
 
     Attributes
     ----------
     features_groups : dict
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
-        Computed importance scores for each feature group.
+        Importance scores for each feature group.
     loss_reference_ : float
-        Loss of the original model without perturbation.
+        Loss on original (non-perturbed) data.
     loss_ : dict
-        Loss values for each perturbed feature group.
-    pvalues_ : ndarray (n_groups,)
-        P-values for importance scores from the specified test_statistic.
+        Loss values for each permutation of each group.
+    pvalues_ : ndarray of shape (n_groups,)
+        P-values for importance scores.
 
     Notes
     -----
-    This is an abstract base class. Concrete implementations must override
-    the `_permutation` method to define how features are perturbed.
+    This class is abstract. Subclasses must implement the `_permutation` method
+    to define how feature groups are perturbed.
     """
 
     def __init__(
