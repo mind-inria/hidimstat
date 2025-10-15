@@ -85,8 +85,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
         n_jobs=5,
     )
     dcrt_logit.fit(X, y)
-    dcrt_logit.importance(X, y)
-    importance_logit = dcrt_logit.importances_
+    importance_logit = dcrt_logit.importance(X, y)
     power_logit = np.mean((dcrt_logit.pvalues_[beta_true] < 0.05))
 
     # Fit the dCRT with Lasso-distillation
