@@ -11,7 +11,7 @@ Folder Organization
  ┣ 📜README.rst                 (page for introducing and explaining the project)
  ┣ 📜codecov.yml                (configuration file for CodeCov)
  ┗ 📜pyproject.toml             (configuration file for Python project)
- ┣ 📂.circleci                  (folder for circleci)
+ ┣ 📂.circleci                  (folder for CircleCI)
  ┃ ┗ 📜config.yml               (configuration file for CircleCI)
  ┣ 📂.github                    (folder for Github)
  ┃ ┣ 📂workflows                (folder for define the github action)
