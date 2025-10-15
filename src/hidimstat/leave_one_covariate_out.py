@@ -32,10 +32,8 @@ class LOCO(BasePerturbation):
     loss : callable, default=root_mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
-    test_statistic : callable, default=partial(wilcoxon, axis=1)
-        Statistical test function used to compute p-values for importance scores.
-        Must accept an array of values and return an object with a 'pvalue' attribute.
-        Default is Wilcoxon signed-rank test.
+    statistical_test : callable or str, default="wilcoxon"
+        Statistical test function for computing p-values of importance scores.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -59,7 +57,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = root_mean_squared_error,
-        test_statistic=partial(wilcoxon, axis=1),
+        statistical_test=partial(wilcoxon, axis=1),
         features_groups=None,
         n_jobs: int = 1,
     ):
@@ -68,7 +66,7 @@ class LOCO(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=1,
-            test_statistic=test_statistic,
+            statistical_test=statistical_test,
             features_groups=features_groups,
             n_jobs=n_jobs,
         )
@@ -171,7 +169,7 @@ class LOCO(BasePerturbation):
             ],
             axis=1,
         )
-        self.pvalues_ = self.test_statistic(test_result).pvalue
+        self.pvalues_ = self.statistical_test(test_result).pvalue
         return self.importances_
 
     def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
@@ -225,7 +223,7 @@ def loco(
         estimator=estimator,
         method=method,
         loss=loss,
-        test_statistic=test_statistic,
+        statistical_test=test_statistic,
         features_groups=features_groups,
         n_jobs=n_jobs,
     )

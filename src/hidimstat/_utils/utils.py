@@ -140,7 +140,7 @@ def seed_estimator(estimator, random_state=None):
     return estimator
 
 
-def check_test_statistic(test):
+def check_statistical_test(test):
     """
     Validates and returns a test statistic function.
 

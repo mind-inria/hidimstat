@@ -50,10 +50,8 @@ class CFI(BasePerturbation):
     categorical_max_cardinality : int, default=10
         The maximum cardinality of a variable to be considered as categorical
         when the variable type is inferred (set to "auto" or not provided).
-    test_statistic : callable, default=partial(wilcoxon, axis=1)
-        Statistical test function used to compute p-values for importance scores.
-        Must accept an array of values and return an object with a 'pvalue' attribute.
-        Default is Wilcoxon signed-rank test.
+    statistical_test : callable or str, default="wilcoxon"
+        Statistical test function for computing p-values of importance scores.
     random_state : int or None, default=None
         The random state to use for sampling.
     n_jobs : int, default=1
@@ -76,7 +74,7 @@ class CFI(BasePerturbation):
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
-        test_statistic=partial(wilcoxon, axis=1),
+        statistical_test=partial(wilcoxon, axis=1),
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -85,7 +83,7 @@ class CFI(BasePerturbation):
             method=method,
             loss=loss,
             n_permutations=n_permutations,
-            test_statistic=test_statistic,
+            statistical_test=statistical_test,
             n_jobs=n_jobs,
             features_groups=features_groups,
             random_state=random_state,
@@ -258,7 +256,7 @@ def cfi(
         features_groups=features_groups,
         feature_types=feature_types,
         categorical_max_cardinality=categorical_max_cardinality,
-        test_statistic=test_statistic,
+        statistical_test=test_statistic,
         random_state=random_state,
         n_jobs=n_jobs,
     )

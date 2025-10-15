@@ -1,12 +1,12 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.utils import (
     _check_vim_predict_method,
     check_random_state,
-    check_test_statistic,
+    check_statistical_test,
 )
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -27,7 +27,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
         "predict_proba", "decision_function", "transform".
-    loss : callable, default=root_mean_squared_error
+    loss : callable, default=mean_squared_error
         The function to compute the loss when comparing the perturbed model
         to the original model.
     n_permutations : int, default=50
@@ -35,7 +35,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Specifies the number of times the variable group (residual for CFI) is
         permuted. For each permutation, the perturbed model's loss is calculated
         and averaged over all permutations.
-    test_statistic : callable, default=partial(wilcoxon, axis=1)
+    statistical_test : callable, default=partial(wilcoxon, axis=1)
         Statistical test function used to compute p-values for importance scores.
         Must accept an array of values and return an object with a 'pvalue' attribute.
         Default is Wilcoxon signed-rank test.
@@ -73,9 +73,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self,
         estimator,
         method: str = "predict",
-        loss: callable = root_mean_squared_error,
+        loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        test_statistic="wilcoxon",
+        statistical_test="wilcoxon",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
@@ -89,7 +89,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         _check_vim_predict_method(method)
         self.method = method
         self.n_permutations = n_permutations
-        self.test_statistic = check_test_statistic(test_statistic)
+        self.statistical_test = check_statistical_test(statistical_test)
         self.n_jobs = n_jobs
 
         # variable set in importance
@@ -222,7 +222,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             ]
         )
         self.importances_ = np.mean(test_result, axis=1)
-        self.pvalues_ = self.test_statistic(test_result).pvalue
+        self.pvalues_ = self.statistical_test(test_result).pvalue
         return self.importances_
 
     def fit_importance(self, X, y):

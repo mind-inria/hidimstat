@@ -7,7 +7,7 @@ from scipy.stats import ttest_1samp, wilcoxon
 from hidimstat._utils.utils import (
     check_random_state,
     get_fitted_attributes,
-    check_test_statistic,
+    check_statistical_test,
 )
 
 
@@ -67,17 +67,17 @@ def test_error():
 
 def test_check_test_statistic():
     "test the function of check"
-    test_func = check_test_statistic("wilcoxon")
+    test_func = check_statistical_test("wilcoxon")
     assert test_func.func == wilcoxon
-    test_func = check_test_statistic("ttest")
+    test_func = check_statistical_test("ttest")
     assert test_func.func == ttest_1samp
-    test_func = check_test_statistic(print)
+    test_func = check_statistical_test(print)
     assert test_func == print
 
 
 def test_check_test_statistic_warning():
     "test the exception"
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
-        check_test_statistic("test")
+        check_statistical_test("test")
     with pytest.raises(ValueError, match="is not a valid test"):
-        check_test_statistic([])
+        check_statistical_test([])
