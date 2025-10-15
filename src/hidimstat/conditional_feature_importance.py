@@ -9,7 +9,7 @@ from sklearn.metrics import root_mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
 
 
 class CFI(BasePerturbation):
