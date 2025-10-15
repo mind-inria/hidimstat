@@ -14,7 +14,7 @@ Folder Organization
  ┣ 📂.circleci                  (folder for CircleCI)
  ┃ ┗ 📜config.yml               (configuration file for CircleCI)
  ┣ 📂.github                    (folder for Github)
- ┃ ┣ 📂workflows                (folder for define the github action)
+ ┃ ┣ 📂workflows                (folder for define the Github action)
  ┃ ┃ ┣ 📜call_linter.yml        (workflow for running the linter)
  ┃ ┃ ┣ 📜call_publish_result.yml(workflow for sending the results to CodeCov and CircleCi)
  ┃ ┃ ┣ 📜call_test_minimal.yml  (workflow for running test with minimal version)
