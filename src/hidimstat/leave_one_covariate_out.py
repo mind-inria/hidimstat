@@ -210,7 +210,7 @@ def loco(
     X,
     y,
     method: str = "predict",
-    loss: callable = root_mean_squared_error,
+    loss: callable = mean_squared_error,
     features_groups=None,
     test_statistic=partial(wilcoxon, axis=1),
     k_best=None,

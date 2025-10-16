@@ -63,7 +63,7 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 import numpy as np
 from sklearn.base import clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import KFold
 
 n_folds = 5
@@ -78,7 +78,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     score = r2_score(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
-    mse = root_mean_squared_error(
+    mse = mean_squared_error(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
