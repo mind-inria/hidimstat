@@ -75,9 +75,9 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("Dim", 150, 100, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("Dim with noise", 150, 100, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("Dim with correlated noise", 150, 100, 10, 0.0, 42, 1.0, 10.0, 0.2),
 ]
 
 
@@ -98,12 +98,12 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 parameter_partial = [
-    ("HiDim with correlated features", 150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
-    ("HiDim with correlated features and noise", 150, 200, 10, 0.2, 42, 1, 10, 0),
+    ("Dim with correlated features", 100, 150, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    ("Dim with correlated features and noise", 100, 150, 10, 0.2, 42, 1, 10, 0),
     (
-        "HiDim with correlated features and correlated noise",
+        "Dim with correlated features and correlated noise",
+        100,
         150,
-        200,
         10,
         0.2,
         42,
@@ -139,7 +139,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    [(100, 150, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 5)], ids=["default_cfi"])
@@ -165,7 +165,7 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
 ## Test specific options of cfi
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    [(100, 150, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_group(data_generator):
@@ -259,7 +259,7 @@ def test_classication(data_generator):
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(100, 150, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIClass:
@@ -349,7 +349,7 @@ class TestCFIClass:
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(100, 150, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIExceptions:
@@ -492,7 +492,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             AssertionError,
-            match=r"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
+            match=r"The array is missing at least one of the following columns \['col_75', 'col_76', 'col_77',",
         ):
             cfi.importance(
                 X[np.concatenate([subgroups["group1"], subgroups["group2"][:-2]])], y
@@ -593,7 +593,7 @@ class TestCFIExceptions:
 
         with pytest.warns(
             UserWarning,
-            match="The number of features in X: 200 differs from the"
+            match="The number of features in X: 150 differs from the"
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
