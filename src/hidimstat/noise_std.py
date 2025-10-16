@@ -26,10 +26,10 @@ def reid(
 
     Parameters
     ----------
-    beta_hat : ndarray, shape (n_features,) or (n_times, n_features)
+    beta_hat : ndarray, shape (n_features,) or (n_task, n_features)
         Estimated sparse coefficient vector from regression.
 
-    residual : ndarray, shape (n_samples,) or (n_samples, n_times)
+    residual : ndarray, shape (n_samples,) or (n_samples, n_task)
         Residuals from the regression model.
 
     tolerance : float, default=1e-4
@@ -47,13 +47,13 @@ def reid(
         - 'AR': Uses Yule-Walker method with specified order
 
     order : int, default=1
-        Order of AR model when method='AR'. Must be < n_times.
+        Order of AR model when method='AR'. Must be < n_task.
 
     Returns
     -------
     sigma_hat_raw or covariance_hat : float or ndarray
         For single output: estimated noise standard deviation
-        For multiple outputs: estimated (n_times, n_times) covariance matrix
+        For multiple outputs: estimated (n_task, n_task) covariance matrix
 
     Notes
     -----
@@ -65,9 +65,9 @@ def reid(
     .. footbibliography::
     """
     if multioutput:
-        n_times = beta_hat.shape[0]
+        n_task = beta_hat.shape[0]
     else:
-        n_times = None
+        n_task = None
 
     n_samples = residual.shape[0]
 
@@ -96,7 +96,7 @@ def reid(
             print("Group reid: simple cov estimation")
         elif method == "AR":
             print(f"Group reid: {method}{order} cov estimation")
-            if order > n_times - 1:
+            if order > n_task - 1:
                 raise ValueError(
                     "The requested AR order is to high with "
                     + "respect to the number of time steps."
@@ -112,7 +112,7 @@ def reid(
         if stationary:
             # consideration of stationary noise
             # (section 2.5 of `chevalier2020statistical`)
-            sigma_hat = np.median(sigma_hat_raw) * np.ones(n_times)
+            sigma_hat = np.median(sigma_hat_raw) * np.ones(n_task)
             # compute rho from the empirical correlation matrix
             # (section 2.5 of `chevalier2020statistical`)
             correlation_empirical = np.corrcoef(residual.T)
@@ -125,9 +125,7 @@ def reid(
         if not stationary or method == "median":
             rho_hat = np.median(np.diag(correlation_empirical, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
-            correlation_hat = toeplitz(
-                np.geomspace(1, rho_hat ** (n_times - 1), n_times)
-            )
+            correlation_hat = toeplitz(np.geomspace(1, rho_hat ** (n_task - 1), n_task))
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
 
         # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
@@ -144,7 +142,7 @@ def reid(
             coefficients_ar = solve(R, rho_ar[1:])
 
             # estimate the variance of the noise from the AR model
-            residual_estimate = np.zeros((n_samples, n_times - order))
+            residual_estimate = np.zeros((n_samples, n_task - order))
             for i in range(order):
                 # time window used to estimate the residual from AR model
                 start = order - i - 1
@@ -156,9 +154,9 @@ def reid(
             )
 
             # estimation of the autocorrelation matrices
-            rho_ar_full = np.zeros(n_times)
+            rho_ar_full = np.zeros(n_task)
             rho_ar_full[: rho_ar.size] = rho_ar
-            for i in range(order + 1, n_times):
+            for i in range(order + 1, n_task):
                 start = i - order
                 end = i
                 rho_ar_full[i] = np.dot(coefficients_ar[::-1], rho_ar_full[start:end])
