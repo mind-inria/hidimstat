@@ -11,7 +11,7 @@ from sklearn.linear_model import (
     LogisticRegressionCV,
     RidgeCV,
 )
-from sklearn.metrics import log_loss, root_mean_squared_error
+from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 from hidimstat import CFI, cfi
