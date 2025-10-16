@@ -277,7 +277,7 @@ class TestCFIClass:
         )
         assert cfi.n_jobs == 1
         assert cfi.n_permutations == 50
-        assert cfi.loss == root_mean_squared_error
+        assert cfi.loss == mean_squared_error
         assert cfi.method == "predict"
         assert cfi.categorical_max_cardinality == 10
         assert isinstance(cfi.imputation_model_categorical, LogisticRegressionCV)
