@@ -59,9 +59,9 @@ Folder Organization
  ┃ ┃ ┃ ┣ 📜scenario.py          (function for generating data)
  ┃ ┃ ┃ ┗ 📜utils.py             (support functions)
  ┃ ┃ ┣ 📂statistical_tools      (folder which contains the statistical function:
- ┃ ┃ ┃ ┣ 📜__init__.py          test, sampler, aggregation, fdr)
- ┃ ┃ ┃ ┣ 📜aggregation.py
- ┃ ┃ ┃ ┣ 📜multiple_testing.py
+ ┃ ┃ ┃ ┣ 📜__init__.py          test, sampler, aggregation, fdr
+ ┃ ┃ ┃ ┣ 📜aggregation.py       This folder contains all public functions link to 
+ ┃ ┃ ┃ ┣ 📜multiple_testing.py  statistic which are not feature importance method)
  ┃ ┃ ┃ ┣ 📜sampler.....py
  ┃ ┃ ┃ ┗ 📜p_values.py
  ┃ ┃ ┣ 📜__init__.py            (definition of functions and classes)
