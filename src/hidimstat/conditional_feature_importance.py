@@ -67,7 +67,7 @@ class CFI(BasePerturbation):
         self,
         estimator,
         method: str = "predict",
-        loss: callable = root_mean_squared_error,
+        loss: callable = mean_squared_error,
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(),
