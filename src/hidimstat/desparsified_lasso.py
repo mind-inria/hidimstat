@@ -737,6 +737,7 @@ def reid(
             residual_rescaled = residual / sigma_hat
             correlation_empirical = np.corrcoef(residual_rescaled.T)
 
+        covariance_hat = None
         # Median method
         if not stationary or method == "median":
             rho_hat = np.median(np.diag(correlation_empirical, 1))
