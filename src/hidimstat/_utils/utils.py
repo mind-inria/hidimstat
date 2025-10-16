@@ -166,7 +166,7 @@ def check_statistical_test(test):
     """
     if isinstance(test, str):
         if test == "ttest":
-            return partial(ttest_1samp, axis=1)
+            return partial(ttest_1samp, popmean=0, alternative='greater', axis=1)
         elif test == "wilcoxon":
             return partial(wilcoxon, axis=1)
         else:
