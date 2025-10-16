@@ -47,7 +47,6 @@ class ConditionalSampler:
         model_categorical=None,
         data_type: str = "auto",
         categorical_max_cardinality=10,
-        random_state=None,
     ):
         """
         Class use to sample from the conditional distribution $p(X^j | X^{-j})$.
@@ -66,8 +65,6 @@ class ConditionalSampler:
         categorical_max_cardinality : int, default=10
             The maximum cardinality of a variable to be considered as categorical
             when `data_type` is "auto".
-        random_state : int, optional
-            The random state to use for sampling.
 
         """
         # check the validity of the inputs
@@ -81,7 +78,6 @@ class ConditionalSampler:
         self.model_regression = model_regression
         self.model_categorical = model_categorical
         self.categorical_max_cardinality = categorical_max_cardinality
-        self.rng = check_random_state(random_state)
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         r"""
