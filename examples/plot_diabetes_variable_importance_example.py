@@ -63,7 +63,7 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 import numpy as np
 from sklearn.base import clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import KFold
 
 n_folds = 5
