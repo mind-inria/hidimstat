@@ -129,8 +129,7 @@ class TestSelectionFDR:
     def test_selection_fdr_default_1(self, set_100_variable_sorted):
         "test selection of the default"
         vi = set_100_variable_sorted
-        vi.pvalues_ = .5 * (1 + np.random.rand(vi.importances_.shape[0]))
-``` pvalues greater than 1 are non-sensical.
+        vi.pvalues_ = 0.5 * (1 + np.random.rand(vi.importances_.shape[0]))
         true_value = np.zeros_like(vi.importances_, dtype=bool)  # selected any
         selection = vi.fdr_selection(0.2)
         np.testing.assert_array_equal(true_value, selection)
