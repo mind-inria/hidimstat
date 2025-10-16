@@ -54,7 +54,7 @@ class PFI(BasePerturbation):
         self,
         estimator,
         method: str = "predict",
-        loss: callable = root_mean_squared_error,
+        loss: callable = mean_squared_error,
         n_permutations: int = 50,
         statistical_test="wilcoxon",
         features_groups=None,
