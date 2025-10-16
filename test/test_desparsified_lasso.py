@@ -221,7 +221,7 @@ def test_exception():
 
 
 def test_function_not_center():
-    "Test function when the data don't need to be centered"
+    """Test function when the data don't need to be centered"""
     n_samples, n_features = 52, 50
     support_size = 1
     signal_noise_ratio = 50
