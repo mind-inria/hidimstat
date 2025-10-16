@@ -2,7 +2,7 @@ from functools import partial
 
 import numpy as np
 from scipy.stats import wilcoxon
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state
