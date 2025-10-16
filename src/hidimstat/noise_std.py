@@ -68,6 +68,7 @@ def reid(
         n_times = beta_hat.shape[0]
     else:
         n_times = None
+
     n_samples = residual.shape[0]
 
     # get the number of non-zero coefficients
