@@ -160,9 +160,9 @@ class DesparsifiedLasso(BaseVariableImportance):
     ):
         super().__init__()
         if issubclass(LassoCV, model_y.__class__):
-            self.n_times_ = 1
+            self.n_task_ = 1
         elif issubclass(MultiTaskLassoCV, model_y.__class__):
-            self.n_times_ = -1
+            self.n_task_ = -1
         else:
             raise AssertionError("lasso_cv needs to be a LassoCV or a MultiTaskLassoCV")
         self.model_y = model_y
@@ -213,9 +213,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data matrix.
-        y : array-like of shape (n_samples,) or (n_samples, n_times)
+        y : array-like of shape (n_samples,) or (n_samples, n_task)
             Target values. For single task, y should be 1D.
-            For multi-task, y should be 2D with shape (n_samples, n_times).
+            For multi-task, y should be 2D with shape (n_samples, n_task).
 
         Returns
         -------
@@ -237,8 +237,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         """
         memory = check_memory(self.memory)
         rng = check_random_state(self.random_state)
-        if self.n_times_ == -1:
-            self.n_times_ = y.shape[1]
+        if self.n_task_ == -1:
+            self.n_task_ = y.shape[1]
 
         # centering the data and the target variable
         if self.centered:
@@ -269,7 +269,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.model_y.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
             # for group
-            multioutput=self.n_times_ > 1,
+            multioutput=self.n_task_ > 1,
             method=self.noise_method,
             order=self.order,
             stationary=self.stationary,
@@ -363,13 +363,13 @@ class DesparsifiedLasso(BaseVariableImportance):
         ----------
         X : array-like of shape (n_samples, n_features)
             Input data matrix.
-        y : array-like of shape (n_samples,) or (n_samples, n_times)
+        y : array-like of shape (n_samples,) or (n_samples, n_task)
             Target values. For single task, y should be 1D or (n_samples, 1).
-            For multi-task, y should be 2D with shape (n_samples, n_times).
+            For multi-task, y should be 2D with shape (n_samples, n_task).
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,) or (n_features, n_times)
+        importances_ : ndarray of shape (n_features,) or (n_features, n_task)
             Desparsified lasso coefficient estimates.
 
         Notes
@@ -391,7 +391,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self._check_fit()
         beta_hat = self.importances_
 
-        if self.n_times_ == 1:
+        if self.n_task_ == 1:
             # define the quantile for the confidence intervals
             quantile = stats.norm.ppf(1 - (1 - self.confidence) / 2)
             # see definition of lower and upper bound in algorithm 1
@@ -425,16 +425,16 @@ class DesparsifiedLasso(BaseVariableImportance):
                     / self.precision_diagonal_
                 )
                 two_sided_pval = np.minimum(
-                    2 * stats.chi2.sf(chi2_scores, df=self.n_times_), 1.0
+                    2 * stats.chi2.sf(chi2_scores, df=self.n_task_), 1.0
                 )
             elif self.test == "F":
                 f_scores = (
                     np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T]))
                     / self.precision_diagonal_
-                    / self.n_times_
+                    / self.n_task_
                 )
                 two_sided_pval = np.minimum(
-                    2 * stats.f.sf(f_scores, dfd=self.n_samples_, dfn=self.n_times_),
+                    2 * stats.f.sf(f_scores, dfd=self.n_samples_, dfn=self.n_task_),
                     1.0,
                 )
             else:
@@ -458,13 +458,13 @@ class DesparsifiedLasso(BaseVariableImportance):
         ----------
         X : array-like of shape (n_samples, n_features)
             Training data matrix.
-        y : array-like of shape (n_samples,) or (n_samples, n_times)
+        y : array-like of shape (n_samples,) or (n_samples, n_task)
             Target values. For single task, y should be 1D or (n_samples, 1).
-            For multi-task, y should be (n_samples, n_times).
+            For multi-task, y should be (n_samples, n_task).
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,) or (n_features, n_times)
+        importances_ : ndarray of shape (n_features,) or (n_features, n_task)
             Desparsified lasso coefficient estimates.
         """
         self.fit(X, y)

@@ -21,7 +21,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Parameters
     ----------
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
         Beta coefficients at cluster level
     n_features : int
         Number of features in original space
@@ -30,7 +30,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Returns
     -------
-    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_times)
+    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_task)
         Rescaled beta coefficients for individual features, weighted by
         inverse cluster size
 
@@ -51,9 +51,9 @@ def _ungroup_beta(beta_hat, n_features, ward):
         # weighting the weight of beta with the size of the cluster
         beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
     elif len(beta_hat.shape) == 2:
-        n_times = beta_hat.shape[1]
-        beta_hat_degrouped = np.zeros((n_features, n_times))
-        for i in range(n_times):
+        n_task = beta_hat.shape[1]
+        beta_hat_degrouped = np.zeros((n_features, n_task))
+        for i in range(n_task):
             beta_hat_degrouped[:, i] = (
                 ward.inverse_transform(beta_hat[:, i]) / clusters_size
             )
@@ -71,7 +71,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
     ----------
     ward : sklearn.cluster.FeatureAgglomeration
         Fitted clustering object containing the hierarchical structure
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
         Estimated parameters at cluster level
     pval : ndarray, shape (n_clusters,)
         P-values at cluster level
@@ -84,7 +84,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
     Returns
     -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
+    beta_hat : ndarray, shape (n_features,) or (n_features, n_task)
         Rescaled parameter estimates for individual features
     pval : ndarray, shape (n_features,)
         P-values for individual features
@@ -169,7 +169,7 @@ def clustered_inference(
     X_init : ndarray, shape (n_samples, n_features)
         Original high-dimensional input data matrix.
 
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
+    y : ndarray, shape (n_samples,) or (n_samples, n_task)
         Target variable(s). Can be univariate or multivariate (temporal) data.
 
     ward : sklearn.cluster.FeatureAgglomeration
@@ -208,7 +208,7 @@ def clustered_inference(
     ward_ : FeatureAgglomeration
         Fitted clustering object.
 
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
         Estimated coefficients at cluster level.
 
     theta_hat : ndarray
@@ -366,7 +366,7 @@ def ensemble_clustered_inference(
     X_init : ndarray, shape (n_samples, n_features)
         Original high-dimensional input data matrix.
 
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
+    y : ndarray, shape (n_samples,) or (n_samples, n_task)
         Target variable(s). Can be univariate or multivariate (temporal) data.
 
     ward : sklearn.cluster.FeatureAgglomeration
@@ -545,7 +545,7 @@ def ensemble_clustered_inference_pvalue(
 
     Returns
     -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
+    beta_hat : ndarray, shape (n_features,) or (n_features, n_task)
         Averaged coefficients across bootstraps
     selected : ndarray, shape (n_features,)
         Selected features: 1 for positive effects, -1 for negative effects,

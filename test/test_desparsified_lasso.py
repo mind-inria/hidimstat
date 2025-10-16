@@ -164,6 +164,7 @@ def test_desparsified_group_lasso():
 
 
 def test_exception():
+    """Test exception of Desparsified Lasso"""
     n_samples = 50
     n_features = 100
     n_target = 10
