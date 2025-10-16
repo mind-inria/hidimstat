@@ -1,5 +1,5 @@
 from .conditional_feature_importance import CFI
-from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso
+from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso, reid
 from .distilled_conditional_randomization_test import D0CRT, d0crt
 from .ensemble_clustered_inference import (
     clustered_inference,
@@ -14,7 +14,6 @@ from .knockoffs import (
     model_x_knockoff_pvalue,
 )
 from .leave_one_covariate_out import LOCO
-from .noise_std import reid
 from .permutation_feature_importance import PFI
 from .statistical_tools.aggregation import quantile_aggregation
 
