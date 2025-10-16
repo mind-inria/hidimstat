@@ -17,7 +17,6 @@ from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.noise_std import reid
 from hidimstat.statistical_tools.p_values import (
     pval_from_cb,
     pval_from_two_sided_pval_and_sign,
