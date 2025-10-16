@@ -91,7 +91,7 @@ def pfi(
     X,
     y,
     method: str = "predict",
-    loss: callable = root_mean_squared_error,
+    loss: callable = mean_squared_error,
     n_permutations: int = 50,
     test_statistic=partial(wilcoxon, axis=1),
     features_groups=None,
