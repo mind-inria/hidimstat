@@ -26,7 +26,7 @@ class CFI(BasePerturbation):
         The method to use for the prediction. This determines the predictions passed
         to the loss function. Supported methods are "predict", "predict_proba" or
         "decision_function".
-    loss : callable, default=root_mean_squared_error
+    loss : callable, default=mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
     n_permutations : int, default=50
