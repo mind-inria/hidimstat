@@ -37,6 +37,7 @@ class TestTtest_1samp:
         self.rng = np.random.default_rng(6043813830)
 
     def test_vs_nonmasked(self):
+        """Test comparison with masked version"""
         outcome = self.rng.standard_normal((20, 4)) + [0, 0, 1, 2]
 
         # 1-D inputs
@@ -55,6 +56,7 @@ class TestTtest_1samp:
         assert not np.array_equal(res3, res2)
 
     def test_fully_masked(self):
+        """Test comparison with fully masked data"""
         outcome = ma.masked_array(self.rng.standard_normal(3), mask=[1, 1, 1])
         expected = (np.nan, np.nan)
         with warnings.catch_warnings():
@@ -67,6 +69,7 @@ class TestTtest_1samp:
                 assert_array_equal(t, expected)
 
     def test_result_attributes(self):
+        """Test attribute"""
         outcome = self.rng.standard_normal((20, 4)) + [0, 0, 1, 2]
 
         res = ttest_1samp_corrected_NB(outcome[:, 0], 1, 0.1)
@@ -74,10 +77,12 @@ class TestTtest_1samp:
         check_named_results(res, attributes, ma=True)
 
     def test_empty(self):
+        """Test for empty data"""
         res1 = ttest_1samp_corrected_NB([], 1, 0.1)
         assert_(np.all(np.isnan(res1)))
 
     def test_zero_division(self):
+        """Test for zero division"""
         t, p = ttest_1samp_corrected_NB([0, 0, 0], 1, 0.1, alternative="two-sided")
         assert_equal((np.abs(t), p), (np.inf, 0))
 
@@ -91,6 +96,7 @@ class TestTtest_1samp:
 
     @pytest.mark.parametrize("alternative", ["less", "greater"])
     def test_alternative(self, alternative):
+        """Test option alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
 
         t_ex, p_ex = ttest_1samp_corrected_NB(

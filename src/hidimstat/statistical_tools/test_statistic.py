@@ -18,20 +18,46 @@ from scipy.stats._stats_py import (
 
 def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=None):
     """
-    Corrects standard deviation using Nadeau and Bengio's approach.
+    Adjust variance using the Nadeau & Bengio correction for repeated
+    k-fold cross-validation (see :footcite:t:`nadeau1999inference`).
 
     Copy from https://github.com/scikit-learn/scikit-learn/blob/0c27a07f68e0eda7e1fcbce44a7615addec7f232/examples/model_selection/plot_grid_search_stats.py#L172
-    This correction was proposed in :footcite:t:`nadeau1999inference`
+    This correction was proposed in :footcite:t:`nadeau1999inference`.
 
     Parameters
     ----------
-    differences : ndarray of shape (n_samples,)
-        Vector containing the differences in the score metrics of two models.
+    differences : array_like
+        Array of differences (e.g. per-evaluation score differences). The axis
+        given by `axis` corresponds to the repeated evaluations; kr =
+        differences.shape[axis].
+    test_frac : float
+        Fraction of the data used for testing (test set size / total samples).
+    axis : int, optional
+        Axis along which to compute the variance. Default is 0.
+    ddof : int, optional
+        Degrees of freedom to use for variance estimation (passed to `_var`).
+        Default is 0.
+    mean : array_like or None, optional
+        Precomputed mean along `axis` (passed to `_var`). If None, the mean is
+        computed inside `_var`.
+    xp : module or None, optional
+        Array namespace (e.g. numpy or array-api compatible module). If None,
+        the namespace is inferred from the input.
 
     Returns
     -------
-    corrected_std : float
-        Variance-corrected standard deviation of the set of differences.
+    corrected_var : ndarray
+        Variance corrected by the :footcite:t:`nadeau1999inference` factor:
+        corrected_var = var * (1/kr + test_frac),
+        where kr is the number of repeated evaluations along `axis` and `var`
+        is the sample variance computed by `_var`.
+
+    Notes
+    -----
+    This implements the variance correction proposed by
+    :footcite:t:`nadeau1999inference` to account for the dependence between
+    repeated cross-validation estimates.
+    The function returns the corrected variance (not the standard deviation).
 
     References
     ----------
@@ -64,7 +90,56 @@ def ttest_1samp_corrected_NB(
     alternative="greater",
 ):
     """
-    Modification of https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035-L6233
+    One-sample t-test with variance corrected using Nadeau & Bengio.
+
+    Base on https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035-L6233
+
+    This is a modification of scipy.stats.ttest_1samp that applies the
+    Nadeau & Bengio correction :footcite::`nadeau1999inference` to the variance
+    estimate to account for dependence between repeated cross-validation estimates.
+
+    Parameters
+    ----------
+    a : array_like
+        Sample data. The axis specified by `axis` is the sample axis.
+    popmean : scalar or array_like
+        Expected value in null hypothesis. If array_like, must be
+        broadcastable to the shape of the mean of `a` along `axis`.
+    test_frac : float
+        Fraction of the data used for testing (test set size / total
+        samples). Used by the Nadeau & Bengio correction
+        :footcite::`nadeau1999inference` when adjusting the sample variance.
+    axis : int or None, optional
+        Axis along which to compute the test. Default is 0. If None, the
+        input array is flattened.
+    nan_policy : {'propagate', 'raise', 'omit'}, optional
+        Defines how to handle when input contains NaNs. Default is
+        'propagate'. Note: nan handling is performed by the
+        `_axis_nan_policy` decorator; the parameter remains in the
+        signature for compatibility.
+    alternative : {'two-sided', 'greater', 'less'}, optional
+        Defines the alternative hypothesis. Default is 'greater'.
+
+    Returns
+    -------
+    TtestResult
+        Named tuple with fields: statistic, pvalue, df, alternative,
+        standard_error, estimate. The `statistic` and `pvalue` have the
+        Nadeau & Bengio corrected standard error applied.
+
+    Notes
+    -----
+    The variance is corrected using the factor proposed by Nadeau & Bengio :footcite::`nadeau1999inference`
+    to account for dependence across repeated evaluations:
+    corrected_var = var * (1/kr + test_frac),
+    where kr is the number of repeated evaluations along `axis`.
+
+    This function preserves the interface of scipy.stats.ttest_1samp while
+    replacing the usual sample variance by the corrected variance.
+
+    References
+    ----------
+    .. footbibliography::
     """
     xp = array_namespace(a)
     a, axis = _chk_asarray(a, axis, xp=xp)
@@ -87,8 +162,11 @@ def ttest_1samp_corrected_NB(
     except ValueError as e:
         raise ValueError("`popmean.shape[axis]` must equal 1.") from e
     d = mean - popmean
+    ##########################################################
+    # Modification of the function
     # Correct the computation of variance
     v = _var_nadeau_bengio(a, test_frac, axis=axis, ddof=1)
+    ##########################################################
     denom = xp.sqrt(v / n)
 
     with np.errstate(divide="ignore", invalid="ignore"):
