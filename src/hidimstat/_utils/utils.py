@@ -140,7 +140,7 @@ def seed_estimator(estimator, random_state=None):
     return estimator
 
 
-def check_statistical_test(test):
+def check_statistical_test(statistical_test):
     """
     Validates and returns a test statistic function.
 
@@ -164,20 +164,20 @@ def check_statistical_test(test):
     ValueError
         If test is neither a string nor a callable.
     """
-    if isinstance(test, str):
-        if test == "ttest":
+    if isinstance(statistical_test, str):
+        if statistical_test == "ttest":
             return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
-        elif test == "wilcoxon":
+        elif statistical_test == "wilcoxon":
             return partial(wilcoxon, alternative="greater", axis=1)
         else:
-            raise ValueError(f"the test '{test}' is not supported")
-    elif callable(test):
-        return test
+            raise ValueError(f"the test '{statistical_test}' is not supported")
+    elif callable(statistical_test):
+        return statistical_test
     else:
         raise ValueError(
-          f"Unsupported value for 'statistical_test': {}.".format(test)
-          f"The provided argument was '{statistical_test}'. "
-          f"Please choose from the following valid options: "
-          f"string values ('ttest', 'wilcoxon', 'NB-ttest') "
-          f"or a custom callable function with a `scipy.stats` API-compatible signature."
+            f"Unsupported value for 'statistical_test'."
+            f"The provided argument was '{statistical_test}'. "
+            f"Please choose from the following valid options: "
+            f"string values ('ttest', 'wilcoxon', 'NB-ttest') "
+            f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )

@@ -79,5 +79,5 @@ def test_check_test_statistic_warning():
     "test the exception"
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
         check_statistical_test("test")
-    with pytest.raises(ValueError, match="is not a valid test"):
+    with pytest.raises(ValueError, match="Unsupported value for 'statistical_test'."):
         check_statistical_test([])
