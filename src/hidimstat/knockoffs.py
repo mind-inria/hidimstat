@@ -5,14 +5,10 @@ from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
-from hidimstat.gaussian_knockoff import (
-    gaussian_knockoff_generation,
-    repeat_gaussian_knockoff_generation,
-)
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -188,37 +184,15 @@ def model_x_knockoff(
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
 
-    # get the seed for the different run
-    seed_list = check_random_state(random_state).randint(
-        np.iinfo(np.int32).max
-    ) + np.arange(n_bootstraps)
-
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    # estimation of X distribution
-    # original implementation:
-    # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
-    mu = X.mean(axis=0)
-    sigma = cov_estimator.fit(X).covariance_
-
     # Create knockoff variables
-    X_tilde, mu_tilde, sigma_tilde_decompose = memory.cache(
-        gaussian_knockoff_generation
-    )(X, mu, sigma, seed=seed_list[0], tol=tol_gauss)
-
-    if n_bootstraps == 1:
-        X_tildes = [X_tilde]
-    else:
-        X_tildes = parallel(
-            delayed(repeat_gaussian_knockoff_generation)(
-                mu_tilde,
-                sigma_tilde_decompose,
-                seed=seed,
-            )
-            for seed in seed_list[1:]
-        )
-        X_tildes.insert(0, X_tilde)
+    conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
+    conditionnal_sampler.fit(X)
+    X_tildes = conditionnal_sampler.sample(
+        n_repeats=n_bootstraps, random_state=random_state
+    )
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
@@ -459,13 +433,13 @@ def _stat_coefficient_diff(X, X_tilde, y, estimator, fdr, preconfigure_estimator
     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
 
     # Compute the threshold level and select the important variables
-    ko_thr = _knockoff_threshold(test_score, fdr=fdr)
+    ko_thr = _fdr_threshold_on_symmetric_null(test_score, fdr=fdr)
     selected = np.where(test_score >= ko_thr)[0]
 
     return test_score, ko_thr, selected
 
 
-def _knockoff_threshold(test_score, fdr=0.1):
+def _fdr_threshold_on_symmetric_null(test_score, fdr=0.1):
     """
     Calculate the knockoff threshold based on the procedure stated in the article.
 

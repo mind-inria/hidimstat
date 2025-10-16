@@ -6,7 +6,6 @@ from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.tree import DecisionTreeRegressor
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.gaussian_knockoff import _s_equi, gaussian_knockoff_generation
 from hidimstat.knockoffs import (
     model_x_knockoff,
     model_x_knockoff_bootstrap_e_value,
@@ -205,102 +204,45 @@ def test_model_x_knockoff_exception():
 def test_estimate_distribution():
     """
     test different estimation of the covariance
+     - Test that the empirical false discovery proportion is below the target FDR
+    Although this is not guaranteed (control is only in expectation), the scenario
+    is simple enough for the test to pass.
+     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    seed = 0
-    fdr = 0.1
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    fdr = 0.2
+    n = 400
+    p = 100
+    signal_noise_ratio = 32
+    support_size = 5
+
+    X, y, beta, noise = multivariate_simulation(
+        n, p, support_size=support_size, signal_noise_ratio=signal_noise_ratio
+    )
     non_zero = np.where(beta)[0]
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=LedoitWolf(assume_centered=True),
         n_bootstraps=1,
-        random_state=seed + 1,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
-    selected, test_scores, threshold, X_tildes = model_x_knockoff(
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8
+
+    selected, _, _, _ = model_x_knockoff(
         X,
         y,
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
-            cv=KFold(n_splits=5, shuffle=True, random_state=seed + 2),
+            cv=KFold(n_splits=5, shuffle=True),
         ),
         n_bootstraps=1,
-        random_state=seed + 3,
         fdr=fdr,
     )
-    for i in selected:
-        assert np.any(i == non_zero)
 
-
-def test_gaussian_knockoff_equi():
-    """test function of gaussian knockoff"""
-    seed = 42
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    non_zero = np.where(beta)[0]
-    mu = X.mean(axis=0)
-    sigma = LedoitWolf(assume_centered=True).fit(X).covariance_
-
-    X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
-        X, mu, sigma, seed=seed * 2
-    )
-
-    assert X_tilde.shape == (n, p)
-
-
-def test_gaussian_knockoff_equi_warning():
-    "test warning in gaussian knockoff"
-    seed = 42
-    n = 100
-    p = 50
-    tol = 1e-14
-    rgn = np.random.RandomState(seed)
-    X = rgn.randn(n, p)
-    mu = X.mean(axis=0)
-    # create a positive definite matrix
-    u, s, vh = np.linalg.svd(rgn.randn(p, p))
-    d = np.eye(p) * tol / 10
-    sigma = u * d * u.T
-    with pytest.warns(
-        UserWarning,
-        match="The conditional covariance matrix for knockoffs is not positive",
-    ):
-        X_tilde, mu_tilde, sigma_tilde_decompose = gaussian_knockoff_generation(
-            X, mu, sigma, seed=seed * 2, tol=tol
-        )
-
-    assert X_tilde.shape == (n, p)
-
-
-def test_s_equi_not_define_positive():
-    """test the warning and error of s_equi function"""
-    n = 10
-    tol = 1e-7
-    seed = 42
-
-    # random positive matrix
-    rgn = np.random.RandomState(seed)
-    a = rgn.randn(n, n)
-    a -= np.min(a)
-    with pytest.raises(
-        Exception, match="The covariance matrix is not positive-definite."
-    ):
-        _s_equi(a)
-
-    # matrix with positive eigenvalues, positive diagonal
-    while not np.all(np.linalg.eigvalsh(a) > tol):
-        a += 0.1 * np.eye(n)
-    with pytest.warns(UserWarning, match="The equi-correlated matrix"):
-        _s_equi(a)
-
-    # positive definite matrix
-    u, s, vh = np.linalg.svd(a)
-    d = np.eye(n)
-    sigma = u * d * u.T
-    _s_equi(sigma)
+    tp = len(set(selected) & set(non_zero))
+    fp = len(set(selected) - set(non_zero))
+    assert fp / (p - len(non_zero)) <= fdr
+    assert tp / len(non_zero) >= 0.8

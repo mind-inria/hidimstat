@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: true  # if on job fail all the other jobs are cancelled
       matrix:
-        python-version: ["3.9"] #CHECK: not forget to add new version of python
+        python-version: ["3.10"] #CHECK: not forget to add new version of python
         os: [ubuntu-latest]
     
     # name for files
@@ -48,7 +48,7 @@ jobs:
     # Install python
     - name: Install the latest version of uv and the right verion of python
       if:  ${{ inputs.skip_test == false }}
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v7
       with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
@@ -69,7 +69,7 @@ jobs:
     - name: Run pytest
       if: ${{ inputs.skip_test == false }}
       run: |
-          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt
+          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result

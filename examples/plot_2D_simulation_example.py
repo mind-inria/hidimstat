@@ -188,7 +188,7 @@ beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
     X_init,
     y,
     n_jobs=n_jobs,
-    seed=0,
+    random_state=0,
 )
 pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
     desparsified_lasso_pvalue(
@@ -222,7 +222,7 @@ ward = FeatureAgglomeration(
 
 # clustered desparsified lasso (CluDL)
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X_init, y, ward, n_clusters, scaler_sampling=StandardScaler(), seed=0
+    X_init, y, ward, scaler_sampling=StandardScaler(), random_state=0
 )
 beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
     clustered_inference_pvalue(
@@ -254,7 +254,11 @@ selected_cdl = np.logical_or(
 # ensemble of clustered desparsified lasso (EnCluDL)
 list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
     ensemble_clustered_inference(
-        X_init, y, ward, n_clusters, scaler_sampling=StandardScaler(), seed=0
+        X_init,
+        y,
+        ward,
+        scaler_sampling=StandardScaler(),
+        random_state=0,
     )
 )
 beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
