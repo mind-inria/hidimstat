@@ -174,4 +174,10 @@ def check_statistical_test(test):
     elif callable(test):
         return test
     else:
-        raise ValueError("The test '{}' is not a valid test".format(test))
+        raise ValueError(
+          f"Unsupported value for 'statistical_test': {}.".format(test)
+          f"The provided argument was '{statistical_test}'. "
+          f"Please choose from the following valid options: "
+          f"string values ('ttest', 'wilcoxon', 'NB-ttest') "
+          f"or a custom callable function with a `scipy.stats` API-compatible signature."
+        )
