@@ -1,7 +1,6 @@
 import numpy as np
 from scipy._lib._array_api import (
     array_namespace,
-    xp_capabilities,
 )
 from scipy.stats._axis_nan_policy import _axis_nan_policy_factory
 from scipy.stats._stats_py import (
@@ -47,12 +46,6 @@ def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=Non
     return corrected_var
 
 
-@xp_capabilities(
-    cpu_only=True,
-    exceptions=["cupy", "jax.numpy"],
-    jax_jit=False,
-    allow_dask_compute=True,
-)
 @_axis_nan_policy_factory(
     pack_TtestResult,
     default_axis=0,
