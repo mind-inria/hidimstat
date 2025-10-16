@@ -788,7 +788,7 @@ def reid(
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
         else:
             raise ValueError(
-                f"Not support combinaison of stationnary {stationary} and method {method}."
+                f"Not support a combination of stationnary {stationary} and method {method}."
             )
 
         return covariance_hat
