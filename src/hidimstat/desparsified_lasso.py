@@ -136,7 +136,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
-        model_x=Lasso(max_iter=5000, tol=1e-3, n_jobs=None),
+        model_x=Lasso(max_iter=5000, tol=1e-3),
         alphas=None,
         alpha_max_fraction=0.01,
         random_state=None,
