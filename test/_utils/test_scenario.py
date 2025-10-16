@@ -9,9 +9,9 @@ from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 from hidimstat._utils.scenario import (
     _generate_2D_weight,
     _generate_3D_weight,
+    empirical_snr,
     multivariate_simulation,
     multivariate_simulation_spatial,
-    empirical_snr,
 )
 
 

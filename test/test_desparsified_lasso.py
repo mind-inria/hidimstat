@@ -7,7 +7,7 @@ import pytest
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import MultiTaskLassoCV, LassoCV
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 
 from hidimstat._utils.scenario import multivariate_simulation

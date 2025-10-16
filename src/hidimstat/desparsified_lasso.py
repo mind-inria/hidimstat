@@ -4,14 +4,13 @@ import numpy as np
 from joblib import Parallel, delayed
 from numpy.linalg import multi_dot, norm
 from scipy import stats
-from scipy.linalg import inv
+from scipy.linalg import inv, solve, toeplitz
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import Lasso, LassoCV, MultiTaskLasso, MultiTaskLassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
-from scipy.linalg import solve, toeplitz
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
