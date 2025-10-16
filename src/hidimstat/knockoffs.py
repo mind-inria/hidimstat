@@ -7,12 +7,8 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
-from hidimstat._utils.utils import check_random_state
-from hidimstat.gaussian_knockoff import (
-    gaussian_knockoff_generation,
-    repeat_gaussian_knockoff_generation,
-)
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -188,36 +184,15 @@ def model_x_knockoff(
     n_jobs = min(n_bootstraps, n_jobs)
     parallel = Parallel(n_jobs, verbose=joblib_verbose)
 
-    # get the seed for the different run
-    rng = check_random_state(random_state)
-    children_rng = rng.spawn(n_bootstraps)
-
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    # estimation of X distribution
-    # original implementation:
-    # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
-    mu = X.mean(axis=0)
-    sigma = cov_estimator.fit(X).covariance_
-
     # Create knockoff variables
-    X_tilde, mu_tilde, sigma_tilde_decompose = memory.cache(
-        gaussian_knockoff_generation
-    )(X, mu, sigma, random_state=children_rng[0], tol=tol_gauss)
-
-    if n_bootstraps == 1:
-        X_tildes = [X_tilde]
-    else:
-        X_tildes = parallel(
-            delayed(repeat_gaussian_knockoff_generation)(
-                mu_tilde,
-                sigma_tilde_decompose,
-                random_state=seed,
-            )
-            for seed in children_rng[1:]
-        )
-        X_tildes.insert(0, X_tilde)
+    conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
+    conditionnal_sampler.fit(X)
+    X_tildes = conditionnal_sampler.sample(
+        n_repeats=n_bootstraps, random_state=random_state
+    )
 
     results = parallel(
         delayed(memory.cache(_stat_coefficient_diff))(
