@@ -787,5 +787,9 @@ def reid(
             # correlation matrix and sigma
             # COV(X_t, X_t) = COR(X_t, X_t) * \sigma^2
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
+        else:
+            raise ValueError(
+                f"Not support combinaison of stationnary {stationary} and method {method}."
+            )
 
         return covariance_hat
