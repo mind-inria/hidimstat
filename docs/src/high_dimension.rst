@@ -58,7 +58,7 @@ As discussed earlier, feature grouping is a meaningful solution to deal with suc
 
 As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or **CluDL**.
 
-Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good deaults model::
+Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model::
 
     from sklearn.feature_extraction import image
     from sklearn.cluster import FeatureAgglomeration
@@ -68,7 +68,7 @@ Using the same example as previously, we start by defining a clustering method t
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-Equiped with this, we can use CluDL::
+Equipped with this, we can use CluDL::
 
     from sklearn.preprocessing import StandardScaler
     from hidimstat.ensemble_clustered_inference import (
@@ -88,7 +88,7 @@ Equiped with this, we can use CluDL::
   
 Note that inference is also way faster on the compressed representation.
     
-The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly differnt data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or **EnCluDL**.
+The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or **EnCluDL**.
 
 The behavior is illustrated here::
 
