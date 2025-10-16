@@ -6,9 +6,9 @@ from scipy.stats._stats_py import (
     _chk_asarray,
     _get_nan,
     _get_pvalue,
-    is_marray,
     _SimpleStudentT,
     _var,
+    is_marray,
     pack_TtestResult,
     unpack_TtestResult,
 )
