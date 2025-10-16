@@ -1,19 +1,37 @@
 import numpy as np
-from scipy._lib._array_api import (
-    array_namespace,
-)
+from scipy._lib._array_api import array_namespace, xp_size
 from scipy.stats._axis_nan_policy import _axis_nan_policy_factory
 from scipy.stats._stats_py import (
     TtestResult,
     _chk_asarray,
     _get_nan,
     _get_pvalue,
-    _length_nonmasked,
+    is_marray,
     _SimpleStudentT,
     _var,
     pack_TtestResult,
     unpack_TtestResult,
 )
+
+
+def _length_nonmasked(x, axis, keepdims=False, xp=None):
+    """
+    Copy from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/_lib/_array_api.py#L584
+    The copy was necessary fro retrocompatibilities
+    """
+    xp = array_namespace(x) if xp is None else xp
+    if is_marray(xp):
+        if np.iterable(axis):
+            message = "`axis` must be an integer or None for use with `MArray`."
+            raise NotImplementedError(message)
+        return xp.astype(xp.count(x, axis=axis, keepdims=keepdims), x.dtype)
+    return (
+        xp_size(x)
+        if axis is None
+        else
+        # compact way to deal with axis tuples or ints
+        int(np.prod(np.asarray(x.shape)[np.asarray(axis)]))
+    )
 
 
 def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=None):
