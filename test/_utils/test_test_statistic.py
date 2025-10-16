@@ -1,17 +1,17 @@
-import pytest
 import warnings
 
 import numpy as np
 import numpy.ma as ma
 import numpy.ma.testutils as ma_npt
 import numpy.testing as npt
+import pytest
+import scipy.stats.mstats as mstats
 from numpy.ma.testutils import (
-    assert_equal,
     assert_,
     assert_allclose,
     assert_array_equal,
+    assert_equal,
 )
-import scipy.stats.mstats as mstats
 from scipy import stats
 
 from hidimstat.statistical_tools.test_statistic import ttest_1samp_corrected_NB
