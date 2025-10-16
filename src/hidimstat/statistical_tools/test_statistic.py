@@ -20,7 +20,9 @@ from scipy.stats._stats_py import (
 def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=None):
     """
     Corrects standard deviation using Nadeau and Bengio's approach.
+
     Copy from https://github.com/scikit-learn/scikit-learn/blob/0c27a07f68e0eda7e1fcbce44a7615addec7f232/examples/model_selection/plot_grid_search_stats.py#L172
+    This correction was proposed in :footcite:t:`nadeau1999inference`
 
     Parameters
     ----------
@@ -31,6 +33,10 @@ def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=Non
     -------
     corrected_std : float
         Variance-corrected standard deviation of the set of differences.
+
+    References
+    ----------
+    .. footbibliography::
     """
     # kr = k times r, r times repeated k-fold crossvalidation,
     # kr equals the number of times the model was evaluated
@@ -59,10 +65,10 @@ def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=Non
 def ttest_1samp_corrected_NB(
     a,
     popmean,
-    test_frac=0.1 / 0.9,
+    test_frac,
     axis=0,
     nan_policy="propagate",
-    alternative="two-sided",
+    alternative="greater",
 ):
     """
     Modification of https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035-L6233
