@@ -17,7 +17,7 @@ from scipy.stats._stats_py import (
 def _length_nonmasked(x, axis, keepdims=False, xp=None):
     """
     Copy from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/_lib/_array_api.py#L584
-    The copy was necessary fro retrocompatibilities
+    The copy was necessary for retrocompatibilities
     """
     xp = array_namespace(x) if xp is None else xp
     if is_marray(xp):
