@@ -89,7 +89,7 @@ class TestTtest_1samp:
         res1 = nadeau_bengio_ttest(
             outcome[:, 0],
             1,
-            test_frac=1 - 1 / outcome[:, 0].shape[0],
+            test_frac=0.0,
             alternative="two-sided",
         )
         res2 = mstats.ttest_1samp(outcome[:, 0], 1)
@@ -144,9 +144,7 @@ class TestTtest_1samp:
         """Test option alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
 
-        t_ex, p_ex = nadeau_bengio_ttest(
-            x, 9, test_frac=1 - 1 / x.shape[0], alternative=alternative
-        )
+        t_ex, p_ex = nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative=alternative)
         t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
         assert_allclose(t, t_ex, rtol=1e-14)
         assert_allclose(p, p_ex, rtol=1e-14)
@@ -165,7 +163,7 @@ class TestTtest_1samp:
         t_ex, p_ex = nadeau_bengio_ttest(
             x.compressed(),
             9,
-            test_frac=1 - 1 / (x.shape[0] - 9),
+            test_frac=0.0,
             alternative=alternative,
         )
         t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
