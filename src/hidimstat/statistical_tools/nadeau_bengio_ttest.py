@@ -404,7 +404,7 @@ def nadeau_bengio_ttest(
     """
     One-sample t-test with variance corrected using Nadeau & Bengio.
 
-    Simplification of https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035-L6233
+    Simplification of https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035
     Only support numpy backend and don't support masked data
 
     This is a modification of scipy.stats.ttest_1samp that applies the
