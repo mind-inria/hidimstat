@@ -1,7 +1,9 @@
 import numbers
+from functools import partial
 
 import numpy as np
 from numpy.random import RandomState
+from scipy.stats import ttest_1samp, wilcoxon
 
 
 def _check_vim_predict_method(method):
@@ -31,6 +33,37 @@ def _check_vim_predict_method(method):
             "The method {} is not a valid method "
             "for variable importance measure prediction".format(method)
         )
+
+
+def get_fitted_attributes(cls):
+    """
+    Get all attributes from a class that end with a single underscore
+    and doesn't start with one underscore.
+
+    Parameters
+    ----------
+    cls : class
+        The class to inspect for attributes.
+
+    Returns
+    -------
+    list
+        A list of attribute names that end with a single underscore but not double underscore.
+    """
+    # Get all attributes and methods of the class
+    all_attributes = dir(cls)
+
+    # Filter out attributes that start with an underscore
+    filtered_attributes = [attr for attr in all_attributes if not attr.startswith("_")]
+
+    # Filter out attributes that do not end with a single underscore
+    result = [
+        attr
+        for attr in filtered_attributes
+        if attr.endswith("_") and not attr.endswith("__")
+    ]
+
+    return result
 
 
 def check_random_state(seed):
@@ -105,3 +138,46 @@ def seed_estimator(estimator, random_state=None):
                 setattr(value, "random_state", RandomState(rng.bit_generator))
 
     return estimator
+
+
+def check_statistical_test(statistical_test):
+    """
+    Validates and returns a test statistic function.
+
+    Parameters
+    ----------
+    test : str or callable
+        If str, must be either 'ttest' or 'wilcoxon'.
+        If callable, must be a function that can be used as a test statistic.
+
+    Returns
+    -------
+    callable
+        A function that can be used as a test statistic.
+        For string inputs, returns a partial function of either ttest_1samp or wilcoxon.
+        For callable inputs, returns the input function.
+
+    Raises
+    ------
+    ValueError
+        If test is a string but not one of the supported test names ('ttest' or 'wilcoxon').
+    ValueError
+        If test is neither a string nor a callable.
+    """
+    if isinstance(statistical_test, str):
+        if statistical_test == "ttest":
+            return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
+        elif statistical_test == "wilcoxon":
+            return partial(wilcoxon, alternative="greater", axis=1)
+        else:
+            raise ValueError(f"the test '{statistical_test}' is not supported")
+    elif callable(statistical_test):
+        return statistical_test
+    else:
+        raise ValueError(
+            f"Unsupported value for 'statistical_test'."
+            f"The provided argument was '{statistical_test}'. "
+            f"Please choose from the following valid options: "
+            f"string values ('ttest', 'wilcoxon', 'NB-ttest') "
+            f"or a custom callable function with a `scipy.stats` API-compatible signature."
+        )
