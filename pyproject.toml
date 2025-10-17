@@ -49,7 +49,7 @@ doc = [
     "sphinx-gallery         >= 0.17.0,  < 1",
     "sphinx-prompt          >= 1.8.0,   < 2",
     "tqdm                   >= 4.1.0,   < 5",
-    "sphinx-copybutton"
+    "sphinx-copybutton",
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
 style = ["black  >= 24.4.2", "codespell >=2.4.0", "isort  >= 5.13.2"]
