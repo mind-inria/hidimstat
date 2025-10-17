@@ -393,65 +393,7 @@ def _get_pvalue(statistic, distribution, alternative, symmetric=True):
     return pvalue
 
 
-def _var_nadeau_bengio(differences, test_frac, axis=0, ddof=0, mean=None, xp=None):
-    """
-    Adjust variance using the Nadeau & Bengio correction for repeated
-    k-fold cross-validation (see :footcite:t:`nadeau1999inference`).
-
-    Copy from https://github.com/scikit-learn/scikit-learn/blob/0c27a07f68e0eda7e1fcbce44a7615addec7f232/examples/model_selection/plot_grid_search_stats.py#L172
-    This correction was proposed in :footcite:t:`nadeau1999inference`.
-
-    Parameters
-    ----------
-    differences : array_like
-        Array of differences (e.g. per-evaluation score differences). The axis
-        given by `axis` corresponds to the repeated evaluations; kr =
-        differences.shape[axis].
-    test_frac : float
-        Fraction of the data used for testing (test set size / total samples).
-    axis : int, optional
-        Axis along which to compute the variance. Default is 0.
-    ddof : int, optional
-        Degrees of freedom to use for variance estimation (passed to `_var`).
-        Default is 0.
-    mean : array_like or None, optional
-        Precomputed mean along `axis` (passed to `_var`). If None, the mean is
-        computed inside `_var`.
-    xp : module or None, optional
-        Array namespace (e.g. numpy or array-api compatible module). If None,
-        the namespace is inferred from the input.
-
-    Returns
-    -------
-    corrected_var : ndarray
-        Variance corrected by the :footcite:t:`nadeau1999inference` factor:
-        corrected_var = var * (1/kr + test_frac),
-        where kr is the number of repeated evaluations along `axis` and `var`
-        is the sample variance computed by `_var`.
-
-    Notes
-    -----
-    This implements the variance correction proposed by
-    :footcite:t:`nadeau1999inference` to account for the dependence between
-    repeated cross-validation estimates.
-    The function returns the corrected variance (not the standard deviation).
-
-    References
-    ----------
-    .. footbibliography::
-    """
-    # kr = k times r, r times repeated k-fold crossvalidation,
-    # kr equals the number of times the model was evaluated
-    kr = differences.shape[axis]
-
-    var = _var(differences, ddof=ddof, axis=axis, mean=mean)
-    corrected_var = var * (1 / kr + test_frac)
-    return corrected_var
-
-
-# nan_policy handled by `_axis_nan_policy`, but needs to be left
-# in signature to preserve use as a positional argument
-def ttest_1samp_corrected_NB(
+def nadeau_bengio_ttest(
     a,
     popmean,
     test_frac,
@@ -532,12 +474,10 @@ def ttest_1samp_corrected_NB(
     except ValueError as e:
         raise ValueError("`popmean.shape[axis]` must equal 1.") from e
     d = mean - popmean
-    ##########################################################
-    # Modification of the function
-    # Correct the computation of variance
-    v = _var_nadeau_bengio(a, test_frac, axis=axis, ddof=1)
-    ##########################################################
-    denom = np.sqrt(v / n)
+    v = _var(a, axis=axis, ddof=1)
+    ######### ADD correction of ttest
+    denom = np.sqrt(v * (1 / n + test_frac))
+    ################################
 
     with np.errstate(divide="ignore", invalid="ignore"):
         t = np.divide(d, denom)
