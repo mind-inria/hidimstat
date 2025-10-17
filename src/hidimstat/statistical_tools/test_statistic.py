@@ -1,6 +1,6 @@
+import sys as _sys
 from collections import namedtuple
 from keyword import iskeyword as _iskeyword
-import sys as _sys
 
 import numpy as np
 import scipy.special as special

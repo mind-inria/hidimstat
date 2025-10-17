@@ -1,10 +1,3 @@
-import numpy as np
-import pytest
-from scipy.stats import ttest_1samp
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import KFold
-
-from hidimstat import CFI
 import warnings
 
 import numpy as np
@@ -19,7 +12,11 @@ from numpy.ma.testutils import (
     assert_equal,
 )
 from scipy import stats
+from scipy.stats import ttest_1samp
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import KFold
 
+from hidimstat import CFI
 from hidimstat.statistical_tools.test_statistic import nadeau_bengio_ttest
 
 
