@@ -1,6 +1,6 @@
 from .conditional_sampling import ConditionalSampler
 from .gaussian_knockoffs import GaussianKnockoffs
-from .test_statistic import nadeau_bengio_ttest
+from .nadeau_bengio_ttest import nadeau_bengio_ttest
 
 __all__ = [
     "ConditionalSampler",

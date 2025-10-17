@@ -17,7 +17,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
 
 from hidimstat import CFI
-from hidimstat.statistical_tools.test_statistic import nadeau_bengio_ttest
+from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 
 def check_named_results(res, attributes, ma=False, xp=None):
