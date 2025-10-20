@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import root_mean_squared_error
-from sklearn.utils import check_random_state
 
+from hidimstat._utils.utils import check_random_state
 from hidimstat.base_perturbation import BasePerturbation
 
 
@@ -11,15 +11,16 @@ class PFI(BasePerturbation):
         estimator,
         loss: callable = root_mean_squared_error,
         method: str = "predict",
-        n_jobs: int = 1,
         n_permutations: int = 50,
+        features_groups=None,
         random_state: int = None,
+        n_jobs: int = 1,
     ):
         """
         Permutation Feature Importance algorithm as presented in
-        :footcite:t:`breimanRandomForests2001`. For each variable/group of variables,
+        :footcite:t:`breimanRandomForests2001`. For each feature/group of features,
         the importance is computed as the difference between the loss of the initial
-        model and the loss of the model with the variable/group permuted.
+        model and the loss of the model with the feature/group permuted.
         The method was also used in :footcite:t:`mi2021permutation`
 
         Parameters
@@ -31,16 +32,20 @@ class PFI(BasePerturbation):
             model.
         method : str, default="predict"
             The method to use for the prediction. This determines the predictions passed
-            to the loss function. Supported methods are "predict", "predict_proba",
-            "decision_function", "transform".
-        n_jobs : int, default=1
-            The number of jobs to run in parallel. Parallelization is done over the
-            variables or groups of variables.
+            to the loss function. Supported methods are "predict", "predict_proba" or
+            "decision_function".
         n_permutations : int, default=50
-            The number of permutations to perform. For each variable/group of variables,
+            The number of permutations to perform. For each feature/group of features,
             the mean of the losses over the `n_permutations` is computed.
+        features_groups: dict or None,  default=None
+            A dictionary where the keys are the group names and the values are the
+            list of column names corresponding to each features group. If None,
+            the features_groups are identified based on the columns of X.
         random_state : int, default=None
             The random state to use for sampling.
+        n_jobs : int, default=1
+            The number of jobs to run in parallel. Parallelization is done over the
+            features or groups of features.
 
         References
         ----------
@@ -52,15 +57,18 @@ class PFI(BasePerturbation):
             method=method,
             n_jobs=n_jobs,
             n_permutations=n_permutations,
+            features_groups=features_groups,
+            random_state=random_state,
         )
-        self.random_state = random_state
 
-    def _permutation(self, X, group_id):
+    def _permutation(self, X, features_group_id, random_state=None):
         """Create the permuted data for the j-th group of covariates"""
-        self.random_state = check_random_state(self.random_state)
+        rng = check_random_state(random_state)
         X_perm_j = np.array(
             [
-                self.random_state.permutation(X[:, self._groups_ids[group_id]].copy())
+                rng.permutation(
+                    X[:, self._features_groups_ids[features_group_id]].copy()
+                )
                 for _ in range(self.n_permutations)
             ]
         )

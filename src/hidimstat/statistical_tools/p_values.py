@@ -51,7 +51,7 @@ def _replace_infinity(x, replace_val=None, method="times-two"):
 
 
 def pval_corr_from_pval(one_sided_pval):
-    """Computing one-sided p-values corrrected for multiple testing
+    """Computing one-sided p-values corrected for multiple testing
     from simple testing one-sided p-values.
 
     Parameters
@@ -92,7 +92,7 @@ def pval_from_scale(beta, scale, distribution="norm", eps=1e-14):
     scale : ndarray, shape (n_features,)
         Value of the standard deviation of the parameters.
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -154,7 +154,7 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -189,7 +189,7 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -239,7 +239,7 @@ def two_sided_pval_from_zscore(zscore, distribution="norm"):
     zscore : ndarray, shape (n_features,)
         z-scores.
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -276,7 +276,7 @@ def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm")
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -312,7 +312,7 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -400,7 +400,7 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distribution="norm"):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distribution : str, opitonal (default='norm')
+    distribution : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -420,73 +420,3 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distribution="norm"):
     )
 
     return two_sided_pval, two_sided_pval_corr
-
-
-def step_down_max_t(stat, permutation_stats):
-    """
-    Step-down maxT multiple testing procedure
-
-    | This algorithm for computing adjusted p-values :footcite:t:`westfall1993resampling`.
-    | It assumes that the test statistics is centered around zero.
-    | This algorithm controls the family-wise error rate (FWER) by:
-    | 1. Ordering test statistics by absolute value
-    | 2. Computing successively larger null distributions
-    | 3. Adjusting p-values using step-down procedure
-
-    Parameters
-    ----------
-    stat : ndarray, shape (n_features,)
-        Statistic computed on the original (unpermuted) problem.
-
-    permutation_stats : ndarray, shape (n_permutations, n_features)
-        Statistics computed on permuted problems.
-
-    Returns
-    -------
-    two_sided_pval_corr : ndarray, shape (n_features,)
-        Two-sided p-values corrected for multiple testing.
-
-    References
-    ----------
-    .. footbibliography::
-    """
-
-    n_permutations, n_features = np.shape(permutation_stats)
-
-    # Step 1: Order features by absolute value of test statistics
-    # Keep track of original positions
-    index_ordered = np.argsort(np.abs(stat))
-    stat_ranked = np.empty(n_features, dtype=int)
-    stat_ranked[index_ordered] = np.arange(n_features)
-    # Sorted absolute statistics
-    stat_sorted = np.copy(np.abs(stat)[index_ordered])
-    # Order permutation stats similarly
-    permutation_stats_ordered = np.copy(np.abs(permutation_stats)[:, index_ordered])
-
-    # Step 2: Update null distribution
-    # For each column i, take the maximum between current and previous column
-    # This creates successively larger null distributions
-    for i in range(1, n_features):
-        permutation_stats_ordered[:, i] = np.maximum(
-            permutation_stats_ordered[:, i - 1], permutation_stats_ordered[:, i]
-        )
-
-    # Step 3: Compute raw adjusted p-values
-    # Count how many permutation statistics are >= than observed statistics
-    two_sided_pval_corr = (
-        np.sum(np.less_equal(stat_sorted, permutation_stats_ordered), axis=0)
-        / n_permutations
-    )
-
-    # Step 4: Enforce monotonicity
-    # Ensure that p-values are monotonically decreasing
-    # by taking maximum of current and next p-value
-    for i in range(n_features - 1)[::-1]:
-        two_sided_pval_corr[i] = np.maximum(
-            two_sided_pval_corr[i], two_sided_pval_corr[i + 1]
-        )
-
-    # Step 5: Rearrange p-values back to original feature order
-    two_sided_pval_corr = np.copy(two_sided_pval_corr[stat_ranked])
-
-    return two_sided_pval_corr

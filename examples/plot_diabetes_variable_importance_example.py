@@ -17,7 +17,7 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and
+building process. However, this solution is exclusive to the Random Forest and
 is costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
@@ -42,38 +42,37 @@ References
 
 """
 
-#############################################################################
-# Imports needed for this script
-# ------------------------------
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from scipy.stats import norm
-from sklearn.base import clone
+# %%
+# Load the diabetes dataset
+# -------------------------
+
 from sklearn.datasets import load_diabetes
+
+diabetes = load_diabetes()
+X, y = diabetes.data, diabetes.target
+
+# Encode sex as binary
+X[:, 1] = (X[:, 1] > 0.0).astype(int)
+
+# %%
+# Fit a baseline model on the diabetes dataset
+# --------------------------------------------
+# We use a Ridge regression model with a 5-fold cross-validation to fit the
+# diabetes dataset.
+
+import numpy as np
+from sklearn.base import clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import r2_score, root_mean_squared_error
 from sklearn.model_selection import KFold
 
-from hidimstat import CPI, LOCO, PFI
-
-#############################################################################
-# Load the diabetes dataset
-# -------------------------
-diabetes = load_diabetes()
-X, y = diabetes.data, diabetes.target
-# Encode sex as binary
-X[:, 1] = (X[:, 1] > 0.0).astype(int)
-#############################################################################
-# Fit a baseline model on the diabetes dataset
-# --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
-# diabetes dataset.
-
 n_folds = 5
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
+regressor = RidgeCV(
+    alphas=np.logspace(-3, 3, 10),
+    cv=KFold(shuffle=True, random_state=20),
+)
 regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     regressor_list[i].fit(X[train_index], y[train_index])
     score = r2_score(
@@ -83,58 +82,46 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
-#############################################################################
-# Fit a baselien model on the diabetes dataset
-# --------------------------------------------
-# We use a Ridge regression model with a 10-fold cross-validation to fit the
-# diabetes dataset.
+    print(f"Fold {i}: {score=}")
+    print(f"Fold {i}: {mse=}")
 
-n_folds = 10
-regressor = RidgeCV(alphas=np.logspace(-3, 3, 10))
-regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=0)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    regressor_list[i].fit(X[train_index], y[train_index])
-    score = r2_score(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
-    mse = root_mean_squared_error(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
 
-    print(f"Fold {i}: {score}")
-    print(f"Fold {i}: {mse}")
-
-#############################################################################
-# Measure the importance of variables using the CPI method
+# %%
+# Measure the importance of variables using the CFI method
 # --------------------------------------------------------
 
-cpi_importance_list = []
+from hidimstat import CFI
+
+cfi_importance_list = []
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    cpi = CPI(
+    cfi = CFI(
         estimator=regressor_list[i],
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10)),
-        imputation_model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10), cv=KFold()),
+        imputation_model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10),
+            cv=KFold(),
+        ),
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
-        random_state=0,
+        random_state=24,
         n_jobs=4,
     )
-    cpi.fit(X_train, y_train)
-    importance = cpi.importance(X_test, y_test)
-    cpi_importance_list.append(importance)
+    cfi.fit(X_train, y_train)
+    importance = cfi.importance(X_test, y_test)
+    cfi_importance_list.append(importance)
 
-#############################################################################
+# %%
 # Measure the importance of variables using the LOCO method
 # ---------------------------------------------------------
 
-loco_importance_list = []
+from hidimstat import LOCO
 
+loco_importance_list = []
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
@@ -148,12 +135,14 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     loco_importance_list.append(importance)
 
 
-#############################################################################
+# %%
 # Measure the importance of variables using the permutation method
 # ----------------------------------------------------------------
 
-pfi_importance_list = []
+from hidimstat import PFI
 
+pfi_importance_list = []
+kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     print(f"Fold {i}")
     X_train, X_test = X[train_index], X[test_index]
@@ -161,7 +150,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         estimator=regressor_list[i],
         n_permutations=50,
-        random_state=0,
+        random_state=25,
         n_jobs=4,
     )
     pfi.fit(X_train, y_train)
@@ -169,39 +158,32 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi_importance_list.append(importance)
 
 
-#############################################################################
-# Define a function to compute the p-value from importance values
-# ---------------------------------------------------------------
-def compute_pval(vim):
-    mean_vim = np.mean(vim, axis=0)
-    std_vim = np.std(vim, axis=0)
-    pval = norm.sf(mean_vim / std_vim)
-    return np.clip(pval, 1e-10, 1 - 1e-10)
-
-
-#############################################################################
+# %%
 # Analyze the results
 # -------------------
 
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.stats import ttest_1samp
 
-cpi_vim_arr = np.array([x["importance"] for x in cpi_importance_list]) / 2
-cpi_pval = compute_pval(cpi_vim_arr)
+cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
+cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
 
 vim = [
     pd.DataFrame(
         {
-            "var": np.arange(cpi_vim_arr.shape[1]),
+            "var": np.arange(cfi_vim_arr.shape[1]),
             "importance": x["importance"],
             "fold": i,
-            "pval": cpi_pval,
-            "method": "CPI",
+            "pval": cfi_pval,
+            "method": "CFI",
         }
     )
-    for x in cpi_importance_list
+    for x in cfi_importance_list
 ]
 
 loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
-loco_pval = compute_pval(loco_vim_arr)
+loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
@@ -217,7 +199,7 @@ vim += [
 ]
 
 pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
-pfi_pval = compute_pval(pfi_vim_arr)
+pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
@@ -236,7 +218,7 @@ fig, ax = plt.subplots()
 df_plot = pd.concat(vim)
 df_plot["pval"] = -np.log10(df_plot["pval"])
 methods = df_plot["method"].unique()
-colors = plt.cm.get_cmap("tab10", 10)
+colors = plt.get_cmap("tab10", 10)
 
 for i, method in enumerate(methods):
     subset = df_plot[df_plot["method"] == method]
@@ -252,5 +234,6 @@ ax.legend(title="Method")
 ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
 ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
 ax.set_xlabel("Variable")
+ax.set_xticks(range(len(diabetes.feature_names)))
 ax.set_xticklabels(diabetes.feature_names)
 plt.show()
