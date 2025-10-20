@@ -1,90 +1,20 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import clone
 from sklearn.covariance import LedoitWolf
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
+from sklearn.preprocessing import StandardScaler
 
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
+from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
+from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
-def preconfigure_estimator_LassoCV(estimator, X, X_tilde, y, n_alphas=20):
-    """
-    Configure the estimator for Model-X knockoffs.
-
-    This function sets up the regularization path for the Lasso estimator
-    based on the input data and the number of alphas to use. The regularization
-    path is defined by a sequence of alpha values, which control the amount
-    of shrinkage applied to the coefficient estimates.
-
-    Parameters
-    ----------
-    estimator : sklearn.linear_model.LassoCV
-        The Lasso estimator to configure.
-
-    X : 2D ndarray (n_samples, n_features)
-        The original design matrix.
-
-    X_tilde : 2D ndarray (n_samples, n_features)
-        The knockoff design matrix.
-
-    y : 1D ndarray (n_samples, )
-        The target vector.
-
-    n_alphas : int, default=10
-        The number of alpha values to use to instantiate the cross-validation.
-
-    Returns
-    -------
-    estimator : sklearn.linear_model.LassoCV
-        The configured estimator.
-
-    Raises
-    ------
-    TypeError
-        If estimator is not an instance of LassoCV.
-
-    Notes
-    -----
-    The alpha values are calculated based on the combined design matrix [X, X_tilde].
-    alpha_max is set to max(X_ko.T @ y)/(2*n_features).
-    """
-    if type(estimator).__name__ != "LassoCV":
-        raise TypeError("You should not use this function to configure the estimator")
-
-    n_features = X.shape[1]
-    X_ko = np.column_stack([X, X_tilde])
-    alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
-    estimator.alphas = alphas
-    return estimator
-
-
-def model_x_knockoff(
-    X,
-    y,
-    estimator=LassoCV(
-        n_jobs=None,
-        verbose=0,
-        max_iter=200000,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-6,
-    ),
-    preconfigure_estimator=preconfigure_estimator_LassoCV,
-    fdr=0.1,
-    centered=True,
-    cov_estimator=LedoitWolf(assume_centered=True),
-    joblib_verbose=0,
-    n_bootstraps=1,
-    n_jobs=1,
-    random_state=None,
-    tol_gauss=1e-14,
-    memory=None,
-):
+class ModelXKnockoff(BaseVariableImportance):
     """
     Model-X Knockoff
 
@@ -178,268 +108,261 @@ def model_x_knockoff(
     ----------
     .. footbibliography::
     """
-    assert n_bootstraps > 0, "the number of bootstraps should at least higher than 1"
-    memory = check_memory(memory)
-    # unnecessary to have n_jobs > number of bootstraps
-    n_jobs = min(n_bootstraps, n_jobs)
-    parallel = Parallel(n_jobs, verbose=joblib_verbose)
 
-    if centered:
-        X = StandardScaler().fit_transform(X)
-
-    # Create knockoff variables
-    conditionnal_sampler = GaussianKnockoffs(cov_estimator, tol=tol_gauss)
-    conditionnal_sampler.fit(X)
-    X_tildes = conditionnal_sampler.sample(
-        n_repeats=n_bootstraps, random_state=random_state
-    )
-
-    results = parallel(
-        delayed(memory.cache(_stat_coefficient_diff))(
-            X, X_tildes[i], y, clone(estimator), fdr, preconfigure_estimator
-        )
-        for i in range(n_bootstraps)
-    )
-    test_scores, threshold, selected = zip(*results)
-
-    if n_bootstraps == 1:
-        return selected[0], test_scores[0], threshold[0], X_tildes[0]
-    else:
-        return selected, test_scores, threshold, X_tildes
-
-
-def model_x_knockoff_pvalue(test_score, fdr=0.1, fdr_control="bhq"):
-    """
-    This function implements the computation of the empirical p-values
-
-    Parameters
-    ----------
-    test_score : 1D array, (n_features, )
-        A vector of test statistics.
-
-    fdr : float, default=0.1
-        The desired controlled False Discovery Rate (FDR) level.
-
-    fdr_control : str, default="bhq"
-        The method used to control the False Discovery Rate.
-        Available methods are:
-        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
-        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
-        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
-
-    Returns
-    -------
-    selected : 1D array, int
-        A vector of indices of the selected variables.
-
-    pvals : 1D array, (n_features, )
-        A vector of empirical p-values.
-
-    Notes
-    -----
-    This function calculates the empirical p-values based on the test statistics and the
-    desired FDR level. It then identifies the selected variables based on the p-values.
-    """
-    pvals = _empirical_knockoff_pval(test_score)
-    threshold = fdr_threshold(pvals, fdr=fdr, method=fdr_control)
-    selected = np.where(pvals <= threshold)[0]
-    return selected, pvals
-
-
-def model_x_knockoff_bootstrap_e_value(test_scores, ko_threshold, fdr=0.1):
-    """
-    This function implements the computation of the empirical e-values
-    from knockoff test and aggregates them using the e-BH procedure.
-
-    Parameters
-    ----------
-    test_scores : 2D array, (n_bootstraps, n_features)
-        A matrix of test statistics for each bootstrap sample.
-
-    ko_threshold : float
-        Threshold level.
-
-    fdr : float, default=0.1
-        The desired controlled False Discovery Rate (FDR) level.
-
-    Returns
-    -------
-    selected : 1D array, int
-        A vector of indices of the selected variables.
-
-    aggregated_eval : 1D array, (n_features, )
-        A vector of aggregated empirical e-values.
-
-    evals : 2D array, (n_bootstraps, n_features)
-        A matrix of empirical e-values for each bootstrap sample.
-
-    Notes
-    -----
-    This function calculates the empirical e-values based on the test statistics and the
-    desired FDR level. It then aggregates the e-values using the e-BH procedure and identifies
-    the selected variables based on the aggregated e-values.
-    """
-    n_bootstraps = len(test_scores)
-    evals = np.array(
-        [
-            _empirical_knockoff_eval(test_scores[i], ko_threshold[i])
-            for i in range(n_bootstraps)
-        ]
-    )
-
-    aggregated_eval = np.mean(evals, axis=0)
-    threshold = fdr_threshold(aggregated_eval, fdr=fdr, method="ebh")
-    selected = np.where(aggregated_eval >= threshold)[0]
-
-    return selected, aggregated_eval, evals
-
-
-def model_x_knockoff_bootstrap_quantile(
-    test_scores,
-    fdr=0.1,
-    fdr_control="bhq",
-    reshaping_function=None,
-    adaptive_aggregation=False,
-    gamma=0.5,
-):
-    """
-    This function implements the computation of the empirical p-values
-    from knockoff test and aggregates them using the quantile aggregation procedure.
-
-    Parameters
-    ----------
-    test_scores : 2D array, (n_bootstraps, n_features)
-        A matrix of test statistics for each bootstrap sample.
-
-    fdr : float, default=0.1
-        The desired controlled False Discovery Rate (FDR) level.
-
-    fdr_control : str, default="bhq"
-        The method used to control the False Discovery Rate.
-        Available methods are:
-        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
-        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
-        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
-
-    reshaping_function : function or None, default=None
-        A function used to reshape the aggregated p-values before controlling the FDR.
-
-    adaptive_aggregation : bool, default=False
-        Whether to use adaptive quantile aggregation.
-
-    gamma : float, default=0.5
-        The quantile level (between 0 and 1) used for aggregation.
-        For non-adaptive aggregation, a single gamma value is used.
-        For adaptive aggregation, this is the starting point for the grid search
-        over gamma values.
-
-    Returns
-    -------
-    selected : 1D array, int
-        A vector of indices of the selected variables.
-
-    aggregated_pval : 1D array, (n_features, )
-        A vector of aggregated empirical p-values.
-
-    pvals : 2D array, (n_bootstraps, n_features)
-        A matrix of empirical p-values for each bootstrap sample.
-
-    Notes
-    -----
-    This function calculates the empirical p-values based on the test statistics and the
-    desired FDR level. It then aggregates the p-values using the quantile aggregation
-    procedure and identifies the selected variables based on the aggregated p-values.
-    """
-    n_bootstraps = len(test_scores)
-    pvals = np.array(
-        [_empirical_knockoff_pval(test_scores[i]) for i in range(n_bootstraps)]
-    )
-
-    aggregated_pval = quantile_aggregation(
-        pvals, gamma=gamma, adaptive=adaptive_aggregation
-    )
-
-    threshold = fdr_threshold(
-        aggregated_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    selected = np.where(aggregated_pval <= threshold)[0]
-
-    return selected, aggregated_pval, pvals
-
-
-def _stat_coefficient_diff(X, X_tilde, y, estimator, fdr, preconfigure_estimator=None):
-    """
-    Compute the Lasso Coefficient-Difference (LCD) statistic by comparing original and knockoff coefficients.
-
-    This function fits a model on the concatenated original and knockoff features, then
-    calculates test statistics based on the difference between coefficient magnitudes.
-
-    Parameters
-    ----------
-    X : ndarray of shape (n_samples, n_features)
-        Original feature matrix.
-
-    X_tilde : ndarray of shape (n_samples, n_features)
-        Knockoff feature matrix.
-
-    y : ndarray of shape (n_samples,)
-        Target values.
-
-    estimator : estimator object
-        Scikit-learn estimator with fit() method and coef_ attribute.
-        Common choices include LassoCV, LogisticRegressionCV.
-
-    fdr : float
-        Target false discovery rate level between 0 and 1.
-
-    preconfigure_estimator : callable, default=None
-        Optional function to configure estimator parameters before fitting.
-        Called with arguments (estimator, X, X_tilde, y).
-
-    Returns
-    -------
-    test_score : ndarray of shape (n_features,)
-        Feature importance scores computed as |beta_j| - |beta_j'|
-        where beta_j and beta_j' are original and knockoff coefficients.
-
-    ko_thr : float
-        Knockoff threshold value used for feature selection.
-
-    selected : ndarray
-        Indices of features with test_score >= ko_thr.
-
-    Notes
-    -----
-    The test statistic follows Equation 1.7 in Barber & Candès (2015) and
-    Equation 3.6 in Candès et al. (2018).
-    """
-    n_samples, n_features = X.shape
-    X_ko = np.column_stack([X, X_tilde])
-    if preconfigure_estimator is not None:
-        estimator = preconfigure_estimator(estimator, X, X_tilde, y)
-    estimator.fit(X_ko, y)
-    if hasattr(estimator, "coef_"):
-        coef = np.ravel(estimator.coef_)
-    elif hasattr(estimator, "best_estimator_") and hasattr(
-        estimator.best_estimator_, "coef_"
+    def __init__(
+        self,
+        generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        statistical_test=lasso_statistic_with_sampling,
+        n_repeat=1,
+        centered=True,
+        random_state=None,
+        joblib_verbose=0,
+        memory=None,
+        n_jobs=1,
     ):
-        coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
-    else:
-        raise TypeError("estimator should be linear")
-    # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
-    test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
+        super().__init__()
+        self.generator = generator
+        self.statistical_test = statistical_test
+        assert n_repeat > 0, "n_samplings must be positive"
+        self.n_repeat = n_repeat
+        self.centered = centered
 
-    # Compute the threshold level and select the important variables
-    ko_thr = _fdr_threshold_on_symmetric_null(test_score, fdr=fdr)
-    selected = np.where(test_score >= ko_thr)[0]
+        self.randoms_state = random_state
+        self.memory = check_memory(memory)
+        self.joblib_verbose = joblib_verbose
+        # unnecessary to have n_jobs > number of bootstraps
+        self.n_jobs = min(n_repeat, n_jobs)
 
-    return test_score, ko_thr, selected
+        self.test_scores_ = None
+        self.threshold_fdr_ = None
+        self.aggregated_eval_ = None
+        self.aggregated_pval_ = None
+
+    def fit(self, X, y=None):
+        """
+        Fit the Model-X Knockoff model by training the generator.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like of shape (n_samples,), default=None
+            Target values. Not used in this method.
+
+        Returns
+        -------
+        self : object
+            Returns the instance itself.
+
+        Notes
+        -----
+        The fit method only trains the generator component. The target values y
+        are not used in this step.
+        """
+        if y is not None:
+            warnings.warn("y won't be used")
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+        self.generator.fit(X_)
+        return self
+
+    def _check_fit(self):
+        try:
+            self.generator._check_fit()
+        except ValueError as exc:
+            raise ValueError(
+                "The Model-X Knockoff requires to be fitted before computing importance"
+            ) from exc
+
+    def importance(self, X, y):
+        """
+        Calculate feature importance scores using Model-X knockoffs.
+
+        This method generates knockoff variables and computes test statistics to measure
+        feature importance. For multiple repeats, the scores are averaged across repeats
+        to improve stability.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data matrix where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores for each feature.
+            Higher absolute values indicate higher importance.
+
+        Notes
+        -----
+        The method generates knockoff variables that satisfy the exchangeability property
+        and computes test statistics comparing original features against their knockoffs.
+        When n_repeat > 1, multiple sets of knockoffs are generated and results are averaged.
+        """
+        self._check_fit()
+
+        if self.centered:
+            X_ = StandardScaler().fit_transform(X)
+        else:
+            X_ = X
+
+        X_tildes = self.generator.sample(
+            n_repeats=self.n_repeat, random_state=self.randoms_state
+        )
+
+        parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
+        self.test_scores_ = np.array(
+            parallel(
+                delayed(self.statistical_test)(X_, X_tildes[i], y)
+                for i in range(self.n_repeat)
+            )
+        )
+        self.test_scores_ = np.array(self.test_scores_)
+
+        self.importances_ = np.mean(self.test_scores_, axis=0)
+        self.pvalues_ = np.mean(
+            [
+                _empirical_knockoff_pval(self.test_scores_[i])
+                for i in range(self.n_repeat)
+            ],
+            axis=0,
+        )
+        return self.importances_
+
+    def fit_importance(self, X, y, cv=None):
+        """
+        Fits the model to the data and computes feature importance.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data matrix where n_samples is the number of samples and
+            n_features is the number of features.
+        y : array-like of shape (n_samples,)
+            The target values.
+        cv : None or cross-validation generator, default=None
+            Cross-validation parameter. Not used in this method.
+            A warning will be issued if provided.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_features,)
+            Feature importance scores (p-values) for each feature.
+            Lower values indicate higher importance. Values range from 0 to 1.
+
+        Notes
+        -----
+        This method combines the fit and importance computation steps.
+        It first fits the generator to X and then computes importance scores
+        by comparing observed test statistics against permuted ones.
+
+        See Also
+        --------
+        fit : Method for fitting the generator only
+        importance : Method for computing importance scores only
+        """
+        if cv is not None:
+            warnings.warn("cv won't be used")
+
+        self.fit(X)
+        return self.importance(X, y)
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        evalues=False,
+        reshaping_function=None,
+        adaptive_aggregation=False,
+        gamma=0.5,
+    ):
+        """
+        Performs feature selection based on False Discovery Rate (FDR) control.
+
+        This method selects features by controlling the FDR using either p-values or e-values
+        derived from test scores. It supports different FDR control methods and optional
+        adaptive aggregation of the statistical values.
+
+        Parameters
+        ----------
+        fdr : float, default=None
+            The target false discovery rate level (between 0 and 1)
+        fdr_control: string, default="bhq"
+            The FDR control method to use. Options are:
+            - "bhq": Benjamini-Hochberg procedure
+            - 'bhy': Benjamini-Hochberg-Yekutieli procedure
+            - "ebh": e-BH procedure (only for e-values)
+        evalues: boolean, default=False
+            If True, uses e-values for selection. If False, uses p-values.
+        reshaping_function: callable, default=None
+            Reshaping function for BHY method, default uses sum of reciprocals
+        adaptive_aggregation: boolean, default=False
+            If True, uses adaptive weights for p-value aggregation.
+            Only applicable when evalues=False.
+        gamma: boolean, default=0.5
+            The gamma parameter for quantile aggregation of p-values.
+            Only used when evalues=False.
+
+        Returns
+        -------
+        numpy.ndarray
+            Boolean array indicating selected features (True for selected, False for not selected)
+
+        Raises
+        ------
+        AssertionError
+            If `test_scores_` is None or if incompatible combinations of parameters are provided
+        """
+        self._check_importance()
+        assert (
+            self.test_scores_ is not None
+        ), "this method doesn't support selection base on FDR"
+
+        if self.test_scores_.shape[0] == 1:
+            self.threshold_fdr_ = _knockoff_threshold(self.test_scores_, fdr=fdr)
+            selected = self.test_scores_[0] >= self.threshold_fdr_
+        elif not evalues:
+            assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
+            pvalues = np.array(
+                [
+                    _empirical_knockoff_pval(test_score)
+                    for test_score in self.test_scores_
+                ]
+            )
+            self.aggregated_pval_ = quantile_aggregation(
+                pvalues, gamma=gamma, adaptive=adaptive_aggregation
+            )
+            self.threshold_fdr_ = fdr_threshold(
+                self.aggregated_pval_,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            selected = self.aggregated_pval_ <= self.threshold_fdr_
+        else:
+            assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
+            evalues = []
+            for test_score in self.test_scores_:
+                ko_threshold = _knockoff_threshold(test_score, fdr=fdr)
+                evalues.append(_empirical_knockoff_eval(test_score, ko_threshold))
+            self.aggregated_eval_ = np.mean(evalues, axis=0)
+            self.threshold_fdr_ = fdr_threshold(
+                self.aggregated_eval_,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            selected = self.aggregated_eval_ >= self.threshold_fdr_
+        return selected
 
 
-def _fdr_threshold_on_symmetric_null(test_score, fdr=0.1):
+def _knockoff_threshold(test_score, fdr=0.1):
     """
     Calculate the knockoff threshold based on the procedure stated in the article.
 
@@ -536,3 +459,64 @@ def _empirical_knockoff_eval(test_score, ko_threshold):
             evals.append(n_features / (offset + np.sum(test_score <= -ko_threshold)))
 
     return np.array(evals)
+
+
+def model_x_knockoff(
+    X,
+    y,
+    generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+    statistical_test=lasso_statistic_with_sampling,
+    n_repeat=1,
+    centered=True,
+    random_state=None,
+    joblib_verbose=0,
+    memory=None,
+    n_jobs=1,
+    fdr=0.1,
+    fdr_control="bhq",
+    evalues=False,
+    reshaping_function=None,
+    adaptive_aggregation=False,
+    gamma=0.5,
+):
+    methods = ModelXKnockoff(
+        generator=generator,
+        statistical_test=statistical_test,
+        n_repeat=n_repeat,
+        centered=centered,
+        random_state=random_state,
+        joblib_verbose=joblib_verbose,
+        memory=memory,
+        n_jobs=n_jobs,
+    )
+    methods.fit_importance(X, y)
+    selected = methods.fdr_selection(
+        fdr=fdr,
+        fdr_control=fdr_control,
+        evalues=evalues,
+        reshaping_function=reshaping_function,
+        adaptive_aggregation=adaptive_aggregation,
+        gamma=gamma,
+    )
+    return selected, methods.importances_, methods.pvalues_
+
+
+# use the docstring of the class for the function
+model_x_knockoff.__doc__ = _aggregate_docstring(
+    [
+        ModelXKnockoff.__doc__,
+        ModelXKnockoff.__init__.__doc__,
+        ModelXKnockoff.fit_importance.__doc__,
+        ModelXKnockoff.fdr_selection.__doc__,
+    ],
+    """
+    Returns
+    -------
+    selection: binary array-like of shape (n_features)
+        Binary array of the seleted features
+    importance : array-like of shape (n_features)
+        The computed feature importance scores.
+    pvalues : array-like of shape (n_features)
+        The computed significant of feature for the prediction.
+    """,
+)

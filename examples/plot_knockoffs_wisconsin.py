@@ -145,27 +145,43 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). The
 # selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
 # :footcite:t:`candes2018panning`.
-from hidimstat import model_x_knockoff
+from sklearn.covariance import LedoitWolf
+from hidimstat import ModelXKnockoff
+from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
+from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 
-fdr = 0.2
 
-selected, test_scores, threshold, X_tildes = model_x_knockoff(
+def logistic_test(X, X_tilde, y):
+    return lasso_statistic_with_sampling(
+        X,
+        X_tilde,
+        y,
+        lasso=LogisticRegressionCV(
+            solver="liblinear",
+            penalty="l1",
+            Cs=np.logspace(-3, 3, 10),
+            random_state=0,
+            tol=1e-3,
+            max_iter=1000,
+        ),
+        preconfigure_lasso=None,
+    )
+
+
+model_x_knockoff = ModelXKnockoff(
+    generator=GaussianKnockoffs(
+        cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
+    ),
+    random_state=0,
+    statistical_test=logistic_test,
+    n_repeat=1,
+)
+importance = model_x_knockoff.fit_importance(
     noisy_train,
     y_train,
-    estimator=LogisticRegressionCV(
-        solver="liblinear",
-        penalty="l1",
-        Cs=np.logspace(-3, 3, 10),
-        random_state=0,
-        tol=1e-3,
-        max_iter=1000,
-    ),
-    n_bootstraps=1,
-    random_state=0,
-    tol_gauss=1e-15,
-    preconfigure_estimator=None,
-    fdr=fdr,
 )
+selected = model_x_knockoff.fdr_selection(fdr=0.2)
+
 
 # Count how many selected features are actually noise
 num_false_discoveries = np.sum(selected >= p)
@@ -182,11 +198,11 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-selected_mask = np.array(["not selected"] * len(test_scores))
+selected_mask = np.array(["not selected"] * len(importance))
 selected_mask[selected] = "selected"
 df_ko = pd.DataFrame(
     {
-        "score": test_scores,
+        "score": importance,
         "variable": feature_names_noise,
         "selected": selected_mask,
     }
@@ -207,7 +223,9 @@ sns.scatterplot(
     ax=ax,
     palette={"selected": "tab:red", "not selected": "tab:gray"},
 )
-ax.axvline(x=threshold, color="k", linestyle="--", label="Threshold")
+ax.axvline(
+    x=model_x_knockoff.threshold_fdr_, color="k", linestyle="--", label="Threshold"
+)
 ax.legend()
 ax.set_xlabel("KO statistic (LCD)")
 ax.set_ylabel("")

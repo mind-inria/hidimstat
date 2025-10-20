@@ -130,12 +130,12 @@ class GaussianKnockoffs:
         """
         self._check_fit()
         rng = check_random_state(random_state)
-        n_repeats, n_features = self.mu_tilde_.shape
+        n_samples, n_features = self.mu_tilde_.shape
 
         X_tildes = []
         for i in range(n_repeats):
             # create a uniform noise for all the data
-            u_tilde = rng.standard_normal([n_repeats, n_features])
+            u_tilde = rng.standard_normal([n_samples, n_features])
 
             # Equation 1.4 in barber2015controlling
             X_tildes.append(
