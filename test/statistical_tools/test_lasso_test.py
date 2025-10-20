@@ -4,8 +4,8 @@ from sklearn.linear_model import RidgeCV
 from sklearn.svm import SVR
 
 from hidimstat.statistical_tools.lasso_test import (
-    preconfigure_LassoCV,
     lasso_statistic_with_sampling,
+    preconfigure_LassoCV,
 )
 
 

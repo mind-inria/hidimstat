@@ -146,9 +146,10 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
 # :footcite:t:`candes2018panning`.
 from sklearn.covariance import LedoitWolf
+
 from hidimstat import ModelXKnockoff
-from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
+from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 
 
 def logistic_test(X, X_tilde, y):

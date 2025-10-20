@@ -4,11 +4,11 @@ from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV, KFold
 
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import ModelXKnockoff, model_x_knockoff
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
-from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
-from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
 def test_knockoff_bootstrap_quantile():
@@ -166,15 +166,15 @@ def test_estimate_distribution():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    geneator = GaussianKnockoffs(
+    generator = GaussianKnockoffs(
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
             cv=KFold(n_splits=5),
         ),
     )
-    modelxknockoff = ModelXKnockoff(n_repeat=1, random_state=2, generator=geneator).fit(
-        X
-    )
+    modelxknockoff = ModelXKnockoff(
+        n_repeat=1, random_state=2, generator=generator
+    ).fit(X)
     modelxknockoff.importance(X, y)
     selected = modelxknockoff.fdr_selection(fdr=fdr)
     assert np.all(beta[selected])

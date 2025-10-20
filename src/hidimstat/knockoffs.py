@@ -3,15 +3,15 @@ import warnings
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.covariance import LedoitWolf
-from sklearn.utils.validation import check_memory
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
-from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
 class ModelXKnockoff(BaseVariableImportance):
@@ -513,7 +513,7 @@ model_x_knockoff.__doc__ = _aggregate_docstring(
     Returns
     -------
     selection: binary array-like of shape (n_features)
-        Binary array of the seleted features
+        Binary array of the selected features
     importance : array-like of shape (n_features)
         The computed feature importance scores.
     pvalues : array-like of shape (n_features)
