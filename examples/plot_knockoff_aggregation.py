@@ -47,7 +47,7 @@ signal_noise_ratio = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
 # number of jobs for repetition of the method
-n_jobs = 2
+n_jobs = 1
 # verbosity of the joblib
 joblib_verbose = 0
 # Define the seeds for the reproducibility of the example
