@@ -18,7 +18,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
-from sklearn.utils import check_random_state
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
@@ -54,15 +53,12 @@ fdr = 0.1
 signal_noise_ratio = 10
 # number of repetitions for the bootstraps
 n_bootstraps = 25
-# seed for the random generator
-seed = 45
 # number of jobs for repetition of the method
 n_jobs = 2
 # verbosity of the joblib
 joblib_verbose = 0
-
-rng = check_random_state(seed)
-seed_list = rng.randint(1, np.iinfo(np.int32).max, runs)
+# Define the seeds for the reproducibility of the example
+rng = np.random.default_rng(42)
 
 
 # %%
@@ -96,9 +92,10 @@ def single_run(
         estimator=LassoCV(
             n_jobs=1,
             cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            random_state=1,
         ),
         n_bootstraps=1,
-        random_state=seed,
+        random_state=2,
     )
     mx_selection, _ = model_x_knockoff_pvalue(test_scores, fdr=fdr)
     fdp_mx, power_mx = fdp_power(mx_selection, non_zero_index)
@@ -109,11 +106,12 @@ def single_run(
         y,
         estimator=LassoCV(
             n_jobs=1,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            cv=KFold(n_splits=5, shuffle=True, random_state=3),
+            random_state=4,
         ),
         n_bootstraps=n_bootstraps,
         n_jobs=1,
-        random_state=seed,
+        random_state=5,
     )
 
     # Use p-values aggregation [2]
@@ -141,7 +139,7 @@ def plot_results(bounds, fdr, n_samples, n_features, power=False):
     for nb in range(len(bounds)):
         for i in range(len(bounds[nb])):
             y = bounds[nb][i]
-            x = np.random.normal(nb + 1, 0.05)
+            x = rng.normal(nb + 1, 0.05)
             plt.scatter(x, y, alpha=0.65, c="blue")
 
     plt.boxplot(bounds, sym="")
@@ -184,7 +182,7 @@ def effect_number_samples(n_samples):
             n_bootstraps,
             seed=seed,
         )
-        for seed in seed_list
+        for seed in range(runs)
     )
 
     fdps_mx = []
