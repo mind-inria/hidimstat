@@ -115,7 +115,7 @@ def test_model_x_knockoff():
     X, y, beta, noise = multivariate_simulation(
         n, p, support_size=support_size, seed=seed
     )
-    modelxknockoff = ModelXKnockoff(n_repeat=1).fit(X)
+    modelxknockoff = ModelXKnockoff(n_repeat=1, random_state=seed + 1).fit(X)
     modelxknockoff.importance(X, y)
     selected = modelxknockoff.fdr_selection(fdr=fdr)
 
