@@ -8,23 +8,6 @@ NBTtestResult = namedtuple("NBTtestResult", ["statistic", "pvalue"])
 NBTtestResult.__doc__ = "Class for Nadeau Bengio t-test"
 
 
-def _chk_asarray(a, axis):
-    """
-    Based on https://github.com/scipy/scipy/blob/e407bc4d6ee71ec1a23fce9d95b58e28451e4d94/scipy/stats/_stats_py.py#L113
-    """
-    if axis is None:
-        a = np.ravel(a)
-        outaxis = 0
-    else:
-        a = np.asarray(a)
-        outaxis = axis
-
-    if a.ndim == 0:
-        a = np.atleast_1d(a)
-
-    return a, outaxis
-
-
 def _get_pvalue(df, statistic, alternative, symmetric=True):
     """
     Get p-value given the statistic, (continuous) distribution, and alternative
@@ -55,10 +38,10 @@ def nadeau_bengio_ttest(
     alternative="greater",
 ):
     """
-    One-sample t-test with variance corrected using Nadeau & Bengio.
+    One-sample t-test with Nadeau & Bengio variance correction.
 
     Simplification of https://github.com/scipy/scipy/blob/b1296b9b4393e251511fe8fdd3e58c22a1124899/scipy/stats/_stats_py.py#L6035-L6233
-    Only support numpy backend and don't support masked data
+    Remove all the check and the management of NaN and empty array.
 
     This is a modification of scipy.stats.ttest_1samp that applies the
     Nadeau & Bengio correction :footcite::`nadeau1999inference` to the variance
@@ -67,10 +50,10 @@ def nadeau_bengio_ttest(
     Parameters
     ----------
     a : array_like
-        Sample data. The axis specified by `axis` is the sample axis.
-    popmean : scalar or array_like
-        Expected value in null hypothesis. If array_like, must be
-        broadcastable to the shape of the mean of `a` along `axis`.
+        Sample data. The axis specified by `axis` is the sample (observation)
+        axis.
+    popmean : scalar
+        The population mean to test against.
     test_frac : float
         Fraction of the data used for testing (test set size / total
         samples). Used by the Nadeau & Bengio correction
@@ -79,62 +62,33 @@ def nadeau_bengio_ttest(
         Axis along which to compute the test. Default is 0. If None, the
         input array is flattened.
     nan_policy : {'propagate', 'raise', 'omit'}, optional
-        Defines how to handle when input contains NaNs. Default is
-        'propagate'. Note: nan handling is performed by the
-        `_axis_nan_policy` decorator; the parameter remains in the
-        signature for compatibility.
+        Present for API compatibility; this implementation does not perform
+        special NaN handling (inputs should not contain NaNs).
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
 
     Returns
     -------
-    TtestResult
-        Named tuple with fields: statistic, pvalue, df, alternative,
-        standard_error, estimate. The `statistic` and `pvalue` have the
-        Nadeau & Bengio corrected standard error applied.
+    NBTtestResult
+        Named tuple with fields: statistic, pvalue. Both are computed using the
+        Nadeau & Bengio corrected standard error.
 
     Notes
     -----
-    The variance is corrected using the factor proposed by Nadeau & Bengio :footcite::`nadeau1999inference`
-    to account for dependence across repeated evaluations:
-    corrected_var = var * (1/kr + test_frac),
-    where kr is the number of repeated evaluations along `axis`.
+    The variance is corrected using the factor implemented here:
+        corrected_var = var * (1 / n + test_frac)
+    where n is the number of repeated evaluations along `axis`.
 
-    This function preserves the interface of scipy.stats.ttest_1samp while
-    replacing the usual sample variance by the corrected variance.
+    This function does not support masked arrays and only accepts numpy arrays.
 
     References
     ----------
     .. footbibliography::
     """
-    a, axis = _chk_asarray(a, axis)
-
     n = a.shape[axis]
-    df = n - 1
-
-    if a.shape[axis] == 0:
-        # This is really only needed for *testing* _axis_nan_policy decorator
-        # It won't happen when the decorator is used.
-        NaN = np.full((), np.nan, dtype=float)
-        return NBTtestResult(NaN, NaN)
-
-    mean = np.mean(a, axis=axis)
-    try:
-        popmean = np.asarray(popmean)
-        popmean = np.squeeze(popmean, axis=axis) if popmean.ndim > 0 else popmean
-    except ValueError as e:
-        raise ValueError("`popmean.shape[axis]` must equal 1.") from e
-    d = mean - popmean
+    d = np.mean(a, axis=axis) - popmean
     v = _var(a, axis=axis, ddof=1)
-    ######### ADD correction of ttest
     denom = np.sqrt(v * (1 / n + test_frac))
-    ################################
-
-    with np.errstate(divide="ignore", invalid="ignore"):
-        t = np.divide(d, denom)
-        t = t[()] if t.ndim == 0 else t
-
-    prob = _get_pvalue(np.asarray(df, dtype=t.dtype), t, alternative)
-    prob = prob[()] if prob.ndim == 0 else prob
-
+    t = np.divide(d, denom)
+    prob = _get_pvalue(np.asarray(n - 1, dtype=t.dtype), t, alternative)
     return NBTtestResult(t, prob)

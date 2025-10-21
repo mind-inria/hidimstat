@@ -1,16 +1,9 @@
-import warnings
-
 import numpy as np
 import numpy.ma.testutils as ma_npt
 import numpy.testing as npt
 import pytest
 import scipy.stats.mstats as mstats
-from numpy.ma.testutils import (
-    assert_,
-    assert_allclose,
-    assert_array_equal,
-    assert_equal,
-)
+from numpy.ma.testutils import assert_allclose
 from scipy import stats
 from scipy.stats import ttest_1samp
 from sklearn.linear_model import LinearRegression
@@ -20,15 +13,12 @@ from hidimstat import CFI
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 
-def check_named_results(res, attributes, ma=False, xp=None):
+def check_named_results(res, attributes):
     """
-    Copy from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/common_tests.py#L17
+    Simplification of https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/common_tests.py#L17
     """
     for i, attr in enumerate(attributes):
-        if ma:
-            ma_npt.assert_equal(res[i], getattr(res, attr))
-        else:
-            npt.assert_equal(res[i], getattr(res, attr))
+        ma_npt.assert_equal(res[i], getattr(res, attr))
 
 
 @pytest.mark.parametrize(
@@ -75,24 +65,11 @@ def test_ttest_1samp_corrected_NB(data_generator):
 
 class TestTtest_1samp:
     """
-    Copy from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/test_mstats_basic.py#L1455
+    Adapted from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/test_mstats_basic.py#L1455
     """
 
     def setup_method(self):
         self.rng = np.random.default_rng(6043813830)
-
-    def test_fully_masked(self):
-        """Test comparison with fully masked data"""
-        # outcome = ma.masked_array(self.rng.standard_normal(3), mask=[1, 1, 1])
-        expected = (np.nan, np.nan)
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", "invalid value encountered in absolute", RuntimeWarning
-            )
-            for pair in [((np.nan, np.nan), 0.0, 0.1)]:
-                t, p = nadeau_bengio_ttest(*pair)
-                assert_array_equal(p, expected)
-                assert_array_equal(t, expected)
 
     def test_result_attributes(self):
         """Test attribute"""
@@ -100,14 +77,9 @@ class TestTtest_1samp:
 
         res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
         attributes = ("statistic", "pvalue")
-        check_named_results(res, attributes, ma=True)
+        check_named_results(res, attributes)
 
-    def test_empty(self):
-        """Test for empty data"""
-        res1 = nadeau_bengio_ttest([], 1, 0.1)
-        assert_(np.all(np.isnan(res1)))
-
-    @pytest.mark.parametrize("alternative", ["less", "greater"])
+    @pytest.mark.parametrize("alternative", ["less", "greater", "two-sided"])
     def test_alternative(self, alternative):
         """Test option alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
@@ -145,3 +117,11 @@ class TestTtest_1samp:
         assert not np.array_equal(t_ex_1, t)
         assert not np.array_equal(p_ex_1, p_ex)
         assert not np.array_equal(p_ex_1, p)
+
+    def test_alternative_exception(self):
+        """test exception for bad alternative"""
+        x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
+        with pytest.raises(
+            ValueError, match="`alternative` must be 'less', 'greater', or 'two-sided'."
+        ):
+            t_ex, p_ex = nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")
