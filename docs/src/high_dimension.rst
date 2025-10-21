@@ -134,7 +134,7 @@ A detection is a delta-false positive if it is at a distance greater than $\delt
 Thus, what is controlled is the $\delta$-FWER, i.e., the probability of reporting a single false $\delta$-false positive.
 In other words, EnCluDL will likely only report detections at a distance less than $\delta$ from the true support.
 
-What is $\delta$ ? It is the diameter of the clusters used in the CluDL procedure.
+What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL procedure.
 
 
 The details of the method and the underlying guarantees are described in :footcite:t:`chevalier2022spatially`
