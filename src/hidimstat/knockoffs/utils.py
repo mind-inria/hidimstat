@@ -10,19 +10,17 @@ def quantile_aggregation(pvals, gamma=0.5, gamma_min=0.05, adaptive=False):
         return _fixed_quantile_aggregation(pvals, gamma)
 
 
-def fdr_threshold(pvals, fdr=0.1, method='bhq', reshaping_function=None):
-    if method == 'bhq':
+def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
+    if method == "bhq":
         return _bhq_threshold(pvals, fdr=fdr)
-    elif method == 'bhy':
-        return _bhy_threshold(
-            pvals, fdr=fdr, reshaping_function=reshaping_function)
+    elif method == "bhy":
+        return _bhy_threshold(pvals, fdr=fdr, reshaping_function=reshaping_function)
     else:
-        raise ValueError(
-            '{} is not support FDR control method'.format(method))
+        raise ValueError("{} is not support FDR control method".format(method))
 
 
 def cal_fdp_power(selected, non_zero_index, r_index=False):
-    """ Calculate power and False Discovery Proportion
+    """Calculate power and False Discovery Proportion
 
     Parameters
     ----------
@@ -55,8 +53,7 @@ def cal_fdp_power(selected, non_zero_index, r_index=False):
 
 
 def _bhq_threshold(pvals, fdr=0.1):
-    """Standard Benjamini-Hochberg for controlling False discovery rate
-    """
+    """Standard Benjamini-Hochberg for controlling False discovery rate"""
     n_features = len(pvals)
     pvals_sorted = np.sort(pvals)
     selected_index = 2 * n_features
@@ -110,8 +107,7 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     1D ndarray (n_tests, )
         Vector of aggregated p-value
     """
-    converted_score = (1 / gamma) * (
-        np.percentile(pvals, q=100*gamma, axis=0))
+    converted_score = (1 / gamma) * (np.percentile(pvals, q=100 * gamma, axis=0))
 
     return np.minimum(1, converted_score)
 
@@ -120,7 +116,6 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """adaptive version of the quantile aggregation method, Meinshausen et al.
     (2008)"""
     gammas = np.arange(gamma_min, 1.05, 0.05)
-    list_Q = np.array([
-        _fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
+    list_Q = np.array([_fixed_quantile_aggregation(pvals, gamma) for gamma in gammas])
 
     return np.minimum(1, (1 - np.log(gamma_min)) * list_Q.min(0))

@@ -1,10 +1,10 @@
 import numpy as np
-from sklearn.utils import resample
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 
+from .desparsified_lasso import desparsified_group_lasso, desparsified_lasso
 from .stat_tools import pval_from_cb
-from .desparsified_lasso import desparsified_lasso, desparsified_group_lasso
 
 
 def _subsampling(n_samples, train_size, groups=None, seed=0):
@@ -13,16 +13,24 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
     if groups is None:
 
         n_subsamples = int(n_samples * train_size)
-        train_index = resample(np.arange(n_samples), n_samples=n_subsamples,
-                               replace=False, random_state=seed)
+        train_index = resample(
+            np.arange(n_samples),
+            n_samples=n_subsamples,
+            replace=False,
+            random_state=seed,
+        )
 
     else:
 
         unique_groups = np.unique(groups)
         n_groups = unique_groups.size
         n_subsample_groups = int(n_groups * train_size)
-        train_group = resample(unique_groups, n_samples=n_subsample_groups,
-                               replace=False, random_state=seed)
+        train_group = resample(
+            unique_groups,
+            n_samples=n_subsample_groups,
+            replace=False,
+            random_state=seed,
+        )
         train_index = np.arange(n_samples)[np.isin(groups, train_group)]
 
     return train_index
@@ -64,7 +72,7 @@ def hd_inference(X, y, method, n_jobs=1, memory=None, verbose=0, **kwargs):
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -89,29 +97,37 @@ def hd_inference(X, y, method, n_jobs=1, memory=None, verbose=0, **kwargs):
         One minus the p-value corrected for multiple testing.
     """
 
-    if method == 'desparsified-lasso':
+    if method == "desparsified-lasso":
 
-        beta_hat, cb_min, cb_max = \
-            desparsified_lasso(X, y, confidence=0.95, n_jobs=n_jobs,
-                               memory=memory, verbose=verbose, **kwargs)
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-            pval_from_cb(cb_min, cb_max, confidence=0.95)
+        beta_hat, cb_min, cb_max = desparsified_lasso(
+            X,
+            y,
+            confidence=0.95,
+            n_jobs=n_jobs,
+            memory=memory,
+            verbose=verbose,
+            **kwargs,
+        )
+        pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
+            cb_min, cb_max, confidence=0.95
+        )
 
-    elif method == 'desparsified-group-lasso':
+    elif method == "desparsified-group-lasso":
 
-        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-            desparsified_group_lasso(X, y, n_jobs=n_jobs, memory=memory,
-                                     verbose=verbose, **kwargs)
+        beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+            desparsified_group_lasso(
+                X, y, n_jobs=n_jobs, memory=memory, verbose=verbose, **kwargs
+            )
+        )
 
     else:
 
-        raise ValueError('Unknow method')
+        raise ValueError("Unknown method")
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def _degrouping(ward, beta_hat, pval, pval_corr,
-                one_minus_pval, one_minus_pval_corr):
+def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr):
     """Assigning cluster-wise stats to features contained in the corresponding
     cluster and rescaling estimated parameter"""
 
@@ -139,16 +155,33 @@ def _degrouping(ward, beta_hat, pval, pval_corr,
 
         for i in range(n_times):
 
-            beta_hat_degrouped[:, i] = \
+            beta_hat_degrouped[:, i] = (
                 ward.inverse_transform(beta_hat[:, i]) / clusters_size
+            )
 
-    return (beta_hat_degrouped, pval_degrouped, pval_corr_degrouped,
-            one_minus_pval_degrouped, one_minus_pval_corr_degrouped)
+    return (
+        beta_hat_degrouped,
+        pval_degrouped,
+        pval_corr_degrouped,
+        one_minus_pval_degrouped,
+        one_minus_pval_corr_degrouped,
+    )
 
 
-def clustered_inference(X_init, y, ward, n_clusters, train_size=1.0,
-                        groups=None, method='desparsified-lasso', seed=0,
-                        n_jobs=1, memory=None, verbose=1, **kwargs):
+def clustered_inference(
+    X_init,
+    y,
+    ward,
+    n_clusters,
+    train_size=1.0,
+    groups=None,
+    method="desparsified-lasso",
+    seed=0,
+    n_jobs=1,
+    memory=None,
+    verbose=1,
+    **kwargs,
+):
     """Clustered inference algorithm
 
     Parameters
@@ -194,7 +227,7 @@ def clustered_inference(X_init, y, ward, n_clusters, train_size=1.0,
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -231,8 +264,10 @@ def clustered_inference(X_init, y, ward, n_clusters, train_size=1.0,
 
     if verbose > 0:
 
-        print(f'Clustered inference: n_clusters = {n_clusters}, ' +
-              f'inference method = {method}, seed = {seed}')
+        print(
+            f"Clustered inference: n_clusters = {n_clusters}, "
+            + f"inference method = {method}, seed = {seed}"
+        )
 
     # Sampling
     train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
@@ -245,12 +280,13 @@ def clustered_inference(X_init, y, ward, n_clusters, train_size=1.0,
     y = y - np.mean(y)
 
     # Inference: computing reduced parameter vector and stats
-    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = \
-        hd_inference(X, y, method, n_jobs=n_jobs, memory=memory, **kwargs)
+    beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_ = hd_inference(
+        X, y, method, n_jobs=n_jobs, memory=memory, **kwargs
+    )
 
     # De-grouping
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-        _degrouping(ward, beta_hat_, pval_, pval_corr_, one_minus_pval_,
-                    one_minus_pval_corr_)
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
+        ward, beta_hat_, pval_, pval_corr_, one_minus_pval_, one_minus_pval_corr_
+    )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr

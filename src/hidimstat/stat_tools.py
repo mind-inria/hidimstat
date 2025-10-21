@@ -2,14 +2,14 @@ import numpy as np
 from scipy.stats import norm
 
 
-def _replace_infinity(x, replace_val=None, method='times-two'):
+def _replace_infinity(x, replace_val=None, method="times-two"):
     """Replace infinity by large value"""
 
     largest_non_inf = np.max(np.abs(x)[np.abs(x) != np.inf])
 
-    if method == 'times-two':
+    if method == "times-two":
         replace_val_min = largest_non_inf * 2
-    elif method == 'plus-one':
+    elif method == "plus-one":
         replace_val_min = largest_non_inf + 1
 
     if (replace_val is not None) and (replace_val < largest_non_inf):
@@ -25,7 +25,7 @@ def _replace_infinity(x, replace_val=None, method='times-two'):
 
 
 def pval_corr_from_pval(one_sided_pval):
-    """Computing one-sided p-values corrrected for multiple testing
+    """Computing one-sided p-values corrected for multiple testing
     from simple testing one-sided p-values.
 
     Parameters
@@ -37,24 +37,24 @@ def pval_corr_from_pval(one_sided_pval):
     -------
     one_sided_pval_corr : ndarray, shape (n_features,)
         Corrected one-sided p-values.
-     """
+    """
 
     n_features = one_sided_pval.size
 
     one_sided_pval_corr = np.zeros(n_features) + 0.5
 
-    ind = (one_sided_pval < 0.5)
-    one_sided_pval_corr[ind] = \
-        np.minimum(one_sided_pval[ind] * n_features, 0.5)
+    ind = one_sided_pval < 0.5
+    one_sided_pval_corr[ind] = np.minimum(one_sided_pval[ind] * n_features, 0.5)
 
-    ind = (one_sided_pval > 0.5)
-    one_sided_pval_corr[ind] = \
-        np.maximum(1 - (1 - one_sided_pval[ind]) * n_features, 0.5)
+    ind = one_sided_pval > 0.5
+    one_sided_pval_corr[ind] = np.maximum(
+        1 - (1 - one_sided_pval[ind]) * n_features, 0.5
+    )
 
     return one_sided_pval_corr
 
 
-def pval_from_scale(beta, scale, distrib='norm', eps=1e-14):
+def pval_from_scale(beta, scale, distrib="norm", eps=1e-14):
     """Computing one-sided p-values from the value of the parameter
     and its scale.
 
@@ -66,7 +66,7 @@ def pval_from_scale(beta, scale, distrib='norm', eps=1e-14):
     scale : ndarray, shape (n_features,)
         Value of the standard deviation of the parameters.
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -97,12 +97,12 @@ def pval_from_scale(beta, scale, distrib='norm', eps=1e-14):
     pval = np.zeros(n_features) + 0.5
     one_minus_pval = np.zeros(n_features) + 0.5
 
-    if distrib == 'norm':
+    if distrib == "norm":
 
-        pval[index_no_nan] = \
-            norm.sf(beta[index_no_nan], scale=scale[index_no_nan])
-        one_minus_pval[index_no_nan] = \
-            norm.cdf(beta[index_no_nan], scale=scale[index_no_nan])
+        pval[index_no_nan] = norm.sf(beta[index_no_nan], scale=scale[index_no_nan])
+        one_minus_pval[index_no_nan] = norm.cdf(
+            beta[index_no_nan], scale=scale[index_no_nan]
+        )
 
     pval[pval > 1 - eps] = 1 - eps
     pval_corr = pval_corr_from_pval(pval)
@@ -113,7 +113,7 @@ def pval_from_scale(beta, scale, distrib='norm', eps=1e-14):
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def zscore_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
+def zscore_from_cb(cb_min, cb_max, confidence=0.95, distrib="norm"):
     """Computing z-scores from confidence intervals.
 
     Parameters
@@ -128,7 +128,7 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -138,7 +138,7 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
         z-scores.
     """
 
-    if distrib == 'norm':
+    if distrib == "norm":
         quantile = norm.ppf(1 - (1 - confidence) / 2)
 
     beta_hat = (cb_min + cb_max) / 2
@@ -148,7 +148,7 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
     return zscore
 
 
-def pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm', eps=1e-14):
+def pval_from_cb(cb_min, cb_max, confidence=0.95, distrib="norm", eps=1e-14):
     """Computing one-sided p-values from confidence intervals.
 
     Parameters
@@ -163,7 +163,7 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm', eps=1e-14):
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -187,10 +187,9 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm', eps=1e-14):
         One minus the p-value corrected for multiple testing.
     """
 
-    zscore = \
-        zscore_from_cb(cb_min, cb_max, confidence=confidence, distrib=distrib)
+    zscore = zscore_from_cb(cb_min, cb_max, confidence=confidence, distrib=distrib)
 
-    if distrib == 'norm':
+    if distrib == "norm":
 
         pval = norm.sf(zscore)
         one_minus_pval = norm.cdf(zscore)
@@ -204,7 +203,7 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm', eps=1e-14):
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def two_sided_pval_from_zscore(zscore, distrib='norm'):
+def two_sided_pval_from_zscore(zscore, distrib="norm"):
     """Computing two-sided p-values from z-scores.
 
     Parameters
@@ -212,7 +211,7 @@ def two_sided_pval_from_zscore(zscore, distrib='norm'):
     zscore : ndarray, shape (n_features,)
         z-scores.
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -226,7 +225,7 @@ def two_sided_pval_from_zscore(zscore, distrib='norm'):
     """
     n_features = zscore.size
 
-    if distrib == 'norm':
+    if distrib == "norm":
         two_sided_pval = 2 * norm.sf(np.abs(zscore))
 
     two_sided_pval_corr = np.minimum(1, two_sided_pval * n_features)
@@ -234,7 +233,7 @@ def two_sided_pval_from_zscore(zscore, distrib='norm'):
     return two_sided_pval, two_sided_pval_corr
 
 
-def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
+def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distrib="norm"):
     """Computing two-sided p-values from confidence intervals.
 
     Parameters
@@ -249,7 +248,7 @@ def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
         Confidence level used to compute the confidence intervals.
         Each value should be in the range [0, 1].
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -261,16 +260,16 @@ def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distrib='norm'):
     two_sided_pval_corr : ndarray, shape (n_features,)
         Two-sided p-values corrected for multiple testing.
     """
-    zscore = \
-        zscore_from_cb(cb_min, cb_max, confidence=confidence, distrib=distrib)
+    zscore = zscore_from_cb(cb_min, cb_max, confidence=confidence, distrib=distrib)
 
-    two_sided_pval, two_sided_pval_corr = \
-        two_sided_pval_from_zscore(zscore, distrib=distrib)
+    two_sided_pval, two_sided_pval_corr = two_sided_pval_from_zscore(
+        zscore, distrib=distrib
+    )
 
     return two_sided_pval, two_sided_pval_corr
 
 
-def zscore_from_pval(pval, one_minus_pval=None, distrib='norm'):
+def zscore_from_pval(pval, one_minus_pval=None, distrib="norm"):
     """Computing z-scores from one-sided p-values.
 
     Parameters
@@ -283,7 +282,7 @@ def zscore_from_pval(pval, one_minus_pval=None, distrib='norm'):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -293,22 +292,21 @@ def zscore_from_pval(pval, one_minus_pval=None, distrib='norm'):
         z-scores.
     """
 
-    if distrib == 'norm':
+    if distrib == "norm":
 
         zscore = norm.isf(pval)
 
         if one_minus_pval is not None:
 
-            ind = (pval > 0.5)
+            ind = pval > 0.5
             zscore[ind] = norm.ppf(one_minus_pval[ind])
 
-    zscore = _replace_infinity(zscore, replace_val=40, method='plus-one')
+    zscore = _replace_infinity(zscore, replace_val=40, method="plus-one")
 
     return zscore
 
 
-def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign,
-                                      eps=1e-14):
+def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14):
     """Computing one-sided p-values from two-sided p-value and parameter sign.
 
     Parameters
@@ -347,10 +345,8 @@ def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign,
     pval[parameter_sign > 0] = two_sided_pval[parameter_sign > 0] / 2
     pval[parameter_sign < 0] = 1 - two_sided_pval[parameter_sign < 0] / 2
 
-    one_minus_pval[parameter_sign > 0] = \
-        1 - two_sided_pval[parameter_sign > 0] / 2
-    one_minus_pval[parameter_sign < 0] = \
-        two_sided_pval[parameter_sign < 0] / 2
+    one_minus_pval[parameter_sign > 0] = 1 - two_sided_pval[parameter_sign > 0] / 2
+    one_minus_pval[parameter_sign < 0] = two_sided_pval[parameter_sign < 0] / 2
 
     pval[pval > 1 - eps] = 1 - eps
     pval_corr = pval_corr_from_pval(pval)
@@ -361,7 +357,7 @@ def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign,
     return pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib='norm'):
+def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib="norm"):
     """Computing two-sided p-value from one-sided p-values.
 
     Parameters
@@ -374,7 +370,7 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib='norm'):
         One minus the p-value, with numerically accurate values
         for negative effects (ie., for p-value close to one).
 
-    distrib : str, opitonal (default='norm')
+    distrib : str, optional (default='norm')
         Type of distribution assumed for the underlying estimator.
         'norm' means normal and is the only value accepted at the moment.
 
@@ -389,7 +385,8 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distrib='norm'):
 
     zscore = zscore_from_pval(pval, one_minus_pval, distrib=distrib)
 
-    two_sided_pval, two_sided_pval_corr = \
-        two_sided_pval_from_zscore(zscore, distrib=distrib)
+    two_sided_pval, two_sided_pval_corr = two_sided_pval_from_zscore(
+        zscore, distrib=distrib
+    )
 
     return two_sided_pval, two_sided_pval_corr

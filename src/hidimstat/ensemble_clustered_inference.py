@@ -1,12 +1,19 @@
 import numpy as np
 from joblib import Parallel, delayed
 
-from .multi_sample_split import aggregate_medians, aggregate_quantiles
 from .clustered_inference import clustered_inference
+from .multi_sample_split import aggregate_medians, aggregate_quantiles
 
 
-def _ensembling(list_beta_hat, list_pval, list_pval_corr, list_one_minus_pval,
-                list_one_minus_pval_corr, method='quantiles', gamma_min=0.2):
+def _ensembling(
+    list_beta_hat,
+    list_pval,
+    list_pval_corr,
+    list_one_minus_pval,
+    list_one_minus_pval_corr,
+    method="quantiles",
+    gamma_min=0.2,
+):
 
     beta_hat = np.asarray(list_beta_hat)
     list_pval = np.asarray(list_pval)
@@ -16,15 +23,14 @@ def _ensembling(list_beta_hat, list_pval, list_pval_corr, list_one_minus_pval,
 
     beta_hat = np.mean(list_beta_hat, axis=0)
 
-    if method == 'quantiles':
+    if method == "quantiles":
 
         pval = aggregate_quantiles(list_pval, gamma_min)
         pval_corr = aggregate_quantiles(list_pval_corr, gamma_min)
         one_minus_pval = aggregate_quantiles(list_one_minus_pval, gamma_min)
-        one_minus_pval_corr = \
-            aggregate_quantiles(list_one_minus_pval_corr, gamma_min)
+        one_minus_pval_corr = aggregate_quantiles(list_one_minus_pval_corr, gamma_min)
 
-    elif method == 'medians':
+    elif method == "medians":
 
         pval = aggregate_medians(list_pval)
         pval_corr = aggregate_medians(list_pval_corr)
@@ -38,12 +44,23 @@ def _ensembling(list_beta_hat, list_pval, list_pval_corr, list_one_minus_pval,
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
 
-def ensemble_clustered_inference(X_init, y, ward, n_clusters,
-                                 train_size=0.3, groups=None,
-                                 inference_method='desparsified-lasso',
-                                 seed=0, ensembling_method='quantiles',
-                                 gamma_min=0.2, n_bootstraps=25, n_jobs=1,
-                                 memory=None, verbose=1, **kwargs):
+def ensemble_clustered_inference(
+    X_init,
+    y,
+    ward,
+    n_clusters,
+    train_size=0.3,
+    groups=None,
+    inference_method="desparsified-lasso",
+    seed=0,
+    ensembling_method="quantiles",
+    gamma_min=0.2,
+    n_bootstraps=25,
+    n_jobs=1,
+    memory=None,
+    verbose=1,
+    **kwargs,
+):
     """Ensemble clustered inference algorithm
 
     Parameters
@@ -103,7 +120,7 @@ def ensemble_clustered_inference(X_init, y, ward, n_clusters,
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -135,17 +152,29 @@ def ensemble_clustered_inference(X_init, y, ward, n_clusters,
     """
 
     if memory is not None and not isinstance(memory, str):
-        raise ValueError("'memory' must be None or a string corresponding " +
-                         "to the path of the caching directory.")
+        raise ValueError(
+            "'memory' must be None or a string corresponding "
+            + "to the path of the caching directory."
+        )
 
     # Clustered inference algorithms
     results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(clustered_inference)(X_init, y, ward, n_clusters,
-                                     train_size=train_size, groups=groups,
-                                     method=inference_method, seed=i,
-                                     n_jobs=1, memory=memory,
-                                     verbose=verbose, **kwargs)
-        for i in np.arange(seed, seed + n_bootstraps))
+        delayed(clustered_inference)(
+            X_init,
+            y,
+            ward,
+            n_clusters,
+            train_size=train_size,
+            groups=groups,
+            method=inference_method,
+            seed=i,
+            n_jobs=1,
+            memory=memory,
+            verbose=verbose,
+            **kwargs,
+        )
+        for i in np.arange(seed, seed + n_bootstraps)
+    )
 
     # Collecting results
     list_beta_hat = []
@@ -161,9 +190,14 @@ def ensemble_clustered_inference(X_init, y, ward, n_clusters,
         list_one_minus_pval_corr.append(results[i][4])
 
     # Ensembling
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
-        _ensembling(list_beta_hat, list_pval, list_pval_corr,
-                    list_one_minus_pval, list_one_minus_pval_corr,
-                    method=ensembling_method, gamma_min=gamma_min)
+    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _ensembling(
+        list_beta_hat,
+        list_pval,
+        list_pval_corr,
+        list_one_minus_pval,
+        list_one_minus_pval_corr,
+        method=ensembling_method,
+        gamma_min=gamma_min,
+    )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr

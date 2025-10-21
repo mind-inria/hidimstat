@@ -1,33 +1,35 @@
 import numpy as np
+from joblib import Parallel, delayed
 from numpy.linalg import multi_dot
 from scipy import stats
 from scipy.linalg import inv
-from joblib import Parallel, delayed
-from sklearn.utils.validation import check_memory
 from sklearn.linear_model import Lasso
+from sklearn.utils.validation import check_memory
 
-from .noise_std import reid, group_reid
+from .noise_std import group_reid, reid
 from .stat_tools import pval_from_two_sided_pval_and_sign
 
 
-def _compute_all_residuals(X, alphas, gram, max_iter=5000, tol=1e-3,
-                           method='lasso', n_jobs=1, verbose=0):
+def _compute_all_residuals(
+    X, alphas, gram, max_iter=5000, tol=1e-3, method="lasso", n_jobs=1, verbose=0
+):
     """Nodewise Lasso. Compute all the residuals: regressing each column of the
     design matrix against the other columns"""
 
     n_samples, n_features = X.shape
 
-    results = \
-        Parallel(n_jobs=n_jobs, verbose=verbose)(
-            delayed(_compute_residuals)
-                (X=X,
-                 column_index=i,
-                 alpha=alphas[i],
-                 gram=gram,
-                 max_iter=max_iter,
-                 tol=tol,
-                 method=method)
-            for i in range(n_features))
+    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
+        delayed(_compute_residuals)(
+            X=X,
+            column_index=i,
+            alpha=alphas[i],
+            gram=gram,
+            max_iter=max_iter,
+            tol=tol,
+            method=method,
+        )
+        for i in range(n_features)
+    )
 
     results = np.asarray(results)
     Z = np.stack(results[:, 0], axis=1)
@@ -36,8 +38,9 @@ def _compute_all_residuals(X, alphas, gram, max_iter=5000, tol=1e-3,
     return Z, omega_diag
 
 
-def _compute_residuals(X, column_index, alpha, gram, max_iter=5000,
-                       tol=1e-3, method='lasso'):
+def _compute_residuals(
+    X, column_index, alpha, gram, max_iter=5000, tol=1e-3, method="lasso"
+):
     """Compute the residuals of the regression of a given column of the
     design matrix against the other columns"""
 
@@ -47,7 +50,7 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000,
     X_new = np.delete(X, i, axis=1)
     y = np.copy(X[:, i])
 
-    if method == 'lasso':
+    if method == "lasso":
 
         gram_ = np.delete(np.delete(gram, i, axis=0), i, axis=1)
         clf = Lasso(alpha=alpha, precompute=gram_, max_iter=max_iter, tol=tol)
@@ -59,16 +62,24 @@ def _compute_residuals(X, column_index, alpha, gram, max_iter=5000,
     clf.fit(X_new, y)
     z = y - clf.predict(X_new)
 
-    omega_diag_i = n_samples * np.sum(z ** 2) / np.dot(y, z) ** 2
+    omega_diag_i = n_samples * np.sum(z**2) / np.dot(y, z) ** 2
 
     return z, omega_diag_i
 
 
-def desparsified_lasso(X, y, dof_ajdustement=False,
-                       confidence=0.95, max_iter=5000, tol=1e-3,
-                       residual_method='lasso', alpha_max_fraction=0.01,
-                       n_jobs=1, memory=None, verbose=0):
-
+def desparsified_lasso(
+    X,
+    y,
+    dof_ajdustement=False,
+    confidence=0.95,
+    max_iter=5000,
+    tol=1e-3,
+    residual_method="lasso",
+    alpha_max_fraction=0.01,
+    n_jobs=1,
+    memory=None,
+    verbose=0,
+):
     """Desparsified Lasso with confidence intervals
 
     Parameters
@@ -80,7 +91,7 @@ def desparsified_lasso(X, y, dof_ajdustement=False,
         Target.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, makes the degrees of freedom adjustement (cf. [4]_ and [5]_).
+        If True, makes the degrees of freedom adjustment (cf. [4]_ and [5]_).
         Otherwise, the original Desparsified Lasso estimator is computed
         (cf. [1]_ and [2]_ and [3]_).
 
@@ -115,7 +126,7 @@ def desparsified_lasso(X, y, dof_ajdustement=False,
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
+        when computing the Nodewise Lasso in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns
@@ -135,7 +146,7 @@ def desparsified_lasso(X, y, dof_ajdustement=False,
     the intercepts of the Nodewise Lasso problems are all equal to zero
     and the intercept of the noise model is also equal to zero. Since
     the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
+    the consideration of unnecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
 
@@ -177,14 +188,21 @@ def desparsified_lasso(X, y, dof_ajdustement=False,
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=['n_jobs'])(
-        X, alphas, gram, max_iter=max_iter, tol=tol,
-        method=residual_method, n_jobs=n_jobs, verbose=verbose)
+    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=["n_jobs"])(
+        X,
+        alphas,
+        gram,
+        max_iter=max_iter,
+        tol=tol,
+        method=residual_method,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     # Lasso regression
     sigma_hat, beta_lasso = reid(X, y, n_jobs=n_jobs)
 
-    # Computing the degrees of freedom adjustement
+    # Computing the degrees of freedom adjustment
     if dof_ajdustement:
         coef_max = np.max(np.abs(beta_lasso))
         support = np.sum(np.abs(beta_lasso) > 0.01 * coef_max)
@@ -203,23 +221,35 @@ def desparsified_lasso(X, y, dof_ajdustement=False,
 
     beta_hat = beta_bias - P_nodiag.dot(beta_lasso)
 
-    omega_diag = omega_diag * dof_factor ** 2
+    omega_diag = omega_diag * dof_factor**2
     omega_invsqrt_diag = omega_diag ** (-0.5)
 
     quantile = stats.norm.ppf(1 - (1 - confidence) / 2)
 
-    confint_radius = np.abs(quantile * sigma_hat /
-                            (np.sqrt(n_samples) * omega_invsqrt_diag))
+    confint_radius = np.abs(
+        quantile * sigma_hat / (np.sqrt(n_samples) * omega_invsqrt_diag)
+    )
     cb_max = beta_hat + confint_radius
     cb_min = beta_hat - confint_radius
 
     return beta_hat, cb_min, cb_max
 
 
-def desparsified_group_lasso(X, Y, cov=None, test='chi2',
-                             max_iter=5000, tol=1e-3, residual_method='lasso',
-                             alpha_max_fraction=0.01, noise_method='AR',
-                             order=1, n_jobs=1, memory=None, verbose=0):
+def desparsified_group_lasso(
+    X,
+    Y,
+    cov=None,
+    test="chi2",
+    max_iter=5000,
+    tol=1e-3,
+    residual_method="lasso",
+    alpha_max_fraction=0.01,
+    noise_method="AR",
+    order=1,
+    n_jobs=1,
+    memory=None,
+    verbose=0,
+):
     """Desparsified Group Lasso
 
     Parameters
@@ -277,7 +307,7 @@ def desparsified_group_lasso(X, Y, cov=None, test='chi2',
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
+        when computing the Nodewise Lasso in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns
@@ -304,7 +334,7 @@ def desparsified_group_lasso(X, Y, cov=None, test='chi2',
     that the intercepts of the Nodewise Lasso problems are all equal to zero
     and the intercept of the noise model is also equal to zero. Since
     the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
+    the consideration of unnecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
 
@@ -324,8 +354,10 @@ def desparsified_group_lasso(X, Y, cov=None, test='chi2',
     memory = check_memory(memory)
 
     if cov is not None and cov.shape != (n_times, n_times):
-        raise ValueError(f'Shape of "cov" should be ({n_times}, {n_times}),' +
-                         f' the shape of "cov" was ({cov.shape}) instead')
+        raise ValueError(
+            f'Shape of "cov" should be ({n_times}, {n_times}),'
+            + f' the shape of "cov" was ({cov.shape}) instead'
+        )
 
     Y = Y - np.mean(Y)
     X = X - np.mean(X, axis=0)
@@ -336,13 +368,21 @@ def desparsified_group_lasso(X, Y, cov=None, test='chi2',
     alphas = alpha_max_fraction * list_alpha_max
 
     # Calculating precision matrix (Nodewise Lasso)
-    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=['n_jobs'])(
-        X, alphas, gram, max_iter=max_iter, tol=tol,
-        method=residual_method, n_jobs=n_jobs, verbose=verbose)
+    Z, omega_diag = memory.cache(_compute_all_residuals, ignore=["n_jobs"])(
+        X,
+        alphas,
+        gram,
+        max_iter=max_iter,
+        tol=tol,
+        method=residual_method,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     # Group Lasso regression
-    cov_hat, beta_mtl = \
-        group_reid(X, Y, method=noise_method, order=order, n_jobs=n_jobs)
+    cov_hat, beta_mtl = group_reid(
+        X, Y, method=noise_method, order=order, n_jobs=n_jobs
+    )
 
     if cov is not None:
         cov_hat = cov
@@ -360,23 +400,23 @@ def desparsified_group_lasso(X, Y, cov=None, test='chi2',
 
     beta_hat = beta_bias - P_nodiag.dot(beta_mtl)
 
-    if test == 'chi2':
+    if test == "chi2":
 
-        chi2_scores = \
-            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
-        two_sided_pval = \
-            np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
+        chi2_scores = np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag
+        two_sided_pval = np.minimum(2 * stats.chi2.sf(chi2_scores, df=n_times), 1.0)
 
-    if test == 'F':
+    if test == "F":
 
-        f_scores = (np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) /
-                    omega_diag / n_times)
-        two_sided_pval = \
-            np.minimum(2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times),
-                       1.0)
+        f_scores = (
+            np.diag(multi_dot([beta_hat, theta_hat, beta_hat.T])) / omega_diag / n_times
+        )
+        two_sided_pval = np.minimum(
+            2 * stats.f.sf(f_scores, dfd=n_samples, dfn=n_times), 1.0
+        )
 
     sign_beta = np.sign(np.sum(beta_hat, axis=1))
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = \
+    pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         pval_from_two_sided_pval_and_sign(two_sided_pval, sign_beta)
+    )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr

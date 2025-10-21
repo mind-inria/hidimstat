@@ -10,15 +10,25 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
-from .gaussian_knockoff import (_estimate_distribution,
-                                gaussian_knockoff_generation)
+from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
 from .stat_coef_diff import _coef_diff_threshold, stat_coef_diff
 
 
-def model_x_knockoff(X, y, fdr=0.1, offset=1, method='equi',
-                     statistics='lasso_cv', shrink=False, centered=True,
-                     cov_estimator='ledoit_wolf', verbose=False, memory=None,
-                     n_jobs=1, seed=None):
+def model_x_knockoff(
+    X,
+    y,
+    fdr=0.1,
+    offset=1,
+    method="equi",
+    statistics="lasso_cv",
+    shrink=False,
+    centered=True,
+    cov_estimator="ledoit_wolf",
+    verbose=False,
+    memory=None,
+    n_jobs=1,
+    seed=None,
+):
     """Model-X Knockoff inference procedure to control False Discoveries Rate,
     based on Candes et. al. (2016)
 
@@ -75,14 +85,14 @@ def model_x_knockoff(X, y, fdr=0.1, offset=1, method='equi',
     if centered:
         X = StandardScaler().fit_transform(X)
 
-    mu, Sigma = _estimate_distribution(
-        X, shrink=shrink, cov_estimator=cov_estimator)
+    mu, Sigma = _estimate_distribution(X, shrink=shrink, cov_estimator=cov_estimator)
 
-    X_tilde = gaussian_knockoff_generation(X, mu, Sigma, memory=memory,
-                                           method=method, seed=seed)
-    test_score = memory.cache(
-        stat_coef_diff, ignore=['n_jobs', 'joblib_verbose'])(
-        X, X_tilde, y, method=statistics, n_jobs=n_jobs)
+    X_tilde = gaussian_knockoff_generation(
+        X, mu, Sigma, memory=memory, method=method, seed=seed
+    )
+    test_score = memory.cache(stat_coef_diff, ignore=["n_jobs", "joblib_verbose"])(
+        X, X_tilde, y, method=statistics, n_jobs=n_jobs
+    )
     thres = _coef_diff_threshold(test_score, fdr=fdr, offset=offset)
 
     selected = np.where(test_score >= thres)[0]

@@ -13,7 +13,7 @@ discriminative pattern that makes the decoding of the two conditions.
 In this example, we show that standard statistical methods (i.e., method
 such as thresholding by permutation test the SVR or Ridge decoder or the
 algorithm introduced by Gaonkar et al. [1]_) are not powerful when applied on
-the uncompressed problem (i.e., the orignal problem in which the activation
+the uncompressed problem (i.e., the original problem in which the activation
 maps are not reduced using compression techniques such as parcellation).
 This is notably due to the high dimensionality (too many voxels) and
 structure of the data (too much correlation between neighboring voxels).
@@ -45,28 +45,28 @@ References
 # ------------------------------
 import numpy as np
 import pandas as pd
-from sklearn.utils import Bunch
+from nilearn import datasets
+from nilearn.image import mean_img
+from nilearn.input_data import NiftiMasker
+from nilearn.plotting import plot_stat_map, show
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import Ridge
-from nilearn import datasets
-from nilearn.input_data import NiftiMasker
-from nilearn.image import mean_img
-from nilearn.plotting import plot_stat_map, show
+from sklearn.utils import Bunch
 
-from hidimstat.stat_tools import zscore_from_pval, pval_from_scale
-from hidimstat.standardized_svr import standardized_svr
-from hidimstat.permutation_test import permutation_test, permutation_test_cv
 from hidimstat.adaptive_permutation_threshold import ada_svr
 from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
+from hidimstat.permutation_test import permutation_test, permutation_test_cv
+from hidimstat.standardized_svr import standardized_svr
+from hidimstat.stat_tools import pval_from_scale, zscore_from_pval
 
 
 #############################################################################
 # Function to fetch and preprocess Haxby dataset
 # ----------------------------------------------
 def preprocess_haxby(subject=2, memory=None):
-    '''Gathering and preprocessing Haxby dataset for a given subject.'''
+    """Gathering and preprocessing Haxby dataset for a given subject."""
 
     # Gathering data
     haxby_dataset = datasets.fetch_haxby(subjects=[subject])
@@ -75,10 +75,10 @@ def preprocess_haxby(subject=2, memory=None):
     behavioral = pd.read_csv(haxby_dataset.session_target[0], sep=" ")
 
     # conditions = pd.DataFrame.to_numpy(behavioral['labels'])
-    conditions = behavioral['labels'].values
-    session_label = behavioral['chunks'].values
+    conditions = behavioral["labels"].values
+    session_label = behavioral["chunks"].values
 
-    condition_mask = np.logical_or(conditions == 'face', conditions == 'house')
+    condition_mask = np.logical_or(conditions == "face", conditions == "house")
     groups = session_label[condition_mask]
 
     # Loading anatomical image (back-ground image)
@@ -88,12 +88,13 @@ def preprocess_haxby(subject=2, memory=None):
         bg_img = mean_img(haxby_dataset.anat)
 
     # Building target where '1' corresponds to 'face' and '-1' to 'house'
-    y = np.asarray((conditions[condition_mask] == 'face') * 2 - 1)
+    y = np.asarray((conditions[condition_mask] == "face") * 2 - 1)
 
     # Loading mask
     mask_img = haxby_dataset.mask
-    masker = NiftiMasker(mask_img=mask_img, standardize=True,
-                         smoothing_fwhm=None, memory=memory)
+    masker = NiftiMasker(
+        mask_img=mask_img, standardize=True, smoothing_fwhm=None, memory=memory
+    )
 
     # Computing masked data
     fmri_masked = masker.fit_transform(fmri_filename)
@@ -151,16 +152,18 @@ pval_std_svr, _, one_minus_pval_std_svr, _ = pval_from_scale(beta_hat, scale)
 SVR_permutation_test_inference = False
 if SVR_permutation_test_inference:
     # We computed the regularization parameter by CV (C = 0.1)
-    pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = \
-        permutation_test_cv(X, y, n_permutations=50, C=0.1)
+    pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test = permutation_test_cv(
+        X, y, n_permutations=50, C=0.1
+    )
 
 # Another method is to compute the p-values by permutation test from the
 # Ridge decoder. The solution provided by this method should be very close to
 # the previous one and the computation time is much shorter: around 20 seconds.
 
 estimator = Ridge()
-pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = \
-    permutation_test(X, y, estimator=estimator, n_permutations=200)
+pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test = permutation_test(
+    X, y, estimator=estimator, n_permutations=200
+)
 
 #############################################################################
 # Now, let us run the algorithm introduced by Gaonkar et al. (c.f. References).
@@ -173,8 +176,9 @@ pval_ada_svr, _, one_minus_pval_ada_svr, _ = pval_from_scale(beta_hat, scale)
 #############################################################################
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = \
-    clustered_inference(X, y, ward, n_clusters)
+beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference(
+    X, y, ward, n_clusters
+)
 
 #############################################################################
 # Below, we run the ensemble clustered inference algorithm which adds a
@@ -184,9 +188,9 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = \
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=2`.
-beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = \
-    ensemble_clustered_inference(X, y, ward, n_clusters, groups=groups,
-                                 n_bootstraps=5, n_jobs=2)
+beta_hat, pval_ecdl, _, one_minus_pval_ecdl, _ = ensemble_clustered_inference(
+    X, y, ward, n_clusters, groups=groups, n_bootstraps=5, n_jobs=2
+)
 
 #############################################################################
 # Plotting the results
@@ -213,14 +217,14 @@ zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
 # For methods that do not reduce the feature space, the correction
 # consists in dividing by the number of features.
 
-correction = 1. / n_features
+correction = 1.0 / n_features
 zscore_threshold_no_clust = zscore_from_pval((target_fwer / 2) * correction)
 
 #############################################################################
 # For methods that parcelates the brain into groups of voxels, the correction
 # consists in dividing by the number of parcels (or clusters).
 
-correction_clust = 1. / n_clusters
+correction_clust = 1.0 / n_clusters
 zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
 #############################################################################
@@ -230,31 +234,60 @@ zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 # called `plot_map` that wraps all these steps.
 
 
-def plot_map(pval, one_minus_pval, zscore_threshold, title=None,
-             cut_coords=[-25, -40, -5], masker=masker, bg_img=data.bg_img):
+def plot_map(
+    pval,
+    one_minus_pval,
+    zscore_threshold,
+    title=None,
+    cut_coords=[-25, -40, -5],
+    masker=masker,
+    bg_img=data.bg_img,
+):
 
     zscore = zscore_from_pval(pval, one_minus_pval)
     zscore_img = masker.inverse_transform(zscore)
-    plot_stat_map(zscore_img, threshold=zscore_threshold, bg_img=bg_img,
-                  dim=-1, cut_coords=cut_coords, title=title)
+    plot_stat_map(
+        zscore_img,
+        threshold=zscore_threshold,
+        bg_img=bg_img,
+        dim=-1,
+        cut_coords=cut_coords,
+        title=title,
+    )
 
 
-plot_map(pval_std_svr, one_minus_pval_std_svr, zscore_threshold_no_clust,
-         title='SVR parametric threshold')
+plot_map(
+    pval_std_svr,
+    one_minus_pval_std_svr,
+    zscore_threshold_no_clust,
+    title="SVR parametric threshold",
+)
 
 if SVR_permutation_test_inference:
-    plot_map(pval_corr_svr_perm_test, one_minus_pval_corr_svr_perm_test,
-             zscore_threshold_corr, title='SVR permutation-test thresh.')
+    plot_map(
+        pval_corr_svr_perm_test,
+        one_minus_pval_corr_svr_perm_test,
+        zscore_threshold_corr,
+        title="SVR permutation-test thresh.",
+    )
 
-plot_map(pval_corr_ridge_perm_test, one_minus_pval_corr_ridge_perm_test,
-         zscore_threshold_corr, title='Ridge permutation-test thresh.')
+plot_map(
+    pval_corr_ridge_perm_test,
+    one_minus_pval_corr_ridge_perm_test,
+    zscore_threshold_corr,
+    title="Ridge permutation-test thresh.",
+)
 
-plot_map(pval_ada_svr, one_minus_pval_ada_svr, zscore_threshold_no_clust,
-         title='SVR adaptive perm. tresh.')
+plot_map(
+    pval_ada_svr,
+    one_minus_pval_ada_svr,
+    zscore_threshold_no_clust,
+    title="SVR adaptive perm. tresh.",
+)
 
-plot_map(pval_cdl, one_minus_pval_cdl, zscore_threshold_clust, 'CluDL')
+plot_map(pval_cdl, one_minus_pval_cdl, zscore_threshold_clust, "CluDL")
 
-plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, 'EnCluDL')
+plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 
 #############################################################################
 # Analysis of the results
@@ -267,7 +300,7 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, 'EnCluDL')
 # isolated voxels are discovered, which seems quite spurious.
 # The discriminative pattern derived from the clustered inference algorithm
 # (CluDL) show that the method is less conservative.
-# However, some reasonable paterns are also included in this solution.
+# However, some reasonable patterns are also included in this solution.
 # Finally, the solution provided by the ensemble clustered inference algorithm
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.

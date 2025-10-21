@@ -2,16 +2,29 @@
 # Authors: Binh Nguyen <tuan-binh.nguyen@inria.fr>
 
 import numpy as np
-from sklearn.linear_model import (LassoCV, LogisticRegressionCV)
+from sklearn.linear_model import LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
+
 # from sklearn.linear_model._coordinate_descent import _alpha_grid
 # from sklearn.model_selection import GridSearchCV
 
 
-def stat_coef_diff(X, X_tilde, y, method='lasso_cv', n_splits=5, n_jobs=1,
-                   n_lambdas=10, n_iter=1000, group_reg=1e-3, l1_reg=1e-3,
-                   joblib_verbose=0, return_coef=False, solver='liblinear',
-                   seed=0):
+def stat_coef_diff(
+    X,
+    X_tilde,
+    y,
+    method="lasso_cv",
+    n_splits=5,
+    n_jobs=1,
+    n_lambdas=10,
+    n_iter=1000,
+    group_reg=1e-3,
+    l1_reg=1e-3,
+    joblib_verbose=0,
+    return_coef=False,
+    solver="liblinear",
+    seed=0,
+):
     """Calculate test statistic by doing estimation with Cross-validation on
     concatenated design matrix [X X_tilde] to find coefficients [beta
     beta_tilda]. The test statistic is then:
@@ -60,27 +73,31 @@ def stat_coef_diff(X, X_tilde, y, method='lasso_cv', n_splits=5, n_jobs=1,
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
     lambda_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
-    lambdas = np.linspace(
-        lambda_max*np.exp(-n_lambdas), lambda_max, n_lambdas)
+    lambdas = np.linspace(lambda_max * np.exp(-n_lambdas), lambda_max, n_lambdas)
 
     cv = KFold(n_splits=5, shuffle=True, random_state=seed)
 
     estimator = {
-        'lasso_cv': LassoCV(alphas=lambdas, n_jobs=n_jobs,
-                            verbose=joblib_verbose, max_iter=1e4, cv=cv),
-        'logistic_l1': LogisticRegressionCV(
-            penalty='l1', max_iter=1e4,
-            solver=solver, cv=cv,
-            n_jobs=n_jobs, tol=1e-8),
-        'logistic_l2': LogisticRegressionCV(
-            penalty='l2', max_iter=1e4, n_jobs=n_jobs,
-            verbose=joblib_verbose, cv=cv, tol=1e-8),
+        "lasso_cv": LassoCV(
+            alphas=lambdas, n_jobs=n_jobs, verbose=joblib_verbose, max_iter=1e4, cv=cv
+        ),
+        "logistic_l1": LogisticRegressionCV(
+            penalty="l1", max_iter=1e4, solver=solver, cv=cv, n_jobs=n_jobs, tol=1e-8
+        ),
+        "logistic_l2": LogisticRegressionCV(
+            penalty="l2",
+            max_iter=1e4,
+            n_jobs=n_jobs,
+            verbose=joblib_verbose,
+            cv=cv,
+            tol=1e-8,
+        ),
     }
 
     try:
         clf = estimator[method]
     except KeyError:
-        print('{} is not a valid estimator'.format(method))
+        print("{} is not a valid estimator".format(method))
 
     clf.fit(X_ko, y)
 

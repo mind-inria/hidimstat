@@ -39,24 +39,24 @@ def ada_svr(X, y, rcond=1e-3):
     K = _manual_inverting(np.dot(X, X.T), rcond=rcond)
     sum_K = np.sum(K)
 
-    L = - np.outer(np.sum(K, axis=0), np.sum(K, axis=1)) / sum_K
+    L = -np.outer(np.sum(K, axis=0), np.sum(K, axis=1)) / sum_K
     C = np.dot(X.T, K + L)
 
     beta_hat = np.dot(C, y)
 
-    scale = np.sqrt(np.sum(C ** 2, axis=1))
+    scale = np.sqrt(np.sum(C**2, axis=1))
 
     return beta_hat, scale
 
 
 def _manual_inverting(X, rcond=1e-3, full_rank=False):
-    'Inverting taking care of low eigenvalues to increase numerical stability'
+    "Inverting taking care of low eigenvalues to increase numerical stability"
 
     X = np.asarray(X)
     n_samples, n_features = X.shape
 
     if n_samples != n_features:
-        raise ValueError('The matrix is not a square matrix')
+        raise ValueError("The matrix is not a square matrix")
 
     U, s, V = np.linalg.svd(X, full_matrices=False)
     rank = np.sum(s > rcond * s.max())

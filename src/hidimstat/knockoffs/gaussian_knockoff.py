@@ -5,13 +5,11 @@ optimization scheme following Barber et al. (2015). Requires cvxopt.
 import warnings
 
 import numpy as np
-from sklearn.covariance import (GraphicalLassoCV, empirical_covariance,
-                                ledoit_wolf)
+from sklearn.covariance import GraphicalLassoCV, empirical_covariance, ledoit_wolf
 from sklearn.utils.validation import check_memory
 
 
-def gaussian_knockoff_generation(X, mu, Sigma, method='equi', memory=None,
-                                 seed=None):
+def gaussian_knockoff_generation(X, mu, Sigma, method="equi", memory=None, seed=None):
     """Generate second-order knockoff variables using equi-correlated method.
     Reference: Candes et al. (2016), Barber et al. (2015)
 
@@ -37,11 +35,12 @@ def gaussian_knockoff_generation(X, mu, Sigma, method='equi', memory=None,
     memory = check_memory(memory)
 
     n_samples, n_features = X.shape
-    if method == 'equi':
+    if method == "equi":
         Diag_s = np.diag(_s_equi(Sigma))
     else:
-        raise ValueError('{} is not a valid knockoff '
-                         'contriction method'.format(method))
+        raise ValueError(
+            "{} is not a valid knockoff " "contriction method".format(method)
+        )
 
     Sigma_inv_s = np.linalg.solve(Sigma, Diag_s)
 
@@ -52,8 +51,9 @@ def gaussian_knockoff_generation(X, mu, Sigma, method='equi', memory=None,
     while not _is_posdef(Sigma_tilde):
         Sigma_tilde += 1e-10 * np.eye(n_features)
         warnings.warn(
-            'The conditional covariance matrix for knockoffs is not positive '
-            'definite. Adding minor positive value to the matrix.')
+            "The conditional covariance matrix for knockoffs is not positive "
+            "definite. Adding minor positive value to the matrix."
+        )
 
     rng = np.random.RandomState(seed)
     U_tilde = rng.randn(n_samples, n_features)
@@ -105,7 +105,7 @@ def _cov_to_corr(Sigma):
     return Corr_matrix
 
 
-def _estimate_distribution(X, shrink=False, cov_estimator='ledoit_wolf'):
+def _estimate_distribution(X, shrink=False, cov_estimator="ledoit_wolf"):
 
     alphas = [1e-3, 1e-2, 1e-1, 1]
 
@@ -114,16 +114,17 @@ def _estimate_distribution(X, shrink=False, cov_estimator='ledoit_wolf'):
 
     if shrink or not _is_posdef(Sigma):
 
-        if cov_estimator == 'ledoit_wolf':
+        if cov_estimator == "ledoit_wolf":
             Sigma_shrink = ledoit_wolf(X, assume_centered=True)[0]
 
-        elif cov_estimator == 'graph_lasso':
+        elif cov_estimator == "graph_lasso":
             model = GraphicalLassoCV(alphas=alphas)
             Sigma_shrink = model.fit(X).covariance_
 
         else:
-            raise ValueError('{} is not a valid covariance estimated method'
-                             .format(cov_estimator))
+            raise ValueError(
+                "{} is not a valid covariance estimated method".format(cov_estimator)
+            )
 
         return mu, Sigma_shrink
 

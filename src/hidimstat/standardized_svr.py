@@ -1,8 +1,8 @@
 import numpy as np
 from numpy.linalg import norm
-from sklearn.svm import LinearSVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVR
 
 
 def standardized_svr(X, y, Cs=np.logspace(-7, 1, 9), n_jobs=1):
@@ -34,14 +34,14 @@ def standardized_svr(X, y, Cs=np.logspace(-7, 1, 9), n_jobs=1):
 
     n_samples, n_features = X.shape
 
-    steps = [('SVR', LinearSVR())]
+    steps = [("SVR", LinearSVR())]
     pipeline = Pipeline(steps)
-    parameters = {'SVR__C': Cs}
+    parameters = {"SVR__C": Cs}
 
     grid = GridSearchCV(pipeline, param_grid=parameters, n_jobs=n_jobs)
     grid.fit(X, y)
 
-    beta_hat = grid.best_estimator_.named_steps['SVR'].coef_
+    beta_hat = grid.best_estimator_.named_steps["SVR"].coef_
 
     std = norm(beta_hat) / np.sqrt(n_features)
     scale = std * np.ones(beta_hat.size)
