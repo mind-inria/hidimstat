@@ -44,7 +44,7 @@ def nadeau_bengio_ttest(
     Remove all the check and the management of NaN and empty array.
 
     This is a modification of scipy.stats.ttest_1samp that applies the
-    Nadeau & Bengio correction :footcite::`nadeau1999inference` to the variance
+    :footcite:t:`nadeau1999inference` correction to the variance
     estimate to account for dependence between repeated cross-validation estimates.
 
     Parameters
@@ -56,14 +56,11 @@ def nadeau_bengio_ttest(
         The population mean to test against.
     test_frac : float
         Fraction of the data used for testing (test set size / total
-        samples). Used by the Nadeau & Bengio correction
-        :footcite::`nadeau1999inference` when adjusting the sample variance.
-    axis : int or None, optional
+        samples). Used by the :footcite:t:`nadeau1999inference` correction
+        when adjusting the sample variance.
+    axis : int or None, default=0
         Axis along which to compute the test. Default is 0. If None, the
         input array is flattened.
-    nan_policy : {'propagate', 'raise', 'omit'}, optional
-        Present for API compatibility; this implementation does not perform
-        special NaN handling (inputs should not contain NaNs).
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
 
@@ -76,7 +73,7 @@ def nadeau_bengio_ttest(
     Notes
     -----
     The variance is corrected using the factor implemented here:
-        corrected_var = var * (1 / n + test_frac)
+    `corrected_var = var * (1 / n + test_frac)`
     where n is the number of repeated evaluations along `axis`.
 
     This function does not support masked arrays and only accepts numpy arrays.
