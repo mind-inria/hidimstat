@@ -60,11 +60,10 @@ def reid(X, y, eps=1e-2, tol=1e-4, max_iter=1e4, n_jobs=1, seed=0):
 
     clf_lasso_cv = LassoCV(
         eps=eps,
-        normalize=False,
         fit_intercept=False,
         cv=cv,
         tol=tol,
-        max_iter=max_iter,
+        max_iter=int(max_iter),
         n_jobs=n_jobs,
     )
 
@@ -181,11 +180,10 @@ def group_reid(
 
         clf_mtlcv = MultiTaskLassoCV(
             eps=eps,
-            normalize=False,
             fit_intercept=False,
             cv=cv,
             tol=tol,
-            max_iter=max_iter,
+            max_iter=int(max_iter),
             n_jobs=n_jobs,
         )
 

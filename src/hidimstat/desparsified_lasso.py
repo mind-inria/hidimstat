@@ -31,7 +31,7 @@ def _compute_all_residuals(
         for i in range(n_features)
     )
 
-    results = np.asarray(results)
+    results = np.asarray(results, dtype=object)
     Z = np.stack(results[:, 0], axis=1)
     omega_diag = np.stack(results[:, 1])
 

@@ -79,14 +79,23 @@ def stat_coef_diff(
 
     estimator = {
         "lasso_cv": LassoCV(
-            alphas=lambdas, n_jobs=n_jobs, verbose=joblib_verbose, max_iter=1e4, cv=cv
+            alphas=lambdas,
+            n_jobs=n_jobs,
+            verbose=joblib_verbose,
+            max_iter=int(1e4),
+            cv=cv,
         ),
         "logistic_l1": LogisticRegressionCV(
-            penalty="l1", max_iter=1e4, solver=solver, cv=cv, n_jobs=n_jobs, tol=1e-8
+            penalty="l1",
+            max_iter=int(1e4),
+            solver=solver,
+            cv=cv,
+            n_jobs=n_jobs,
+            tol=1e-8,
         ),
         "logistic_l2": LogisticRegressionCV(
             penalty="l2",
-            max_iter=1e4,
+            max_iter=int(1e4),
             n_jobs=n_jobs,
             verbose=joblib_verbose,
             cv=cv,
