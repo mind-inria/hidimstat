@@ -5,7 +5,7 @@ from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV, KFold
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.knockoffs import model_x_knockoff, model_x_knockoff
+from hidimstat.knockoffs import ModelXKnockoff, model_x_knockoff
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.statistical_tools.multiple_testing import fdp_power
@@ -94,11 +94,13 @@ def test_invariant_with_bootstrap():
     fdp_repeat, power_repeat = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
     np.testing.assert_array_equal(
-        model_x_knockoff.test_scores_[0], modelxknockoff_repeat.test_scores_[0]
+        model_x_knockoff.test_scores_[0], model_x_knockoff_repeat.test_scores_[0]
     )
-    assert not np.array_equal(model_x_knockoff.pvalues_, modelxknockoff_repeat.pvalues_)
     assert not np.array_equal(
-        model_x_knockoff.importances_, modelxknockoff_repeat.importances_
+        model_x_knockoff.pvalues_, model_x_knockoff_repeat.pvalues_
+    )
+    assert not np.array_equal(
+        model_x_knockoff.importances_, model_x_knockoff_repeat.importances_
     )
     assert fdp_repeat <= fdp
     assert power_repeat <= power
@@ -123,7 +125,7 @@ def test_model_x_knockoff():
     assert fdp <= 0.2
     assert power > 0.7
     assert np.all(0 <= model_x_knockoff.pvalues_) or np.all(
-        modelxknockoff.pvalues_ <= 1
+        model_x_knockoff.pvalues_ <= 1
     )
 
 
@@ -204,13 +206,13 @@ def test_knockoff_function_not_centered():
     [(300, 20, 5, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default data"],
 )
-class Testmodel_x_knockoffExceptions:
-    """Test class for model_x_knockoff exceptions"""
+class TestModelXKnockoffExceptions:
+    """Test class for ModelXKnockoff exceptions"""
 
     def test_warning(self, data_generator):
         """Test if some warning are raised"""
         X, y, _, _ = data_generator
-        model_x_knockoff = model_x_knockoff(n_repeat=5)
+        model_x_knockoff = ModelXKnockoff(n_repeat=5)
         with pytest.warns(Warning, match="y won't be used"):
             model_x_knockoff.fit(X, y)
         with pytest.warns(Warning, match="cv won't be used"):
@@ -219,7 +221,7 @@ class Testmodel_x_knockoffExceptions:
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator
-        model_x_knockoff = model_x_knockoff(
+        model_x_knockoff = ModelXKnockoff(
             n_repeat=5,
             ko_generator=GaussianKnockoffs(
                 cov_estimator=LedoitWolf(assume_centered=True)
@@ -236,4 +238,4 @@ class Testmodel_x_knockoffExceptions:
     def test_invalid_n_samplings(self, data_generator):
         """Test when invalid number of permutations is provided"""
         with pytest.raises(AssertionError, match="n_samplings must be positive"):
-            model_x_knockoff(n_repeat=-1)
+            ModelXKnockoff(n_repeat=-1)
