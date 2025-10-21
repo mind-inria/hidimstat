@@ -131,7 +131,7 @@ Ensemble of Clustered Inference is not a local method, so control cannot be main
 The notion of a false positive must be mitigated by the non-local characteristic of the inference performed.
 Thus, we introduce the concept of a $\delta$-false positive:
 A detection is a delta-false positive if it is at a distance greater than $\delta$ from the support, which is the set of true positives.
-Thus, what is controlled is the $\delta$-FWER, i.e., the probability of reporting a single false $\delta$-false positive.
+Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of reporting a single false :math:`\delta`-false positive.
 In other words, EnCluDL will likely only report detections at a distance less than $\delta$ from the true support.
 
 What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL procedure.
