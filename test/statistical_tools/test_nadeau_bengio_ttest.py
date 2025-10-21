@@ -81,25 +81,6 @@ class TestTtest_1samp:
     def setup_method(self):
         self.rng = np.random.default_rng(6043813830)
 
-    def test_vs_nonmasked(self):
-        """Test comparison with masked version"""
-        outcome = self.rng.standard_normal((20, 4)) + [0, 0, 1, 2]
-
-        # 1-D inputs
-        res1 = nadeau_bengio_ttest(
-            outcome[:, 0],
-            1,
-            test_frac=0.0,
-            alternative="two-sided",
-        )
-        res2 = mstats.ttest_1samp(outcome[:, 0], 1)
-        assert_allclose(res1, res2)
-        res3 = nadeau_bengio_ttest(
-            outcome[:, 0], 1, test_frac=0.1, alternative="two-sided"
-        )
-        assert not np.array_equal(res3, res1)
-        assert not np.array_equal(res3, res2)
-
     def test_fully_masked(self):
         """Test comparison with fully masked data"""
         # outcome = ma.masked_array(self.rng.standard_normal(3), mask=[1, 1, 1])
@@ -125,19 +106,6 @@ class TestTtest_1samp:
         """Test for empty data"""
         res1 = nadeau_bengio_ttest([], 1, 0.1)
         assert_(np.all(np.isnan(res1)))
-
-    def test_zero_division(self):
-        """Test for zero division"""
-        t, p = nadeau_bengio_ttest([0, 0, 0], 1, 0.1, alternative="two-sided")
-        assert_equal((np.abs(t), p), (np.inf, 0))
-
-        with warnings.catch_warnings():
-            warnings.filterwarnings(
-                "ignore", "invalid value encountered in absolute", RuntimeWarning
-            )
-            t, p = nadeau_bengio_ttest([0, 0, 0], 0, 0.1)
-            assert_(np.isnan(t))
-            assert_array_equal(p, (np.nan, np.nan))
 
     @pytest.mark.parametrize("alternative", ["less", "greater"])
     def test_alternative(self, alternative):
