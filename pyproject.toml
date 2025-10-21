@@ -19,7 +19,7 @@ maintainers = [
     { name = "Binh Nguyen", email = "tuanbinhs@gmail.com" },
 ]
 description = "High-dimensional statistical inference tools for Python"
-readme = "README.rst"
+readme = "README.md"
 classifiers = [
     'Development Status :: 3 - Alpha',
     "Intended Audience :: Science/Research",
