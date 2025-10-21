@@ -56,7 +56,7 @@ As discussed earlier, feature grouping is a meaningful solution to deal with suc
    * The :ref:`Grouping documentation <grouping>`
 
 
-As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or **CluDL**.
+As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or :py:func:`CluDL <hidimstat.clustered_inference>`.
 
 Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model::
 
