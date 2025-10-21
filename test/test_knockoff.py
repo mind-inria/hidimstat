@@ -76,7 +76,7 @@ def test_invariant_with_bootstrap():
     )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     modelxknockoff = ModelXKnockoff(
-        generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeat=1,
     ).fit(X)
@@ -85,7 +85,7 @@ def test_invariant_with_bootstrap():
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
     modelxknockoff_repeat = ModelXKnockoff(
-        generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeat=5,
     ).fit(X)
@@ -173,7 +173,7 @@ def test_estimate_distribution():
         ),
     )
     modelxknockoff = ModelXKnockoff(
-        n_repeat=1, random_state=2, generator=generator
+        n_repeat=1, random_state=2, ko_generator=generator
     ).fit(X)
     modelxknockoff.importance(X, y)
     selected = modelxknockoff.fdr_selection(fdr=fdr)
@@ -219,7 +219,9 @@ class TestModelXKnockoffExceptions:
         X, y, _, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeat=5,
-            generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+            ko_generator=GaussianKnockoffs(
+                cov_estimator=LedoitWolf(assume_centered=True)
+            ),
             random_state=0,
         )
 

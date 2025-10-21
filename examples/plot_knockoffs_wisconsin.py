@@ -170,7 +170,7 @@ def logistic_test(X, X_tilde, y):
 
 
 model_x_knockoff = ModelXKnockoff(
-    generator=GaussianKnockoffs(
+    ko_generator=GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
     ),
     random_state=0,

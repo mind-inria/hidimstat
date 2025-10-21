@@ -2,7 +2,6 @@ import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.covariance import LedoitWolf
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
@@ -111,7 +110,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
     def __init__(
         self,
-        generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        ko_generator=GaussianKnockoffs(),
         statistical_test=lasso_statistic_with_sampling,
         n_repeat=1,
         centered=True,
@@ -121,7 +120,7 @@ class ModelXKnockoff(BaseVariableImportance):
         n_jobs=1,
     ):
         super().__init__()
-        self.generator = generator
+        self.generator = ko_generator
         self.statistical_test = statistical_test
         assert n_repeat > 0, "n_samplings must be positive"
         self.n_repeat = n_repeat
@@ -464,7 +463,7 @@ def _empirical_knockoff_eval(test_score, ko_threshold):
 def model_x_knockoff(
     X,
     y,
-    generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+    generator=GaussianKnockoffs(),
     statistical_test=lasso_statistic_with_sampling,
     n_repeat=1,
     centered=True,
@@ -480,7 +479,7 @@ def model_x_knockoff(
     gamma=0.5,
 ):
     methods = ModelXKnockoff(
-        generator=generator,
+        ko_generator=generator,
         statistical_test=statistical_test,
         n_repeat=n_repeat,
         centered=centered,

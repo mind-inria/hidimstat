@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+from sklearn.covariance import LedoitWolf
 from sklearn.utils import check_random_state
 
 from hidimstat._utils.utils import check_random_state
@@ -33,7 +34,7 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator, tol=1e-14):
+    def __init__(self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
 

@@ -5,7 +5,7 @@ from sklearn.svm import SVR
 
 from hidimstat.statistical_tools.lasso_test import (
     lasso_statistic_with_sampling,
-    preconfigure_LassoCV,
+    preconfigure_lasso_path,
 )
 
 
@@ -14,7 +14,7 @@ def test_preconfigure_LassoCV():
     with pytest.raises(
         TypeError, match="You should not use this function to configure the estimator"
     ):
-        preconfigure_LassoCV(
+        preconfigure_lasso_path(
             estimator=RidgeCV(),
             X=np.random.rand(10, 10),
             y=np.random.rand(10),
