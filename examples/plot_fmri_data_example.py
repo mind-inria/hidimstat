@@ -172,6 +172,7 @@ ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
     scaler_sampling=StandardScaler(),
     tolerance=1e-2,
     random_state=1,
+    n_jobs=n_jobs,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
