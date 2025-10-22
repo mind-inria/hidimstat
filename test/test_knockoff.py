@@ -1,9 +1,8 @@
 import numpy as np
 import pytest
 from sklearn.covariance import GraphicalLassoCV, LedoitWolf
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Lasso, RidgeCV
 from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.linear_model import RidgeCV
 from sklearn.svm import SVR
 
 from hidimstat._utils.scenario import multivariate_simulation
