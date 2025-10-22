@@ -108,7 +108,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
         n_permutations=50,
         random_state=24,
-        n_jobs=2,
+        n_jobs=4,
     )
     cfi.fit(X_train, y_train)
     importance = cfi.importance(X_test, y_test)
@@ -128,7 +128,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     y_train, y_test = y[train_index], y[test_index]
     loco = LOCO(
         estimator=regressor_list[i],
-        n_jobs=2,
+        n_jobs=4,
     )
     loco.fit(X_train, y_train)
     importance = loco.importance(X_test, y_test)
@@ -151,7 +151,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         estimator=regressor_list[i],
         n_permutations=50,
         random_state=25,
-        n_jobs=2,
+        n_jobs=4,
     )
     pfi.fit(X_train, y_train)
     importance = pfi.importance(X_test, y_test)
