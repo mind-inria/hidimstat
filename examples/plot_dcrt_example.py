@@ -38,6 +38,8 @@ for sim_ind in range(10):
     rho = 0.8
     # Nominal false positive rate
     alpha = 5e-2
+    # Number of worker for the method
+    n_jobs = 2
 
     X, y, beta_true, noise = multivariate_simulation(
         n_samples=n,
@@ -57,6 +59,7 @@ for sim_ind in range(10):
         estimator=LassoCV(random_state=sim_ind, n_jobs=1),
         screening_threshold=None,
         random_state=sim_ind,
+        n_jobs=n_jobs,
     )
     d0crt_lasso.fit_importance(X, y)
     pvals_lasso = d0crt_lasso.pvalues_

@@ -41,6 +41,7 @@ from hidimstat import D0CRT, LOCO
 # Generate data where classes are not linearly separable
 # ------------------------------------------------------
 rng = np.random.default_rng(0)
+n_jobs = 2
 X, y = make_circles(
     n_samples=500,
     noise=0.1,
@@ -76,14 +77,20 @@ linear_model = LogisticRegressionCV(Cs=np.logspace(-3, 3, 5), random_state=3)
 # this test is based on a linear model (LogisticRegression) and fails to reject the null
 # in the presence of non-linear relationships.
 d0crt_linear = D0CRT(
-    estimator=clone(linear_model), screening_threshold=None, random_state=4
+    estimator=clone(linear_model),
+    screening_threshold=None,
+    random_state=4,
+    n_jobs=n_jobs,
 )
 d0crt_linear.fit_importance(X, y)
 pval_dcrt_linear = d0crt_linear.pvalues_
 print(f"{pval_dcrt_linear=}")
 
 d0crt_non_linear = D0CRT(
-    estimator=clone(non_linear_model), screening_threshold=None, random_state=5
+    estimator=clone(non_linear_model),
+    screening_threshold=None,
+    random_state=5,
+    n_jobs=n_jobs,
 )
 d0crt_non_linear.fit_importance(X, y)
 pval_dcrt_non_linear = d0crt_non_linear.pvalues_
@@ -111,13 +118,13 @@ for train, test in cv.split(X):
         estimator=linear_model_,
         loss=log_loss,
         method="predict_proba",
-        n_jobs=2,
+        n_jobs=n_jobs,
     )
     vim_non_linear = LOCO(
         estimator=non_linear_model_,
         loss=hinge_loss,
         method="decision_function",
-        n_jobs=2,
+        n_jobs=n_jobs,
     )
     vim_linear.fit(X[train], y[train])
     vim_non_linear.fit(X[train], y[train])

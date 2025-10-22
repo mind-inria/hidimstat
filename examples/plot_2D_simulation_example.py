@@ -110,7 +110,7 @@ fwer_target = 0.1
 delta = 6
 
 # computation parameter
-n_jobs = 1
+n_jobs = 2
 
 # %%
 # Computing z-score thresholds for support estimation

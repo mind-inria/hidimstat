@@ -19,6 +19,8 @@ from sklearn.svm import SVC
 
 from hidimstat import CFI
 
+n_jobs = 2
+
 # %%
 # To solve the XOR problem, we will use a Support Vector Classier (SVC) with Radial Basis Function (RBF) kernel.
 

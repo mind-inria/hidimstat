@@ -58,7 +58,7 @@ warnings.filterwarnings(
 )
 
 
-n_jobs = 1
+n_jobs = 2
 
 
 # %%

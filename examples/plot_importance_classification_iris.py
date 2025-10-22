@@ -38,6 +38,7 @@ from hidimstat import CFI, PFI
 
 # Define the seeds for the reproducibility of the example
 rng = np.random.default_rng(0)
+n_jobs = 2
 # %%
 # Load the iris dataset and add a spurious feature
 # ------------------------------------------------
@@ -95,6 +96,7 @@ def run_one_fold(
             method=method,
             loss=loss,
             features_groups=features_groups,
+            n_jobs=1,
         )
     elif vim_name == "PFI":
         vim = PFI(
@@ -104,6 +106,7 @@ def run_one_fold(
             method=method,
             loss=loss,
             features_groups=features_groups,
+            n_jobs=1,
         )
 
     vim.fit(X[train_index], y[train_index])
@@ -143,7 +146,7 @@ models = [
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=6)
 features_groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
-out_list = Parallel(n_jobs=5)(
+out_list = Parallel(n_jobs=n_jobs)(
     delayed(run_one_fold)(
         X,
         y,

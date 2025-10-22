@@ -77,7 +77,7 @@ df_list = []
 for model in models_list:
     # Fit the full model
     model = model.fit(X_train, y_train)
-    loco = LOCO(model)
+    loco = LOCO(model, n_jobs=2)
     # For each feature, remove it from the dataset, refit the model, and compute LOCO
     # importance. This process is repeated for all features to assess their individual
     # contributions.
