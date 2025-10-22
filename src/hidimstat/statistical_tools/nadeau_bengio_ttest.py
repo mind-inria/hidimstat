@@ -1,7 +1,7 @@
 from collections import namedtuple
 
 import numpy as np
-import scipy.special as special
+from scipy.stats import t
 from scipy.stats._stats_py import _var
 
 NBTtestResult = namedtuple("NBTtestResult", ["statistic", "pvalue"])
@@ -14,14 +14,14 @@ def _get_pvalue(df, statistic, alternative, symmetric=True):
     Based on https://github.com/scipy/scipy/blob/e407bc4d6ee71ec1a23fce9d95b58e28451e4d94/scipy/stats/_stats_py.py#L1571
     """
     if alternative == "less":
-        pvalue = special.stdtr(df, statistic)
+        pvalue = t.cdf(statistic, df)
     elif alternative == "greater":
-        pvalue = special.stdtr(df, -statistic)
+        pvalue = t.sf(statistic, df)
     elif alternative == "two-sided":
         pvalue = 2 * (
-            special.stdtr(df, -statistic)
+            t.sf(statistic, df)
             if symmetric
-            else np.minimum(special.stdtr(df, statistic), special.stdtr(df, -statistic))
+            else np.minimum(t.cdf(statistic, df), t.sf(statistic, df))
         )
     else:
         message = "`alternative` must be 'less', 'greater', or 'two-sided'."
