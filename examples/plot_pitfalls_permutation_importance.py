@@ -15,7 +15,6 @@ discoveries, i.e., the risk of declaring a variable as important when it is not.
 import numpy as np
 
 rng = np.random.default_rng(0)
-n_jobs = 2
 
 # %%
 # Load the California housing dataset and add a spurious feature
@@ -140,7 +139,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     pfi = PFI(
         model_c,
         n_permutations=50,
-        n_jobs=n_jobs,
+        n_jobs=5,
         random_state=0,
     )
     pfi.fit(X_test, y_test)
@@ -213,7 +212,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
             cv=KFold(n_splits=3),
         ),
         random_state=0,
-        n_jobs=n_jobs,
+        n_jobs=5,
     )
     cfi.fit(X_test, y_test)
 

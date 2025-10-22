@@ -57,8 +57,8 @@ warnings.filterwarnings(
     "ignore", message="The provided image has no sform in its header."
 )
 
-
-n_jobs = 2
+# number of worker
+n_jobs = 3
 
 
 # %%

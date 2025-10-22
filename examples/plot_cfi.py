@@ -10,8 +10,6 @@ use CFI to identify which variables are most important for solving the classific
 task with a neural network classifier.
 """
 
-n_jobs = 2
-
 # %%
 # Loading and preparing the data
 # ------------------------------
@@ -78,7 +76,6 @@ cfi = CFI(
         feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)
     },
     random_state=0,
-    n_jobs=n_jobs,
 )
 cfi.fit(
     X_train,
