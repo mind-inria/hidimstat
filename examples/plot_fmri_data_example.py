@@ -29,7 +29,6 @@ As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
-import resource
 import warnings
 
 import numpy as np
@@ -58,12 +57,7 @@ warnings.filterwarnings(
     "ignore", message="The provided image has no sform in its header."
 )
 
-# Limit the ressoruce use for the example to 5 G or maximum of possible.
-limit_5G = int(5 * 1e9)
-soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
-new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
-resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+
 n_jobs = 1
 
 
@@ -140,7 +134,16 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # %%
 # Making the inference with several algorithms
 # --------------------------------------------
+# Limit the ressource use for the algorithm to 5 G or maximum of possible.
 #
+import resource
+
+limit_5G = int(5 * 1e9)
+soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
+new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
+resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
