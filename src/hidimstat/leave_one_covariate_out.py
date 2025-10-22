@@ -145,9 +145,8 @@ class LOCO(BasePerturbation):
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
         """
-        GroupVariableImportanceMixin._check_fit(self)
-        GroupVariableImportanceMixin._check_compatibility(self, X)
         self._check_fit()
+        GroupVariableImportanceMixin._check_compatibility(self, X)
 
         y_pred = getattr(self.estimator, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)

@@ -3,10 +3,7 @@ import pytest
 from sklearn.covariance import LedoitWolf
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.samplers.gaussian_knockoffs import (
-    GaussianKnockoffs,
-    _s_equi,
-)
+from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs, _s_equi
 
 
 def test_gaussian_equi():
