@@ -267,7 +267,7 @@ plt.show()
 
 from matplotlib.lines import Line2D
 
-from hidimstat.statistical_tools.conditional_sampling import ConditionalSampler
+from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
 X_train, X_test = train_test_split(
     X,
