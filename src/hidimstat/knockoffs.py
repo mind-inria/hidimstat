@@ -92,7 +92,7 @@ class ModelXKnockoff(BaseVariableImportance):
         If True, standardize X before fitting the generator and computing statistics.
     test_linear_model : estimator, default=LassoCV(...)
         Estimator used to compute knockoff statistics. Must expose coefficients via
-        coef_ (or best_estimator_.coef_ for CV wrappers) after fit.
+        `coef_` (or `best_estimator_.coef_` for CV wrappers) after fit.
     test_preconfigure_model : callable or None, default=preconfigure_lasso_path
         An optional function is called to configure the LassoCV estimator's regularization path. 
         The maximum alpha is computed as
