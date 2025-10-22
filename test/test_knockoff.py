@@ -3,11 +3,16 @@ import pytest
 from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.linear_model import RidgeCV
+from sklearn.svm import SVR
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.knockoffs import ModelXKnockoff, model_x_knockoff
+from hidimstat.knockoffs import (
+    ModelXKnockoff,
+    model_x_knockoff,
+    preconfigure_lasso_path,
+)
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
-from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
@@ -131,27 +136,17 @@ def test_model_x_knockoff():
 
 def test_model_x_knockoff_estimator():
     """Test knockoff with a crossvalidation estimator"""
-
-    def statistical_test(
-        X,
-        X_tilde,
-        y,
-    ):
-        return lasso_statistic_with_sampling(
-            X,
-            X_tilde,
-            y,
-            lasso=GridSearchCV(Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}),
-            preconfigure_lasso=None,
-        )
-
     seed = 42
     fdr = 0.2
     n = 300
     p = 300
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     model_x_knockoff = ModelXKnockoff(
-        n_repeat=1, statistical_test=statistical_test
+        n_repeat=1,
+        test_linear_model=GridSearchCV(
+            Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
+        ),
+        test_preconfigure_model=None,
     ).fit(X)
     model_x_knockoff.importance(X, y)
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -218,6 +213,27 @@ class TestModelXKnockoffExceptions:
         with pytest.warns(Warning, match="cv won't be used"):
             model_x_knockoff.fit_importance(X, y, cv="test")
 
+    def test_error_lasso_statistic_with_sampling_with_bad_config(self, data_generator):
+        """Test error lasso statistic"""
+        X, y, _, _ = data_generator
+        model_x_knockoff = ModelXKnockoff(n_repeat=1, test_linear_model=SVR())
+        model_x_knockoff.fit(X)
+        with pytest.raises(
+            TypeError,
+            match="You should not use this function to configure the estimator",
+        ):
+            model_x_knockoff.importance(X, y)
+
+    def test_error_lasso_statistic_with_sampling(self, data_generator):
+        """Test error lasso statistic"""
+        X, y, _, _ = data_generator
+        model_x_knockoff = ModelXKnockoff(
+            n_repeat=1, test_linear_model=SVR(), test_preconfigure_model=None
+        )
+        model_x_knockoff.fit(X)
+        with pytest.raises(TypeError, match="estimator should be linear"):
+            model_x_knockoff.importance(X, y)
+
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator
@@ -239,3 +255,17 @@ class TestModelXKnockoffExceptions:
         """Test when invalid number of permutations is provided"""
         with pytest.raises(AssertionError, match="n_samplings must be positive"):
             ModelXKnockoff(n_repeat=-1)
+
+
+############################## test preconfigure #######################
+def test_preconfigure_LassoCV():
+    """Test type errors"""
+    with pytest.raises(
+        TypeError, match="You should not use this function to configure the estimator"
+    ):
+        preconfigure_lasso_path(
+            estimator=RidgeCV(),
+            X=np.random.rand(10, 10),
+            y=np.random.rand(10),
+            X_tilde=np.random.rand(10, 10),
+        )
