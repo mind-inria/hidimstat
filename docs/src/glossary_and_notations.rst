@@ -35,6 +35,24 @@ Glossary
         of that feature given all other features, and measuring the performance drop 
         triggered by this perturbation. 
 
+    CluDL
+    Clustered Desparsified Lasso
+        Clustered Desparsified Lasso (CluDL) is an extension of the Desparsified
+        Lasso to clusters of features. It aims at overcoming the limitations of
+        the Desparsified Lasso when the number of features is large and the 
+        correlations between them are strong.
+
+    D0CRT
+    Distilled Conditional Randomization Testing
+        Distilled Conditional Randomization Testing (dCRT) is a method for feature 
+        selection based on conditional independence testing, which uses a distillation 
+        step to reduce computational cost.
+
+    EnCluDL
+    Ensemble Clustered Desparsified Lasso
+        Ensemble Clustered Desparsified Lasso (EnCluDL) is an extension of the 
+        Clustered Desparsified Lasso that combines multiple clusterings to de-randomize
+        the procedure and improve robustness.
     
     FDP
     False Discovery Proportion
