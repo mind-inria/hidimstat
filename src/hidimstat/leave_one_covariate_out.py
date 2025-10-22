@@ -32,7 +32,7 @@ class LOCO(BasePerturbation):
     loss : callable, default=mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
-    statistical_test : callable or str, default="wilcoxon"
+    statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values of importance scores.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
@@ -57,7 +57,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = mean_squared_error,
-        statistical_test="NB-ttest",
+        statistical_test="nb-ttest",
         features_groups=None,
         n_jobs: int = 1,
     ):

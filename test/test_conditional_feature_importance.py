@@ -1,9 +1,11 @@
+from functools import partial
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.stats import ttest_1samp
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
@@ -585,6 +587,22 @@ class TestCFIExceptions:
             UserWarning,
             match="The number of features in X: 200 differs from the"
             " number of features for which importance is computed: 4",
+        ):
+            cfi.importance(X, y)
+
+    def test_assert_dimension_pvalue(self, data_generator):
+        """test that assert is raise if function stat is not good"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            statistical_test=partial(ttest_1samp, popmean=0, axis=0),
+        )
+        cfi.fit(X, y)
+        with pytest.raises(
+            AssertionError,
+            match="The statistical test doesn't provide the correct dimension.",
         ):
             cfi.importance(X, y)
 

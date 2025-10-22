@@ -1,5 +1,3 @@
-from functools import partial
-
 import numpy as np
 import pytest
 from scipy.stats import ttest_1samp, wilcoxon
@@ -9,6 +7,7 @@ from hidimstat._utils.utils import (
     check_statistical_test,
     get_fitted_attributes,
 )
+from hidimstat.statistical_tools import nadeau_bengio_ttest
 
 
 def test_generated_attributes():
@@ -71,8 +70,12 @@ def test_check_test_statistic():
     assert test_func.func == wilcoxon
     test_func = check_statistical_test("ttest")
     assert test_func.func == ttest_1samp
+    test_func = check_statistical_test("nb-ttest")
+    assert test_func.func == nadeau_bengio_ttest
     test_func = check_statistical_test(print)
     assert test_func == print
+    test_func = check_statistical_test(lambda x: x)
+    assert test_func.__class__.__name__ == "function"
 
 
 def test_check_test_statistic_warning():

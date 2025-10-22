@@ -33,7 +33,7 @@ class PFI(BasePerturbation):
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
-    statistical_test : callable or str, default="wilcoxon"
+    statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values of importance scores.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
@@ -56,7 +56,7 @@ class PFI(BasePerturbation):
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        statistical_test="NB-ttest",
+        statistical_test="nb-ttest",
         features_groups=None,
         random_state: int = None,
         n_jobs: int = 1,

@@ -32,7 +32,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         to the original model.
     n_permutations : int, default=50
         Number of permutations for each feature group.
-    statistical_test : callable or str, default="wilcoxon"
+    statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values of importance scores.
     features_groups : dict or None, default=None
         Mapping of group names to lists of feature indices or names. If None, groups are inferred.
@@ -66,7 +66,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        statistical_test="NB-ttest",
+        statistical_test="nb-ttest",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
@@ -214,6 +214,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = self.statistical_test(test_result).pvalue
+        assert (
+            self.pvalues_.shape == y_pred.shape
+        ), "The statistical test doesn't provide the correct dimension."
         return self.importances_
 
     def fit_importance(self, X, y):

@@ -171,7 +171,7 @@ def check_statistical_test(statistical_test):
             return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
         elif statistical_test == "wilcoxon":
             return partial(wilcoxon, alternative="greater", axis=1)
-        elif statistical_test == "NB-ttest":
+        elif statistical_test == "nb-ttest":
             return partial(
                 nadeau_bengio_ttest,
                 popmean=0,
@@ -188,6 +188,6 @@ def check_statistical_test(statistical_test):
             f"Unsupported value for 'statistical_test'."
             f"The provided argument was '{statistical_test}'. "
             f"Please choose from the following valid options: "
-            f"string values ('ttest', 'wilcoxon', 'NB-ttest') "
+            f"string values ('ttest', 'wilcoxon', 'nb-ttest') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
