@@ -2,7 +2,6 @@ import warnings
 
 import numpy as np
 from sklearn.covariance import LedoitWolf
-from sklearn.utils import check_random_state
 
 from hidimstat._utils.utils import check_random_state
 
