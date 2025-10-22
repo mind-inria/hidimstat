@@ -2,6 +2,9 @@ import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import clone
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
@@ -9,8 +12,60 @@ from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
-from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+
+
+def preconfigure_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
+    """
+    Configure a LassoCV estimator's regularization path for concatenated features.
+
+    Sets estimator.alphas based on the combined design matrix formed by
+    concatenating X and X_tilde column-wise. The maximum alpha is computed as
+
+        alpha_max = max(X_ko.T @ y) / (2 * n_features)
+
+    and an alpha grid of length n_alphas is created between
+    alpha_max * exp(-n_alphas) and alpha_max.
+
+    Parameters
+    ----------
+    estimator : sklearn.linear_model.LassoCV
+        LassoCV instance to configure. This function modifies estimator.alphas
+        in-place and returns the same estimator.
+    X : array-like, shape (n_samples, n_features)
+        Original feature matrix.
+    X_tilde : array-like, shape (n_samples, n_features)
+        Knockoff/auxiliary feature matrix (must have same n_features as X).
+    y : array-like, shape (n_samples,)
+        Target vector.
+    n_alphas : int, default=20
+        Number of alpha values to generate for the Lasso path.
+
+    Returns
+    -------
+    estimator : sklearn.linear_model.LassoCV
+        The same estimator with estimator.alphas set.
+
+    Raises
+    ------
+    TypeError
+        If estimator is not an instance/name-matching LassoCV.
+
+    Notes
+    -----
+    - The function expects X and X_tilde already preprocessed (e.g. centered/scaled)
+      as appropriate for the estimator.
+    - The generated alpha grid is deterministic given X, X_tilde and y.
+    """
+    if type(estimator).__name__ != "LassoCV":
+        raise TypeError("You should not use this function to configure the estimator")
+
+    n_features = X.shape[1]
+    X_ko = np.column_stack([X, X_tilde])
+    alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
+    alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
+    estimator.alphas = alphas
+    return estimator
 
 
 class ModelXKnockoff(BaseVariableImportance):
@@ -29,91 +84,63 @@ class ModelXKnockoff(BaseVariableImportance):
 
     Parameters
     ----------
-    X : 2D ndarray (n_samples, n_features)
-        The design matrix.
-
-    y : 1D ndarray (n_samples, )
-        The target vector.
-
-    estimator : sklearn estimator instance or a cross validation instance
-        The estimator used for fitting the data and computing the test statistics.
-        This can be any estimator with a `fit` method that accepts a 2D array and
-        a 1D array, and a `coef_` attribute that returns a 1D array of coefficients.
-        Examples include LassoCV, LogisticRegressionCV, and LinearRegression.
-
-        *Configuration example:*
-
-        | LassoCV(alphas=alphas, n_jobs=None, verbose=0, max_iter=1000,
-        | cv=KFold(n_splits=5, shuffle=True, random_state=0), tol=1e-8)
-
-        | LogisticRegressionCV(penalty="l1", max_iter=1000, solver="liblinear",
-        | cv=KFold(n_splits=5, shuffle=True, random_state=0), n_jobs=None,
-        | tol=1e-8)
-
-        | LogisticRegressionCV(penalty="l2", max_iter=1000, n_jobs=None,
-        | verbose=0, cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        | tol=1e-8,)
-
-    preconfigure_estimator : callable, default=preconfigure_estimator_LassoCV
-        A function that configures the estimator for the Model-X knockoff procedure.
-        If provided, this function will be called with the estimator, X, X_tilde, and y
-        as arguments, and should modify the estimator in-place.
-
-    fdr : float, default=0.1
-        The desired controlled False Discovery Rate (FDR) level.
-
+    ko_generator : object
+        Knockoff generator implementing fit(X) and sample(n_repeats, random_state).
+    n_repeat : int, default=1
+        Number of knockoff draws to average over.
     centered : bool, default=True
-        Whether to standardize the data before performing the inference procedure.
-
-    cov_estimator : estimator object, default=LedoitWolf()
-        Estimator for empirical covariance matrix.
-
+        If True, standardize X before fitting the generator and computing statistics.
+    test_linear_model : estimator, default=LassoCV(...)
+        Estimator used to compute knockoff statistics. Must expose coefficients via
+        coef_ (or best_estimator_.coef_ for CV wrappers) after fit.
+    test_preconfigure_model : callable or None, default=preconfigure_lasso_path
+        Optional function called as test_preconfigure_model(estimator, X, X_tilde, y)
+        to configure the estimator before fitting.
+    random_state : int or None, default=None
+        Random seed forwarded to the knockoff generator sampling.
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
-
-    n_bootstraps : int, default=1
-        Number of bootstrap samples for aggregation.
-
+    memory : str, joblib.Memory or None, default=None
+        Caching backend for expensive operations.
     n_jobs : int, default=1
-        Number of parallel jobs.
+        Number of parallel jobs (automatically capped to n_repeat).
 
-    random_state : int or None, default=None
-        The random seed used to generate the Gaussian knockoff variables.
-
-    tol_gauss : float, default=1e-14
-        A tolerance value used for numerical stability in the calculation of
-        the Cholesky decomposition in the gaussian generation function.
-
-    memory : str or Memory object, default=None
-        Used to cache the output of the clustering and inference computation.
-        By default, no caching is done. If provided, it should be the path
-        to the caching directory or a joblib.Memory object.
-
-    Returns
-    -------
-    selected : ndarray or list of ndarrays
-        Selected feature indices. List if n_bootstraps>1.
-
-    test_scores : ndarray or list of ndarrays
-        Test statistics. List if n_bootstraps>1.
-
-    threshold : float or list of floats
-        Knockoff thresholds. List if n_bootstraps>1.
-
-    X_tildes : ndarray or list of ndarrays
-        Generated knockoff variables. List if n_bootstraps>1.
-
-    References
+    Attributes
     ----------
-    .. footbibliography::
+    importances_ : ndarray, shape (n_features,)
+        Averaged test statistics across repeats.
+    pvalues_ : ndarray, shape (n_features,)
+        Averaged empirical p-values across repeats.
+    test_scores_ : ndarray, shape (n_repeat, n_features)
+        Raw test scores for each repeat.
+    threshold_fdr_ : float
+        Threshold computed by the FDR selection procedure.
+    aggregated_pval_ : ndarray or None
+        Aggregated p-values (when using p-value aggregation).
+    aggregated_eval_ : ndarray or None
+        Aggregated e-values (when using e-value aggregation).
+
+    Notes
+    -----
+    Use the model_x_knockoff function for a functional interface that wraps this
+    class. The class focuses on generator fitting, repeated knockoff sampling,
+    computing statistics and performing FDR-based selection.
     """
 
     def __init__(
         self,
         ko_generator=GaussianKnockoffs(),
-        statistical_test=lasso_statistic_with_sampling,
         n_repeat=1,
         centered=True,
+        test_linear_model=LassoCV(
+            n_jobs=1,
+            verbose=0,
+            max_iter=200000,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            random_state=1,
+            tol=1e-6,
+        ),
+        test_preconfigure_model=preconfigure_lasso_path,
         random_state=None,
         joblib_verbose=0,
         memory=None,
@@ -121,10 +148,12 @@ class ModelXKnockoff(BaseVariableImportance):
     ):
         super().__init__()
         self.generator = ko_generator
-        self.statistical_test = statistical_test
         assert n_repeat > 0, "n_samplings must be positive"
         self.n_repeat = n_repeat
         self.centered = centered
+        # parameter for statistical test base on linear model
+        self.test_linear_model = test_linear_model
+        self.test_preconfigure_model = test_preconfigure_model
 
         self.randoms_state = random_state
         self.memory = check_memory(memory)
@@ -216,11 +245,15 @@ class ModelXKnockoff(BaseVariableImportance):
         )
 
         parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
-        self.test_scores_ = np.array(
-            parallel(
-                delayed(self.statistical_test)(X_, X_tildes[i], y)
-                for i in range(self.n_repeat)
+        self.test_scores_ = parallel(
+            delayed(job_lib_lasso_statistic)(
+                X_,
+                X_tildes[i],
+                y,
+                clone(self.test_linear_model),
+                self.test_preconfigure_model,
             )
+            for i in range(self.n_repeat)
         )
         self.test_scores_ = np.array(self.test_scores_)
 
@@ -361,6 +394,71 @@ class ModelXKnockoff(BaseVariableImportance):
         return selected
 
 
+def job_lib_lasso_statistic(X, X_tilde, y, test_linear_model, test_preconfgure_model):
+    """
+    Compute the Lasso Coefficient-Difference (LCD) statistic.
+
+    Fits the provided linear estimator on the concatenated design matrix [X, X_tilde]
+    and returns the knockoff statistic for each original feature:
+
+        W_j = |beta_j| - |beta_j'|
+
+    where beta_j and beta_j' are the fitted coefficients for the original feature j
+    and its knockoff counterpart j'.
+
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Original feature matrix.
+    X_tilde : ndarray, shape (n_samples, n_features)
+        Knockoff feature matrix.
+    y : ndarray, shape (n_samples,)
+        Target vector.
+    test_linear_model : estimator instance
+        Estimator to fit on the concatenated matrix. Must implement fit(X, y) and expose
+        coefficients via `coef_` after fitting, or via `best_estimator_.coef_` for CV wrappers.
+    test_preconfgure_model : callable or None
+        If provided, callable(test_linear_model, X, X_tilde, y) should return a configured
+        estimator (or modify it in-place). If None, `test_linear_model` is used as-is.
+
+    Returns
+    -------
+    test_score : ndarray, shape (n_features,)
+        Knockoff statistics W_j for each original feature. Larger values indicate stronger
+        evidence that the original feature is more important than its knockoff.
+
+    Raises
+    ------
+    TypeError
+        If the fitted estimator does not provide coefficients via `coef_` or
+        `best_estimator_.coef_`.
+
+    Notes
+    -----
+    The function stacks X and X_tilde column-wise before fitting. Coefficients are flattened
+    with `np.ravel` and the statistic follows the standard knockoff LCD definition.
+    """
+    n_samples, n_features = X.shape
+    X_ko = np.column_stack([X, X_tilde])
+    if test_preconfgure_model is not None:
+        linear_model = test_preconfgure_model(test_linear_model, X, X_tilde, y)
+    else:
+        linear_model = test_linear_model
+    linear_model.fit(X_ko, y)
+    if hasattr(linear_model, "coef_"):
+        coef = np.ravel(linear_model.coef_)
+    elif hasattr(linear_model, "best_estimator_") and hasattr(
+        linear_model.best_estimator_, "coef_"
+    ):
+        coef = np.ravel(linear_model.best_estimator_.coef_)  # for CV object
+    else:
+        raise TypeError("estimator should be linear")
+    # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
+    test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
+
+    return test_score
+
+
 def _knockoff_threshold(test_score, fdr=0.1):
     """
     Calculate the knockoff threshold based on the procedure stated in the article.
@@ -464,10 +562,18 @@ def model_x_knockoff(
     X,
     y,
     generator=GaussianKnockoffs(),
-    statistical_test=lasso_statistic_with_sampling,
     n_repeat=1,
     centered=True,
     random_state=None,
+    test_linear_model=LassoCV(
+        n_jobs=1,
+        verbose=0,
+        max_iter=200000,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        random_state=1,
+        tol=1e-6,
+    ),
+    test_preconfigure_model=preconfigure_lasso_path,
     joblib_verbose=0,
     memory=None,
     n_jobs=1,
@@ -480,9 +586,10 @@ def model_x_knockoff(
 ):
     methods = ModelXKnockoff(
         ko_generator=generator,
-        statistical_test=statistical_test,
         n_repeat=n_repeat,
         centered=centered,
+        test_linear_model=test_linear_model,
+        test_preconfigure_model=test_preconfigure_model,
         random_state=random_state,
         joblib_verbose=joblib_verbose,
         memory=memory,
