@@ -20,8 +20,6 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-n_jobs = 2
-
 data = load_breast_cancer()
 X = data.data
 y = data.target
@@ -166,7 +164,7 @@ selected, test_scores, threshold, X_tildes = model_x_knockoff(
     tol_gauss=1e-15,
     preconfigure_estimator=None,
     fdr=fdr,
-    n_jobs=n_jobs,
+    n_jobs=3,
 )
 
 # Count how many selected features are actually noise
