@@ -53,7 +53,6 @@ clf = make_pipeline(
         random_state=0,
         max_iter=500,
     ),
-    n_jobs=n_jobs,
 )
 
 clf.fit(X_train, y_train)
