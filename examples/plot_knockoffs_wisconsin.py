@@ -150,7 +150,6 @@ from sklearn.covariance import LedoitWolf
 from hidimstat import ModelXKnockoff
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 
-
 model_x_knockoff = ModelXKnockoff(
     ko_generator=GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
