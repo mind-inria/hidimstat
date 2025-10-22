@@ -215,7 +215,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = self.statistical_test(test_result).pvalue
         assert (
-            self.pvalues_.shape == y_pred.shape
+            self.pvalues_.shape[0] == y_pred.shape[0]
         ), "The statistical test doesn't provide the correct dimension."
         return self.importances_
 

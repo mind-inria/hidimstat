@@ -169,6 +169,9 @@ class LOCO(BasePerturbation):
             axis=1,
         )
         self.pvalues_ = self.statistical_test(np.array(test_result)).pvalue
+        assert (
+            self.pvalues_.shape[0] == y_pred.shape[0]
+        ), "The statistical test doesn't provide the correct dimension."
         return self.importances_
 
     def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
