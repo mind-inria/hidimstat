@@ -5,7 +5,7 @@ import numpy as np
 from numpy.random import RandomState
 from scipy.stats import ttest_1samp, wilcoxon
 
-from hidimstat.statistical_tools import nadeau_bengio_ttest
+from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 
 def _check_vim_predict_method(method):
