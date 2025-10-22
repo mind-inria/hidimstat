@@ -169,7 +169,7 @@ class LOCO(BasePerturbation):
             ],
             axis=1,
         )
-        self.pvalues_ = self.statistical_test(test_result).pvalue
+        self.pvalues_ = self.statistical_test(np.array(test_result)).pvalue
         return self.importances_
 
     def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
