@@ -74,7 +74,7 @@ class CFI(BasePerturbation):
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
-        statistical_test=partial(wilcoxon, axis=1),
+        statistical_test="NB-ttest",
         random_state: int = None,
         n_jobs: int = 1,
     ):

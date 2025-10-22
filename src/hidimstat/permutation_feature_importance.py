@@ -56,7 +56,7 @@ class PFI(BasePerturbation):
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        statistical_test="wilcoxon",
+        statistical_test="NB-ttest",
         features_groups=None,
         random_state: int = None,
         n_jobs: int = 1,

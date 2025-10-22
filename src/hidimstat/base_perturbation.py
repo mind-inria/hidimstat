@@ -66,7 +66,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        statistical_test="wilcoxon",
+        statistical_test="NB-ttest",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,

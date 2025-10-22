@@ -57,7 +57,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = mean_squared_error,
-        statistical_test=partial(wilcoxon, axis=1),
+        statistical_test="NB-ttest",
         features_groups=None,
         n_jobs: int = 1,
     ):

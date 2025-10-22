@@ -5,6 +5,8 @@ import numpy as np
 from numpy.random import RandomState
 from scipy.stats import ttest_1samp, wilcoxon
 
+from hidimstat.statistical_tools import nadeau_bengio_ttest
+
 
 def _check_vim_predict_method(method):
     """
@@ -169,6 +171,14 @@ def check_statistical_test(statistical_test):
             return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
         elif statistical_test == "wilcoxon":
             return partial(wilcoxon, alternative="greater", axis=1)
+        elif statistical_test == "NB-ttest":
+            return partial(
+                nadeau_bengio_ttest,
+                popmean=0,
+                test_frac=0.1 / 0.9,
+                alternative="greater",
+                axis=1,
+            )
         else:
             raise ValueError(f"the test '{statistical_test}' is not supported")
     elif callable(statistical_test):
