@@ -71,8 +71,8 @@ def test_knockoff_bootstrap_e_values():
 
 def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
-    n = 500
-    p = 100
+    n = 400
+    p = 50
     signal_noise_ratio = 5
     fdr = 0.8
     X, y, beta, noise = multivariate_simulation(
