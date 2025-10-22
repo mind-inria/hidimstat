@@ -149,32 +149,22 @@ from sklearn.covariance import LedoitWolf
 
 from hidimstat import ModelXKnockoff
 from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
-from hidimstat.statistical_tools.lasso_test import lasso_statistic_with_sampling
-
-
-def logistic_test(X, X_tilde, y):
-    return lasso_statistic_with_sampling(
-        X,
-        X_tilde,
-        y,
-        lasso=LogisticRegressionCV(
-            solver="liblinear",
-            penalty="l1",
-            Cs=np.logspace(-3, 3, 10),
-            random_state=0,
-            tol=1e-3,
-            max_iter=1000,
-        ),
-        preconfigure_lasso=None,
-    )
 
 
 model_x_knockoff = ModelXKnockoff(
     ko_generator=GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
     ),
+    test_linear_model=LogisticRegressionCV(
+        solver="liblinear",
+        penalty="l1",
+        Cs=np.logspace(-3, 3, 10),
+        random_state=0,
+        tol=1e-3,
+        max_iter=1000,
+    ),
+    test_preconfigure_model=None,
     random_state=0,
-    statistical_test=logistic_test,
     n_repeat=1,
 )
 importance = model_x_knockoff.fit_importance(
