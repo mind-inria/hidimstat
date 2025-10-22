@@ -94,7 +94,7 @@ class ModelXKnockoff(BaseVariableImportance):
         Estimator used to compute knockoff statistics. Must expose coefficients via
         `coef_` (or `best_estimator_.coef_` for CV wrappers) after fit.
     test_preconfigure_model : callable or None, default=preconfigure_lasso_path
-        An optional function is called to configure the LassoCV estimator's regularization path. 
+        An optional function is called to configure the LassoCV estimator's regularization path.
         The maximum alpha is computed as
             alpha_max = max(X_ko.T @ y) / (2 * n_features)
         and an alpha grid of length n_alphas is created between
