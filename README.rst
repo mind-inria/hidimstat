@@ -27,7 +27,7 @@
 
 .. # Add minimal dependency of the main packages
   ## This need to update in same time that pyproject.toml
-.. |PythonMinVersion| replace:: 3.9
+.. |PythonMinVersion| replace:: 3.10
 .. |JoblibMinVersion| replace:: 1.2
 .. |NumPyMinVersion| replace:: 1.25
 .. |PandasMinVersion| replace:: 2.0

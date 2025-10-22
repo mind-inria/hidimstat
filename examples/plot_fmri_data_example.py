@@ -64,7 +64,7 @@ soft, hard = resource.getrlimit(resource.RLIMIT_AS)
 new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
 new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
 resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
-n_job = 1
+n_jobs = 1
 
 
 # %%
@@ -149,7 +149,7 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 #
 try:
     beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-        X, y, noise_method="median", max_iteration=1000
+        X, y, noise_method="median", max_iteration=1000, random_state=0, n_jobs=n_jobs
     )
     pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
         X.shape[0], beta_hat, sigma_hat, precision_diagonal
@@ -163,7 +163,12 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
-    X, y, ward, n_clusters, scaler_sampling=StandardScaler(), tolerance=1e-2
+    X,
+    y,
+    ward,
+    scaler_sampling=StandardScaler(),
+    tolerance=1e-2,
+    random_state=1,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
     X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
@@ -176,19 +181,19 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
 # which means that 5 different parcellations are considered and
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
-# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=2`.
+# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs`.
 list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
     ensemble_clustered_inference(
         X,
         y,
         ward,
-        n_clusters,
         groups=groups,
         scaler_sampling=StandardScaler(),
         n_bootstraps=5,
         max_iteration=6000,
         tolerance=1e-2,
-        n_jobs=2,
+        random_state=2,
+        n_jobs=n_jobs,
     )
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(

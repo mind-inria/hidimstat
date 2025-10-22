@@ -17,7 +17,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
       
       # Codespell check
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
       - name: Run codespell with pyproject.toml config
