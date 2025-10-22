@@ -3,7 +3,7 @@ import pytest
 from sklearn.covariance import LedoitWolf
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.statistical_tools.gaussian_knockoffs import (
+from hidimstat.samplers.gaussian_knockoffs import (
     GaussianKnockoffs,
     _s_equi,
 )

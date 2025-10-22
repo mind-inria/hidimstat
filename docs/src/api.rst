@@ -52,8 +52,8 @@ Samplers
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   ~statistical_tools.ConditionalSampler
-   ~statistical_tools.GaussianKnockoffs
+   ~samplers.ConditionalSampler
+   ~samplers.GaussianKnockoffs
 
 Helper Functions
 ================

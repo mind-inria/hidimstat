@@ -7,8 +7,8 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
+from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
