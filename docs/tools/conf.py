@@ -40,7 +40,6 @@ extensions = [
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
-    "sphinx_copybutton",
 ]
 
 # Specify how to identify the prompt when copying a code snippet
