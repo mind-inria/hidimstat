@@ -13,10 +13,10 @@ from sklearn.metrics import (
     log_loss,
     mean_absolute_error,
     mean_squared_error,
-    roc_auc_score,
     r2_score,
+    roc_auc_score,
 )
-from sklearn.model_selection import KFold, GroupKFold
+from sklearn.model_selection import GroupKFold, KFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.utils.validation import check_is_fitted
@@ -26,7 +26,7 @@ from .compute_importance import (
     joblib_compute_permutation,
 )
 from .Dnn_learner import DNN_learner
-from .utils import convert_predict_proba, create_X_y, compute_imp_std
+from .utils import compute_imp_std, convert_predict_proba, create_X_y
 
 
 class BlockBasedImportance(BaseEstimator, TransformerMixin):
@@ -210,7 +210,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             self.X_cols = list(X.columns)
         if (self.groups is None) or (not bool(self.groups)):
             # Initialize the list_cols variable with each feature
-            # in a seperate list (default case)
+            # in a separate list (default case)
             self.groups = [[col] for col in X.columns]
             self.transformer_grp = False
             if self.group_stacking:

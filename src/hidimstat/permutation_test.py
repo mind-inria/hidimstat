@@ -1,11 +1,10 @@
 import numpy as np
 from joblib import Parallel, delayed
-
 from sklearn.base import clone
-from sklearn.utils import _safe_indexing
-from sklearn.svm import LinearSVR
 from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVR
+from sklearn.utils import _safe_indexing
 
 from hidimstat.stat_tools import pval_from_two_sided_pval_and_sign
 
@@ -53,7 +52,7 @@ def permutation_test_cv(
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the permutation stats in parralel.
+        when computing the permutation stats in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns
@@ -117,7 +116,7 @@ def permutation_test(X, y, estimator, n_permutations=1000, seed=0, n_jobs=1, ver
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the permutation stats in parralel.
+        when computing the permutation stats in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns

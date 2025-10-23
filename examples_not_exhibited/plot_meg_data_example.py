@@ -23,14 +23,15 @@ References
 """
 
 import os
-import numpy as np
+
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import mne
-from scipy.sparse.csgraph import connected_components
+import numpy as np
 from mne.datasets import sample, somato
-from mne.inverse_sparse.mxne_inverse import _prepare_gain, _make_sparse_stc
-from mne.minimum_norm import make_inverse_operator, apply_inverse
+from mne.inverse_sparse.mxne_inverse import _make_sparse_stc, _prepare_gain
+from mne.minimum_norm import apply_inverse, make_inverse_operator
+from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.metrics.pairwise import pairwise_distances
 
@@ -424,7 +425,7 @@ if interactive_plot:
     brain = stc.plot(subject=sub, hemi="both", subjects_dir=subs_dir, clim=clim)
 
 ##############################################################################
-# Comparision with sLORETA
+# Comparison with sLORETA
 # ------------------------
 # Now, we compare the results derived from cd-MTLasso with the solution
 # obtained from the one of the most standard approach: sLORETA.

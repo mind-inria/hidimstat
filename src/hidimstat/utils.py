@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Authors: Binh Nguyen & Jerome-Alexis Chevalier & Ahmad Chamma
 import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -160,11 +161,11 @@ def create_X_y(
     X_train_scaled: {array-like, sparse matrix}, shape (n_train_samples, n_features)
         The bootstrapped training input samples with scaled continuous variables.
     y_train_scaled: {array-like}, shape (n_train_samples, )
-        The bootstrapped training output samples scaled if continous.
+        The bootstrapped training output samples scaled if continuous.
     X_valid_scaled: {array-like, sparse matrix}, shape (n_valid_samples, n_features)
         The validation input samples with scaled continuous variables.
     y_valid_scaled: {array-like}, shape (n_valid_samples, )
-        The validation output samples scaled if continous.
+        The validation output samples scaled if continuous.
     X_scaled: {array-like, sparse matrix}, shape (n_samples, n_features)
         The original input samples with scaled continuous variables.
     y_valid: {array-like}, shape (n_samples, )
@@ -246,7 +247,7 @@ def relu_(x):
 
 def convert_predict_proba(list_probs):
     """If the classification is done using a one-hot encoded variable, the list of
-    probabilites will be a list of lists for the probabilities of each of the categories.
+    probabilities will be a list of lists for the probabilities of each of the categories.
     This function takes the probabilities of having each category (=1 with binary) and stack
     them into one ndarray.
     """

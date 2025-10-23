@@ -39,7 +39,7 @@ HiDimStat depends on the following packages::
   scikit-learn
 
 
-To run examples it is neccessary to install ``matplotlib``, and to run tests it
+To run examples it is necessary to install ``matplotlib``, and to run tests it
 is also needed to install ``pytest``.
 
 

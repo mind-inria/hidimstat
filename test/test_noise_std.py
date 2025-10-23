@@ -6,9 +6,11 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 
-from hidimstat.scenario import multivariate_1D_simulation
-from hidimstat.scenario import multivariate_temporal_simulation
-from hidimstat.noise_std import reid, group_reid, empirical_snr
+from hidimstat.noise_std import empirical_snr, group_reid, reid
+from hidimstat.scenario import (
+    multivariate_1D_simulation,
+    multivariate_temporal_simulation,
+)
 
 
 def test_reid():

@@ -1,8 +1,8 @@
 import numpy as np
 from joblib import Parallel, delayed
 
-from .multi_sample_split import aggregate_medians, aggregate_quantiles
 from .clustered_inference import clustered_inference
+from .multi_sample_split import aggregate_medians, aggregate_quantiles
 
 
 def _ensembling(
@@ -59,7 +59,7 @@ def ensemble_clustered_inference(
     n_jobs=1,
     memory=None,
     verbose=1,
-    **kwargs
+    **kwargs,
 ):
     """Ensemble clustered inference algorithm
 
@@ -120,7 +120,7 @@ def ensemble_clustered_inference(
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -171,7 +171,7 @@ def ensemble_clustered_inference(
             n_jobs=1,
             memory=memory,
             verbose=verbose,
-            **kwargs
+            **kwargs,
         )
         for i in np.arange(seed, seed + n_bootstraps)
     )

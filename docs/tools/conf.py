@@ -15,10 +15,11 @@
 import os
 import sys
 import warnings
-import sphinx_gallery
-import sphinx_bootstrap_theme
 from distutils.version import LooseVersion
+
 import matplotlib
+import sphinx_bootstrap_theme
+import sphinx_gallery
 
 # Disable agg warnings in doc
 warnings.filterwarnings("ignore", category=UserWarning,
@@ -79,6 +80,7 @@ author = u'Jerome-Alexis Chevalier & Binh Nguyen'
 #
 # The short X.Y version.
 from hidimstat import __version__ as version  # noqa
+
 # The full version, including alpha/beta/rc tags.
 release = version
 

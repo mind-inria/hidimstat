@@ -47,9 +47,9 @@ class DNN_learner(BaseEstimator):
     epsilon: float, default=1e-8
         A small constant added to the denominator to prevent division by zero.
     l1_weight: float, default=1e-2
-        The L1-regularization paramter for weight decay.
+        The L1-regularization parameter for weight decay.
     l2_weight: float, default=0
-        The L2-regularization paramter for weight decay.
+        The L2-regularization parameter for weight decay.
     n_jobs: int, default=1
         The number of workers for parallel processing.
     group_stacking: bool, default=False

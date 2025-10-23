@@ -1,6 +1,7 @@
+import itertools
 import warnings
 from collections import Counter
-import itertools
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score

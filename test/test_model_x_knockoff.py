@@ -1,5 +1,5 @@
-from hidimstat.data_simulation import simu_data
 from hidimstat import model_x_knockoff
+from hidimstat.data_simulation import simu_data
 from hidimstat.utils import cal_fdp_power
 
 seed = 42
