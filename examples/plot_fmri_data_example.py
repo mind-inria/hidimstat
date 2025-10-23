@@ -248,7 +248,7 @@ def plot_map(
     zscore_img = masker.inverse_transform(zscore)
     plot_stat_map(
         zscore_img,
-        threshold=zscore_threshold,
+        threshold=float(zscore_threshold),
         bg_img=bg_img,
         dim=-1,
         cut_coords=cut_coords,
