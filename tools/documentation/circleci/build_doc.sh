@@ -9,6 +9,9 @@ set -e
 # see the file setup_virtual_environment
 source .venv/bin/activate
 
+# install virtual display
+sudo apt install -y libgl1-mesa-glx xvfb
+
 # Decide what kind of documentation build to run, and run it.
 #
 # If the last commit message has a "[doc skip]" marker, do not build
