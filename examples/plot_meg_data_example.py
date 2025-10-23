@@ -39,6 +39,10 @@ from hidimstat.clustered_inference import clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference
 from hidimstat.stat_tools import zscore_from_pval
 
+offscreen = True
+save_fig = False
+plot_saved_fig = False
+interactive_plot = False
 ##############################################################################
 # Specific preprocessing functions
 # --------------------------------
@@ -384,16 +388,14 @@ stc = _compute_stc(zscore_active_set, active_set, evoked, forward)
 # Plotting parameters
 if cond == "audio":
     hemi = "lh"
-    view = "lateral"
+    view = "lat"
 elif cond == "visual":
     hemi = "rh"
-    view = "medial"
+    view = "med"
 elif cond == "somato":
     hemi = "rh"
-    view = "lateral"
+    view = "lat"
 
-# Plotting clustered inference solution
-mne.viz.set_3d_backend("pyvista")
 
 if active_set.sum() != 0:
     max_stc = np.max(np.abs(stc.data))
@@ -405,12 +407,15 @@ if active_set.sum() != 0:
         subjects_dir=subs_dir,
         views=view,
         time_viewer=False,
+        backend="matplotlib" if offscreen else "pyvistaqt",
     )
-    brain.add_text(0.05, 0.9, f"{cond} - cd-MTLasso", "title", font_size=20)
+    if offscreen:
+        brain.text(0.05, 0.9, f"{cond} - cd-MTLasso", fontsize=20)
+    else:
+        brain.add_text(0.05, 0.9, f"{cond} - cd-MTLasso", "title", font_size=20)
+
 
 # Hack for nice figures on HiDimStat website
-save_fig = False
-plot_saved_fig = True
 if save_fig:
     brain.save_image(f"figures/meg_{cond}_cd-MTLasso.png")
 if plot_saved_fig:
@@ -420,7 +425,6 @@ if plot_saved_fig:
     plt.axis("off")
     plt.show()
 
-interactive_plot = False
 if interactive_plot:
     brain = stc.plot(subject=sub, hemi="both", subjects_dir=subs_dir, clim=clim)
 
@@ -464,8 +468,12 @@ if active_set.sum() != 0:
         subjects_dir=subs_dir,
         views=view,
         time_viewer=False,
+        backend="matplotlib" if offscreen else "pyvistaqt",
     )
-    brain.add_text(0.05, 0.9, f"{cond} - sLORETA", "title", font_size=20)
+    if offscreen:
+        brain.text(0.05, 0.9, f"{cond} - sLORETA", fontsize=20)
+    else:
+        brain.add_text(0.05, 0.9, f"{cond} - sLORETA", "title", font_size=20)
 
     # Hack for nice figures on HiDimStat website
     if save_fig:
@@ -531,8 +539,12 @@ if run_ensemble_clustered_inference:
             subjects_dir=subs_dir,
             views=view,
             time_viewer=False,
+            backend="matplotlib" if offscreen else "pyvistaqt",
         )
-        brain.add_text(0.05, 0.9, f"{cond} - ecd-MTLasso", "title", font_size=20)
+        if offscreen:
+            brain.text(0.05, 0.9, f"{cond} - ecd-MTLasso", fontsize=20)
+        else:
+            brain.add_text(0.05, 0.9, f"{cond} - ecd-MTLasso", "title", font_size=20)
 
         # Hack for nice figures on HiDimStat website
         if save_fig:
