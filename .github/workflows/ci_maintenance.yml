@@ -3,9 +3,9 @@
 name: 'CI maintenance'
 on:
   pull_request:
-    branches: *.*.*
+    branches: **.**.**
   push:
-    branches: *.*.*
+    branches: **.**.**
 
 # disable all the permission for the workflow
 permissions: {}
