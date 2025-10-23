@@ -33,7 +33,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     n_permutations : int, default=50
         Number of permutations for each feature group.
     statistical_test : callable or str, default="nb-ttest"
-        Statistical test function for computing p-values of importance scores.
+        Statistical test function for computing p-values from importance scores.
     features_groups : dict or None, default=None
         Mapping of group names to lists of feature indices or names. If None, groups are inferred.
     n_jobs : int, default=1
