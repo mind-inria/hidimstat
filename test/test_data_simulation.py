@@ -1,4 +1,5 @@
 import numpy as np
+
 from hidimstat.data_simulation import simu_data
 
 

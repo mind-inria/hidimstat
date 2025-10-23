@@ -425,7 +425,7 @@ if interactive_plot:
     brain = stc.plot(subject=sub, hemi="both", subjects_dir=subs_dir, clim=clim)
 
 ##############################################################################
-# Comparision with sLORETA
+# Comparison with sLORETA
 # ------------------------
 # Now, we compare the results derived from cd-MTLasso with the solution
 # obtained from the one of the most standard approach: sLORETA.

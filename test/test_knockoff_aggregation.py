@@ -1,8 +1,9 @@
+import numpy as np
+import pytest
+
 from hidimstat import knockoff_aggregation, model_x_knockoff
 from hidimstat.data_simulation import simu_data
 from hidimstat.utils import cal_fdp_power
-import numpy as np
-import pytest
 
 n = 500
 p = 100

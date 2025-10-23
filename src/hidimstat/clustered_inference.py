@@ -72,7 +72,7 @@ def hd_inference(X, y, method, n_jobs=1, memory=None, verbose=0, **kwargs):
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.
@@ -122,7 +122,7 @@ def hd_inference(X, y, method, n_jobs=1, memory=None, verbose=0, **kwargs):
 
     else:
 
-        raise ValueError("Unknow method")
+        raise ValueError("Unknown method")
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
 
@@ -227,7 +227,7 @@ def clustered_inference(
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.

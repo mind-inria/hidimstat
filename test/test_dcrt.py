@@ -2,11 +2,12 @@
 Test the dcrt module
 """
 
-from hidimstat.dcrt import dcrt_zero
 import numpy as np
-from sklearn.covariance import LedoitWolf
-from sklearn.datasets import make_regression, make_classification
 import pytest
+from sklearn.covariance import LedoitWolf
+from sklearn.datasets import make_classification, make_regression
+
+from hidimstat.dcrt import dcrt_zero
 
 
 def test_dcrt_lasso():

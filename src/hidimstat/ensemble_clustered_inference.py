@@ -120,7 +120,7 @@ def ensemble_clustered_inference(
 
     verbose: int, optional (default=1)
         The verbosity level. If `verbose > 0`, we print a message before
-        runing the clustered inference.
+        running the clustered inference.
 
     **kwargs:
         Arguments passed to the statistical inference function.

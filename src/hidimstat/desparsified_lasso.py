@@ -91,7 +91,7 @@ def desparsified_lasso(
         Target.
 
     dof_ajdustement : bool, optional (default=False)
-        If True, makes the degrees of freedom adjustement (cf. [4]_ and [5]_).
+        If True, makes the degrees of freedom adjustment (cf. [4]_ and [5]_).
         Otherwise, the original Desparsified Lasso estimator is computed
         (cf. [1]_ and [2]_ and [3]_).
 
@@ -126,7 +126,7 @@ def desparsified_lasso(
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
+        when computing the Nodewise Lasso in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns
@@ -146,7 +146,7 @@ def desparsified_lasso(
     the intercepts of the Nodewise Lasso problems are all equal to zero
     and the intercept of the noise model is also equal to zero. Since
     the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
+    the consideration of unnecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
 
@@ -202,7 +202,7 @@ def desparsified_lasso(
     # Lasso regression
     sigma_hat, beta_lasso = reid(X, y, n_jobs=n_jobs)
 
-    # Computing the degrees of freedom adjustement
+    # Computing the degrees of freedom adjustment
     if dof_ajdustement:
         coef_max = np.max(np.abs(beta_lasso))
         support = np.sum(np.abs(beta_lasso) > 0.01 * coef_max)
@@ -307,7 +307,7 @@ def desparsified_group_lasso(
 
     verbose: int, optional (default=1)
         The verbosity level: if non zero, progress messages are printed
-        when computing the Nodewise Lasso in parralel.
+        when computing the Nodewise Lasso in parallel.
         The frequency of the messages increases with the verbosity level.
 
     Returns
@@ -334,7 +334,7 @@ def desparsified_group_lasso(
     that the intercepts of the Nodewise Lasso problems are all equal to zero
     and the intercept of the noise model is also equal to zero. Since
     the values of the intercepts are not of interest, the centering avoids
-    the consideration of unecessary additional parameters.
+    the consideration of unnecessary additional parameters.
     Also, you may consider to center and scale `X` beforehand, notably if
     the data contained in `X` has not been prescaled from measurements.
 

@@ -1,4 +1,5 @@
 import copy
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -204,11 +205,11 @@ def create_X_y(
     X_train_scaled : {array-like, sparse matrix} of shape (n_train_samples, n_features)
         The sampling_with_repetitionped training input samples with scaled continuous variables.
     y_train_scaled : {array-like} of shape (n_train_samples, )
-        The sampling_with_repetitionped training output samples scaled if continous.
+        The sampling_with_repetitionped training output samples scaled if continuous.
     X_validation_scaled : {array-like, sparse matrix} of shape (n_validation_samples, n_features)
         The validation input samples with scaled continuous variables.
     y_validation_scaled : {array-like} of shape (n_validation_samples, )
-        The validation output samples scaled if continous.
+        The validation output samples scaled if continuous.
     X_scaled : {array-like, sparse matrix} of shape (n_samples, n_features)
         The original input samples with scaled continuous variables.
     y_validation : {array-like} of shape (n_samples, )
@@ -304,7 +305,7 @@ def relu_(x):
 def convert_predict_proba(list_probs):
     """
     If the classification is done using a one-hot encoded variable, the list of
-    probabilites will be a list of lists for the probabilities of each of the categories.
+    probabilities will be a list of lists for the probabilities of each of the categories.
     This function takes the probabilities of having each category (=1 with binary) and stack
     them into one ndarray.
     """
@@ -408,9 +409,9 @@ def joblib_ensemble_dnnet(
     lr : float, default=1e-3
         The learning rate.
     l1_weight : float, default=1e-2
-        The L1-regularization paramter for weight decay.
+        The L1-regularization parameter for weight decay.
     l2_weight : float, default=0
-        The L2-regularization paramter for weight decay.
+        The L2-regularization parameter for weight decay.
     epsilon : float, default=1e-8
         A small constant added to the denominator to prevent division by zero.
     random_state : int, default=2023
@@ -738,9 +739,9 @@ def dnn_net(
     lr : float, default=1e-3
         The learning rate.
     l1_weight : float, default=1e-2
-        The L1-regularization paramter for weight decay.
+        The L1-regularization parameter for weight decay.
     l2_weight : float, default=0
-        The L2-regularization paramter for weight decay.
+        The L2-regularization parameter for weight decay.
     epsilon : float, default=1e-8
         A small constant added to the denominator to prevent division by zero.
     list_grps : list of lists, default=None

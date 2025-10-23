@@ -17,7 +17,7 @@ non-significant variables highly correlated with the significant ones and
 creating fake significant variables. They introduced a solution for the Random
 Forest estimator based on conditional sampling by performing sub-groups
 permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and is
+building process. However, this solution is exclusive to the Random Forest and is
 costly with high-dimensional settings.
 :footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
 bypass the limitations of the permutation approach under the use of the
@@ -50,8 +50,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.datasets import load_diabetes
 
-from hidimstat.bbi import BlockBasedImportance
 from hidimstat import compute_loco
+from hidimstat.bbi import BlockBasedImportance
 
 plt.rcParams.update({"font.size": 14})
 

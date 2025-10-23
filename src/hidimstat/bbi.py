@@ -62,7 +62,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
     coffeine_transformer : tuple, default=None
         Applying the coffeine's pipeline for filterbank models on
         electrophysiological data.
-        The tuple cosists of (coffeine pipeline, new number of variables) or
+        The tuple consists of (coffeine pipeline, new number of variables) or
         (coffeine pipeline, new number of variables, list of variables to keep
         after variable selection).
     do_hypertuning : bool, default=True
@@ -252,7 +252,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
             self.X_cols = list(X.columns)
         if (self.groups is None) or (not bool(self.groups)):
             # Initialize the list_columns variable with each feature
-            # in a seperate list (default case)
+            # in a separate list (default case)
             self.groups = [[col] for col in X.columns]
             self.transformer_grp = False
             if self.group_stacking:
@@ -672,7 +672,7 @@ class BlockBasedImportance(BaseEstimator, TransformerMixin):
         Parameters
         ----------
         X : {array-like, sparse matrix} of shape (n_test_samples, n_features),
-            defaut=None
+            default=None
             The input samples.
 
         Returns

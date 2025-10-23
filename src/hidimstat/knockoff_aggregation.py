@@ -7,7 +7,7 @@ from sklearn.utils import check_random_state
 from sklearn.utils.validation import check_memory
 
 from .gaussian_knockoff import _estimate_distribution, gaussian_knockoff_generation
-from .stat_coef_diff import stat_coef_diff, _coef_diff_threshold
+from .stat_coef_diff import _coef_diff_threshold, stat_coef_diff
 from .utils import fdr_threshold, quantile_aggregation
 
 

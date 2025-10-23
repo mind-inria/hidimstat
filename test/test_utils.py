@@ -1,7 +1,8 @@
-from hidimstat.utils import fdr_threshold, cal_fdp_power, quantile_aggregation
-from numpy.testing import assert_array_almost_equal
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
+
+from hidimstat.utils import cal_fdp_power, fdr_threshold, quantile_aggregation
 
 seed = 42
 

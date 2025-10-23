@@ -1,11 +1,12 @@
 import numpy as np
 from joblib import Parallel, delayed
-from hidimstat.utils import _lambda_max, fdr_threshold
 from scipy import stats
 from sklearn.base import clone
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV
 from sklearn.preprocessing import StandardScaler
+
+from hidimstat.utils import _lambda_max, fdr_threshold
 
 
 def dcrt_zero(
@@ -71,7 +72,7 @@ def dcrt_zero(
         The maximum number of iterations.
     refit : bool, default=False
         If estimated_coef is not provided, whether to refit with the estimated support set to possibly find better
-        coeffcients magnitude.
+        coefficients magnitude.
     loss : str, default="least_square"
         The loss function used for the distillation of X.
     screening : bool, default=True
