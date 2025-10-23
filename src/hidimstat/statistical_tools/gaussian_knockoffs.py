@@ -1,13 +1,12 @@
 import warnings
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from hidimstat._utils.utils import check_random_state
 
 
 class GaussianKnockoffs:
-    """
+    r"""
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original
     variables while ensuring conditional independence between the original and synthetic data.

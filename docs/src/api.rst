@@ -62,3 +62,4 @@ Helper Functions
 
    quantile_aggregation
    reid
+   ~statistical_tools.nadeau_bengio_ttest
