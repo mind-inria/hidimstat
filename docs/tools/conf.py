@@ -6,6 +6,12 @@ sys.path.insert(0, os.path.abspath("."))
 import matplotlib
 from utils import linkcode_resolve
 
+
+# Set PyVista to use the off-screen rendering backend
+import pyvista as pv
+
+pv.OFF_SCREEN = True
+
 from hidimstat import __version__
 
 # Configuration file for the Sphinx documentation builder.
