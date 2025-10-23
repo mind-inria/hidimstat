@@ -10,7 +10,8 @@ set -e
 source .venv/bin/activate
 
 # install virtual display
-sudo apt install -y libgl1-mesa-glx xvfb
+sudo apt-get update
+sudo apt-get install -y libgl1-mesa-glx xvfb
 
 # Decide what kind of documentation build to run, and run it.
 #
