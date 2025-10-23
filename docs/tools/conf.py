@@ -5,10 +5,11 @@ sys.path.insert(0, os.path.abspath("."))
 
 import matplotlib
 
-# Set PyVista to use the off-screen rendering backend
 import pyvista as pv
 from utils import linkcode_resolve
 
+# Set PyVista to use the off-screen rendering backend
+pv.start_xvfb()
 pv.OFF_SCREEN = True
 
 from hidimstat import __version__
