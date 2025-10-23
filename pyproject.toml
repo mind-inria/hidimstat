@@ -15,7 +15,7 @@ dependencies = [
 requires-python = ">=3.10,   < 4"
 authors = [{ name = "HiDimStat developers" }]
 maintainers = [
-    { name = "jerome-alexis Chevalier", email = "jerome-alexis_chevalier@hotmail.fr" },
+    { name = "Jerome-Alexis Chevalier", email = "jerome-alexis_chevalier@hotmail.fr" },
     { name = "Binh Nguyen", email = "tuanbinhs@gmail.com" },
 ]
 description = "High-dimensional statistical inference tools for Python"
