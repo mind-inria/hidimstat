@@ -47,7 +47,6 @@ doc = [
     "pandas                 >= 2.2,     < 3",
     "pydata_sphinx_theme    >= 0.15.1,  < 1",
     "seaborn                >= 0.13,    < 1",
-    "sphinxcontrib-bibtex   >= 2.5.0,   < 3",
     "sphinx                 >= 7.0.0,   < 9",
     "sphinx-gallery         >= 0.17.0,  < 1",
     "sphinx-prompt          >= 1.8.0,   < 2",

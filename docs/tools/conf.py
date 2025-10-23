@@ -34,7 +34,6 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
-    "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
     "sphinx_gallery.gen_gallery",
     "sphinx_prompt",
@@ -68,7 +67,6 @@ language = "en"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["../tools/_static"]
-html_logo = "./_static/logo.png"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = "pydata_sphinx_theme"
@@ -99,12 +97,6 @@ html_context = {
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 source_suffix = [".rst", ".md"]
-
-# sphinxcontrib-bibtex
-bibtex_bibfiles = ["../tools/references.bib"]
-bibtex_style = "unsrt"
-bibtex_reference_style = "author_year"
-bibtex_footbibliography_header = ""
 
 
 # -- Options for autodoc / autosummary ----------------------------------------

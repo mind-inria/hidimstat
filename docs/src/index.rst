@@ -47,7 +47,7 @@ Documentation & Examples
 ------------------------
 
 Documentation about the main HiDimStat functions is available
-`here <api.html>`_ and examples are available `here <auto_examples/index.html>`_.
+`here <api.html>`_ and examples are available `here_ <auto_examples/index.html>`_.
 
 As of now, there are three different examples (Python scripts) that
 illustrate how to use the main HiDimStat functions.
