@@ -45,6 +45,7 @@ doc = [
     "mne                                   ",
     "memory_profiler                       ",
     "pandas                 >= 2.2,     < 3",
+    "PyQt5                                 ",
     "pydata_sphinx_theme    >= 0.15.1,  < 1",
     "seaborn                >= 0.13,    < 1",
     "sphinx                 >= 7.0.0,   < 9",
