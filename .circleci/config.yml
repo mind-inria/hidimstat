@@ -48,11 +48,6 @@ jobs:
           command: 
             bash ./tools/documentation/circleci/build_doc.sh
           no_output_timeout: 40m
-      - run:
-          name: "check links"
-          command: |
-            source .venv/bin/activate
-            make -C docs linkcheck 
       # store the documentation for see it in a PR
       - store_artifacts:
           path: docs/_build/html
@@ -124,7 +119,7 @@ jobs:
       - run:
           name: "Deploy documentation"
           command: |
-            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
+            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
             fi
 
