@@ -108,7 +108,7 @@ def _load_somato(cond):
     # Get data paths
     data_path = somato.data_path()
     subject = "01"
-    subjects_dir = data_path + "/derivatives/freesurfer/subjects"
+    subjects_dir = str(data_path) + "/derivatives/freesurfer/subjects"
     raw_fname = os.path.join(
         data_path, f"sub-{subject}", "meg", f"sub-{subject}_task-{cond}_meg.fif"
     )

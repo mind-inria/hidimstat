@@ -128,8 +128,8 @@ sphinx_gallery_conf = {
     "image_scrapers": ("matplotlib",),
     "doc_module": "hidimstat",
     "backreferences_dir": "./generated/gallery/backreference/",
-    "parallel": True,
-    "show_memory": False,  # can't show memory if it's in parallel
+    "parallel": False,
+    "show_memory": True,  # can't show memory if it's in parallel
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
