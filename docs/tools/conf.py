@@ -4,11 +4,10 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 
 import matplotlib
-from utils import linkcode_resolve
-
 
 # Set PyVista to use the off-screen rendering backend
 import pyvista as pv
+from utils import linkcode_resolve
 
 pv.OFF_SCREEN = True
 
