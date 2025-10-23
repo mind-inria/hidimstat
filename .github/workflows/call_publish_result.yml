@@ -1,0 +1,121 @@
+name: Publish Tests
+
+on:
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+
+# disable all the permission for the workflow
+permissions: {}
+
+jobs:
+  merge_and_upload_test_data:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
+    steps:
+      # get reports from previous job 
+      - name: Get HTML reports
+        uses: actions/download-artifact@v5
+        with:
+          pattern: pytest-results-html-*-os-*
+      - name: Get time reports
+        uses: actions/download-artifact@v5
+        with:
+          pattern: pytest-results-log-*-os-*
+      # put all the reports in one folder and add an index
+      - name: gather reports and add an index
+        run: |
+          mkdir reports
+          mv */*.html reports
+          mv */*.txt reports
+          (
+          echo '<html><body><p>List TESTs Reports:</p><ul>'
+          echo "$(ls reports)" | sed 's|.*|<li><a href="&">&</a></li>|'
+          echo '</ul></body></html>'
+          ) > index.html
+          mv index.html reports
+      - name: upload the reports
+        id: upload_all
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-results-all
+          path: reports
+          if-no-files-found: error
+      - name: Trigger hosting job on circle ci
+        run: |
+          #display command executed with argument
+          set -x -a
+          # get the number of the PR
+          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          # get the branch of the PR
+          if [ $PULL_REQUEST_NUMBER == "null" ] 
+          then 
+            BRANCH=main
+          else
+            BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          fi
+          # get URL for download artifact without identification
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
+          # Send the information to circleci
+          http_response=$(curl --request POST \
+          --output result_post.txt \
+          --write-out "%{response_code}" \
+          --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline/run \
+          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header 'content-type: application/json' \
+          --header 'x-attribution-actor-id: github_actions' \
+          --header 'x-attribution-login: github_actions' \
+          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":\"$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\})
+          # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
+          # definition_id is the id of the pipeline of hidimstat
+          # display result for debugging
+          cat result_post.txt
+          # if there is no "id" in result_post, this mean that there is an error
+          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
+          # this is not apply also for dependabot
+          if [[ $http_response == '201' \
+               || ( ${{ ! github.event.pull_request.head.repo.fork }} \
+                  && ${{ github.actor == 'dependabot[bot]' }} ) ]]
+            then
+              exit 0
+            else
+              exit 1
+            fi
+          fi
+
+  upload_coverage_data:
+    runs-on: ubuntu-latest
+    # name for files
+    env:
+      OS: 'macos-latest'
+      PYTHON: '3.13'
+    steps:
+    # initialize the reposititory
+    - uses: actions/checkout@v5
+    
+    # get coverage only for 1 job 
+    - name: Get data
+      uses: actions/download-artifact@v5
+      with:
+        pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
+        path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
+    # check the size of the file for not pushing empty file
+    - name: Check file size
+      id: check_size
+      run: |
+          FILE_SIZE=$(stat -c%s "cov-results-${PYTHON}-os-${OS}/cov-${PYTHON}-os-${OS}.xml")
+          echo "File size is $FILE_SIZE bytes"
+          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
+    # Upload coverage report for Codecov
+    - name: Upload coverage reports to Codecov
+      if: ${{ env.FILE_SIZE > 1 }}
+      uses: codecov/codecov-action@v5.5.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        env_vars: OS,PYTHON
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        fail_ci_if_error: true
