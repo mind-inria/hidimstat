@@ -160,3 +160,4 @@ API
     :maxdepth: 1
 
     api.rst
+    generated/gallery/examples/index
