@@ -103,22 +103,22 @@ class DesparsifiedLasso(BaseVariableImportance):
     importances_ : ndarray of shape (n_features)
         Debiased coefficient estimates.
 
-    pvalues_ : ndarray
+    pvalues_ : ndarray of shape (n_features)
         Two-sided p-values.
 
-    pvalues_corr_ : ndarray
+    pvalues_corr_ : ndarray of shape (n_features)
         Multiple testing corrected p-values.
 
-    sigma_hat_ : float or ndarray
+    sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
 
-    precision_diagonal_ : ndarray
+    precision_diagonal_ : ndarray of shape (n_features)
         Diagonal entries of precision matrix.
 
-    confidence_bound_min_ : ndarray
+    confidence_bound_min_ : ndarray of shape (n_features)
         Lower confidence bounds.
 
-    confidence_bound_max_ : ndarray
+    confidence_bound_max_ : ndarray of shape (n_features)
         Upper confidence bounds.
     """
 
