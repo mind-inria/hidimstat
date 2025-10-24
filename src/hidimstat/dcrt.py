@@ -35,7 +35,8 @@ def dcrt_zero(
     problem_type="regression",
     random_state=2022,
 ):
-    """
+    """Distilation Conditional Randomization Test
+
     This function implements the Conditional Randomization Test of
     :footcite:t:`candesPanningGoldModelX2017` accelerated with the distillation
     process `dcrt_zero` in the work by :footcite:t:`liuFastPowerfulConditional2021`.
