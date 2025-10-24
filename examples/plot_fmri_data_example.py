@@ -137,7 +137,6 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # %%
 # Making the inference with several algorithms
 # --------------------------------------------
-
 # Limit the resource use for the algorithm to 5 G or maximum of possible.
 #
 import resource
