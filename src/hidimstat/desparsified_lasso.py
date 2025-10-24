@@ -482,7 +482,7 @@ def _joblib_compute_residuals(X, id_column, clf, return_clf):
     X : ndarray of shape (n_samples, n_features)
         Input data matrix.
     id_column : int
-        Index i of feature to regress.
+        Index of feature to regress.
     clf : sklearn estimator
         Pre-configured estimator.
     return_clf : bool
