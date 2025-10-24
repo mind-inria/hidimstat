@@ -1,4 +1,4 @@
-from .conditional_feature_importance import CFI
+from .conditional_feature_importance import CFI, cfi
 from .desparsified_lasso import (
     desparsified_group_lasso_pvalue,
     desparsified_lasso,
@@ -17,9 +17,9 @@ from .knockoffs import (
     model_x_knockoff_bootstrap_quantile,
     model_x_knockoff_pvalue,
 )
-from .leave_one_covariate_out import LOCO
+from .leave_one_covariate_out import LOCO, loco
 from .noise_std import reid
-from .permutation_feature_importance import PFI
+from .permutation_feature_importance import PFI, pfi
 from .statistical_tools.aggregation import quantile_aggregation
 
 try:
@@ -44,6 +44,9 @@ __all__ = [
     "model_x_knockoff_bootstrap_quantile",
     "model_x_knockoff_bootstrap_e_value",
     "CFI",
+    "cfi",
     "LOCO",
+    "loco",
     "PFI",
+    "pfi",
 ]

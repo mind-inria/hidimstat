@@ -1,7 +1,28 @@
 import numpy as np
 import pytest
+from scipy.stats import ttest_1samp, wilcoxon
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import (
+    check_random_state,
+    check_statistical_test,
+    get_fitted_attributes,
+)
+from hidimstat.statistical_tools import nadeau_bengio_ttest
+
+
+def test_generated_attributes():
+    """Test function for getting generated attribute"""
+
+    class MyClass:
+        def __init__(self):
+            self.attr1 = 1
+            self.attr2_ = 2
+            self._attr3 = 3
+            self.attr4__ = 4
+            self.attr5_ = 5
+
+    attributes = get_fitted_attributes(MyClass())
+    assert attributes == ["attr2_", "attr5_"]
 
 
 def test_none():
@@ -41,3 +62,25 @@ def test_error():
         ValueError, match="cannot be used to seed a numpy.random.Generator instance"
     ):
         check_random_state(random_state)
+
+
+def test_check_test_statistic():
+    "test the function of check"
+    test_func = check_statistical_test("wilcoxon")
+    assert test_func.func == wilcoxon
+    test_func = check_statistical_test("ttest")
+    assert test_func.func == ttest_1samp
+    test_func = check_statistical_test("nb-ttest")
+    assert test_func.func == nadeau_bengio_ttest
+    test_func = check_statistical_test(print)
+    assert test_func == print
+    test_func = check_statistical_test(lambda x: x)
+    assert test_func.__class__.__name__ == "function"
+
+
+def test_check_test_statistic_warning():
+    "test the exception"
+    with pytest.raises(ValueError, match="the test 'test' is not supported"):
+        check_statistical_test("test")
+    with pytest.raises(ValueError, match="Unsupported value for 'statistical_test'."):
+        check_statistical_test([])

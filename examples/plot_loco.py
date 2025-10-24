@@ -82,7 +82,7 @@ for model in models_list:
     # importance. This process is repeated for all features to assess their individual
     # contributions.
     loco.fit(X_train, y_train)
-    importances = loco.importance(X_test, y_test)["importance"]
+    importances = loco.importance(X_test, y_test)
     df_list.append(
         pd.DataFrame(
             {
