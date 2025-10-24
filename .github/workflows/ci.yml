@@ -54,8 +54,7 @@ jobs:
       - name: Get branch name
         id: get_branch_name
         run: |
-          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
-
+          echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_OUTPUT
 
   linter:
     name: Linter
