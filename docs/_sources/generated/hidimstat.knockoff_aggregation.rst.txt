@@ -1,6 +1,0 @@
-﻿hidimstat.knockoff\_aggregation
-===============================
-
-.. currentmodule:: hidimstat
-
-.. autofunction:: knockoff_aggregation

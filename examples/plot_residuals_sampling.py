@@ -13,7 +13,7 @@ dependency between the variable of interest and the remaining variables while
 breaking the relationship with the outcome). 2) Another option is to use the
 sampling Random Forest. Using the remaining variables to predict the variable of
 interest, and instead of predicting the variable of interest as the mean of the
-instances' outcome of the targeted leaf or the class with the most occurences,
+instances' outcome of the targeted leaf or the class with the most occurrences,
 we sample from the same leaf of the instance of interest within its neighbors,
 and we follow the standard path of the Random Forest.
 
@@ -27,16 +27,18 @@ References
 # Imports needed for this script
 # ------------------------------
 
-from hidimstat import BlockBasedImportance
-from joblib import Parallel, delayed
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from scipy.linalg import cholesky
 from scipy.stats import norm
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import roc_auc_score
-import time
+
+from hidimstat import BlockBasedImportance
 
 n, p = (100, 12)
 inter_cor, intra_cor = (0, 0.85)

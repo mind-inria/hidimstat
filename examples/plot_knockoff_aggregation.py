@@ -1,6 +1,6 @@
 """
 Knockoff aggregation on simulated data
-=============================
+======================================
 
 In this example, we show an example of variable selection using
 model-X Knockoffs introduced by :footcite:t:`Candes_2018`. A notable
@@ -22,13 +22,14 @@ References
 # Imports needed for this script
 # ------------------------------
 
-import numpy as np
-from hidimstat.data_simulation import simu_data
-from hidimstat.knockoffs import model_x_knockoff
-from hidimstat.knockoff_aggregation import knockoff_aggregation
-from hidimstat.utils import cal_fdp_power
-from sklearn.utils import check_random_state
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.utils import check_random_state
+
+from hidimstat.data_simulation import simu_data
+from hidimstat.knockoff_aggregation import knockoff_aggregation
+from hidimstat.knockoffs import model_x_knockoff
+from hidimstat.utils import cal_fdp_power
 
 plt.rcParams.update({"font.size": 26})
 

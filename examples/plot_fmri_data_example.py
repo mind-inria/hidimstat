@@ -13,7 +13,7 @@ discriminative pattern that makes the decoding of the two conditions.
 In this example, we show that standard statistical methods (i.e., method
 such as thresholding by permutation test the SVR or Ridge decoder or the
 algorithm introduced by Gaonkar et al. [1]_) are not powerful when applied on
-the uncompressed problem (i.e., the orignal problem in which the activation
+the uncompressed problem (i.e., the original problem in which the activation
 maps are not reduced using compression techniques such as parcellation).
 This is notably due to the high dimensionality (too many voxels) and
 structure of the data (too much correlation between neighboring voxels).
@@ -248,7 +248,7 @@ def plot_map(
     zscore_img = masker.inverse_transform(zscore)
     plot_stat_map(
         zscore_img,
-        threshold=zscore_threshold,
+        threshold=float(zscore_threshold),
         bg_img=bg_img,
         dim=-1,
         cut_coords=cut_coords,
@@ -300,7 +300,7 @@ plot_map(pval_ecdl, one_minus_pval_ecdl, zscore_threshold_clust, "EnCluDL")
 # isolated voxels are discovered, which seems quite spurious.
 # The discriminative pattern derived from the clustered inference algorithm
 # (CluDL) show that the method is less conservative.
-# However, some reasonable paterns are also included in this solution.
+# However, some reasonable patterns are also included in this solution.
 # Finally, the solution provided by the ensemble clustered inference algorithm
 # (EnCluDL) seems realistic as we recover the visual cortex and do not make
 # spurious discoveries.
