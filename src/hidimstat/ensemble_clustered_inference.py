@@ -51,7 +51,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
         # weighting the weight of beta with the size of the cluster
         beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
     elif len(beta_hat.shape) == 2:
-        n_task = beta_hat.shape[1]
+        n_tasks = beta_hat.shape[1]
         beta_hat_degrouped = np.zeros((n_features, n_task))
         for i in range(n_task):
             beta_hat_degrouped[:, i] = (
