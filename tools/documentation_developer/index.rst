@@ -13,6 +13,12 @@ You need more information, look here:
 - :ref:`Continuous Integration<developer_documentation_CI>`
 - :ref:`Building the documentation<developer_documentation_build>`
 
+============
+CONTRIBUTORS
+============
+.. _latest:
+.. include:: CONTRIBUTORS.rst
+
 .. toctree::
   :hidden:
   
@@ -20,3 +26,4 @@ You need more information, look here:
   how_to_contribute
   building_documentation
   CI_documentation
+  CONTRIBUTORS
