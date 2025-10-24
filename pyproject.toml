@@ -41,6 +41,7 @@ license = { file = "LICENSE" }
 doc = [
     "matplotlib             >= 3.8.0,   < 4",
     "nilearn                >= 0.11.0,  < 1",
+    "memory_profiler                       ",
     "numpydoc               >= 1.0.0,   < 2",
     "pydata_sphinx_theme    >= 0.15.1,  < 1",
     "seaborn                >= 0.13,    < 1",
