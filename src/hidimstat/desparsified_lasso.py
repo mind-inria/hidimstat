@@ -100,7 +100,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Attributes
     ----------
-    importances_ : ndarray
+    importances_ : ndarray of shape (n_features)
         Debiased coefficient estimates.
 
     pvalues_ : ndarray
