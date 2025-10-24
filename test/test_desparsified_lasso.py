@@ -117,7 +117,7 @@ def test_desparsified_group_lasso():
 
     with pytest.warns(Warning, match="'max_iter' has been increased to "):
         desparsified_lasso = DesparsifiedLasso(
-            model_y=multitasklassoCV, covariance=corr, save_model_x=True
+            model_y=multi_task_lasso_cv, covariance=corr, save_model_x=True
         ).fit(X, y)
     importances = desparsified_lasso.importance()
 
