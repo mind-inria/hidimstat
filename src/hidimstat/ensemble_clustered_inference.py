@@ -21,7 +21,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Parameters
     ----------
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Beta coefficients at cluster level
     n_features : int
         Number of features in original space
