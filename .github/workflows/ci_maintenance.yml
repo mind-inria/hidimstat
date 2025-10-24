@@ -66,7 +66,7 @@ jobs:
   
   tests_publish:
     name: tests_publish
-    needs: [tests]
+    needs: [tests, get_information]
     if: |
       ${{ github.event.pull_request.draft == false 
           || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
