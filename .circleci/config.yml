@@ -1,77 +1,136 @@
 version: 2.1
 
-_xvfb: &xvfb
-  name: Start Xvfb virtual framebuffer
-  command: |
-    echo "export DISPLAY=:99" >> $BASH_ENV
-    /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset -nolisten tcp -nolisten unix
-
-jobs:
-    build_docs:
-      docker:
-        - image: circleci/python:3.8.5-buster
-      steps:
-        - checkout
-        - run:
-            name: Set BASH_ENV
-            command: |
-              set -e
-              echo "set -e" >> $BASH_ENV
-              echo "export XDG_RUNTIME_DIR=/tmp/runtime-circleci" >> $BASH_ENV
-              echo "export MNE_3D_BACKEND=pyvista" >> $BASH_ENV
-              echo "export PYTHONUNBUFFERED=1" >> $BASH_ENV
-              echo "BASH_ENV:"
-              cat $BASH_ENV
-        - run:
-            <<: *xvfb
-        - run:
-            name: Install OpenGL
-            command: |
-              sudo apt-get update --allow-releaseinfo-change
-              sudo apt-get install -y git libopenmpi-dev openmpi-bin
-              sudo apt-get install libosmesa6 libglx-mesa0 libopengl0 libglx0 libdbus-1-3 \
-                libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
-                libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0
-              sudo ln -s /usr/lib/x86_64-linux-gnu/libxcb-util.so.0 /usr/lib/x86_64-linux-gnu/libxcb-util.so.1
-        - run:
-            name: Install dependencies
-            command: |
-              python -m pip install --progress-bar off --upgrade pip setuptools wheel
-              python -m pip install --progress-bar off -r doc/doc-requirements.txt
-              python -m pip install --progress-bar off --upgrade pytest coverage
-              python -m pip install -e .
-              echo "localhost slots=50">hostfile
-        - run:
-            name: Check PyQt5
-            command: LD_DEBUG=libs python -c "from PyQt5.QtWidgets import QApplication, QWidget; app = QApplication([])"
-        - run:
-            name: Check installation
-            command: |
-               which python
-               QT_DEBUG_PLUGINS=1 mne sys_info
-               python -c "import numpy; numpy.show_config()"
-               LIBGL_DEBUG=verbose python -c "import pyvistaqt; pyvistaqt.BackgroundPlotter(show=True)"
-        - run:
-            name: run test
-            no_output_timeout: 30m
-            command: |
-              coverage run -m pytest;
-              coverage report;
-              coverage html;
-        - run:
-            name: make html
-            no_output_timeout: 30m
-            command: |
-              cd doc;
-              export OMP_NUM_THREADS=1;
-              make html;
-        - store_artifacts:
-            path: doc/_build/html/
-            destination: dev
+parameters:
+    # Parameters required to trigger the execution of the "host_docs" job
+    GITHUB_RUN_URL:
+        type: string
+        default: none
 
 workflows:
   version: 2
-
-  default:
+  wait:
     jobs:
-      - build_docs
+      - wait-action
+  build-doc-and-deploy-documentation:
+    # action trigger by updating the link of github
+    when:
+      not:
+        equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
+    jobs:
+      - build-documentation
+      - get-tests-reports
+      - deploy-documentation:
+          requires:
+            - get-tests-reports
+            - build-documentation
+
+jobs:
+  build-documentation:
+    docker:
+      - image: cimg/python:3.13.2
+    environment:
+      - PYTHON_VERSION: "3.13"
+    steps:
+      - checkout
+      - run: 
+          name:
+            'Checkout to PR commit'
+          command: 
+            bash ./tools/documentation/circleci/checkout_merge_commit.sh
+      - restore_cache:
+          key: saved-cache
+      - run:
+          name: "Create the environment for building the documentation"
+          command: 
+            bash ./tools/documentation/circleci/setup_virtual_environment.sh
+      - run:
+          name: "Build documentation"
+          command: 
+            bash ./tools/documentation/circleci/build_doc.sh
+          no_output_timeout: 40m
+      # store the documentation for see it in a PR
+      - store_artifacts:
+          path: docs/_build/html
+          destination: documentation
+      - store_artifacts:
+          path: ~/output_sphinx.log
+          destination: log.txt
+      # Persists generated documentation so that it can be attached and deployed
+      # in the 'deploy-documentation' step.
+      - persist_to_workspace:
+          root: docs/_build/html
+          paths: .
+      - save_cache:
+          # cache some library
+          key: saved-cache
+          paths:
+            - /home/circleci/nilearn_data
+            - /home/circleci/sklearn_data
+
+  get-tests-reports:
+    docker:
+      - image: cimg/base:2025.05
+    environment:
+      - GITHUB_ARTIFACT_URL: << pipeline.parameters.GITHUB_RUN_URL >>
+    steps:
+      - checkout
+      - run:
+            name: "get reports"
+            command: |
+              set -x -e
+              wget $GITHUB_ARTIFACT_URL
+              unzip pytest-results-all.zip -d test_reports
+              mkdir -p docs/_build/html
+              mv test_reports docs/_build/html
+      # store the reports to display for a PR
+      - store_artifacts:
+          path: docs/_build/html/test_reports
+          destination: documentation/test_reports
+      # store the reports for adding them to the documentation
+      - persist_to_workspace:
+          root: docs/_build/html/
+          paths: .
+
+  deploy-documentation:
+    docker:
+      - image: cimg/deploy:2025.01
+    environment:
+      - USERNAME: "hidimstat-circleci"
+      - ORGANIZATION: "hidimstat"
+      - DOC_REPO: "hidimstat.github.io"
+      - DOC_URL: ""
+      - EMAIL: "hidimstat@circleci.com"
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
+      # Attach documentation generated in the 'build-documentation' step so that it can be
+      # deployed.
+      - attach_workspace:
+          at: docs/_build/html
+      - run:
+          name: 
+            "Add the ssh key and list the file in the documentation"
+          command: |
+              set -x -e
+              mkdir -p ~/.ssh
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              ls -ltrh docs/_build/html
+      - run:
+          name: "Deploy documentation"
+          command: |
+            set -x -e
+            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
+            fi
+
+  # this action is only to avoid any error
+  wait-action:
+    docker:
+      - image: cimg/base:2025.05
+    steps:
+      - run:
+            name: "wait"
+            command: sleep 10
+
