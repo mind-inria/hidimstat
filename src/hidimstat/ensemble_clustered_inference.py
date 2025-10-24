@@ -84,7 +84,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
 
     Returns
     -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_task)
+    beta_hat : ndarray, shape (n_features,) or (n_features, n_tasks)
         Rescaled parameter estimates for individual features
     pval : ndarray, shape (n_features,)
         P-values for individual features
