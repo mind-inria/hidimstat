@@ -96,7 +96,7 @@ def test_desparsified_group_lasso():
     alpha = 0.1
 
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    multitasklassoCV = MultiTaskLassoCV(
+    multi_task_lasso_cv = MultiTaskLassoCV(
         eps=1e-2,
         fit_intercept=False,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
