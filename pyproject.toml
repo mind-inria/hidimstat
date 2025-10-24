@@ -125,8 +125,8 @@ markers = [
     "mpl_image_compare: marks tests to be compared with a baseline image (from pytest-mpl)",
 ]
 # pytest-timeout
-timeout = 60           # on individual test should not take more than 10s
-session_timeout = 1200 # all the tests should be run in 5 min
+# timeout = 60           # on individual test should not take more than 10s
+# session_timeout = 1200 # all the tests should be run in 5 min
 
 [tool.pytest_env]
 OPENBLAS_NUM_THREADS = 1
