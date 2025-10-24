@@ -302,3 +302,46 @@ def multivariate_simulation(
     y = prod_temp + noise
 
     return X, y, beta_true, noise
+
+
+def empirical_snr(X, y, beta, noise=None):
+    """
+    Compute the empirical signal-to-noise ratio (SNR) for
+    the linear model y = X @ beta + noise.
+
+    Parameters
+    ----------
+    X : ndarray, shape (n_samples, n_features)
+        Design matrix.
+
+    y : ndarray, shape (n_samples,)
+        Target vector.
+
+    beta : ndarray, shape (n_features,)
+        Parameter vector.
+
+    noise : ndarray, shape (n_samples,), optional
+        Noise vector. If None, computed as y - X @ beta.
+
+    Returns
+    -------
+    signal_noise_ratio_hat : float
+        Empirical SNR computed as var(signal) / var(noise).
+
+    Notes
+    -----
+    SNR measures the ratio of signal power to noise power,
+    indicating model estimation quality.
+    Higher values suggest better signal recovery.
+    """
+    X = np.asarray(X)
+
+    signal = np.dot(X, beta)
+
+    if noise is None:
+        noise = y - signal
+
+    # compute signal-to-noise ratio
+    signal_noise_ratio_ = (np.linalg.norm(signal) / np.linalg.norm(noise)) ** 2
+
+    return signal_noise_ratio_

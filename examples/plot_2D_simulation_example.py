@@ -52,8 +52,8 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.preprocessing import StandardScaler
 
+from hidimstat import DesparsifiedLasso
 from hidimstat._utils.scenario import multivariate_simulation_spatial
-from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
@@ -110,7 +110,7 @@ fwer_target = 0.1
 delta = 6
 
 # number of worker
-n_jobs = 3
+n_jobs = 2
 
 # %%
 # Computing z-score thresholds for support estimation
@@ -184,28 +184,17 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 
 # compute desparsified lasso
-beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-    X_init,
-    y,
-    n_jobs=n_jobs,
-    random_state=0,
-)
-pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-    desparsified_lasso_pvalue(
-        X_init.shape[0],
-        beta_hat,
-        sigma_hat,
-        precision_diagonal,
-    )
-)
+desparsified_lasso = DesparsifiedLasso(n_jobs=n_jobs, random_state=0).fit(X_init, y)
+desparsified_lasso.importance(X_init, y)
 
 # compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
+zscore = zscore_from_pval(desparsified_lasso.pvalues_, 1 - desparsified_lasso.pvalues_)
 selected_dl = zscore > thr_nc  # use the "no clustering threshold"
 
 # compute estimated support (second method)
 selected_dl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+    desparsified_lasso.pvalues_corr_ < fwer_target / 2,
+    1 - desparsified_lasso.pvalues_corr_ < fwer_target / 2,
 )
 
 # %%
@@ -221,18 +210,11 @@ ward = FeatureAgglomeration(
 )
 
 # clustered desparsified lasso (CluDL)
-ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+ward_, desparsified_lasso_ = clustered_inference(
     X_init, y, ward, scaler_sampling=StandardScaler(), random_state=0
 )
 beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference_pvalue(
-        n_samples,
-        False,
-        ward_,
-        beta_hat,
-        theta_hat,
-        omega_diag,
-    )
+    clustered_inference_pvalue(n_samples, False, ward_, desparsified_lasso_)
 )
 
 # compute estimated support (first method)
@@ -252,22 +234,18 @@ selected_cdl = np.logical_or(
 # solutions are then aggregated into one.
 
 # ensemble of clustered desparsified lasso (EnCluDL)
-list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
-    ensemble_clustered_inference(
-        X_init,
-        y,
-        ward,
-        scaler_sampling=StandardScaler(),
-        random_state=0,
-    )
+list_ward, list_desparsified_lasso = ensemble_clustered_inference(
+    X_init,
+    y,
+    ward,
+    scaler_sampling=StandardScaler(),
+    random_state=0,
 )
 beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
     n_samples,
     False,
     list_ward,
-    list_beta_hat,
-    list_theta_hat,
-    list_omega_diag,
+    list_desparsified_lasso,
     fdr=fwer_target,
 )
 
