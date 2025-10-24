@@ -25,7 +25,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 # Data simulation
 # ---------------
 # The comparison of the three methods relies on evaluating the
-# False Discovery Proportion (FDP) and statistical power. Assessing these
+# :term:`False Discovery Proportion <FDP>` (FDP) and statistical power. Assessing these
 # metrics requires knowledge of the actual data-generating process.
 # We therefore use simulated data with the following parameters:
 
