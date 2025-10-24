@@ -5,11 +5,11 @@ What's new
 ==========
 
 ====================
-Lastest modification
+Latest modification
 ====================
 
-.. _lastest:
-.. include:: lastest.rst
+.. _latest:
+.. include:: latest.rst
 
 
 =======================

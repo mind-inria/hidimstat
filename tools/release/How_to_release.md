@@ -7,7 +7,7 @@ title: hidimstat-release
 The simplest way to make a release can be find in this `tutorial <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`
 
 The creation of the release is based on a builder.
-We use `setuptools` has builder. Ths follownig links, we helps to configure it:  
+We use `setuptools` has builder. This following links, we helps to configure it:  
 https://learn.scientific-python.org/development/guides/packaging-simple/
 https://setuptools.pypa.io/en/latest/userguide/quickstart.html
 https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
@@ -21,7 +21,7 @@ The format of version tag is X.Y.Z:
     - Important modification of the API
     - Refactoring of the major part of the code
   - Y represents major release (frequency: 6 month to 1 year):
-    - Add new functionnality (methods, functionnalities, ...)
+    - Add new functionality (methods, functionalities, ...)
     - Important modification of one function
   - Z represents minor release (minimum: 1 days):
     - Fix important bugs in a release
@@ -33,7 +33,7 @@ This steps suppose that there a branch for each a major release (0.0.X).
 The main branch is used for the ongoing work on the next major release.
 For a major revision, a new branch should be create from scratch or from a commit of main.
 For a modification of a previous release, the modification should be pushed on the branch associate to it.
-      # TODO check if it's necesary to have a script release/build_packages.py
+      # TODO check if it's necessary to have a script release/build_packages.py
 
 0. [Check if today is a good day for releasing](https://shouldideploy.today/)
 
@@ -58,11 +58,11 @@ Additionally, make sure all deprecations that are supposed to be removed with th
    - **major revision**:
      1. `git reset --hard (X+1).0.0` # Change main to major revion branch (with a force push)
      2. `git push -f mind-inria/main` # force to update main (disable the rule Prevent Branch deletion)
-     3. `git checkout (X+1).0.0` # swtich to the branch
+     3. `git checkout (X+1).0.0` # switch to the branch
      4. Add a tag on this version `(X+1).0.0` (the branch should be already create) `git tag (X+1).0.0`
 
 3\. build the wheel & test it
-  - `cd $(root of repositor)` 
+  - `cd $(root of repository)` 
   - `rm -r release_file`  # remove the previous build
   - `mkdir release_file`
   - `git pull` # update your repository
@@ -84,7 +84,7 @@ Merging this PR will update the documentation automatically
 5a. If you are on main => Update the changelog, contributor and version:
    - Move the `CHANGELOG.rst` in the `doc_conf\whats_news\vX.Y.Z.rst`
       `mv CHANGELOG.rst doc_conf\whats_news\vX.Y.Z.rst`
-   - Update symlink to lastest version of the changelog: `ln -s vX.Y.Z.rst latest.rst`
+   - Update symlink to latest version of the changelog: `ln -s vX.Y.Z.rst latest.rst`
    - Replace `CHANGELOG.rst` with an empty template of `build_tools\template\CHANGELOG.rst`
       `cp build_tools\template\CHANGELOG.rst CHANGELOG.rst`
    - Change the version in this template and commit the modification
@@ -98,7 +98,7 @@ Merging this PR will update the documentation automatically
 
 5b. For minor release => Update the changelog, contributor:
   - Modify the `build_tools\template\CHANGELOG.rst` with the modification
-  - Update `CONTRIBUTORS.rst` if it's necesarry
+  - Update `CONTRIBUTORS.rst` if it's necessary
   - 
 
 6\. Commit and push modification:
@@ -152,4 +152,4 @@ Merging this PR will update the documentation automatically
     - when it becomes available, install in a fresh env & test
     - NOTE: to add new maintainers to that repo add them to the list at the end of meta.yml
 
-13\. Once everything is doen take a break by announced the release on social network channels.
+13\. Once everything is done take a break by announced the release on social network channels.

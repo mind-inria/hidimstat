@@ -1,7 +1,7 @@
 [build-system]
 requires = [
-    "setuptools             >= 64, < 100", # builer for python packages 
-    "setuptools_scm[toml]   >= 8,     < 50"  # pluging for getting the version from github
+    "setuptools             >= 64, < 100", # builder for python packages 
+    "setuptools_scm[toml]   >= 8,     < 50"  # plugging for getting the version from github
     ]
 build-backend = "setuptools.build_meta"
 
