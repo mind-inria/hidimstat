@@ -85,7 +85,7 @@ def single_run(
     fdp_mx, power_mx = fdp_power(np.where(mx_selection)[0], non_zero_index)
 
     # Use aggregation model-X Knockoffs [2]
-    model_x_knockoff_repeat = ModelXKnockoff(n_repeat=n_bootstraps, n_jobs=1)
+    model_x_knockoff_repeat = ModelXKnockoff(n_repeat=n_bootstraps)
     model_x_knockoff_repeat.fit_importance(X, y)
 
     # Use p-values aggregation [2]
