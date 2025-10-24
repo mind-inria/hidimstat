@@ -152,7 +152,7 @@ def test_desparsified_group_lasso():
     # ValueError, desparsified_lasso, X=X, y=y, multioutput=True, covariance=bad_cov
     # )
     desparsified_lasso = DesparsifiedLasso(
-        model_y=multitasklassoCV, covariance=bad_cov
+        model_y=multi_task_lasso_cv, covariance=bad_cov
     ).fit(X, y)
     with pytest.raises(ValueError):
         desparsified_lasso.importance()
