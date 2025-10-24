@@ -169,7 +169,7 @@ def clustered_inference(
     X_init : ndarray, shape (n_samples, n_features)
         Original high-dimensional input data matrix.
 
-    y : ndarray, shape (n_samples,) or (n_samples, n_task)
+    y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
         Target variable(s). Can be univariate or multivariate (temporal) data.
 
     ward : sklearn.cluster.FeatureAgglomeration
