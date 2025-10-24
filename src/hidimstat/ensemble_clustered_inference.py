@@ -30,7 +30,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Returns
     -------
-    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_task)
+    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_tasks)
         Rescaled beta coefficients for individual features, weighted by
         inverse cluster size
 
