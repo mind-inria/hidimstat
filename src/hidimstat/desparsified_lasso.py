@@ -494,7 +494,7 @@ def _joblib_compute_residuals(X, id_column, clf, return_clf):
         Residuals from regression.
     precision_diagonal_i : float
         Diagonal entry i of precision matrix estimate,
-        computed as n * ||z||^2 / <x_i, z>^2.
+        computed as n * ||z_i||^2 / <x_i, z_i>^2.
     clf : sklearn estimator or None
         Fitted Lasso model if return_clf=True, else None.
 
