@@ -136,7 +136,7 @@ def test_desparsified_group_lasso():
         and len(desparsified_lasso.clf_) == n_features
     )
 
-    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV, test="F").fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(model_y=multi_task_lasso_cv, test="F").fit(X, y)
     importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
