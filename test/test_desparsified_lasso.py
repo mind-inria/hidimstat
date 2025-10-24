@@ -158,7 +158,7 @@ def test_desparsified_group_lasso():
         desparsified_lasso.importance()
 
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
-        DesparsifiedLasso(model_y=multitasklassoCV, covariance=bad_cov, test="r2").fit(
+        DesparsifiedLasso(model_y=multi_task_lasso_cv, covariance=bad_cov, test="r2").fit(
             X, y
         )
 
