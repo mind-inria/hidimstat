@@ -71,7 +71,7 @@ def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_
     ----------
     ward : sklearn.cluster.FeatureAgglomeration
         Fitted clustering object containing the hierarchical structure
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Estimated parameters at cluster level
     pval : ndarray, shape (n_clusters,)
         P-values at cluster level
