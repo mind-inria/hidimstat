@@ -1,31 +1,17 @@
-codecov:
-  token: b7d1afb7-9730-4e21-882a-d0e893108def
-
-comment: false
-
 coverage:
-  precision: 2
-  round: down
-  range: "70...100"
-  status:
-    project:
-      default:
-        # Commits pushed to master should not make the overall
-        # project coverage decrease by more than 2%:
-        target: auto
-        threshold: 2%
-    patch:
-      default:
+    status:
+        project:
+            default:
+        # Commits pushed to main should not make the overall
+        # project coverage decrease by more than 1%:
+                target: auto
+                threshold: 1%
+        patch:
+            default:
         # Be tolerant on slight code coverage diff on PRs to limit
         # noisy red coverage status on github PRs.
-        # Note The coverage stats are still uploaded
-        # to codecov so that PR reviewers can see uncovered lines
-        # in the github diff if they install the codecov browser
-        # extension:
-        # https://github.com/codecov/browser-extension
-        target: auto
-        threshold: 2%
+                target: auto
+                threshold: 1%
 
 ignore:
-- "**/setup.py"
-
+-   ./test/    # ignore folders related to testing

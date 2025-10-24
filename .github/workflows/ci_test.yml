@@ -1,0 +1,78 @@
+# Testing workflow of the CI 
+
+name: 'CI Github TEST'
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  repository_dispatch:
+    types: [run-ci]
+
+# disable all the permission for the workflow
+permissions: {}
+
+# Cancel existing runs 
+concurrency:
+  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  get_information:
+    name: Get Information
+    # information is: commit message for PR
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'reposit'
+    outputs:
+      COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 3 
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+          # require to get the previous commit for getting their messages
+          # in a PR the last commit is the commit merge with main
+
+      - name: Get commit message
+        id: get_commit_message
+        # return an empty message when the event is not from a PR
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
+            echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
+            echo "$EOF" >> $GITHUB_OUTPUT
+          else
+            echo "$EOF" >> $GITHUB_OUTPUT
+          fi
+
+  linter:
+    name: Linter
+    needs: [get_information]
+    uses: ./.github/workflows/call_linter.yml
+  
+  tests:
+    name: tests
+    needs: [linter, get_information]
+    uses: ./.github/workflows/call_test_package.yml
+    with: 
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+  
+  tests_minimal:
+    name: tests minimal
+    needs: [linter, get_information]
+    uses: ./.github/workflows/call_test_minimal.yml
+    with: 
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+
+  # tests_publish:
+  #   name: tests_publish
+  #   needs: [tests]
+  #   if: |
+  #     ${{ github.event.pull_request.draft == false 
+  #         || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
+  #       }}
+  #   permissions:
+  #     pull-requests: write
+  #   secrets: inherit
+  #   uses: ./.github/workflows/call_publish_result.yml

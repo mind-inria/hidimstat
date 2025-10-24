@@ -11,6 +11,7 @@ joblib
 __pycache__
 *.egg-info
 .coverage
+src/hidimstat/_version.py
 
 # IDE specific folders
 .vscode
