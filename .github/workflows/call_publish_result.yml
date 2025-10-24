@@ -3,6 +3,11 @@ name: Publish Tests
 on:
   # Allows you to run this workflow from another workflow
   workflow_call:
+    inputs:
+      BRANCH_NAME:
+        description: 'The name of the branch'
+        required: true
+        type: string
 
 # disable all the permission for the workflow
 permissions: {}
@@ -53,7 +58,7 @@ jobs:
           # get the branch of the PR
           if [ $PULL_REQUEST_NUMBER == "null" ] 
           then 
-            BRANCH=main
+            BRANCH=${{ inputs.BRANCH_NAME }}
           else
             BRANCH=pull/$PULL_REQUEST_NUMBER/head
           fi
@@ -119,3 +124,4 @@ jobs:
         env_vars: OS,PYTHON
         files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
         fail_ci_if_error: true
+
