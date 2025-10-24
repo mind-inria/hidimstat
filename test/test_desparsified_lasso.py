@@ -214,7 +214,7 @@ def test_exception():
         desparsified_lasso.test = "r2"
         desparsified_lasso.importance()
 
-    desparsified_lasso = DesparsifiedLasso(model_y=multitasklassoCV).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(model_y=multi_task_lasso_cv).fit(X, y)
     with pytest.warns(Warning, match="X won't be used."):
         desparsified_lasso.importance(X=X)
     with pytest.warns(Warning, match="y won't be used."):
