@@ -109,8 +109,8 @@ n_clusters = 200
 fwer_target = 0.1
 delta = 6
 
-# computation parameter
-n_jobs = 1
+# number of worker
+n_jobs = 3
 
 # %%
 # Computing z-score thresholds for support estimation
