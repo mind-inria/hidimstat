@@ -5,14 +5,29 @@
         "url": "https://hidimstat.github.io/dev/"
     },
     {
-        "name": "1.0.0 (stable)",
-        "version": "1.0.0",
+        "name": "1.0 (stable)",
+        "version": "1.0",
         "url": "https://hidimstat.github.io/stable/",
         "preferred": true
     },
     {
-        "name": "1.0.0 (stable)",
-        "version": "1.0.0",
-        "url": "https://hidimstat.github.io/1.0.0/"
+        "name": "1.0 (stable)",
+        "version": "1.0",
+        "url": "https://hidimstat.github.io/1.0/"
+    },
+    {
+        "name": "0.2.0",
+        "version": "0.2.0",
+        "url": "https://hidimstat.github.io/0.2/"
+    },
+    {
+        "name": "0.1.1",
+        "version": "0.1.1",
+        "url": "https://hidimstat.github.io/0.1.1/"
+    },
+    {
+        "name": "0.1.0",
+        "version": "0.1.0",
+        "url": "https://hidimstat.github.io/0.1.0/"
     }
 ]
