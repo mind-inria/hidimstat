@@ -172,7 +172,7 @@ def test_exception():
     signal_noise_ratio = 50
     rho_serial = 0.9
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    multitasklassoCV = MultiTaskLassoCV(
+    multi_task_lasso_cv = MultiTaskLassoCV(
         eps=1e-2,
         fit_intercept=False,
         cv=KFold(n_splits=5, shuffle=True, random_state=0),
