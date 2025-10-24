@@ -492,7 +492,7 @@ def _joblib_compute_residuals(X, id_column, clf, return_clf):
     -------
     z : ndarray of shape (n_samples,)
         Residuals from regression.
-    precision_diagonal_i : float
+    precision_diagonal : float
         Diagonal entry i of precision matrix estimate,
         computed as n * ||z_i||^2 / <x_i, z_i>^2.
     clf : sklearn estimator or None
