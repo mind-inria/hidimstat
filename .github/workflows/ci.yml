@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+      BRANCH_NAME: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -49,6 +50,12 @@ jobs:
           else
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
+      
+      - name: Get branch name
+        id: get_branch_name
+        run: |
+          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
+
 
   linter:
     name: Linter
@@ -80,6 +87,8 @@ jobs:
       pull-requests: write
     secrets: inherit
     uses: ./.github/workflows/call_publish_result.yml
+    with:
+      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
 
  # debugger:
   #   needs: linter 
