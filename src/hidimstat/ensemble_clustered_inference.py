@@ -545,7 +545,7 @@ def ensemble_clustered_inference_pvalue(
 
     Returns
     -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_task)
+    beta_hat : ndarray, shape (n_features,) or (n_features, n_tasks)
         Averaged coefficients across bootstraps
     selected : ndarray, shape (n_features,)
         Selected features: 1 for positive effects, -1 for negative effects,
