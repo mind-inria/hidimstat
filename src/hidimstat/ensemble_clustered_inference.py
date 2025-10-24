@@ -208,7 +208,7 @@ def clustered_inference(
     ward_ : FeatureAgglomeration
         Fitted clustering object.
 
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_task)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Estimated coefficients at cluster level.
 
     theta_hat : ndarray
