@@ -142,7 +142,7 @@ def seed_estimator(estimator, random_state=None):
     return estimator
 
 
-def check_statistical_test(statistical_test):
+def check_statistical_test(statistical_test, test_frac=None):
     """
     Validates and returns a test statistic function.
 
@@ -175,7 +175,7 @@ def check_statistical_test(statistical_test):
             return partial(
                 nadeau_bengio_ttest,
                 popmean=0,
-                test_frac=0.1 / 0.9,
+                test_frac=test_frac,
                 alternative="greater",
                 axis=1,
             )

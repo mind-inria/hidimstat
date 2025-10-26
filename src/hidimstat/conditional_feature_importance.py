@@ -50,7 +50,7 @@ class CFI(BasePerturbation):
     categorical_max_cardinality : int, default=10
         The maximum cardinality of a variable to be considered as categorical
         when the variable type is inferred (set to "auto" or not provided).
-    statistical_test : callable or str, default="nb-ttest"
+    statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
     random_state : int or None, default=None
         The random state to use for sampling.
@@ -74,7 +74,7 @@ class CFI(BasePerturbation):
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
-        statistical_test="nb-ttest",
+        statistical_test="ttest",
         random_state: int = None,
         n_jobs: int = 1,
     ):
@@ -238,7 +238,7 @@ def cfi(
     features_groups=None,
     feature_types="auto",
     categorical_max_cardinality: int = 10,
-    test_statistic=partial(wilcoxon, axis=1),
+    test_statistic="ttest",
     k_best=None,
     percentile=None,
     threshold_max=None,

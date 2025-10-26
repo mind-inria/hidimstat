@@ -66,7 +66,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
-        statistical_test="nb-ttest",
+        statistical_test="ttest",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
@@ -80,7 +80,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         _check_vim_predict_method(method)
         self.method = method
         self.n_permutations = n_permutations
-        self.statistical_test = check_statistical_test(statistical_test)
+        self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
         # variable set in importance
@@ -193,6 +193,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         self._check_fit()
         self._check_compatibility(X)
+        statistical_test = check_statistical_test(self.statistical_test)
 
         y_pred = getattr(self.estimator, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
@@ -212,7 +213,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             ]
         )
         self.importances_ = np.mean(test_result, axis=1)
-        self.pvalues_ = self.statistical_test(test_result).pvalue
+        self.pvalues_ = statistical_test(test_result).pvalue
         assert (
             self.pvalues_.shape[0] == y_pred.shape[0]
         ), "The statistical test doesn't provide the correct dimension."

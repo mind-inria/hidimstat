@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import numpy.ma.testutils as ma_npt
 import numpy.testing as npt

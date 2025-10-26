@@ -8,6 +8,7 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.utils import check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.base_variable_importance import GroupVariableImportanceMixin
 
@@ -32,7 +33,7 @@ class LOCO(BasePerturbation):
     loss : callable, default=mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
-    statistical_test : callable or str, default="nb-ttest"
+    statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
     features_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
@@ -57,7 +58,7 @@ class LOCO(BasePerturbation):
         estimator,
         method: str = "predict",
         loss: callable = mean_squared_error,
-        statistical_test="nb-ttest",
+        statistical_test="ttest",
         features_groups=None,
         n_jobs: int = 1,
     ):
@@ -147,6 +148,7 @@ class LOCO(BasePerturbation):
         """
         self._check_fit()
         self._check_compatibility(X)
+        statistical_test = check_statistical_test(self.statistical_test)
 
         y_pred = getattr(self.estimator, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
@@ -168,7 +170,7 @@ class LOCO(BasePerturbation):
             ],
             axis=1,
         )
-        self.pvalues_ = self.statistical_test(np.array(test_result)).pvalue
+        self.pvalues_ = statistical_test(np.array(test_result)).pvalue
         assert (
             self.pvalues_.shape[0] == y_pred.shape[0]
         ), "The statistical test doesn't provide the correct dimension."
@@ -214,7 +216,7 @@ def loco(
     method: str = "predict",
     loss: callable = mean_squared_error,
     features_groups=None,
-    test_statistic=partial(wilcoxon, axis=1),
+    test_statistic="ttest",
     k_best=None,
     percentile=None,
     threshold_min=None,
