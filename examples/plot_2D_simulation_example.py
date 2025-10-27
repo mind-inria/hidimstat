@@ -184,8 +184,8 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
 
 # compute desparsified lasso
-desparsified_lasso = DesparsifiedLasso(n_jobs=n_jobs, random_state=0).fit(X_init, y)
-desparsified_lasso.importance(X_init, y)
+desparsified_lasso = DesparsifiedLasso(n_jobs=n_jobs, random_state=0)
+desparsified_lasso.fit_importance(X_init, y)
 
 # compute estimated support (first method)
 zscore = zscore_from_pval(desparsified_lasso.pvalues_, 1 - desparsified_lasso.pvalues_)

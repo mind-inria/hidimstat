@@ -284,7 +284,7 @@ def clustered_inference(
         X_reduced,
         y,
     )
-    desparsified_lassos.importance(X_reduced, y)
+    desparsified_lassos.importance()
 
     return ward_, desparsified_lassos
 
