@@ -8,9 +8,9 @@ from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 
+from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat._utils.utils import check_random_state
 
 
 class EnsembleClusteredInference(BaseVariableImportance):

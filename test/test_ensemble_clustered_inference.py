@@ -10,9 +10,9 @@ from sklearn.linear_model import MultiTaskLassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
-from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
 
 
 def set_desparsified_lasso_multi_time():
