@@ -288,10 +288,10 @@ class DesparsifiedLasso(BaseVariableImportance):
                 clf=seed_estimator(
                     clone(self.model_x).set_params(
                         alpha=alphas[i],
-                        precompute=np.delete(np.delete(gram, i, axis=0), i, axis=1),
                     ),
                     random_state=rng_spwan,
                 ),
+                gram=gram,  # gram matrix is passed to the job to avoid memory issue
                 return_clf=self.save_model_x,
             )
             for i, rng_spwan in enumerate(rng.spawn(n_features))
@@ -467,10 +467,10 @@ class DesparsifiedLasso(BaseVariableImportance):
             Desparsified lasso coefficient estimates.
         """
         self.fit(X, y)
-        return self.importance(X, y)
+        return self.importance()
 
 
-def _joblib_compute_residuals(X, id_column, clf, return_clf):
+def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     """
     Compute nodewise Lasso regression for desparsified Lasso estimation.
 
@@ -509,6 +509,9 @@ def _joblib_compute_residuals(X, id_column, clf, return_clf):
     X_minus_i = np.delete(X, id_column, axis=1)
     X_i = np.copy(X[:, id_column])
 
+    clf.set_params(
+        precompute=np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
+    )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
     z = X_i - clf.predict(X_minus_i)
