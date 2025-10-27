@@ -4,34 +4,59 @@
 API
 =================
 
-Estimators
-==========
-
 .. currentmodule:: hidimstat
 
-Functions
-=========
+Base Classes
+============
 
 .. autosummary::
-   :toctree: ./generated/api/function/
-   :template: function.rst
+   :toctree: ./generated/api/base/
+   :template: class.rst
 
-   quantile_aggregation
-   model_x_knockoff
-   reid
+   ~base_variable_importance.BaseVariableImportance
+   ~base_perturbation.BasePerturbation
+   ~base_variable_importance.GroupVariableImportanceMixin
 
-Classes
-=======
+Feature Importance Classes
+==========================
 
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: class.rst
    
-   BaseVariableImportance
-   BasePerturbation
    LOCO
    CFI
    PFI
    D0CRT
    DesparsifiedLasso
    EnsembleClusteredInference
+
+Feature Importance functions
+============================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: function.rst
+
+   model_x_knockoff
+
+Samplers
+========
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~statistical_tools.ConditionalSampler
+   ~statistical_tools.GaussianKnockoffs
+
+Helper Functions
+================
+
+.. autosummary::
+   :toctree: ./generated/api/helper_functions/
+   :template: function.rst
+
+   quantile_aggregation
+   reid
+   ~statistical_tools.nadeau_bengio_ttest

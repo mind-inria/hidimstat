@@ -1,17 +1,15 @@
 import warnings
 
 import numpy as np
-from sklearn.base import clone
 from joblib import Parallel, delayed
-from sklearn.exceptions import NotFittedError
+from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import StandardScaler
-from sklearn.base import check_is_fitted
-from sklearn.utils import check_random_state
+from sklearn.utils import check_random_state, resample
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
-from sklearn.utils import resample
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 
 
 class EnsembleClusteredInference(BaseVariableImportance):
@@ -30,15 +28,12 @@ class EnsembleClusteredInference(BaseVariableImportance):
     X_init : ndarray, shape (n_samples, n_features)
         Original high-dimensional input data matrix.
 
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
+    y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
         Target variable(s). Can be univariate or multivariate (temporal) data.
 
     ward : sklearn.cluster.FeatureAgglomeration
         Hierarchical clustering object that implements Ward's method for
         feature agglomeration.
-
-    n_clusters : int
-        Number of clusters to use for dimensionality reduction.
 
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
@@ -50,7 +45,7 @@ class EnsembleClusteredInference(BaseVariableImportance):
     groups : ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
 
-    seed : int, optional (default=0)
+    random_state : int, optional (default=None)
         Random seed for reproducible subsampling.
 
     n_jobs : int, optional (default=1)
@@ -72,7 +67,7 @@ class EnsembleClusteredInference(BaseVariableImportance):
     ward_ : FeatureAgglomeration
         Fitted clustering object.
 
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Estimated coefficients at cluster level.
 
     theta_hat : ndarray
@@ -302,7 +297,7 @@ def _bootstrap_run_fit(
 
     ## This are the 3 step in first loop of the algorithm 2 of `chevalier2022spatially`
     # sampling row of X
-    train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
+    train_index = _subsampling(n_samples, train_size, groups=groups, random_state=rng)
 
     # transformation matrix
     if ward is not None:
@@ -394,7 +389,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Parameters
     ----------
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
+    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Beta coefficients at cluster level
     n_features : int
         Number of features in original space
@@ -403,7 +398,7 @@ def _ungroup_beta(beta_hat, n_features, ward):
 
     Returns
     -------
-    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_times)
+    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_tasks)
         Rescaled beta coefficients for individual features, weighted by
         inverse cluster size
 
@@ -424,9 +419,9 @@ def _ungroup_beta(beta_hat, n_features, ward):
         # weighting the weight of beta with the size of the cluster
         beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
     elif len(beta_hat.shape) == 2:
-        n_times = beta_hat.shape[1]
-        beta_hat_degrouped = np.zeros((n_features, n_times))
-        for i in range(n_times):
+        n_tasks = beta_hat.shape[1]
+        beta_hat_degrouped = np.zeros((n_features, n_tasks))
+        for i in range(n_tasks):
             beta_hat_degrouped[:, i] = (
                 ward.inverse_transform(beta_hat[:, i]) / clusters_size
             )

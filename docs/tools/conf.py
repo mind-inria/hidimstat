@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -47,10 +47,16 @@ extensions = [
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
+    "sphinx_copybutton",
 ]
 
+# Specify how to identify the prompt when copying a code snippet
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = "style"
+
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ["./_templates"]
+templates_path = ["../tools/_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
@@ -69,7 +75,7 @@ language = "en"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["./_static"]
+html_static_path = ["../tools/_static"]
 html_logo = "./_static/logo.png"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
@@ -87,19 +93,23 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
+    "pygments_light_style": "sas",
+    "pygments_dark_style": "monokai",
 }
+
 html_title = "HiDimStat"
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_repo": "hidimstat",
 }
 
+
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 source_suffix = [".rst", ".md"]
 
 # sphinxcontrib-bibtex
-bibtex_bibfiles = ["./references.bib"]
+bibtex_bibfiles = ["../tools/references.bib"]
 bibtex_style = "unsrt"
 bibtex_reference_style = "author_year"
 bibtex_footbibliography_header = ""
@@ -134,8 +144,8 @@ sphinx_gallery_conf = {
     "image_scrapers": ("matplotlib",),
     "doc_module": "hidimstat",
     "backreferences_dir": "./generated/gallery/backreference/",
-    "parallel": True,
-    "show_memory": False,  # can't show memory if it's in parallel
+    "parallel": False,
+    "show_memory": True,  # can't show memory if it's in parallel
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
@@ -152,9 +162,15 @@ intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
-    "numba": ("https://numba.readthedocs.io/en/stable/", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
     "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
-    "pyvista": ("https://docs.pyvista.org", None),
 }
+
+
+linkcheck_ignore = [
+    # A lot of link DOI "fail" - false positives: easier to ignore them
+    r"https://doi.org/.*",
+    r"../generated/gallery/examples/.*",
+    r"https://github.com/*",
+]

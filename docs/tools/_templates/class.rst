@@ -1,4 +1,4 @@
-{{ fullname }}
+{{ objname }}
 {{ underline }}
 
 .. currentmodule:: {{ module }}
@@ -10,7 +10,7 @@
    .. automethod:: __init__
    {% endblock %}
 
-.. include:: {{module}}.{{objname}}.examples
+.. include:: ../../gallery/backreference/{{module}}.{{objname}}.examples
 
 .. raw:: html
 

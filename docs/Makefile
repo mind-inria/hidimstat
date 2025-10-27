@@ -2,7 +2,8 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -j auto -W --keep-going -n 
+N_JOB         = auto
+SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n 
 # -j/--jobs:		    N processes in parallel (auto=number of CPUs)
 # -W/--fail-on-warning: Turn warnings into errors.
 # --keep-going:         Runs sphinx-build to completion and exits  
@@ -131,7 +132,7 @@ changes:
 
 .PHONY: linkcheck
 linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
+	$(SPHINXBUILD) -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 		  "or in $(BUILDDIR)/linkcheck/output.txt."
