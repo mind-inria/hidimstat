@@ -25,8 +25,8 @@ def test_knockoff_bootstrap_quantile():
     X, y, beta, noise = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
-    model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat).fit(X)
-    model_x_knockoff.importance(X, y)
+    model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
@@ -52,8 +52,8 @@ def test_knockoff_bootstrap_e_values():
     )
 
     # Using e-values aggregation
-    model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat).fit(X)
-    model_x_knockoff.importance(X, y)
+    model_x_knockoff = ModelXKnockoff(n_repeat=n_repeat).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(
         fdr=fdr / 2, fdr_control="ebh", evalues=True
     )
@@ -83,8 +83,8 @@ def test_invariant_with_bootstrap():
         ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeat=1,
-    ).fit(X)
-    model_x_knockoff.importance(X, y)
+    ).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
@@ -92,8 +92,8 @@ def test_invariant_with_bootstrap():
         ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeat=5,
-    ).fit(X)
-    model_x_knockoff_repeat.importance(X, y)
+    ).fit(X, y)
+    model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)
     fdp_repeat, power_repeat = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
@@ -121,8 +121,8 @@ def test_model_x_knockoff():
     X, y, beta, noise = multivariate_simulation(
         n, p, support_size=support_size, seed=seed
     )
-    model_x_knockoff = ModelXKnockoff(n_repeat=1, random_state=seed + 1).fit(X)
-    model_x_knockoff.importance(X, y)
+    model_x_knockoff = ModelXKnockoff(n_repeat=1, random_state=seed + 1).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
@@ -146,8 +146,8 @@ def test_model_x_knockoff_estimator():
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
         test_preconfigure_model=None,
-    ).fit(X)
-    model_x_knockoff.importance(X, y)
+    ).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
@@ -172,8 +172,8 @@ def test_estimate_distribution():
     )
     model_x_knockoff = ModelXKnockoff(
         n_repeat=1, random_state=2, ko_generator=generator
-    ).fit(X)
-    model_x_knockoff.importance(X, y)
+    ).fit(X, y)
+    model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     assert np.all(beta[selected])
 
@@ -207,21 +207,21 @@ class TestModelXKnockoffExceptions:
         """Test if some warning are raised"""
         X, y, _, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeat=5)
+        model_x_knockoff.fit(X, y)
+        with pytest.warns(Warning, match="X won't be used"):
+            model_x_knockoff.importance(X=X)
         with pytest.warns(Warning, match="y won't be used"):
-            model_x_knockoff.fit(X, y)
-        with pytest.warns(Warning, match="cv won't be used"):
-            model_x_knockoff.fit_importance(X, y, cv="test")
+            model_x_knockoff.importance(y=y)
 
     def test_error_lasso_statistic_with_sampling_with_bad_config(self, data_generator):
         """Test error lasso statistic"""
         X, y, _, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeat=1, test_linear_model=SVR())
-        model_x_knockoff.fit(X)
         with pytest.raises(
             TypeError,
             match="You should not use this function to configure the estimator",
         ):
-            model_x_knockoff.importance(X, y)
+            model_x_knockoff.fit(X, y)
 
     def test_error_lasso_statistic_with_sampling(self, data_generator):
         """Test error lasso statistic"""
@@ -229,9 +229,8 @@ class TestModelXKnockoffExceptions:
         model_x_knockoff = ModelXKnockoff(
             n_repeat=1, test_linear_model=SVR(), test_preconfigure_model=None
         )
-        model_x_knockoff.fit(X)
         with pytest.raises(TypeError, match="estimator should be linear"):
-            model_x_knockoff.importance(X, y)
+            model_x_knockoff.fit(X, y)
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""

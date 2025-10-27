@@ -168,7 +168,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self.aggregated_eval_ = None
         self.aggregated_pval_ = None
 
-    def fit(self, X, y=None):
+    def fit(self, X, y):
         """
         Fit the Model-X Knockoff model by training the generator.
 
@@ -177,9 +177,8 @@ class ModelXKnockoff(BaseVariableImportance):
         X : array-like of shape (n_samples, n_features)
             Training data matrix where n_samples is the number of samples and
             n_features is the number of features.
-        y : array-like of shape (n_samples,), default=None
-            Target values. Not used in this method.
-
+        y : array-like of shape (n_samples,)
+            Target values.
         Returns
         -------
         self : object
@@ -190,24 +189,37 @@ class ModelXKnockoff(BaseVariableImportance):
         The fit method only trains the generator component. The target values y
         are not used in this step.
         """
-        if y is not None:
-            warnings.warn("y won't be used")
         if self.centered:
             X_ = StandardScaler().fit_transform(X)
         else:
             X_ = X
+
         self.generator.fit(X_)
+        X_tildes = self.generator.sample(
+            n_repeats=self.n_repeat, random_state=self.randoms_state
+        )
+
+        parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
+        self.test_scores_ = parallel(
+            delayed(job_lib_lasso_statistic)(
+                X_,
+                X_tildes[i],
+                y,
+                clone(self.test_linear_model),
+                self.test_preconfigure_model,
+            )
+            for i in range(self.n_repeat)
+        )
+        self.test_scores_ = np.array(self.test_scores_)
         return self
 
     def _check_fit(self):
-        try:
-            self.generator._check_fit()
-        except ValueError as exc:
+        if self.test_scores_ is None:
             raise ValueError(
                 "The Model-X Knockoff requires to be fitted before computing importance"
-            ) from exc
+            )
 
-    def importance(self, X, y):
+    def importance(self, X=None, y=None):
         """
         Calculate feature importance scores using Model-X knockoffs.
 
@@ -235,29 +247,11 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeat > 1, multiple sets of knockoffs are generated and results are averaged.
         """
+        if X is not None:
+            warnings.warn("X won't be used")
+        if y is not None:
+            warnings.warn("y won't be used")
         self._check_fit()
-
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
-
-        X_tildes = self.generator.sample(
-            n_repeats=self.n_repeat, random_state=self.randoms_state
-        )
-
-        parallel = Parallel(self.n_jobs, verbose=self.joblib_verbose)
-        self.test_scores_ = parallel(
-            delayed(job_lib_lasso_statistic)(
-                X_,
-                X_tildes[i],
-                y,
-                clone(self.test_linear_model),
-                self.test_preconfigure_model,
-            )
-            for i in range(self.n_repeat)
-        )
-        self.test_scores_ = np.array(self.test_scores_)
 
         self.importances_ = np.mean(self.test_scores_, axis=0)
         self.pvalues_ = np.mean(
@@ -269,7 +263,7 @@ class ModelXKnockoff(BaseVariableImportance):
         )
         return self.importances_
 
-    def fit_importance(self, X, y, cv=None):
+    def fit_importance(self, X, y):
         """
         Fits the model to the data and computes feature importance.
 
@@ -301,11 +295,8 @@ class ModelXKnockoff(BaseVariableImportance):
         fit : Method for fitting the generator only
         importance : Method for computing importance scores only
         """
-        if cv is not None:
-            warnings.warn("cv won't be used")
-
-        self.fit(X)
-        return self.importance(X, y)
+        self.fit(X, y)
+        return self.importance()
 
     def fdr_selection(
         self,
