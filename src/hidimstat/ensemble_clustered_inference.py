@@ -6,10 +6,11 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.exceptions import NotFittedError
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state, resample
+from sklearn.utils import resample
 
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat._utils.utils import check_random_state
 
 
 class EnsembleClusteredInference(BaseVariableImportance):
@@ -127,7 +128,6 @@ class EnsembleClusteredInference(BaseVariableImportance):
 
     def fit(self, X, y):
         rng = check_random_state(self.random_state)
-        seed = rng.randint(1)
 
         if self.verbose > 0:
             print(
@@ -142,12 +142,12 @@ class EnsembleClusteredInference(BaseVariableImportance):
                 y,
                 self.train_size,
                 self.groups,
-                i,
+                rng_spawn,
                 self.ward,
                 self.scaler_sampling,
                 self.variable_importance,
             )
-            for i in np.arange(seed, seed + self.n_bootstraps)
+            for rng_spawn in rng.spawn(self.n_bootstraps)
         )
         return self
 
@@ -287,7 +287,7 @@ def _bootstrap_run_fit(
     y,
     train_size,
     groups,
-    seed,
+    rng,
     ward,
     scaler_sampling,
     variable_importance,
@@ -349,7 +349,7 @@ def _bootstrap_run_importance(ward_, scaler_sampling_, variable_importance_, X, 
     return importance, pvalue, pvalue_corr
 
 
-def _subsampling(n_samples, train_size, groups=None, seed=0):
+def _subsampling(n_samples, train_size, groups=None, random_state=None):
     """
     Random subsampling for statistical inference.
 
@@ -362,7 +362,7 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
     groups : ndarray, shape (n_samples,), optional (default=None)
         Group labels for samples.
         If not None, a subset of groups is selected.
-    seed : int, optional (default=0)
+    random_state : int or None (default=None)
         Random seed for reproducibility.
 
     Returns
@@ -375,7 +375,7 @@ def _subsampling(n_samples, train_size, groups=None, seed=0):
         index_row,
         n_samples=int(len(index_row) * train_size),
         replace=False,
-        random_state=seed,
+        random_state=np.random.RandomState(random_state.bit_generator),
     )
     if groups is not None:
         train_index = np.arange(n_samples)[np.isin(groups, train_index)]

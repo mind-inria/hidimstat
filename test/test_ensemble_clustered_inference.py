@@ -25,7 +25,7 @@ def set_desparsified_lasso_multi_time():
         random_state=1,
         n_jobs=1,
     )
-    return DesparsifiedLasso(lasso_cv=multitasklassoCV)
+    return DesparsifiedLasso(model_y=multitasklassoCV)
 
 
 # Scenario 1: data with no temporal dimension
@@ -263,7 +263,7 @@ def test_ensemble_clustered_inference():
         n_bootstraps=n_bootstraps,
     ).fit(X_init, y)
     EnCluDl.importance(X_init, y)
-    selected = EnCluDl.selection_fdr(fdr=0.1)
+    selected = EnCluDl.fdr_selection(fdr=0.1)
 
     expected = np.zeros(n_features)
     expected[:support_size] = 1.0
@@ -318,7 +318,7 @@ def test_ensemble_clustered_inference_temporal_data():
         n_bootstraps=n_bootstraps,
     ).fit(X, y)
     EnCluDl.importance(X, y)
-    selected = EnCluDl.selection_fdr(fdr=0.1, fdr_control="bhq")
+    selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhq")
 
     expected = np.zeros(n_features)
     expected[:support_size] = 1.0
@@ -331,7 +331,7 @@ def test_ensemble_clustered_inference_temporal_data():
     )
 
     # different aggregation method
-    selected = EnCluDl.selection_fdr(fdr=0.1, fdr_control="bhy")
+    selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhy")
 
     expected = np.zeros(n_features)
     expected[:support_size] = 1.0

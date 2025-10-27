@@ -101,10 +101,6 @@ def _selection_generic(
         return no_mask
 
 
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
-
-
 class BaseVariableImportance(BaseEstimator):
     """
     Base class for variable importance methods.
@@ -133,45 +129,9 @@ class BaseVariableImportance(BaseEstimator):
         self.importances_ = None
         self.pvalues_ = None
 
-    def selection_fdr(
-        self,
-        fdr,
-        fdr_control="bhq",
-        reshaping_function=None,
-        adaptive_aggregation=False,
-        gamma=0.5,
-    ):
+    def _check_importance(self):
         """
-        Performs feature selection based on False Discovery Rate (FDR) control.
-
-        This method selects features by controlling the FDR using either p-values.
-        It supports different FDR control methods and optional adaptive aggregation
-        of the statistical values.
-
-        Parameters
-        ----------
-        fdr : float
-            The target false discovery rate level (between 0 and 1)
-        fdr_control: str, default="bhq"
-            The FDR control method to use. Options are:
-            - "bhq": Benjamini-Hochberg procedure
-            - 'bhy': Benjamini-Hochberg-Yekutieli procedure
-        reshaping_function: callable, default=None
-            Reshaping function for BHY method, default uses sum of reciprocals
-        adaptive_aggregation: bool, default=False
-            If True, uses adaptive weights for p-value aggregation
-        gamma: float, default=0.5
-            The gamma parameter for quantile aggregation of p-values (between 0 and 1)
-
-        Returns
-        -------
-        numpy.ndarray
-            Boolean array indicating selected features (True for selected, False for not selected)
-
-        Raises
-        ------
-        AssertionError
-            If list_pvalues_ attribute is missing or fdr_control is invalid
+        Checks if the importance scores have been computed.
         """
         if self.importances_ is None:
             raise ValueError(
