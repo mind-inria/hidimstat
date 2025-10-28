@@ -7,11 +7,50 @@ from sklearn.inspection import partial_dependence
 
 
 class PDP:
+    """
+    Partial Dependence Plot (PDP) visualization. This class is based on 
+    `sklearn.inspection.partial_dependence` to compute the partial dependence
+    values and provides methods to plot 1D and 2D PDPs. For each realization of a feature
+    or pair of features :math:`x_S`, the partial dependence :math:`f_S(x_S)` is defined 
+    as:
+
+    .. math::
+        f_S(x_S) &= \mathbb{E}_{X_{-S}}\left[ f(x_S, X_{-S}) \right]\\
+                &= \int f(x_S, x_{-S}) d\mathbb{P}(X_{-S}),
+
+    where :math:`X_{-S}` denotes all features except those in :math:`S`. 
+
+    Parameters
+    ----------
+    estimator : object
+        A fitted scikit-learn estimator implementing `predict` or `predict_proba`.
+    feature_names : list of str, optional
+        Names of the features. If None, X0, X1, ... will be used.
+
+    """
+
     def __init__(self, estimator, feature_names=None):
         self.estimator = estimator
         self.feature_names = feature_names
 
     def plot(self, X, features, cmap="viridis", **kwargs):
+        """
+        Plot the Partial Dependence Plot for the specified feature (1D) or pair of
+        features (2D). The marginal distribution of the feature(s) is also displayed.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input data used to compute the partial dependence.
+        features : int or list of int
+            The feature index (for 1D PDP) or list of two feature indices (for 2D PDP).
+        cmap : str, optional
+            The colormap to use for the plot (only for 2D PDP). Default is "viridis".
+        **kwargs : additional keyword arguments
+            Additional keyword arguments passed to:
+            - `sns.lineplot` for 1D PDP
+            - `ax.contour` for 2D PDP
+        """
         if isinstance(features, int):
             feature_ids = [features]
             plotting_func = self._plot_1d
