@@ -66,7 +66,6 @@ class PDP:
         else:
             feature_names = [f"X{idx}" for idx in feature_ids]
 
-        print(features, feature_ids, feature_names)
         pd = partial_dependence(self.estimator, X, features=features)
         return plotting_func(pd, feature_names, cmap=cmap, **kwargs)
 

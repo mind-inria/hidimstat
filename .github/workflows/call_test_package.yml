@@ -68,7 +68,7 @@ jobs:
     - name: Run pytest
       if: ${{ inputs.skip_test == false }}
       run: |
-          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
+          uv run --frozen --no-sync pytest --cov=src/hidimstat --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
     # publish different reports (HTML, duration, Coverage)
     - name: Upload HTML test result
