@@ -33,7 +33,7 @@ y_pos = np.sqrt(0.7 - np.square(x))
 
 c1 = plt.Circle((0, 0), 0.85, color="k", ls="--", fill=False, label="class boundary")
 ax.add_patch(c1)
-ax.legend(loc="upper right")
+_, ax.legend(loc="upper right")
 
 
 # %%
@@ -77,7 +77,7 @@ from hidimstat.visualization import PDP
 
 # sphinx_gallery_thumbnail_number = 2
 pdp = PDP(model)
-pdp.plot(X_test, features=0)
+_ = pdp.plot(X_test, features=0)
 
 
 # %%
@@ -91,4 +91,4 @@ pdp.plot(X_test, features=0)
 
 axes = pdp.plot(X_test, features=[0, 1], cmap="RdBu_r")
 c1 = plt.Circle((0, 0), 0.85, color="k", ls="--", fill=False, zorder=10)
-axes[1, 0].add_patch(c1)
+_ = axes[1, 0].add_patch(c1)
