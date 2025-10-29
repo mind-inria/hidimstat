@@ -153,7 +153,7 @@ model_x_knockoff = ModelXKnockoff(
     ko_generator=GaussianKnockoffs(
         cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
     ),
-    test_linear_model=LogisticRegressionCV(
+    estimator=LogisticRegressionCV(
         solver="liblinear",
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
@@ -161,9 +161,9 @@ model_x_knockoff = ModelXKnockoff(
         tol=1e-3,
         max_iter=1000,
     ),
-    test_preconfigure_model=None,
     random_state=0,
-    n_repeat=1,
+    n_repeats=1,
+    preconfigure_lasso_path=False,
 )
 importance = model_x_knockoff.fit_importance(
     noisy_train,
@@ -187,11 +187,11 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-selected_mask = np.array(["not selected"] * len(importance))
+selected_mask = np.array(["not selected"] * len(importance[0]))
 selected_mask[selected] = "selected"
 df_ko = pd.DataFrame(
     {
-        "score": importance,
+        "score": importance[0],
         "variable": feature_names_noise,
         "selected": selected_mask,
     }
