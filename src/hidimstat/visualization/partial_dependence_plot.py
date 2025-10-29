@@ -12,7 +12,7 @@ class PDP:
     `sklearn.inspection.partial_dependence` to compute the partial dependence
     values and provides methods to plot 1D and 2D PDPs. For each realization of a feature
     or pair of features :math:`x_S`, the partial dependence :math:`f_S(x_S)` is defined
-    as :math:`f_S(x_S) = \mathbb{E}_{X_{-S}}\left[ f(x_S, X_{-S}) \right]`,
+    as :math:`f_S(x_S) = \mathbb{E}_{X_{-S}}[ f(x_S, X_{-S})]`,
     where :math:`X_{-S}` denotes all features except those in :math:`S`.
 
     Parameters
