@@ -23,14 +23,12 @@ from sklearn.datasets import make_circles
 
 X, y = make_circles(n_samples=500, noise=0.1, factor=0.7, random_state=0)
 
+# Visualizing the dataset
 _, ax = plt.subplots()
 sns.scatterplot(x=X[:, 0], y=X[:, 1], hue=y, ax=ax)
 ax.set_xlabel("X0")
 ax.set_ylabel("X1")
 sns.despine(ax=ax)
-x = np.linspace(-1.5, 1.5, 200)
-y_pos = np.sqrt(0.7 - np.square(x))
-
 c1 = plt.Circle((0, 0), 0.85, color="k", ls="--", fill=False, label="class boundary")
 ax.add_patch(c1)
 _ = ax.legend(loc="upper right")
