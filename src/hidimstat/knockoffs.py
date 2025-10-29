@@ -399,9 +399,9 @@ class ModelXKnockoff(BaseVariableImportance):
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
-            if hasattr(estimator_, "alphas"):
+            if hasattr(estimator_, "alphas") and (estimator_.alphas is not None):
                 n_alphas = len(estimator_.alphas)
-            elif hasattr(estimator_, "n_alphas"):
+            elif hasattr(estimator_, "n_alphas") and (estimator_.n_alphas is not None):
                 n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
