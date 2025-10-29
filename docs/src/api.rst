@@ -45,6 +45,16 @@ Feature Importance functions
    ensemble_clustered_inference_pvalue
    model_x_knockoff
 
+Visualization
+=============
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~visualization.PDP
+
+
 Samplers
 ========
 
