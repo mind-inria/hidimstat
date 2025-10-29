@@ -173,7 +173,7 @@ selected = model_x_knockoff.fdr_selection(fdr=0.2)
 
 
 # Count how many selected features are actually noise
-num_false_discoveries = np.sum(selected >= p)
+num_false_discoveries = np.sum(selected[p:])
 print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 
 # %%
