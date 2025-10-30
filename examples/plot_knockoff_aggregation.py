@@ -79,13 +79,13 @@ def single_run(
     non_zero_index = np.where(beta_true)[0]
 
     # Use model-X Knockoffs [1]
-    model_x_knockoff = ModelXKnockoff(n_repeat=1)
+    model_x_knockoff = ModelXKnockoff(n_repeats=1)
     model_x_knockoff.fit_importance(X, y)
     mx_selection = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp_mx, power_mx = fdp_power(np.where(mx_selection)[0], non_zero_index)
 
     # Use aggregation model-X Knockoffs [2]
-    model_x_knockoff_repeat = ModelXKnockoff(n_repeat=n_bootstraps)
+    model_x_knockoff_repeat = ModelXKnockoff(n_repeats=n_bootstraps)
     model_x_knockoff_repeat.fit_importance(X, y)
 
     # Use p-values aggregation [2]
