@@ -81,7 +81,6 @@ def test_invariant_with_bootstrap():
     )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     model_x_knockoff = ModelXKnockoff(
-        estimator=LassoCV(),
         ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeats=1,
