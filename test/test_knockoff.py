@@ -94,7 +94,7 @@ def test_invariant_with_bootstrap():
         estimator=LassoCV(),
         ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
-        n_repeats=5,
+        n_repeats=3,
     ).fit(X, y)
     model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)

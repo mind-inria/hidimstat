@@ -7,7 +7,7 @@ inference. The model-X Knockoff introduced by :footcite:t:`candes2018panning` al
 for variable selection with statistical guarantees on the False Discovery Rate (FDR),
 
 .. math::
-    \text{FDR} = \mathbb{E}[\text{FDP}] = \mathbb{E} \left[ \frac{\hat{S} \cap \mathcal{H}_0}{|\hat{S}|} \right] ,
+    \text{FDR} = \mathbb{E}[\text{FDP}] = \mathbb{E} [ \frac{\hat{S} \cap \mathcal{H}_0}{|\hat{S}|} ] ,
 
 where :math:`\hat{S}` is the set of selected variables and :math:`\mathcal{H}_0` is the
 set of null variables (i.e., variables with no effect on the response).
