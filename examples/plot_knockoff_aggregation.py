@@ -173,6 +173,7 @@ df_plot_2 = pd.concat(
 # In addition to the individual selections (blue), we plot the FDR and power obtained by
 # p-value aggregation (orange) and e-value aggregation (green).
 
+# sphinx_gallery_thumbnail_number = 2
 _, axes = plt.subplots(1, 2, figsize=(6, 3.5))
 ax = axes[0]
 sns.stripplot(
