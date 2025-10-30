@@ -168,7 +168,7 @@ estimator = LassoCV(
 try:
     desparsified_lasso = DesparsifiedLasso(
         noise_method="median",
-        model_y=clone(estimator),
+        estimator=clone(estimator),
         random_state=0,
         n_jobs=n_jobs,
     )
@@ -188,7 +188,7 @@ ward_, cl_desparsified_lasso = clustered_inference(
     y,
     ward,
     scaler_sampling=StandardScaler(),
-    model_y=clone(estimator),
+    estimator=clone(estimator),
     tolerance_reid=1e-2,
     random_state=1,
     n_jobs=n_jobs,
