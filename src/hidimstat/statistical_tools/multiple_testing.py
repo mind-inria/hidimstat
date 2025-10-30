@@ -136,14 +136,15 @@ def _ebh_threshold(evals, fdr=0.1):
     .. footbibliography::
     """
     n_features = len(evals)
-    evals_sorted = -np.sort(-evals)  # sort in descending order
-    selected_index = 2 * n_features
-    for i in range(n_features - 1, -1, -1):
-        if evals_sorted[i] >= n_features / (fdr * (i + 1)):
-            selected_index = i
-            break
-    if selected_index <= n_features:
-        threshold = evals_sorted[selected_index]
+    evals_sorted = np.sort(evals)[::-1]  # sort in descending order
+    k_star = 1
+    # The for loop over all e-values could be optimized by considering a descending list
+    # and stopping when the condition is not satisfied anymore.
+    for k, e_k in enumerate(evals_sorted, start=1):
+        if k * e_k >= n_features / fdr:
+            k_star = k
+    if k_star <= n_features:
+        threshold = evals_sorted[k_star - 1]
     else:
         threshold = np.inf
     return threshold

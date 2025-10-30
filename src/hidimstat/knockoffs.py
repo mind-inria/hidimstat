@@ -353,7 +353,7 @@ class ModelXKnockoff(BaseVariableImportance):
         ), "this method doesn't support selection base on FDR"
 
         if self.importances_.shape[0] == 1:
-            self.threshold_fdr_ = _knockoff_threshold(self.importances_, fdr=fdr)
+            self.threshold_fdr_ = self.knockoff_threshold(self.importances_, fdr=fdr)
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
             assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
@@ -377,7 +377,7 @@ class ModelXKnockoff(BaseVariableImportance):
             assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
             evalues = []
             for test_score in self.importances_:
-                ko_threshold = _knockoff_threshold(test_score, fdr=fdr)
+                ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
                 evalues.append(_empirical_knockoff_eval(test_score, ko_threshold))
             self.aggregated_eval_ = np.mean(evalues, axis=0)
             self.threshold_fdr_ = fdr_threshold(
@@ -418,6 +418,15 @@ class ModelXKnockoff(BaseVariableImportance):
     def lasso_coefficient_difference_statistic(estimators, n_features):
         """
         Compute the Lasso Coefficient-Difference (LCD) statistic from a fitted estimator.
+        Given a list of fitted estimators on the concatenated design matrix [X, X_tilde],
+        this function computes the knockoff statistic for each original feature across
+        repeats:
+
+        .. math::
+            W_j = |\\beta_j| - |\\beta_j'|
+
+        where :math:`\\beta_j` and :math:`\\beta_j'` are the fitted coefficients for the original feature j
+        and its knockoff counterpart j'.
 
         Parameters
         ----------
@@ -431,7 +440,7 @@ class ModelXKnockoff(BaseVariableImportance):
         Returns
         -------
         test_statistic : ndarray, shape (n_repeats, n_features)
-            Knockoff statistics W_j for each original feature across repeats. The number
+            Knockoff statistics :math:`W_j` for each original feature across repeats. The number
             of repeats corresponds to the length of the estimators list.
         """
         test_statistic_list = []
@@ -450,107 +459,42 @@ class ModelXKnockoff(BaseVariableImportance):
         test_statistic = np.array(test_statistic_list)
         return test_statistic
 
+    @staticmethod
+    def knockoff_threshold(test_score, fdr=0.1):
+        """
+        Calculate the knockoff threshold based on the procedure stated in the article.
 
-# def job_lib_lasso_statistic(X, X_tilde, y, test_linear_model, test_preconfgure_model):
-#     """
-#     Compute the Lasso Coefficient-Difference (LCD) statistic.
+        Original code:
+        https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
 
-#     Fits the provided linear estimator on the concatenated design matrix [X, X_tilde]
-#     and returns the knockoff statistic for each original feature:
+        Parameters
+        ----------
+        test_score : 1D ndarray, shape (n_features, )
+            Vector of test statistic.
 
-#         W_j = |beta_j| - |beta_j'|
+        fdr : float
+            Desired controlled FDR (false discovery rate) level.
 
-#     where beta_j and beta_j' are the fitted coefficients for the original feature j
-#     and its knockoff counterpart j'.
+        Returns
+        -------
+        threshold : float or np.inf
+            Threshold level.
+        """
+        offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
-#     Parameters
-#     ----------
-#     X : ndarray, shape (n_samples, n_features)
-#         Original feature matrix.
-#     X_tilde : ndarray, shape (n_samples, n_features)
-#         Knockoff feature matrix.
-#     y : ndarray, shape (n_samples,)
-#         Target vector.
-#     test_linear_model : estimator instance
-#         Estimator to fit on the concatenated matrix. Must implement fit(X, y) and expose
-#         coefficients via `coef_` after fitting, or via `best_estimator_.coef_` for CV wrappers.
-#     test_preconfgure_model : callable or None
-#         If provided, callable(test_linear_model, X, X_tilde, y) should return a configured
-#         estimator (or modify it in-place). If None, `test_linear_model` is used as-is.
-
-#     Returns
-#     -------
-#     test_score : ndarray, shape (n_features,)
-#         Knockoff statistics W_j for each original feature. Larger values indicate stronger
-#         evidence that the original feature is more important than its knockoff.
-
-#     Raises
-#     ------
-#     TypeError
-#         If the fitted estimator does not provide coefficients via `coef_` or
-#         `best_estimator_.coef_`.
-
-#     Notes
-#     -----
-#     The function stacks X and X_tilde column-wise before fitting. Coefficients are flattened
-#     with `np.ravel` and the statistic follows the standard knockoff LCD definition.
-#     """
-#     n_samples, n_features = X.shape
-#     X_ko = np.column_stack([X, X_tilde])
-#     if test_preconfgure_model is not None:
-#         linear_model = test_preconfgure_model(test_linear_model, X, X_tilde, y)
-#     else:
-#         linear_model = test_linear_model
-#     linear_model.fit(X_ko, y)
-#     if hasattr(linear_model, "coef_"):
-#         coef = np.ravel(linear_model.coef_)
-#     elif hasattr(linear_model, "best_estimator_") and hasattr(
-#         linear_model.best_estimator_, "coef_"
-#     ):
-#         coef = np.ravel(linear_model.best_estimator_.coef_)  # for CV object
-#     else:
-#         raise TypeError("estimator should be linear")
-#     # Equation 1.7 in barber2015controlling or 3.6 of candes2018panning
-#     test_score = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
-
-#     return test_score
-
-
-def _knockoff_threshold(test_score, fdr=0.1):
-    """
-    Calculate the knockoff threshold based on the procedure stated in the article.
-
-    Original code:
-    https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/knockoff_filter.R
-
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistic.
-
-    fdr : float
-        Desired controlled FDR (false discovery rate) level.
-
-    Returns
-    -------
-    threshold : float or np.inf
-        Threshold level.
-    """
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
-
-    threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-    np.concatenate(
-        [[0], threshold_mesh, [np.inf]]
-    )  # if there is no solution, the threshold is inf
-    # find the right value of t for getting a good fdr
-    # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018
-    threshold = 0.0
-    for threshold in threshold_mesh:
-        false_pos = np.sum(test_score <= -threshold)
-        selected = np.sum(test_score >= threshold)
-        if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
-            break
-    return threshold
+        threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
+        np.concatenate(
+            [[0], threshold_mesh, [np.inf]]
+        )  # if there is no solution, the threshold is inf
+        # find the right value of t for getting a good fdr
+        # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018
+        threshold = 0.0
+        for threshold in threshold_mesh:
+            false_pos = np.sum(test_score <= -threshold)
+            selected = np.sum(test_score >= threshold)
+            if (offset + false_pos) / np.maximum(selected, 1) <= fdr:
+                break
+        return threshold
 
 
 def _empirical_knockoff_pval(test_score):

@@ -1,209 +1,213 @@
 """
-Knockoff aggregation on simulated data
-======================================
+Knockoff aggregation
+====================
 
-In this example, we show an example of variable selection using
-model-X Knockoffs introduced by :footcite:t:`candes2018panning`. A notable
-drawback of this procedure is the randomness associated with generating
-knockoff variables. This can result in fluctuations of the statistical power
-and false discovery proportion, and consequently, unstable inference.
+The examples shows how to use aggregate model-X Knockoff selections to derandomize
+inference. The model-X Knockoff introduced by :footcite:t:`candes2018panning` allows
+for variable selection with statistical guarantees on the False Discovery Rate (FDR),
 
-This example exhibits the two aggregation procedures described
-by :footcite:t:`pmlr-v119-nguyen20a` and :footcite:t:`Ren_2023` to derandomize
-inference.
+.. math::
+    \text{FDR} = \mathbb{E}[\text{FDP}] = \mathbb{E} \left[ \frac{\hat{S} \cap \mathcal{H}_0}{|\hat{S}|} \right] ,
+
+where :math:`\hat{S}` is the set of selected variables and :math:`\mathcal{H}_0` is the
+set of null variables (i.e., variables with no effect on the response).
+A notable drawback of this procedure is the randomness associated with generating
+knockoff variables, :math:`\tilde{X}`. This can result in fluctuations of the statistical
+ power and false discovery proportion, and consequently, unstable inference.
+
+To mitigate this issue, several aggregation procedures have been proposed in the
+literature. :footcite:t:`pmlr-v119-nguyen20a` introduces a quantile aggregation
+procedure based on the p-values obtained from multiple independent runs of the
+knockoff filter. Or :footcite:t:`Ren_2023` proposes an aggregation procedure based on
+e-values. We illustrate both procedures in this example.
 """
 
-import matplotlib.pyplot as plt
+# %%
+# Generating data
+# ---------------
+# We use a simulated dataset where we know the ground truth to evaluate the
+# performance, in terms of statistical power and false discovery proportion, of the
+# different aggregation procedures.
+
 import numpy as np
-from joblib import Parallel, delayed
 
 from hidimstat._utils.scenario import multivariate_simulation
+
+n = 300
+p = 100
+rho = 0.5
+sparsity = 0.5
+snr = 10
+n_repeats = 25
+n_jobs = 4
+
+# Generate data
+X, y, beta_true, noise = multivariate_simulation(
+    n,
+    p,
+    rho=rho,
+    support_size=int(p * sparsity),
+    signal_noise_ratio=snr,
+    seed=0,
+)
+non_zero_index = np.where(beta_true)[0]
+
+
+# %%
+# Inference with model-X Knockoffs
+# --------------------------------
+# We repeat the model-X Knockoff procedure multiple times, as controlled by the
+# `n_repeats` parameter, to obtain different selections. This will allow us to
+# observe the variability of the selections induced by the knockoff lottery. Then, we
+# compare the possible solutions to aggregate the selections in order to derandomize
+# the inference.
+
 from hidimstat.knockoffs import ModelXKnockoff
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-# %%
-# Data simulation
-# ---------------
-# The comparison of the three methods relies on evaluating the
-# :term:`False Discovery Proportion <FDP>` (FDP) and statistical power. Assessing these
-# metrics requires knowledge of the actual data-generating process.
-# We therefore use simulated data with the following parameters:
-
-# number of repetitions of the methods
-runs = 20
-# Number of observations
-n_samples = 200
-# Number of variables
-n_features = 150
-# Correlation parameter
-rho = 0.5
-# Ratio of number of variables with non-zero coefficients over total
-# coefficients
-sparsity = 0.2
-# Desired controlled False Discovery Rate (FDR) level
 fdr = 0.1
-# signal noise ration
-signal_noise_ratio = 10
-# number of repetitions for the bootstraps
-n_bootstraps = 25
-# number of jobs for repetition of the method
-n_jobs = 1
-# verbosity of the joblib
-joblib_verbose = 0
-# Define the seeds for the reproducibility of the example
-rng = np.random.default_rng(42)
+# Use model-X Knockoffs [1]
+model_x_knockoff = ModelXKnockoff(n_repeats=n_repeats, n_jobs=n_jobs, random_state=0)
+model_x_knockoff.fit_importance(X, y)
+
+fdp_individual = []
+power_individual = []
+model_x_knockoff.importances_.shape
+for ko_statistics in model_x_knockoff.importances_:
+    threshold = model_x_knockoff.knockoff_threshold(ko_statistics, fdr=fdr)
+    ko_selection = ko_statistics > threshold
+
+    fdp, power = fdp_power(np.where(ko_selection)[0], non_zero_index)
+    fdp_individual.append(fdp)
+    power_individual.append(power)
 
 
 # %%
-# Define the function for running the three procedures on the same data
-# ---------------------------------------------------------------------
-def single_run(
-    n_samples,
-    n_features,
-    rho,
-    sparsity,
-    signal_noise_ratio,
-    fdr,
-    n_bootstraps,
-    seed=None,
-):
-    # Generate data
-    X, y, beta_true, noise = multivariate_simulation(
-        n_samples,
-        n_features,
-        rho=rho,
-        support_size=int(n_features * sparsity),
-        signal_noise_ratio=signal_noise_ratio,
-        seed=seed,
-    )
-    non_zero_index = np.where(beta_true)[0]
+# Visualize the results of the individual selections
+# --------------------------------------------------
+# We first visualize the results of the individual selections to observe the
+# variability induced by the knockoff lottery. We plot the False Discovery Proportion
+# (FDP) for each run along with the desired FDR level (red dashed line) and the statistical
 
-    # Use model-X Knockoffs [1]
-    model_x_knockoff = ModelXKnockoff(n_repeats=1)
-    model_x_knockoff.fit_importance(X, y)
-    mx_selection = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp_mx, power_mx = fdp_power(np.where(mx_selection)[0], non_zero_index)
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
-    # Use aggregation model-X Knockoffs [2]
-    model_x_knockoff_repeat = ModelXKnockoff(n_repeats=n_bootstraps)
-    model_x_knockoff_repeat.fit_importance(X, y)
+df_plot = pd.DataFrame(
+    {
+        "FDP": fdp_individual,
+        "Power": power_individual,
+    }
+)
 
-    # Use p-values aggregation [2]
-    aggregated_ko_selection = model_x_knockoff_repeat.fdr_selection(
-        fdr=fdr, adaptive_aggregation=True
-    )
-    fdp_pval, power_pval = fdp_power(
-        np.where(aggregated_ko_selection)[0], non_zero_index
-    )
+_, axes = plt.subplots(1, 2, figsize=(5, 3.5))
 
-    # Use e-values aggregation [3]
-    eval_selection = model_x_knockoff_repeat.fdr_selection(
-        fdr=fdr, fdr_control="ebh", evalues=True
-    )
-    fdp_eval, power_eval = fdp_power(np.where(eval_selection)[0], non_zero_index)
-    return fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval
+ax = axes[0]
+sns.swarmplot(
+    data=df_plot,
+    y="FDP",
+    ax=ax,
+)
+ax.axhline(fdr, color="tab:red", linestyle="--", lw=2, label="Desired FDR")
+ax.scatter(
+    0,
+    np.mean(fdp_individual),
+    marker="d",
+    color="tab:orange",
+    s=100,
+    zorder=10,
+    label="Empirical FDR",
+)
+ax.legend(framealpha=0.2)
+# Plot the power
+ax = axes[1]
+sns.swarmplot(
+    data=df_plot,
+    y="Power",
+    ax=ax,
+)
+sns.despine()
+_ = plt.tight_layout()
 
 
 # %%
-# Define the function for plotting the result
-# -------------------------------------------
-def plot_results(bounds, fdr, n_samples, n_features, power=False):
-    plt.figure(figsize=(5, 5), layout="constrained")
-    for nb in range(len(bounds)):
-        for i in range(len(bounds[nb])):
-            y = bounds[nb][i]
-            x = rng.normal(nb + 1, 0.05)
-            plt.scatter(x, y, alpha=0.65, c="blue")
+# Aggregation procedures
+# ----------------------
+# We now compute the aggregation using both the p-values aggregation procedure from
+# :footcite:t:`pmlr-v119-nguyen20a` and the e-values aggregation procedure from
+# :footcite:t:`Ren_2023`. We then compare the results of both procedures in terms of
+# FDP and power.
 
-    plt.boxplot(bounds, sym="")
-    if power:
-        plt.xticks(
-            [1, 2, 3],
-            ["MX Knockoffs", "Quantile aggregation", "e-values aggregation"],
-            rotation=45,
-            ha="right",
-        )
-        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_features}")
-        plt.ylabel("Empirical Power")
+pval_aggregation = model_x_knockoff.fdr_selection(fdr=fdr, adaptive_aggregation=True)
+fdp_pval_agg, power_pval_agg = fdp_power(np.where(pval_aggregation)[0], non_zero_index)
 
-    else:
-        plt.hlines(fdr, xmin=0.5, xmax=3.5, label="Requested FDR control", color="red")
-        plt.xticks(
-            [1, 2, 3],
-            ["MX Knockoffs", "Quantile aggregation", "e-values aggregation"],
-            rotation=45,
-            ha="right",
-        )
-        plt.title(f"FDR = {fdr}, n = {n_samples}, p = {n_features}")
-        plt.ylabel("Empirical FDP")
-        plt.legend(loc="best")
+eval_aggregation = model_x_knockoff.fdr_selection(
+    fdr=fdr, fdr_control="ebh", evalues=True
+)
+fdp_eval_agg, power_eval_agg = fdp_power(np.where(eval_aggregation)[0], non_zero_index)
 
+df_plot["Method"] = "Individual KO"
+df_plot_2 = pd.concat(
+    [
+        df_plot,
+        pd.DataFrame(
+            {
+                "FDP": [fdp_pval_agg],
+                "Power": [power_pval_agg],
+                "Method": ["P-value aggregation"],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "FDP": [fdp_eval_agg],
+                "Power": [power_eval_agg],
+                "Method": ["E-value aggregation"],
+            }
+        ),
+    ],
+    ignore_index=True,
+)
 
-# %%
-# Define the function for evaluate the effect of the population
-# -------------------------------------------------------------
-def effect_number_samples(n_samples):
-    parallel = Parallel(n_jobs, verbose=joblib_verbose)
-    results = parallel(
-        delayed(single_run)(
-            n_samples,
-            n_features,
-            rho,
-            sparsity,
-            signal_noise_ratio,
-            fdr,
-            n_bootstraps,
-            seed=seed,
-        )
-        for seed in range(runs)
-    )
+# Plot the results
+# ----------------
+# In addition to the individual selections (blue), we plot the FDR and power obtained by
+# p-value aggregation (orange) and e-value aggregation (green).
 
-    fdps_mx = []
-    fdps_pval = []
-    fdps_eval = []
-    powers_mx = []
-    powers_pval = []
-    powers_eval = []
-    for fdp_mx, fdp_pval, fdp_eval, power_mx, power_pval, power_eval in results:
-        fdps_mx.append(fdp_mx)
-        fdps_pval.append(fdp_pval)
-        fdps_eval.append(fdp_eval)
+_, axes = plt.subplots(1, 2, figsize=(6, 3.5))
+ax = axes[0]
+sns.stripplot(
+    data=df_plot_2,
+    y="FDP",
+    hue="Method",
+    ax=ax,
+    palette="muted",
+    dodge=1,
+    legend=False,
+    size=8,
+    linewidth=1,
+)
+ax.axhline(fdr, color="tab:red", linestyle="--", lw=2, label="Desired FDR")
 
-        powers_mx.append(power_mx)
-        powers_pval.append(power_pval)
-        powers_eval.append(power_eval)
-
-    # Plot FDP and Power distributions
-
-    fdps = [fdps_mx, fdps_pval, fdps_eval]
-    powers = [powers_mx, powers_pval, powers_eval]
-
-    plot_results(fdps, fdr, n_samples, n_features)
-    plot_results(powers, fdr, n_samples, n_features, power=True)
-    plt.show()
+ax = axes[1]
+sns.stripplot(
+    data=df_plot_2,
+    y="Power",
+    hue="Method",
+    ax=ax,
+    palette="muted",
+    dodge=True,
+    size=8,
+    linewidth=1,
+)
+sns.despine()
+_ = plt.tight_layout()
 
 
 # %%
-# Aggregation methods provide a more stable inference
-# ---------------------------------------------------
-effect_number_samples(n_samples=n_samples)
+# It appears that both aggregation procedures successfully lowers the false discovery
+# proportion while maintaining a good statistical power.
 
-# %%
-# By repeating the model-X Knockoffs, we can see that instability
-# of the inference. Additionally, we can see that the aggregation method
-# is more stable. However, the e-values aggregation is more conservative,
-# i.e. the expect variables of importance is not find.
 
-# %%
-# Limitation of the aggregation methods
-# -------------------------------------
-effect_number_samples(n_samples=50)
-
-# %%
-# One important point of this method is that they require enough samples to
-# estimate the distribution of each feature.
-
-# %%
 # References
 # ----------
 # .. footbibliography::

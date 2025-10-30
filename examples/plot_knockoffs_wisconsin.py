@@ -103,7 +103,7 @@ lasso_noisy = LogisticRegressionCV(
     penalty="l1",
     solver="liblinear",
     random_state=0,
-    n_jobs=1,
+    n_jobs=4,
 )
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
@@ -162,7 +162,6 @@ model_x_knockoff = ModelXKnockoff(
         max_iter=1000,
     ),
     random_state=0,
-    n_repeats=1,
     preconfigure_lasso_path=False,
 )
 importance = model_x_knockoff.fit_importance(
