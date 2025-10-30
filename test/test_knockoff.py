@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 from sklearn.covariance import GraphicalLassoCV, LedoitWolf
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import Lasso, RidgeCV
+from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVR
 
@@ -26,7 +25,10 @@ def test_knockoff_bootstrap_quantile():
     X, y, beta, noise = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
-    model_x_knockoff = ModelXKnockoff(n_repeats=n_repeats).fit(X, y)
+    model_x_knockoff = ModelXKnockoff(
+        estimator=LassoCV(),
+        n_repeats=n_repeats,
+    ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
@@ -51,7 +53,9 @@ def test_knockoff_bootstrap_e_values():
     )
 
     # Using e-values aggregation
-    model_x_knockoff = ModelXKnockoff(n_repeats=n_repeats).fit(X, y)
+    model_x_knockoff = ModelXKnockoff(estimator=LassoCV(), n_repeats=n_repeats).fit(
+        X, y
+    )
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(
         fdr=fdr / 2, fdr_control="ebh", evalues=True
@@ -77,6 +81,7 @@ def test_invariant_with_bootstrap():
     )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     model_x_knockoff = ModelXKnockoff(
+        estimator=LassoCV(),
         ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
         random_state=0,
         n_repeats=1,
@@ -118,7 +123,9 @@ def test_model_x_knockoff():
     X, y, beta, noise = multivariate_simulation(
         n, p, support_size=support_size, seed=seed
     )
-    model_x_knockoff = ModelXKnockoff(n_repeats=1, random_state=seed + 1).fit(X, y)
+    model_x_knockoff = ModelXKnockoff(
+        estimator=LassoCV(), n_repeats=1, random_state=seed + 1
+    ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
