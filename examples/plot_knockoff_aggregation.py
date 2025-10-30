@@ -7,13 +7,13 @@ inference. The model-X Knockoff introduced by :footcite:t:`candes2018panning` al
 for variable selection with statistical guarantees on the False Discovery Rate (FDR),
 
 .. math::
-    \text{FDR} = \mathbb{E}[\text{FDP}] = \mathbb{E} [ \frac{\hat{S} \cap \mathcal{H}_0}{|\hat{S}|} ] ,
+    FDR = \mathbb{E}[FDP] = \mathbb{E} [ \frac{\hat{S} \cap \mathcal{H}_0}{|\hat{S}|} ] ,
 
 where :math:`\hat{S}` is the set of selected variables and :math:`\mathcal{H}_0` is the
 set of null variables (i.e., variables with no effect on the response).
 A notable drawback of this procedure is the randomness associated with generating
 knockoff variables, :math:`\tilde{X}`. This can result in fluctuations of the statistical
- power and false discovery proportion, and consequently, unstable inference.
+power and false discovery proportion, and consequently, unstable inference.
 
 To mitigate this issue, several aggregation procedures have been proposed in the
 literature. :footcite:t:`pmlr-v119-nguyen20a` introduces a quantile aggregation
