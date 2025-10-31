@@ -47,12 +47,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
 from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 # Remove warnings during loading data
@@ -183,19 +178,22 @@ except MemoryError as err:
 # %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-ward_, cl_desparsified_lasso = clustered_inference(
-    X,
-    y,
-    ward,
+clustered_inference = EnsembleClusteredInference(
+    variable_importance=DesparsifiedLasso(
+        noise_method="median",
+        model_y=clone(estimator),
+        tolerance_reid=1e-2,
+        n_jobs=1,
+    ),
+    ward=ward,
     scaler_sampling=StandardScaler(),
-    model_y=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=1,
-    n_jobs=n_jobs,
+    n_bootstraps=1,
+    n_jobs=1,
+    random_state=0,
 )
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
-    X.shape[0], None, ward_, cl_desparsified_lasso
-)
+beta_hat = clustered_inference.fit_importance(X, y)
+pval_cdl = clustered_inference.pvalues_
+one_minus_pval_cdl = 1 - clustered_inference.pvalues_
 
 # %%
 # Below, we run the ensemble clustered inference algorithm which adds a
@@ -205,24 +203,23 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
-list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
-    X,
-    y,
-    ward,
-    groups=groups,
+ensemble_clustered_inference = EnsembleClusteredInference(
+    variable_importance=DesparsifiedLasso(
+        noise_method="median",
+        model_y=clone(estimator),
+        tolerance_reid=1e-2,
+        n_jobs=1,
+    ),
+    ward=ward,
     scaler_sampling=StandardScaler(),
     n_bootstraps=5,
-    model_y=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=2,
-    n_jobs=n_jobs,
+    n_jobs=1,
+    random_state=0,
 )
-beta_hat, selected = ensemble_clustered_inference_pvalue(
-    X.shape[0],
-    False,
-    list_ward,
-    list_cl_desparsified_lasso,
-    fdr=0.1,
+beta_hat = ensemble_clustered_inference.fit_importance(X, y)
+pval_cdl = ensemble_clustered_inference.pvalues_
+selected = ensemble_clustered_inference.fdr_selection(
+    fdr=0.1, alternative_hypothesis=None
 )
 
 # %%

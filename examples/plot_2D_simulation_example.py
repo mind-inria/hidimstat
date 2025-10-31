@@ -225,10 +225,12 @@ selected_cdl = zscore > thr_c  # use the "clustering threshold"
 
 # ensemble of clustered desparsified lasso (EnCluDL)
 ensemble_clustered_inference = EnsembleClusteredInference(
-    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
+    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=5
 )
 ensemble_clustered_inference.fit_importance(X_init, y)
-selected_ecdl = ensemble_clustered_inference.selection_fdr(fdr=fwer_target)
+selected_ecdl = ensemble_clustered_inference.fdr_selection(
+    fdr=fwer_target, alternative_hypothesis=None
+)
 
 # %%
 # Results
