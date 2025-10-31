@@ -1,5 +1,3 @@
-import warnings
-
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
@@ -249,7 +247,7 @@ class EnsembleClusteredInference(BaseVariableImportance):
         self.pvalues_corr_ = np.mean(self.list_pvalues_corr_, axis=0)
         return self.importances_
 
-    def fit_importance(self, X, y, cv=None):
+    def fit_importance(self, X, y):
         """
         Fits the model to the data and computes feature importance.
 
@@ -262,8 +260,6 @@ class EnsembleClusteredInference(BaseVariableImportance):
             Training data matrix.
         y : array-like of shape (n_samples,)
             Target values.
-        cv : None or int, optional (default=None)
-            Not used. Included for compatibility. A warning will be issued if provided.
 
         Returns
         -------
@@ -276,8 +272,6 @@ class EnsembleClusteredInference(BaseVariableImportance):
         Also sets the importances\_ and pvalues\_ attributes on the instance.
         See fit() and importance() for details on the underlying computations.
         """
-        if cv is not None:
-            warnings.warn("cv won't be used")
         self.fit(X, y)
         return self.importance(X, y)
 
