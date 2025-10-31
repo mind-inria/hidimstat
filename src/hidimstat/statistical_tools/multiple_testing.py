@@ -117,7 +117,7 @@ def _bhq_threshold(pvals, fdr=0.1):
 
 def _ebh_threshold(evals, fdr=0.1):
     """
-    e-BH procedure for FDR control :footcite:`wang2022false`
+    e-BH procedure for FDR control described in equation 5 :footcite:`wang2022false`
 
     Parameters
     ----------
@@ -140,6 +140,8 @@ def _ebh_threshold(evals, fdr=0.1):
     k_star = 1
     # The for loop over all e-values could be optimized by considering a descending list
     # and stopping when the condition is not satisfied anymore.
+    # The condition k * e_k >= n_features / fdr, is defined for k = 1, ..., n_features
+    # the for loop therefore starts at k=1
     for k, e_k in enumerate(evals_sorted, start=1):
         if k * e_k >= n_features / fdr:
             k_star = k

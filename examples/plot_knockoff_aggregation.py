@@ -27,7 +27,8 @@ e-values. We illustrate both procedures in this example.
 # ---------------
 # We use a simulated dataset where we know the ground truth to evaluate the
 # performance, in terms of statistical power and false discovery proportion, of the
-# different aggregation procedures.
+# different aggregation procedures. We generate data with `n=300` samples and `p=100`
+# correlated features.
 
 import numpy as np
 
@@ -35,11 +36,12 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 n = 300
 p = 100
+# Correlation
 rho = 0.5
+# Sparsity of the support
 sparsity = 0.5
+# Signal-to-noise ratio
 snr = 10
-n_repeats = 25
-n_jobs = 4
 
 # Generate data
 X, y, beta_true, noise = multivariate_simulation(
@@ -66,7 +68,8 @@ from hidimstat.knockoffs import ModelXKnockoff
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 fdr = 0.1
-# Use model-X Knockoffs [1]
+n_repeats = 25
+n_jobs = 4
 model_x_knockoff = ModelXKnockoff(n_repeats=n_repeats, n_jobs=n_jobs, random_state=0)
 model_x_knockoff.fit_importance(X, y)
 
