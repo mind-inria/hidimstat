@@ -29,8 +29,7 @@ mask_0_1 = (y_mnist == "0") | (y_mnist == "1")
 X_0_1, y_0_1 = X_mnist[mask_0_1], y_mnist[mask_0_1].astype(int)
 
 
-_, axes = plt.subplots(2, 5, figsize=(10, 5))
-
+_, axes = plt.subplots(2, 5, figsize=(8, 4))
 # First row - digits 0 and 1
 for i in range(5):
     label = 1 if i % 2 == 0 else 0
@@ -80,16 +79,18 @@ ward_clustering_0_1 = FeatureAgglomeration(
 X_cluster = train_test_split(X_0_1, train_size=0.5, random_state=0)[0]
 ward_clustering_0_1.fit(X_cluster)
 
-_, axes = plt.subplots(1, 2)
+_, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = axes[0]
 ax.imshow(ward_clustering_1_7.labels_.reshape(28, 28), cmap="Set2")
 ax.axis("off")
-ax.set_title("Clustering for digits 1 vs 7")
+_ = ax.set_title("Clustering for digits 1 vs 7")
 
 ax = axes[1]
 ax.imshow(ward_clustering_0_1.labels_.reshape(28, 28), cmap="Set2")
 ax.axis("off")
-ax.set_title("Clustering for digits 0 vs 1")
+_ = ax.set_title("Clustering for digits 0 vs 1")
+
+_ = plt.tight_layout()
 
 
 # %%
@@ -102,7 +103,7 @@ ax.set_title("Clustering for digits 0 vs 1")
 # on different subsamples of the data.
 
 
-_, axes = plt.subplots(1, 4)
+_, axes = plt.subplots(1, 4, figsize=(9, 3))
 
 for i, ax in enumerate(axes):
     X_cluster = train_test_split(X_1_7, y_1_7, train_size=0.5, random_state=i)[0]
@@ -132,7 +133,7 @@ from sklearn.preprocessing import StandardScaler
 from hidimstat import ensemble_clustered_inference
 from hidimstat.ensemble_clustered_inference import ensemble_clustered_inference_pvalue
 
-n_jobs = 4
+n_jobs = 5
 fdr = 0.5
 
 ward_1_7, desparsified_lassos_1_7 = ensemble_clustered_inference(
@@ -176,7 +177,7 @@ for ax, beta_hat, title in zip(
 ):
     max_abs = np.max(np.abs(beta_hat))
     im = ax.imshow(beta_hat.reshape(28, 28), cmap="RdBu", vmin=-max_abs, vmax=max_abs)
-    plt.colorbar(im, label="$\hat{\\beta}$", ax=ax, shrink=0.7)
+    plt.colorbar(im, label=r"$\hat{\beta}$", ax=ax, shrink=0.7)
     ax.set_title(f"{title}")
     ax.axis("off")
 
