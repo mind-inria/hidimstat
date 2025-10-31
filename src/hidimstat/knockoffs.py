@@ -260,7 +260,7 @@ class ModelXKnockoff(BaseVariableImportance):
         )
         self.pvalues_ = np.array(
             [
-                _empirical_knockoff_pval(self.importances_[i])
+                self._empirical_knockoff_pval(self.importances_[i])
                 for i in range(self.n_repeats)
             ]
         )
@@ -359,7 +359,7 @@ class ModelXKnockoff(BaseVariableImportance):
             assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
             pvalues = np.array(
                 [
-                    _empirical_knockoff_pval(test_score)
+                    self._empirical_knockoff_pval(test_score)
                     for test_score in self.importances_
                 ]
             )
@@ -378,7 +378,7 @@ class ModelXKnockoff(BaseVariableImportance):
             evalues = []
             for test_score in self.importances_:
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
-                evalues.append(_empirical_knockoff_eval(test_score, ko_threshold))
+                evalues.append(self._empirical_knockoff_eval(test_score, ko_threshold))
             self.aggregated_eval_ = np.mean(evalues, axis=0)
             self.threshold_fdr_ = fdr_threshold(
                 self.aggregated_eval_,
@@ -496,67 +496,69 @@ class ModelXKnockoff(BaseVariableImportance):
                 break
         return threshold
 
+    @staticmethod
+    def _empirical_knockoff_pval(test_score):
+        """
+        Compute the empirical p-values from the knockoff+ test.
 
-def _empirical_knockoff_pval(test_score):
-    """
-    Compute the empirical p-values from the knockoff+ test.
+        Parameters
+        ----------
+        test_score : 1D ndarray, shape (n_features, )
+            Vector of test statistics.
 
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistics.
+        Returns
+        -------
+        pvals : 1D ndarray, shape (n_features, )
+            Vector of empirical p-values.
+        """
+        pvals = []
+        n_features = test_score.size
 
-    Returns
-    -------
-    pvals : 1D ndarray, shape (n_features, )
-        Vector of empirical p-values.
-    """
-    pvals = []
-    n_features = test_score.size
+        offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
+        test_score_inv = -test_score
+        for i in range(n_features):
+            if test_score[i] <= 0:
+                pvals.append(1)
+            else:
+                pvals.append(
+                    (offset + np.sum(test_score_inv >= test_score[i])) / n_features
+                )
 
-    test_score_inv = -test_score
-    for i in range(n_features):
-        if test_score[i] <= 0:
-            pvals.append(1)
-        else:
-            pvals.append(
-                (offset + np.sum(test_score_inv >= test_score[i])) / n_features
-            )
+        return np.array(pvals)
 
-    return np.array(pvals)
+    @staticmethod
+    def _empirical_knockoff_eval(test_score, ko_threshold):
+        """
+        Compute the empirical e-values from the knockoff test.
 
+        Parameters
+        ----------
+        test_score : 1D ndarray, shape (n_features, )
+            Vector of test statistics.
 
-def _empirical_knockoff_eval(test_score, ko_threshold):
-    """
-    Compute the empirical e-values from the knockoff test.
+        ko_threshold : float
+            Threshold level.
 
-    Parameters
-    ----------
-    test_score : 1D ndarray, shape (n_features, )
-        Vector of test statistics.
+        Returns
+        -------
+        evals : 1D ndarray, shape (n_features, )
+            Vector of empirical e-values.
+        """
+        evals = []
+        n_features = test_score.size
 
-    ko_threshold : float
-        Threshold level.
+        offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
-    Returns
-    -------
-    evals : 1D ndarray, shape (n_features, )
-        Vector of empirical e-values.
-    """
-    evals = []
-    n_features = test_score.size
+        for i in range(n_features):
+            if test_score[i] < ko_threshold:
+                evals.append(0)
+            else:
+                evals.append(
+                    n_features / (offset + np.sum(test_score <= -ko_threshold))
+                )
 
-    offset = 1  # Offset equals 1 is the knockoff+ procedure.
-
-    for i in range(n_features):
-        if test_score[i] < ko_threshold:
-            evals.append(0)
-        else:
-            evals.append(n_features / (offset + np.sum(test_score <= -ko_threshold)))
-
-    return np.array(evals)
+        return np.array(evals)
 
 
 def model_x_knockoff(
