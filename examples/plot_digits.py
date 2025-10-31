@@ -2,18 +2,19 @@ r"""
 Pixel-wise inference on digit classification
 ============================================
 
-This example illustrates how to perform pixel-wise inference using ensemble clustered
-inference with Desparsified Lasso (EnCluDL) on digit classification tasks. We use the
-MNIST dataset and consider binary classification between digits 1 vs 7, and 1 vs 0. The
-MNIST images are images of size 28x28 pixels representing handwritten digits.
+This example illustrates how to perform pixel-wise inference using Ensemble Clustered
+Inference with Desparsified Lasso (EnCluDL) on digit classification tasks. We use the
+MNIST dataset and consider binary classification between digits 1 vs 7 and 0 vs 1. The
+MNIST dataset contains 28x28 pixel images of handwritten digits.
 """
 
 # %%
 # Loading the MNIST dataset
 # -------------------------
-# We start by loading the MNIST dataset from OpenML. Then we filter the dataset to only
-# include 1 and 7 digits for the first classification task, and 0 and 1 digits for the
-# second task. We visualize a few samples from each class.
+# We start by loading the MNIST dataset from OpenML. We then filter the dataset to
+# include only digits 1 and 7 for the first classification task, and digits 0 and 1
+# for the second task. Finally, we visualize a few samples from each class.
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -47,18 +48,18 @@ _ = plt.tight_layout()
 
 
 # %%
-# Clustering pixels ising connectivity graph
+# Clustering pixels using connectivity graph
 # ------------------------------------------
-# We create a connectivity graph based on the 2D grid structure of the images. This can
-# be done using the `grid_to_graph` function from `sklearn.feature_extraction.image`.
-# We then use ward hierarchical clustering, as implemented in `FeatureAgglomeration`,
-# to cluster the pixels with the connectivity constraint. The resulting clusters contain
-# spatially contiguous pixels that are highly correlated (within cluster correlation is high).
-# However, the clusters themselves are less correlated with each other (between cluster
-# correlation is low). By running the inference on these clusters, we can improve the
-# statistical power of the inference procedure. We then visualize the clustering result
-# and observe that the clusters are spatially contiguous and capture meaningful
-# structures in the digit images.
+# We create a connectivity graph based on the 2D grid structure of the images using
+# the `grid_to_graph` function from `sklearn.feature_extraction.image`. We then apply
+# Ward hierarchical clustering, implemented in `FeatureAgglomeration`, to cluster the
+# pixels with connectivity constraints. The resulting clusters contain spatially
+# contiguous pixels that are highly correlated (high within-cluster correlation).
+# However, the clusters themselves are less correlated with each other (low between-cluster
+# correlation). By running inference on these clusters, we can improve the statistical
+# power of the inference procedure. We then visualize the clustering results and observe
+# that the clusters are spatially contiguous and capture meaningful structures in the
+# digit images.
 
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
@@ -92,13 +93,14 @@ ax.set_title("Clustering for digits 0 vs 1")
 
 
 # %%
-# Clustrring introduces randomness in the inference procedure
-# ------------------------------------------------------------
-# A limitation of clustered inference proceedures is that the clustering step
-# introduces randomness in the inference procedure. Indeed, perturbations in the data
-# can lead to different clustering results, which will in turn lead to different
-# inference results. This can be observed by running the clustering multiple times on
-# subsamples of the data.
+# Randomness in clustering affects inference stability
+# ----------------------------------------------------
+# A key limitation of clustered inference procedures is that the clustering step
+# introduces randomness into the inference process. Data perturbations can produce
+# different clustering results, which subsequently lead to varying inference outcomes.
+# This effect can be demonstrated by running the clustering algorithm multiple times
+# on different subsamples of the data.
+
 
 _, axes = plt.subplots(1, 4)
 
@@ -118,12 +120,12 @@ _ = plt.tight_layout()
 # %%
 # Ensemble Clustered Inference with Desparsified Lasso
 # ----------------------------------------------------
-# To mitigate this randomness, we can ensemble the results of multiple clustered
-# inference procedures. This effectively derandomizes the inference procedure and leads to
-# more stable inference results. We use the `ensemble_clustered_inference` function.
-# While inevitably more computationally intensive than a single clustered inference, this
-# procedure can be parallelized over repetitions of the clustering using the
-# `n_jobs` parameter.
+# To mitigate the randomness introduced by clustering, we ensemble the results from
+# multiple clustered inference procedures. This approach derandomizes the inference
+# procedure and produces more stable results. We use the `ensemble_clustered_inference`
+# function for this purpose. While this approach is more computationally intensive than
+# single clustered inference, the procedure can be parallelized across clustering
+# repetitions using the `n_jobs` parameter.
 
 from sklearn.preprocessing import StandardScaler
 
@@ -161,8 +163,8 @@ beta_hat_0_1, selected_ecdl_0_1 = ensemble_clustered_inference_pvalue(
 # %%
 # Visualizing the inference results
 # ---------------------------------
-# We can then first visualize the inference results by plotting the coefficients
-# estimated by the desparsified lasso (ensembled over multiple clusterings).
+# We visualize the inference results by plotting the coefficients estimated by the
+# desparsified lasso, which have been ensembled over multiple clusterings.
 
 # sphinx_gallery_thumbnail_number = 4
 
@@ -181,8 +183,9 @@ for ax, beta_hat, title in zip(
 _ = plt.tight_layout()
 
 # %%
-# We can also visualize the p-values obtained by aggregating the p-values from the
-# desparsified lassos over multiple clusterings.
+# We can also visualize the p-values obtained by aggregating results from multiple
+# clustered desparsified lasso procedures. These aggregated p-values provide a more
+# robust measure of feature significance compared to single clustering approaches.
 
 _, axes = plt.subplots(1, 2, figsize=(9, 4))
 for ax, selected_ecdl, title in zip(
