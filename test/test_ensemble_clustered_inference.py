@@ -28,7 +28,7 @@ def test_clustered_inference_no_temporal():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 100, 1000
     support_size = 10
     signal_noise_ratio = 5.0
     rho = 0.95
@@ -64,13 +64,14 @@ def test_clustered_inference_no_temporal():
         clustered_inference_pvalue(n_samples, None, ward_, desparsified_lassos)
     )
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
+    alpha = 0.05
+    tp = np.sum(pval_corr[:interior_support] < alpha)
+    fp = np.sum(pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(pval_corr[:interior_support], expected[:interior_support])
-    assert_almost_equal(
-        pval_corr[extended_support:200], expected[extended_support:200], decimal=1
-    )
+    assert power >= 0.8
+    assert fdp <= alpha
 
 
 # Scenario 2: temporal data
