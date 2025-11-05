@@ -34,8 +34,8 @@ import numpy as np
 
 from hidimstat._utils.scenario import multivariate_simulation
 
-n = 300
-p = 100
+n_features = 300
+n_samples = 100
 # Correlation
 rho = 0.5
 # Sparsity of the support
@@ -45,10 +45,10 @@ snr = 10
 
 # Generate data
 X, y, beta_true, noise = multivariate_simulation(
-    n,
-    p,
+    n_samples=n_samples,
+    n_features=n_features,
     rho=rho,
-    support_size=int(p * sparsity),
+    support_size=int(n_features * sparsity),
     signal_noise_ratio=snr,
     seed=0,
 )
