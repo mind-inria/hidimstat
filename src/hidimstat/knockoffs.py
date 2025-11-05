@@ -356,7 +356,7 @@ class ModelXKnockoff(BaseVariableImportance):
             self.threshold_fdr_ = self.knockoff_threshold(self.importances_, fdr=fdr)
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
-            assert fdr_control != "ebh", "for p-value, the fdr control can't be 'ebh'"
+            assert fdr_control != "ebh", "for p-values, the fdr control can't be 'ebh'"
             pvalues = np.array(
                 [
                     self._empirical_knockoff_pval(test_score)
