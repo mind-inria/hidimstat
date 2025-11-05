@@ -58,7 +58,7 @@ def test_fdr_threshold_extreme_values():
     assert bhy_cutoff == -1
 
     # Test e-BH
-    assert np.isinf(ebh_cutoff)
+    assert ebh_cutoff == 1
 
 
 def test_fdp_power():
