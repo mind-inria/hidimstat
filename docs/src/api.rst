@@ -29,6 +29,7 @@ Feature Importance Classes
    PFI
    D0CRT
    ModelXKnockoff
+   DesparsifiedLasso
 
 Feature Importance functions
 ============================
