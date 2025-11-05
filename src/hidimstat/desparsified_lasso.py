@@ -88,6 +88,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         Two-sided p-values.
     pvalues_corr_ : ndarray of shape (n_features)
         Multiple testing corrected p-values.
+    one_minus_pvalues_ : ndarray of shape (n_features)
+        One minus the p-value, with numerically accurate values for negative effects
+        (ie., for p-value close to one).
+    one_minus_pvalues_corr_ : ndarray of shape (n_features)
+        One minus the corrected p-value, with numerically accurate values for negative
+        effects (ie., for p-value close to one).
     sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
     precision_diagonal_ : ndarray of shape (n_features)
@@ -110,7 +116,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
-        model_x=Lasso(max_iter=5000, tol=1e-3),
+        model_x=Lasso(),
         preconfigure_model_x_path=True,
         alpha_max_fraction=0.01,
         random_state=None,
@@ -174,6 +180,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.confidence_bound_min_ = None
         self.confidence_bound_max_ = None
         self.pvalues_corr_ = None
+        self.one_minus_pvalues_ = None
+        self.one_minus_pvalues_corr_ = None
 
     def fit(self, X, y):
         """
@@ -381,7 +389,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.confidence_bound_max_ = beta_hat + confint_radius
             self.confidence_bound_min_ = beta_hat - confint_radius
 
-            pval, pval_corr, _, _ = pval_from_cb(
+            pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
                 self.confidence_bound_min_,
                 self.confidence_bound_max_,
                 confidence=self.confidence,
@@ -417,12 +425,16 @@ class DesparsifiedLasso(BaseVariableImportance):
 
             # Compute the p-values
             sign_beta = np.sign(np.sum(beta_hat, axis=1))
-            pval, pval_corr, _, _ = pval_from_two_sided_pval_and_sign(
-                two_sided_pval, sign_beta, eps=self.epsilon_pvalue
+            pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
+                pval_from_two_sided_pval_and_sign(
+                    two_sided_pval, sign_beta, eps=self.epsilon_pvalue
+                )
             )
 
         self.pvalues_ = pval
         self.pvalues_corr_ = pval_corr
+        self.one_minus_pvalues_ = one_minus_pval
+        self.one_minus_pvalues_corr_ = one_minus_pval_corr
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -516,7 +528,7 @@ def desparsified_lasso(
     centered=True,
     dof_ajdustement=False,
     # parameters for model_x
-    model_x=Lasso(max_iter=5000, tol=1e-3),
+    model_x=Lasso(),
     preconfigure_model_x_path=True,
     alpha_max_fraction=0.01,
     save_model_x=False,

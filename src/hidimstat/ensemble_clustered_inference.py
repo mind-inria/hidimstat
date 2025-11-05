@@ -319,8 +319,8 @@ def clustered_inference_pvalue(n_samples, group, ward, desparsified_lassos, **kw
         desparsified_lassos.importances_,
         desparsified_lassos.pvalues_,
         desparsified_lassos.pvalues_corr_,
-        1 - desparsified_lassos.pvalues_,
-        1 - desparsified_lassos.pvalues_corr_,
+        desparsified_lassos.one_minus_pvalues_,
+        desparsified_lassos.one_minus_pvalues_corr_,
     )
 
     return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr

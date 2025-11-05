@@ -174,7 +174,7 @@ try:
     )
     desparsified_lasso.fit_importance(X, y)
     pval_dl = desparsified_lasso.pvalues_
-    one_minus_pval_dl = 1 - pval_dl
+    one_minus_pval_dl = desparsified_lasso.one_minus_pvalues_
 except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
