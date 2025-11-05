@@ -34,8 +34,8 @@ import numpy as np
 
 from hidimstat._utils.scenario import multivariate_simulation
 
-n_features = 300
-n_samples = 100
+n_features = 100
+n_samples = 300
 # Correlation
 rho = 0.5
 # Sparsity of the support
