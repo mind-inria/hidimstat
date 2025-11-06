@@ -132,7 +132,7 @@ def seed_estimator(estimator, random_state=None):
     rng = check_random_state(random_state)
     # Set the random_state of the main estimator
     if hasattr(estimator, "random_state"):
-        estimator.set_params(random_state=RandomState(rng.bit_generator))
+        setattr(estimator, "random_state", RandomState(rng.bit_generator))
 
     if hasattr(estimator, "__dict__"):
         for _, value in estimator.__dict__.items():
