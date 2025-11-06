@@ -363,6 +363,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         - `pvalues_corr_`: Multiple testing corrected p-values
         - `confidence_bound_min_`: Lower confidence bounds (single task only)
         - `confidence_bound_max_`: Upper confidence bounds (single task only)
+        - `one_minus_pvalues_`: One minus the p-values with numerical accuracy
+        - `one_minus_pvalues_corr_`: One minus the corrected p-values with numerical
+        accuracy
 
         For multi-task case, p-values are based on chi-squared or F tests,
         configured by the test parameter ('chi2' or 'F').
