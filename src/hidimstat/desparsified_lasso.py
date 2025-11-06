@@ -148,9 +148,11 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
         # model x
-        assert issubclass(Lasso, model_x.__class__) or issubclass(
-            MultiTaskLasso, model_x.__class__
-        ), "lasso needs to be a Lasso or a MultiTaskLasso"
+        assert (
+            issubclass(Lasso, model_x.__class__)
+            or issubclass(MultiTaskLasso, model_x.__class__)
+            or issubclass(LassoCV, model_x.__class__)
+        ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
         self.model_x = model_x
         self.preconfigure_model_x_path = preconfigure_model_x_path
         self.alpha_max_fraction = alpha_max_fraction
@@ -218,6 +220,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         """
         memory = check_memory(self.memory)
         rng = check_random_state(self.random_state)
+        self.estimator = seed_estimator(self.estimator, rng)
+
         if self.n_task_ == -1:
             self.n_task_ = y.shape[1]
 

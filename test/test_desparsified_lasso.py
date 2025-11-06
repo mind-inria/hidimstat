@@ -2,6 +2,8 @@
 Test the desparsified_lasso module
 """
 
+from copy import copy
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -195,7 +197,8 @@ def test_exception():
     )
 
     with pytest.raises(
-        AssertionError, match="lasso needs to be a Lasso or a MultiTaskLasso"
+        AssertionError,
+        match="model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso",
     ):
         DesparsifiedLasso(model_x=RandomForestClassifier())
     with pytest.raises(
@@ -423,3 +426,115 @@ def test_reid_exception():
         _, _ = reid(X, y, method="AR", stationary=False, multioutput=True)
     with pytest.raises(ValueError, match="The requested AR order is to high with"):
         _, _ = reid(X, y, method="AR", order=1e4, multioutput=True)
+
+
+@pytest.fixture(scope="module")
+def dl_y1d_test_data():
+    """
+    Fixture to generate test data for single-target regression problem. We use LassoCV
+    as the estimator with shuffling in the cross-validation to introduce randomness in
+    the training process.
+    """
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=20,
+        # n_targets=1,
+        support_size=2,
+        signal_noise_ratio=8,
+        rho_serial=0.5,
+    )
+    dl = DesparsifiedLasso(
+        estimator=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
+        model_x=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
+        preconfigure_model_x_path=False,
+    )
+    return X, y, dl
+
+
+def test_dl_repeatibility(dl_y1d_test_data):
+    """
+    Test that multiple calls of .importance() when DL is seeded provide deterministic
+    results.
+    """
+    X, y, dl = dl_y1d_test_data
+    dl.random_state = 0
+    y_ = y.ravel()
+    dl.fit(X, y_)
+    importance = dl.importance(X, y_)
+    # repeat
+    importance_repeat = dl.importance(X, y_)
+    assert np.array_equal(importance, importance_repeat)
+
+
+def test_dl_randomness_with_none(dl_y1d_test_data):
+    """
+    Test that multiple calls of .importance() when DL has random_state=None
+
+    Note:
+        Only the fit is affected by random_state (through the random_state of the
+        different estimators). There is no randomness in the importance computation.
+    """
+    X, y, dl = dl_y1d_test_data
+    dl_1 = copy(dl)
+    dl_1.random_state = None
+    dl_1.fit(X, y)
+    importance = dl_1.importance(X, y)
+
+    # refit
+    dl_1.fit(X, y)
+    importance_refit = dl_1.importance(X, y)
+    assert not np.array_equal(importance, importance_refit)
+
+    # Reproducibility
+    dl_repro = copy(dl)
+    dl_repro.fit(X, y)
+    importance_repro = dl_repro.importance(X, y)
+    assert not np.array_equal(importance, importance_repro)
+
+
+def test_dl_reproducibility_with_integer(dl_y1d_test_data):
+    """
+    Test that multiple calls of .importance() when DL has random_state=0
+    """
+    X, y, dl = dl_y1d_test_data
+    dl_1 = copy(dl)
+    dl_1.random_state = 0
+    importance = dl_1.fit_importance(X, y)
+
+    # Refit
+    importance_refit = dl_1.fit_importance(X, y)
+    assert np.array_equal(importance, importance_refit)
+
+    # Reproducibility
+    dl_repro = copy(dl)
+    dl_repro.random_state = 0
+    dl_repro.fit(X, y)
+    importance_repro = dl_repro.importance(X, y)
+    assert np.array_equal(importance, importance_repro)
+
+
+def test_dl_reproducibility_with_rng(dl_y1d_test_data):
+    """
+    Test that:
+    1. Refit the same instance when using a rng as random_state provides different results.
+    2. Refit different instances with the same rng provides same result.
+
+    Note:
+        Only the fit is affected by random_state (through the random_state of the
+        different estimators). There is no randomness in the importance computation.
+    """
+    X, y, dl = dl_y1d_test_data
+    dl_1 = copy(dl)
+    dl_1.random_state = np.random.default_rng(0)
+    importance_1 = dl_1.fit_importance(X, y)
+
+    # refit
+    dl_1.fit(X, y)
+    importance_refit = dl_1.importance(X, y)
+    assert not np.array_equal(importance_1, importance_refit)
+
+    # refit repeatability
+    dl_refit = copy(dl)
+    dl_refit.random_state = np.random.default_rng(0)
+    importance_refit = dl_refit.fit_importance(X, y)
+    assert np.array_equal(importance_1, importance_refit)

@@ -213,7 +213,7 @@ def test_ensemble_clustered_inference():
     support_size = 10
     signal_noise_ratio = 16.0
     rho = 0.95
-    fdr = 0.3
+    fdr = 0.1
 
     X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -276,7 +276,7 @@ def test_ensemble_clustered_inference_temporal_data():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
     n_bootstraps = 4
-    fdr = 0.3
+    fdr = 0.1
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
