@@ -226,7 +226,7 @@ class CFI(BasePerturbation):
         )
 
 
-def cfi(
+def cfi_analysis(
     estimator,
     X,
     y,
@@ -271,7 +271,7 @@ def cfi(
 
 
 # use the docstring of the class for the function
-cfi.__doc__ = _aggregate_docstring(
+cfi_analysis.__doc__ = _aggregate_docstring(
     [
         CFI.__doc__,
         CFI.__init__.__doc__,

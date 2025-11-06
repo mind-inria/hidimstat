@@ -36,7 +36,8 @@ Feature Importance functions
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: function.rst
-
+   
+   cfi_analysis
    clustered_inference
    clustered_inference_pvalue
    desparsified_lasso
@@ -44,6 +45,8 @@ Feature Importance functions
    desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
+   loco_analysis
+   pfi_analysis
 
 Visualization
 =============

@@ -9,7 +9,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import LOCO, loco
+from hidimstat import LOCO, loco_analysis
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 
@@ -172,7 +172,7 @@ def test_loco_function():
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
 
-    selection, importance, pvalue = loco(
+    selection, importance, pvalue = loco_analysis(
         regression_model,
         X,
         y,
