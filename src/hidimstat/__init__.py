@@ -1,4 +1,4 @@
-from .conditional_feature_importance import CFI
+from .conditional_feature_importance import CFI, cfi_analysis
 from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso, reid
 from .distilled_conditional_randomization_test import D0CRT, d0crt
 from .ensemble_clustered_inference import (
@@ -8,8 +8,8 @@ from .ensemble_clustered_inference import (
     ensemble_clustered_inference_pvalue,
 )
 from .knockoffs import ModelXKnockoff
-from .leave_one_covariate_out import LOCO
-from .permutation_feature_importance import PFI
+from .leave_one_covariate_out import LOCO, loco_analysis
+from .permutation_feature_importance import PFI, pfi_analysis
 from .statistical_tools.aggregation import quantile_aggregation
 
 try:
