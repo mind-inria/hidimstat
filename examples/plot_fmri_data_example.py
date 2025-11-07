@@ -38,12 +38,15 @@ from nilearn import datasets
 from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
 from nilearn.plotting import plot_stat_map, show
+from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
-from hidimstat.desparsified_lasso import desparsified_lasso, desparsified_lasso_pvalue
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
@@ -144,6 +147,18 @@ new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
 new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
 resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
 
+# Default estimator
+estimator = LassoCV(
+    eps=1e-2,
+    fit_intercept=False,
+    cv=KFold(n_splits=5, shuffle=True, random_state=0),
+    tol=1e-2,
+    max_iter=6000,
+    random_state=1,
+    n_jobs=1,
+)
+
+
 # First, we try to recover the discriminative pattern by computing
 # p-values from desparsified lasso.
 # Due to the size of the X, it's not possible to use this method with a limit
@@ -151,12 +166,15 @@ resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
 # feature aggregation methods.
 #
 try:
-    beta_hat, sigma_hat, precision_diagonal = desparsified_lasso(
-        X, y, noise_method="median", max_iteration=1000, random_state=0, n_jobs=n_jobs
+    desparsified_lasso = DesparsifiedLasso(
+        noise_method="median",
+        estimator=clone(estimator),
+        random_state=0,
+        n_jobs=n_jobs,
     )
-    pval_dl, _, one_minus_pval_dl, _, cb_min, cb_max = desparsified_lasso_pvalue(
-        X.shape[0], beta_hat, sigma_hat, precision_diagonal
-    )
+    desparsified_lasso.fit_importance(X, y)
+    pval_dl = desparsified_lasso.pvalues_
+    one_minus_pval_dl = desparsified_lasso.one_minus_pvalues_
 except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
@@ -165,17 +183,18 @@ except MemoryError as err:
 # %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-ward_, beta_hat, theta_hat, omega_diag = clustered_inference(
+ward_, cl_desparsified_lasso = clustered_inference(
     X,
     y,
     ward,
     scaler_sampling=StandardScaler(),
-    tolerance=1e-2,
+    estimator=clone(estimator),
+    tolerance_reid=1e-2,
     random_state=1,
     n_jobs=n_jobs,
 )
 beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
-    X.shape[0], None, ward_, beta_hat, theta_hat, omega_diag
+    X.shape[0], None, ward_, cl_desparsified_lasso
 )
 
 # %%
@@ -185,28 +204,24 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
 # which means that 5 different parcellations are considered and
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
-# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs`.
-list_ward, list_beta_hat, list_theta_hat, list_omega_diag = (
-    ensemble_clustered_inference(
-        X,
-        y,
-        ward,
-        groups=groups,
-        scaler_sampling=StandardScaler(),
-        n_bootstraps=5,
-        max_iteration=6000,
-        tolerance=1e-2,
-        random_state=2,
-        n_jobs=n_jobs,
-    )
+# `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
+list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
+    X,
+    y,
+    ward,
+    groups=groups,
+    scaler_sampling=StandardScaler(),
+    n_bootstraps=5,
+    estimator=clone(estimator),
+    tolerance_reid=1e-2,
+    random_state=2,
+    n_jobs=n_jobs,
 )
 beta_hat, selected = ensemble_clustered_inference_pvalue(
     X.shape[0],
     False,
     list_ward,
-    list_beta_hat,
-    list_theta_hat,
-    list_omega_diag,
+    list_cl_desparsified_lasso,
     fdr=0.1,
 )
 
