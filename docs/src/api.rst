@@ -28,8 +28,8 @@ Feature Importance Classes
    CFI
    PFI
    D0CRT
+   ModelXKnockoff
    DesparsifiedLasso
-   EnsembleClusteredInference
 
 Feature Importance functions
 ============================
@@ -38,7 +38,20 @@ Feature Importance functions
    :toctree: ./generated/api/class/
    :template: function.rst
 
-   model_x_knockoff
+   clustered_inference
+   clustered_inference_pvalue
+   ensemble_clustered_inference
+   ensemble_clustered_inference_pvalue
+
+Visualization
+=============
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~visualization.PDP
+
 
 Samplers
 ========

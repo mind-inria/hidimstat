@@ -163,13 +163,13 @@ estimator = LassoCV(
 try:
     desparsified_lasso = DesparsifiedLasso(
         noise_method="median",
-        model_y=clone(estimator),
+        estimator=clone(estimator),
         random_state=0,
         n_jobs=n_jobs,
     )
     desparsified_lasso.fit_importance(X, y)
     pval_dl = desparsified_lasso.pvalues_
-    one_minus_pval_dl = 1 - pval_dl
+    one_minus_pval_dl = desparsified_lasso.one_minus_pvalues_
 except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
@@ -181,7 +181,7 @@ except MemoryError as err:
 clustered_inference = EnsembleClusteredInference(
     variable_importance=DesparsifiedLasso(
         noise_method="median",
-        model_y=clone(estimator),
+        estimator=clone(estimator),
         tolerance_reid=1e-2,
         n_jobs=1,
     ),
@@ -206,7 +206,7 @@ one_minus_pval_cdl = 1 - clustered_inference.pvalues_
 ensemble_clustered_inference = EnsembleClusteredInference(
     variable_importance=DesparsifiedLasso(
         noise_method="median",
-        model_y=clone(estimator),
+        estimator=clone(estimator),
         tolerance_reid=1e-2,
         n_jobs=1,
     ),

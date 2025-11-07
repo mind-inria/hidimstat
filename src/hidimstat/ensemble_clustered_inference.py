@@ -26,38 +26,28 @@ class EnsembleClusteredInference(BaseVariableImportance):
     ----------
     X_init : ndarray, shape (n_samples, n_features)
         Original high-dimensional input data matrix.
-
     y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
         Target variable(s). Can be univariate or multivariate (temporal) data.
-
     ward : sklearn.cluster.FeatureAgglomeration
         Hierarchical clustering object that implements Ward's method for
         feature agglomeration.
-
     scaler_sampling : sklearn.preprocessing object, optional (default=None)
         Scaler to standardize the clustered features.
-
     train_size : float, optional (default=1.0)
         Fraction of samples to use for computing the clustering.
         When train_size=1.0, all samples are used.
-
     groups : ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
-
     random_state : int, optional (default=None)
         Random seed for reproducible subsampling.
-
     n_jobs : int, optional (default=1)
         Number of parallel jobs for computation.
-
     memory : str or joblib.Memory object, optional (default=None)
         Used to cache the output of the computation of the clustering
         and the inference. By default, no caching is done. If a string is
         given, it is the path to the caching directory.
-
     verbose : int, optional (default=1)
         Verbosity level for progress messages.
-
     **kwargs : dict
         Additional arguments passed to the statistical inference function.
 
@@ -65,13 +55,10 @@ class EnsembleClusteredInference(BaseVariableImportance):
     -------
     ward_ : FeatureAgglomeration
         Fitted clustering object.
-
     beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Estimated coefficients at cluster level.
-
     theta_hat : ndarray
         Estimated precision matrix.
-
     precision_diag : ndarray
         Diagonal of the covariance matrix.
 

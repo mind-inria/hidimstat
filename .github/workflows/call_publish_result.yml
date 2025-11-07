@@ -17,11 +17,11 @@ jobs:
     steps:
       # get reports from previous job 
       - name: Get HTML reports
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: pytest-results-html-*-os-*
       - name: Get time reports
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           pattern: pytest-results-log-*-os-*
       # put all the reports in one folder and add an index
@@ -38,7 +38,7 @@ jobs:
           mv index.html reports
       - name: upload the reports
         id: upload_all
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pytest-results-all
           path: reports
@@ -98,7 +98,7 @@ jobs:
     
     # get coverage only for 1 job 
     - name: Get data
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
         path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}

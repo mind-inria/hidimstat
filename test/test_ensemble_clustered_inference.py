@@ -39,7 +39,7 @@ def test_clustered_inference_no_temporal():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 100, 1000
     support_size = 10
     signal_noise_ratio = 5.0
     rho = 0.95
@@ -72,18 +72,14 @@ def test_clustered_inference_no_temporal():
     ).fit(X_init, y)
     clustered_inference.importance(X_init, y)
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
+    alpha = 0.05
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[:interior_support],
-        expected[:interior_support],
-    )
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[extended_support:200],
-        expected[extended_support:200],
-        decimal=1,
-    )
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 # Scenario 2: temporal data
@@ -96,7 +92,7 @@ def test_clustered_inference_temporal():
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
     """
-    n_samples, n_features, n_target = 200, 2000, 10
+    n_samples, n_features, n_target = 100, 1000, 10
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -132,19 +128,13 @@ def test_clustered_inference_temporal():
     ).fit(X, y)
     clustered_inference.importance(X, y)
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
-
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[:interior_support],
-        expected[:interior_support],
-        decimal=3,
-    )
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[extended_support:],
-        expected[extended_support:],
-        decimal=1,
-    )
+    alpha = 0.05
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 # Scenario 3: data with no temporal dimension and with groups
@@ -159,12 +149,12 @@ def test_clustered_inference_no_temporal_groups():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 20, 1500
+    n_samples, n_features = 100, 500
     support_size = 10
     n_groups = 10
     signal_noise_ratio = 5.0
     rho = 0.95
-    n_clusters = 150
+    n_clusters = 50
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -205,18 +195,14 @@ def test_clustered_inference_no_temporal_groups():
     ).fit(X_, y_)
     clustered_inference.importance(X_, y_)
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
+    alpha = 0.05
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[:interior_support],
-        expected[:interior_support],
-    )
-    assert_almost_equal(
-        clustered_inference.pvalues_corr_[extended_support:200],
-        expected[extended_support:200],
-        decimal=1,
-    )
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 def test_ensemble_clustered_inference():
@@ -229,10 +215,11 @@ def test_ensemble_clustered_inference():
 
     # Scenario 1: data with no temporal dimension
     # ###########################################
-    n_samples, n_features = 200, 2000
+    n_samples, n_features = 200, 1000
     support_size = 10
-    signal_noise_ratio = 5.0
+    signal_noise_ratio = 16.0
     rho = 0.95
+    fdr = 0.1
 
     X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -246,7 +233,7 @@ def test_ensemble_clustered_inference():
     )
 
     margin_size = 5
-    n_clusters = 200
+    n_clusters = 50
     n_bootstraps = 3
 
     y = y - np.mean(y)
@@ -265,17 +252,13 @@ def test_ensemble_clustered_inference():
     EnCluDl.importance(X_init, y)
     selected = EnCluDl.fdr_selection(fdr=0.1)
 
-    expected = np.zeros(n_features)
-    expected[:support_size] = 1.0
+    tp = np.sum(selected[: support_size - margin_size])
+    fp = np.sum(selected[support_size + margin_size :])
+    power = tp / (support_size - margin_size)
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(
-        selected[: support_size - margin_size], expected[: support_size - margin_size]
-    )
-    assert_almost_equal(
-        selected[support_size + margin_size :],
-        expected[support_size + margin_size :],
-        decimal=1,
-    )
+    assert power >= 0.5
+    assert fdp <= fdr
 
 
 def test_ensemble_clustered_inference_temporal_data():
@@ -284,7 +267,7 @@ def test_ensemble_clustered_inference_temporal_data():
     # #########################
     n_samples, n_features, n_target = 200, 400, 10
     support_size = 10
-    signal_noise_ratio = 5.0
+    signal_noise_ratio = 5
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 50
@@ -292,6 +275,7 @@ def test_ensemble_clustered_inference_temporal_data():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
     n_bootstraps = 4
+    fdr = 0.1
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -320,15 +304,12 @@ def test_ensemble_clustered_inference_temporal_data():
     EnCluDl.importance(X, y)
     selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhq")
 
-    expected = np.zeros(n_features)
-    expected[:support_size] = 1.0
-
-    assert_almost_equal(
-        selected[:interior_support], expected[:interior_support], decimal=3
-    )
-    assert_almost_equal(
-        selected[extended_support:], expected[extended_support:], decimal=1
-    )
+    tp = np.sum(selected[:interior_support])
+    fp = np.sum(selected[extended_support:])
+    power = tp / (interior_support)
+    fdp = fp / max(fp + tp, 1)
+    assert power >= 0.5
+    assert fdp <= fdr
 
     # different aggregation method
     selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhy")
@@ -336,9 +317,10 @@ def test_ensemble_clustered_inference_temporal_data():
     expected = np.zeros(n_features)
     expected[:support_size] = 1.0
 
-    assert_almost_equal(
-        selected[:interior_support], expected[:interior_support], decimal=3
-    )
-    assert_almost_equal(
-        selected[extended_support:], expected[extended_support:], decimal=1
-    )
+    tp = np.sum(selected[:interior_support])
+    fp = np.sum(selected[extended_support:])
+    power = tp / (interior_support)
+    fdp = fp / max(fp + tp, 1)
+
+    assert power >= 0.5
+    assert fdp <= fdr

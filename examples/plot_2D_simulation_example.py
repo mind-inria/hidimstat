@@ -46,17 +46,6 @@ References
 .. footbibliography::
 
 """
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.cluster import FeatureAgglomeration
-from sklearn.feature_extraction import image
-from sklearn.preprocessing import StandardScaler
-
-from hidimstat import DesparsifiedLasso
-from hidimstat._utils.scenario import multivariate_simulation_spatial
-from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
-from hidimstat.statistical_tools.p_values import zscore_from_pval
-
 # %%
 # Generating the data
 # -------------------
@@ -66,6 +55,9 @@ from hidimstat.statistical_tools.p_values import zscore_from_pval
 # example.
 
 # simulation parameters
+
+from hidimstat._utils.scenario import multivariate_simulation_spatial
+
 n_samples = 100
 shape = (40, 40)
 n_features = shape[1] * shape[0]
@@ -77,6 +69,7 @@ smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 X_init, y, beta, epsilon = multivariate_simulation_spatial(
     n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
 )
+
 
 # %%
 # Choosing inference parameters
@@ -105,7 +98,8 @@ fwer_target = 0.1
 delta = 6
 
 # number of worker
-n_jobs = 2
+n_jobs = 4
+
 
 # %%
 # Computing z-score thresholds for support estimation
@@ -120,11 +114,14 @@ n_jobs = 2
 # consists in dividing by the number of clusters.
 
 
+from hidimstat.statistical_tools.p_values import zscore_from_pval
+
 # computing the z-score thresholds for feature selection
 correction_no_cluster = 1.0 / n_features
 correction_cluster = 1.0 / n_clusters
 thr_c = zscore_from_pval((fwer_target / 2) * correction_cluster)
 thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
+
 
 # %%
 # Inference with several algorithms
@@ -132,6 +129,9 @@ thr_nc = zscore_from_pval((fwer_target / 2) * correction_no_cluster)
 #
 # First, we compute a reference map that exhibits the true support and
 # the theoretical tolerance region.
+
+
+import numpy as np
 
 
 # The following function builds a 2D map with four active regions that are
@@ -169,6 +169,7 @@ def weight_map_2D_extended(shape, roi_size, delta):
 # compute true support with visible spatial tolerance
 beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 
+
 # %%
 # Now, we compute the support estimated by a high-dimensional statistical
 # inference method that does not leverage the data structure.
@@ -178,19 +179,24 @@ beta_extended = weight_map_2D_extended(shape, roi_size, delta)
 # and referred to as Desparsified Lasso.
 
 
+from hidimstat import DesparsifiedLasso
+
 # compute desparsified lasso
 desparsified_lasso = DesparsifiedLasso(n_jobs=n_jobs, random_state=0)
 desparsified_lasso.fit_importance(X_init, y)
 
 # compute estimated support (first method)
-zscore = zscore_from_pval(desparsified_lasso.pvalues_, 1 - desparsified_lasso.pvalues_)
+zscore = zscore_from_pval(
+    desparsified_lasso.pvalues_, desparsified_lasso.one_minus_pvalues_
+)
 selected_dl = zscore > thr_nc  # use the "no clustering threshold"
 
 # compute estimated support (second method)
 selected_dl = np.logical_or(
     desparsified_lasso.pvalues_corr_ < fwer_target / 2,
-    1 - desparsified_lasso.pvalues_corr_ < fwer_target / 2,
+    desparsified_lasso.one_minus_pvalues_corr_ < fwer_target / 2,
 )
+
 
 # %%
 # Now, we compute the support estimated using a clustered inference algorithm
@@ -199,6 +205,17 @@ selected_dl = np.logical_or(
 
 # Define the FeatureAgglomeration object that performs the clustering.
 # This object is necessary to run the current algorithm and the following one.
+
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.feature_extraction import image
+from sklearn.preprocessing import StandardScaler
+
+from hidimstat.ensemble_clustered_inference import (
+    EnsembleClusteredInference,
+    clustered_inference,
+    clustered_inference_pvalue,
+)
+
 connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
 ward = FeatureAgglomeration(
     n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
@@ -216,12 +233,18 @@ zscore = zscore_from_pval(
 )
 selected_cdl = zscore > thr_c  # use the "clustering threshold"
 
+
 # %%
 # Finally, we compute the support estimated by an ensembled clustered
 # inference algorithm (c.f. :footcite:t:`chevalier2022spatially`). This algorithm is called
 # Ensemble of Clustered Desparsified Lasso (EnCluDL) since it runs several
 # CluDL algorithms with different clustering choices. The different CluDL
 # solutions are then aggregated into one.
+
+from hidimstat.ensemble_clustered_inference import (
+    ensemble_clustered_inference,
+    ensemble_clustered_inference_pvalue,
+)
 
 # ensemble of clustered desparsified lasso (EnCluDL)
 ensemble_clustered_inference = EnsembleClusteredInference(
@@ -232,12 +255,15 @@ selected_ecdl = ensemble_clustered_inference.fdr_selection(
     fdr=fwer_target, alternative_hypothesis=None
 )
 
+
 # %%
 # Results
 # -------
 #
 # Now we plot the true support, the theoretical tolerance regions and
 # the estimated supports for every method.
+
+import matplotlib.pyplot as plt
 
 
 # To generate a plot that exhibits
@@ -302,6 +328,7 @@ maps.append(np.reshape(selected_ecdl, shape))
 titles.append("EnCluDL")
 
 plot(maps, titles)
+
 
 # %%
 # Analysis of the results
