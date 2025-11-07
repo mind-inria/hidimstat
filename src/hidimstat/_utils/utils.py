@@ -148,7 +148,7 @@ def check_statistical_test(statistical_test, test_frac=None):
 
     Parameters
     ----------
-    test : str or callable
+    statisticcal_test : str or callable
         If str, must be either 'ttest' or 'wilcoxon'.
         If callable, must be a function that can be used as a test statistic.
 
