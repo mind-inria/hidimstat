@@ -70,6 +70,6 @@ Helper Functions
    :toctree: ./generated/api/helper_functions/
    :template: function.rst
 
-   quantile_aggregation
-   reid
+   ~statistical_tools.aggregation.quantile_aggregation
+   ~desparsified_lasso.reid
    ~statistical_tools.nadeau_bengio_ttest
