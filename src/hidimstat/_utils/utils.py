@@ -151,6 +151,8 @@ def check_statistical_test(statistical_test, test_frac=None):
     statisticcal_test : str or callable
         If str, must be either 'ttest' or 'wilcoxon'.
         If callable, must be a function that can be used as a test statistic.
+    test_frac : float, optional
+        The fraction of data used for testing in the Nadeau-Bengio t-test.
 
     Returns
     -------
