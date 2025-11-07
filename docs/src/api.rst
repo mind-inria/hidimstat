@@ -29,6 +29,7 @@ Feature Importance Classes
    PFI
    D0CRT
    ModelXKnockoff
+   DesparsifiedLasso
 
 Feature Importance functions
 ============================
@@ -40,9 +41,6 @@ Feature Importance functions
    cfi_analysis
    clustered_inference
    clustered_inference_pvalue
-   desparsified_lasso
-   desparsified_lasso_pvalue
-   desparsified_group_lasso_pvalue
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
    loco_analysis
