@@ -40,6 +40,9 @@ Feature Importance functions
 
    clustered_inference
    clustered_inference_pvalue
+   d0crt_analysis
+   desparsified_lasso_analysis
+   model_x_knockoff_analysis
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
 

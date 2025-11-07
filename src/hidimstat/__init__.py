@@ -7,7 +7,7 @@ from .ensemble_clustered_inference import (
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from .knockoffs import ModelXKnockoff
+from .knockoffs import ModelXKnockoff, model_x_knockoff_analysis
 from .leave_one_covariate_out import LOCO
 from .permutation_feature_importance import PFI
 
@@ -17,6 +17,7 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    "CFI",
     "clustered_inference",
     "clustered_inference_pvalue",
     "desparsified_lasso_analysis",
@@ -25,8 +26,8 @@ __all__ = [
     "D0CRT",
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
-    "ModelXKnockoff",
-    "CFI",
     "LOCO",
+    "ModelXKnockoff",
+    "model_x_knockoff_analysis",
     "PFI",
 ]
