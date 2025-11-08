@@ -409,7 +409,6 @@ class GroupVariableImportanceMixin:
     """
 
     def __init__(self, features_groups=None):
-        super().__init__()
         self.features_groups = features_groups
         self.n_features_groups_ = None
         self._features_groups_ids = None

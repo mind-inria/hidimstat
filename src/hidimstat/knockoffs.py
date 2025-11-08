@@ -11,8 +11,8 @@ from sklearn.utils.validation import check_memory
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 

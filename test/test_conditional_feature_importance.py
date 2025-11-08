@@ -1,15 +1,22 @@
 from copy import deepcopy
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.stats import ttest_1samp
 from sklearn.exceptions import NotFittedError
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import log_loss, root_mean_squared_error
+from sklearn.linear_model import (
+    LinearRegression,
+    LogisticRegression,
+    LogisticRegressionCV,
+    RidgeCV,
+)
+from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from hidimstat import CFI
+from hidimstat import CFI, cfi_analysis
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
@@ -67,8 +74,7 @@ def run_cfi(X, y, n_permutation, seed):
     # fit the model using the training set
     cfi.fit(X_train)
     # calculate feature importance using the test set
-    vim = cfi.importance(X_test, y_test)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test)
     return importance
 
 
@@ -198,9 +204,8 @@ def test_group(data_generator):
     cfi.fit(X_train_df)
     # Warning expected since column names in pandas are not considered
     with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
-        vim = cfi.importance(X_test_df, y_test)
+        importance = cfi.importance(X_test_df, y_test)
 
-    importance = vim["importance"]
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)
     # Verify that important feature group has higher score
@@ -245,8 +250,7 @@ def test_classication(data_generator):
         n_jobs=1,
     )
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test_clf)
-    importance = vim["importance"]
+    importance = cfi.importance(X_test, y_test_clf)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # Check that important features have higher mean importance scores
@@ -275,11 +279,11 @@ class TestCFIClass:
         )
         assert cfi.n_jobs == 1
         assert cfi.n_permutations == 50
-        assert cfi.loss == root_mean_squared_error
+        assert cfi.loss == mean_squared_error
         assert cfi.method == "predict"
         assert cfi.categorical_max_cardinality == 10
-        assert cfi.imputation_model_categorical is None
-        assert cfi.imputation_model_continuous is None
+        assert isinstance(cfi.imputation_model_categorical, LogisticRegressionCV)
+        assert isinstance(cfi.imputation_model_continuous, RidgeCV)
 
     def test_fit(self, data_generator):
         """Test fitting CFI"""
@@ -342,7 +346,7 @@ class TestCFIClass:
         )
         cfi.fit(X, y)
 
-        importances = cfi.importance(X, y)["importance"]
+        importances = cfi.importance(X, y)
         assert len(importances) == 3
 
 
@@ -373,18 +377,6 @@ class TestCFIExceptions:
                 estimator=fitted_model,
                 method="unknown method",
             )
-
-    def test_unfitted_predict(self, data_generator):
-        """Test predict method with unfitted model"""
-        X, y, _, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-        )
-
-        with pytest.raises(ValueError, match="The class is not fitted."):
-            cfi.predict(X)
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
@@ -598,6 +590,41 @@ class TestCFIExceptions:
         ):
             cfi.importance(X, y)
 
+    def test_assert_dimension_pvalue(self, data_generator):
+        """test that assert is raise if function stat is not good"""
+        X, y, _, _ = data_generator
+        fitted_model = LinearRegression().fit(X, y)
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous=LinearRegression(),
+            statistical_test=partial(ttest_1samp, popmean=0, axis=0),
+        )
+        cfi.fit(X, y)
+        with pytest.raises(
+            AssertionError,
+            match="The statistical test doesn't provide the correct dimension.",
+        ):
+            cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    ids=["high level noise"],
+)
+@pytest.mark.parametrize("n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"])
+def test_function_cfi(data_generator, n_permutation, cfi_seed):
+    """Test CFI function"""
+    X, y, _, _ = data_generator
+    cfi_analysis(
+        LinearRegression().fit(X, y),
+        X,
+        y,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=n_permutation,
+        random_state=cfi_seed,
+    )
+
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
@@ -619,6 +646,8 @@ def test_cfi_plot(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -646,6 +675,8 @@ def test_cfi_plot_2d_imp(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.stack(
         [
@@ -678,6 +709,8 @@ def test_cfi_plot_coverage(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
+    cfi.loss_reference_ = []
+    cfi.loss_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     _, ax = plt.subplots(figsize=(6, 3))
@@ -729,9 +762,9 @@ def test_cfi_repeatibility(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(**cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
 
@@ -742,20 +775,20 @@ def test_cfi_randomness_with_none(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(random_state=None, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_refit)
 
     # Reproducibility
     cfi_2 = CFI(random_state=None, **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_reproducibility)
 
 
@@ -766,20 +799,20 @@ def test_cfi_reproducibility_with_integer(cfi_test_data):
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
     cfi = CFI(random_state=42, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_refit)
 
     # Reproducibility
     cfi_2 = CFI(random_state=42, **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
 
 
@@ -793,25 +826,25 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
     rng = np.random.default_rng(0)
     cfi = CFI(random_state=rng, **cfi_default_parameters)
     cfi.fit(X_train)
-    vim = cfi.importance(X_test, y_test)["importance"]
+    vim = cfi.importance(X_test, y_test)
     # repeat importance
-    vim_repeat = cfi.importance(X_test, y_test)["importance"]
+    vim_repeat = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_repeat)
 
     # refit
     cfi.fit(X_train)
-    vim_refit = cfi.importance(X_test, y_test)["importance"]
+    vim_refit = cfi.importance(X_test, y_test)
     assert not np.array_equal(vim, vim_refit)
 
     # refit repeatability
     rng = np.random.default_rng(0)
     cfi.random_state = rng
     cfi.fit(X_train)
-    vim_refit_2 = cfi.importance(X_test, y_test)["importance"]
+    vim_refit_2 = cfi.importance(X_test, y_test)
     assert np.array_equal(vim, vim_refit_2)
 
     # Reproducibility
     cfi_2 = CFI(random_state=np.random.default_rng(0), **cfi_default_parameters)
     cfi_2.fit(X_train)
-    vim_reproducibility = cfi_2.importance(X_test, y_test)["importance"]
+    vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)

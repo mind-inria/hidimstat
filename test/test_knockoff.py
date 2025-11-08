@@ -11,7 +11,7 @@ from hidimstat.knockoffs import (
     model_x_knockoff,
     set_alpha_max_lasso_path,
 )
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
+from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 

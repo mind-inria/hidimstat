@@ -107,7 +107,7 @@ def run_one_fold(
         )
 
     vim.fit(X[train_index], y[train_index])
-    importance = vim.importance(X[test_index], y[test_index])["importance"]
+    importance = vim.importance(X[test_index], y[test_index])
 
     return pd.DataFrame(
         {
