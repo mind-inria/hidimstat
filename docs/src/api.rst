@@ -30,6 +30,7 @@ Feature Importance Classes
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso
+   EnsembleClusteredInference
 
 Feature Importance functions
 ============================

@@ -6,15 +6,26 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
+from sklearn.linear_model import MultiTaskLassoCV
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.ensemble_clustered_inference import EnsembleClusteredInference
+
+
+def set_desparsified_lasso_multi_time():
+    multitasklassoCV = MultiTaskLassoCV(
+        eps=1e-2,
+        fit_intercept=False,
+        cv=KFold(n_splits=5, shuffle=True, random_state=0),
+        tol=1e-4,
+        max_iter=5000,
+        random_state=1,
+        n_jobs=1,
+    )
+    return DesparsifiedLasso(model_y=multitasklassoCV)
 
 
 # Scenario 1: data with no temporal dimension
@@ -56,17 +67,14 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, desparsified_lassos = clustered_inference(
-        X_init, y, ward, scaler_sampling=StandardScaler()
-    )
-
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(n_samples, None, ward_, desparsified_lassos)
-    )
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
+    ).fit(X_init, y)
+    clustered_inference.importance(X_init, y)
 
     alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
     power = tp / interior_support
     fdp = fp / max(fp + tp, 1)
 
@@ -112,17 +120,17 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, desparsified_lassos = clustered_inference(
-        X, y, ward, scaler_sampling=StandardScaler()
-    )
-
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(n_samples, True, ward_, desparsified_lassos)
-    )
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward,
+        variable_importance=set_desparsified_lasso_multi_time(),
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=1,
+    ).fit(X, y)
+    clustered_inference.importance(X, y)
 
     alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
     power = tp / interior_support
     fdp = fp / max(fp + tp, 1)
     assert power >= 0.5
@@ -179,19 +187,17 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, desparsified_lassos = clustered_inference(
-        X_, y_, ward, groups=groups, scaler_sampling=StandardScaler()
-    )
-
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_groups * n_samples, False, ward_, desparsified_lassos
-        )
-    )
+    clustered_inference = EnsembleClusteredInference(
+        ward=ward,
+        scaler_sampling=StandardScaler(),
+        groups=groups,
+        n_bootstraps=1,
+    ).fit(X_, y_)
+    clustered_inference.importance(X_, y_)
 
     alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
+    tp = np.sum(clustered_inference.pval_corr[:interior_support] < alpha)
+    fp = np.sum(clustered_inference.pval_corr[extended_support:] < alpha)
     power = tp / interior_support
     fdp = fp / max(fp + tp, 1)
 
@@ -238,20 +244,13 @@ def test_ensemble_clustered_inference():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
-        X_init,
-        y,
-        ward,
+    EnCluDl = EnsembleClusteredInference(
+        ward=ward,
         scaler_sampling=StandardScaler(),
         n_bootstraps=n_bootstraps,
-    )
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        False,
-        list_ward,
-        list_desparsified_lassos,
-        fdr=fdr,
-    )
+    ).fit(X_init, y)
+    EnCluDl.importance(X_init, y)
+    selected = EnCluDl.fdr_selection(fdr=0.1)
 
     tp = np.sum(selected[: support_size - margin_size])
     fp = np.sum(selected[support_size + margin_size :])
@@ -296,33 +295,28 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
-        X,
-        y,
-        ward,
+    EnCluDl = EnsembleClusteredInference(
+        variable_importance=set_desparsified_lasso_multi_time(),
+        ward=ward,
         scaler_sampling=StandardScaler(),
         n_bootstraps=n_bootstraps,
-    )
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples, True, list_ward, list_desparsified_lassos, fdr_control="bhq", fdr=fdr
-    )
+    ).fit(X, y)
+    EnCluDl.importance(X, y)
+    selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhq")
 
     tp = np.sum(selected[:interior_support])
     fp = np.sum(selected[extended_support:])
     power = tp / (interior_support)
     fdp = fp / max(fp + tp, 1)
-
     assert power >= 0.5
     assert fdp <= fdr
 
     # different aggregation method
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        True,
-        list_ward,
-        list_desparsified_lassos,
-        fdr_control="bhy",
-    )
+    selected = EnCluDl.fdr_selection(fdr=0.1, fdr_control="bhy")
+
+    expected = np.zeros(n_features)
+    expected[:support_size] = 1.0
+
     tp = np.sum(selected[:interior_support])
     fp = np.sum(selected[extended_support:])
     power = tp / (interior_support)

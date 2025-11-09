@@ -211,6 +211,7 @@ from sklearn.feature_extraction import image
 from sklearn.preprocessing import StandardScaler
 
 from hidimstat.ensemble_clustered_inference import (
+    EnsembleClusteredInference,
     clustered_inference,
     clustered_inference_pvalue,
 )
@@ -221,21 +222,16 @@ ward = FeatureAgglomeration(
 )
 
 # clustered desparsified lasso (CluDL)
-ward_, desparsified_lasso_ = clustered_inference(
-    X_init, y, ward, scaler_sampling=StandardScaler(), random_state=0
+clustered_inference = EnsembleClusteredInference(
+    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=1
 )
-beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-    clustered_inference_pvalue(n_samples, False, ward_, desparsified_lasso_)
-)
+clustered_inference.fit_importance(X_init, y)
 
 # compute estimated support (first method)
-zscore = zscore_from_pval(pval, one_minus_pval)
-selected_cdl = zscore > thr_c  # use the "clustering threshold"
-
-# compute estimated support (second method)
-selected_cdl = np.logical_or(
-    pval_corr < fwer_target / 2, one_minus_pval_corr < fwer_target / 2
+zscore = zscore_from_pval(
+    clustered_inference.pvalues_, 1 - clustered_inference.pvalues_
 )
+selected_cdl = zscore > thr_c  # use the "clustering threshold"
 
 
 # %%
@@ -251,20 +247,12 @@ from hidimstat.ensemble_clustered_inference import (
 )
 
 # ensemble of clustered desparsified lasso (EnCluDL)
-list_ward, list_desparsified_lasso = ensemble_clustered_inference(
-    X_init,
-    y,
-    ward,
-    scaler_sampling=StandardScaler(),
-    random_state=0,
-    n_jobs=n_jobs,
+ensemble_clustered_inference = EnsembleClusteredInference(
+    ward=ward, scaler_sampling=StandardScaler(), n_bootstraps=5
 )
-beta_hat, selected_ecdl = ensemble_clustered_inference_pvalue(
-    n_samples,
-    False,
-    list_ward,
-    list_desparsified_lasso,
-    fdr=fwer_target,
+ensemble_clustered_inference.fit_importance(X_init, y)
+selected_ecdl = ensemble_clustered_inference.fdr_selection(
+    fdr=fwer_target, alternative_hypothesis=None
 )
 
 

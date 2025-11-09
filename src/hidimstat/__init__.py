@@ -2,6 +2,7 @@ from .conditional_feature_importance import CFI, cfi_analysis
 from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso, reid
 from .distilled_conditional_randomization_test import D0CRT, d0crt
 from .ensemble_clustered_inference import (
+    EnsembleClusteredInference,
     clustered_inference,
     clustered_inference_pvalue,
     ensemble_clustered_inference,
@@ -25,6 +26,7 @@ __all__ = [
     "DesparsifiedLasso",
     "d0crt",
     "D0CRT",
+    "EnsembleClusteredInference",
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
     "reid",
