@@ -874,10 +874,6 @@ def test_cfi_cv(data_generator):
         clone(model).fit(X[train_index], y[train_index])
         for train_index, _ in cv.split(X)
     ]
-    pred_scores = [
-        model.score(X[test_index], y[test_index])
-        for model, (_, test_index) in zip(estimators, cv.split(X))
-    ]
     cfi_cv = CFImportanceCV(
         estimators=estimators,
         cv=cv,
@@ -886,10 +882,9 @@ def test_cfi_cv(data_generator):
     )
     cfi_cv.fit(X, y)
     cfi_cv.importance(X, y)
+    selected = cfi_cv.fdr_selection(fdr=0.05)
 
     alpha = 0.05
-    selected = cfi_cv.pvalues_ < alpha
-    # selected = cfi_cv.importance_estimators_[0].pvalues_ < alpha
     tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
     fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
     fdp = fp / (tp + fp)

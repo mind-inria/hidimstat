@@ -299,7 +299,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         raise NotImplementedError
 
 
-class BasePerturbationCV:
+class BasePerturbationCV(BaseVariableImportance):
     """
     Base class for perturbation methods with cross-validation.
 
