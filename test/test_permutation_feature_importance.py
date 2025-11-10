@@ -267,7 +267,7 @@ def test_pfi_cv(data_generator):
     pfi_cv.importance(X, y)
 
     alpha = 0.05
-    selected = pfi_cv.pvalues_ < alpha
+    selected = pfi_cv.fdr_selection(fdr=alpha)
     tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
     fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
     fdp = fp / (tp + fp) if (tp + fp) > 0 else 0
