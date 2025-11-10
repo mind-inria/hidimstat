@@ -38,16 +38,16 @@ Feature Importance functions
    :toctree: ./generated/api/class/
    :template: function.rst
    
-   cfi_analysis
+   cfi_importance
    clustered_inference
    clustered_inference_pvalue
-   d0crt_analysis
-   desparsified_lasso_analysis
-   model_x_knockoff_analysis
+   d0crt_importance
+   desparsified_lasso_importance
+   model_x_knockoff_importance
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
-   loco_analysis
-   pfi_analysis
+   loco_importance
+   pfi_importance
 
 Visualization
 =============
