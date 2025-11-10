@@ -11,8 +11,8 @@ from sklearn.utils.validation import check_memory
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -561,7 +561,7 @@ class ModelXKnockoff(BaseVariableImportance):
         return np.array(evals)
 
 
-def model_x_knockoff_analysis(
+def model_x_knockoff_importance(
     X,
     y,
     estimator=LassoCV(max_iter=200000),
@@ -604,7 +604,7 @@ def model_x_knockoff_analysis(
 
 
 # use the docstring of the class for the function
-model_x_knockoff_analysis.__doc__ = _aggregate_docstring(
+model_x_knockoff_importance.__doc__ = _aggregate_docstring(
     [
         ModelXKnockoff.__doc__,
         ModelXKnockoff.__init__.__doc__,

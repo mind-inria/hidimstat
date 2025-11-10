@@ -37,7 +37,8 @@ Feature Importance functions
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: function.rst
-
+   
+   cfi_analysis
    clustered_inference
    clustered_inference_pvalue
    d0crt_analysis
@@ -45,6 +46,8 @@ Feature Importance functions
    model_x_knockoff_analysis
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
+   loco_analysis
+   pfi_analysis
 
 Visualization
 =============
@@ -63,8 +66,8 @@ Samplers
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   ~statistical_tools.ConditionalSampler
-   ~statistical_tools.GaussianKnockoffs
+   ~samplers.ConditionalSampler
+   ~samplers.GaussianKnockoffs
 
 Helper Functions
 ================

@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
 
-from hidimstat import D0CRT, d0crt_analysis
+from hidimstat import D0CRT, d0crt_importance
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
 
@@ -373,7 +373,7 @@ def test_function_d0crt():
         n_features=10,
         noise=0.2,
     )
-    sv, importances, pvalues = d0crt_analysis(LassoCV(n_jobs=1), X, y)
+    sv, importances, pvalues = d0crt_importance(LassoCV(n_jobs=1), X, y)
     assert len(sv) <= 10
     assert len(importances) == 10
     assert len(pvalues) == 10

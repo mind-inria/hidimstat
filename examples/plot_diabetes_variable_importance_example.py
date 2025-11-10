@@ -63,7 +63,7 @@ X[:, 1] = (X[:, 1] > 0.0).astype(int)
 import numpy as np
 from sklearn.base import clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import KFold
 
 n_folds = 5
@@ -78,7 +78,7 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
     score = r2_score(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
-    mse = root_mean_squared_error(
+    mse = mean_squared_error(
         y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
     )
 
@@ -166,14 +166,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.stats import ttest_1samp
 
-cfi_vim_arr = np.array([x["importance"] for x in cfi_importance_list]) / 2
+cfi_vim_arr = np.array(cfi_importance_list) / 2
 cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
 
 vim = [
     pd.DataFrame(
         {
             "var": np.arange(cfi_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": cfi_pval,
             "method": "CFI",
@@ -182,14 +182,14 @@ vim = [
     for x in cfi_importance_list
 ]
 
-loco_vim_arr = np.array([x["importance"] for x in loco_importance_list])
+loco_vim_arr = np.array(loco_importance_list)
 loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
         {
             "var": np.arange(loco_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": loco_pval,
             "method": "LOCO",
@@ -198,14 +198,14 @@ vim += [
     for x in loco_importance_list
 ]
 
-pfi_vim_arr = np.array([x["importance"] for x in pfi_importance_list])
+pfi_vim_arr = np.array(pfi_importance_list)
 pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
 
 vim += [
     pd.DataFrame(
         {
             "var": np.arange(pfi_vim_arr.shape[1]),
-            "importance": x["importance"],
+            "importance": x,
             "fold": i,
             "pval": pfi_pval,
             "method": "PFI",

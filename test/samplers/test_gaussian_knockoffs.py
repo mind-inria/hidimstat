@@ -2,10 +2,7 @@ import numpy as np
 import pytest
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.statistical_tools.gaussian_knockoffs import (
-    GaussianKnockoffs,
-    _s_equi,
-)
+from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs, _s_equi
 
 
 def test_gaussian_equi():

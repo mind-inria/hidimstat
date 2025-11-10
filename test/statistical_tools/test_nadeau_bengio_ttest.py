@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import numpy.ma.testutils as ma_npt
 import numpy.testing as npt
@@ -48,7 +50,7 @@ def test_ttest_1samp_corrected_NB(data_generator):
         )
         vim.fit(X_train, y_train)
         importances = vim.importance(X_test, y_test)
-        importance_list.append(importances["importance"])
+        importance_list.append(importances)
     importance_array = np.array(importance_list)
 
     pvalue_corr = nadeau_bengio_ttest(importance_array, 0, test_frac=0.2).pvalue

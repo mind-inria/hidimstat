@@ -147,7 +147,7 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 from sklearn.covariance import LedoitWolf
 
 from hidimstat import ModelXKnockoff
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
+from hidimstat.samplers import GaussianKnockoffs
 
 model_x_knockoff = ModelXKnockoff(
     ko_generator=GaussianKnockoffs(

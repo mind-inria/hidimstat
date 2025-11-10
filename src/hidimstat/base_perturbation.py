@@ -1,9 +1,13 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import mean_squared_error
 
-from hidimstat._utils.utils import _check_vim_predict_method, check_random_state
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    check_statistical_test,
+)
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
     GroupVariableImportanceMixin,
@@ -11,56 +15,80 @@ from hidimstat.base_variable_importance import (
 
 
 class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
+    """
+    Abstract base class for model-agnostic variable importance measures using
+    perturbation techniques.
+
+    Parameters
+    ----------
+    estimator : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    method : str, default="predict"
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+    loss : callable, default=mean_squared_error
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+    n_permutations : int, default=50
+        Number of permutations for each feature group.
+    statistical_test : callable or str, default="nb-ttest"
+        Statistical test function for computing p-values from importance scores.
+    features_groups : dict or None, default=None
+        Mapping of group names to lists of feature indices or names. If None, groups are inferred.
+    n_jobs : int, default=1
+        Number of parallel jobs for computation.
+    random_state : int or None, default=None
+        Seed for reproducible permutations.
+
+    Attributes
+    ----------
+    features_groups : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray (n_groups,)
+        Importance scores for each feature group.
+    loss_reference_ : float
+        Loss on original (non-perturbed) data.
+    loss_ : dict
+        Loss values for each permutation of each group.
+    pvalues_ : ndarray of shape (n_groups,)
+        P-values for importance scores.
+
+    Notes
+    -----
+    This class is abstract. Subclasses must implement the `_permutation` method
+    to define how feature groups are perturbed.
+    """
+
     def __init__(
         self,
         estimator,
-        loss: callable = root_mean_squared_error,
-        n_permutations: int = 50,
         method: str = "predict",
+        loss: callable = mean_squared_error,
+        n_permutations: int = 50,
+        statistical_test="ttest",
         features_groups=None,
         n_jobs: int = 1,
         random_state=None,
     ):
-        """
-        Base class for model-agnostic variable importance measures based on
-        perturbation.
-
-        Parameters
-        ----------
-        estimator : sklearn compatible estimator, optional
-            The estimator to use for the prediction.
-        loss : callable, default=root_mean_squared_error
-            The function to compute the loss when comparing the perturbed model
-            to the original model.
-        n_permutations : int, default=50
-            This parameter is relevant only for PFI or CFI.
-            Specifies the number of times the variable group (residual for CFI) is
-            permuted. For each permutation, the perturbed model's loss is calculated
-            and averaged over all permutations.
-        method : str, default="predict"
-            The method used for making predictions. This determines the predictions
-            passed to the loss function. Supported methods are "predict",
-            "predict_proba", "decision_function", "transform".
-        features_groups: dict or None, default=None
-            A dictionary where the keys are the group names and the values are the
-            list of column names corresponding to each features group. If None,
-            the features_groups are identified based on the columns of X.
-        n_jobs : int, default=1
-            The number of parallel jobs to run. Parallelization is done over the
-            variables or groups of variables.
-        random_state : int, default=None
-            The random state to use for sampling.
-        """
         super().__init__()
+        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
         _check_vim_predict_method(method)
         self.method = method
-        self.n_jobs = n_jobs
         self.n_permutations = n_permutations
-        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
+        self.statistical_test = statistical_test
+        self.n_jobs = n_jobs
+
+        # variable set in importance
+        self.loss_reference_ = None
+        self.loss_ = None
+        # internal variables
+        self._n_groups = None
+        self._groups_ids = None
         self.random_state = random_state
 
     def fit(self, X, y=None):
@@ -95,7 +123,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
 
-    def predict(self, X):
+    def _predict(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
         variables.
@@ -110,8 +138,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out: array-like of shape (n_groups, n_permutations, n_samples)
             The predictions after perturbation of the data for each group of variables.
         """
-        self._check_fit()
-        self._check_compatibility(X)
         X_ = np.asarray(X)
         rng = check_random_state(self.random_state)
 
@@ -132,45 +158,100 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         Parameters
         ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        y: array-like of shape (n_samples,)
-            The target values.
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each group of covariates.
+            A higher score indicates greater importance of that group.
 
         Returns
         -------
-        out_dict: dict
-            A dictionary containing the following keys:
-            - 'loss_reference': the loss of the model with the original data.
-            - 'loss': a dictionary containing the loss of the perturbed model
-            for each group.
-            - 'importance': the importance scores for each group.
-        """
-        GroupVariableImportanceMixin._check_fit(self)
-        GroupVariableImportanceMixin._check_compatibility(self, X)
+        importances_ : ndarray of shape (n_features,)
+            Importance scores for each feature.
 
-        out_dict = dict()
+        Attributes
+        ----------
+        loss_reference_ : float
+            The loss of the model with the original (non-perturbed) data.
+        loss_ : dict
+            Dictionary with indices as keys and arrays of perturbed losses as values.
+            Contains the loss values for each permutation of each group.
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each group.
+        pvalues_ : ndarray of shape (n_groups,)
+            P-values from one-sample t-test testing if importance scores are
+            significantly greater than 0.
+
+        Notes
+        -----
+        The importance score for each group is calculated as the mean increase in loss
+        when that group is perturbed, compared to the reference loss.
+        A higher importance score indicates that perturbing that group leads to
+        worse model performance, suggesting those features are more important.
+        """
+        self._check_fit()
+        self._check_compatibility(X)
+        statistical_test = check_statistical_test(self.statistical_test)
 
         y_pred = getattr(self.estimator, self.method)(X)
-        loss_reference = self.loss(y, y_pred)
-        out_dict["loss_reference"] = loss_reference
+        self.loss_reference_ = self.loss(y, y_pred)
 
-        y_pred = self.predict(X)
-        out_dict["loss"] = dict()
+        y_pred = self._predict(X)
+        self.loss_ = dict()
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
             for y_pred_perm in y_pred_j:
                 list_loss.append(self.loss(y, y_pred_perm))
-            out_dict["loss"][j] = np.array(list_loss)
+            self.loss_[j] = np.array(list_loss)
 
-        out_dict["importance"] = np.array(
+        test_result = np.array(
             [
-                np.mean(out_dict["loss"][j]) - loss_reference
+                self.loss_[j] - self.loss_reference_
                 for j in range(self.n_features_groups_)
             ]
         )
-        self.importances_ = out_dict["importance"]
-        return out_dict
+        self.importances_ = np.mean(test_result, axis=1)
+        self.pvalues_ = statistical_test(test_result).pvalue
+        assert (
+            self.pvalues_.shape[0] == y_pred.shape[0]
+        ), "The statistical test doesn't provide the correct dimension."
+        return self.importances_
+
+    def fit_importance(self, X, y):
+        """
+        Fits the model to the data and computes feature importance scores.
+        Convenience method that combines fit() and importance() into a single call.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_groups,)
+            The calculated importance scores for each feature group.
+            Higher values indicate greater importance.
+
+        Notes
+        -----
+        This method first calls fit() to identify feature groups, then calls
+        importance() to compute the importance scores for each group.
+        """
+        self.fit(X, y)
+        return self.importance(X, y)
+
+    def _check_importance(self):
+        """
+        Checks if the loss has been computed.
+        """
+        super()._check_importance()
+        if (self.loss_reference_ is None) or (self.loss_ is None):
+            raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, features_group_key, random_state=None

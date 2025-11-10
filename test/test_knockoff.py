@@ -8,10 +8,10 @@ from sklearn.svm import SVR
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
     ModelXKnockoff,
-    model_x_knockoff_analysis,
+    model_x_knockoff_importance,
     set_alpha_max_lasso_path,
 )
-from hidimstat.statistical_tools.gaussian_knockoffs import GaussianKnockoffs
+from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
@@ -188,7 +188,7 @@ def test_knockoff_function_not_centered():
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-    selected, importances, pvalues = model_x_knockoff_analysis(X, y, centered=False)
+    selected, importances, pvalues = model_x_knockoff_importance(X, y, centered=False)
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
     assert selected.shape == (p,)
     assert importances.shape == (1, p)

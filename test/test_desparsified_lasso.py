@@ -15,7 +15,7 @@ from sklearn.model_selection import KFold
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
     DesparsifiedLasso,
-    desparsified_lasso_analysis,
+    desparsified_lasso_importance,
     reid,
 )
 
@@ -246,7 +246,9 @@ def test_function_not_center():
         shuffle=False,
         seed=10,
     )
-    selection, importances, pvalues = desparsified_lasso_analysis(X, y, centered=False)
+    selection, importances, pvalues = desparsified_lasso_importance(
+        X, y, centered=False
+    )
 
 
 def test_reid():
