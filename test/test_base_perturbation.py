@@ -30,7 +30,7 @@ def test_check_importance():
 
 
 def test_base_cv_errors():
-    """Test the erros of the BasePerturbationCV class"""
+    """Test the errors of the BasePerturbationCV class"""
     with pytest.raises(
         ValueError,
         match="If estimators is a list, its length must be equal to the number of folds",
