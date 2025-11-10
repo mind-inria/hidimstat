@@ -854,7 +854,7 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(400, 10, 5, 0.1, 0, 2.0, 4, 0.0)],
+    [(500, 50, 5, 0.1, 0, 8.0, 4, 0.0)],
     ids=["default data"],
 )
 def test_cfi_cv(data_generator):
@@ -868,7 +868,7 @@ def test_cfi_cv(data_generator):
     """
     X, y, important_features, not_important_features = data_generator
 
-    model = RidgeCV()
+    model = RidgeCV(alphas=np.logspace(-3, 3, 13))
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
     estimators = [
         clone(model).fit(X[train_index], y[train_index])
@@ -878,7 +878,7 @@ def test_cfi_cv(data_generator):
         estimators=estimators,
         cv=cv,
         random_state=0,
-        n_jobs=2,
+        n_jobs=5,
     )
     cfi_cv.fit(X, y)
     cfi_cv.importance(X, y)

@@ -190,7 +190,7 @@ def test_loco_function():
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(400, 10, 5, 0.1, 0, 2.0, 4, 0.0)],
+    [(500, 50, 5, 0.1, 0, 2.0, 4, 0.0)],
     ids=["default data"],
 )
 def test_loco_cv(data_generator):
@@ -210,13 +210,13 @@ def test_loco_cv(data_generator):
     loco_cv = LOCOImportanceCV(
         estimators=model,
         cv=cv,
-        n_jobs=2,
+        n_jobs=5,
     )
     loco_cv.fit(X, y)
     loco_cv.importance(X, y)
 
     alpha = 0.05
-    selected = loco_cv.pvalues_ < alpha
+    selected = loco_cv.fdr_selection(fdr=alpha)
     tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
     fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
     fdp = fp / (tp + fp) if (tp + fp) > 0 else 0
