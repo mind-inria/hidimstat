@@ -16,7 +16,7 @@ from sklearn.linear_model import (
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from hidimstat import CFI, cfi_analysis
+from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
@@ -616,7 +616,7 @@ class TestCFIExceptions:
 def test_function_cfi(data_generator, n_permutation, cfi_seed):
     """Test CFI function"""
     X, y, _, _ = data_generator
-    cfi_analysis(
+    cfi_importance(
         LinearRegression().fit(X, y),
         X,
         y,

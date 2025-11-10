@@ -561,7 +561,7 @@ class ModelXKnockoff(BaseVariableImportance):
         return np.array(evals)
 
 
-def model_x_knockoff(
+def model_x_knockoff_importance(
     X,
     y,
     estimator=LassoCV(max_iter=200000),
@@ -604,7 +604,7 @@ def model_x_knockoff(
 
 
 # use the docstring of the class for the function
-model_x_knockoff.__doc__ = _aggregate_docstring(
+model_x_knockoff_importance.__doc__ = _aggregate_docstring(
     [
         ModelXKnockoff.__doc__,
         ModelXKnockoff.__init__.__doc__,

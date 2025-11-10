@@ -821,7 +821,7 @@ def run_lasso_screening(
     return selection_set, lasso_model
 
 
-def d0crt(
+def d0crt_importance(
     estimator,
     X,
     y,
@@ -884,7 +884,7 @@ def d0crt(
 
 
 # use the docstring of the class for the function
-d0crt.__doc__ = _aggregate_docstring(
+d0crt_importance.__doc__ = _aggregate_docstring(
     [
         D0CRT.__doc__,
         D0CRT.__init__.__doc__,

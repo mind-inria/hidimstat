@@ -209,7 +209,7 @@ class LOCO(BasePerturbation):
             check_is_fitted(m)
 
 
-def loco_analysis(
+def loco_importance(
     estimator,
     X,
     y,
@@ -242,7 +242,7 @@ def loco_analysis(
 
 
 # use the docstring of the class for the function
-loco_analysis.__doc__ = _aggregate_docstring(
+loco_importance.__doc__ = _aggregate_docstring(
     [
         LOCO.__doc__,
         LOCO.__init__.__doc__,

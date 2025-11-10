@@ -38,13 +38,16 @@ Feature Importance functions
    :toctree: ./generated/api/class/
    :template: function.rst
    
-   cfi_analysis
+   cfi_importance
    clustered_inference
    clustered_inference_pvalue
+   d0crt_importance
+   desparsified_lasso_importance
+   model_x_knockoff_importance
    ensemble_clustered_inference
    ensemble_clustered_inference_pvalue
-   loco_analysis
-   pfi_analysis
+   loco_importance
+   pfi_importance
 
 Visualization
 =============
@@ -73,6 +76,6 @@ Helper Functions
    :toctree: ./generated/api/helper_functions/
    :template: function.rst
 
-   quantile_aggregation
-   reid
+   ~statistical_tools.aggregation.quantile_aggregation
+   ~desparsified_lasso.reid
    ~statistical_tools.nadeau_bengio_ttest

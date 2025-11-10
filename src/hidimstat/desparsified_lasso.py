@@ -521,7 +521,7 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
         return z, precision_diagonal_i, None
 
 
-def desparsified_lasso(
+def desparsified_lasso_importance(
     X,
     y,
     estimator=LassoCV(
@@ -594,7 +594,7 @@ def desparsified_lasso(
 
 
 # use the docstring of the class for the function
-desparsified_lasso.__doc__ = _aggregate_docstring(
+desparsified_lasso_importance.__doc__ = _aggregate_docstring(
     [
         DesparsifiedLasso.__doc__,
         DesparsifiedLasso.__init__.__doc__,

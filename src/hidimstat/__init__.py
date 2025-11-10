@@ -1,16 +1,15 @@
-from .conditional_feature_importance import CFI, cfi_analysis
-from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso, reid
-from .distilled_conditional_randomization_test import D0CRT, d0crt
+from .conditional_feature_importance import CFI, cfi_importance
+from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso_importance
+from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
 from .ensemble_clustered_inference import (
     clustered_inference,
     clustered_inference_pvalue,
     ensemble_clustered_inference,
     ensemble_clustered_inference_pvalue,
 )
-from .knockoffs import ModelXKnockoff
-from .leave_one_covariate_out import LOCO, loco_analysis
-from .permutation_feature_importance import PFI, pfi_analysis
-from .statistical_tools.aggregation import quantile_aggregation
+from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
+from .leave_one_covariate_out import LOCO, loco_importance
+from .permutation_feature_importance import PFI, pfi_importance
 
 try:
     from ._version import __version__
@@ -18,21 +17,21 @@ except ImportError:
     __version__ = "0.0.0+unknown"
 
 __all__ = [
-    "quantile_aggregation",
+    "CFI",
+    "cfi_importance",
     "clustered_inference",
     "clustered_inference_pvalue",
-    "desparsified_lasso",
+    "desparsified_lasso_importance",
     "DesparsifiedLasso",
-    "d0crt",
+    "desparsified_lasso_importance",
     "D0CRT",
+    "d0crt_importance",
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
-    "reid",
-    "ModelXKnockoff",
-    "CFI",
-    "cfi_analysis",
     "LOCO",
-    "loco_analysis",
+    "loco_importance",
+    "ModelXKnockoff",
+    "model_x_knockoff_importance",
     "PFI",
-    "pfi_analysis",
+    "pfi_importance",
 ]

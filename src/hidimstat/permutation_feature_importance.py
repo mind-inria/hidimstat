@@ -86,7 +86,7 @@ class PFI(BasePerturbation):
         return X_perm_j
 
 
-def pfi_analysis(
+def pfi_importance(
     estimator,
     X,
     y,
@@ -123,7 +123,7 @@ def pfi_analysis(
 
 
 # use the docstring of the class for the function
-pfi_analysis.__doc__ = _aggregate_docstring(
+pfi_importance.__doc__ = _aggregate_docstring(
     [
         PFI.__doc__,
         PFI.__init__.__doc__,
