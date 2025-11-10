@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import KFold
 
-from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
 def test_no_implemented_methods():
@@ -26,3 +27,20 @@ def test_check_importance():
         ValueError, match="The importance method has not yet been called."
     ):
         basic_class.importance_selection()
+
+
+def test_base_cv_errors():
+    """Test the erros of the BasePerturbationCV class"""
+    with pytest.raises(
+        ValueError,
+        match="If estimators is a list, its length must be equal to the number of folds",
+    ):
+        BasePerturbationCV(
+            estimators=[LinearRegression(), LinearRegression()], cv=KFold(n_splits=4)
+        )
+
+    X = np.random.randn(100, 5)
+    y = np.random.randn(100)
+    with pytest.raises(NotImplementedError):
+        vim = BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2))
+        vim.fit(X, y)
