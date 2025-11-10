@@ -4,12 +4,13 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
+from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, train_test_split
 
-from hidimstat import LOCO, loco_importance
+from hidimstat import LOCO, LOCOImportanceCV, loco_importance
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 
@@ -185,3 +186,40 @@ def test_loco_function():
         importance[important_features].mean()
         > importance[non_important_features].mean()
     )
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(400, 10, 5, 0.1, 0, 2.0, 4, 0.0)],
+    ids=["default data"],
+)
+def test_loco_cv(data_generator):
+    """
+    Test that LOCO with cross-validated estimator works as expected. In particular,
+        - Empirical FDP is below the target FDR level
+        - Power is above 0.8, which is an arbitrary threshold
+
+    Note: even though the only the expected FDP should be controlled, in practice
+    the simulation setting is simple enough to satisfy this stronger condition.
+    """
+
+    X, y, important_features, not_important_features = data_generator
+
+    model = RidgeCV()
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    loco_cv = LOCOImportanceCV(
+        estimators=model,
+        cv=cv,
+        n_jobs=2,
+    )
+    loco_cv.fit(X, y)
+    loco_cv.importance(X, y)
+
+    alpha = 0.05
+    selected = loco_cv.pvalues_ < alpha
+    tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
+    fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
+    fdp = fp / (tp + fp) if (tp + fp) > 0 else 0
+    assert fdp < alpha
+    power = tp / len(important_features)
+    assert power > 0.8

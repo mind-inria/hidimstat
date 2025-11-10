@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
+from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
@@ -14,12 +15,13 @@ from sklearn.linear_model import (
     RidgeCV,
 )
 from sklearn.metrics import log_loss, mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.conditional_feature_importance import CFImportanceCV
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -848,3 +850,49 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
     cfi_2.fit(X_train)
     vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(400, 10, 5, 0.1, 0, 2.0, 4, 0.0)],
+    ids=["default data"],
+)
+def test_cfi_cv(data_generator):
+    """
+    Test that CFI with cross-validated estimator works as expected. In particular,
+     - Empirical FDP is below the target FDR level
+     - Power is above 0.8, which is an arbitrary threshold
+
+    Note: even though the only the expected FDP should be controlled, in practice
+    the simulation setting is simple enough to satisfy this stronger condition.
+    """
+    X, y, important_features, not_important_features = data_generator
+
+    model = RidgeCV()
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    estimators = [
+        clone(model).fit(X[train_index], y[train_index])
+        for train_index, _ in cv.split(X)
+    ]
+    pred_scores = [
+        model.score(X[test_index], y[test_index])
+        for model, (_, test_index) in zip(estimators, cv.split(X))
+    ]
+    cfi_cv = CFImportanceCV(
+        estimators=estimators,
+        cv=cv,
+        random_state=0,
+        n_jobs=2,
+    )
+    cfi_cv.fit(X, y)
+    cfi_cv.importance(X, y)
+
+    alpha = 0.05
+    selected = cfi_cv.pvalues_ < alpha
+    # selected = cfi_cv.importance_estimators_[0].pvalues_ < alpha
+    tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
+    fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
+    fdp = fp / (tp + fp)
+    assert fdp < alpha
+    power = tp / len(important_features)
+    assert power > 0.8

@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, train_test_split
 
-from hidimstat import PFI, pfi_importance
+from hidimstat import PFI, PFImportanceCV, pfi_importance
 from hidimstat._utils.scenario import multivariate_simulation
 
 
@@ -229,3 +229,48 @@ def test_pfi_reproducibility_with_rng(pfi_test_data):
     pfi_reproducibility.fit(X_train, y_train)
     vim_reproducibility = pfi_reproducibility.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(400, 100, 5, 0.0, 0, 2.0, 8, 0.0)],
+    ids=["default data"],
+)
+def test_pfi_cv(data_generator):
+    """
+    Test that PFI with cross-validated estimator works as expected. In particular,
+        - Empirical FDP is below the target FDR level
+        - Power is above 0.8, which is an arbitrary threshold
+
+    Notes
+    -----
+     - Even though the only the expected FDP should be controlled, in practice
+    the simulation setting is simple enough to satisfy this stronger condition.
+     - Compared to CFImportanceCV and LOCOImportanceCV, we use a much larger p=100 and
+     a lower rho=0.0. PFI is known to suffer from uncontrolled type-1 error in presence
+     of correlated features. Increasing p should not come at a high computational cost
+     with PFI.
+    """
+
+    X, y, important_features, not_important_features = data_generator
+
+    model = LassoCV()
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    pfi_cv = PFImportanceCV(
+        estimators=model,
+        cv=cv,
+        n_permutations=20,
+        random_state=0,
+        n_jobs=2,
+    )
+    pfi_cv.fit(X, y)
+    pfi_cv.importance(X, y)
+
+    alpha = 0.05
+    selected = pfi_cv.pvalues_ < alpha
+    tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
+    fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
+    fdp = fp / (tp + fp) if (tp + fp) > 0 else 0
+    assert fdp < alpha
+    power = tp / len(important_features)
+    assert power > 0.8
