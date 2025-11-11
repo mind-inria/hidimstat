@@ -396,4 +396,5 @@ class CFImportanceCV(BasePerturbationCV):
             n_jobs=1,  # no parallelization inside the fold
         )
         cfi.fit(X_train, y_train)
+        1 / 0
         return cfi
