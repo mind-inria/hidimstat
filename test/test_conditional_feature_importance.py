@@ -880,8 +880,7 @@ def test_cfi_cv(data_generator):
         random_state=0,
         n_jobs=5,
     )
-    cfi_cv.fit(X, y)
-    cfi_cv.importance(X, y)
+    cfi_cv.fit_importance(X, y)
     selected = cfi_cv.fdr_selection(fdr=0.05)
 
     alpha = 0.05
