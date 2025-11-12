@@ -317,6 +317,7 @@ class BasePerturbationCV(BaseVariableImportance):
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
+        Defaults to Nadeau-Bengio test to deal with correlation across folds
     n_jobs : int, default=1
         Number of parallel jobs for computation. Parallelization is done over the folds.
 
