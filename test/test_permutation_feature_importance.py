@@ -5,7 +5,7 @@ from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold, train_test_split
 
-from hidimstat import PFI, PFImportanceCV, pfi_importance
+from hidimstat import PFI, PFICV, pfi_importance
 from hidimstat._utils.scenario import multivariate_simulation
 
 
@@ -246,7 +246,7 @@ def test_pfi_cv(data_generator):
     -----
      -  Although only the expected FDP is controlled in theory, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
-     - Compared to CFImportanceCV and LOCOImportanceCV, we use a much larger p=100 and
+     - Compared to CFICV and LOCOCV, we use a much larger p=100 and
      a lower rho=0.0. PFI is known to suffer from uncontrolled type-1 error in presence
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
@@ -256,7 +256,7 @@ def test_pfi_cv(data_generator):
 
     model = LassoCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
-    pfi_cv = PFImportanceCV(
+    pfi_cv = PFICV(
         estimators=model,
         cv=cv,
         n_permutations=20,

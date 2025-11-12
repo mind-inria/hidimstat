@@ -26,11 +26,11 @@ Feature Importance Classes
    :template: class.rst
    
    LOCO
-   LOCOImportanceCV
+   LOCOCV
    CFI
-   CFImportanceCV
+   CFICV
    PFI
-   PFImportanceCV
+   PFICV
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso

@@ -262,7 +262,7 @@ loco_importance.__doc__ = _aggregate_docstring(
 )
 
 
-class LOCOImportanceCV(BasePerturbationCV):
+class LOCOCV(BasePerturbationCV):
     """
     Leave-One-Covariate-Out (LOCO) algorithm with Cross-Validation.
 

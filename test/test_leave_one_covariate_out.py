@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold, train_test_split
 
-from hidimstat import LOCO, LOCOImportanceCV, loco_importance
+from hidimstat import LOCO, LOCOCV, loco_importance
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 
@@ -207,7 +207,7 @@ def test_loco_cv(data_generator):
 
     model = RidgeCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
-    loco_cv = LOCOImportanceCV(
+    loco_cv = LOCOCV(
         estimators=model,
         cv=cv,
         n_jobs=5,

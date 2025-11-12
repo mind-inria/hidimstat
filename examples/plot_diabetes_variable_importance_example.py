@@ -77,9 +77,9 @@ regressor
 # estimation to account for the dependency between the test statistics. We use the
 # `n_jobs` parameter to parallelize the computation across folds.
 
-from hidimstat import CFImportanceCV
+from hidimstat import CFICV
 
-cfi_cv = CFImportanceCV(
+cfi_cv = CFICV(
     estimators=regressor_list,
     cv=cv,
     n_jobs=5,
@@ -92,9 +92,9 @@ importances_cfi = cfi_cv.fit_importance(X, y)
 # %%
 # We repeat the same process using the LOCO method.
 
-from hidimstat import LOCOImportanceCV
+from hidimstat import LOCOCV
 
-loco_cv = LOCOImportanceCV(
+loco_cv = LOCOCV(
     estimators=regressor_list,
     cv=cv,
     n_jobs=5,
@@ -106,9 +106,9 @@ importances_loco = loco_cv.fit_importance(X, y)
 # %%
 # Finally, we repeat the same process using the PFI method.
 
-from hidimstat import PFImportanceCV
+from hidimstat import PFICV
 
-pfi_cv = PFImportanceCV(
+pfi_cv = PFICV(
     estimators=regressor_list,
     cv=cv,
     n_jobs=5,

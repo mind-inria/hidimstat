@@ -291,7 +291,7 @@ cfi_importance.__doc__ = _aggregate_docstring(
 )
 
 
-class CFImportanceCV(BasePerturbationCV):
+class CFICV(BasePerturbationCV):
     """
     Conditional Feature Importance (CFI) algorithm with Cross-Validation.
 

@@ -21,7 +21,7 @@ from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.conditional_feature_importance import CFImportanceCV
+from hidimstat.conditional_feature_importance import CFICV
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -874,7 +874,7 @@ def test_cfi_cv(data_generator):
         clone(model).fit(X[train_index], y[train_index])
         for train_index, _ in cv.split(X)
     ]
-    cfi_cv = CFImportanceCV(
+    cfi_cv = CFICV(
         estimators=estimators,
         cv=cv,
         random_state=0,
