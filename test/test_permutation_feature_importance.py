@@ -244,7 +244,7 @@ def test_pfi_cv(data_generator):
 
     Notes
     -----
-     - Even though the only the expected FDP should be controlled, in practice
+     -  Although only the expected FDP is controlled in theory, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
      - Compared to CFImportanceCV and LOCOImportanceCV, we use a much larger p=100 and
      a lower rho=0.0. PFI is known to suffer from uncontrolled type-1 error in presence
