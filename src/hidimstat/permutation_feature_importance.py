@@ -143,7 +143,7 @@ pfi_importance.__doc__ = _aggregate_docstring(
 )
 
 
-class PFImportanceCV(BasePerturbationCV):
+class PFICV(BasePerturbationCV):
     """
     Permutation Feature Importance (PFI) algorithm with Cross-Validation.
 
