@@ -863,7 +863,7 @@ def test_cfi_cv(data_generator):
      - Empirical FDP is below the target FDR level
      - Power is above 0.8, which is an arbitrary threshold
 
-    Note: even though the only the expected FDP should be controlled, in practice
+    Note: Although only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
     X, y, important_features, not_important_features = data_generator
