@@ -22,6 +22,7 @@ from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_feature_importance import CFICV
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -884,9 +885,8 @@ def test_cfi_cv(data_generator):
     selected = cfi_cv.fdr_selection(fdr=0.05)
 
     alpha = 0.05
-    tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
-    fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
-    fdp = fp / (tp + fp)
+    fdp, power = fdp_power(
+        selected=np.argwhere(selected).flatten(), ground_truth=important_features
+    )
     assert fdp < alpha
-    power = tp / len(important_features)
     assert power > 0.8

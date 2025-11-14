@@ -13,6 +13,7 @@ from sklearn.model_selection import KFold, train_test_split
 from hidimstat import LOCO, LOCOCV, loco_importance
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
 def test_loco():
@@ -217,9 +218,8 @@ def test_loco_cv(data_generator):
 
     alpha = 0.1
     selected = loco_cv.fdr_selection(fdr=alpha)
-    tp = np.sum([int(i) in important_features for i in np.where(selected)[0]])
-    fp = np.sum([int(i) in not_important_features for i in np.where(selected)[0]])
-    fdp = fp / (tp + fp) if (tp + fp) > 0 else 0
+    fdp, power = fdp_power(
+        selected=np.argwhere(selected).flatten(), ground_truth=important_features
+    )
     assert fdp < alpha
-    power = tp / len(important_features)
     assert power > 0.8
