@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
+from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
@@ -14,12 +15,14 @@ from sklearn.linear_model import (
     RidgeCV,
 )
 from sklearn.metrics import log_loss, mean_squared_error
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.conditional_feature_importance import CFICV
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -848,3 +851,42 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
     cfi_2.fit(X_train)
     vim_reproducibility = cfi_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 50, 5, 0.1, 0, 8.0, 4, 0.0)],
+    ids=["default data"],
+)
+def test_cfi_cv(data_generator):
+    """
+    Test that CFI with cross-validated estimator works as expected. In particular,
+     - Empirical FDP is below the target FDR level
+     - Power is above 0.8, which is an arbitrary threshold
+
+    Note: Although only the expected FDP should be controlled, in practice
+    the simulation setting is simple enough to satisfy this stronger condition.
+    """
+    X, y, important_features, not_important_features = data_generator
+
+    model = RidgeCV(alphas=np.logspace(-3, 3, 13))
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    estimators = [
+        clone(model).fit(X[train_index], y[train_index])
+        for train_index, _ in cv.split(X)
+    ]
+    cfi_cv = CFICV(
+        estimators=estimators,
+        cv=cv,
+        random_state=0,
+        n_jobs=5,
+    )
+    cfi_cv.fit_importance(X, y)
+    selected = cfi_cv.fdr_selection(fdr=0.05)
+
+    alpha = 0.05
+    fdp, power = fdp_power(
+        selected=np.argwhere(selected).flatten(), ground_truth=important_features
+    )
+    assert fdp < alpha
+    assert power > 0.8

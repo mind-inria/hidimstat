@@ -15,6 +15,7 @@ Base Classes
 
    ~base_variable_importance.BaseVariableImportance
    ~base_perturbation.BasePerturbation
+   ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
 
 Feature Importance Classes
@@ -25,8 +26,11 @@ Feature Importance Classes
    :template: class.rst
    
    LOCO
+   LOCOCV
    CFI
+   CFICV
    PFI
+   PFICV
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso

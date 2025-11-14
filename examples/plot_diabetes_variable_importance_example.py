@@ -1,50 +1,18 @@
 """
-Variable Importance on diabetes dataset
-=======================================
+Feature Importance on diabetes dataset using cross-validation
+=============================================================
 
-Variable Importance estimates the influence of a given input variable to the
-prediction made by a model. To assess variable importance in a prediction
-problem, :footcite:t:`breimanRandomForests2001` introduced the permutation
-approach where the values are shuffled for one variable/column at a time. This
-permutation breaks the relationship between the variable of interest and the
-outcome. Following, the loss score is checked before and after this
-substitution for any significant drop in the performance which reflects the
-significance of this variable to predict the outcome. This ease-to-use solution
-is demonstrated, in the work by
-:footcite:t:`stroblConditionalVariableImportance2008`, to be affected by the
-degree of correlation between the variables, thus biased towards truly
-non-significant variables highly correlated with the significant ones and
-creating fake significant variables. They introduced a solution for the Random
-Forest estimator based on conditional sampling by performing sub-groups
-permutation when bisecting the space using the conditioning variables of the
-building process. However, this solution is exclusive to the Random Forest and
-is costly with high-dimensional settings.
-:footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
-bypass the limitations of the permutation approach under the use of the
-conditional schemes. The variable of interest does contain two types of
-information: 1) the relationship with the remaining variables and 2) the
-relationship with the outcome. The standard permutation, while breaking the
-relationship with the outcome, is also destroying the dependency with the
-remaining variables. Therefore, instead of directly permuting the variable of
-interest, the variable of interest is predicted by the remaining
-variables and the residuals of this prediction are permuted before
-reconstructing the new version of the variable. This solution preserves the
-dependency with the remaining variables.
-
-In this example, we compare both the standard permutation and its conditional
-variant approaches for variable importance on the diabetes dataset for the
-single-level case. The aim is to see if integrating the new
-statistically-controlled solution has an impact on the results.
-
-References
-----------
-.. footbibliography::
-
+In this example, we show how to compute variable importance using Permutation Feature
+Importance (PFI), Leave-One-Covariate-Out (LOCO), and Conditional Feature Importance
+(CFI) on the diabetes dataset. This example also showcases the use how to measure
+feature importance in a K-Fold cross-validation setting in order to use all the data
+available.
 """
 
 # %%
 # Load the diabetes dataset
 # -------------------------
+# We start by loading the diabetes dataset from sklearn.
 
 from sklearn.datasets import load_diabetes
 
@@ -53,187 +21,154 @@ X, y = diabetes.data, diabetes.target
 
 # Encode sex as binary
 X[:, 1] = (X[:, 1] > 0.0).astype(int)
+print(f"Number of samples: {X.shape[0]}, number of features: {X.shape[1]}")
 
 # %%
 # Fit a baseline model on the diabetes dataset
 # --------------------------------------------
-# We use a Ridge regression model with a 5-fold cross-validation to fit the
-# diabetes dataset.
+# The benefit of perturbation-based variable importance methods, presented in this
+# example, is that they are model-agnostic. Therefore, we can use any regression
+# model. We here leverage this flexibility, using an ensemble model which consists of a
+# Ridge regression model and a Histogram Gradient Boosting model, a Random Forest model,
+# and a Lasso regression model combined with a Voting Regressor.
 
 import numpy as np
 from sklearn.base import clone
-from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.ensemble import (
+    HistGradientBoostingRegressor,
+    RandomForestRegressor,
+    VotingRegressor,
+)
+from sklearn.linear_model import LassoCV, RidgeCV
+from sklearn.metrics import r2_score
 from sklearn.model_selection import KFold
 
 n_folds = 5
-regressor = RidgeCV(
-    alphas=np.logspace(-3, 3, 10),
-    cv=KFold(shuffle=True, random_state=20),
+cv = KFold(n_splits=n_folds, shuffle=True, random_state=0)
+regressor = VotingRegressor(
+    [
+        ("ridge", RidgeCV()),
+        ("hgb", HistGradientBoostingRegressor()),
+        ("rf", RandomForestRegressor()),
+        ("lasso", LassoCV()),
+    ]
 )
+
+scores = []
 regressor_list = [clone(regressor) for _ in range(n_folds)]
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
+for i, (train_index, test_index) in enumerate(cv.split(X)):
     regressor_list[i].fit(X[train_index], y[train_index])
-    score = r2_score(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
+    scores.append(
+        r2_score(y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index]))
     )
-    mse = mean_squared_error(
-        y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index])
-    )
+print(f"R2 scores across folds: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
+regressor
 
-    print(f"Fold {i}: {score=}")
-    print(f"Fold {i}: {mse=}")
+# %%
+# Measure the importance of variables
+# -----------------------------------
+# We now measure the importance of each variable using the three different methods:
+# Conditional Feature Importance (CFI), Leave-One-Covariate-Out (LOCO), and
+# Permutation Feature Importance (PFI). We use the K-Fold cross-validation scheme to
+# leverage all the data available. This however comes with the challenge that the
+# test statistics computed across folds are not independent since overlapping training
+# sets are used to fit the model. To address this issue, we use the Nadeau-Bengio
+# corrected t-test :footcite:t:`nadeau1999inference` which adjusts the variance
+# estimation to account for the dependency between the test statistics. We use the
+# `n_jobs` parameter to parallelize the computation across folds.
+
+from hidimstat import CFICV
+
+cfi_cv = CFICV(
+    estimators=regressor_list,
+    cv=cv,
+    n_jobs=5,
+    statistical_test="nb-ttest",
+    random_state=0,
+)
+importances_cfi = cfi_cv.fit_importance(X, y)
 
 
 # %%
-# Measure the importance of variables using the CFI method
-# --------------------------------------------------------
+# We repeat the same process using the LOCO method.
 
-from hidimstat import CFI
+from hidimstat import LOCOCV
 
-cfi_importance_list = []
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    print(f"Fold {i}")
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    cfi = CFI(
-        estimator=regressor_list[i],
-        imputation_model_continuous=RidgeCV(alphas=np.logspace(-3, 3, 10), cv=KFold()),
-        imputation_model_categorical=LogisticRegressionCV(
-            Cs=np.logspace(-2, 2, 10),
-            cv=KFold(),
-        ),
-        # covariate_estimator=HistGradientBoostingRegressor(random_state=0,),
-        n_permutations=50,
-        random_state=24,
-        n_jobs=4,
-    )
-    cfi.fit(X_train, y_train)
-    importance = cfi.importance(X_test, y_test)
-    cfi_importance_list.append(importance)
-
-# %%
-# Measure the importance of variables using the LOCO method
-# ---------------------------------------------------------
-
-from hidimstat import LOCO
-
-loco_importance_list = []
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    print(f"Fold {i}")
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    loco = LOCO(
-        estimator=regressor_list[i],
-        n_jobs=4,
-    )
-    loco.fit(X_train, y_train)
-    importance = loco.importance(X_test, y_test)
-    loco_importance_list.append(importance)
+loco_cv = LOCOCV(
+    estimators=regressor_list,
+    cv=cv,
+    n_jobs=5,
+    statistical_test="nb-ttest",
+)
+importances_loco = loco_cv.fit_importance(X, y)
 
 
 # %%
-# Measure the importance of variables using the permutation method
-# ----------------------------------------------------------------
+# Finally, we repeat the same process using the PFI method.
 
-from hidimstat import PFI
+from hidimstat import PFICV
 
-pfi_importance_list = []
-kf = KFold(n_splits=n_folds, shuffle=True, random_state=21)
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    print(f"Fold {i}")
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-    pfi = PFI(
-        estimator=regressor_list[i],
-        n_permutations=50,
-        random_state=25,
-        n_jobs=4,
-    )
-    pfi.fit(X_train, y_train)
-    importance = pfi.importance(X_test, y_test)
-    pfi_importance_list.append(importance)
+pfi_cv = PFICV(
+    estimators=regressor_list,
+    cv=cv,
+    n_jobs=5,
+    statistical_test="nb-ttest",
+    random_state=0,
+)
+importances_pfi = pfi_cv.fit_importance(X, y)
 
 
 # %%
 # Analyze the results
 # -------------------
+# Finally, we visualize the results obtained with the three different methods. We plot
+# the negative log10 p-values for each variable and each method. A horizontal red-dashed
+# line indicates the significance threshold at p-value=0.05.
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.stats import ttest_1samp
+import seaborn as sns
 
-cfi_vim_arr = np.array(cfi_importance_list) / 2
-cfi_pval = ttest_1samp(cfi_vim_arr, 0, alternative="greater").pvalue
+df_plot = pd.concat(
+    [
+        pd.DataFrame(
+            {
+                "var": diabetes.feature_names,
+                "importance": vim.importances_.mean(axis=1),
+                "pval": vim.pvalues_,
+                "method": vim_name,
+            }
+        )
+        for vim, vim_name in zip(
+            [cfi_cv, loco_cv, pfi_cv],
+            ["CFI", "LOCO", "PFI"],
+        )
+    ]
+)
+df_plot = df_plot.sort_values("importance", ascending=False)
+df_plot["log10pval"] = -np.log10(df_plot["pval"])
 
-vim = [
-    pd.DataFrame(
-        {
-            "var": np.arange(cfi_vim_arr.shape[1]),
-            "importance": x,
-            "fold": i,
-            "pval": cfi_pval,
-            "method": "CFI",
-        }
-    )
-    for x in cfi_importance_list
-]
-
-loco_vim_arr = np.array(loco_importance_list)
-loco_pval = ttest_1samp(loco_vim_arr, 0, alternative="greater").pvalue
-
-vim += [
-    pd.DataFrame(
-        {
-            "var": np.arange(loco_vim_arr.shape[1]),
-            "importance": x,
-            "fold": i,
-            "pval": loco_pval,
-            "method": "LOCO",
-        }
-    )
-    for x in loco_importance_list
-]
-
-pfi_vim_arr = np.array(pfi_importance_list)
-pfi_pval = ttest_1samp(pfi_vim_arr, 0, alternative="greater").pvalue
-
-vim += [
-    pd.DataFrame(
-        {
-            "var": np.arange(pfi_vim_arr.shape[1]),
-            "importance": x,
-            "fold": i,
-            "pval": pfi_pval,
-            "method": "PFI",
-        }
-    )
-    for x in pfi_importance_list
-]
-
-fig, ax = plt.subplots()
-df_plot = pd.concat(vim)
-df_plot["pval"] = -np.log10(df_plot["pval"])
-methods = df_plot["method"].unique()
-colors = plt.get_cmap("tab10", 10)
-
-for i, method in enumerate(methods):
-    subset = df_plot[df_plot["method"] == method]
-    ax.bar(
-        subset["var"] + i * 0.2,
-        subset["pval"],
-        width=0.2,
-        label=method,
-        color=colors(i),
-    )
-
-ax.legend(title="Method")
+_, ax = plt.subplots()
+sns.barplot(
+    data=df_plot,
+    x="var",
+    y="log10pval",
+    hue="method",
+    ax=ax,
+)
+ax.axhline(-np.log10(0.05), color="tab:red", ls="--", label="pval=0.05")
 ax.set_ylabel(r"$-\log_{10}(\text{p-value})$")
-ax.axhline(-np.log10(0.05), color="tab:red", ls="--")
-ax.set_xlabel("Variable")
-ax.set_xticks(range(len(diabetes.feature_names)))
-ax.set_xticklabels(diabetes.feature_names)
-plt.show()
+ax.legend(title="Method")
+
+# %%
+# Several trends can be observed from the results: PFI tends to give smaller p-values
+# (that is higher bars in the plot) than LOCO and CFI. This is expected since PFI is
+# known to overestimate the importance of correlated variables. On the other hand, LOCO
+# has in general, larger p-values (smaller bars in the plot). This is also a known trend
+# since LOCO tends to suffer from lower statistical power.
+
+
+# %%
+# References
+# ----------
+# .. footbibliography::

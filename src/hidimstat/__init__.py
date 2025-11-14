@@ -1,4 +1,4 @@
-from .conditional_feature_importance import CFI, cfi_importance
+from .conditional_feature_importance import CFI, CFICV, cfi_importance
 from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso_importance
 from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
 from .ensemble_clustered_inference import (
@@ -8,8 +8,8 @@ from .ensemble_clustered_inference import (
     ensemble_clustered_inference_pvalue,
 )
 from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
-from .leave_one_covariate_out import LOCO, loco_importance
-from .permutation_feature_importance import PFI, pfi_importance
+from .leave_one_covariate_out import LOCO, LOCOCV, loco_importance
+from .permutation_feature_importance import PFI, PFICV, pfi_importance
 
 try:
     from ._version import __version__
@@ -18,10 +18,10 @@ except ImportError:
 
 __all__ = [
     "CFI",
+    "CFICV",
     "cfi_importance",
     "clustered_inference",
     "clustered_inference_pvalue",
-    "desparsified_lasso_importance",
     "DesparsifiedLasso",
     "desparsified_lasso_importance",
     "D0CRT",
@@ -29,9 +29,11 @@ __all__ = [
     "ensemble_clustered_inference",
     "ensemble_clustered_inference_pvalue",
     "LOCO",
+    "LOCOCV",
     "loco_importance",
     "ModelXKnockoff",
     "model_x_knockoff_importance",
     "PFI",
+    "PFICV",
     "pfi_importance",
 ]
