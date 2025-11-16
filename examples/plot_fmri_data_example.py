@@ -29,6 +29,8 @@ As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
+# %%
+
 import warnings
 
 import numpy as np
@@ -47,12 +49,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
 from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
+from hidimstat.ensemble_clustered_inference import CluDL, EnCluDL
 from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 # Remove warnings during loading data
@@ -164,17 +161,20 @@ estimator = LassoCV(
 # Due to the size of the X, it's not possible to use this method with a limit
 # of 5 G for memory. To handle this problem, the following methods use some
 # feature aggregation methods.
-#
+
+from copy import deepcopy
+
+desparsified_lasso = DesparsifiedLasso(
+    noise_method="median",
+    estimator=clone(estimator),
+    random_state=0,
+    n_jobs=n_jobs,
+)
 try:
-    desparsified_lasso = DesparsifiedLasso(
-        noise_method="median",
-        estimator=clone(estimator),
-        random_state=0,
-        n_jobs=n_jobs,
-    )
-    desparsified_lasso.fit_importance(X, y)
-    pval_dl = desparsified_lasso.pvalues_
-    one_minus_pval_dl = desparsified_lasso.one_minus_pvalues_
+    desparsified_lasso_ = deepcopy(desparsified_lasso)
+    desparsified_lasso_.fit_importance(X, y)
+    pval_dl = desparsified_lasso_.pvalues_
+    one_minus_pval_dl = desparsified_lasso_.one_minus_pvalues_
 except MemoryError as err:
     pval_dl = None
     one_minus_pval_dl = None
@@ -183,19 +183,11 @@ except MemoryError as err:
 # %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-ward_, cl_desparsified_lasso = clustered_inference(
-    X,
-    y,
-    ward,
-    scaler_sampling=StandardScaler(),
-    estimator=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=1,
-    n_jobs=n_jobs,
+
+cludl = CluDL(
+    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso), random_state=0
 )
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
-    X.shape[0], None, ward_, cl_desparsified_lasso
-)
+cludl.fit_importance(X, y)
 
 # %%
 # Below, we run the ensemble clustered inference algorithm which adds a
@@ -205,26 +197,15 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
-list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
-    X,
-    y,
-    ward,
-    groups=groups,
-    scaler_sampling=StandardScaler(),
-    n_bootstraps=5,
-    estimator=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=2,
+encludl = EnCluDL(
+    clustering=ward,
+    desparsified_lasso=deepcopy(desparsified_lasso),
     n_jobs=n_jobs,
+    n_bootstraps=10,
+    cluster_boostrap_size=0.75,
+    random_state=0,
 )
-beta_hat, selected = ensemble_clustered_inference_pvalue(
-    X.shape[0],
-    False,
-    list_ward,
-    list_cl_desparsified_lasso,
-    fdr=0.1,
-)
-
+encludl.fit_importance(X, y)
 # %%
 # Plotting the results
 # --------------------
@@ -299,11 +280,14 @@ if pval_dl is not None:
     )
 
 plot_map(
-    zscore_from_pval(pval_cdl, one_minus_pval_cdl),
+    zscore_from_pval(cludl.pvalues_, cludl.one_minus_pvalues_),
     float(zscore_threshold_clust),
     "CluDL",
 )
 
+selected = encludl.pvalues_ < target_fwer / 2 / n_clusters
+selected = selected.astype(int)
+selected[(encludl.one_minus_pvalues_ < target_fwer / 2 / n_clusters)] = -1
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # Finally, calling plotting.show() is necessary to display the figure when
 # running as a script outside IPython

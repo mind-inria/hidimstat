@@ -287,13 +287,13 @@ class BaseVariableImportance(BaseEstimator):
         # selection on 1-pvalue
         if alternative_hypothesis is None or alternative_hypothesis:
             threshold_one_minus_pvalues = fdr_threshold(
-                1 - self.pvalues_,
+                self.one_minus_pvalues_,
                 fdr=fdr,
                 method=fdr_control,
                 reshaping_function=reshaping_function,
             )
             selected_one_minus_pvalues = (
-                1 - self.pvalues_
+                self.one_minus_pvalues_
             ) <= threshold_one_minus_pvalues
         else:
             selected_one_minus_pvalues = np.zeros_like(self.pvalues_, dtype=bool)

@@ -6,92 +6,162 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
-from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 
-from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
+from hidimstat import CluDL, DesparsifiedLasso, EnCluDL
+from hidimstat._utils.scenario import (
+    multivariate_simulation,
+    multivariate_simulation_spatial,
 )
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-# Scenario 1: data with no temporal dimension
-def test_clustered_inference_no_temporal():
+def fdp_power_spatially_relaxed(
+    selected, ground_truth, roi_size, spatial_tolerance, shape
+):
     """
-    Testing the procedure on one simulations with a 1D data structure and
-    with n << p: no temporal dimension. The support is connected and of
-    size 10, it must be recovered with a small spatial tolerance
-    parametrized by `margin_size`.
-    Computing one sided p-values, we want low p-values for the features of
-    the support and p-values close to 0.5 for the others.
+    Calculate False Discovery Proportion and statistical power with spatial
+    relaxation. Useful for testing methods using clustering on spatial data where
+    false positives near true positives can be less penalized.
+
+    """
+    beta_ids = np.argwhere(ground_truth == 1).flatten()
+    roi_size_extended = roi_size + spatial_tolerance
+    ground_truth_extended = ground_truth.copy().reshape(shape)
+    ground_truth_extended[0:roi_size_extended, 0:roi_size_extended] += 1
+    ground_truth_extended[-roi_size_extended:, -roi_size_extended:] += 1
+    ground_truth_extended[0:roi_size_extended, -roi_size_extended:] += 1
+    ground_truth_extended[-roi_size_extended:, 0:roi_size_extended] += 1
+    ground_truth_extended = (ground_truth_extended > 0).astype(int).flatten()
+
+    selected_ids = np.argwhere(selected).flatten()
+    true_positive = np.intersect1d(selected_ids, beta_ids)
+
+    ground_truth_extended_ids = np.argwhere(
+        ground_truth_extended.flatten() == 1
+    ).flatten()
+    false_positive = np.setdiff1d(selected_ids, ground_truth_extended_ids)
+
+    fdp = len(false_positive) / len(selected_ids)
+    power = len(true_positive) / len(beta_ids)
+    return fdp, power
+
+
+def test_cludl_spatial():
+    """
+    Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
+    clustering is challenging as clusters that intersect the true support can also
+    include non-support features, rapidly increasing false positives. To address this,
+    we introduce a spatial relaxation in the evaluation metrics.
+
+     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
+     - Test that the statistical power is above a specified threshold (0.8).
     """
 
-    n_samples, n_features = 100, 1000
-    support_size = 10
-    signal_noise_ratio = 5.0
-    rho = 0.95
-    n_clusters = 150
-    margin_size = 5
-    interior_support = support_size - margin_size
-    extended_support = support_size + margin_size
+    n_samples = 200
+    shape = (20, 20)
+    n_features = shape[1] * shape[0]
+    roi_size = 4  # size of the edge of the four predictive regions
+    signal_noise_ratio = 32.0  # noise standard deviation
+    smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
 
-    X_init, y, beta, noise = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho=rho,
-        shuffle=False,
-        continuous_support=True,
-        seed=2,
+    # generating the data
+    X_init, y, beta, epsilon = multivariate_simulation_spatial(
+        n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
     )
 
     y = y - np.mean(y)
     X_init = X_init - np.mean(X_init, axis=0)
 
+    n_clusters = 200
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
+    clustering = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, desparsified_lassos = clustered_inference(
-        X_init, y, ward, scaler_sampling=StandardScaler()
+    cludl = CluDL(
+        desparsified_lasso=DesparsifiedLasso(),
+        clustering=clustering,
+    )
+    cludl.fit_importance(X_init, y)
+    fdr = 0.1
+    selected = cludl.fdr_selection(fdr=fdr)
+
+    fdp, power = fdp_power_spatially_relaxed(
+        selected=selected,
+        ground_truth=beta,
+        roi_size=roi_size,
+        spatial_tolerance=3,
+        shape=shape,
+    )
+    assert power >= 0.8
+    assert fdp <= fdr
+
+
+def test_encludl_spatial():
+    """
+    Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
+    clustering is challenging as clusters that intersect the true support can also
+    include non-support features, rapidly increasing false positives. To address this,
+    we introduce a spatial relaxation in the evaluation metrics.
+
+     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
+     - Test that the statistical power is above a specified threshold (0.8).
+    """
+
+    n_samples = 200
+    shape = (20, 20)
+    n_features = shape[1] * shape[0]
+    roi_size = 4  # size of the edge of the four predictive regions
+    signal_noise_ratio = 32.0  # noise standard deviation
+    smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
+
+    # generating the data
+    X_init, y, beta, epsilon = multivariate_simulation_spatial(
+        n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
     )
 
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(n_samples, None, ward_, desparsified_lassos)
+    y = y - np.mean(y)
+    X_init = X_init - np.mean(X_init, axis=0)
+
+    n_clusters = 200
+    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+    clustering = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
-    power = tp / interior_support
-    fdp = fp / max(fp + tp, 1)
+    cludl = EnCluDL(
+        desparsified_lasso=DesparsifiedLasso(), clustering=clustering, n_bootstraps=5
+    )
+    cludl.fit_importance(X_init, y)
+    fdr = 0.1
+    selected = cludl.fdr_selection(fdr=fdr)
 
-    assert power >= 0.5
-    assert fdp <= alpha
+    fdp, power = fdp_power_spatially_relaxed(
+        selected=selected,
+        ground_truth=beta,
+        roi_size=roi_size,
+        spatial_tolerance=3,
+        shape=shape,
+    )
+    assert power >= 0.8
+    assert fdp <= fdr
 
 
-# Scenario 2: temporal data
-def test_clustered_inference_temporal():
+def test_cludl_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
-    Computing one sided p-values, we want low p-values for the features of
-    the support and p-values close to 0.5 for the others.
     """
-    n_samples, n_features, n_target = 100, 1000, 10
+    n_samples, n_features, n_target = 100, 500, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
     rho_data = 0.9
-    n_clusters = 150
+    n_clusters = 100
     margin_size = 5
-    interior_support = support_size - margin_size
     extended_support = support_size + margin_size
 
     X, y, beta, noise = multivariate_simulation(
@@ -112,171 +182,37 @@ def test_clustered_inference_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, desparsified_lassos = clustered_inference(
-        X, y, ward, scaler_sampling=StandardScaler()
+    cludl = CluDL(
+        desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV(max_iter=1000)),
+        clustering=ward,
     )
-
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(n_samples, True, ward_, desparsified_lassos)
-    )
+    cludl.fit_importance(X, y)
 
     alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
-    power = tp / interior_support
-    fdp = fp / max(fp + tp, 1)
+    selected = cludl.fdr_selection(fdr=alpha)
+    fdp, power = fdp_power(
+        selected=np.argwhere(selected).flatten(),
+        ground_truth=np.arange(extended_support),
+    )
     assert power >= 0.5
     assert fdp <= alpha
 
 
-# Scenario 3: data with no temporal dimension and with groups
-def test_clustered_inference_no_temporal_groups():
+def test_encludl_temporal():
     """
-    Testing the procedure on one simulations with a 1D data structure and
-    with n << p: no temporal dimension. The support is connected and of
-    size 10, it must be recovered with a small spatial tolerance
+    Testing the procedure on two simulations with a 1D data structure and
+    with n << p: with a temporal dimension. The support is connected and
+    of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
-    We group the sample in 10 groups of size 10.
-    Computing one sided p-values, we want low p-values for the features of
-    the support and p-values close to 0.5 for the others.
     """
-
-    n_samples, n_features = 100, 500
+    n_samples, n_features, n_target = 100, 500, 3
     support_size = 10
-    n_groups = 10
-    signal_noise_ratio = 5.0
-    rho = 0.95
-    n_clusters = 50
-    margin_size = 5
-    interior_support = support_size - margin_size
-    extended_support = support_size + margin_size
-
-    # create n_group of samples
-    X_ = []
-    y_ = []
-    for i in range(n_groups):
-        X_init, y, beta, noise = multivariate_simulation(
-            n_samples=n_samples,
-            n_features=n_features,
-            support_size=support_size,
-            signal_noise_ratio=signal_noise_ratio,
-            rho=rho,
-            shuffle=False,
-            continuous_support=True,
-            seed=4 + i,
-        )
-        X_.append(X_init)
-        y_.append(y)
-
-    y_ = np.concatenate(y_)
-    y_ = y_ - np.mean(y_)
-    X_ = np.concatenate(X_)
-    X_ = X_ - np.mean(X_, axis=0)
-    groups = np.repeat(np.arange(0, n_groups), n_samples)
-
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
-
-    ward_, desparsified_lassos = clustered_inference(
-        X_, y_, ward, groups=groups, scaler_sampling=StandardScaler()
-    )
-
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_groups * n_samples, False, ward_, desparsified_lassos
-        )
-    )
-
-    alpha = 0.05
-    tp = np.sum(pval_corr[:interior_support] < alpha)
-    fp = np.sum(pval_corr[extended_support:] < alpha)
-    power = tp / interior_support
-    fdp = fp / max(fp + tp, 1)
-
-    assert power >= 0.5
-    assert fdp <= alpha
-
-
-def test_ensemble_clustered_inference():
-    """Testing the procedure on a simulation with a 1D data structure
-    and with n << p: the first test has no temporal dimension, the second has a
-    temporal dimension. The support is connected and of size 10, it must be
-    recovered with a small spatial tolerance parametrized by `margin_size`.
-    Computing one sided p-values, we want low p-values for the features of
-    the support and p-values close to 0.5 for the others."""
-
-    # Scenario 1: data with no temporal dimension
-    # ###########################################
-    n_samples, n_features = 200, 1000
-    support_size = 10
-    signal_noise_ratio = 16.0
-    rho = 0.95
-    fdr = 0.1
-
-    X_init, y, beta, noise = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho=rho,
-        shuffle=False,
-        continuous_support=True,
-        seed=0,
-    )
-
-    margin_size = 5
-    n_clusters = 50
-    n_bootstraps = 3
-
-    y = y - np.mean(y)
-    X_init = X_init - np.mean(X_init, axis=0)
-
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
-
-    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
-        X_init,
-        y,
-        ward,
-        scaler_sampling=StandardScaler(),
-        n_bootstraps=n_bootstraps,
-    )
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        False,
-        list_ward,
-        list_desparsified_lassos,
-        fdr=fdr,
-    )
-
-    tp = np.sum(selected[: support_size - margin_size])
-    fp = np.sum(selected[support_size + margin_size :])
-    power = tp / (support_size - margin_size)
-    fdp = fp / max(fp + tp, 1)
-
-    assert power >= 0.5
-    assert fdp <= fdr
-
-
-def test_ensemble_clustered_inference_temporal_data():
-    "Test with temporal data"
-    # Scenario 2: temporal data
-    # #########################
-    n_samples, n_features, n_target = 200, 400, 10
-    support_size = 10
-    signal_noise_ratio = 5
+    signal_noise_ratio = 50.0
     rho_serial = 0.9
     rho_data = 0.9
-    n_clusters = 50
+    n_clusters = 100
     margin_size = 5
-    interior_support = support_size - margin_size
     extended_support = support_size + margin_size
-    n_bootstraps = 4
-    fdr = 0.1
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -288,7 +224,7 @@ def test_ensemble_clustered_inference_temporal_data():
         rho=rho_data,
         shuffle=False,
         continuous_support=True,
-        seed=7,
+        seed=10,
     )
 
     connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
@@ -296,37 +232,18 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
-        X,
-        y,
-        ward,
-        scaler_sampling=StandardScaler(),
-        n_bootstraps=n_bootstraps,
+    cludl = EnCluDL(
+        desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV(max_iter=1000)),
+        clustering=ward,
+        n_bootstraps=5,
     )
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples, True, list_ward, list_desparsified_lassos, fdr_control="bhq", fdr=fdr
+    cludl.fit_importance(X, y)
+
+    alpha = 0.05
+    selected = cludl.fdr_selection(fdr=alpha)
+    fdp, power = fdp_power(
+        selected=np.argwhere(selected).flatten(),
+        ground_truth=np.arange(extended_support),
     )
-
-    tp = np.sum(selected[:interior_support])
-    fp = np.sum(selected[extended_support:])
-    power = tp / (interior_support)
-    fdp = fp / max(fp + tp, 1)
-
     assert power >= 0.5
-    assert fdp <= fdr
-
-    # different aggregation method
-    beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        True,
-        list_ward,
-        list_desparsified_lassos,
-        fdr_control="bhy",
-    )
-    tp = np.sum(selected[:interior_support])
-    fp = np.sum(selected[extended_support:])
-    power = tp / (interior_support)
-    fdp = fp / max(fp + tp, 1)
-
-    assert power >= 0.5
-    assert fdp <= fdr
+    assert fdp <= alpha

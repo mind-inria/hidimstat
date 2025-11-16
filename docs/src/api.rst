@@ -29,6 +29,8 @@ Feature Importance Classes
    LOCOCV
    CFI
    CFICV
+   CluDL
+   EnCluDL
    PFI
    PFICV
    D0CRT
@@ -48,8 +50,6 @@ Feature Importance functions
    d0crt_importance
    desparsified_lasso_importance
    model_x_knockoff_importance
-   ensemble_clustered_inference
-   ensemble_clustered_inference_pvalue
    loco_importance
    pfi_importance
 
