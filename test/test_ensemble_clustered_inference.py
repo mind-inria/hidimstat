@@ -78,9 +78,9 @@ def test_cludl_spatial():
     clustering = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
-
+    etimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
     cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(),
+        desparsified_lasso=DesparsifiedLasso(etimator=etimator),
         clustering=clustering,
     )
     cludl.fit_importance(X_init, y)
@@ -130,8 +130,11 @@ def test_encludl_spatial():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
+    estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
     cludl = EnCluDL(
-        desparsified_lasso=DesparsifiedLasso(), clustering=clustering, n_bootstraps=5
+        desparsified_lasso=DesparsifiedLasso(estimator=estimator),
+        clustering=clustering,
+        n_bootstraps=5,
     )
     cludl.fit_importance(X_init, y)
     fdr = 0.1
