@@ -16,8 +16,6 @@ __all__ = [
     "CFICV",
     "cfi_importance",
     "CluDL",
-    "clustered_inference",
-    "clustered_inference_pvalue",
     "DesparsifiedLasso",
     "desparsified_lasso_importance",
     "D0CRT",

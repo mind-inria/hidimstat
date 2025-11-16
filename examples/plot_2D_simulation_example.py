@@ -43,9 +43,13 @@ print(f"Number of samples: {X_init.shape[0]}, Number of features: {n_features}")
 
 # visualize the data
 cmap = ListedColormap(["white", "tab:green"])  # 0 -> blue (null), 1 -> green (support)
-fig, ax = plt.subplots(figsize=(4, 4))
-ax.imshow(beta.reshape(shape), cmap=cmap, vmin=0, vmax=1)
-ax.axis("off")
+fig, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
+ax.imshow(
+    beta.reshape(shape),
+    cmap=cmap,
+    vmin=0,
+    vmax=1,
+)
 
 # Legend: green = support, blue = null
 legend_handles = [
@@ -98,10 +102,9 @@ mask_dl[fn_mask.reshape(shape)] = -1
 # %%
 # We visualize the support estimated by the Desparsified Lasso method.
 
-_, ax = plt.subplots(figsize=(4, 4))
+_, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
 cmap = ListedColormap(["tab:red", "tab:purple", "white", "tab:green"])
 ax.imshow(mask_dl, cmap=cmap, vmin=-2, vmax=1)
-ax.axis("off")
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="True Positive"),
     Patch(facecolor="tab:red", edgecolor="k", label="False Positive"),
@@ -164,10 +167,9 @@ mask_cludl[tp_mask.reshape(shape)] = 1
 mask_cludl[fp_mask.reshape(shape)] = -2
 mask_cludl[fn_mask.reshape(shape)] = -1
 
-_, ax = plt.subplots(figsize=(4, 4))
+_, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
 cmap = ListedColormap(["tab:red", "tab:purple", "white", "tab:green"])
 ax.imshow(mask_cludl, cmap=cmap, vmin=-2, vmax=1)
-ax.axis("off")
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="True Positive"),
     Patch(facecolor="tab:red", edgecolor="k", label="False Positive"),
@@ -219,10 +221,9 @@ mask_encludl[fp_mask.reshape(shape)] = -2
 mask_encludl[fn_mask.reshape(shape)] = -1
 
 
-_, ax = plt.subplots(figsize=(4, 4))
+_, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
 cmap = ListedColormap(["tab:red", "tab:purple", "white", "tab:green"])
 ax.imshow(mask_encludl, cmap=cmap, vmin=-2, vmax=1)
-ax.axis("off")
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="True Positive"),
     Patch(facecolor="tab:red", edgecolor="k", label="False Positive"),
@@ -250,9 +251,8 @@ beta_extended[-roi_size_extended:, 0:roi_size_extended] += 1
 
 # visualize the extended support
 cmap = ListedColormap(["white", "tab:orange", "tab:green"])
-fig, ax = plt.subplots(figsize=(4, 4))
+fig, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
 ax.imshow(beta_extended.reshape(shape), cmap=cmap, vmin=0, vmax=2)
-ax.axis("off")
 # Legend: green = support, yellow = tolerance region, white = null
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="Support"),
@@ -280,19 +280,15 @@ def compute_spatially_relaxed_mask(mask, beta_extended):
 mask_dl_relaxed = compute_spatially_relaxed_mask(mask_dl, beta_extended)
 mask_cludl_relaxed = compute_spatially_relaxed_mask(mask_cludl, beta_extended)
 mask_encldl_relaxed = compute_spatially_relaxed_mask(mask_encludl, beta_extended)
-cmap = ListedColormap(
-    ["tab:orange", "tab:red", "tab:purple", "white", "tab:green"]
-)  # -3 -> orange, -2 -> red, -1 -> purple, 0 -> white, 1 -> green
+cmap = ListedColormap(["tab:orange", "tab:red", "tab:purple", "white", "tab:green"])
 
-_, axes = plt.subplots(1, 3, figsize=(10, 4))
+# sphinx_gallery_thumbnail_number = 6
+_, axes = plt.subplots(1, 3, figsize=(10, 4), subplot_kw={"xticks": [], "yticks": []})
 axes[0].imshow(mask_dl_relaxed, cmap=cmap, vmin=-3, vmax=1)
-axes[0].axis("off")
 axes[0].set_title("Desparsified Lasso", fontweight="bold")
 axes[1].imshow(mask_cludl_relaxed, cmap=cmap, vmin=-3, vmax=1)
-axes[1].axis("off")
 axes[1].set_title("CluDL", fontweight="bold")
 axes[2].imshow(mask_encldl_relaxed, cmap=cmap, vmin=-3, vmax=1)
-axes[2].axis("off")
 axes[2].set_title("EnCluDL", fontweight="bold")
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="True Positive"),

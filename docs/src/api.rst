@@ -45,8 +45,6 @@ Feature Importance functions
    :template: function.rst
    
    cfi_importance
-   clustered_inference
-   clustered_inference_pvalue
    d0crt_importance
    desparsified_lasso_importance
    model_x_knockoff_importance
