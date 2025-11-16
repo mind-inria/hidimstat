@@ -116,10 +116,10 @@ plt.tight_layout()
 
 # %%
 # It can be seen that:
-# - the Desparsified Lasso method is not powerful enough to recover the support, it
-#   only selects scattered pixels as true positives without identifying the regions.
-# - the number of false positives is quite high, and sometimes false positives are
-#   located far from the true support.
+# **1.** the Desparsified Lasso method is not powerful enough to recover the support, it
+# only selects scattered pixels as true positives without identifying the regions.
+# **2.** the number of false positives is quite high, and sometimes false positives are
+# located far from the true support.
 
 
 # %%
