@@ -58,7 +58,7 @@ warnings.filterwarnings(
 )
 
 # number of worker
-n_jobs = 5
+n_jobs = 3
 
 
 # %%
@@ -184,7 +184,7 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 
-desparsified_lasso = DesparsifiedLasso(
+desparsified_lasso_1 = DesparsifiedLasso(
     noise_method="median",
     estimator=clone(estimator),
     random_state=0,
@@ -192,7 +192,7 @@ desparsified_lasso = DesparsifiedLasso(
 )
 
 cludl = CluDL(
-    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso), random_state=0
+    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso_1), random_state=0
 )
 cludl.fit_importance(X, y)
 
@@ -208,7 +208,7 @@ cludl.fit_importance(X, y)
 
 encludl = EnCluDL(
     clustering=ward,
-    desparsified_lasso=deepcopy(desparsified_lasso),
+    desparsified_lasso=deepcopy(desparsified_lasso_1),
     n_jobs=n_jobs,
     n_bootstraps=10,
     cluster_boostrap_size=0.75,

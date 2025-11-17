@@ -24,7 +24,7 @@ from sklearn.utils import resample
 mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
 # Downsample to speed up the example
-n_samples = 3000
+n_samples = 5000
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
 X_4_7, y_4_7 = resample(
