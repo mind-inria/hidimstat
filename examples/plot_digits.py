@@ -22,18 +22,25 @@ from sklearn.utils import resample
 
 mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
+# Downsample to speed up the example
+n_samples = 4000
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
-# Downsample to speed up the example
-X_4_7, y_4_7 = resample(X_4_7, y_4_7, n_samples=5000, replace=False, random_state=0)
+X_4_7, y_4_7 = resample(
+    X_4_7, y_4_7, n_samples=n_samples, replace=False, random_state=0
+)
 
 mask_0_1 = (y_mnist == "0") | (y_mnist == "1")
 X_0_1, y_0_1 = X_mnist[mask_0_1], y_mnist[mask_0_1].astype(int)
-X_0_1, y_0_1 = resample(X_0_1, y_0_1, n_samples=5000, replace=False, random_state=0)
+X_0_1, y_0_1 = resample(
+    X_0_1, y_0_1, n_samples=n_samples, replace=False, random_state=0
+)
 
 mask_0_9 = (y_mnist == "0") | (y_mnist == "9")
 X_0_9, y_0_9 = X_mnist[mask_0_9], y_mnist[mask_0_9].astype(int)
-X_0_9, y_0_9 = resample(X_0_9, y_0_9, n_samples=5000, replace=False, random_state=0)
+X_0_9, y_0_9 = resample(
+    X_0_9, y_0_9, n_samples=n_samples, replace=False, random_state=0
+)
 
 
 _, axes = plt.subplots(3, 5, figsize=(6, 4), subplot_kw={"xticks": [], "yticks": []})
@@ -75,7 +82,7 @@ connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
 _, axes = plt.subplots(1, 4, figsize=(9, 3))
 
 for i, ax in enumerate(axes):
-    X_cluster = resample(X_4_7, n_samples=2000, replace=False, random_state=i)
+    X_cluster = resample(X_4_7, n_samples=n_samples // 2, replace=False, random_state=i)
     clustering = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
     clustering.fit(X_cluster)
     ax.imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
@@ -104,14 +111,14 @@ from hidimstat import DesparsifiedLasso
 from hidimstat.ensemble_clustered_inference import EnCluDL
 
 fwer = 0.1
-
+n_jobs = 5
 n_clusters = 100
 
 encludl = EnCluDL(
     clustering=clustering,
     desparsified_lasso=DesparsifiedLasso(estimator=LassoCV(max_iter=1000)),
-    n_bootstraps=15,
-    n_jobs=5,
+    n_bootstraps=10,
+    n_jobs=n_jobs,
     random_state=0,
     cluster_boostrap_size=0.5,
 )
