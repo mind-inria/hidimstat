@@ -1,23 +1,24 @@
 """
-Ensemble Clustered Inference on 2D data
+Ensemble Clustered Inference on 2D Data
 =======================================
 
-In this example, we present how to perform inference on 2D simulated data. This setting
+In this example, we present how to perform inference on simulated 2D data. This setting
 is particularly challenging since the number of features (pixels in 2D) is much larger
 than the number of samples. We first illustrate the limitations of the Desparsified
-Lasso method in this setting and then present two methods that leverage the spatial
-structure of the data to build clusters and perform the inference at the cluster level.
-We first show how to use clustered inference with DL (CluDL). We then show how to make
-clustered inference with Ensembled CluDL (EnCluDL).
+Lasso method in this setting and then present two methods that leverage the data's
+spatial structure to build clusters and perform the inference at the cluster level.
+We first show how to use clustered inference with DL (``class:hidimstat.CluDL``).
+We then show how to useclustered inference with Ensembled CluDL
+(``class:hidimstat.EnCluDL``).
 """
 
 # %%
 # Generating the data
 # -------------------
-# We start by simulating 2D data in which the support, i.e., the predictive features,
-# is composed of four regions of neighboring pixels located in each corner of the
-# 2D image. The target :math:`y` is a continuous variable generated from a linear model.
-# To make the problem more challenging, the pixels are spatially correlated using a
+# We begin by simulating 2D data where the support (i.e., the predictive features)
+# consists of four regions of neighboring pixels located in each corner of the 2D image.
+# The target variable :math:`y` is a continuous variable generated from a linear model. To
+# make the problem more challenging, the pixels are spatially correlated using a
 # Gaussian filter.
 
 import matplotlib.pyplot as plt
@@ -63,14 +64,13 @@ plt.tight_layout()
 # %%
 # Inference with Desparsified Lasso
 # ---------------------------------
-# First, we perform inference using the Desparsified Lasso method, we treat the data
-# as a standard high-dimensional regression problem without taking into account
-# the spatial structure of the data. At the inference step, we aim at recovering the
-# support while controlling the Family Wise Error Rate (FWER) at a targeted level of
-# 0.1. To do so, we use Bonferroni correction by a factor equal to the number of
-# features. For more details about the Desparsified Lasso method, see :
-# footcite:t:`javanmard2014confidence`, :footcite:p:`zhang2014confidence`
-# and :footcite:p:`van2014asymptotically`
+# First, we perform inference using the Desparsified Lasso method, treating the data as
+# a standard high-dimensional regression problem without considering its spatial
+# structure. The aim of the inference step is to recover the support while controlling
+# the Family-Wise Error Rate (FWER) at a targeted level of 0.1. To achieve this, we use
+# the Bonferroni correction, applying a factor equal to the number of features. For more
+# details about the Desparsified Lasso method, see :footcite:t:javanmard2014confidence,
+# :footcite:p:zhang2014confidence and :footcite:p:van2014asymptotically.
 
 import numpy as np
 from sklearn.linear_model import LassoCV
@@ -116,8 +116,8 @@ plt.tight_layout()
 
 # %%
 # It can be seen that:
-# **1.** the Desparsified Lasso method is not powerful enough to recover the support, it
-# only selects scattered pixels as true positives without identifying the regions.
+# **1.** the Desparsified Lasso method is not powerful enough to recover the support,
+# it only selects scattered pixels as true positives without identifying the regions.
 # **2.** the number of false positives is quite high, and sometimes false positives are
 # located far from the true support.
 
@@ -125,14 +125,14 @@ plt.tight_layout()
 # %%
 # Clustered inference with CluDL
 # -------------------------------
-# To improve the power of the inference, we can leverage the spatial structure
-# of the data. The idea is to group correlated pixels into clusters with an additional
+# To improve the power of the inference, we can leverage the spatial structure of the
+# data. The idea is to group correlated pixels into clusters, using an additional
 # spatial constraint (pixels are iteratively merged with neighboring pixels). This
-# leads to a dimension reduction while preserving the spatial structure of the data. To
-# control the FWER at the targeted level of 0.1, we perform Bonferroni correction
+# approach leads to a dimension reduction while preserving the data's spatial structure.
+# To control the FWER at the targeted level of 0.1, we perform Bonferroni correction,
 # but here the correction factor is equal to the number of clusters instead of the
 # number of features. For more details about CluDL, see
-# :footcite:t:`chevalier2022spatially`
+# :footcite:t:chevalier2022spatially.
 
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
@@ -180,17 +180,24 @@ plt.tight_layout()
 
 
 # %%
+# With ``CluDL``, the support recovery is more powerful, with large regions of the true
+# support being correctly identified. However, some false positives remain. In this
+# case, these false positives consist of small clusters that can be either contiguous to
+# the true support or located far from it.
+
+
+# %%
 # Inference with Ensembled CluDL
 # ------------------------------
-# Finally, we perform inference using an ensembled version of CluDL called
-# EnCluDL. The idea is to run several CluDL algorithms with different clustering
-# choices. By repeating the clustering step, on different bootstrap samples of the data,
-# this approach derandomizes the clustering choice and makes it more robust to small
-# variations in the data. It can be efficiently parallelized since the different CluDL
-# runs are independent and thus embarrassingly parallel. Similar to CluDL, we perform
-# Bonferroni correction with a factor equal to the number of clusters on the pvalues
-# obtained by aggregating the different CluDL runs. For more details about EnCluDL,
-# see :footcite:t:`chevalier2022spatially`
+# Finally, we perform inference using an ensembled version of ``CluDL`` called ``EnCluDL``. The
+# idea is to run several ``CluDL`` algorithms with different clustering choices. By
+# repeating the clustering step on different bootstrap samples of the data, this
+# approach derandomizes the clustering choice and makes it more robust to small
+# variations in the data. It can be efficiently parallelized since the different ``CluDL``
+# runs are independent and thus embarrassingly parallel. Similar to ``CluDL``, we perform
+# Bonferroni correction with a factor equal to the number of clusters on the p-values
+# obtained by aggregating the different ``CluDL`` runs. For more details about ``EnCluDL``,
+# see :footcite:t:chevalier2022spatially.
 
 from hidimstat.ensemble_clustered_inference import EnCluDL
 
@@ -234,12 +241,23 @@ plt.tight_layout()
 
 
 # %%
+# Compared to ``CluDL``, ``EnCluDL`` further improves the inference, primarily by reducing the
+# number of false positives located far from the true support. An intuitive explanation
+# for this improvement is that while false discoveries far from the true support may
+# occur randomly in a single clustering, they are less likely to occur repeatedly in
+# overlapping clusters obtained from different bootstrap samples of the data.
+
+
+# %%
 # Support recovery with spatial tolerance
 # ---------------------------------------
-# For spatially structured data, it is can also be relevant to consider a spatially
-# relaxed support recovery. The idea is to penalize less false discoveries that are
-# close to the true support. To do so, we introduce an extended support that
-# includes the true support and a tolerance region around it.
+# For spatially structured data, false discoveries that are close to the true support,
+# or even part of clusters that intersect the true support, are likely to change less
+# the interpretation of the results than false discoveries located far from the support.
+# Therefore, it can be relevant to consider a spatially relaxed support recovery,
+# The idea is to penalize less those false discoveries that are close
+# to the true support. To achieve this, we introduce an extended support that includes
+# the true support and a tolerance region around it.
 
 spatial_tolerance = 3
 roi_size_extended = roi_size + spatial_tolerance
