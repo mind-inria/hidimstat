@@ -11,8 +11,9 @@ MNIST dataset contains 28x28 pixel images of handwritten digits.
 # Loading the MNIST dataset
 # -------------------------
 # We start by loading the MNIST dataset from OpenML. We then filter the dataset to
-# include only digits 1 and 7 for the first classification task, and digits 0 and 1
-# for the second task. Finally, we visualize a few samples from each class.
+# include only digits 4 and 7 for the first classification task, and digits 0 and 1
+# for the second task and digits 0 and 9 for the third task. To speed up the example, we
+# downsample the dataset to 4000 samples for each task.
 
 
 import matplotlib.pyplot as plt
@@ -43,6 +44,9 @@ X_0_9, y_0_9 = resample(
 )
 
 
+# %%
+# Visualizing samples from each classification task
+
 _, axes = plt.subplots(3, 5, figsize=(6, 4), subplot_kw={"xticks": [], "yticks": []})
 for i in range(5):
     # Plot 0 vs 1
@@ -69,7 +73,10 @@ _ = plt.tight_layout()
 # introduces randomness into the inference process. Data perturbations can produce
 # different clustering results, which subsequently lead to varying inference outcomes.
 # This effect can be demonstrated by running the clustering algorithm multiple times
-# on different subsamples of the data.
+# on different subsamples of the data. Here we use the ward hierarchical clustering
+# algorithm with spatial connectivity constraints (each pixel is connected to its
+# immediate neighbors) to cluster the pixels of the images. We use 100 clusters and
+# visualize the clustering results for four different subsamples of the data.
 
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
@@ -96,12 +103,11 @@ _ = plt.tight_layout()
 # ----------------------------------------------------
 # To mitigate the randomness introduced by clustering, we ensemble the results from
 # multiple clustered inference procedures. This approach derandomizes the inference
-# procedure and produces more stable results. We use the `ensemble_clustered_inference`
-# function for this purpose. While this approach is more computationally intensive than
+# procedure and produces more stable results. We use the class:`hidimstat.EnCluDL`
+# for this purpose with 10 bootstraps. While this approach is more computationally intensive than
 # single clustered inference, the procedure can be parallelized across clustering
-# repetitions using the `n_jobs` parameter.
+# repetitions using the ``n_jobs`` parameter.
 
-# %%
 
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
@@ -145,7 +151,7 @@ selected_neg_0_9 = encludl.one_minus_pvalues_ < fwer / 2 / n_clusters
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-_, axes = plt.subplots(1, 3, figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
+_, axes = plt.subplots(1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []})
 
 for i, (title, selected_pos, selected_neg) in enumerate(
     [
@@ -166,10 +172,10 @@ plt.tight_layout()
 
 
 # %%
-# Making inference on handwritten digits is hard because the images are not
-# aligned, the pixels occupied by the digits differ from one image to another. However,
-# using EnCluDL, we can still identify some clusters of pixels that are statistically
-# significant for the classification tasks considered. For instance, the bottom left
-# part of the loop when distinguishing between digits 0 and 9. Or the bottom left corner
-# of digit 4 when distinguishing between digits 4 and 7. Also, the central vertical
-# stroke when distinguishing between digits 0 and 1.
+# Performing inference on handwritten digits is challenging because the images are not
+# perfectly aligned, and the pixel regions occupied by digits vary from one image to
+# another. However, using EnCluDL, we can still identify clusters of pixels that are
+# statistically significant for the classification tasks. For example, we can detect
+# the bottom left portion of the loop when distinguishing between digits 0 and 9, the
+# bottom left corner of digit 4 when distinguishing between digits 4 and 7, and the
+# central vertical stroke when distinguishing between digits 0 and 1.

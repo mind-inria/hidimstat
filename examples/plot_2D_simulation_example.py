@@ -7,9 +7,9 @@ is particularly challenging since the number of features (pixels in 2D) is much 
 than the number of samples. We first illustrate the limitations of the Desparsified
 Lasso method in this setting and then present two methods that leverage the data's
 spatial structure to build clusters and perform the inference at the cluster level.
-We first show how to use clustered inference with DL (``class:hidimstat.CluDL``).
-We then show how to useclustered inference with Ensembled CluDL
-(``class:hidimstat.EnCluDL``).
+We first show how to use clustered inference with DL (:class:`hidimstat.CluDL`).
+We then show how to use clustered inference with Ensembled CluDL
+(:class:`hidimstat.EnCluDL`).
 """
 
 # %%
@@ -69,8 +69,8 @@ plt.tight_layout()
 # structure. The aim of the inference step is to recover the support while controlling
 # the Family-Wise Error Rate (FWER) at a targeted level of 0.1. To achieve this, we use
 # the Bonferroni correction, applying a factor equal to the number of features. For more
-# details about the Desparsified Lasso method, see :footcite:t:javanmard2014confidence,
-# :footcite:p:zhang2014confidence and :footcite:p:van2014asymptotically.
+# details about the Desparsified Lasso method, see :footcite:t:`javanmard2014confidence`,
+# :footcite:t:`zhang2014confidence` and :footcite:t:`van2014asymptotically`.
 
 import numpy as np
 from sklearn.linear_model import LassoCV
@@ -132,7 +132,7 @@ plt.tight_layout()
 # To control the FWER at the targeted level of 0.1, we perform Bonferroni correction,
 # but here the correction factor is equal to the number of clusters instead of the
 # number of features. For more details about CluDL, see
-# :footcite:t:chevalier2022spatially.
+# :footcite:t:`chevalier2022spatially`.
 
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
@@ -197,7 +197,7 @@ plt.tight_layout()
 # runs are independent and thus embarrassingly parallel. Similar to ``CluDL``, we perform
 # Bonferroni correction with a factor equal to the number of clusters on the p-values
 # obtained by aggregating the different ``CluDL`` runs. For more details about ``EnCluDL``,
-# see :footcite:t:chevalier2022spatially.
+# see :footcite:t:`chevalier2022spatially`.
 
 from hidimstat.ensemble_clustered_inference import EnCluDL
 
