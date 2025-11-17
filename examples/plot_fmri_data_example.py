@@ -58,7 +58,7 @@ warnings.filterwarnings(
 )
 
 # number of worker
-n_jobs = 3
+n_jobs = 5
 
 
 # %%
@@ -184,6 +184,13 @@ except MemoryError as err:
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 
+desparsified_lasso = DesparsifiedLasso(
+    noise_method="median",
+    estimator=clone(estimator),
+    random_state=0,
+    n_jobs=1,
+)
+
 cludl = CluDL(
     clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso), random_state=0
 )
@@ -197,6 +204,8 @@ cludl.fit_importance(X, y)
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
+
+
 encludl = EnCluDL(
     clustering=ward,
     desparsified_lasso=deepcopy(desparsified_lasso),
@@ -206,6 +215,7 @@ encludl = EnCluDL(
     random_state=0,
 )
 encludl.fit_importance(X, y)
+
 # %%
 # Plotting the results
 # --------------------
