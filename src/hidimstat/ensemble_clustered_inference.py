@@ -3,10 +3,10 @@ from copy import deepcopy
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
-from hidimstat._utils.bootstrap import _subsampling
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.desparsified_lasso import DesparsifiedLasso
@@ -105,7 +105,7 @@ class CluDL(BaseVariableImportance):
         self.n_features_in_ = X.shape[1]
 
         # Clustering
-        self.clustering_samples_ = _subsampling(
+        self.clustering_samples_ = self._subsampling(
             n_samples=X.shape[0],
             train_size=self.cluster_boostrap_size,
             groups=self.bootstrap_groups,
@@ -222,6 +222,39 @@ class CluDL(BaseVariableImportance):
                     ward.inverse_transform(beta_hat[:, i]) / clusters_size
                 )
         return beta_hat_degrouped
+
+    @staticmethod
+    def _subsampling(n_samples, train_size, groups=None, random_state=None):
+        """
+        Random subsampling for statistical inference.
+
+        Parameters
+        ----------
+        n_samples : int
+            Total number of samples in the dataset.
+        train_size : float
+            Fraction of samples to include in the training set (between 0 and 1).
+        groups : ndarray, shape (n_samples,), optional (default=None)
+            Group labels for samples.
+            If not None, a subset of groups is selected.
+        random_state : int, optional (default=0)
+            Random seed for reproducibility.
+
+        Returns
+        -------
+        train_index : ndarray
+            Indices of selected samples for training.
+        """
+        index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+        train_index = resample(
+            index_row,
+            n_samples=int(len(index_row) * train_size),
+            replace=False,
+            random_state=np.random.RandomState(random_state.bit_generator),
+        )
+        if groups is not None:
+            train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+        return train_index
 
 
 class EnCluDL(BaseVariableImportance):
@@ -409,4 +442,5 @@ class EnCluDL(BaseVariableImportance):
         """
         self.fit(X, y)
         self.importance(X, y)
+        return self.importances_
         return self.importances_
