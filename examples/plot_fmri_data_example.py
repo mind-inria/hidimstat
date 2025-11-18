@@ -170,15 +170,11 @@ desparsified_lasso = DesparsifiedLasso(
     random_state=0,
     n_jobs=n_jobs,
 )
-try:
-    desparsified_lasso_ = deepcopy(desparsified_lasso)
-    desparsified_lasso_.fit_importance(X, y)
-    pval_dl = desparsified_lasso_.pvalues_
-    one_minus_pval_dl = desparsified_lasso_.one_minus_pvalues_
-except MemoryError as err:
-    pval_dl = None
-    one_minus_pval_dl = None
-    print("As expected, Desparsified Lasso uses too much memory.")
+desparsified_lasso_ = deepcopy(desparsified_lasso)
+desparsified_lasso_.fit_importance(X, y)
+pval_dl = desparsified_lasso_.pvalues_
+one_minus_pval_dl = desparsified_lasso_.one_minus_pvalues_
+
 
 # %%
 # Now, the clustered inference algorithm which combines parcellation
