@@ -73,7 +73,7 @@ _ = plt.tight_layout()
 # introduces randomness into the inference process. Data perturbations can produce
 # different clustering results, which subsequently lead to varying inference outcomes.
 # This effect can be demonstrated by running the clustering algorithm multiple times
-# on different subsamples of the data. Here we use the ward hierarchical clustering
+# on different subsamples of the data. Here we use the Ward hierarchical clustering
 # algorithm with spatial connectivity constraints (each pixel is connected to its
 # immediate neighbors) to cluster the pixels of the images. We use 100 clusters and
 # visualize the clustering results for four different subsamples of the data.
