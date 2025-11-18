@@ -156,29 +156,17 @@ estimator = LassoCV(
 )
 
 
-# First, we try to recover the discriminative pattern by computing
-# p-values from desparsified lasso.
-# Due to the size of the X, it's not possible to use this method with a limit
-# of 5 G for memory. To handle this problem, the following methods use some
-# feature aggregation methods.
-
-from copy import deepcopy
-
-desparsified_lasso = DesparsifiedLasso(
-    noise_method="median",
-    estimator=clone(estimator),
-    random_state=0,
-    n_jobs=n_jobs,
-)
-desparsified_lasso_ = deepcopy(desparsified_lasso)
-desparsified_lasso_.fit_importance(X, y)
-pval_dl = desparsified_lasso_.pvalues_
-one_minus_pval_dl = desparsified_lasso_.one_minus_pvalues_
+# %%
+# Due to the very high dimensionality of the problem (close to 40,000 voxels) computing
+# a p-value map with Desparsified Lasso would be very memory consuming and may also be
+# inadequate since it does not take into account the spatial structure of the data.
 
 
 # %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
+
+from copy import deepcopy
 
 desparsified_lasso_1 = DesparsifiedLasso(
     noise_method="median",
