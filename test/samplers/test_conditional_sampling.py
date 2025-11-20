@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat.conditional_sampling import ConditionalSampler
+from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
 
 def test_continuous_case():

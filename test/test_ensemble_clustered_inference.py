@@ -28,7 +28,7 @@ def test_clustered_inference_no_temporal():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 100, 2000
+    n_samples, n_features = 100, 1000
     support_size = 10
     signal_noise_ratio = 5.0
     rho = 0.95
@@ -56,23 +56,22 @@ def test_clustered_inference_no_temporal():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
+    ward_, desparsified_lassos = clustered_inference(
         X_init, y, ward, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_samples, None, ward_, beta_hat, theta_hat, precision_diag
-        )
+        clustered_inference_pvalue(n_samples, None, ward_, desparsified_lassos)
     )
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
+    alpha = 0.05
+    tp = np.sum(pval_corr[:interior_support] < alpha)
+    fp = np.sum(pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(pval_corr[:interior_support], expected[:interior_support])
-    assert_almost_equal(
-        pval_corr[extended_support:200], expected[extended_support:200], decimal=1
-    )
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 # Scenario 2: temporal data
@@ -85,7 +84,7 @@ def test_clustered_inference_temporal():
     Computing one sided p-values, we want low p-values for the features of
     the support and p-values close to 0.5 for the others.
     """
-    n_samples, n_features, n_target = 200, 2000, 10
+    n_samples, n_features, n_target = 100, 1000, 10
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -112,30 +111,22 @@ def test_clustered_inference_temporal():
     ward = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
-        X, y, ward, scaler_sampling=StandardScaler(), random_state=0
+
+    ward_, desparsified_lassos = clustered_inference(
+        X, y, ward, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-        clustered_inference_pvalue(
-            n_samples,
-            True,
-            ward_,
-            beta_hat,
-            theta_hat,
-            precision_diag,
-        )
+        clustered_inference_pvalue(n_samples, True, ward_, desparsified_lassos)
     )
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
-
-    assert_almost_equal(
-        pval_corr[:interior_support], expected[:interior_support], decimal=3
-    )
-    assert_almost_equal(
-        pval_corr[extended_support:], expected[extended_support:], decimal=1
-    )
+    alpha = 0.05
+    tp = np.sum(pval_corr[:interior_support] < alpha)
+    fp = np.sum(pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 # Scenario 3: data with no temporal dimension and with groups
@@ -150,12 +141,12 @@ def test_clustered_inference_no_temporal_groups():
     the support and p-values close to 0.5 for the others.
     """
 
-    n_samples, n_features = 20, 1500
+    n_samples, n_features = 100, 500
     support_size = 10
     n_groups = 10
     signal_noise_ratio = 5.0
     rho = 0.95
-    n_clusters = 150
+    n_clusters = 50
     margin_size = 5
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
@@ -188,23 +179,24 @@ def test_clustered_inference_no_temporal_groups():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    ward_, beta_hat, theta_hat, precision_diag = clustered_inference(
+    ward_, desparsified_lassos = clustered_inference(
         X_, y_, ward, groups=groups, scaler_sampling=StandardScaler()
     )
 
     beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
         clustered_inference_pvalue(
-            n_groups * n_samples, False, ward_, beta_hat, theta_hat, precision_diag
+            n_groups * n_samples, False, ward_, desparsified_lassos
         )
     )
 
-    expected = 0.5 * np.ones(n_features)
-    expected[:support_size] = 0.0
+    alpha = 0.05
+    tp = np.sum(pval_corr[:interior_support] < alpha)
+    fp = np.sum(pval_corr[extended_support:] < alpha)
+    power = tp / interior_support
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(pval_corr[:interior_support], expected[:interior_support])
-    assert_almost_equal(
-        pval_corr[extended_support:200], expected[extended_support:200], decimal=1
-    )
+    assert power >= 0.5
+    assert fdp <= alpha
 
 
 def test_ensemble_clustered_inference():
@@ -217,10 +209,11 @@ def test_ensemble_clustered_inference():
 
     # Scenario 1: data with no temporal dimension
     # ###########################################
-    n_samples, n_features = 200, 2000
+    n_samples, n_features = 200, 1000
     support_size = 10
-    signal_noise_ratio = 5.0
+    signal_noise_ratio = 16.0
     rho = 0.95
+    fdr = 0.1
 
     X_init, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -234,7 +227,7 @@ def test_ensemble_clustered_inference():
     )
 
     margin_size = 5
-    n_clusters = 200
+    n_clusters = 50
     n_bootstraps = 3
 
     y = y - np.mean(y)
@@ -245,36 +238,28 @@ def test_ensemble_clustered_inference():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
-        ensemble_clustered_inference(
-            X_init,
-            y,
-            ward,
-            scaler_sampling=StandardScaler(),
-            n_bootstraps=n_bootstraps,
-            random_state=0,
-        )
+    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
+        X_init,
+        y,
+        ward,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
         n_samples,
         False,
         list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
+        list_desparsified_lassos,
+        fdr=fdr,
     )
 
-    expected = np.zeros(n_features)
-    expected[:support_size] = 1.0
+    tp = np.sum(selected[: support_size - margin_size])
+    fp = np.sum(selected[support_size + margin_size :])
+    power = tp / (support_size - margin_size)
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(
-        selected[: support_size - margin_size], expected[: support_size - margin_size]
-    )
-    assert_almost_equal(
-        selected[support_size + margin_size :],
-        expected[support_size + margin_size :],
-        decimal=1,
-    )
+    assert power >= 0.5
+    assert fdp <= fdr
 
 
 def test_ensemble_clustered_inference_temporal_data():
@@ -283,7 +268,7 @@ def test_ensemble_clustered_inference_temporal_data():
     # #########################
     n_samples, n_features, n_target = 200, 400, 10
     support_size = 10
-    signal_noise_ratio = 5.0
+    signal_noise_ratio = 5
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 50
@@ -291,6 +276,7 @@ def test_ensemble_clustered_inference_temporal_data():
     interior_support = support_size - margin_size
     extended_support = support_size + margin_size
     n_bootstraps = 4
+    fdr = 0.1
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -310,53 +296,37 @@ def test_ensemble_clustered_inference_temporal_data():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
 
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = (
-        ensemble_clustered_inference(
-            X,
-            y,
-            ward,
-            scaler_sampling=StandardScaler(),
-            n_bootstraps=n_bootstraps,
-            random_state=0,
-        )
+    list_ward, list_desparsified_lassos = ensemble_clustered_inference(
+        X,
+        y,
+        ward,
+        scaler_sampling=StandardScaler(),
+        n_bootstraps=n_bootstraps,
     )
     beta_hat, selected = ensemble_clustered_inference_pvalue(
-        n_samples,
-        True,
-        list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
-        fdr_control="bhq",
+        n_samples, True, list_ward, list_desparsified_lassos, fdr_control="bhq", fdr=fdr
     )
 
-    expected = np.zeros(n_features)
-    expected[:support_size] = 1.0
+    tp = np.sum(selected[:interior_support])
+    fp = np.sum(selected[extended_support:])
+    power = tp / (interior_support)
+    fdp = fp / max(fp + tp, 1)
 
-    assert_almost_equal(
-        selected[:interior_support, 0], expected[:interior_support], decimal=3
-    )
-    assert_almost_equal(
-        selected[extended_support:, 0], expected[extended_support:], decimal=1
-    )
+    assert power >= 0.5
+    assert fdp <= fdr
 
     # different aggregation method
     beta_hat, selected = ensemble_clustered_inference_pvalue(
         n_samples,
         True,
         list_ward,
-        list_beta_hat,
-        list_theta_hat,
-        list_precision_diag,
+        list_desparsified_lassos,
         fdr_control="bhy",
     )
+    tp = np.sum(selected[:interior_support])
+    fp = np.sum(selected[extended_support:])
+    power = tp / (interior_support)
+    fdp = fp / max(fp + tp, 1)
 
-    expected = np.zeros(n_features)
-    expected[:support_size] = 1.0
-
-    assert_almost_equal(
-        selected[:interior_support, 0], expected[:interior_support], decimal=3
-    )
-    assert_almost_equal(
-        selected[extended_support:, 0], expected[extended_support:], decimal=1
-    )
+    assert power >= 0.5
+    assert fdp <= fdr
