@@ -30,7 +30,7 @@ def set_100_variable_sorted():
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
     vi.pvalues_ = np.flip(np.sort(rng.random(n_features)))[vi.importances_]
-    vi.one_minus_pvalues_ = np.ones_like(vi.pvalues_) * 0.5
+    vi.one_minus_pvalues_ = 1 - vi.pvalues_
     return vi
 
 
@@ -155,30 +155,92 @@ class TestSelectionFDR:
         ):
             vi.fdr_selection(fdr=0.1, alternative_hypothesis="alt")
 
-    def test_selection_fdr_pvalue(self, set_100_variable_sorted):
-        "test selection fdr without 1-pvalue"
-        vi = set_100_variable_sorted
-        true_value = np.arange(100) <= 4
-        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=False)
-        np.testing.assert_equal(
-            true_value, np.flip(selection[np.argsort(vi.importances_)])
+
+def test_selection_bhq():
+    """
+    Test selection based on Benjamini-Hochberg procedure. p-values are logarithmically
+    spaced between 2^-20 and 0.5 then between 0.5 and 1-2^-20 to have significant
+    features for both tails. The BH proceedure is compared to ground truth selection,
+    based on the analytical critical p-value threshold.
+    """
+    vim = BaseVariableImportance()
+    n_features = 100
+    vim.importances_ = np.arange(n_features)[::-1]
+    vim.pvalues_ = np.hstack(
+        [
+            np.logspace(-20, -1, n_features // 2, base=2),
+            1 - np.logspace(-1, -20, n_features // 2, base=2),
+        ]
+    )
+    vim.one_minus_pvalues_ = 1 - vim.pvalues_
+
+    # Test selection based on pvalues_
+    for fdr in [0.05, 0.1, 0.2]:
+        critical_k = (
+            np.argwhere(vim.pvalues_ <= np.arange(1, n_features + 1) / n_features * fdr)
+            .ravel()
+            .max()
+        )
+        selected_gt = np.array(
+            [True if i <= critical_k else False for i in range(n_features)]
         )
 
-    def test_selection_fdr_one_minus_pvalue(self, set_100_variable_sorted):
-        "test selection fdr without 1-pvalue"
-        vi = set_100_variable_sorted
-        true_value = np.arange(100) >= 34
-        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=True)
-        # TODO revise this test
-        assert True
+        selected = vim.fdr_selection(fdr=fdr, fdr_control="bhq")
+        np.testing.assert_array_equal(selected_gt, selected)
 
-    def test_selection_fdr_two_side(self, set_100_variable_sorted):
-        "test selection fdr without 1-pvalue"
-        vi = set_100_variable_sorted
-        true_value = np.logical_or(np.arange(100) <= 4, np.arange(100) >= 34)
-        selection = vi.fdr_selection(fdr=0.9, alternative_hypothesis=None)
-        # TODOL revise this test
-        assert True
+    # Test selection based on one_minus_pvalues_
+    for fdr in [0.05, 0.1, 0.2]:
+        critical_k = (
+            np.argwhere(
+                vim.one_minus_pvalues_[::-1]
+                <= (np.arange(1, n_features + 1) / n_features * fdr)
+            )
+            .ravel()
+            .max()
+        )
+        selected_gt = np.array(
+            [
+                True if i >= n_features - 1 - critical_k else False
+                for i in range(n_features)
+            ]
+        )
+        selected = vim.fdr_selection(
+            fdr=fdr, fdr_control="bhq", alternative_hypothesis=True
+        )
+        np.testing.assert_array_equal(selected_gt, selected)
+
+    # # Test two-sided selection, with fdr/2
+    for fdr in [0.05, 0.1, 0.2]:
+        critical_k_lower = (
+            np.argwhere(
+                vim.pvalues_ <= np.arange(1, n_features + 1) / n_features * fdr / 2
+            )
+            .ravel()
+            .max()
+        )
+
+        critical_k_upper = (
+            np.argwhere(
+                vim.one_minus_pvalues_[::-1]
+                <= np.arange(1, n_features + 1) / n_features * fdr / 2
+            )
+            .ravel()
+            .max()
+        )
+        selected_gt = np.array(
+            [
+                (
+                    True
+                    if (i <= critical_k_lower or i >= n_features - 1 - critical_k_upper)
+                    else False
+                )
+                for i in range(n_features)
+            ]
+        )
+        selected = vim.fdr_selection(
+            fdr=fdr / 2, fdr_control="bhq", alternative_hypothesis=None
+        )
+        np.testing.assert_array_equal(selected_gt, selected)
 
 
 class TestBVIExceptions:
