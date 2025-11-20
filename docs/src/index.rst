@@ -135,4 +135,5 @@ References
   user_guide
   generated/gallery/examples/index
   glossary_and_notations
+  whats_news/whats_news
   dev/index
