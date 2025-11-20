@@ -160,7 +160,7 @@ def test_selection_bhq():
     """
     Test selection based on Benjamini-Hochberg procedure. p-values are logarithmically
     spaced between 2^-20 and 0.5 then between 0.5 and 1-2^-20 to have significant
-    features for both tails. The BH proceedure is compared to ground truth selection,
+    features for both tails. The BH procedure is compared to ground truth selection,
     based on the analytical critical p-value threshold.
     """
     vim = BaseVariableImportance()
