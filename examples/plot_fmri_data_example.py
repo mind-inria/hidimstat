@@ -19,10 +19,8 @@ We introduce two feature aggregation methods that maintain statistical guarantee
 though with a small spatial tolerance in support detection (i.e., they may identify
 null covariates "close" to non-null covariates):
 
-* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation)
-    with statistical inference
-* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization
-    to the clustering process
+* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation) with statistical inference
+* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization to the clustering process
 
 EnCluDL is particularly powerful as it doesn't rely on a single clustering choice.
 As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
@@ -30,40 +28,19 @@ predictive regions across various tasks.
 """
 
 # %%
-
-import warnings
+# fetch and preprocess Haxby dataset
+# ----------------------------------------------
+# We define a function that gathers and preprocesses the Haxby dataset for a given subject.
+# Only the 'face' and 'house' conditions are kept for this example.
 
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
-from nilearn.plotting import plot_stat_map, show
-from sklearn.base import clone
-from sklearn.cluster import FeatureAgglomeration
-from sklearn.feature_extraction import image
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import CluDL, EnCluDL
-from hidimstat.statistical_tools.p_values import zscore_from_pval
 
-# Remove warnings during loading data
-warnings.filterwarnings(
-    "ignore", message="The provided image has no sform in its header."
-)
-
-# number of worker
-n_jobs = 3
-
-
-# %%
-# Function to fetch and preprocess Haxby dataset
-# ----------------------------------------------
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
 
@@ -112,6 +89,17 @@ def preprocess_haxby(subject=2, memory=None):
 # 'face' or 'house' (contained in `X`), the conditions (in `y`),
 # the session labels (in `groups`) and the mask (in `masker`).
 # You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
+
+# %%
+
+import warnings
+
+# Remove warnings during loading data
+warnings.filterwarnings(
+    "ignore", message="The provided image has no sform in its header."
+)
+
+
 data = preprocess_haxby(subject=2)
 X, y, groups, masker = data.X, data.y, data.groups, data.masker
 mask = masker.mask_img_.get_fdata().astype(bool)
@@ -120,6 +108,9 @@ mask = masker.mask_img_.get_fdata().astype(bool)
 # Initializing FeatureAgglomeration object that performs the clustering
 # ---------------------------------------------------------------------
 # For fMRI data taking 500 clusters is generally a good default choice.
+
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.feature_extraction import image
 
 n_clusters = 500
 
@@ -134,15 +125,10 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # %%
 # Making the inference with several algorithms
 # --------------------------------------------
-# Limit the resource use for the algorithm to 5 G or maximum of possible.
-#
-import resource
 
-limit_5G = int(5 * 1e9)
-soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
-new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
-resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 
 # Default estimator
 estimator = LassoCV(
@@ -168,6 +154,13 @@ estimator = LassoCV(
 
 from copy import deepcopy
 
+from sklearn.base import clone
+
+from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.ensemble_clustered_inference import CluDL
+
+# number of worker
+n_jobs = 3
 desparsified_lasso_1 = DesparsifiedLasso(
     noise_method="median",
     estimator=clone(estimator),
@@ -190,6 +183,8 @@ cludl.fit_importance(X, y)
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
 
 
+from hidimstat.ensemble_clustered_inference import EnCluDL
+
 encludl = EnCluDL(
     clustering=ward,
     desparsified_lasso=deepcopy(desparsified_lasso_1),
@@ -209,6 +204,8 @@ encludl.fit_importance(X, y)
 # inverse survival function.
 #
 # First, we set theoretical FWER target at 10%.
+
+from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 n_samples, n_features = X.shape
 target_fwer = 0.1
@@ -240,6 +237,11 @@ zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 # p-value maps estimated previously into z-score maps and using the
 # suitable threshold. For a better readability, we make a small function
 # called `plot_map` that wraps all these steps.
+
+
+from matplotlib.pyplot import get_cmap
+from nilearn.plotting import plot_stat_map, show
+from sklearn.preprocessing import StandardScaler
 
 
 def plot_map(
