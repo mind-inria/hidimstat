@@ -114,6 +114,9 @@ class BaseVariableImportance(BaseEstimator):
         The computed importance scores for each feature.
     pvalues_ : array-like of shape (n_features,), default=None
         The computed p-values for each feature.
+    one_minus_pvalues_: ndarray of shape (n_features)
+        One minus the corrected p-value, with numerically accurate values for negative
+        effects (ie., for p-value close to one).
 
     Methods
     -------
@@ -128,6 +131,7 @@ class BaseVariableImportance(BaseEstimator):
         super().__init__()
         self.importances_ = None
         self.pvalues_ = None
+        self.one_minus_pvalues_ = None
 
     def _check_importance(self):
         """
@@ -287,13 +291,13 @@ class BaseVariableImportance(BaseEstimator):
         # selection on 1-pvalue
         if alternative_hypothesis is None or alternative_hypothesis:
             threshold_one_minus_pvalues = fdr_threshold(
-                1 - self.pvalues_,
+                self.one_minus_pvalues_,
                 fdr=fdr,
                 method=fdr_control,
                 reshaping_function=reshaping_function,
             )
             selected_one_minus_pvalues = (
-                1 - self.pvalues_
+                self.one_minus_pvalues_
             ) <= threshold_one_minus_pvalues
         else:
             selected_one_minus_pvalues = np.zeros_like(self.pvalues_, dtype=bool)
