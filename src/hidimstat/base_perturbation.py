@@ -145,12 +145,13 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_features_group)(
-                X_, features_group_id, features_group_key, random_state=child_state
+                X_, features_group_id, random_state=child_state
             )
-            for features_group_id, (features_group_key, child_state) in enumerate(
-                zip(self.features_groups.keys(), rng.spawn(self.n_features_groups_))
+            for features_group_id, child_state in enumerate(
+                rng.spawn(self.n_features_groups_)
             )
         )
+
         return np.stack(out_list, axis=0)
 
     def importance(self, X, y):
@@ -255,7 +256,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_features_group(
-        self, X, features_group_id, features_group_key, random_state=None
+        self, X, features_group_id, random_state=None
     ):
         """
         Compute the predictions after perturbation of the data for a given
@@ -267,8 +268,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The input samples.
         features_group_id: int
             The index of the group of variables.
-        features_group_key: str, int
-            The key of the group of variables. (parameter use for debugging)
         random_state:
             The random state to use for sampling.
         """
