@@ -94,7 +94,7 @@ jobs:
       PYTHON: '3.13'
     steps:
     # initialize the reposititory
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     
     # get coverage only for 1 job 
     - name: Get data
