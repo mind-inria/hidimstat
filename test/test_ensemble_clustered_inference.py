@@ -16,7 +16,7 @@ from hidimstat._utils.scenario import (
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-def fdp_power_spatially_relaxed(
+def spatially_relaxed_fdp_power(
     selected, ground_truth, roi_size, spatial_tolerance, shape
 ):
     """
