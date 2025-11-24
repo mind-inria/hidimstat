@@ -339,6 +339,28 @@ class EnCluDL(BaseVariableImportance):
 
         self.desparsified_lassos_ = None
 
+    @staticmethod
+    def _joblib_fit_one(
+        desparsified_lasso,
+        clustering,
+        cluster_boostrap_size,
+        bootstrap_groups,
+        X,
+        y,
+        random_state,
+        memory,
+    ):
+        clu_dl = CluDL(
+            desparsified_lasso=desparsified_lasso,
+            clustering=clustering,
+            cluster_boostrap_size=cluster_boostrap_size,
+            bootstrap_groups=bootstrap_groups,
+            random_state=random_state,
+            memory=memory,
+        )
+        clu_dl.fit(X, y)
+        return clu_dl
+
     def fit(self, X, y):
         """
         Fit multiple clustered inferences on random subsamples of the data.
@@ -357,20 +379,17 @@ class EnCluDL(BaseVariableImportance):
         """
         rng = check_random_state(self.random_state)
 
-        def _fit_one(rng_spawned):
-            clu_dl = CluDL(
-                desparsified_lasso=clone(self.desparsified_lasso),
-                clustering=clone(self.clustering),
+        self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_fit_one)(
+                desparsified_lasso=self.desparsified_lasso,
+                clustering=self.clustering,
                 cluster_boostrap_size=self.cluster_boostrap_size,
                 bootstrap_groups=self.bootstrap_groups,
+                X=X,
+                y=y,
                 random_state=rng_spawned,
                 memory=self.memory,
             )
-            clu_dl.fit(X, y)
-            return clu_dl
-
-        self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(_fit_one)(rng_spawned)
             for rng_spawned in tqdm(
                 rng.spawn(self.n_bootstraps),
                 desc="Fitting clustered inferences",
