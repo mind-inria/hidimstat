@@ -1,7 +1,6 @@
-from copy import deepcopy
-
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
@@ -360,8 +359,8 @@ class EnCluDL(BaseVariableImportance):
 
         def _fit_one(rng_spawned):
             clu_dl = CluDL(
-                desparsified_lasso=deepcopy(self.desparsified_lasso),
-                clustering=deepcopy(self.clustering),
+                desparsified_lasso=clone(self.desparsified_lasso),
+                clustering=clone(self.clustering),
                 cluster_boostrap_size=self.cluster_boostrap_size,
                 bootstrap_groups=self.bootstrap_groups,
                 random_state=rng_spawned,

@@ -87,7 +87,7 @@ def test_cludl_spatial():
     fdr = 0.1
     selected = cludl.fdr_selection(fdr=fdr)
 
-    fdp, power = fdp_power_spatially_relaxed(
+    fdp, power = spatially_relaxed_fdp_power(
         selected=selected,
         ground_truth=beta,
         roi_size=roi_size,
@@ -140,7 +140,7 @@ def test_encludl_spatial():
     fdr = 0.1
     selected = cludl.fdr_selection(fdr=fdr)
 
-    fdp, power = fdp_power_spatially_relaxed(
+    fdp, power = spatially_relaxed_fdp_power(
         selected=selected,
         ground_truth=beta,
         roi_size=roi_size,
