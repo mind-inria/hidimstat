@@ -19,54 +19,28 @@ We introduce two feature aggregation methods that maintain statistical guarantee
 though with a small spatial tolerance in support detection (i.e., they may identify
 null covariates "close" to non-null covariates):
 
-* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation)
-    with statistical inference
-* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization
-    to the clustering process
+* Clustered Desparsified Lasso (CLuDL): combines clustering (parcellation) with statistical inference
+* Ensemble Clustered Desparsified Lasso (EnCluDL): adds randomization to the clustering process
 
 EnCluDL is particularly powerful as it doesn't rely on a single clustering choice.
 As demonstrated in :footcite:t:`chevalier2021decoding`, it produces relevant
 predictive regions across various tasks.
 """
 
-import warnings
+# %%
+# fetch and preprocess Haxby dataset
+# ----------------------------------------------
+# We define a function that gathers and preprocesses the Haxby dataset for a given subject.
+# Only the 'face' and 'house' conditions are kept for this example.
 
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import get_cmap
 from nilearn import datasets
 from nilearn.image import mean_img
 from nilearn.maskers import NiftiMasker
-from nilearn.plotting import plot_stat_map, show
-from sklearn.base import clone
-from sklearn.cluster import FeatureAgglomeration
-from sklearn.feature_extraction import image
-from sklearn.linear_model import LassoCV
-from sklearn.model_selection import KFold
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils import Bunch
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import (
-    clustered_inference,
-    clustered_inference_pvalue,
-    ensemble_clustered_inference,
-    ensemble_clustered_inference_pvalue,
-)
-from hidimstat.statistical_tools.p_values import zscore_from_pval
 
-# Remove warnings during loading data
-warnings.filterwarnings(
-    "ignore", message="The provided image has no sform in its header."
-)
-
-# number of worker
-n_jobs = 3
-
-
-# %%
-# Function to fetch and preprocess Haxby dataset
-# ----------------------------------------------
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
 
@@ -115,6 +89,17 @@ def preprocess_haxby(subject=2, memory=None):
 # 'face' or 'house' (contained in `X`), the conditions (in `y`),
 # the session labels (in `groups`) and the mask (in `masker`).
 # You may choose a subject in [1, 2, 3, 4, 5, 6]. By default subject=2.
+
+# %%
+
+import warnings
+
+# Remove warnings during loading data
+warnings.filterwarnings(
+    "ignore", message="The provided image has no sform in its header."
+)
+
+
 data = preprocess_haxby(subject=2)
 X, y, groups, masker = data.X, data.y, data.groups, data.masker
 mask = masker.mask_img_.get_fdata().astype(bool)
@@ -123,6 +108,9 @@ mask = masker.mask_img_.get_fdata().astype(bool)
 # Initializing FeatureAgglomeration object that performs the clustering
 # ---------------------------------------------------------------------
 # For fMRI data taking 500 clusters is generally a good default choice.
+
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.feature_extraction import image
 
 n_clusters = 500
 
@@ -137,15 +125,10 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # %%
 # Making the inference with several algorithms
 # --------------------------------------------
-# Limit the resource use for the algorithm to 5 G or maximum of possible.
-#
-import resource
 
-limit_5G = int(5 * 1e9)
-soft, hard = resource.getrlimit(resource.RLIMIT_AS)
-new_soft_limit = limit_5G if soft < 0 else min(limit_5G, soft)
-new_hard_limit = limit_5G if hard < 0 else min(limit_5G, hard)
-resource.setrlimit(resource.RLIMIT_AS, (new_soft_limit, new_hard_limit))
+
+from sklearn.linear_model import LassoCV
+from sklearn.model_selection import KFold
 
 # Default estimator
 estimator = LassoCV(
@@ -159,43 +142,36 @@ estimator = LassoCV(
 )
 
 
-# First, we try to recover the discriminative pattern by computing
-# p-values from desparsified lasso.
-# Due to the size of the X, it's not possible to use this method with a limit
-# of 5 G for memory. To handle this problem, the following methods use some
-# feature aggregation methods.
-#
-try:
-    desparsified_lasso = DesparsifiedLasso(
-        noise_method="median",
-        estimator=clone(estimator),
-        random_state=0,
-        n_jobs=n_jobs,
-    )
-    desparsified_lasso.fit_importance(X, y)
-    pval_dl = desparsified_lasso.pvalues_
-    one_minus_pval_dl = desparsified_lasso.one_minus_pvalues_
-except MemoryError as err:
-    pval_dl = None
-    one_minus_pval_dl = None
-    print("As expected, Desparsified Lasso uses too much memory.")
+# %%
+# Due to the very high dimensionality of the problem (close to 40,000 voxels) computing
+# a p-value map with Desparsified Lasso would be very memory consuming and may also be
+# inadequate since it does not take into account the spatial structure of the data.
+
 
 # %%
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
-ward_, cl_desparsified_lasso = clustered_inference(
-    X,
-    y,
-    ward,
-    scaler_sampling=StandardScaler(),
+
+from copy import deepcopy
+
+from sklearn.base import clone
+
+from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.ensemble_clustered_inference import CluDL
+
+# number of worker
+n_jobs = 3
+desparsified_lasso_1 = DesparsifiedLasso(
+    noise_method="median",
     estimator=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=1,
-    n_jobs=n_jobs,
+    random_state=0,
+    n_jobs=1,
 )
-beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
-    X.shape[0], None, ward_, cl_desparsified_lasso
+
+cludl = CluDL(
+    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso_1), random_state=0
 )
+cludl.fit_importance(X, y)
 
 # %%
 # Below, we run the ensemble clustered inference algorithm which adds a
@@ -205,25 +181,19 @@ beta_hat, pval_cdl, _, one_minus_pval_cdl, _ = clustered_inference_pvalue(
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
-list_ward, list_cl_desparsified_lasso = ensemble_clustered_inference(
-    X,
-    y,
-    ward,
-    groups=groups,
-    scaler_sampling=StandardScaler(),
-    n_bootstraps=5,
-    estimator=clone(estimator),
-    tolerance_reid=1e-2,
-    random_state=2,
+
+
+from hidimstat.ensemble_clustered_inference import EnCluDL
+
+encludl = EnCluDL(
+    clustering=ward,
+    desparsified_lasso=deepcopy(desparsified_lasso_1),
     n_jobs=n_jobs,
+    n_bootstraps=10,
+    cluster_boostrap_size=0.75,
+    random_state=0,
 )
-beta_hat, selected = ensemble_clustered_inference_pvalue(
-    X.shape[0],
-    False,
-    list_ward,
-    list_cl_desparsified_lasso,
-    fdr=0.1,
-)
+encludl.fit_importance(X, y)
 
 # %%
 # Plotting the results
@@ -234,6 +204,8 @@ beta_hat, selected = ensemble_clustered_inference_pvalue(
 # inverse survival function.
 #
 # First, we set theoretical FWER target at 10%.
+
+from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 n_samples, n_features = X.shape
 target_fwer = 0.1
@@ -267,6 +239,11 @@ zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 # called `plot_map` that wraps all these steps.
 
 
+from matplotlib.pyplot import get_cmap
+from nilearn.plotting import plot_stat_map, show
+from sklearn.preprocessing import StandardScaler
+
+
 def plot_map(
     data,
     threshold,
@@ -291,19 +268,15 @@ def plot_map(
     )
 
 
-if pval_dl is not None:
-    plot_map(
-        zscore_from_pval(pval_dl, one_minus_pval_dl),
-        float(zscore_threshold_no_clust),
-        "Desparsified Lasso",
-    )
-
 plot_map(
-    zscore_from_pval(pval_cdl, one_minus_pval_cdl),
+    zscore_from_pval(cludl.pvalues_, cludl.one_minus_pvalues_),
     float(zscore_threshold_clust),
     "CluDL",
 )
 
+selected = encludl.pvalues_ < target_fwer / 2 / n_clusters
+selected = selected.astype(int)
+selected[(encludl.one_minus_pvalues_ < target_fwer / 2 / n_clusters)] = -1
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # Finally, calling plotting.show() is necessary to display the figure when
 # running as a script outside IPython

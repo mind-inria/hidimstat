@@ -106,13 +106,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5),
-            tol=1e-4,
-            max_iter=5000,
-        ),
+        estimator=LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False),
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
@@ -238,7 +232,9 @@ class DesparsifiedLasso(BaseVariableImportance):
             check_is_fitted(self.estimator)
         except NotFittedError:
             # check if max_iter is large enough
-            if self.estimator.max_iter // self.estimator.cv.n_splits <= n_features:
+            if hasattr(self.estimator.cv, "n_splits") and (
+                self.estimator.max_iter // self.estimator.cv.n_splits <= n_features
+            ):
                 self.estimator.set_params(
                     max_iter=n_features * self.estimator.cv.n_splits
                 )
