@@ -446,7 +446,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         """
         Overrides the signature to set two_tailed_test=True by default.
         """
-        super().fdr_selection(
+        return super().fdr_selection(
             fdr=fdr,
             fdr_control=fdr_control,
             reshaping_function=reshaping_function,

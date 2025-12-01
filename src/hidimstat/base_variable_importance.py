@@ -284,7 +284,10 @@ class BaseVariableImportance(BaseEstimator):
         selected = np.zeros_like(self.pvalues_, dtype=int)
         if two_tailed_test:
             # Compute the p-values
-            sign_beta = np.sign(self.importances_)
+            if self.importances_.ndim > 1:
+                sign_beta = np.sign(self.importances_.sum(axis=1))
+            else:
+                sign_beta = np.sign(self.importances_)
             pval, _, one_minus_pval, _ = pval_from_two_sided_pval_and_sign(
                 self.pvalues_, sign_beta, eps=eps
             )

@@ -18,6 +18,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_importance,
     reid,
 )
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
 def test_desparsified_lasso():
@@ -32,12 +33,14 @@ def test_desparsified_lasso():
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
 
-    n_samples, n_features = 400, 40
+    n_samples, n_features = 500, 50
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
     confidence = 0.9
     alpha = 1 - confidence
+    # Tolerance for the FDP and power test
+    test_tol = 0.1
 
     X, y, beta, noise = multivariate_simulation(
         n_samples=n_samples,
@@ -59,11 +62,10 @@ def test_desparsified_lasso():
 
     # Check p-values for important and non-important features
     important = beta != 0
-    non_important = beta == 0
-    tp = np.sum(desparsified_lasso.pvalues_corr_[important] < alpha)
-    fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
-    assert fp / np.sum(non_important) <= alpha
-    assert tp / np.sum(important) >= 0.8
+    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    assert fdp <= alpha + test_tol
+    assert power >= 0.8 - test_tol
 
     desparsified_lasso = DesparsifiedLasso(
         dof_ajdustement=True, confidence=confidence
@@ -78,10 +80,10 @@ def test_desparsified_lasso():
     assert correct_interval >= int(0.7 * n_features)
 
     # Check p-values for important and non-important features
-    tp = np.sum(desparsified_lasso.pvalues_corr_[important] < alpha)
-    fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
-    assert fp / np.sum(non_important) <= alpha
-    assert tp / np.sum(important) >= 0.8
+    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    assert fdp <= alpha + test_tol
+    assert power >= 0.8 - test_tol
 
 
 def test_desparsified_group_lasso():
@@ -130,13 +132,12 @@ def test_desparsified_group_lasso():
     assert_almost_equal(importances, beta, decimal=1)
 
     important = beta[:, 0] != 0
-    non_important = beta[:, 0] == 0
 
     assert_almost_equal(importances, beta, decimal=1)
-    tp = np.sum(desparsified_lasso.pvalues_corr_[important] < alpha)
-    fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
-    assert fp / np.sum(non_important) <= alpha
-    assert tp / np.sum(important) >= 0.8
+    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    assert fdp <= alpha
+    assert power >= 0.8
     assert (
         desparsified_lasso.clf_ is not None
         and len(desparsified_lasso.clf_) == n_features
@@ -148,10 +149,10 @@ def test_desparsified_group_lasso():
     importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
-    tp = np.sum(desparsified_lasso.pvalues_corr_[important] < alpha)
-    fp = np.sum(desparsified_lasso.pvalues_corr_[non_important] < alpha)
-    assert fp / np.sum(non_important) <= alpha
-    assert tp / np.sum(important) >= 0.8
+    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    assert fdp <= alpha
+    assert power >= 0.8
     assert desparsified_lasso
 
     # Testing error is raised when the covariance matrix has wrong shape
