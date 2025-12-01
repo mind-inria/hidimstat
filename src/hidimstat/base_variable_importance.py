@@ -314,7 +314,7 @@ class BaseVariableImportance(BaseEstimator):
         return selected
 
     def fwer_selection(
-        self, fwer, proceedure="bonferroni", n_tests=None, two_tailed_test=False
+        self, fwer, procedure="bonferroni", n_tests=None, two_tailed_test=False
     ):
         """
         Performs feature selection based on Family-Wise Error Rate (FWER) control.
@@ -323,7 +323,7 @@ class BaseVariableImportance(BaseEstimator):
         ----------
         fwer : float
             The target family-wise error rate level (between 0 and 1)
-        proceedure : {'bonferroni'}, default='bonferroni'
+        procedure : {'bonferroni'}, default='bonferroni'
             The FWER control method to use:
             - 'bonferroni': Bonferroni correction
         n_tests : int or None, default=None
@@ -343,7 +343,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
 
-        if proceedure == "bonferroni":
+        if procedure == "bonferroni":
             if n_tests is None:
                 if hasattr(self, "clustering_"):
                     print("Using number of clusters for multiple testing correction.")
@@ -359,7 +359,7 @@ class BaseVariableImportance(BaseEstimator):
             return selected
 
         else:
-            raise ValueError("Only 'bonferroni' proceedure is supported")
+            raise ValueError("Only 'bonferroni' procedure is supported")
 
     def plot_importance(
         self,

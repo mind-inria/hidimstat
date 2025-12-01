@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
@@ -30,7 +31,7 @@ def set_100_variable_sorted():
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
-    vi.pvalues_ = np.flip(np.sort(rng.random(n_features)))[vi.importances_]
+    vi.pvalues_ = np.flip(np.sort(rng.uniform(0, 1, n_features)))[vi.importances_]
     return vi
 
 
@@ -113,38 +114,51 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-class TestSelectionFDR:
-    """Test selection based on fdr"""
+def test_seletion_fdr():
+    """
+    Test that the FDR-based selection using BH and BHY procedures achieve the good
+    guarantees:
+     - Empirical FDR is lower than the target
+     - Power is greater than 0.8 (arbitrary threshold)
 
-    def test_selection_fdr_default(self, set_100_variable_sorted):
-        "test selection of the default"
-        vi = set_100_variable_sorted
-        selection = vi.fdr_selection(0.2)
-        assert np.all(
-            [
-                i >= (vi.importances_ - np.sum(selection))
-                for i in vi.importances_[selection]
-            ]
+    """
+    bh_fdp_list = []
+    bhy_fdp_list = []
+    bh_power_list = []
+    bhy_power_list = []
+    n_features = 100
+    target_fdr = 0.1
+
+    for s in range(500):
+        vim = BaseVariableImportance()
+        vim.importances_ = np.ones(n_features)
+        # Generate uniform p-values (null hypothesis)
+        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        # Add a few important ones
+        important_ids = np.random.choice(vim.pvalues_.shape[0], size=10, replace=False)
+        gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
+        gt_mask[important_ids] = 1
+        vim.pvalues_[important_ids] /= 500
+
+        # Apply BH procedure
+        selected_bh = vim.fdr_selection(fdr=target_fdr)
+        fdp_bh, power_bh = fdp_power(
+            selected=np.where(selected_bh)[0], ground_truth=important_ids
         )
-
-    def test_selection_fdr_default_1(self, set_100_variable_sorted):
-        "test selection of the default"
-        vi = set_100_variable_sorted
-        vi.pvalues_ = 0.5 * (1 + np.random.rand(vi.importances_.shape[0]))
-        true_value = np.zeros_like(vi.importances_, dtype=bool)  # selected any
-        selection = vi.fdr_selection(0.2)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_fdr_bhy(self, set_100_variable_sorted):
-        "test selection with bhy"
-        vi = set_100_variable_sorted
-        selection = vi.fdr_selection(0.2, fdr_control="bhy")
-        assert np.all(
-            [
-                i >= (vi.importances_ - np.sum(selection))
-                for i in vi.importances_[selection]
-            ]
+        bh_fdp_list.append(fdp_bh)
+        bh_power_list.append(power_bh)
+        # Apply BHY procedure
+        selected_bhy = vim.fdr_selection(fdr=target_fdr, fdr_control="bhy")
+        fdp_bhy, power_bhy = fdp_power(
+            selected=np.where(selected_bhy)[0], ground_truth=important_ids
         )
+        bhy_fdp_list.append(fdp_bhy)
+        bhy_power_list.append(power_bhy)
+
+    assert np.mean(bh_fdp_list) < target_fdr
+    assert np.mean(bhy_fdp_list) < target_fdr
+    assert np.mean(power_bh) > 0.8
+    assert np.mean(power_bhy) > 0.8
 
 
 def test_selection_bhq():
