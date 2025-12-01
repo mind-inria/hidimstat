@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator
 
 from hidimstat._utils.exception import InternalError
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+from hidimstat.statistical_tools.p_values import pval_from_two_sided_pval_and_sign
 
 
 def _selection_generic(
@@ -114,9 +115,6 @@ class BaseVariableImportance(BaseEstimator):
         The computed importance scores for each feature.
     pvalues_ : array-like of shape (n_features,), default=None
         The computed p-values for each feature.
-    one_minus_pvalues_: ndarray of shape (n_features)
-        One minus the corrected p-value, with numerically accurate values for negative
-        effects (ie., for p-value close to one).
 
     Methods
     -------
@@ -131,7 +129,6 @@ class BaseVariableImportance(BaseEstimator):
         super().__init__()
         self.importances_ = None
         self.pvalues_ = None
-        self.one_minus_pvalues_ = None
 
     def _check_importance(self):
         """
@@ -230,7 +227,8 @@ class BaseVariableImportance(BaseEstimator):
         fdr,
         fdr_control="bhq",
         reshaping_function=None,
-        alternative_hypothesis=False,
+        two_tailed_test=False,
+        eps=1e-14,
     ):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
@@ -246,16 +244,20 @@ class BaseVariableImportance(BaseEstimator):
         reshaping_function: callable or None, default=None
             Optional reshaping function for FDR control methods.
             If None, defaults to sum of reciprocals for 'bhy'.
-        alternative_hippothesis: bool or None, default=False
-            If False, selects features with small p-values.
-            If True, selects features with large p-values (close to 1).
-            If None, selects features that have either small or large p-values.
+        two_tailed_test: bool, default=False
+            If True, performs two-tailed test selection using both p-values
+            for positive effects and one-minus p-values for negative effects. The sign
+            of the effect is determined from the sign of the importance scores.
+        eps : float, default=1e-14
+            Small value to ensure numerical stability when computing one-minus p-values.
 
         Returns
         -------
-        selected : ndarray of bool
-            Boolean mask of selected features.
-            True indicates selected features, False indicates non-selected features.
+        selected : ndarray of int
+            Integer array indicating the selected features.
+            1 indicates selected features with positive effects,
+            -1 indicates selected features with negative effects,
+            0 indicates non-selected features.
 
         Raises
         ------
@@ -263,6 +265,12 @@ class BaseVariableImportance(BaseEstimator):
             If `importances_` haven't been computed yet
         AssertionError
             If `pvalues_` are missing or fdr_control is invalid
+
+        Notes
+        -----
+        If `two_tailed_test` is True, make sure that the that the target fdr level is
+        appropriately adjusted (e.g., divided by 2) to account for testing in both
+        tails.
         """
         self._check_importance()
         assert 0 < fdr and fdr < 1, "FDR needs to be between 0 and 1 excluded"
@@ -272,38 +280,86 @@ class BaseVariableImportance(BaseEstimator):
         assert (
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
-        assert alternative_hypothesis is None or isinstance(
-            alternative_hypothesis, bool
-        ), "alternative_hippothesis can have only three values: True, False and None."
 
-        # selection on pvalue
-        if alternative_hypothesis is None or not alternative_hypothesis:
+        selected = np.zeros_like(self.pvalues_, dtype=int)
+        if two_tailed_test:
+            # Compute the p-values
+            sign_beta = np.sign(self.importances_)
+            pval, _, one_minus_pval, _ = pval_from_two_sided_pval_and_sign(
+                self.pvalues_, sign_beta, eps=eps
+            )
+            threshold_pvalues = fdr_threshold(
+                pval,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            threshold_one_minus_pvalues = fdr_threshold(
+                one_minus_pval,
+                fdr=fdr,
+                method=fdr_control,
+                reshaping_function=reshaping_function,
+            )
+            selected[pval <= threshold_pvalues] = 1
+            selected[one_minus_pval <= threshold_one_minus_pvalues] = -1
+        else:
             threshold_pvalues = fdr_threshold(
                 self.pvalues_,
                 fdr=fdr,
                 method=fdr_control,
                 reshaping_function=reshaping_function,
             )
-            selected_pvalues = self.pvalues_ <= threshold_pvalues
-        else:
-            selected_pvalues = np.zeros_like(self.pvalues_, dtype=bool)
+            selected[self.pvalues_ <= threshold_pvalues] = 1
 
-        # selection on 1-pvalue
-        if alternative_hypothesis is None or alternative_hypothesis:
-            threshold_one_minus_pvalues = fdr_threshold(
-                self.one_minus_pvalues_,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected_one_minus_pvalues = (
-                self.one_minus_pvalues_
-            ) <= threshold_one_minus_pvalues
-        else:
-            selected_one_minus_pvalues = np.zeros_like(self.pvalues_, dtype=bool)
-
-        selected = selected_pvalues | selected_one_minus_pvalues
         return selected
+
+    def fwer_selection(
+        self, fwer, proceedure="bonferroni", n_tests=None, two_tailed_test=False
+    ):
+        """
+        Performs feature selection based on Family-Wise Error Rate (FWER) control.
+
+        Parameters
+        ----------
+        fwer : float
+            The target family-wise error rate level (between 0 and 1)
+        proceedure : {'bonferroni'}, default='bonferroni'
+            The FWER control method to use:
+            - 'bonferroni': Bonferroni correction
+        n_tests : int or None, default=None
+            Factor for multiple testing correction. If None, uses the number of clusters
+            or the number of features in this order.
+        two_tailed_test : bool, default=False
+            If True, uses the sign of the importance scores to indicate whether the
+            selected features have positive or negative effects.
+
+        Returns
+        -------
+        selected : ndarray of int
+            Integer array indicating the selected features.
+            1 indicates selected features with positive effects,
+            -1 indicates selected features with negative effects,
+            0 indicates non-selected features.
+        """
+        self._check_importance()
+
+        if proceedure == "bonferroni":
+            if n_tests is None:
+                if hasattr(self, "clustering_"):
+                    print("Using number of clusters for multiple testing correction.")
+                    n_tests = self.clustering_.n_clusters_
+                else:
+                    print("Using number of features for multiple testing correction.")
+                    n_tests = self.importances_.shape[0]
+            threshold_pvalue = fwer / n_tests
+            selected = (self.pvalues_ < threshold_pvalue).astype(int)
+            if two_tailed_test:
+                sign_beta = np.sign(self.importances_)
+                selected = selected * sign_beta
+            return selected
+
+        else:
+            raise ValueError("Only 'bonferroni' proceedure is supported")
 
     def plot_importance(
         self,

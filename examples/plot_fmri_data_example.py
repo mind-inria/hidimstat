@@ -243,6 +243,8 @@ from matplotlib.pyplot import get_cmap
 from nilearn.plotting import plot_stat_map, show
 from sklearn.preprocessing import StandardScaler
 
+from hidimstat.statistical_tools.p_values import pval_from_two_sided_pval_and_sign
+
 
 def plot_map(
     data,
@@ -268,15 +270,19 @@ def plot_map(
     )
 
 
+pval_cludl, _, one_minus_pval_cludl, _ = pval_from_two_sided_pval_and_sign(
+    cludl.pvalues_, cludl.importances_
+)
 plot_map(
-    zscore_from_pval(cludl.pvalues_, cludl.one_minus_pvalues_),
+    zscore_from_pval(pval_cludl, one_minus_pval_cludl),
     float(zscore_threshold_clust),
     "CluDL",
 )
 
-selected = encludl.pvalues_ < target_fwer / 2 / n_clusters
-selected = selected.astype(int)
-selected[(encludl.one_minus_pvalues_ < target_fwer / 2 / n_clusters)] = -1
+selected = encludl.fwer_selection(
+    fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
+)
+
 plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
 # Finally, calling plotting.show() is necessary to display the figure when
 # running as a script outside IPython

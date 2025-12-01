@@ -130,17 +130,19 @@ encludl = EnCluDL(
 )
 
 encludl.fit_importance(X_4_7, y_4_7)
-selected_pos_4_7 = encludl.pvalues_ < fwer / 2 / n_clusters
-selected_neg_4_7 = encludl.one_minus_pvalues_ < fwer / 2 / n_clusters
+selected_4_7 = encludl.fwer_selection(
+    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+)
 
 encludl.fit_importance(X_0_1, y_0_1)
-selected_pos_0_1 = encludl.pvalues_ < fwer / 2 / n_clusters
-selected_neg_0_1 = encludl.one_minus_pvalues_ < fwer / 2 / n_clusters
+selected_0_1 = encludl.fwer_selection(
+    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+)
 
 encludl.fit_importance(X_0_9, y_0_9)
-selected_pos_0_9 = encludl.pvalues_ < fwer / 2 / n_clusters
-selected_neg_0_9 = encludl.one_minus_pvalues_ < fwer / 2 / n_clusters
-
+selected_0_9 = encludl.fwer_selection(
+    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+)
 
 # %%
 # Visualizing the results
@@ -153,16 +155,14 @@ from matplotlib.colors import ListedColormap
 
 _, axes = plt.subplots(1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []})
 
-for i, (title, selected_pos, selected_neg) in enumerate(
+for i, (title, selected) in enumerate(
     [
-        ("4 vs 7", selected_pos_4_7, selected_neg_4_7),
-        ("0 vs 1", selected_pos_0_1, selected_neg_0_1),
-        ("0 vs 9", selected_pos_0_9, selected_neg_0_9),
+        ("4 vs 7", selected_4_7),
+        ("0 vs 1", selected_0_1),
+        ("0 vs 9", selected_0_9),
     ]
 ):
-    mask_encludl = np.zeros(shape)
-    mask_encludl[selected_pos.reshape(shape)] = 1
-    mask_encludl[selected_neg.reshape(shape)] = -1
+    mask_encludl = selected.reshape(shape)
 
     cmap = ListedColormap(["tab:red", "white", "tab:blue"])
     axes[i].imshow(mask_encludl, cmap=cmap, vmin=-1, vmax=1)
