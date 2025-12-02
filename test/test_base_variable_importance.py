@@ -495,11 +495,11 @@ def test_clustered_fwer_selection():
     as default for `n_tests` in fwer_selection.
     """
 
+    n_features = 10
     cludl = CluDL(clustering=FeatureAgglomeration(n_clusters=5))
-    cludl.fit(np.random.randn(100, 5), np.random.randn(100))
-    cludl.importances_ = np.ones(5)
-    cludl.pvalues_ = np.random.uniform(size=5)
+    cludl.fit_importance(np.random.randn(100, n_features), np.random.randn(100))
+
     selection_clusters = cludl.fwer_selection(fwer=0.5)
-    assert selection_clusters.shape[0] == 5
-    selection = cludl.fwer_selection(fwer=0.5, n_tests=5, two_tailed_test=True)
-    assert selection.shape[0] == 5
+    assert selection_clusters.shape[0] == n_features
+    selection = cludl.fwer_selection(fwer=0.5, n_tests=n_features, two_tailed_test=True)
+    assert selection.shape[0] == n_features
