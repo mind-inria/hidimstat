@@ -40,50 +40,63 @@ def test_desparsified_lasso():
     confidence = 0.9
     alpha = 1 - confidence
     # Tolerance for the FDP and power test
-    test_tol = 0.1
+    test_tol = 0.05
 
-    X, y, beta, noise = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho=rho,
-        shuffle=False,
-    )
+    fdp_list = []
+    powr_list = []
+    fdp_dof_list = []
+    powr_dof_list = []
+    for seed in range(10):
+        X, y, beta, noise = multivariate_simulation(
+            n_samples=n_samples,
+            n_features=n_features,
+            support_size=support_size,
+            signal_noise_ratio=signal_noise_ratio,
+            rho=rho,
+            shuffle=False,
+            seed=seed,
+        )
 
-    desparsified_lasso = DesparsifiedLasso(confidence=confidence).fit(X, y)
-    _ = desparsified_lasso.importance()
-    # Check that beta is within the confidence intervals
-    correct_interval = np.sum(
-        (beta >= desparsified_lasso.confidence_bound_min_)
-        & (beta <= desparsified_lasso.confidence_bound_max_)
-    )
-    assert correct_interval >= int(0.7 * n_features)
+        desparsified_lasso = DesparsifiedLasso(
+            confidence=confidence, random_state=seed
+        ).fit(X, y)
+        _ = desparsified_lasso.importance()
+        # Check that beta is within the confidence intervals
+        correct_interval = np.sum(
+            (beta >= desparsified_lasso.confidence_bound_min_)
+            & (beta <= desparsified_lasso.confidence_bound_max_)
+        )
+        assert correct_interval >= int(0.7 * n_features)
 
-    # Check p-values for important and non-important features
-    important = beta != 0
-    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-    assert fdp <= alpha + test_tol
-    assert power >= 0.8 - test_tol
+        # Check p-values for important and non-important features
+        important = beta != 0
+        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp_list.append(fdp)
+        powr_list.append(power)
 
-    desparsified_lasso = DesparsifiedLasso(
-        dof_ajdustement=True, confidence=confidence
-    ).fit(X, y)
-    _ = desparsified_lasso.importance()
+        desparsified_lasso = DesparsifiedLasso(
+            dof_ajdustement=True, confidence=confidence, random_state=seed
+        ).fit(X, y)
+        _ = desparsified_lasso.importance()
 
-    # Check that beta is within the confidence intervals
-    correct_interval = np.sum(
-        (beta >= desparsified_lasso.confidence_bound_min_)
-        & (beta <= desparsified_lasso.confidence_bound_max_)
-    )
-    assert correct_interval >= int(0.7 * n_features)
+        # Check that beta is within the confidence intervals
+        correct_interval = np.sum(
+            (beta >= desparsified_lasso.confidence_bound_min_)
+            & (beta <= desparsified_lasso.confidence_bound_max_)
+        )
 
-    # Check p-values for important and non-important features
-    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-    assert fdp <= alpha + test_tol
-    assert power >= 0.8 - test_tol
+        # Check p-values for important and non-important features
+        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        assert correct_interval >= int(0.7 * n_features)
+        fdp_dof_list.append(fdp)
+        powr_dof_list.append(power)
+
+    assert np.mean(fdp_list) <= alpha + test_tol
+    assert np.mean(powr_list) >= 0.8 - test_tol
+    assert np.mean(fdp_dof_list) <= alpha + test_tol
+    assert np.mean(powr_dof_list) >= 0.8 - test_tol
 
 
 def test_desparsified_group_lasso():
@@ -103,77 +116,88 @@ def test_desparsified_group_lasso():
     rho_serial = 0.9
     alpha = 0.1
     # Small tolerance for the test
-    test_tol = 0.1
+    test_tol = 0.05
 
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
-    multi_task_lasso_cv = MultiTaskLassoCV(
-        eps=1e-2,
-        fit_intercept=False,
-        cv=KFold(n_splits=5, shuffle=True, random_state=0),
-        tol=1e-4,
-        max_iter=50,
-        random_state=1,
-        n_jobs=1,
-    )
+    fdp_list = []
+    power_list = []
+    fdp_ftest_list = []
+    power_ftest_list = []
+    for seed in range(10):
+        corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+        multi_task_lasso_cv = MultiTaskLassoCV(
+            eps=1e-2,
+            fit_intercept=False,
+            cv=KFold(n_splits=5, shuffle=True, random_state=0),
+            tol=1e-4,
+            max_iter=50,
+            random_state=1,
+            n_jobs=1,
+        )
 
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        rho_serial=rho_serial,
-        signal_noise_ratio=signal_noise_ratio,
-    )
+        X, y, beta, _ = multivariate_simulation(
+            n_samples=n_samples,
+            n_features=n_features,
+            n_targets=n_target,
+            support_size=support_size,
+            rho_serial=rho_serial,
+            signal_noise_ratio=signal_noise_ratio,
+            seed=seed,
+        )
 
-    with pytest.warns(Warning, match="'max_iter' has been increased to "):
+        with pytest.warns(Warning, match="'max_iter' has been increased to "):
+            desparsified_lasso = DesparsifiedLasso(
+                estimator=multi_task_lasso_cv,
+                covariance=corr,
+                save_model_x=True,
+                random_state=seed,
+            ).fit(X, y)
+        importances = desparsified_lasso.importance()
+
+        assert_almost_equal(importances, beta, decimal=1)
+
+        important = beta[:, 0] != 0
+
+        assert_almost_equal(importances, beta, decimal=1)
+        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp_list.append(fdp)
+        power_list.append(power)
+        assert (
+            desparsified_lasso.clf_ is not None
+            and len(desparsified_lasso.clf_) == n_features
+        )
+
         desparsified_lasso = DesparsifiedLasso(
-            estimator=multi_task_lasso_cv, covariance=corr, save_model_x=True
+            estimator=multi_task_lasso_cv, test="F", random_state=seed
         ).fit(X, y)
-    importances = desparsified_lasso.importance()
+        importances = desparsified_lasso.importance()
 
-    assert_almost_equal(importances, beta, decimal=1)
+        assert_almost_equal(importances, beta, decimal=1)
+        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp_ftest_list.append(fdp)
+        power_ftest_list.append(power)
 
-    important = beta[:, 0] != 0
-
-    assert_almost_equal(importances, beta, decimal=1)
-    selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-    # TODO: review this test, control for the FWER
-    assert fdp <= alpha + test_tol
-    assert power >= 0.8 - test_tol
-    assert (
-        desparsified_lasso.clf_ is not None
-        and len(desparsified_lasso.clf_) == n_features
-    )
-
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv, test="F").fit(
-        X, y
-    )
-    importances = desparsified_lasso.importance()
-
-    assert_almost_equal(importances, beta, decimal=1)
-    selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-    # TODO: same as above
-    assert fdp <= alpha + test_tol
-    assert power >= 0.8 - test_tol
-    assert desparsified_lasso
-
-    # Testing error is raised when the covariance matrix has wrong shape
-    bad_cov = np.delete(corr, 0, axis=1)
-    # np.testing.assert_raises(
-    # ValueError, desparsified_lasso, X=X, y=y, multioutput=True, covariance=bad_cov
-    # )
-    desparsified_lasso = DesparsifiedLasso(
-        estimator=multi_task_lasso_cv, covariance=bad_cov
-    ).fit(X, y)
-    with pytest.raises(ValueError):
-        desparsified_lasso.importance()
-
-    with pytest.raises(AssertionError, match="Unknown test 'r2'"):
-        DesparsifiedLasso(
-            estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
+        # Testing error is raised when the covariance matrix has wrong shape
+        bad_cov = np.delete(corr, 0, axis=1)
+        # np.testing.assert_raises(
+        # ValueError, desparsified_lasso, X=X, y=y, multioutput=True, covariance=bad_cov
+        # )
+        desparsified_lasso = DesparsifiedLasso(
+            estimator=multi_task_lasso_cv, covariance=bad_cov
         ).fit(X, y)
+        with pytest.raises(ValueError):
+            desparsified_lasso.importance()
+
+        with pytest.raises(AssertionError, match="Unknown test 'r2'"):
+            DesparsifiedLasso(
+                estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
+            ).fit(X, y)
+
+    assert np.mean(fdp_list) <= alpha + test_tol
+    assert np.mean(power_list) >= 0.8 - test_tol
+    assert np.mean(fdp_ftest_list) <= alpha + test_tol
+    assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
 def test_exception():
