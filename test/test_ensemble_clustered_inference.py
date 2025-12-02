@@ -85,7 +85,7 @@ def test_cludl_spatial():
     )
     cludl.fit_importance(X_init, y)
     fdr = 0.1
-    selected = cludl.fdr_selection(fdr=fdr)
+    selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
 
     fdp, power = spatially_relaxed_fdp_power(
         selected=selected,
@@ -138,7 +138,7 @@ def test_encludl_spatial():
     )
     cludl.fit_importance(X_init, y)
     fdr = 0.1
-    selected = cludl.fdr_selection(fdr=fdr)
+    selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
 
     fdp, power = spatially_relaxed_fdp_power(
         selected=selected,
@@ -192,7 +192,7 @@ def test_cludl_temporal():
     cludl.fit_importance(X, y)
 
     alpha = 0.05
-    selected = cludl.fdr_selection(fdr=alpha)
+    selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
     fdp, power = fdp_power(
         selected=np.argwhere(selected).flatten(),
         ground_truth=np.arange(extended_support),
@@ -243,7 +243,7 @@ def test_encludl_temporal():
     cludl.fit_importance(X, y)
 
     alpha = 0.1
-    selected = cludl.fdr_selection(fdr=alpha)
+    selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
     fdp, power = fdp_power(
         selected=np.argwhere(selected).flatten(),
         ground_truth=np.arange(extended_support),
