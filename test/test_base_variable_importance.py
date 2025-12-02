@@ -455,7 +455,7 @@ def test_plot_importance_feature_names():
 
 def test_fwer_selection():
     """
-    Test that the FWER selection proceedure achieves the desired guarantees.
+    Test that the FWER selection procedure achieves the desired guarantees.
     For 500 draws of p-values with 10 important ones the rest drawn from a uniform
     distribution, check that the empirical FWER is lower than the requested level up to
     some tolerance.
