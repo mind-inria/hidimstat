@@ -70,6 +70,7 @@ def test_desparsified_lasso():
 
         # Check p-values for important and non-important features
         important = beta != 0
+        # Run two sided test for coverage
         selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
         fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
         fdp_list.append(fdp)
@@ -87,7 +88,7 @@ def test_desparsified_lasso():
         )
 
         # Check p-values for important and non-important features
-        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fdr_selection(fdr=alpha / 2, two_tailed_test=True)
         fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
         assert correct_interval >= int(0.7 * n_features)
         fdp_dof_list.append(fdp)

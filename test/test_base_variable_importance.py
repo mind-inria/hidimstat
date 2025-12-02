@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from sklearn.cluster import FeatureAgglomeration
 
+from hidimstat import CluDL
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
@@ -449,3 +451,55 @@ def test_plot_importance_feature_names():
 
     with pytest.raises(ValueError, match="feature_names should be a list"):
         ax_none_group = vi.plot_importance(feature_names="ttt")
+
+
+def test_fwer_selection():
+    """
+    Test that the FWER selection proceedure achieves the desired guarantees.
+    For 500 draws of p-values with 10 important ones the rest drawn from a uniform
+    distribution, check that the empirical FWER is lower than the requested level up to
+    some tolerance.
+    """
+    false_discovery_list = []
+    power_list = []
+    n_features = 100
+    target_fdr = 0.1
+    test_tol = 0.05
+
+    for _ in range(500):
+        vim = BaseVariableImportance()
+        vim.importances_ = np.ones(n_features)
+        # Generate uniform p-values (null hypothesis)
+        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        # Add a few important ones
+        important_ids = np.random.choice(vim.pvalues_.shape[0], size=10, replace=False)
+        gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
+        gt_mask[important_ids] = 1
+        vim.pvalues_[important_ids] /= 500
+
+        # Apply FWER selection
+        selected_bh = vim.fwer_selection(fwer=target_fdr)
+        fdp_bh, power_bh = fdp_power(
+            selected=np.where(selected_bh)[0], ground_truth=important_ids
+        )
+        false_discovery_list.append(int(fdp_bh > 0))
+        power_list.append(power_bh)
+
+    assert np.mean(false_discovery_list) < target_fdr + test_tol
+    assert np.mean(power_list) > 0.4 - test_tol
+
+
+def test_clustered_fwer_selection():
+    """
+    Test to improve coverage by exploring the case where the number of clusters is used
+    as default for `n_tests` in fwer_selection.
+    """
+
+    cludl = CluDL(clustering=FeatureAgglomeration(n_clusters=5))
+    cludl.fit(np.random.randn(100, 5), np.random.randn(100))
+    cludl.importances_ = np.ones(5)
+    cludl.pvalues_ = np.random.uniform(size=5)
+    selection_clusters = cludl.fwer_selection(fwer=0.5)
+    assert selection_clusters.shape[0] == 5
+    selection = cludl.fwer_selection(fwer=0.5, n_tests=5, two_tailed_test=True)
+    assert selection.shape[0] == 5
