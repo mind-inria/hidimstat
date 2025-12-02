@@ -158,8 +158,8 @@ def test_selection_fdr():
 
     assert np.mean(bh_fdp_list) < target_fdr + test_tol
     assert np.mean(bhy_fdp_list) < target_fdr + test_tol
-    assert np.mean(power_bh) > 0.8 - test_tol
-    assert np.mean(power_bhy) > 0.8 - test_tol
+    assert np.mean(bh_power_list) > 0.8 - test_tol
+    assert np.mean(bhy_power_list) > 0.8 - test_tol
 
 
 def test_selection_bhq():
