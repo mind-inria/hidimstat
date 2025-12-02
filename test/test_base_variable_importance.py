@@ -121,6 +121,10 @@ def test_selection_fdr():
      - Empirical FDR is lower than the target
      - Power is greater than 0.8 (arbitrary threshold)
 
+    The p-values are generated as uniform for null features and very small (divided by
+    500) for important features. The computation of FDP and power is repeated over 500
+    random draws.
+
     """
     bh_fdp_list = []
     bhy_fdp_list = []
@@ -130,7 +134,7 @@ def test_selection_fdr():
     target_fdr = 0.1
     test_tol = 0.1
 
-    for s in range(500):
+    for _ in range(500):
         vim = BaseVariableImportance()
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
