@@ -134,8 +134,9 @@ def test_desparsified_group_lasso():
     important = beta[:, 0] != 0
 
     assert_almost_equal(importances, beta, decimal=1)
-    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
     fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    # TODO: review this test, control for the FWER
     assert fdp <= alpha
     assert power >= 0.8
     assert (
@@ -149,8 +150,9 @@ def test_desparsified_group_lasso():
     importances = desparsified_lasso.importance()
 
     assert_almost_equal(importances, beta, decimal=1)
-    selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+    selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
     fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+    # TODO: same as above
     assert fdp <= alpha
     assert power >= 0.8
     assert desparsified_lasso
