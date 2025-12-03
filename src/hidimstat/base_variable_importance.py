@@ -265,12 +265,6 @@ class BaseVariableImportance(BaseEstimator):
             If `importances_` haven't been computed yet
         AssertionError
             If `pvalues_` are missing or fdr_control is invalid
-
-        Notes
-        -----
-        If `two_tailed_test` is True, make sure that the that the target fdr level is
-        appropriately adjusted (e.g., divided by 2) to account for testing in both
-        tails.
         """
         self._check_importance()
         assert 0 < fdr and fdr < 1, "FDR needs to be between 0 and 1 excluded"
@@ -281,38 +275,25 @@ class BaseVariableImportance(BaseEstimator):
             fdr_control == "bhq" or fdr_control == "bhy"
         ), "only 'bhq' and 'bhy' are supported"
 
-        selected = np.zeros_like(self.pvalues_, dtype=int)
+        # Adjust fdr for two-tailed test
         if two_tailed_test:
-            # Compute the p-values
+            fdr = fdr / 2
+
+        threshold_pvalues = fdr_threshold(
+            self.pvalues_,
+            fdr=fdr,
+            method=fdr_control,
+            reshaping_function=reshaping_function,
+        )
+        selected = (self.pvalues_ <= threshold_pvalues).astype(int)
+
+        # For two-tailed test, determine the sign of the effect
+        if two_tailed_test:
             if self.importances_.ndim > 1:
                 sign_beta = np.sign(self.importances_.sum(axis=1))
             else:
                 sign_beta = np.sign(self.importances_)
-            pval, _, one_minus_pval, _ = pval_from_two_sided_pval_and_sign(
-                self.pvalues_, sign_beta, eps=eps
-            )
-            threshold_pvalues = fdr_threshold(
-                pval,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            threshold_one_minus_pvalues = fdr_threshold(
-                one_minus_pval,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected[pval <= threshold_pvalues] = 1
-            selected[one_minus_pval <= threshold_one_minus_pvalues] = -1
-        else:
-            threshold_pvalues = fdr_threshold(
-                self.pvalues_,
-                fdr=fdr,
-                method=fdr_control,
-                reshaping_function=reshaping_function,
-            )
-            selected[self.pvalues_ <= threshold_pvalues] = 1
+            selected = selected * sign_beta
 
         return selected
 
@@ -354,6 +335,11 @@ class BaseVariableImportance(BaseEstimator):
                 else:
                     print("Using number of features for multiple testing correction.")
                     n_tests = self.importances_.shape[0]
+
+            # Adjust fwer for two-tailed test
+            if two_tailed_test:
+                fwer = fwer / 2
+
             threshold_pvalue = fwer / n_tests
             selected = (self.pvalues_ < threshold_pvalue).astype(int)
             if two_tailed_test:

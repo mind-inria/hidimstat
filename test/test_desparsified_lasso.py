@@ -88,7 +88,7 @@ def test_desparsified_lasso():
         )
 
         # Check p-values for important and non-important features
-        selected = desparsified_lasso.fdr_selection(fdr=alpha / 2, two_tailed_test=True)
+        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=True)
         fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
         assert correct_interval >= int(0.7 * n_features)
         fdp_dof_list.append(fdp)
@@ -103,9 +103,7 @@ def test_desparsified_lasso():
 def test_desparsified_group_lasso():
     """
     Testing the procedure on a simulation with no structure and a support of size 2.
-     - Test that the empirical false discovery proportion is below the target FDR
-    Although this is not guaranteed (control is only in expectation), the scenario
-    is simple enough for the test to pass.
+     - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
 
@@ -119,9 +117,9 @@ def test_desparsified_group_lasso():
     # Small tolerance for the test
     test_tol = 0.05
 
-    fdp_list = []
+    fd_list = []
     power_list = []
-    fdp_ftest_list = []
+    fd_ftest_list = []
     power_ftest_list = []
     for seed in range(10):
         corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
@@ -161,7 +159,7 @@ def test_desparsified_group_lasso():
         assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
         fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-        fdp_list.append(fdp)
+        fd_list.append(fdp > 0)
         power_list.append(power)
         assert (
             desparsified_lasso.clf_ is not None
@@ -176,7 +174,7 @@ def test_desparsified_group_lasso():
         assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
         fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
-        fdp_ftest_list.append(fdp)
+        fd_ftest_list.append(fdp > 0)
         power_ftest_list.append(power)
 
         # Testing error is raised when the covariance matrix has wrong shape
@@ -195,9 +193,9 @@ def test_desparsified_group_lasso():
                 estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
             ).fit(X, y)
 
-    assert np.mean(fdp_list) <= alpha + test_tol
+    assert np.mean(fd_list) <= alpha + test_tol
     assert np.mean(power_list) >= 0.8 - test_tol
-    assert np.mean(fdp_ftest_list) <= alpha + test_tol
+    assert np.mean(fd_ftest_list) <= alpha + test_tol
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 

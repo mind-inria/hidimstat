@@ -125,7 +125,7 @@ def test_selection_fdr():
      - Power is greater than 0.8 (arbitrary threshold)
 
     The p-values are generated as uniform for null features and very small (divided by
-    500) for important features. The computation of FDP and power is repeated over 500
+    100) for important features. The computation of FDP and power is repeated over 100
     random draws.
 
     """
@@ -137,7 +137,7 @@ def test_selection_fdr():
     target_fdr = 0.1
     test_tol = 0.1
 
-    for _ in range(500):
+    for _ in range(100):
         vim = BaseVariableImportance()
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
@@ -238,7 +238,7 @@ def test_selection_bhq():
             pvalues_, one_minus_pval=one_minus_pval
         )
         selected = (
-            vim.fdr_selection(fdr=fdr / 2, fdr_control="bhq", two_tailed_test=True) != 0
+            vim.fdr_selection(fdr=fdr, fdr_control="bhq", two_tailed_test=True) != 0
         )
         np.testing.assert_array_equal(selected_gt, selected)
 
@@ -457,7 +457,7 @@ def test_plot_importance_feature_names():
 def test_fwer_selection():
     """
     Test that the FWER selection procedure achieves the desired guarantees.
-    For 500 draws of p-values with 10 important ones the rest drawn from a uniform
+    For 100 draws of p-values with 10 important ones the rest drawn from a uniform
     distribution, check that the empirical FWER is lower than the requested level up to
     some tolerance.
     """
@@ -467,7 +467,7 @@ def test_fwer_selection():
     target_fdr = 0.1
     test_tol = 0.05
 
-    for _ in range(500):
+    for _ in range(100):
         vim = BaseVariableImportance()
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)

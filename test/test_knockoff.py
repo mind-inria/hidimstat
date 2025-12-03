@@ -57,9 +57,7 @@ def test_knockoff_bootstrap_e_values():
         X, y
     )
     model_x_knockoff.importance()
-    selected = model_x_knockoff.fdr_selection(
-        fdr=fdr / 2, fdr_control="ebh", evalues=True
-    )
+    selected = model_x_knockoff.fdr_selection(fdr=fdr, fdr_control="ebh", evalues=True)
 
     fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
 
