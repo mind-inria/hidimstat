@@ -177,11 +177,14 @@ def test_desparsified_group_lasso():
         fd_ftest_list.append(fdp > 0)
         power_ftest_list.append(power)
 
+        # Test with two_tailed_test=True for coverage
+        selected_two_tailed = desparsified_lasso.fdr_selection(
+            fdr=alpha, two_tailed_test=True
+        )
+        assert selected_two_tailed.shape == (n_features,)
+
         # Testing error is raised when the covariance matrix has wrong shape
         bad_cov = np.delete(corr, 0, axis=1)
-        # np.testing.assert_raises(
-        # ValueError, desparsified_lasso, X=X, y=y, multioutput=True, covariance=bad_cov
-        # )
         desparsified_lasso = DesparsifiedLasso(
             estimator=multi_task_lasso_cv, covariance=bad_cov
         ).fit(X, y)
