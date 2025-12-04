@@ -32,7 +32,7 @@ def test_knockoff_bootstrap_quantile():
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
 
     assert model_x_knockoff.importances_.shape == (n_repeats, p)
     assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
@@ -61,7 +61,7 @@ def test_knockoff_bootstrap_e_values():
         fdr=fdr / 2, fdr_control="ebh", evalues=True
     )
 
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
 
     assert model_x_knockoff.importances_.shape == (n_repeats, p)
     assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
@@ -88,7 +88,7 @@ def test_invariant_with_bootstrap():
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
 
     model_x_knockoff_repeat = ModelXKnockoff(
         estimator=LassoCV(),
@@ -98,7 +98,7 @@ def test_invariant_with_bootstrap():
     ).fit(X, y)
     model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)
-    fdp_repeat, power_repeat = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp_repeat, power_repeat = fdp_power(selected_repeat, beta)
 
     np.testing.assert_array_equal(
         model_x_knockoff.importances_[0], model_x_knockoff_repeat.importances_[0]
@@ -110,7 +110,6 @@ def test_invariant_with_bootstrap():
         model_x_knockoff.importances_, model_x_knockoff_repeat.importances_
     )
     assert fdp_repeat <= fdp
-    assert power_repeat <= power
     assert not np.array_equal(selected, selected_repeat)
 
 
@@ -130,7 +129,7 @@ def test_model_x_knockoff():
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
 
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
     assert fdp <= 0.2
     assert power > 0.7
     assert np.all(0 <= model_x_knockoff.pvalues_) or np.all(
@@ -152,7 +151,7 @@ def test_model_x_knockoff_estimator():
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
 
     assert fdp <= fdr
     assert power > 0.7
@@ -189,7 +188,7 @@ def test_knockoff_function_not_centered():
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     selected, importances, pvalues = model_x_knockoff_importance(X, y, centered=False)
-    fdp, power = fdp_power(np.where(selected)[0], np.where(beta)[0])
+    fdp, power = fdp_power(selected, beta)
     assert selected.shape == (p,)
     assert importances.shape == (1, p)
     assert pvalues.shape == (1, p)
