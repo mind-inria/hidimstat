@@ -131,17 +131,17 @@ encludl = EnCluDL(
 
 encludl.fit_importance(X_4_7, y_4_7)
 selected_4_7 = encludl.fwer_selection(
-    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+    fwer=fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
 encludl.fit_importance(X_0_1, y_0_1)
 selected_0_1 = encludl.fwer_selection(
-    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+    fwer=fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
 encludl.fit_importance(X_0_9, y_0_9)
 selected_0_9 = encludl.fwer_selection(
-    fwer=fwer / 2, n_tests=n_clusters, two_tailed_test=True
+    fwer=fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
 # %%
