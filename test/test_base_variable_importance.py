@@ -489,6 +489,9 @@ def test_fwer_selection():
     assert np.mean(false_discovery_list) < target_fdr + test_tol
     assert np.mean(power_list) > 0.4 - test_tol
 
+    with pytest.raises(ValueError, match="Only 'bonferroni' procedure is supported"):
+        vim.fwer_selection(fwer=0.1, procedure="invalid_procedure")
+
 
 def test_clustered_fwer_selection():
     """
