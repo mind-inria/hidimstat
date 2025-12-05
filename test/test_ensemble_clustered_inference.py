@@ -65,37 +65,43 @@ def test_cludl_spatial():
     signal_noise_ratio = 32.0  # noise standard deviation
     smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
 
-    # generating the data
-    X_init, y, beta, epsilon = multivariate_simulation_spatial(
-        n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
-    )
+    fdp_list = []
+    power_list = []
+    for seed in range(10):
+        # generating the data
+        X_init, y, beta, epsilon = multivariate_simulation_spatial(
+            n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
+        )
 
-    y = y - np.mean(y)
-    X_init = X_init - np.mean(X_init, axis=0)
+        y = y - np.mean(y)
+        X_init = X_init - np.mean(X_init, axis=0)
 
-    n_clusters = 200
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    clustering = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
-    estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
-    cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=estimator),
-        clustering=clustering,
-    )
-    cludl.fit_importance(X_init, y)
-    fdr = 0.1
-    selected = cludl.fdr_selection(fdr=fdr)
+        n_clusters = 200
+        connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+        clustering = FeatureAgglomeration(
+            n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+        )
+        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        cludl = CluDL(
+            desparsified_lasso=DesparsifiedLasso(estimator=estimator),
+            clustering=clustering,
+            random_state=seed,
+        )
+        cludl.fit_importance(X_init, y)
+        fdr = 0.1
+        selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
 
-    fdp, power = spatially_relaxed_fdp_power(
-        selected=selected,
-        ground_truth=beta,
-        roi_size=roi_size,
-        spatial_tolerance=3,
-        shape=shape,
-    )
-    assert power >= 0.8
-    assert fdp <= fdr
+        fdp, power = spatially_relaxed_fdp_power(
+            selected=selected,
+            ground_truth=beta,
+            roi_size=roi_size,
+            spatial_tolerance=3,
+            shape=shape,
+        )
+        fdp_list.append(fdp)
+        power_list.append(power)
+    assert np.mean(power_list) >= 0.8
+    assert np.mean(fdp_list) <= fdr
 
 
 def test_encludl_spatial():
@@ -116,39 +122,45 @@ def test_encludl_spatial():
     signal_noise_ratio = 32.0  # noise standard deviation
     smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
 
-    # generating the data
-    X_init, y, beta, epsilon = multivariate_simulation_spatial(
-        n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
-    )
+    fdp_list = []
+    power_list = []
+    for seed in range(10):
+        # generating the data
+        X_init, y, beta, epsilon = multivariate_simulation_spatial(
+            n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
+        )
 
-    y = y - np.mean(y)
-    X_init = X_init - np.mean(X_init, axis=0)
+        y = y - np.mean(y)
+        X_init = X_init - np.mean(X_init, axis=0)
 
-    n_clusters = 200
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    clustering = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
+        n_clusters = 200
+        connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+        clustering = FeatureAgglomeration(
+            n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+        )
 
-    estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
-    cludl = EnCluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=estimator),
-        clustering=clustering,
-        n_bootstraps=5,
-    )
-    cludl.fit_importance(X_init, y)
-    fdr = 0.1
-    selected = cludl.fdr_selection(fdr=fdr)
+        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        cludl = EnCluDL(
+            desparsified_lasso=DesparsifiedLasso(estimator=estimator),
+            clustering=clustering,
+            n_bootstraps=5,
+            random_state=seed,
+        )
+        cludl.fit_importance(X_init, y)
+        fdr = 0.1
+        selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
 
-    fdp, power = spatially_relaxed_fdp_power(
-        selected=selected,
-        ground_truth=beta,
-        roi_size=roi_size,
-        spatial_tolerance=3,
-        shape=shape,
-    )
-    assert power >= 0.5
-    assert fdp <= fdr
+        fdp, power = spatially_relaxed_fdp_power(
+            selected=selected,
+            ground_truth=beta,
+            roi_size=roi_size,
+            spatial_tolerance=3,
+            shape=shape,
+        )
+        fdp_list.append(fdp)
+        power_list.append(power)
+    assert np.mean(power_list) >= 0.5
+    assert np.mean(fdp_list) <= fdr
 
 
 def test_cludl_temporal():
@@ -167,38 +179,46 @@ def test_cludl_temporal():
     margin_size = 5
     extended_support = support_size + margin_size
 
-    X, y, beta, noise = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        rho=rho_data,
-        shuffle=False,
-        continuous_support=True,
-        seed=10,
-    )
+    fdp_list = []
+    power_list = []
+    for seed in range(10):
+        X, y, beta, noise = multivariate_simulation(
+            n_samples=n_samples,
+            n_features=n_features,
+            n_targets=n_target,
+            support_size=support_size,
+            signal_noise_ratio=signal_noise_ratio,
+            rho_serial=rho_serial,
+            rho=rho_data,
+            shuffle=False,
+            continuous_support=True,
+            seed=seed,
+        )
 
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
+        connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+        ward = FeatureAgglomeration(
+            n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+        )
 
-    cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV(max_iter=1000)),
-        clustering=ward,
-    )
-    cludl.fit_importance(X, y)
+        cludl = CluDL(
+            desparsified_lasso=DesparsifiedLasso(
+                estimator=MultiTaskLassoCV(max_iter=1000)
+            ),
+            clustering=ward,
+            random_state=seed,
+        )
+        cludl.fit_importance(X, y)
 
-    alpha = 0.05
-    selected = cludl.fdr_selection(fdr=alpha)
-    fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(),
-        ground_truth=np.arange(extended_support),
-    )
-    assert power >= 0.5
-    assert fdp <= alpha
+        alpha = 0.05
+        selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(
+            selected=np.argwhere(selected).flatten(),
+            ground_truth=np.arange(extended_support),
+        )
+        fdp_list.append(fdp)
+        power_list.append(power)
+    assert np.mean(power_list) >= 0.5
+    assert np.mean(fdp_list) <= alpha
 
 
 def test_encludl_temporal():
@@ -217,36 +237,44 @@ def test_encludl_temporal():
     margin_size = 5
     extended_support = support_size + margin_size
 
-    X, y, beta, noise = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        rho=rho_data,
-        shuffle=False,
-        continuous_support=True,
-        seed=10,
-    )
+    fdp_list = []
+    power_list = []
+    for seed in range(10):
+        X, y, beta, noise = multivariate_simulation(
+            n_samples=n_samples,
+            n_features=n_features,
+            n_targets=n_target,
+            support_size=support_size,
+            signal_noise_ratio=signal_noise_ratio,
+            rho_serial=rho_serial,
+            rho=rho_data,
+            shuffle=False,
+            continuous_support=True,
+            seed=seed,
+        )
 
-    connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
+        connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
+        ward = FeatureAgglomeration(
+            n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+        )
 
-    cludl = EnCluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV(max_iter=1000)),
-        clustering=ward,
-        n_bootstraps=5,
-    )
-    cludl.fit_importance(X, y)
+        cludl = EnCluDL(
+            desparsified_lasso=DesparsifiedLasso(
+                estimator=MultiTaskLassoCV(max_iter=1000)
+            ),
+            clustering=ward,
+            n_bootstraps=5,
+            random_state=seed,
+        )
+        cludl.fit_importance(X, y)
 
-    alpha = 0.1
-    selected = cludl.fdr_selection(fdr=alpha)
-    fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(),
-        ground_truth=np.arange(extended_support),
-    )
-    assert power >= 0.5
-    assert fdp <= alpha
+        alpha = 0.1
+        selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
+        fdp, power = fdp_power(
+            selected=np.argwhere(selected).flatten(),
+            ground_truth=np.arange(extended_support),
+        )
+        fdp_list.append(fdp)
+        power_list.append(power)
+    assert np.mean(power_list) >= 0.5
+    assert np.mean(fdp_list) <= alpha

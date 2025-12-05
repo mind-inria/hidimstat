@@ -1,8 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.linear_model import LassoCV
 
+from hidimstat import CluDL, DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
 @pytest.fixture
@@ -29,8 +34,7 @@ def set_100_variable_sorted():
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
-    vi.pvalues_ = np.flip(np.sort(rng.random(n_features)))[vi.importances_]
-    vi.one_minus_pvalues_ = 1 - vi.pvalues_
+    vi.pvalues_ = np.flip(np.sort(rng.uniform(0, 1, n_features)))[vi.importances_]
     return vi
 
 
@@ -113,47 +117,56 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-class TestSelectionFDR:
-    """Test selection based on fdr"""
+def test_selection_fdr():
+    """
+    Test that the FDR-based selection using BH and BHY procedures achieve the good
+    guarantees:
+     - Empirical FDR is lower than the target
+     - Power is greater than 0.8 (arbitrary threshold)
 
-    def test_selection_fdr_default(self, set_100_variable_sorted):
-        "test selection of the default"
-        vi = set_100_variable_sorted
-        selection = vi.fdr_selection(0.2)
-        assert np.all(
-            [
-                i >= (vi.importances_ - np.sum(selection))
-                for i in vi.importances_[selection]
-            ]
+    The p-values are generated as uniform for null features and very small (divided by
+    100) for important features. The computation of FDP and power is repeated over 100
+    random draws.
+
+    """
+    bh_fdp_list = []
+    bhy_fdp_list = []
+    bh_power_list = []
+    bhy_power_list = []
+    n_features = 100
+    target_fdr = 0.1
+    test_tol = 0.1
+
+    for _ in range(100):
+        vim = BaseVariableImportance()
+        vim.importances_ = np.ones(n_features)
+        # Generate uniform p-values (null hypothesis)
+        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        # Add a few important ones
+        important_ids = np.random.choice(vim.pvalues_.shape[0], size=10, replace=False)
+        gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
+        gt_mask[important_ids] = 1
+        vim.pvalues_[important_ids] /= 500
+
+        # Apply BH procedure
+        selected_bh = vim.fdr_selection(fdr=target_fdr)
+        fdp_bh, power_bh = fdp_power(
+            selected=np.where(selected_bh)[0], ground_truth=important_ids
         )
-
-    def test_selection_fdr_default_1(self, set_100_variable_sorted):
-        "test selection of the default"
-        vi = set_100_variable_sorted
-        vi.pvalues_ = 0.5 * (1 + np.random.rand(vi.importances_.shape[0]))
-        true_value = np.zeros_like(vi.importances_, dtype=bool)  # selected any
-        selection = vi.fdr_selection(0.2)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_fdr_bhy(self, set_100_variable_sorted):
-        "test selection with bhy"
-        vi = set_100_variable_sorted
-        selection = vi.fdr_selection(0.2, fdr_control="bhy")
-        assert np.all(
-            [
-                i >= (vi.importances_ - np.sum(selection))
-                for i in vi.importances_[selection]
-            ]
+        bh_fdp_list.append(fdp_bh)
+        bh_power_list.append(power_bh)
+        # Apply BHY procedure
+        selected_bhy = vim.fdr_selection(fdr=target_fdr, fdr_control="bhy")
+        fdp_bhy, power_bhy = fdp_power(
+            selected=np.where(selected_bhy)[0], ground_truth=important_ids
         )
+        bhy_fdp_list.append(fdp_bhy)
+        bhy_power_list.append(power_bhy)
 
-    def test_selection_fdr_alternative_hypothesis(self, set_100_variable_sorted):
-        "test selection fdr_control wrong"
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError,
-            match="alternative_hippothesis can have only three values: True, False and None.",
-        ):
-            vi.fdr_selection(fdr=0.1, alternative_hypothesis="alt")
+    assert np.mean(bh_fdp_list) < target_fdr + test_tol
+    assert np.mean(bhy_fdp_list) < target_fdr + test_tol
+    assert np.mean(bh_power_list) > 0.8 - test_tol
+    assert np.mean(bhy_power_list) > 0.8 - test_tol
 
 
 def test_selection_bhq():
@@ -165,14 +178,21 @@ def test_selection_bhq():
     """
     vim = BaseVariableImportance()
     n_features = 100
-    vim.importances_ = np.arange(n_features)[::-1]
-    vim.pvalues_ = np.hstack(
+    vim.importances_ = np.hstack(
+        [
+            np.arange(n_features // 2)[::-1],
+            -np.arange(n_features // 2),
+        ]
+    )
+
+    pvalues_ = np.hstack(
         [
             np.logspace(-20, -1, n_features // 2, base=2),
             1 - np.logspace(-1, -20, n_features // 2, base=2),
         ]
     )
-    vim.one_minus_pvalues_ = 1 - vim.pvalues_
+    vim.pvalues_ = pvalues_.copy()
+    one_minus_pval = 1 - vim.pvalues_
 
     # Test selection based on pvalues_
     for fdr in [0.05, 0.1, 0.2]:
@@ -185,43 +205,20 @@ def test_selection_bhq():
             [True if i <= critical_k else False for i in range(n_features)]
         )
 
-        selected = vim.fdr_selection(fdr=fdr, fdr_control="bhq")
+        selected = vim.fdr_selection(fdr=fdr, fdr_control="bhq") != 0
         np.testing.assert_array_equal(selected_gt, selected)
 
-    # Test selection based on one_minus_pvalues_
-    for fdr in [0.05, 0.1, 0.2]:
-        critical_k = (
-            np.argwhere(
-                vim.one_minus_pvalues_[::-1]
-                <= (np.arange(1, n_features + 1) / n_features * fdr)
-            )
-            .ravel()
-            .max()
-        )
-        selected_gt = np.array(
-            [
-                True if i >= n_features - 1 - critical_k else False
-                for i in range(n_features)
-            ]
-        )
-        selected = vim.fdr_selection(
-            fdr=fdr, fdr_control="bhq", alternative_hypothesis=True
-        )
-        np.testing.assert_array_equal(selected_gt, selected)
-
-    # # Test two-sided selection, with fdr/2
+    # Test two-sided selection, with fdr/2
     for fdr in [0.05, 0.1, 0.2]:
         critical_k_lower = (
-            np.argwhere(
-                vim.pvalues_ <= np.arange(1, n_features + 1) / n_features * fdr / 2
-            )
+            np.argwhere(pvalues_ <= np.arange(1, n_features + 1) / n_features * fdr / 2)
             .ravel()
             .max()
         )
 
         critical_k_upper = (
             np.argwhere(
-                vim.one_minus_pvalues_[::-1]
+                one_minus_pval[::-1]
                 <= np.arange(1, n_features + 1) / n_features * fdr / 2
             )
             .ravel()
@@ -237,8 +234,11 @@ def test_selection_bhq():
                 for i in range(n_features)
             ]
         )
-        selected = vim.fdr_selection(
-            fdr=fdr / 2, fdr_control="bhq", alternative_hypothesis=None
+        vim.pvalues_, _ = two_sided_pval_from_pval(
+            pvalues_, one_minus_pval=one_minus_pval
+        )
+        selected = (
+            vim.fdr_selection(fdr=fdr, fdr_control="bhq", two_tailed_test=True) != 0
         )
         np.testing.assert_array_equal(selected_gt, selected)
 
@@ -452,3 +452,61 @@ def test_plot_importance_feature_names():
 
     with pytest.raises(ValueError, match="feature_names should be a list"):
         ax_none_group = vi.plot_importance(feature_names="ttt")
+
+
+def test_fwer_selection():
+    """
+    Test that the FWER selection procedure achieves the desired guarantees.
+    For 100 draws of p-values with 10 important ones the rest drawn from a uniform
+    distribution, check that the empirical FWER is lower than the requested level up to
+    some tolerance.
+    """
+    false_discovery_list = []
+    power_list = []
+    n_features = 100
+    target_fdr = 0.1
+    test_tol = 0.05
+
+    for _ in range(100):
+        vim = BaseVariableImportance()
+        vim.importances_ = np.ones(n_features)
+        # Generate uniform p-values (null hypothesis)
+        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        # Add a few important ones
+        important_ids = np.random.choice(vim.pvalues_.shape[0], size=10, replace=False)
+        gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
+        gt_mask[important_ids] = 1
+        vim.pvalues_[important_ids] /= 500
+
+        # Apply FWER selection
+        selected_bh = vim.fwer_selection(fwer=target_fdr)
+        fdp_bh, power_bh = fdp_power(
+            selected=np.where(selected_bh)[0], ground_truth=important_ids
+        )
+        false_discovery_list.append(int(fdp_bh > 0))
+        power_list.append(power_bh)
+
+    assert np.mean(false_discovery_list) < target_fdr + test_tol
+    assert np.mean(power_list) > 0.4 - test_tol
+
+    with pytest.raises(ValueError, match="Only 'bonferroni' procedure is supported"):
+        vim.fwer_selection(fwer=0.1, procedure="invalid_procedure")
+
+
+def test_clustered_fwer_selection():
+    """
+    Test to improve coverage by exploring the case where the number of clusters is used
+    as default for `n_tests` in fwer_selection.
+    """
+
+    n_features = 10
+    cludl = CluDL(
+        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+        clustering=FeatureAgglomeration(n_clusters=5),
+    )
+    cludl.fit_importance(np.random.randn(100, n_features), np.random.randn(100))
+
+    selection_clusters = cludl.fwer_selection(fwer=0.5)
+    assert selection_clusters.shape[0] == n_features
+    selection = cludl.fwer_selection(fwer=0.5, n_tests=n_features, two_tailed_test=True)
+    assert selection.shape[0] == n_features

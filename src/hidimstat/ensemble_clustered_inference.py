@@ -49,8 +49,6 @@ class CluDL(BaseVariableImportance):
         Estimated coefficients at cluster level.
     pvalues_ : ndarray, shape (n_clusters,)
         P-values for each cluster.
-    one_minus_pvalues_ : ndarray, shape (n_clusters,)
-        One minus the p-values for numerical stability.
     n_features_ : int
         Number of features in the original data.
 
@@ -139,15 +137,6 @@ class CluDL(BaseVariableImportance):
         self.pvalues_ = self.clustering_.inverse_transform(
             self.desparsified_lasso_.pvalues_
         )
-        self.pvalues_corr_ = self.clustering_.inverse_transform(
-            self.desparsified_lasso_.pvalues_corr_
-        )
-        self.one_minus_pvalues_ = self.clustering_.inverse_transform(
-            self.desparsified_lasso_.one_minus_pvalues_
-        )
-        self.one_minus_pvalues_corr_ = self.clustering_.inverse_transform(
-            self.desparsified_lasso_.one_minus_pvalues_corr_
-        )
 
         self.importances_ = self._ungroup_beta(
             self.desparsified_lasso_.importances_,
@@ -175,6 +164,25 @@ class CluDL(BaseVariableImportance):
         self.fit(X, y)
         self.importance(X, y)
         return self.importances_
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+        eps=1e-14,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+            eps=eps,
+        )
 
     @staticmethod
     def _ungroup_beta(beta_hat, n_features, ward):
@@ -304,9 +312,6 @@ class EnCluDL(BaseVariableImportance):
         Estimated coefficients at feature level.
     pvalues_ : ndarray, shape (n_features,)
         P-values for each feature.
-    one_minus_pvalues_ : ndarray, shape (n_features,)
-        One minus the p-values for numerical stability.
-
 
     .. footbibliography::
     """
@@ -430,16 +435,7 @@ class EnCluDL(BaseVariableImportance):
             gamma=self.gamma,
             adaptive=self.adaptive_aggregation,
         )
-        self.one_minus_pvalues_ = quantile_aggregation(
-            np.array(
-                [
-                    clu_dl.one_minus_pvalues_
-                    for clu_dl in self.clustering_desparsified_lassos_
-                ]
-            ),
-            gamma=self.gamma,
-            adaptive=self.adaptive_aggregation,
-        )
+
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -461,4 +457,22 @@ class EnCluDL(BaseVariableImportance):
         self.fit(X, y)
         self.importance(X, y)
         return self.importances_
-        return self.importances_
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+        eps=1e-14,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+            eps=eps,
+        )

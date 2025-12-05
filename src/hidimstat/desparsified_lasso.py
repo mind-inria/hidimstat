@@ -16,10 +16,7 @@ from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.statistical_tools.p_values import (
-    pval_from_cb,
-    pval_from_two_sided_pval_and_sign,
-)
+from hidimstat.statistical_tools.p_values import two_sided_pval_from_cb
 
 
 class DesparsifiedLasso(BaseVariableImportance):
@@ -88,12 +85,6 @@ class DesparsifiedLasso(BaseVariableImportance):
         Two-sided p-values.
     pvalues_corr_ : ndarray of shape (n_features)
         Multiple testing corrected p-values.
-    one_minus_pvalues_ : ndarray of shape (n_features)
-        One minus the p-value, with numerically accurate values for negative effects
-        (ie., for p-value close to one).
-    one_minus_pvalues_corr_ : ndarray of shape (n_features)
-        One minus the corrected p-value, with numerically accurate values for negative
-        effects (ie., for p-value close to one).
     sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
     precision_diagonal_ : ndarray of shape (n_features)
@@ -176,8 +167,6 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.confidence_bound_min_ = None
         self.confidence_bound_max_ = None
         self.pvalues_corr_ = None
-        self.one_minus_pvalues_ = None
-        self.one_minus_pvalues_corr_ = None
 
     def fit(self, X, y):
         """
@@ -363,9 +352,6 @@ class DesparsifiedLasso(BaseVariableImportance):
         - `pvalues_corr_`: Multiple testing corrected p-values
         - `confidence_bound_min_`: Lower confidence bounds (single task only)
         - `confidence_bound_max_`: Upper confidence bounds (single task only)
-        - `one_minus_pvalues_`: One minus the p-values with numerical accuracy
-        - `one_minus_pvalues_corr_`: One minus the corrected p-values with numerical
-        accuracy
 
         For multi-task case, p-values are based on chi-squared or F tests,
         configured by the test parameter ('chi2' or 'F').
@@ -392,13 +378,13 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.confidence_bound_max_ = beta_hat + confint_radius
             self.confidence_bound_min_ = beta_hat - confint_radius
 
-            pval, pval_corr, one_minus_pval, one_minus_pval_corr = pval_from_cb(
-                self.confidence_bound_min_,
-                self.confidence_bound_max_,
+            two_sided_pval, _ = two_sided_pval_from_cb(
+                cb_min=self.confidence_bound_min_,
+                cb_max=self.confidence_bound_max_,
                 confidence=self.confidence,
                 distribution=self.distribution,
-                eps=self.epsilon_pvalue,
             )
+
         else:
             covariance_hat = self.sigma_hat_
             if self.covariance is not None:
@@ -426,18 +412,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             else:
                 raise ValueError(f"Unknown test '{self.test}'")
 
-            # Compute the p-values
-            sign_beta = np.sign(np.sum(beta_hat, axis=1))
-            pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-                pval_from_two_sided_pval_and_sign(
-                    two_sided_pval, sign_beta, eps=self.epsilon_pvalue
-                )
-            )
-
-        self.pvalues_ = pval
-        self.pvalues_corr_ = pval_corr
-        self.one_minus_pvalues_ = one_minus_pval
-        self.one_minus_pvalues_corr_ = one_minus_pval_corr
+        self.pvalues_ = two_sided_pval
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -459,6 +434,25 @@ class DesparsifiedLasso(BaseVariableImportance):
         """
         self.fit(X, y)
         return self.importance()
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+        eps=1e-14,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+            eps=eps,
+        )
 
 
 def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
