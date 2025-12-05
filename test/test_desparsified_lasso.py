@@ -72,7 +72,7 @@ def test_desparsified_lasso():
         important = beta != 0
         # Run two sided test for coverage
         selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
-        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp, power = fdp_power(selected=selected, ground_truth=important)
         fdp_list.append(fdp)
         powr_list.append(power)
 
@@ -89,7 +89,7 @@ def test_desparsified_lasso():
 
         # Check p-values for important and non-important features
         selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=True)
-        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp, power = fdp_power(selected=selected, ground_truth=important)
         assert correct_interval >= int(0.7 * n_features)
         fdp_dof_list.append(fdp)
         powr_dof_list.append(power)
@@ -158,7 +158,7 @@ def test_desparsified_group_lasso():
 
         assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
-        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_list.append(fdp > 0)
         power_list.append(power)
         assert (
@@ -173,7 +173,7 @@ def test_desparsified_group_lasso():
 
         assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
-        fdp, power = fdp_power(np.where(selected)[0], np.where(important)[0])
+        fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_ftest_list.append(fdp > 0)
         power_ftest_list.append(power)
 

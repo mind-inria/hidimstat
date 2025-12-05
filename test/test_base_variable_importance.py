@@ -150,16 +150,12 @@ def test_selection_fdr():
 
         # Apply BH procedure
         selected_bh = vim.fdr_selection(fdr=target_fdr)
-        fdp_bh, power_bh = fdp_power(
-            selected=np.where(selected_bh)[0], ground_truth=important_ids
-        )
+        fdp_bh, power_bh = fdp_power(selected=selected_bh, ground_truth=gt_mask)
         bh_fdp_list.append(fdp_bh)
         bh_power_list.append(power_bh)
         # Apply BHY procedure
         selected_bhy = vim.fdr_selection(fdr=target_fdr, fdr_control="bhy")
-        fdp_bhy, power_bhy = fdp_power(
-            selected=np.where(selected_bhy)[0], ground_truth=important_ids
-        )
+        fdp_bhy, power_bhy = fdp_power(selected=selected_bhy, ground_truth=gt_mask)
         bhy_fdp_list.append(fdp_bhy)
         bhy_power_list.append(power_bhy)
 
@@ -480,9 +476,7 @@ def test_fwer_selection():
 
         # Apply FWER selection
         selected_bh = vim.fwer_selection(fwer=target_fdr)
-        fdp_bh, power_bh = fdp_power(
-            selected=np.where(selected_bh)[0], ground_truth=important_ids
-        )
+        fdp_bh, power_bh = fdp_power(selected=selected_bh, ground_truth=gt_mask)
         false_discovery_list.append(int(fdp_bh > 0))
         power_list.append(power_bh)
 
