@@ -171,7 +171,6 @@ class CluDL(BaseVariableImportance):
         fdr_control="bhq",
         reshaping_function=None,
         two_tailed_test=True,
-        eps=1e-14,
     ):
         """
         Overrides the signature to set two_tailed_test=True by default.
@@ -181,7 +180,6 @@ class CluDL(BaseVariableImportance):
             fdr_control=fdr_control,
             reshaping_function=reshaping_function,
             two_tailed_test=two_tailed_test,
-            eps=eps,
         )
 
     @staticmethod
@@ -464,7 +462,6 @@ class EnCluDL(BaseVariableImportance):
         fdr_control="bhq",
         reshaping_function=None,
         two_tailed_test=True,
-        eps=1e-14,
     ):
         """
         Overrides the signature to set two_tailed_test=True by default.
@@ -474,5 +471,4 @@ class EnCluDL(BaseVariableImportance):
             fdr_control=fdr_control,
             reshaping_function=reshaping_function,
             two_tailed_test=two_tailed_test,
-            eps=eps,
         )

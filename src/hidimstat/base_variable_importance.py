@@ -228,7 +228,6 @@ class BaseVariableImportance(BaseEstimator):
         fdr_control="bhq",
         reshaping_function=None,
         two_tailed_test=False,
-        eps=1e-14,
     ):
         """
         Performs feature selection based on False Discovery Rate (FDR) control.
@@ -248,8 +247,6 @@ class BaseVariableImportance(BaseEstimator):
             If True, performs two-tailed test selection using both p-values
             for positive effects and one-minus p-values for negative effects. The sign
             of the effect is determined from the sign of the importance scores.
-        eps : float, default=1e-14
-            Small value to ensure numerical stability when computing one-minus p-values.
 
         Returns
         -------
