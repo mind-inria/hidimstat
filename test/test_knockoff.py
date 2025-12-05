@@ -29,7 +29,7 @@ def test_knockoff_bootstrap_quantile():
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
+            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -61,7 +61,7 @@ def test_knockoff_bootstrap_e_values():
 
         # Using e-values aggregation
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
+            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -135,7 +135,7 @@ def test_model_x_knockoff():
             n, p, support_size=support_size, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=1, random_state=seed + 1, n_jobs=5
+            estimator=LassoCV(), n_repeats=1, random_state=seed + 1
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -200,7 +200,7 @@ def test_knockoff_function_not_centered():
     for seed in range(5):
         X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
         selected, importances, pvalues = model_x_knockoff_importance(
-            X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr, n_jobs=5
+            X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
         )
         fdp, power = fdp_power(selected, beta)
         assert selected.shape == (p,)
