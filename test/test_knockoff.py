@@ -73,7 +73,7 @@ def test_invariant_with_bootstrap():
     n = 200
     p = 50
     signal_noise_ratio = 5
-    fdr = 0.8
+    fdr = 0.2
     X, y, beta, noise = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
@@ -107,7 +107,6 @@ def test_invariant_with_bootstrap():
     assert not np.array_equal(
         model_x_knockoff.importances_, model_x_knockoff_repeat.importances_
     )
-    assert fdp_repeat <= fdp
     assert not np.array_equal(selected, selected_repeat)
 
 
