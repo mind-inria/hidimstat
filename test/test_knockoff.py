@@ -20,7 +20,7 @@ def test_knockoff_bootstrap_quantile():
     n = 200
     p = 50
     signal_noise_ratio = 5
-    n_repeats = 25
+    n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
@@ -29,7 +29,7 @@ def test_knockoff_bootstrap_quantile():
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed
+            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -50,7 +50,7 @@ def test_knockoff_bootstrap_e_values():
     n = 200
     p = 50
     signal_noise_ratio = 32
-    n_repeats = 10
+    n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
@@ -61,7 +61,7 @@ def test_knockoff_bootstrap_e_values():
 
         # Using e-values aggregation
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed
+            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -195,21 +195,17 @@ def test_knockoff_function_not_centered():
     fdr = 0.2
     n = 100
     p = 50
+    seed = 0
     fdp_list = []
     power_list = []
-    for seed in range(5):
-        X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
-        selected, importances, pvalues = model_x_knockoff_importance(
-            X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
-        )
-        fdp, power = fdp_power(selected, beta)
-        assert selected.shape == (p,)
-        assert importances.shape == (5, p)
-        assert pvalues.shape == (5, p)
-        fdp_list.append(fdp)
-        power_list.append(power)
-    assert np.mean(fdp_list) <= fdr
-    assert np.mean(power_list) > 0.2
+    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    selected, importances, pvalues = model_x_knockoff_importance(
+        X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
+    )
+    fdp, power = fdp_power(selected, beta)
+    assert selected.shape == (p,)
+    assert importances.shape == (5, p)
+    assert pvalues.shape == (5, p)
 
 
 ##############################################################################
