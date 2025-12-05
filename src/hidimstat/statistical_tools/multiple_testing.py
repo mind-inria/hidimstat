@@ -8,8 +8,7 @@ def fdp_power(selected, ground_truth):
     Parameters
     ----------
     selected : ndarray (n_features,)
-        Array of selected variable. 0 for non-selected, 1 for selected, -1 for
-        selected with negative effect (for two-tailed tests)
+        Array of selected variable. 0 for non-selected, non-zero for selected
     ground_truth : ndarray (n_features,)
         Array of true relevant variables. 0 for null, 1 for non-null
 
