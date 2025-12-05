@@ -885,8 +885,8 @@ def test_cfi_cv(data_generator):
     selected = cfi_cv.fdr_selection(fdr=0.05)
 
     alpha = 0.05
-    fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(), ground_truth=important_features
-    )
+    gt_mask = np.zeros(X.shape[1], dtype=int)
+    gt_mask[important_features] = 1
+    fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
     assert fdp < alpha
     assert power > 0.8

@@ -69,17 +69,19 @@ def test_fdp_power():
     p_values = np.linspace(1.0e-6, 1 - 1.0e-6, 100)
     p_values[:20] /= 10**6
 
-    selected = np.where(p_values < 1.0e-6)[0]
+    selected = np.zeros(100, dtype=int)
+    selected[p_values < 1.0e-6] = 1
     # 2 False Positives and 3 False Negatives
-    non_zero_index = np.concatenate([np.arange(18), [35, 36, 37]])
+    non_zero_mask = np.zeros(100, dtype=int)
+    non_zero_mask[np.concatenate([np.arange(18), [35, 36, 37]])] = 1
 
-    fdp, power = fdp_power(selected, non_zero_index)
+    fdp, power = fdp_power(selected, non_zero_mask)
 
-    assert fdp == 2 / len(selected)
-    assert power == 18 / len(non_zero_index)
+    assert fdp == 2 / np.sum(selected)
+    assert power == 18 / np.sum(non_zero_mask)
 
     # test empty selection
-    fdp, power = fdp_power(np.empty(0), non_zero_index)
+    fdp, power = fdp_power(np.zeros(100, dtype=int), non_zero_mask)
     assert fdp == 0.0
     assert power == 0.0
 

@@ -52,7 +52,6 @@ X, y, beta_true, noise = multivariate_simulation(
     signal_noise_ratio=snr,
     seed=0,
 )
-non_zero_index = np.where(beta_true)[0]
 
 
 # %%
@@ -80,7 +79,7 @@ for ko_statistics in model_x_knockoff.importances_:
     threshold = model_x_knockoff.knockoff_threshold(ko_statistics, fdr=fdr)
     ko_selection = ko_statistics > threshold
 
-    fdp, power = fdp_power(np.where(ko_selection)[0], non_zero_index)
+    fdp, power = fdp_power(ko_selection, ground_truth=beta_true)
     fdp_individual.append(fdp)
     power_individual.append(power)
 
@@ -142,12 +141,12 @@ _ = plt.tight_layout()
 # FDP and power.
 
 pval_aggregation = model_x_knockoff.fdr_selection(fdr=fdr, adaptive_aggregation=True)
-fdp_pval_agg, power_pval_agg = fdp_power(np.where(pval_aggregation)[0], non_zero_index)
+fdp_pval_agg, power_pval_agg = fdp_power(pval_aggregation, ground_truth=beta_true)
 
 eval_aggregation = model_x_knockoff.fdr_selection(
     fdr=fdr, fdr_control="ebh", evalues=True
 )
-fdp_eval_agg, power_eval_agg = fdp_power(np.where(eval_aggregation)[0], non_zero_index)
+fdp_eval_agg, power_eval_agg = fdp_power(eval_aggregation, ground_truth=beta_true)
 
 df_plot["Method"] = "Individual KO"
 df_plot_2 = pd.concat(

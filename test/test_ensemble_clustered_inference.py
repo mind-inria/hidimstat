@@ -211,9 +211,11 @@ def test_cludl_temporal():
 
         alpha = 0.05
         selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
+        gt_mask = np.zeros(n_features, dtype=int)
+        gt_mask[:extended_support] = 1
         fdp, power = fdp_power(
-            selected=np.argwhere(selected).flatten(),
-            ground_truth=np.arange(extended_support),
+            selected=selected,
+            ground_truth=gt_mask,
         )
         fdp_list.append(fdp)
         power_list.append(power)
@@ -270,9 +272,11 @@ def test_encludl_temporal():
 
         alpha = 0.1
         selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
+        gt_mask = np.zeros(n_features, dtype=int)
+        gt_mask[:extended_support] = 1
         fdp, power = fdp_power(
-            selected=np.argwhere(selected).flatten(),
-            ground_truth=np.arange(extended_support),
+            selected=selected,
+            ground_truth=gt_mask,
         )
         fdp_list.append(fdp)
         power_list.append(power)
