@@ -86,9 +86,7 @@ dl = DesparsifiedLasso(estimator=estimator, n_jobs=n_jobs, random_state=0)
 dl.fit_importance(X_init, y)
 
 # compute estimated support (first method)
-selected_dl = (dl.pvalues_ < (fwer_target / 2) / n_features) | (
-    dl.one_minus_pvalues_ < (fwer_target / 2) / n_features
-)
+selected_dl = dl.fwer_selection(fwer=fwer_target, n_tests=n_features)
 
 tp_mask = ((selected_dl.astype(int) == 1) & (beta == 1)).astype(bool)
 fp_mask = ((selected_dl.astype(int) == 1) & (beta == 0)).astype(bool)
@@ -151,9 +149,7 @@ dl_2 = DesparsifiedLasso(estimator=clone(estimator), n_jobs=n_jobs)
 clu_dl = CluDL(desparsified_lasso=dl_2, clustering=clustering, random_state=0)
 clu_dl.fit_importance(X_init, y)
 
-selected_cdl = (clu_dl.pvalues_ < (fwer_target / 2) / n_clusters) | (
-    clu_dl.one_minus_pvalues_ < (fwer_target / 2) / n_clusters
-)
+selected_cdl = clu_dl.fwer_selection(fwer=fwer_target, n_tests=n_clusters)
 
 
 # %%
@@ -211,9 +207,7 @@ enclu_dl = EnCluDL(
 )
 enclu_dl.fit_importance(X_init, y)
 
-selected_ecdl = (enclu_dl.pvalues_ < (fwer_target / 2) / n_clusters) | (
-    enclu_dl.one_minus_pvalues_ < (fwer_target / 2) / n_clusters
-)
+selected_ecdl = enclu_dl.fwer_selection(fwer=fwer_target, n_tests=n_clusters)
 
 
 # %%

@@ -126,7 +126,6 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 # Making the inference with several algorithms
 # --------------------------------------------
 
-
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 
@@ -173,6 +172,7 @@ cludl = CluDL(
 )
 cludl.fit_importance(X, y)
 
+
 # %%
 # Below, we run the ensemble clustered inference algorithm which adds a
 # randomization step over the clustered inference algorithm (c.f. References).
@@ -181,7 +181,6 @@ cludl.fit_importance(X, y)
 # then 5 statistical maps are produced and aggregated into one.
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
-
 
 from hidimstat.ensemble_clustered_inference import EnCluDL
 
@@ -194,6 +193,7 @@ encludl = EnCluDL(
     random_state=0,
 )
 encludl.fit_importance(X, y)
+
 
 # %%
 # Plotting the results
@@ -210,27 +210,6 @@ from hidimstat.statistical_tools.p_values import zscore_from_pval
 n_samples, n_features = X.shape
 target_fwer = 0.1
 
-# %%
-# We now translate the FWER target into a z-score target.
-# For the permutation test methods we do not need any additional correction
-# since the p-values are already adjusted for multiple testing.
-
-zscore_threshold_corr = zscore_from_pval((target_fwer / 2))
-
-# %%
-# Other methods need to be corrected. We consider the Bonferroni correction.
-# For methods that do not reduce the feature space, the correction
-# consists in dividing by the number of features.
-
-correction = 1.0 / n_features
-zscore_threshold_no_clust = zscore_from_pval((target_fwer / 2) * correction)
-
-# %%
-# For methods that parcelates the brain into groups of voxels, the correction
-# consists in dividing by the number of parcels (or clusters).
-
-correction_clust = 1.0 / n_clusters
-zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
 # %%
 # Now, we can plot the thresholded z-score maps by translating the
@@ -241,7 +220,8 @@ zscore_threshold_clust = zscore_from_pval((target_fwer / 2) * correction_clust)
 
 from matplotlib.pyplot import get_cmap
 from nilearn.plotting import plot_stat_map, show
-from sklearn.preprocessing import StandardScaler
+
+from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 
 def plot_map(
@@ -268,19 +248,24 @@ def plot_map(
     )
 
 
+selected_cludl = cludl.fwer_selection(fwer=target_fwer, two_tailed_test=True)
 plot_map(
-    zscore_from_pval(cludl.pvalues_, cludl.one_minus_pvalues_),
-    float(zscore_threshold_clust),
-    "CluDL",
+    zscore_from_pval(cludl.pvalues_) * selected_cludl,
+    float(zscore_from_pval(target_fwer / 2 / n_clusters)),
+    title="CluDL",
 )
 
-selected = encludl.pvalues_ < target_fwer / 2 / n_clusters
-selected = selected.astype(int)
-selected[(encludl.one_minus_pvalues_ < target_fwer / 2 / n_clusters)] = -1
-plot_map(selected, 0.5, "EnCluDL", vmin=-1, vmax=1)
+selected_encludl = encludl.fwer_selection(fwer=target_fwer, two_tailed_test=True)
+z_score_encludl = zscore_from_pval(encludl.pvalues_) * selected_encludl
+plot_map(
+    z_score_encludl,
+    float(zscore_from_pval(target_fwer / 2 / n_clusters)),
+    "EnCluDL",
+)
 # Finally, calling plotting.show() is necessary to display the figure when
 # running as a script outside IPython
 show()
+
 
 # %%
 # Analysis of the results
