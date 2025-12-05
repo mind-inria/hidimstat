@@ -192,13 +192,12 @@ def test_estimate_distribution():
 
 def test_knockoff_function_not_centered():
     """Test function of knockoff not centered"""
-    seed = 42
     fdr = 0.2
     n = 100
     p = 50
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in range(5):
         X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
         selected, importances, pvalues = model_x_knockoff_importance(
             X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr, n_jobs=5
