@@ -47,6 +47,11 @@ jobs:
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
 
+      - name: Get branch name
+        id: get_branch_name
+        run: |
+          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
+
   linter:
     name: Linter
     needs: [get_information]
@@ -61,7 +66,7 @@ jobs:
   
   tests_publish:
     name: tests_publish
-    needs: [tests]
+    needs: [tests, get_information]
     if: |
       ${{ github.event.pull_request.draft == false 
           || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
@@ -70,3 +75,5 @@ jobs:
       pull-requests: write
     secrets: inherit
     uses: ./.github/workflows/call_publish_result.yml
+    with:
+      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
