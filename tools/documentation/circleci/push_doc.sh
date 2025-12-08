@@ -23,7 +23,7 @@ then
     dir=dev
 else
     # Strip off release
-    dir="${$(echo ${CIRCLE_BRANCH} | sed s/release\_//)}"
+    dir="$(echo ${CIRCLE_BRANCH} | sed s/release\_//)"
 fi
 
 MSG="Pushing the docs to $dir/ for branch: $CIRCLE_BRANCH, commit $CIRCLE_SHA1"
