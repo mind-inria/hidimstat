@@ -5,9 +5,9 @@ on:
   # see the following page ofr regualr expression
   # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#filter-pattern-cheat-sheet
   pull_request:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
   push:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
 
 # disable all the permission for the workflow
 permissions: {}
@@ -26,7 +26,7 @@ jobs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 3 
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
@@ -46,11 +46,6 @@ jobs:
           else
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
-
-      - name: Get branch name
-        id: get_branch_name
-        run: |
-          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
   linter:
     name: Linter
@@ -75,5 +70,3 @@ jobs:
       pull-requests: write
     secrets: inherit
     uses: ./.github/workflows/call_publish_result.yml
-    with:
-      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
