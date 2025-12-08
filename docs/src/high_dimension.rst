@@ -68,6 +68,8 @@ Equipped with this, we can use CluDL::
     # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl)} features among {np.sum(beta > 0)} ')
+    Clustered Desparsified Lasso selected 61 features among 64 
+
   
 Note that inference is also way faster on the compressed representation.
     
@@ -78,11 +80,11 @@ The behavior is illustrated here::
     >>> from hidimstat import EnCluDL
 
     # ensemble of clustered desparsified lasso (EnCluDL)
-    >>> encludl = EnCluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso())
+    >>> encludl = EnCluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso(), n_bootstraps=20, random_state=0,)
     >>> encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
-
+    Ensemble of Clustered Desparsified Lasso selected 0 features among 64
 
 .. topic:: **Full example**
 
