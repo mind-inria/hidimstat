@@ -13,12 +13,12 @@
     {
         "name": "0.3.0",
         "version": "0.3.0",
-        "url": "https://hidimstat.github.io/1.0/"
+        "url": "https://hidimstat.github.io/0.3.0/"
     },
     {
-        "name": "0.2.0",
-        "version": "0.2.0",
-        "url": "https://hidimstat.github.io/0.2/"
+        "name": "0.2.X",
+        "version": "0.2.X",
+        "url": "https://hidimstat.github.io/0.2.X/"
     },
     {
         "name": "0.1.1",
