@@ -1,4 +1,4 @@
-.. _model_agnostic_methods:
+.. _concepts:
 
 
 =================
