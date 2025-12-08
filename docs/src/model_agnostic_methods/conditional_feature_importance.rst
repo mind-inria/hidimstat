@@ -39,6 +39,7 @@ Indeed,
     \frac{1}{2} \psi^j_{CFI} 
     = \psi^j_{TSI} 
     = \mathbb{E} [\mathcal{L}(Y, \mu_{-j}(X^{-j}))] - \mathbb{E} [\mathcal{L}(Y, \mu(X))].
+
 Where in regression, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[Y| X^{-j}]` is the 
 theoretical model without the :math:`j^{th}` feature.
 
