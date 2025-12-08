@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: 'release_[0-9]+.[0-9]+.[0-9]+'
   push:
-    branches: 'release_[0-9]+.[0-9]+.[0-9]+X?'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
 
 # disable all the permission for the workflow
 permissions: {}
@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+      BRANCH_NAME: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -46,6 +47,11 @@ jobs:
           else
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
+            
+      - name: Get branch name
+        id: get_branch_name
+        run: |
+          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
   linter:
     name: Linter
@@ -61,7 +67,7 @@ jobs:
   
   tests_publish:
     name: tests_publish
-    needs: [tests]
+    needs: [tests, get_information]
     if: |
       ${{ github.event.pull_request.draft == false 
           || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
@@ -70,3 +76,5 @@ jobs:
       pull-requests: write
     secrets: inherit
     uses: ./.github/workflows/call_publish_result.yml
+    with:
+      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
