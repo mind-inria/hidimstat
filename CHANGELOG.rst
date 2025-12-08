@@ -5,6 +5,11 @@ Version 0.0.4 (under devellopement)
 HIGHLIGHTS
 ----------
 
+ - New API
+ - New User Guide 
+ - More examples 
+ 
+
 
 New features
 ------------
