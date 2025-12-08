@@ -52,13 +52,13 @@ Additionally, make sure all deprecations that are supposed to be removed with th
      1. Create a branch `git checkout -b release-X.Y.(Z+1)`
      2. Add a tag on the last commit with the name of the release `git tag X.Y.(Z+1)`
    - **major release**:
-     1. A create a branch like `git checkout -b X.(Y+1).0` on the last commit of main
-     2. (optional) `git rebase -i X.Y.Z` if you want to cherry pick some commits  
+     1. A create a branch like `git checkout -b release-X.(Y+1).0` on the last commit of main
+     2. (optional) `git rebase -i release-X.Y.Z` if you want to cherry pick some commits  
      3. Add a tag to this branch with `git tag X.(Y+1).0`
    - **major revision**:
      1. `git reset --hard (X+1).0.0` # Change main to major revion branch (with a force push)
      2. `git push -f mind-inria/main` # force to update main (disable the rule Prevent Branch deletion)
-     3. `git checkout (X+1).0.0` # switch to the branch
+     3. `git checkout release-(X+1).0.0` # switch to the branch
      4. Add a tag on this version `(X+1).0.0` (the branch should be already create) `git tag (X+1).0.0`
 
 3\. build the wheel & test it
@@ -105,12 +105,12 @@ Merging this PR will update the documentation automatically
    - Commit the modifications
    - Push the modification 
 
-7\. merge the PR on `X.Y.Z` (don't squash the commits)
+7\. merge the PR on `release-X.Y.Z` (don't squash the commits)
   - check if the tests pass, the rendering of the documentation, the examples and the changelog are good
   - merge the PR **without squashing commit**:  
   no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
-  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on 0.4.X (with the rebase option), then in the settings disable it again
-- now we build the wheel we will upload to pypi locally `git fetch upstream` and `git checkout upstream/X.Y.Z`
+  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release-X.Y.X (with the rebase option), then in the settings disable it again
+- now we build the wheel we will upload to pypi locally `git fetch mind-inria` and `git checkout mind-inria/X.Y.Z`
 
 7\. Rebuild the wheel & retest it (see step [3])
 
@@ -124,10 +124,10 @@ Merging this PR will update the documentation automatically
   - (Optional) `python3 -m pip install --upgrade --force-reinstall --no-deps hidismtat==X.Y.Z`
   - (Optional) `pytest` # test the installation
 
-10\. Update the tag
-  - Update the tag: `git tag -d X.Y.0`
+10\. Update the tag if it is necessary
+  - Update the tag: `git tag -d X.Y.Z`
   - `git tag -s 'X.Y.Z'` # `-s` is for signing, optional
-  - `git push upstream X.Y.Z` # (disable the rule Prevent Branch deletion)
+  - `git push mind-inria X.Y.Z` # (disable the rule Prevent Branch deletion)
 
 11\. Create a release on github from a specific tag:
   - See the following tutorial: https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#about-release-management
@@ -143,7 +143,7 @@ Merging this PR will update the documentation automatically
     - update sha256
     - if needed reset build number to 0
     - if needed update the requirements (easiest way to check is in hidimstat `git checkout X.Y.Z` `git diff X.Y.(Z-1) -- pyproject.toml`)
-  - open a PR to `upstream/hidimstat-feedstock` main branch
+  - open a PR to `mind-inria/hidimstat-feedstock` main branch
     - use checklist that will be posted in PR
     - in particular it asks to post a comment asking a bot to re-render the
       recipe, make sure to wait until that has finished
