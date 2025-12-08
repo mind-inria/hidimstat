@@ -10,18 +10,52 @@ Notations
 
 .. glossary::
 
+    target 
+    :math:`Y`, ``y``
+        In the documentation, the target variable is denoted by a capital letter 
+        :math:`Y` when referring to it as a random variable. In the API and code 
+        examples, the target variable is denoted by a lowercase letter ``y``, following
+        the ``scikit-learn`` convention.
+
+    index
+    :math:`X^{j}`
+        The superscript index notation is used to denote the :math:`j^{th}` feature of 
+        the feature vector :math:`X`. 
+
     minus index
     :math:`X^{-j}`
         The minus index notation is used to denote all features except the one with the 
-        given index. For instance, :math:`X_{-j}` denotes all features except the 
+        given index. For instance, :math:`X^{-j}` denotes all features except the 
         :math:`j^{th}` one.
 
     minus group
-    :math:`X_{-G}`
+    :math:`X^{-G}`
         Similar to the :term:`minus index` notation for individual features, we use the minus 
         index notation to denote the complement of a group of features. For instance, 
-        :math:`X_{-G}` denotes all features except the ones in the group :math:`G`.
+        :math:`X^{-G}` denotes all features except the ones in the group :math:`G`.
 
+    marginal permutation of a feature
+    :math:`X^{\pi (j)}`
+        To denote a perturbed version of an input :math:`X` where the :math:`j^{th}` 
+        feature has been permuted, we use the superscript notation :math:`\pi (j)`. This 
+        permutation is marginal, meaning that the values of the :math:`j^{th}` feature 
+        are shuffled across samples, independently from the other features.
+
+    conditional permutation of a feature
+    :math:`\tilde X^{(j)}`
+        To denote a perturbed version of an input :math:`X` where the :math:`j^{th}` 
+        feature has been sampled from its conditional distribution given all other 
+        features, we use the tilde notation :math:`\tilde X^{(j)}`. This means that the 
+        values of the :math:`j^{th}` are drawn from the distribution 
+        :math:`P(X^{j} | X^{-j})`. 
+
+    knockoff feature
+    :math:`\tilde X`
+        The knockoff input :math:`\tilde X` is a perturbed version of the original 
+        input :math:`X` constructed such that each knockoff feature is pairwise 
+        exchangeable with the original feature and independent from the output :math:`Y` 
+        conditionally on the original features.
+        
 
 Glossary
 --------
@@ -62,7 +96,7 @@ Glossary
         features, the FDP is defined as:
 
         .. math::
-            \text{FDP} = \frac{|\hat S \cap \hat S \setminus S^*|}{|\hat S|}.
+            \text{FDP}(\hat S) = \frac{|\hat S \setminus S^*|}{\max(|\hat S|, 1)}.
 
         where :math:`|\cdot|` denotes the cardinality of a set.
 

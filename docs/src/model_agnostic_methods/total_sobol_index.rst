@@ -17,3 +17,7 @@ where :math:`X^{-j}` denotes the feature vector without the :math:`j^{th}` featu
 on the reduced feature set :math:`X^{-j}`. When :math:`\mathcal{L}` is the squared loss, 
 for a regression task, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[y | X^{-j}]` and when 
 :math:`\mathcal{L}` is the log-loss, for a classification task, :math:`\mu_{-j}(X^{-j}) = P(y | X^{-j})`.
+
+References
+----------
+.. footbibliography::
