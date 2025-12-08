@@ -30,7 +30,7 @@ jobs:
       BRANCH_NAME: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 3 
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
@@ -50,7 +50,7 @@ jobs:
           else
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
-
+      
       - name: Get branch name
         id: get_branch_name
         run: |
