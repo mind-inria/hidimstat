@@ -15,7 +15,7 @@ of how much a variable contributes to the predictive power of a model. We
 can then define "important" variables as those whose absence degrades 
 the model's performance :footcite:p:`Covert2020`.
 
-So if ``VI`` is a variable importance method, ``X`` a variable matrix and ``Y`` 
+So if ``VI`` is a variable importance method, ``X`` a variable matrix and ``y`` 
 the target variable, the importance of all the variables
 can be estimated as follows:
 
