@@ -15,7 +15,7 @@ spatially structured data.
 Installation
 ------------
 
-HiDimStat working only with Python 3, ideally Python 3.6+. For installation,
+HiDimStat working only with Python 3, ideally Python 3.10+. For installation,
 run the following from terminal::
 
   pip install hidimstat
@@ -35,11 +35,12 @@ HiDimStat depends on the following packages::
 
   joblib
   numpy
+  pandas
   scipy
   scikit-learn
-  pandas
+  tqdm
 
-To run examples it is necessary to install ``matplotlib``, and to run tests it
+To run examples it is necessary to install ``seaborn``, and to run tests it
 is also needed to install ``pytest``.
 
 
@@ -133,4 +134,5 @@ References
   api
   user_guide
   generated/gallery/examples/index
+  glossary_and_notations
   dev/index

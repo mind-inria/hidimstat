@@ -2,618 +2,473 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
+from tqdm import tqdm
 
-from hidimstat._utils.bootstrap import _subsampling
-from hidimstat.desparsified_lasso import (
-    desparsified_group_lasso_pvalue,
-    desparsified_lasso,
-    desparsified_lasso_pvalue,
-)
+from hidimstat._utils.utils import check_random_state
+from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
-def _ungroup_beta(beta_hat, n_features, ward):
+class CluDL(BaseVariableImportance):
     """
-    Ungroup cluster-level beta coefficients to individual feature-level
-    coefficients.
+    Clustered inference with desparsified lasso.
+
+    This algorithm computes a single clustered inference on groups of features
+    using the desparsified lasso method for statistical inference.
 
     Parameters
     ----------
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
-        Beta coefficients at cluster level
-    n_features : int
-        Number of features in original space
-    ward : sklearn.cluster.FeatureAgglomeration
-        Fitted clustering object
-
-    Returns
-    -------
-    beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_times)
-        Rescaled beta coefficients for individual features, weighted by
-        inverse cluster size
-
-    Notes
-    -----
-    Each coefficient is scaled by 1/cluster_size to maintain proper magnitude
-    when distributing cluster effects to individual features.
-    Handles both univariate (1D) and multivariate (2D) beta coefficients.
-    """
-    labels = ward.labels_
-    # compute the size of each cluster
-    clusters_size = np.zeros(labels.size)
-    for label in range(labels.max() + 1):
-        cluster_size = np.sum(labels == label)
-        clusters_size[labels == label] = cluster_size
-    # degroup beta_hat
-    if len(beta_hat.shape) == 1:
-        # weighting the weight of beta with the size of the cluster
-        beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
-    elif len(beta_hat.shape) == 2:
-        n_times = beta_hat.shape[1]
-        beta_hat_degrouped = np.zeros((n_features, n_times))
-        for i in range(n_times):
-            beta_hat_degrouped[:, i] = (
-                ward.inverse_transform(beta_hat[:, i]) / clusters_size
-            )
-    return beta_hat_degrouped
-
-
-def _degrouping(ward, beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr):
-    """
-    Degroup and rescale cluster-level statistics to individual features.
-    This function takes cluster-level statistics and assigns them back
-    to individual features, while appropriately rescaling the parameter
-    estimates based on cluster sizes.
-
-    Parameters
-    ----------
-    ward : sklearn.cluster.FeatureAgglomeration
-        Fitted clustering object containing the hierarchical structure
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
-        Estimated parameters at cluster level
-    pval : ndarray, shape (n_clusters,)
-        P-values at cluster level
-    pval_corr : ndarray, shape (n_clusters,)
-        Corrected p-values at cluster level
-    one_minus_pval : ndarray, shape (n_clusters,)
-        1 - p-values at cluster level
-    one_minus_pval_corr : ndarray, shape (n_clusters,)
-        1 - corrected p-values at cluster level
-
-    Returns
-    -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
-        Rescaled parameter estimates for individual features
-    pval : ndarray, shape (n_features,)
-        P-values for individual features
-    pval_corr : ndarray, shape (n_features,)
-        Corrected p-values for individual features
-    one_minus_pval : ndarray, shape (n_features,)
-        1 - p-values for individual features
-    one_minus_pval_corr : ndarray, shape (n_features,)
-        1 - corrected p-values for individual features
-
-    Notes
-    -----
-    The beta_hat values are rescaled by dividing by the cluster size
-    to maintain the proper scale of the estimates when moving from
-    cluster-level to feature-level.
-    The function handles both 1D and 2D beta_hat arrays for single and
-    multiple time points.
-    """
-    # degroup variable other than beta_hat
-    pval, pval_corr, one_minus_pval, one_minus_pval_corr = map(
-        ward.inverse_transform,
-        [pval, pval_corr, one_minus_pval, one_minus_pval_corr],
-    )
-
-    beta_hat = _ungroup_beta(beta_hat, n_features=pval.shape[0], ward=ward)
-
-    return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
-
-
-def _ward_clustering(X_init, ward, train_index):
-    """
-    Performs Ward clustering on data using a training subset.
-
-    This function applies Ward hierarchical clustering to a dataset, where the clustering
-    is computed based on a subset of samples but then applied to the full dataset.
-
-    Parameters
-    ----------
-    X_init : numpy.ndarray
-        Initial data matrix of shape (n_samples, n_features) to be clustered
-    ward : sklearn.cluster.FeatureAgglomeration
-        Ward clustering estimator instance
-    train_index : array-like
-        Indices of samples to use for computing the clustering
-
-    Returns
-    -------
-    tuple
-        - X_reduced : numpy.ndarray
-            Transformed data matrix after applying Ward clustering
-        - ward : sklearn.cluster.FeatureAgglomeration
-            Fitted Ward clustering estimator
-    """
-    ward = ward.fit(X_init[train_index, :])
-    X_reduced = ward.transform(X_init)
-    return X_reduced, ward
-
-
-def clustered_inference(
-    X_init,
-    y,
-    ward,
-    n_clusters,
-    scaler_sampling=None,
-    train_size=1.0,
-    groups=None,
-    seed=0,
-    n_jobs=1,
-    memory=None,
-    verbose=1,
-    **kwargs,
-):
-    """
-    Clustered inference algorithm for statistical analysis of
-    high-dimensional data.
-
-    This algorithm implements the method described in :cite:`chevalier2022spatially` for
-    performing statistical inference on high-dimensional linear models
-    using feature clustering to reduce dimensionality.
-
-    Parameters
-    ----------
-    X_init : ndarray, shape (n_samples, n_features)
-        Original high-dimensional input data matrix.
-
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Target variable(s). Can be univariate or multivariate (temporal) data.
-
-    ward : sklearn.cluster.FeatureAgglomeration
-        Hierarchical clustering object that implements Ward's method for
-        feature agglomeration.
-
-    n_clusters : int
-        Number of clusters to use for dimensionality reduction.
-
-    scaler_sampling : sklearn.preprocessing object, optional (default=None)
-        Scaler to standardize the clustered features.
-
-    train_size : float, optional (default=1.0)
-        Fraction of samples to use for computing the clustering.
-        When train_size=1.0, all samples are used.
-
-    groups : ndarray, shape (n_samples,), optional (default=None)
+    clustering: sklearn.cluster.FeatureAgglomeration
+        An instance of a clustering method that operates on features.
+    desparsified_lasso: DesparsifiedLasso
+        An instance of the DesparsifiedLasso class for statistical inference.
+    cluster_boostrap_size: float, optional (default=1.0)
+        Fraction of samples used for computing the clustering.
+        When cluster_boostrap_size=1.0, all samples are used.
+    bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
-
-    seed : int, optional (default=0)
+    random_state: int, optional (default=None)
         Random seed for reproducible subsampling.
-
-    n_jobs : int, optional (default=1)
-        Number of parallel jobs for computation.
-
-    memory : str or joblib.Memory object, optional (default=None)
-        Used to cache the output of the computation of the clustering
-        and the inference. By default, no caching is done. If a string is
-        given, it is the path to the caching directory.
-
-    verbose : int, optional (default=1)
-        Verbosity level for progress messages.
-
-    **kwargs : dict
-        Additional arguments passed to the statistical inference function.
-
-    Returns
-    -------
-    ward_ : FeatureAgglomeration
-        Fitted clustering object.
-
-    beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_times)
-        Estimated coefficients at cluster level.
-
-    theta_hat : ndarray
-        Estimated precision matrix.
-
-    precision_diag : ndarray
-        Diagonal of the covariance matrix.
-
-    References
-    ----------
-    .. footbibliography::
-
-    Notes
-    -----
-    The algorithm follows these main steps:
-    1. Subsample the data (if train_size < 1)
-    2. Cluster features using Ward hierarchical clustering
-    3. Transform data to cluster space
-    4. Perform statistical inference using desparsified lasso
-    """
-    memory = check_memory(memory=memory)
-    assert issubclass(
-        ward.__class__, FeatureAgglomeration
-    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
-
-    n_samples, n_features = X_init.shape
-
-    if verbose > 0:
-        print(
-            f"Clustered inference: n_clusters = {n_clusters}, "
-            + f"inference method desparsified lasso, seed = {seed},"
-            + f"groups = {groups is not None} "
-        )
-
-    ## This are the 3 step in first loop of the algorithm 2 of [1]
-    # sampling row of X
-    train_index = _subsampling(n_samples, train_size, groups=groups, seed=seed)
-
-    # transformation matrix
-    X_reduced, ward_ = memory.cache(_ward_clustering)(X_init, clone(ward), train_index)
-
-    # Preprocessing
-    if scaler_sampling is not None:
-        X_reduced = clone(scaler_sampling).fit_transform(X_reduced)
-
-    # inference methods
-    beta_hat, theta_hat, precision_diag = memory.cache(
-        desparsified_lasso, ignore=["n_jobs", "verbose", "memory"]
-    )(
-        X_reduced,
-        y,
-        multioutput=len(y.shape) > 1 and y.shape[1] > 1,  # detection of multiOutput
-        n_jobs=n_jobs,
-        memory=memory,
-        verbose=verbose,
-        **kwargs,
-    )
-
-    return ward_, beta_hat, theta_hat, precision_diag
-
-
-def clustered_inference_pvalue(
-    n_samples, group, ward, beta_hat, theta_hat, precision_diag, **kwargs
-):
-    """
-    Compute corrected p-values at the cluster level and transform them
-    back to feature level.
-
-    Parameters
-    ----------
-    n_samples : int
-        Number of samples in the dataset
-    group : bool
-        If True, uses group lasso p-values for multivariate outcomes
-    ward : AgglomerativeClustering
-        Fitted clustering object
-    beta_hat : ndarray
-        Estimated coefficients at cluster level
-    theta_hat : ndarray
-        Estimated precision matrix
-    precision_diag : ndarray
-        Diagonal elements of the covariance matrix
-    **kwargs : dict
-        Additional arguments passed to p-value computation functions
-
-    Returns
-    -------
-    beta_hat : ndarray
-        Degrouped coefficients at feature level
-    pval : ndarray
-        P-values for each feature
-    pval_corr : ndarray
-        Multiple testing corrected p-values
-    one_minus_pval : ndarray
-        1 - p-values for numerical stability
-    one_minus_pval_corr : ndarray
-        1 - corrected p-values
-    """
-    # corrected cluster-wise p-values
-    if not group:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr, cb_min, cb_max = (
-            desparsified_lasso_pvalue(
-                n_samples,
-                beta_hat,
-                theta_hat,
-                precision_diag,
-                **kwargs,
-            )
-        )
-    else:
-        pval, pval_corr, one_minus_pval, one_minus_pval_corr = (
-            desparsified_group_lasso_pvalue(
-                beta_hat, theta_hat, precision_diag, **kwargs
-            )
-        )
-
-    # De-grouping
-    beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr = _degrouping(
-        ward,
-        beta_hat,
-        pval,
-        pval_corr,
-        one_minus_pval,
-        one_minus_pval_corr,
-    )
-
-    return beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr
-
-
-def ensemble_clustered_inference(
-    X_init,
-    y,
-    ward,
-    n_clusters,
-    scaler_sampling=None,
-    train_size=0.3,
-    groups=None,
-    seed=0,
-    n_bootstraps=25,
-    n_jobs=None,
-    verbose=1,
-    memory=None,
-    **kwargs,
-):
-    """
-    Ensemble clustered inference algorithm for high-dimensional
-    statistical inference, as described in :cite:`chevalier2022spatially`.
-
-    This algorithm combines multiple runs of clustered inference with
-    different random subsamples to provide more robust statistical estimates.
-    It uses the desparsified lasso method for inference.
-
-    Parameters
-    ----------
-    X_init : ndarray, shape (n_samples, n_features)
-        Original high-dimensional input data matrix.
-
-    y : ndarray, shape (n_samples,) or (n_samples, n_times)
-        Target variable(s). Can be univariate or multivariate (temporal) data.
-
-    ward : sklearn.cluster.FeatureAgglomeration
-        Feature agglomeration object implementing Ward hierarchical clustering.
-
-    n_clusters : int
-        Number of clusters for dimensionality reduction.
-
-    scaler_sampling : sklearn.preprocessing object, optional (default=None)
-        Scaler to standardize the clustered features.
-
-    train_size : float, optional (default=0.3)
-        Fraction of samples used for clustering. Using train_size < 1 enables
-        random subsampling for better generalization.
-
-    groups : ndarray, shape (n_samples,), optional (default=None)
-        Sample group labels for stratified subsampling. Ensures balanced
-        representation of groups in subsamples.
-
-    inference_method : str, optional (default='desparsified-lasso')
-        Method used for inference.
-        Currently, the two available methods are 'desparsified-lasso'
-        and 'group-desparsified-lasso'. Use 'desparsified-lasso' for
-        non-temporal data and 'group-desparsified-lasso' for temporal data.
-
-    seed: int, optional (default=0)
-        Seed used for generating the first random subsample of the data.
-        This seed controls the clustering randomness.
-
-    ensembling_method : str, optional (default='quantiles')
-        Method used for ensembling. Currently, the two available methods
-        are 'quantiles' and 'median'.
-
-    gamma_min : float, optional (default=0.2)
-        Lowest gamma-quantile considered to compute the adaptive
-        quantile aggregation formula. This parameter is used only if
-        `ensembling_method` is 'quantiles'.
-
-    n_bootstraps : int, optional (default=25)
-        Number of bootstrap iterations for ensemble inference.
-
-    n_jobs : int or None, optional (default=None)
-        Number of parallel jobs. None means using all processors.
-
-    verbose: int, optional (default=1)
-        The verbosity level. If `verbose > 0`, a message is printed before
-        running the clustered inference.
-
     memory : joblib.Memory or str, optional (default=None)
         Used to cache the output of the clustering and inference computation.
         By default, no caching is done. If provided, it should be the path
         to the caching directory or a joblib.Memory object.
 
-    **kwargs : dict
-        Additional keyword arguments passed to statistical inference functions.
-
-    Returns
-    -------
-    list_ward : list of FeatureAgglomeration
-        List of fitted clustering objects from each bootstrap.
-
-    list_beta_hat : list of ndarray
-        List of estimated coefficients from each bootstrap.
-
-    pval : ndarray, shape (n_features,)
-        p-value, with numerically accurate values for
-        positive effects (i.e., for p-values close to zero).
-
-    list_theta_hat : list of ndarray
-        List of estimated precision matrices.
-
-    list_precision_diag : list of ndarray
-        List of diagonal elements of covariance matrices.
-
-    one_minus_pval : ndarray, shape (n_features,)
-        One minus the p-value, with numerically accurate values
-        for negative effects (i.e., for p-values close to one).
-
-    Notes
-    -----
-    The algorithm performs these steps for each bootstrap iteration:
-    1. Subsample the data using stratified sampling if groups are provided
-    2. Cluster features using Ward's hierarchical clustering
-    3. Transform data to reduced cluster space
-    4. Perform statistical inference using desparsified lasso
-    5. Aggregate results across all iterations
-
-    References
+    Attributes
     ----------
-    .. footbibliography::
-    """
-    memory = check_memory(memory=memory)
-    assert issubclass(
-        ward.__class__, FeatureAgglomeration
-    ), "ward need to an instance of sklearn.cluster.FeatureAgglomeration"
+    desparsified_lasso_ : DesparsifiedLasso
+        Fitted desparsified lasso estimator.
+    clustering_ : sklearn.cluster.FeatureAgglomeration
+        Fitted clustering object.
+    clustering_samples_ : ndarray, (n_samples*cluster_boostrap_size,)
+        Indices of samples used for clustering.
+    importances_ : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+        Estimated coefficients at cluster level.
+    pvalues_ : ndarray, shape (n_clusters,)
+        P-values for each cluster.
+    n_features_ : int
+        Number of features in the original data.
 
-    # Clustered inference algorithms
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(clustered_inference)(
-            X_init,
-            y,
-            clone(ward),
-            n_clusters,
-            scaler_sampling=scaler_sampling,
-            train_size=train_size,
-            groups=groups,
-            seed=i,
-            n_jobs=1,
-            verbose=verbose,
-            memory=memory,
-            **kwargs,
+    """
+
+    def __init__(
+        self,
+        clustering,
+        desparsified_lasso=DesparsifiedLasso(),
+        cluster_boostrap_size=1.0,
+        bootstrap_groups=None,
+        random_state=None,
+        memory=None,
+    ):
+        assert issubclass(
+            desparsified_lasso.__class__, DesparsifiedLasso
+        ), "desparsified_lasso need to be an instance of DesparsifiedLasso"
+        assert issubclass(
+            clustering.__class__, FeatureAgglomeration
+        ), "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
+        self.desparsified_lasso = desparsified_lasso
+        self.clustering = clustering
+        self.cluster_boostrap_size = cluster_boostrap_size
+        self.bootstrap_groups = bootstrap_groups
+        self.random_state = random_state
+        self.memory = memory
+
+        self.desparsified_lasso_ = None
+        self.clustering_ = None
+        self.clustering_samples_ = None
+
+    def fit(self, X, y):
+        """
+        Fit the clustering and desparsified lasso on the data.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        self : CluDL
+            Fitted estimator.
+        """
+        memory = check_memory(memory=self.memory)
+        rng = check_random_state(self.random_state)
+
+        self.n_features_in_ = X.shape[1]
+
+        # Clustering
+        self.clustering_samples_ = self._subsampling(
+            n_samples=X.shape[0],
+            train_size=self.cluster_boostrap_size,
+            groups=self.bootstrap_groups,
+            random_state=rng,
         )
-        for i in np.arange(seed, seed + n_bootstraps)
-    )
-    list_ward, list_beta_hat, list_theta_hat, list_precision_diag = [], [], [], []
-    for ward, beta_hat, theta_hat, precision_diag in results:
-        list_ward.append(ward)
-        list_beta_hat.append(beta_hat)
-        list_theta_hat.append(theta_hat)
-        list_precision_diag.append(precision_diag)
-    return list_ward, list_beta_hat, list_theta_hat, list_precision_diag
+        self.clustering_ = self.clustering.fit(X[self.clustering_samples_, :])
+        X_reduced = self.clustering_.transform(X)
+
+        # Desparsified lasso inference
+        self.desparsified_lasso.random_state = self.random_state
+        self.desparsified_lasso_ = memory.cache(self.desparsified_lasso.fit)(
+            X_reduced, y
+        )
+
+        return self
+
+    def importance(self, X=None, y=None):
+        """
+        Compute feature importance using desparsified lasso. Then map the importance
+        scores from cluster level back to feature level.
+
+        Parameters
+        ----------
+        X :
+            Not used, present for API consistency by convention.
+        y :
+            Not used, present for API consistency by convention.
+        """
+
+        self.desparsified_lasso_.importance()
+
+        self.pvalues_ = self.clustering_.inverse_transform(
+            self.desparsified_lasso_.pvalues_
+        )
+
+        self.importances_ = self._ungroup_beta(
+            self.desparsified_lasso_.importances_,
+            n_features=self.n_features_in_,
+            ward=self.clustering_,
+        )
+        return self.importances_
+
+    def fit_importance(self, X, y):
+        """
+        Fit the model and compute feature importance.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        self : CluDL
+            Fitted estimator with computed importances.
+        """
+        self.fit(X, y)
+        self.importance(X, y)
+        return self.importances_
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+        )
+
+    @staticmethod
+    def _ungroup_beta(beta_hat, n_features, ward):
+        """
+        Ungroup cluster-level beta coefficients to individual feature-level
+        coefficients.
+
+        Parameters
+        ----------
+        beta_hat : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+            Beta coefficients at cluster level
+        n_features : int
+            Number of features in original space
+        ward : sklearn.cluster.FeatureAgglomeration
+            Fitted clustering object
+
+        Returns
+        -------
+        beta_hat_degrouped : ndarray, shape (n_features,) or (n_features, n_tasks)
+            Rescaled beta coefficients for individual features, weighted by
+            inverse cluster size
+
+        Notes
+        -----
+        Each coefficient is scaled by 1/cluster_size to maintain proper magnitude
+        when distributing cluster effects to individual features.
+        Handles both univariate (1D) and multivariate (2D) beta coefficients.
+        """
+        labels = ward.labels_
+        # compute the size of each cluster
+        clusters_size = np.zeros(labels.size)
+        for label in range(labels.max() + 1):
+            cluster_size = np.sum(labels == label)
+            clusters_size[labels == label] = cluster_size
+        # degroup beta_hat
+        if len(beta_hat.shape) == 1:
+            # weighting the weight of beta with the size of the cluster
+            beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
+        elif len(beta_hat.shape) == 2:
+            n_tasks = beta_hat.shape[1]
+            beta_hat_degrouped = np.zeros((n_features, n_tasks))
+            for i in range(n_tasks):
+                beta_hat_degrouped[:, i] = (
+                    ward.inverse_transform(beta_hat[:, i]) / clusters_size
+                )
+        return beta_hat_degrouped
+
+    @staticmethod
+    def _subsampling(n_samples, train_size, groups=None, random_state=None):
+        """
+        Random subsampling for statistical inference.
+
+        Parameters
+        ----------
+        n_samples : int
+            Total number of samples in the dataset.
+        train_size : float
+            Fraction of samples to include in the training set (between 0 and 1).
+        groups : ndarray, shape (n_samples,), optional (default=None)
+            Group labels for samples.
+            If not None, a subset of groups is selected.
+        random_state : int, optional (default=0)
+            Random seed for reproducibility.
+
+        Returns
+        -------
+        train_index : ndarray
+            Indices of selected samples for training.
+        """
+        index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+        train_index = resample(
+            index_row,
+            n_samples=int(len(index_row) * train_size),
+            replace=False,
+            random_state=np.random.RandomState(random_state.bit_generator),
+        )
+        if groups is not None:
+            train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+        return train_index
 
 
-def ensemble_clustered_inference_pvalue(
-    n_samples,
-    group,
-    list_ward,
-    list_beta_hat,
-    list_theta_hat,
-    list_precision_diag,
-    fdr=0.1,
-    fdr_control="bhq",
-    reshaping_function=None,
-    adaptive_aggregation=False,
-    gamma=0.5,
-    n_jobs=None,
-    verbose=0,
-    **kwargs,
-):
+class EnCluDL(BaseVariableImportance):
     """
-    Compute and aggregate p-values across multiple bootstrap iterations
-    using an aggregation method.
-
-    This function performs statistical inference on each bootstrap sample
-    and combines the results using a specified aggregation method to obtain
-    robust estimates.
-    The implementation follows the methodology in :footcite:`chevalier2022spatially`.
+    Ensemble clustered inference with desparsified lasso. Performs multiple runs
+    of clustered inference using different clustering obtained from random subsamples
+    of the data. The results are then aggregated to provide robust feature importance
+    scores and p-values. This algorithm is based on the method described in
+    :footcite:`chevalier2022spatially`.
 
     Parameters
     ----------
-    n_samples : int
-        Number of samples in the dataset
-    group : bool
-        If True, uses group lasso p-values for multivariate outcomes
-    list_ward : list of AgglomerativeClustering
-        List of fitted clustering objects from bootstraps
-    list_beta_hat : list of ndarray
-        List of estimated coefficients at cluster level from each bootstrap
-    list_theta_hat : list of ndarray
-        List of estimated precision matrices from each bootstrap
-    list_precision_diag : list of ndarray
-        List of diagonal elements of covariance matrices from each bootstrap
-    fdr : float, default=0.1
-        False discovery rate threshold for multiple testing correction
-    fdr_control : str, default="bhq"
-        Method for FDR control ('bhq' for Benjamini-Hochberg)
-        Available methods are:
-        * 'bhq': Standard Benjamini-Hochberg :footcite:`benjamini1995controlling,bhy_2001`
-        * 'bhy': Benjamini-Hochberg-Yekutieli :footcite:p:`bhy_2001`
-        * 'ebh': e-Benjamini-Hochberg :footcite:`wang2022false`
-    reshaping_function : callable, optional (default=None)
-        Function to reshape data before FDR control
-    adaptive_aggregation : bool, default=False
-        Whether to use adaptive quantile aggregation
-    gamma : float, default=0.5
-        Quantile level for aggregation
-    n_jobs : int or None, optional (default=None)
-        Number of parallel jobs. None means using all processors.
-    verbose : int, default=0
-        Verbosity level for computation progress
-    **kwargs : dict
-        Additional arguments passed to p-value computation functions
+    desparsified_lasso: DesparsifiedLasso
+        An instance of the DesparsifiedLasso class for statistical inference.
+    clustering: sklearn.cluster.FeatureAgglomeration
+        An instance of a clustering method that operates on features.
+    n_bootstraps: int, optional (default=25)
+        Number of bootstrap iterations for ensemble inference.
+    cluster_boostrap_size: float, optional (default=0.3)
+        Fraction of samples used for computing the clustering.
+        When cluster_boostrap_size=1.0, all samples are used.
+    bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
+        Sample group labels for stratified subsampling.
+    n_jobs : int or None, optional (default=1)
+        Number of parallel jobs.
+    random_state: int, optional (default=None)
+        Random seed for reproducible subsampling.
+    memory : joblib.Memory or str, optional (default=None)
+        Used to cache the output of the clustering and inference computation.
+        By default, no caching is done. If provided, it should be the path
+        to the caching directory or a joblib.Memory object.
+    ensembling_method : str, optional (default='quantiles')
+        Method used for ensembling. Currently, the two available methods
+        are 'quantiles' and 'median'.
+    gamma : float, optional (default=0.2)
+        Lowest gamma-quantile considered to compute the adaptive
+        quantile aggregation formula. This parameter is used only if
+        `ensembling_method` is 'quantiles'.
+    adaptive_aggregation : bool, optional (default=True)
+        Whether to use adaptive quantile aggregation when `ensembling_method`
+        is 'quantiles'.
 
-    Returns
-    -------
-    beta_hat : ndarray, shape (n_features,) or (n_features, n_times)
-        Averaged coefficients across bootstraps
-    selected : ndarray, shape (n_features,)
-        Selected features: 1 for positive effects, -1 for negative effects,
-        0 for non-selected features
-
-    References
+    Attributes
     ----------
+    clustering_desparsified_lassos_ : list of DesparsifiedLasso
+        List of fitted CluDL estimators from each bootstrap.
+    importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
+        Estimated coefficients at feature level.
+    pvalues_ : ndarray, shape (n_features,)
+        P-values for each feature.
+
     .. footbibliography::
     """
-    results = Parallel(n_jobs=n_jobs, verbose=verbose)(
-        delayed(clustered_inference_pvalue)(
-            n_samples,
-            group,
-            list_ward[i],
-            list_beta_hat[i],
-            list_theta_hat[i],
-            list_precision_diag[i],
-            **kwargs,
+
+    def __init__(
+        self,
+        desparsified_lasso,
+        clustering,
+        n_bootstraps=25,
+        cluster_boostrap_size=0.3,
+        bootstrap_groups=None,
+        n_jobs=1,
+        random_state=None,
+        memory=None,
+        ensembling_method="quantiles",
+        gamma=0.5,
+        adaptive_aggregation=False,
+    ):
+        self.desparsified_lasso = desparsified_lasso
+        self.clustering = clustering
+        self.n_bootstraps = n_bootstraps
+        self.cluster_boostrap_size = cluster_boostrap_size
+        self.bootstrap_groups = bootstrap_groups
+        self.n_jobs = n_jobs
+        self.random_state = random_state
+        self.memory = memory
+        self.ensembling_method = ensembling_method
+        self.gamma = gamma
+        self.adaptive_aggregation = adaptive_aggregation
+
+        self.desparsified_lassos_ = None
+
+    @staticmethod
+    def _joblib_fit_one(
+        desparsified_lasso,
+        clustering,
+        cluster_boostrap_size,
+        bootstrap_groups,
+        X,
+        y,
+        random_state,
+        memory,
+    ):
+        clu_dl = CluDL(
+            desparsified_lasso=desparsified_lasso,
+            clustering=clustering,
+            cluster_boostrap_size=cluster_boostrap_size,
+            bootstrap_groups=bootstrap_groups,
+            random_state=random_state,
+            memory=memory,
         )
-        for i in range(len(list_ward))
-    )
-    # Collecting results
-    list_beta_hat = []
-    list_pval, list_pval_corr = [], []
-    list_one_minus_pval, list_one_minus_pval_corr = [], []
-    for beta_hat, pval, pval_corr, one_minus_pval, one_minus_pval_corr in results:
-        list_beta_hat.append(beta_hat)
-        list_pval.append(pval)
-        list_pval_corr.append(pval_corr)
-        list_one_minus_pval.append(one_minus_pval)
-        list_one_minus_pval_corr.append(one_minus_pval_corr)
+        clu_dl.fit(X, y)
+        return clu_dl
 
-    # Ensembling
-    beta_hat = np.mean(list_beta_hat, axis=0)
-    # pvalue selection
-    aggregated_pval = quantile_aggregation(
-        np.array(list_pval), gamma=gamma, adaptive=adaptive_aggregation
-    )
-    threshold_pval = fdr_threshold(
-        aggregated_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    # 1-pvalue selection
-    aggregated_one_minus_pval = quantile_aggregation(
-        np.array(list_one_minus_pval), gamma=gamma, adaptive=adaptive_aggregation
-    )
-    threshold_one_minus_pval = fdr_threshold(
-        aggregated_one_minus_pval,
-        fdr=fdr,
-        method=fdr_control,
-        reshaping_function=reshaping_function,
-    )
-    # group seelction
-    selected = np.zeros_like(beta_hat)
-    selected[np.where(aggregated_pval <= threshold_pval)] = 1
-    selected[np.where(aggregated_one_minus_pval <= threshold_one_minus_pval)] = -1
+    def fit(self, X, y):
+        """
+        Fit multiple clustered inferences on random subsamples of the data.
 
-    return beta_hat, selected
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        self : EnCluDL
+            Fitted estimator.
+        """
+        rng = check_random_state(self.random_state)
+
+        self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_fit_one)(
+                desparsified_lasso=self.desparsified_lasso,
+                clustering=self.clustering,
+                cluster_boostrap_size=self.cluster_boostrap_size,
+                bootstrap_groups=self.bootstrap_groups,
+                X=X,
+                y=y,
+                random_state=rng_spawned,
+                memory=self.memory,
+            )
+            for rng_spawned in tqdm(
+                rng.spawn(self.n_bootstraps),
+                desc="Fitting clustered inferences",
+                total=self.n_bootstraps,
+            )
+        )
+
+        return self
+
+    def importance(self, X=None, y=None):
+        """
+        Compute feature importance by aggregating results from multiple
+        clustered inferences.
+
+        Parameters
+        ----------
+        X :
+            Not used, present for API consistency by convention.
+        y :
+            Not used, present for API consistency by convention.
+        """
+        for i in tqdm(
+            range(self.n_bootstraps),
+            desc="Computing importances",
+            total=self.n_bootstraps,
+        ):
+            self.clustering_desparsified_lassos_[i].importance()
+
+        self.importances_ = np.mean(
+            [clu_dl.importances_ for clu_dl in self.clustering_desparsified_lassos_],
+            axis=0,
+        )
+
+        self.pvalues_ = quantile_aggregation(
+            np.array(
+                [clu_dl.pvalues_ for clu_dl in self.clustering_desparsified_lassos_]
+            ),
+            gamma=self.gamma,
+            adaptive=self.adaptive_aggregation,
+        )
+
+        return self.importances_
+
+    def fit_importance(self, X, y):
+        """
+        Fit the model and compute feature importance.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
+            Estimated coefficients at feature level.
+        """
+        self.fit(X, y)
+        self.importance(X, y)
+        return self.importances_
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+        )

@@ -16,6 +16,7 @@ You need more information, look here:
 .. toctree::
   :hidden:
   
+  developer_guidelines
   how_to_contribute
   building_documentation
   CI_documentation

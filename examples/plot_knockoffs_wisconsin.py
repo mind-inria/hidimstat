@@ -9,13 +9,6 @@ We show how the Lasso is not robust to the presence of irrelevant variables, whi
 Knockoffs (KO) method is able to address this issue.
 """
 
-import numpy as np
-import pandas as pd
-
-seed = 0
-rng = np.random.RandomState(seed)
-
-
 # %%
 # Load the breast cancer dataset
 # ------------------------------
@@ -31,9 +24,7 @@ data = load_breast_cancer()
 X = data.data
 y = data.target
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.1, random_state=seed
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -50,10 +41,12 @@ feature_names = [str(name) for name in data.feature_names]
 # characteristics that are associated with tumor malignance. We start off by applying a
 # classical method using Lasso logistic regression and retaining variables with non-null
 # coefficients:
+
+import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=rng
+    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=0
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -76,6 +69,12 @@ for i in selected_lasso:
 # this method, we artificially increase the number of variables by adding noisy copies
 # of the features. These are correlated with the variables in the dataset, but are not
 # related to the outcome.
+
+
+# Define the seeds for the reproducibility of the example
+rng = np.random.default_rng(0)
+
+
 repeats_noise = 5  # Number of synthetic noisy sets to add
 
 noises_train = [X_train]
@@ -84,8 +83,8 @@ feature_names_noise = [x for x in feature_names]
 for k in range(repeats_noise):
     X_train_c = X_train.copy()
     X_test_c = X_test.copy()
-    noises_train.append(X_train_c + 2 * rng.randn(n_train, p))
-    noises_test.append(X_test_c + 2 * rng.randn(n_test, p))
+    noises_train.append(X_train_c + 2 * rng.standard_normal((n_train, p)))
+    noises_test.append(X_test_c + 2 * rng.standard_normal((n_test, p)))
     feature_names_noise += [f"spurious #{k*p+i}" for i in range(p)]
 
 noisy_train = np.concatenate(noises_train, axis=1)
@@ -96,12 +95,15 @@ noisy_test = np.concatenate(noises_test, axis=1)
 # There are 180 features, 30 of them are real and 150 of them are fake and independent
 # of the outcome. We now apply the Lasso (with cross-validation to select the best
 # regularization parameter) to the noisy dataset and observe the results:
+
+import pandas as pd
+
 lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
     penalty="l1",
     solver="liblinear",
-    random_state=rng,
-    n_jobs=1,
+    random_state=0,
+    n_jobs=4,
 )
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
@@ -142,32 +144,36 @@ print(f"The Lasso makes at least {num_false_discoveries} False Discoveries!!")
 # We use the Model-X Knockoff procedure to control the FDR (False Discovery Rate). The
 # selection of variables is based on the Lasso Coefficient Difference (LCD) statistic
 # :footcite:t:`candes2018panning`.
-from hidimstat import model_x_knockoff
+from sklearn.covariance import LedoitWolf
 
-fdr = 0.2
+from hidimstat import ModelXKnockoff
+from hidimstat.samplers import GaussianKnockoffs
 
-selected, test_scores, threshold, X_tildes = model_x_knockoff(
-    noisy_train,
-    y_train,
+model_x_knockoff = ModelXKnockoff(
+    ko_generator=GaussianKnockoffs(
+        cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
+    ),
     estimator=LogisticRegressionCV(
         solver="liblinear",
         penalty="l1",
         Cs=np.logspace(-3, 3, 10),
-        random_state=rng,
+        random_state=0,
         tol=1e-3,
         max_iter=1000,
     ),
-    n_bootstraps=1,
     random_state=0,
-    tol_gauss=1e-15,
-    preconfigure_estimator=None,
-    fdr=fdr,
+    preconfigure_lasso_path=False,
 )
+importance = model_x_knockoff.fit_importance(
+    noisy_train,
+    y_train,
+)
+selected = model_x_knockoff.fdr_selection(fdr=0.2)
+
 
 # Count how many selected features are actually noise
-num_false_discoveries = np.sum(selected >= p)
+num_false_discoveries = np.sum(selected[p:])
 print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
-
 
 # %%
 # Visualizing the results
@@ -180,11 +186,11 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-selected_mask = np.array(["not selected"] * len(test_scores))
+selected_mask = np.array(["not selected"] * len(importance[0]))
 selected_mask[selected] = "selected"
 df_ko = pd.DataFrame(
     {
-        "score": test_scores,
+        "score": importance[0],
         "variable": feature_names_noise,
         "selected": selected_mask,
     }
@@ -205,7 +211,9 @@ sns.scatterplot(
     ax=ax,
     palette={"selected": "tab:red", "not selected": "tab:gray"},
 )
-ax.axvline(x=threshold, color="k", linestyle="--", label="Threshold")
+ax.axvline(
+    x=model_x_knockoff.threshold_fdr_, color="k", linestyle="--", label="Threshold"
+)
 ax.legend()
 ax.set_xlabel("KO statistic (LCD)")
 ax.set_ylabel("")
@@ -233,11 +241,9 @@ plt.show()
 
 
 # %%
-# We can clearly see that the knockoffs procedure is more conservative than the Lasso
-# and rejects the spurious features while many of them are selected by the Lasso. It is
-# also interesting to note that some of the selected variables (with the high KO
-# statistic (e.g., worst radius, worst area, mean concave points) are also variables
-# with the largest Lasso coefficients.
+# The plot shows that the knockoffs procedure is more conservative than the Lasso,
+# selecting far fewer spurious features. At the same time, it successfully identifies
+# relevant true features.
 
 
 # %%
