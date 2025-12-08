@@ -17,7 +17,7 @@ maintainers = [
 # Don't forget to have the coherence between the README and the description
 description = "High-dimensional statistical inference tools for Python"
 keywords = ["statistic", "high dimension", "importance variable"]
-readme = "README.md"
+readme = "README.rst"
 license-files = ["LICENSE"]
 classifiers = [
     "Intended Audience :: Science/Research",
