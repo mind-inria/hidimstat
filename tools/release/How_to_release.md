@@ -31,7 +31,7 @@ The format of version tag is X.Y.Z:
 ## Step for creating the Release:
 This steps suppose that there a branch for each a major release (0.0.X).
 The main branch is used for the ongoing work on the next major release.
-For a major revision, a new branch should be create from scratch or from a commit of main.
+For a major revision, a new branch should be created from scratch or from a commit on main.
 For a modification of a previous release, the modification should be pushed on the branch associate to it.
       # TODO check if it's necessary to have a script release/build_packages.py
 
