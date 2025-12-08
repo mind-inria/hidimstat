@@ -100,18 +100,17 @@ Merging this PR will update the documentation automatically
 5b. For minor release => Update the changelog, contributor:
   - Modify the `build_tools\template\CHANGELOG.rst` with the modification
   - Update `CONTRIBUTORS.rst` if it's necessary
-  - 
 
 6\. Commit and push modification:
    - Commit the modifications
    - Push the modification 
 
-7\. merge the PR on `0.4.X` (don't squash the commits)
+7\. merge the PR on `X.Y.Z` (don't squash the commits)
   - check if the tests are passed and the redering of the documentation, the examples, the changelog are good
   - merge the PR **without squashing commit**:  
   no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
   *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing my mistake. there seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on 0.4.X (with the rebase option), then in the settings disable it again
-- now we build the wheel we will upload to pypi locally `git fetch upstream` and `git checkout upstream/0.4.X`
+- now we build the wheel we will upload to pypi locally `git fetch upstream` and `git checkout upstream/X.Y.Z`
 
 7\. Rebuild the wheel & retest it (see step [3])
 
@@ -143,7 +142,7 @@ Merging this PR will update the documentation automatically
     - update version number
     - update sha256
     - if needed reset build number to 0
-    - if needed update the requirements (easiest way to check is in hidimstat `git checkout 0.4.2` `git diff 0.4.1 -- pyproject.toml`)
+    - if needed update the requirements (easiest way to check is in hidimstat `git checkout X.Y.Z` `git diff X.Y.(Z-1) -- pyproject.toml`)
   - open a PR to `upstream/hidimstat-feedstock` main branch
     - use checklist that will be posted in PR
     - in particular it asks to post a comment asking a bot to re-render the
