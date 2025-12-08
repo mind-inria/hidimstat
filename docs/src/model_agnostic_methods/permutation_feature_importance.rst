@@ -55,7 +55,7 @@ used for predicting both the original and perturbed datasets.
     combinations of feature values that were not observed in the training data.
     This can result in the model making predictions in regions of the feature space
     where it has not been trained, leading to unreliable importance estimates.
-    This issue is discussed in :footcite:t:`strobl2008conditional`, 
+    This issue is discussed in :footcite:t:`stroblConditionalVariableImportance2008`, 
     :footcite:t:`Hooker2021ExtrapolationPFI`.
 
     .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_pitfalls_permutation_importance_004.png
@@ -72,6 +72,7 @@ valid p-values for the null hypothesis
 
 .. math::
     \mathcal{H}_0: Y \perp\!\!\!\perp X_j | X_{-j}.
+    
 is not straightforward. This leads to many false discoveries, especially when features are correlated.
 
 
