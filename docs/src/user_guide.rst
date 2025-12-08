@@ -15,7 +15,7 @@ Table of contents
    :maxdepth: 3
 
    concepts.rst
-   glm_methods.rst
+   slm_methods.rst
    model_agnostic_methods.rst
    marginal_methods.rst
    visualization.rst
