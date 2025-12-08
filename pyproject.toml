@@ -1,11 +1,41 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
-build-backend = "hatchling.build"
+requires = [
+    "setuptools             >= 64, < 100", # builder for python packages 
+    "setuptools_scm[toml]   >= 8,     < 50"  # plugging for getting the version from github
+    ]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "HiDimStat"
-# Version from setuptools_scm
-dynamic = ["version"]
+dynamic = ["version"]  # dynamical version extracted from the git version
+authors = [  # TODO see if we need more details
+    { name = "HiDimStat developers" }  # possibility to add an email address
+    ]
+maintainers = [
+    { name = "Bertrand Thirion", email = "bertrand.thirion@inria.fr" },
+]
+# Don't forget to have the coherence between the README and the description
+description = "High-dimensional statistical inference tools for Python"
+keywords = ["statistic", "high dimension", "variable importance"]
+readme = "README.rst"
+license-files = ["LICENSE"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3:: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+    "Topic :: Scientific/Engineering",
+]
+requires-python = ">=3.10, < 4"
 dependencies = [
     "joblib       >= 1.2.0, < 2",
     "numpy        >= 1.25,  < 3",
@@ -14,27 +44,6 @@ dependencies = [
     "scipy        >= 1.9.2, < 2",
     "tqdm         >= 4.1.0, < 5",
 ]
-requires-python = ">=3.10,   < 4"
-authors = [{ name = "HiDimStat developers" }]
-maintainers = [
-    { name = "Bertrand Thirion", email = "bertrand.thirion@inria.fr" },
-]
-description = "High-dimensional statistical inference tools for Python"
-readme = "README.rst"
-classifiers = [
-    "Intended Audience :: Science/Research",
-    "Intended Audience :: Developers",
-    "Operating System :: Microsoft :: Windows",
-    "Operating System :: Unix",
-    "Operating System :: MacOS",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development",
-    "Topic :: Scientific/Engineering",
-]
-license = { file = "LICENSE" }
 
 [project.optional-dependencies]
 # Requirements necessary for building the documentation
@@ -75,30 +84,28 @@ test = [
 ]
 
 [project.urls]
-Development = "https://github.com/nilearn/nilearn"
-Homepage = "https://mind-inria.github.io/hidimstat"
 Repository = "https://github.com/mind-inria/hidimstat"
+Documentation = "https://github.com/hidimstat/hidimstat.github.io"
+Teams = "https://team.inria.fr/mind/"
+Issues = "https://github.com/mind-inria/hidimstat/issues"
+Discussion = "https://github.com/mind-inria/hidimstat/discussions" # TODO see if we keep it or not
 
+# Configuration of the builder 
+[tool.setuptools]
+package-dir = {"" = "src"} # define the root of the packages as src
+
+# Configuration of static analysis
 [tool.codespell]
 builtin = "clear,rare,en-GB_to_en-US"
 skip = "./.git,*.bib,./docs/_build"
 
 [tool.isort]
 profile = "black"
-skip = ["src/hidimstat/_version.py", "docs/_build"]
+skip = ["src/hidimstat/_version.py", "docs/_build", "build/"]
 
-[tool.hatch.build.hooks.vcs]
-version-file = "src/hidimstat/_version.py"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/hidimstat"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-
-[tool.hatch.version]
-source = "vcs"
+# file where the version is save
+[tool.setuptools_scm]
+version_file = "src/hidimstat/_version.py"
 
 # initialization based on the good practice of pytest
 # https://docs.pytest.org/en/stable/explanation/goodpractices.html
