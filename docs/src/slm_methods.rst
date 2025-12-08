@@ -1,9 +1,9 @@
 .. _slm_methods:
 
 
-===========================
-Sparse Linear Model Methods
-===========================
+=====================
+Sparse Linear Models
+=====================
 
 The methods presented in this section assume that the data generating process is linear. 
 They are specifically designed to tackle feature importance and selection in 
