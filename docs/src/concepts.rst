@@ -63,7 +63,7 @@ In the literature, there is a gap between *variable selection* and
 exclusively :footcite:p:`reyerolobo2025principledapproachcomparingvariable`.
 For instance, Conditional Feature Importance (:class:`hidimstat.CFI`) typically
 serves only as a measure of importance without offering statistical guarantees,
-whereas Model-X Knockoffs (:class:`hidimstat.model_x_knockoff`) generally
+whereas Model-X Knockoffs (:class:`hidimstat.ModelXKnockoff`) generally
 provide selection but little beyond that. For this reason, we have adapted the
 methods to provide both types of information while preserving their standard
 names.
