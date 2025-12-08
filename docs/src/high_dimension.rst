@@ -18,7 +18,6 @@ to identify relevant features. We need some data to start::
 
     >>> n_samples = 100
     >>> shape = (40, 40)
-    >>> n_features = shape[1] * shape[0]
     >>> roi_size = 4  # size of the edge of the four predictive regions
 
     # generating the data
@@ -29,14 +28,14 @@ to identify relevant features. We need some data to start::
 
 Then we perform inference on this data using the Desparsified Lasso::
 
-    from hidimstat.desparsified_lasso import DesparsifiedLasso
-    dlasso = DesparsifiedLasso().fit(X_init, y)
-    dlasso.importance(X_init, y) # compute importance score and associated corrected p-values
+    >>> from hidimstat.desparsified_lasso import DesparsifiedLasso
+    >>> dlasso = DesparsifiedLasso().fit(X_init, y)
+    >>> dlasso.importance(X_init, y) # compute importance score and associated corrected p-values
         
     >>> # compute estimated support
     >>> import numpy as np
     >>> alpha = .05
-    >>> selected_dl = dlasso.pvalues_ < alpha / n_features
+    >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> print(f'Desparsified Lasso selected {np.sum(selected_dl)} features among {np.sum(beta > 0)} ')
 
 
