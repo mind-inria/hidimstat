@@ -125,7 +125,7 @@ jobs:
       - run:
           name: "Deploy documentation"
           command: |
-            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.X$ ]]; then
+            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^release\_[0-9]+\.[0-9]+\.[0-9]$ ]]; then
               bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
             fi
 

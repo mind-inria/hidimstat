@@ -1,8 +1,3 @@
-.. ## Define a hard line break in HTML
-.. |br| raw:: html
-
-  <br />
-
 .. # Add the reference for the badges
 .. ## Reference to the CI status
 .. |Linter&Tests| image:: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml/badge.svg?branch=main
@@ -103,7 +98,8 @@ User installation
 
 HiDimStat can easily be installed via ``pip``. For more installation information,
 see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
-::
+.. code-block:: bash
+  
   pip install -U hidimstat 
 
 Contribute
@@ -129,13 +125,13 @@ Contact us
 .. # Add a way to contact maintainers 
   TODO this needs to be updated when there is a change of maintainers
 
-Currently, this library is supported by the `INRIA <https://www.inria.fr/en>`_ 
-team `MIND <https://www.inria.fr/fr/mind>`_. |br|
-If you want to report a problem or suggest an enhancement, we would love for you 
-to `open an issue <https://github.com/mind-inria/hidimstat/issues/new>`_ at 
-this GitHub repository so we can address it quickly. |br|
-For less formal discussions or to exchange ideas, you can contact the main 
-contributors:
+| Currently, this library is supported by the `INRIA <https://www.inria.fr/en>`_ 
+  team `MIND <https://www.inria.fr/fr/mind>`_.
+| If you want to report a problem or suggest an enhancement, we would love for you 
+  to `open an issue <https://github.com/mind-inria/hidimstat/issues/new>`_ at 
+  this GitHub repository so we can address it quickly.
+| For less formal discussions or to exchange ideas, you can contact the main 
+  contributors:
 
 +-------------------+-------------------+-------------------+-------------------+
 |   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |
