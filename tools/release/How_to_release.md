@@ -106,7 +106,7 @@ Merging this PR will update the documentation automatically
    - Push the modification 
 
 7\. merge the PR on `X.Y.Z` (don't squash the commits)
-  - check if the tests pass , the rendering of the documentation, the examples and the changelog are good
+  - check if the tests pass, the rendering of the documentation, the examples and the changelog are good
   - merge the PR **without squashing commit**:  
   no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
   *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing my mistake. there seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on 0.4.X (with the rebase option), then in the settings disable it again
