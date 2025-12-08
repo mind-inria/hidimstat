@@ -30,6 +30,7 @@ jobs:
       - image: cimg/python:3.13.2
     environment:
       - PYTHON_VERSION: "3.13"
+      - OPENBLAS_NUM_THREADS: "1"
     steps:
       - checkout
       - run: 
@@ -113,15 +114,13 @@ jobs:
           name: 
             "Add the ssh key and list the file in the documentation"
           command: |
-              set -x -e
               mkdir -p ~/.ssh
               ssh-keyscan github.com >> ~/.ssh/known_hosts
               ls -ltrh docs/_build/html
       - run:
           name: "Deploy documentation"
           command: |
-            set -x -e
-            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            if [[ "${CIRCLE_BRANCH}" =~ ^main$|^release\_[0-9]+\.[0-9]+\.[0-9]$ ]]; then
               bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
             fi
 
