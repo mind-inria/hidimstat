@@ -9,13 +9,13 @@ Variable Importance
 -------------------
 
 Global Variable Importance (VI) aims to assign a measure of
-relevance to each feature :math:`X^j` with respect to a target  :math:`y` in the
+relevance to each feature :math:`X^j` with respect to a target  :math:`Y` in the
 data-generating process. In Machine Learning, it can be seen as a measure
 of how much a variable contributes to the predictive power of a model. We 
 can then define "important" variables as those whose absence degrades 
 the model's performance :footcite:p:`Covert2020`.
 
-So if ``VI`` is a variable importance method, ``X`` a variable matrix and ``y`` 
+So if ``VI`` is a variable importance method, ``X`` a variable matrix and ``Y`` 
 the target variable, the importance of all the variables
 can be estimated as follows:
 
@@ -32,11 +32,7 @@ can be estimated as follows:
 
 It allow us to rank the variables from more to less important.                            
 
-Here, ``VI`` can be a variable importance method implemented in HiDimStat,
-such as Leave One Covariate Out :class:`hidimstat.LOCO` (other methods will support the same API 
-soon).
-
-Variable Selection
+Here, ``VI`` can be a variable importance method that inherits from :class:`hidimstat.base_variable_importance.BaseVariableImportance`
 -------------------
 
 (Controlled) Variable selection is then the next step that entails filtering out the 
@@ -49,7 +45,10 @@ a threshold ``p``, we can do:
 .. code-block::
 
     # selection of the importance and pvalues
-    vi.selection(threshold_pvalue=p)
+    vi.pvalue_selection(threshold_max=p)
+
+Similarly, we could use ``VI.fdr_selection`` or ``VI.fwer_selection`` to obtain 
+FDR or FWER control.
 
 This step is important to make insighful discoveries. Even if variable 
 importance provides a ranking, due to the estimation step, we need
@@ -75,14 +74,12 @@ Types of VI methods
 
 There are two main types of VI methods implemented in HiDimStat:
 
-1. Marginal methods: these methods provide importance to all the features 
-that are related to the output, even if it is caused by spurious correlation. They 
+1. **Marginal methods**: these methods provide importance to all the features 
 are related with testing if :math:`X^j\perp\!\!\!\!\perp Y`.
 An example of such methods is Leave One Covariate In (LOCI, 
 :footcite:p:`ewald_2024`).
 
-2. Conditional methods: these methods assign importance only to features that
-provide exclusive information beyond what is already captured by the others, 
+2. **Conditional methods**: these methods assign importance only to features that
 i.e., they contribute unique knowledge. They are related to Conditional 
 Independence Testing, which consists of testing whether 
 :math:`X^j\perp\!\!\!\!\perp Y\mid X^{-j}`. Examples of such methods are
