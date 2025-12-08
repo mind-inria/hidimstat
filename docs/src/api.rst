@@ -15,6 +15,7 @@ Base Classes
 
    ~base_variable_importance.BaseVariableImportance
    ~base_perturbation.BasePerturbation
+   ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
 
 Feature Importance Classes
@@ -25,9 +26,16 @@ Feature Importance Classes
    :template: class.rst
    
    LOCO
+   LOCOCV
    CFI
+   CFICV
+   CluDL
+   EnCluDL
    PFI
+   PFICV
    D0CRT
+   ModelXKnockoff
+   DesparsifiedLasso
 
 Feature Importance functions
 ============================
@@ -35,15 +43,23 @@ Feature Importance functions
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: function.rst
+   
+   cfi_importance
+   d0crt_importance
+   desparsified_lasso_importance
+   model_x_knockoff_importance
+   loco_importance
+   pfi_importance
 
-   clustered_inference
-   clustered_inference_pvalue
-   desparsified_lasso
-   desparsified_lasso_pvalue
-   desparsified_group_lasso_pvalue
-   ensemble_clustered_inference
-   ensemble_clustered_inference_pvalue
-   model_x_knockoff
+Visualization
+=============
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~visualization.PDP
+
 
 Samplers
 ========
@@ -52,8 +68,8 @@ Samplers
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   ~statistical_tools.ConditionalSampler
-   ~statistical_tools.GaussianKnockoffs
+   ~samplers.ConditionalSampler
+   ~samplers.GaussianKnockoffs
 
 Helper Functions
 ================
@@ -62,5 +78,6 @@ Helper Functions
    :toctree: ./generated/api/helper_functions/
    :template: function.rst
 
-   quantile_aggregation
-   reid
+   ~statistical_tools.aggregation.quantile_aggregation
+   ~desparsified_lasso.reid
+   ~statistical_tools.nadeau_bengio_ttest

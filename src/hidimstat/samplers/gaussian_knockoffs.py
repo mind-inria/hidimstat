@@ -1,13 +1,13 @@
 import warnings
 
 import numpy as np
-from sklearn.utils import check_random_state
+from sklearn.covariance import LedoitWolf
 
 from hidimstat._utils.utils import check_random_state
 
 
 class GaussianKnockoffs:
-    """
+    r"""
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original
     variables while ensuring conditional independence between the original and synthetic data.
@@ -33,7 +33,7 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator, tol=1e-14):
+    def __init__(self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
@@ -130,12 +130,12 @@ class GaussianKnockoffs:
         """
         self._check_fit()
         rng = check_random_state(random_state)
-        n_repeats, n_features = self.mu_tilde_.shape
+        n_samples, n_features = self.mu_tilde_.shape
 
         X_tildes = []
         for i in range(n_repeats):
             # create a uniform noise for all the data
-            u_tilde = rng.standard_normal([n_repeats, n_features])
+            u_tilde = rng.standard_normal([n_samples, n_features])
 
             # Equation 1.4 in barber2015controlling
             X_tildes.append(
