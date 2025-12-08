@@ -32,7 +32,7 @@ jobs:
 
     steps:
     # Checkout to the branch for getting the right code
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
@@ -75,21 +75,21 @@ jobs:
     - name: Upload HTML test result
       if: ${{ always() && !cancelled()}}
       id: html_report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: pytest-results-html-${{env.REPORT_NAME}}
         path: report-${{env.REPORT_NAME}}.html
         if-no-files-found: error
     - name: Upload duration test result
       if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: pytest-results-log-${{env.REPORT_NAME}}
         path: log-${{env.REPORT_NAME}}.txt
         if-no-files-found: error
     - name: Upload coverage data
       if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: cov-results-${{env.REPORT_NAME}}
         path: cov/cov-${{env.REPORT_NAME}}.xml
