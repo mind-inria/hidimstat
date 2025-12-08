@@ -33,6 +33,8 @@ can be estimated as follows:
 It allow us to rank the variables from more to less important.                            
 
 Here, ``VI`` can be a variable importance method that inherits from :class:`hidimstat.base_variable_importance.BaseVariableImportance`
+
+Variable Selection
 -------------------
 
 (Controlled) Variable selection is then the next step that entails filtering out the 
