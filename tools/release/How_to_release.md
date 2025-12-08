@@ -93,7 +93,7 @@ Merging this PR will update the documentation automatically
    - Update the file `CONTRIBUTORS.rst` in the documentation
       `cp CONTRIBUTORS.rst doc_conf\whats_news\CONTRIBUTORS.rst`
    - Add/Update the documentation with the new version. For doing it's require to update `doc_conf/version.json` which define all the version of the project.\
-   The 2 first elements indicate the devellopement version and the last stable version.
+   The first two elements indicate the development version and the last stable version.
   - Update symlink to stable version in the github branches repo: https://github.com/hidimstat/hidimstat.github.io
   
 
