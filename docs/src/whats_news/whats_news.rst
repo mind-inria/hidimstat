@@ -19,12 +19,12 @@ Latest modification
 History of modification
 =======================
 
-.. _v1.0.0:
-.. include:: v1.0.0.rst
+.. _v0.3.0:
+.. include:: v0.3.0.rst
 
 .. toctree::
   :hidden:
   :maxdepth: 1
 
-  v1.0.0
+  v0.3.0
   latest

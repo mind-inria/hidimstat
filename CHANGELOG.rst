@@ -1,5 +1,5 @@
 =================================
-Version 1.1 (under devellopement)
+Version 0.0.4 (under devellopement)
 =================================
 
 HIGHLIGHTS
