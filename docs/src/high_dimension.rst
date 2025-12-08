@@ -56,7 +56,7 @@ As discussed earlier, feature grouping is a meaningful solution to deal with suc
    * The :ref:`Grouping documentation <grouping>`
 
 
-As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or **CluDL**.
+As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or :py:func:`CluDL <hidimstat.clustered_inference>`.
 
 Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model::
 
@@ -88,7 +88,7 @@ Equipped with this, we can use CluDL::
   
 Note that inference is also way faster on the compressed representation.
     
-The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or **EnCluDL**.
+The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or :py:func:`EnCluDL<hidimstat.ensemble_clustered_inference>`.
 
 The behavior is illustrated here::
 
@@ -129,12 +129,12 @@ What type of Control does this Ensemble of CLustered inference come with ?
 
 Ensemble of Clustered Inference is not a local method, so control cannot be maintained at each brain site in isolation.
 The notion of a false positive must be mitigated by the non-local characteristic of the inference performed.
-Thus, we introduce the concept of a $\delta$-false positive:
+Thus, we introduce the concept of a :math:`\delta`-false positive:
 A detection is a delta-false positive if it is at a distance greater than $\delta$ from the support, which is the set of true positives.
-Thus, what is controlled is the $\delta$-FWER, i.e., the probability of reporting a single false $\delta$-false positive.
-In other words, EnCluDL will likely only report detections at a distance less than $\delta$ from the true support.
+Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of reporting a single false :math:`\delta`-false positive.
+In other words, EnCluDL will likely only report detections at a distance less than :math:`\delta` from the true support.
 
-What is $\delta$ ? It is the diameter of the clusters used in the CluDL procedure.
+What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL procedure.
 
 
 The details of the method and the underlying guarantees are described in :footcite:t:`chevalier2022spatially`
