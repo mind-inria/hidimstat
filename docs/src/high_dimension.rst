@@ -23,8 +23,7 @@ to identify relevant features. We need some data to start::
     # generating the data
     >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
     >>> X_init, y, beta, epsilon = multivariate_simulation_spatial(
-    >>>     n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1
-    >>> )
+    >>>     n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1)
 
 Then we perform inference on this data using the Desparsified Lasso::
 
@@ -32,11 +31,12 @@ Then we perform inference on this data using the Desparsified Lasso::
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
     >>> dlasso.importance(X_init, y) # compute importance score and associated corrected p-values
         
-    >>> # compute estimated support
+    # compute estimated support
     >>> import numpy as np
-    >>> alpha = .05
+    >>> alpha = .05 # alpha is the significance level for the statistical test 
     >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> print(f'Desparsified Lasso selected {np.sum(selected_dl)} features among {np.sum(beta > 0)} ')
+    Desparsified Lasso selected 20 features among 64 
 
 
 Feature Grouping and its shortcomings
@@ -58,17 +58,15 @@ Using the same example as previously, we start by defining a clustering method t
     >>> n_clusters = 200 
     >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     >>> ward = FeatureAgglomeration(
-    >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    >>> )
+    >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
 
 Equipped with this, we can use CluDL::
 
     >>> from hidimstat import CluDL
-    >>> cludl = CluDL(clustering=ward, )
+    >>> cludl = CluDL(clustering=ward)
     >>> cludl.fit_importance(X_init, y)
     # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> selected_cdl = np.logical_or(pval_corr < alpha, one_minus_pval_corr < alpha)
     >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl)} features among {np.sum(beta > 0)} ')
   
 Note that inference is also way faster on the compressed representation.
