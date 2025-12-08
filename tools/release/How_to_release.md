@@ -29,7 +29,7 @@ The format of version tag is X.Y.Z:
     - Adding new examples
 
 ## Step for creating the Release:
-This steps suppose that there a branch for each a major release (0.0.X).
+This steps suppose that there a branch for each a major release (release-X.Y.Z).
 The main branch is used for the ongoing work on the next major release.
 For a major revision, a new branch should be created from scratch or from a commit on main.
 For a modification of a previous release, the modification should be pushed on the branch associated with it.
@@ -109,7 +109,7 @@ Merging this PR will update the documentation automatically
   - check if the tests pass, the rendering of the documentation, the examples and the changelog are good
   - merge the PR **without squashing commit**:  
   no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
-  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release-X.Y.X (with the rebase option), then in the settings disable it again
+  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release-X.Y.Z (with the rebase option), then in the settings disable it again
 - now we build the wheel we will upload to pypi locally `git fetch mind-inria` and `git checkout mind-inria/X.Y.Z`
 
 7\. Rebuild the wheel & retest it (see step [3])
