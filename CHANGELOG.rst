@@ -18,6 +18,12 @@ New features
 Changes
 -------
 
+New API for variable importance methods with `.fit()`, `.importance()`, `fdr_selection()`, `fwer_selection()` 
+ - LOC0, CFI, CPI #372
+ - Desparsified Lasso: #381 
+ -  CluDL, EnCluDL #533 and #388 
+ - ModelXKnockoffs #367 
+ - d0CRT #220
 
 Bug fixes
 ---------
