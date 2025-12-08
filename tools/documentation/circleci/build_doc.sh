@@ -96,7 +96,7 @@ then
     exit 0
 fi
 # generate all the example if it's push on main or on a previous version
-if [[ "$CIRCLE_BRANCH" =~ ^main$|^[0-9]+\.[0-9]+\.X$ && -z "$CI_PULL_REQUEST" ]]
+if [[ "$CIRCLE_BRANCH" =~ ^main$|^release\_[0-9]+\.[0-9]+\.X$ && -z "$CI_PULL_REQUEST" ]]
 then
     make_args="html"
 elif [[ "$build_type" =~ ^QUICK ]]
