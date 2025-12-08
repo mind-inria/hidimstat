@@ -13,7 +13,7 @@ In some cases, data represent high-dimensional measurements of some phenomenon o
 * Expensive: most learers are quadratic or cubic in the number of features. Moreover per-feature inference generally entails a loop over features
 * powerless: As dimensionality and correlation increase, it  becomes harder and harder to isolate the contribution of each variable, meaning that conditional inference is ill-posed.
 
-This is illustrated in the above example, where the Desparsified Lasso (:class:`DespasrifiedLasso`.) struggles
+This is illustrated in the above example, where the Desparsified Lasso (:class:`hidimstat.DesparsifiedLasso`) struggles
 to identify relevant features. We need some data to start::
 
     n_samples = 100
@@ -50,7 +50,7 @@ As discussed earlier, feature grouping is a meaningful solution to deal with suc
    * The :ref:`Grouping documentation <grouping>`
 
 
-As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or :class:`CluDL`.
+As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or :class:`hidimstat.CluDL`.
 
 Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model, because it takes into account the neighboring structure among pixels, which avoids creating overly messy clusters::
 
@@ -74,7 +74,7 @@ Equipped with this, we can use CluDL::
   
 Note that inference is also way faster on the compressed representation.
     
-The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or :class:`EnCluD`.
+The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnCluD`.
 
 The behavior is illustrated here::
 
