@@ -84,7 +84,7 @@ The behavior is illustrated here::
     >>> encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
-    Ensemble of Clustered Desparsified Lasso selected 0 features among 64
+    Ensemble of Clustered Desparsified Lasso selected 60 features among 64
 
 .. topic:: **Full example**
 
