@@ -76,15 +76,16 @@ Additionally, make sure all deprecations that are supposed to be removed with th
   - `uv pip install -r pyproject.toml --extra test; pytest` # test the installation
   
 4\. Create a PR for creating the release:
-   1. `git push --set-upstream origin X.Y.Z`
+   1. `git push origin tag X.Y.Z`
    2. Create a PR based on this new branch to the **right branch**.
    
 Merging this PR will update the documentation automatically
 
 5a. If you are on main => Update the changelog, contributor and version:
-   - Move the `CHANGELOG.rst` in the `doc_conf\whats_news\vX.Y.Z.rst`
-      `mv CHANGELOG.rst doc_conf\whats_news\vX.Y.Z.rst`
-   - Update symlink to latest version of the changelog: `ln -s vX.Y.Z.rst latest.rst`
+   - Move the `CHANGELOG.rst` in the `docs/src/whats_news/vX.Y.Z.rst`
+      `mv CHANGELOG.rst docs/whats_news/vX.Y.Z.rst`
+   - Update symlink to latest version of the changelog: `rm docs/src/whats_news/latest.rst`
+   `cd docs/src/whats_news/; ln -s ./vX.Y.Z.rst ./latest.rst`
    - Replace `CHANGELOG.rst` with an empty template of `build_tools\template\CHANGELOG.rst`
       `cp build_tools\template\CHANGELOG.rst CHANGELOG.rst`
    - Change the version in this template and commit the modification
