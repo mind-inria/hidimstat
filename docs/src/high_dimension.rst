@@ -16,16 +16,16 @@ In some cases, data represent high-dimensional measurements of some phenomenon o
 This is illustrated in the above example, where the Desparsified Lasso (:class:`hidimstat.DesparsifiedLasso`) struggles
 to identify relevant features. We need some data to start::
 
-    n_samples = 100
-    shape = (40, 40)
-    n_features = shape[1] * shape[0]
-    roi_size = 4  # size of the edge of the four predictive regions
+    >>> n_samples = 100
+    >>> shape = (40, 40)
+    >>> n_features = shape[1] * shape[0]
+    >>> roi_size = 4  # size of the edge of the four predictive regions
 
     # generating the data
-    from hidimstat._utils.scenario import multivariate_simulation_spatial
-    X_init, y, beta, epsilon = multivariate_simulation_spatial(
-        n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1
-    )
+    >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
+    >>> X_init, y, beta, epsilon = multivariate_simulation_spatial(
+    >>>     n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1
+    >>> )
 
 Then we perform inference on this data using the Desparsified Lasso::
 
@@ -33,11 +33,11 @@ Then we perform inference on this data using the Desparsified Lasso::
     dlasso = DesparsifiedLasso().fit(X_init, y)
     dlasso.importance(X_init, y) # compute importance score and associated corrected p-values
         
-    # compute estimated support
-    import numpy as np
-    alpha = .05
-    selected_dl = dlasso.pvalues_ < alpha / n_features
-    print(f'Desparsified Lasso selected {np.sum(selected_dl)} features among {np.sum(beta > 0)} ')
+    >>> # compute estimated support
+    >>> import numpy as np
+    >>> alpha = .05
+    >>> selected_dl = dlasso.pvalues_ < alpha / n_features
+    >>> print(f'Desparsified Lasso selected {np.sum(selected_dl)} features among {np.sum(beta > 0)} ')
 
 
 Feature Grouping and its shortcomings
@@ -54,23 +54,23 @@ As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with 
 
 Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model, because it takes into account the neighboring structure among pixels, which avoids creating overly messy clusters::
 
-    from sklearn.feature_extraction import image
-    from sklearn.cluster import FeatureAgglomeration
-    n_clusters = 200 
-    connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
-    ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
-    )
+    >>> from sklearn.feature_extraction import image
+    >>> from sklearn.cluster import FeatureAgglomeration
+    >>> n_clusters = 200 
+    >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
+    >>> ward = FeatureAgglomeration(
+    >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    >>> )
 
 Equipped with this, we can use CluDL::
 
-    from hidimstat import CluDL
-    cludl = CluDL(clustering=ward, )
-    cludl.fit_importance(X_init, y)
+    >>> from hidimstat import CluDL
+    >>> cludl = CluDL(clustering=ward, )
+    >>> cludl.fit_importance(X_init, y)
     # compute estimated support
-    selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
-    selected_cdl = np.logical_or(pval_corr < alpha, one_minus_pval_corr < alpha)
-    print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl)} features among {np.sum(beta > 0)} ')
+    >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
+    >>> selected_cdl = np.logical_or(pval_corr < alpha, one_minus_pval_corr < alpha)
+    >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl)} features among {np.sum(beta > 0)} ')
   
 Note that inference is also way faster on the compressed representation.
     
@@ -78,15 +78,13 @@ The issue is that  very-high-dimensional data (biological, images, etc.) do not 
 
 The behavior is illustrated here::
 
-    from hidimstat import EnCluDL
+    >>> from hidimstat import EnCluDL
 
     # ensemble of clustered desparsified lasso (EnCluDL)
-    from hidimstat import EnCluDL
-    encludl = EnCluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso())
-    encludl.fit_importance(X_init, y)
-    selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
-
-    print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
+    >>> encludl = EnCluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso())
+    >>> encludl.fit_importance(X_init, y)
+    >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
+    >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
 
 
 .. topic:: **Full example**
