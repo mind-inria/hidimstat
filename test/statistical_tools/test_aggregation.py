@@ -1,9 +1,10 @@
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_almost_equal, assert_equal
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_equal
+
 from hidimstat.statistical_tools.aggregation import (
-    quantile_aggregation,
-    _fixed_quantile_aggregation,
     _adaptive_quantile_aggregation,
+    _fixed_quantile_aggregation,
+    quantile_aggregation,
 )
 
 

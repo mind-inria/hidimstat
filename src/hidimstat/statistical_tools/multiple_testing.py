@@ -7,10 +7,10 @@ def fdp_power(selected, ground_truth):
 
     Parameters
     ----------
-    selected : ndarray
-        Array of indices of selected variables (R-style indexing)
-    ground_truth : ndarray
-        Array of true non-null variable indices
+    selected : ndarray (n_features,)
+        Array of selected variable. 0 for non-selected, non-zero for selected
+    ground_truth : ndarray (n_features,)
+        Array of true relevant variables. 0 for null, 1 for non-null
 
     Returns
     -------
@@ -19,19 +19,16 @@ def fdp_power(selected, ground_truth):
     power : float
         Statistical power (number of true discoveries / number of non-null variables)
     """
-    # selected is the index list in R and will be different from index of
-    # python by 1 unit
 
-    if selected.size == 0:
-        return 0.0, 0.0
+    # Make sure arrays are binary
+    selected_binary = selected != 0
+    ground_truth_binary = ground_truth != 0
 
-    n_positives = len(ground_truth)
+    true_positive = np.sum(selected_binary & ground_truth_binary)
+    false_positive = np.sum(selected_binary & ~ground_truth_binary)
 
-    true_positive = np.intersect1d(selected, ground_truth)
-    false_positive = np.setdiff1d(selected, true_positive)
-
-    fdp = len(false_positive) / max(1, len(selected))
-    power = min(len(true_positive), n_positives) / n_positives
+    fdp = false_positive / max(1, np.sum(selected_binary))
+    power = true_positive / max(1, np.sum(ground_truth_binary))
 
     return fdp, power
 
@@ -117,7 +114,7 @@ def _bhq_threshold(pvals, fdr=0.1):
 
 def _ebh_threshold(evals, fdr=0.1):
     """
-    e-BH procedure for FDR control :footcite:`wang2022false`
+    e-BH procedure for FDR control described in equation 5 :footcite:`wang2022false`
 
     Parameters
     ----------
@@ -136,14 +133,17 @@ def _ebh_threshold(evals, fdr=0.1):
     .. footbibliography::
     """
     n_features = len(evals)
-    evals_sorted = -np.sort(-evals)  # sort in descending order
-    selected_index = 2 * n_features
-    for i in range(n_features - 1, -1, -1):
-        if evals_sorted[i] >= n_features / (fdr * (i + 1)):
-            selected_index = i
-            break
-    if selected_index <= n_features:
-        threshold = evals_sorted[selected_index]
+    evals_sorted = np.sort(evals)[::-1]  # sort in descending order
+    k_star = 1
+    # The for loop over all e-values could be optimized by considering a descending list
+    # and stopping when the condition is not satisfied anymore.
+    # The condition k * e_k >= n_features / fdr, is defined for k = 1, ..., n_features
+    # the for loop therefore starts at k=1
+    for k, e_k in enumerate(evals_sorted, start=1):
+        if k * e_k >= n_features / fdr:
+            k_star = k
+    if k_star <= n_features:
+        threshold = evals_sorted[k_star - 1]
     else:
         threshold = np.inf
     return threshold

@@ -12,9 +12,24 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      
+      # Codespell check
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Run codespell with pyproject.toml config
+        run: |
+          pip install .[style]
+          codespell --toml pyproject.toml
+
+      # Isort check
+      - uses: isort/isort-action@v1
+      
+      # Black formatting check
       - uses: psf/black@stable
         with:
           jupyter: true
+      

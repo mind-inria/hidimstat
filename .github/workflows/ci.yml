@@ -29,7 +29,7 @@ jobs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 3 
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
@@ -53,7 +53,7 @@ jobs:
   linter:
     name: Linter
     needs: [get_information]
-    uses: ./.github/workflows/call_black.yml
+    uses: ./.github/workflows/call_linter.yml
   
   tests:
     name: tests

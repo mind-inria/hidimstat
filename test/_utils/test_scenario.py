@@ -7,10 +7,11 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
 from hidimstat._utils.scenario import (
-    multivariate_simulation,
-    multivariate_simulation_spatial,
     _generate_2D_weight,
     _generate_3D_weight,
+    empirical_snr,
+    multivariate_simulation,
+    multivariate_simulation_spatial,
 )
 
 
@@ -390,3 +391,47 @@ def test_multivariate_simulation_ar_n_target():
     """Test n_target validation."""
     with pytest.raises(AssertionError, match="n_target must be positive"):
         multivariate_simulation(n_samples=10, n_features=20, n_targets=0, seed=42)
+
+
+def test_empirical_snr():
+    """Computing empirical signal to noise ratio in presence of high level of
+    noise from the target `y`, the data `X` and the true parameter vector `beta`
+    in a simple scenario with a 1D data structure."""
+
+    n_samples, n_features = 100, 20
+    support_size = 10
+    signal_noise_ratio_expected = 0.5
+
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        support_size=support_size,
+        signal_noise_ratio=signal_noise_ratio_expected,
+        seed=0,
+    )
+
+    signal_noise_ratio = empirical_snr(X, y, beta)
+
+    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=2)
+
+
+def test_empirical_snr_2():
+    """Computing empirical signal to noise ratio from the target `y`,
+    the data `X` and the true parameter vector `beta` in a simple
+    scenario with a 1D data structure."""
+
+    n_samples, n_features = 100, 20
+    support_size = 10
+    signal_noise_ratio_expected = 10.0
+
+    X, y, beta, noise = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        support_size=support_size,
+        signal_noise_ratio=signal_noise_ratio_expected,
+        seed=0,
+    )
+
+    signal_noise_ratio = empirical_snr(X, y, beta)
+
+    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=0)
