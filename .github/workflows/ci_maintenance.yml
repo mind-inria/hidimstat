@@ -5,9 +5,9 @@ on:
   # see the following page ofr regualr expression
   # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#filter-pattern-cheat-sheet
   pull_request:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
   push:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+X?'
 
 # disable all the permission for the workflow
 permissions: {}
