@@ -30,14 +30,14 @@ vector except for the :math:`j^{th}` feature that has been replaced by its condi
 sampled version. The importance of the feature is quantified by the resulting drop in model performance.
 
 .. math::
-    \psi_j^{CFI} = \mathbb{E} [\mathcal{L}(Y, \mu(\tilde X^{(j)}))] - \mathbb{E} [\mathcal{L}(Y, \mu(X))].
+    \psi^j_{CFI} = \mathbb{E} [\mathcal{L}(Y, \mu(\tilde X^{(j)}))] - \mathbb{E} [\mathcal{L}(Y, \mu(X))].
 
 The target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
 Indeed, 
 
 .. math::
-    \frac{1}{2} \psi_j^{CFI} 
-    = \psi_j^{TSI} 
+    \frac{1}{2} \psi^j_{CFI} 
+    = \psi^j_{TSI} 
     = \mathbb{E} [\mathcal{L}(Y, \mu_{-j}(X^{-j}))] - \mathbb{E} [\mathcal{L}(Y, \mu(X))].
 Where in regression, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[Y| X^{-j}]` is the 
 theoretical model without the :math:`j^{th}` feature.

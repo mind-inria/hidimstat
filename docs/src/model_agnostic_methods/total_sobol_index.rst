@@ -10,7 +10,7 @@ rooted in sensitivity analysis. It can intuitively be defined by the performance
 of a predictive model when a feature is removed, similarly to an ablation study. In general, the TSI can be expressed as:
 
 .. math::
-    \psi_j^{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right],
+    \psi^j_{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right],
 
 where :math:`X^{-j}` denotes the feature vector without the :math:`j^{th}` feature, and
 :math:`\mu_{-j}(X^{-j})` is the same predictive model as :math:`\mu(X)` but retrained 
