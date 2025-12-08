@@ -32,7 +32,7 @@ importance of the feature is quantified by the resulting drop in model performan
     \psi_j^{CFI} = \mathbb{E} [\mathcal{L}(y, \mu(\tilde X))] - \mathbb{E} [\mathcal{L}(y, \mu(X))].
 
 
-The target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
+In the case of the MSE, the target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
 Indeed, 
 
 .. math::

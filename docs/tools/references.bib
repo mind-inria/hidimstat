@@ -38,11 +38,8 @@
     pages = {881-900},
     year = {2022},
     month = {02},
-    abstract = {Variable importance measures are the main tools used to analyse the black-box mechanisms of random forests. Although the mean decrease accuracy is widely accepted as the most efficient variable importance measure for random forests, little is known about its statistical properties. In fact, the definition of mean decrease accuracy varies across the main random forest software. In this article, our objective is to rigorously analyse the behaviour of the main mean decrease accuracy implementations. Consequently, we mathematically formalize the various implemented mean decrease accuracy algorithms, and then establish their limits when the sample size increases. This asymptotic analysis reveals that these mean decrease accuracy versions differ as importance measures, since they converge towards different quantities. More importantly, we break down these limits into three components: the first two terms are related to Sobol indices, which are well-defined measures of a covariate contribution to the response variance, widely used in the sensitivity analysis field, as opposed to the third term, whose value increases with dependence within covariates. Thus, we theoretically demonstrate that the mean decrease accuracy does not target the right quantity to detect influential covariates in a dependent setting, a fact that has already been noticed experimentally. To address this issue, we define a new importance measure for random forests, the Sobol-mean decrease accuracy, which fixes the flaws of the original mean decrease accuracy, and consistently estimates the accuracy decrease of the forest retrained without a given covariate, but with an efficient computational cost. The Sobol-mean decrease accuracy empirically outperforms its competitors on both simulated and real data for variable selection.},
     issn = {1464-3510},
     doi = {10.1093/biomet/asac017},
-    url = {https://doi.org/10.1093/biomet/asac017},
-    eprint = {https://academic.oup.com/biomet/article-pdf/109/4/881/47415734/asac017.pdf},
 }
 
 
