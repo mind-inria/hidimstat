@@ -1,18 +1,18 @@
 [
     {
-        "name": "1.1.dev0 (dev)",
-        "version": "1.1.dev0",
+        "name": "0.4.dev0 (dev)",
+        "version": "0.4.dev0",
         "url": "https://hidimstat.github.io/dev/"
     },
     {
-        "name": "1.0 (stable)",
-        "version": "1.0",
+        "name": "0.3.0 (stable)",
+        "version": "0.3.0",
         "url": "https://hidimstat.github.io/stable/",
         "preferred": true
     },
     {
-        "name": "1.0 (stable)",
-        "version": "1.0",
+        "name": "0.3.0 (stable)",
+        "version": "0.3.0",
         "url": "https://hidimstat.github.io/1.0/"
     },
     {
