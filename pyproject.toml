@@ -18,11 +18,10 @@ maintainers = [
 description = "High-dimensional statistical inference tools for Python"
 keywords = ["statistic", "high dimension", "importance variable"]
 readme = "README.md"
-license = { file = "LICENSE" }
+license-files = ["LICENSE"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: Unix",
     "Operating System :: MacOS",
