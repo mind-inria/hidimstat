@@ -67,13 +67,13 @@ Additionally, make sure all deprecations that are supposed to be removed with th
   - `mkdir release_file`
   - `git pull` # update your repository
   - `git checkout X.Y.Z` # checkout to the tag
-  - `python -m venv release_file/venv` # create virtual environment for testing the release
+  - `python -m venv_release release_file/venv` # create virtual environment for testing the release
   - `source release_file/venv/bin/activate` # activate this new venvironement
-  - `pip install build twines` # install packages for create a wheel and push it on pype
+  - `pip install build twine uv` # install packages for create a wheel and push it on pype
   - `python -m build -o release_file/dist` (may need `pip install build`) # build the wheel
-  - `twine check release_file/_dist/*` (may need `pip install twine`) # check if the wheel is ready to be use
+  - `twine check release_file/dist/*` (may need `pip install twine`) # check if the wheel is ready to be use
   - `pip install release_file/dist/hidimstat.....whl` # install the wheel in a fresh virtualenv
-  - `pytest` # test the installation
+  - `uv pip install -r pyproject.toml --extra test; pytest` # test the installation
   
 4\. Create a PR for creating the release:
    1. `git push --set-upstream origin X.Y.Z`
