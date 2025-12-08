@@ -5,9 +5,9 @@ on:
   # see the following page ofr regualr expression
   # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#filter-pattern-cheat-sheet
   pull_request:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
   push:
-    branches: '[0-9]+.[0-9]+.[0-9]+'
+    branches: 'release_[0-9]+.[0-9]+.[0-9]+'
 
 # disable all the permission for the workflow
 permissions: {}
@@ -27,7 +27,7 @@ jobs:
       BRANCH_NAME: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 3 
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
