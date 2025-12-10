@@ -11,6 +11,27 @@ regression and corrects the bias induced by the L1-penalty. This method is parti
 useful in high-dimensional settings where the number of features exceeds the number of 
 samples.
 
+
+Regression example
+------------------
+
+    >>> from sklearn.datasets import make_regression
+    >>> from sklearn.linear_model import LassoCV
+    >>> from hidimstat import DesparsifiedLasso
+
+
+    >>> X, y = make_regression(n_features=2)
+    
+    >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=n_jobs, random_state=0)
+    >>> dl.fit(X, y)
+    >>> features_importance = dl.importance(X, y)
+
+    >>> # Selection based on FDR control
+    >>> selected_features = dl.fdr_selection(fdr=0.05)
+    >>> # Selection based on FWER control
+    >>> selected_features = dl.fwer_selection(fwer=0.05)
+
+
 Target quantity
 ---------------
 
@@ -64,6 +85,14 @@ can be suboptimal, identifying scattered elements of the support and making fals
 discoveries far from the support. Methods like :class:`hidimstat.CluDL` and 
 :class:`hidimstat.EnCluDL` address this issue by leveraging the spatial structure of the
 data. Read more in the :ref:`User Guide <high_dimension>`. 
+
+
+Examples
+--------
+
+.. minigallery:: hidimstat.DesparsifiedLasso
+    :add-heading:
+
 
 References
 ----------
