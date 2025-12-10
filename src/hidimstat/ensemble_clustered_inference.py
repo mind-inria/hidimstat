@@ -381,8 +381,8 @@ class EnCluDL(BaseVariableImportance):
 
         self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one)(
-                desparsified_lasso=self.desparsified_lasso,
-                clustering=self.clustering,
+                desparsified_lasso=clone(self.desparsified_lasso),
+                clustering=clone(self.clustering),
                 cluster_boostrap_size=self.cluster_boostrap_size,
                 bootstrap_groups=self.bootstrap_groups,
                 X=X,

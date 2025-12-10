@@ -82,7 +82,7 @@ The behavior is illustrated here::
 
     # ensemble of clustered desparsified lasso (EnCluDL)
     >>> encludl = EnCluDL(
-    >>>     clustering=ward, desparsified_lasso=DesparsifiedLasso(), n_bootstraps=20, random_state=0)
+    >>>     clustering=ward, desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()), n_bootstraps=20, random_state=0)
     >>> encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
