@@ -59,19 +59,12 @@ coefficients.
 Extensions to spatially structured data
 ---------------------------------------
 
-When dealing with spatially structured data, such as neuroimaging data where features
-correspond to voxels in a 3D brain image, and there is a natural spatial correlation between
-neighboring voxels, the standard Desparsified Lasso, which treats each feature
-independently, may not fully leverage the spatial structure present in the data. To 
-mitigate this, one can incorporate spatial information into the estimation process as 
-suggested by :footcite:t:`chevalier2021decoding`. This is achieved by performing inference 
-on clusters, instead of individual features (see :class:`hidimstat.CluDL`). Such clusters 
-can either be defined a priori based on anatomical knowledge (using atlases), or can be 
-obtained through data-driven clustering methods. Additionally, when using data-driven
-clustering, multiple random clusterings can be aggregated to improve the stability, as 
-implemented in :class:`hidimstat.EnCluDL`.
+When the features have a known spatial structure, :class:`hidimstat.DesparsifiedLasso`
+can be suboptimal, identifying scattered elements of the support and making false 
+discoveries far from the support. Methods like :class:`hidimstat.CluDL` and 
+:class:`hidimstat.EnCluDL` address this issue by leveraging the spatial structure of the
+data. Read more in the :ref:`User Guide <high_dimension>`. 
 
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_fmri_data_example_001.png
-    :target: ../generated/gallery/examples/plot_fmri_data_example.html
-    :align: center
+References
+----------
+.. footbibliography::
