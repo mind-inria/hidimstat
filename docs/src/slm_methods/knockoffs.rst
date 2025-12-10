@@ -75,7 +75,7 @@ equicorrelated construction proposed by :footcite:t:`candes2018panning`.
 Knockoff statistics
 ^^^^^^^^^^^^^^^^^^^
 
-To perform variable selection, a statistic test statistic needs to be used in order to 
+To perform variable selection, a test statistic needs to be used in order to 
 provide evidence against the null hypothesis, which for the :math:`j^{th}` feature is 
 :math:`X^j \perp\!\!\!\!\perp Y | X^{-j}`. This statistic needs to satisfy the so-called
 flip-sign property, which ensures that swapping a variable with its knockoff counterpart
