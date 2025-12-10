@@ -14,6 +14,7 @@ samples.
 
 Regression example
 ------------------
+Desparsified Lasso can be used as follows::
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
@@ -55,17 +56,7 @@ Estimation procedure
 The provided implementation :class:`hidimstat.DesparsifiedLasso` is based on the one 
 proposed by :footcite:t:`zhang2014confidence`. It first fits a Lasso regression to obtain the initial
 estimator :math:`\hat{\beta}_\lambda`, and then estimates nodewise Lasso regressions, 
-each predicting a feature :math:`X^j` using all other features :math:`X^{-j}`. The 
-residuals of these regressions, denoted :math:`z^j` which intuitively capture the part 
-of :math:`X^j` that is not explained by the other features, are used to construct the 
-debiased estimate: 
-
-.. math::
-
-    \hat{\beta}_{DL}^j = \frac{z^j Y}{(z^j)^\top X^j} - \sum_{k \neq j} \frac{(z^{j})^\top X^k \hat{\beta}_\lambda^k}{(z^j)^\top X^j}
-
-where :math:`\hat{\beta}_{DL}^j` is the :math:`j`-th component of the Desparsified 
-Lasso estimate. 
+each predicting a feature :math:`X^j` using all other features :math:`X^{-j}`.
 
 
 Inference 
@@ -91,7 +82,6 @@ Examples
 --------
 
 .. minigallery:: hidimstat.DesparsifiedLasso
-    :add-heading:
 
 
 References

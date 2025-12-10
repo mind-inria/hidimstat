@@ -18,12 +18,13 @@ with the Lasso.
 
 Regression example
 ------------------
+Model-X Knockoffs can be used as follows:: 
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
     >>> from hidimstat import ModelXKnockoff
 
-
+    
     >>> X, y = make_regression(n_features=2)
     
     >>> ko = ModelXKnockoff(estimator=LassoCV(), random_state=0)
@@ -41,7 +42,7 @@ particular measure of importance. The `ModelXKnockoff.importance()` method still
 the so-called Knockoff statistics, such as the Lasso coefficient difference statistics, 
 which can be used to rank the selected variables. The main goal of the method is to 
 select a set of features denoted :math:`\hat{S} \subset \{1, \ldots, p\}` such that the 
-:term:`false discovery rate (FDR) <false discovery rate>` is controlled at a target 
+:term:`false discovery rate (FDR) <FDR>` is controlled at a target 
 level. 
 
 
@@ -117,16 +118,13 @@ and repeating the entire procedure, with a different set of knockoff variables, 
 to a different selection set. To mitigate this source of variability, the selection can 
 be de-randomized by aggregating the results of multiple runs of the Knockoff procedure. 
 This can be done using the ``n_repeats`` parameter, for instance,
-``ModelXKnockoff(n_repeats=10)``, 
-:ref:`see more in the examples <generated_gallery_examples_plot_knockoffs_aggregation>`.
-
+``ModelXKnockoff(n_repeats=10)``. 
 
 
 Examples
 --------
 
 .. minigallery:: hidimstat.ModelXKnockoff
-    :add-heading:
 
 
 References
