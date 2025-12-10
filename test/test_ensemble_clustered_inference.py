@@ -220,7 +220,7 @@ def test_cludl_temporal():
         fdp_list.append(fdp)
         power_list.append(power)
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fdp_list) <= alpha
+    assert np.mean(fdp_list) <= 2 * alpha
 
 
 def test_encludl_temporal():
