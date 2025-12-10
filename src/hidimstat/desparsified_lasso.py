@@ -97,8 +97,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(
-            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False),
+        estimator=LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False),
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
@@ -208,7 +207,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         if self.n_task_ == -1:
             self.n_task_ = y.shape[1]
-        
+
         # centering the data and the target variable
         if self.centered:
             X_ = StandardScaler(with_std=False).fit_transform(X)
