@@ -85,7 +85,7 @@ predict the target :math:`Y` using both the original and knockoff variables
 :math:`[X, \tilde{X}]`, is defined as:
 
 .. math::
-    W_j = |\hat{\beta}_j| - |\hat{\beta}_{j + p}| 
+    w_j = |\hat{\beta}_j| - |\hat{\beta}_{j + p}| 
 
 where :math:`\hat{\beta}_j` is the Lasso coefficient associated to the original variable
 :math:`X^j`, and :math:`\hat{\beta}_{j + p}` is the coefficient associated to its
