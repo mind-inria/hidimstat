@@ -29,7 +29,7 @@ The format of version tag is X.Y.Z:
     - Adding new examples
 
 ## Step for creating the Release:
-This steps suppose that there a branch for each a major release (release-X.Y.Z).
+This steps suppose that there a branch for each a major release (release_X.Y.Z).
 The main branch is used for the ongoing work on the next major release.
 For a major revision, a new branch should be created from scratch or from a commit on main.
 For a modification of a previous release, the modification should be pushed on the branch associated with it.
@@ -49,16 +49,16 @@ Additionally, make sure all deprecations that are supposed to be removed with th
    
    1. git commit --allow-empty-message -m 'release X.Y.Z'
    - **minor release of the ongoing release**:
-     1. Create a branch `git checkout -b release-X.Y.(Z+1)`
+     1. Create a branch `git checkout -b release_X.Y.(Z+1)`
      2. Add a tag on the last commit with the name of the release `git tag X.Y.(Z+1)`
    - **major release**:
-     1. A create a branch like `git checkout -b release-X.(Y+1).0` on the last commit of main
-     2. (optional) `git rebase -i release-X.Y.Z` if you want to cherry pick some commits  
+     1. A create a branch like `git checkout -b release_X.(Y+1).0` on the last commit of main
+     2. (optional) `git rebase -i release_X.Y.Z` if you want to cherry pick some commits  
      3. Add a tag to this branch with `git tag X.(Y+1).0`
    - **major revision**:
      1. `git reset --hard (X+1).0.0` # Change main to major revion branch (with a force push)
      2. `git push -f mind-inria/main` # force to update main (disable the rule Prevent Branch deletion)
-     3. `git checkout release-(X+1).0.0` # switch to the branch
+     3. `git checkout release_(X+1).0.0` # switch to the branch
      4. Add a tag on this version `(X+1).0.0` (the branch should be already create) `git tag (X+1).0.0`
 
 3\. build the wheel & test it
@@ -67,8 +67,8 @@ Additionally, make sure all deprecations that are supposed to be removed with th
   - `mkdir release_file`
   - `git pull` # update your repository
   - `git checkout X.Y.Z` # checkout to the tag
-  - `python -m venv_release release_file/venv` # create virtual environment for testing the release
-  - `source release_file/venv/bin/activate` # activate this new venvironement
+  - `python -m venv release_file/venv_release` # create virtual environment for testing the release
+  - `source release_file/venv_release/bin/activate` # activate this new venvironement
   - `pip install build twine uv` # install packages for create a wheel and push it on pype
   - `python -m build -o release_file/dist` (may need `pip install build`) # build the wheel
   - `twine check release_file/dist/*` (may need `pip install twine`) # check if the wheel is ready to be use
@@ -105,23 +105,23 @@ Merging this PR will update the documentation automatically
    - Commit the modifications
    - Push the modification 
 
-7\. merge the PR on `release-X.Y.Z` (don't squash the commits)
+7\. merge the PR on `release_X.Y.Z` (don't squash the commits)
   - check if the tests pass, the rendering of the documentation, the examples and the changelog are good
   - merge the PR **without squashing commit**:  
   no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
-  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release-X.Y.Z (with the rebase option), then in the settings disable it again
+  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release_X.Y.Z (with the rebase option), then in the settings disable it again
 - now we build the wheel we will upload to pypi locally `git fetch mind-inria` and `git checkout mind-inria/X.Y.Z`
 
 7\. Rebuild the wheel & retest it (see step [3])
 
 8\. (Optional) upload to TestPyPi for testing (https://test.pypi.org/)
   - `twine upload --repository testpypi release_file/dist/*`
-  - `python3 -m pip install --upgrade --force-reinstall ---index-url https://test.pypi.org/simple/ --no-deps --extra-index-url https://test.pypi.org/simple/hidismtat`
+  - `python3 -m pip install --upgrade --force-reinstall --index-url https://test.pypi.org/simple/ --no-deps --extra-index-url https://test.pypi.org/simple/hidismtat` hidimstat
   - `pytest` # test the installation
 
 9\. upload to pype
   - `twine upload release_file/dist/*`
-  - (Optional) `python3 -m pip install --upgrade --force-reinstall --no-deps hidismtat==X.Y.Z`
+  - (Optional) `python3 -m pip install --upgrade --force-reinstall --no-deps hidimstat==X.Y.Z`
   - (Optional) `pytest` # test the installation
 
 10\. Update the tag if it is necessary
@@ -136,7 +136,7 @@ Merging this PR will update the documentation automatically
 
 12\. Update the conda-forge recipe
   - in `hidimstat-feedstock` https://github.com/conda-forge/hidimstat-feedstock
-  - create branch `release-X.Y.Z`
+  - create branch `release_X.Y.Z`
   - update `recipe/meta.yml`
     - that is the only file we ever edit manually in that repo
     - update version number
@@ -151,5 +151,7 @@ Merging this PR will update the documentation automatically
       package to be available from the conda-forge channel
     - when it becomes available, install in a fresh env & test
     - NOTE: to add new maintainers to that repo add them to the list at the end of meta.yml
+  
+13\. Update the symbolic link of the folder `stable` in the documentary repository: https://github.com/hidimstat/hidimstat.github.io . This is for be sure that the people go to the documentation of the last stable version. 
 
-13\. Once everything is done take a break by announced the release on social network channels.
+14\. Once everything is done take a break by announced the release on social network channels.
