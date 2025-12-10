@@ -104,7 +104,7 @@ the knockoff statistics :math:`w_j`, such that all variables with a statistic la
 as:
 
 .. math::
-    \tau = \min \left\{ t > 0 : \frac{1 + \#\{j : W_j \leq -t\}}{\#\{j : W_j \geq t\}} \leq \alpha \right\}
+    \tau = \min \left\{ t > 0 : \frac{1 + \#\{j : w_j \leq -t\}}{\#\{j : w_j \geq t\}} \leq \alpha \right\}
 
 guarantees that the FDR is controlled at level :math:`\alpha`.
 
