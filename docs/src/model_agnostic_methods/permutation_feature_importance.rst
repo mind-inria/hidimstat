@@ -6,7 +6,8 @@ Permutation Feature Importance
 ==============================
 
 Permutation Feature Importance (PFI) is a model-agnostic approach for quantifying the 
-relevance of individual or groups of features in predictive models. It is a 
+relevance of individual or groups of features in predictive models. It was initially introduced as the mean decrease accuracy (MDA) 
+by :footcite:t:`breimanRandomForests2001` for Random Forests. It is a 
 perturbation-based method that compares the predictive performance of a model on 
 unmodified test data—following the same distribution as the training data—
 to its performance when the studied feature is marginally permutated. Thus, this approach 
@@ -26,15 +27,15 @@ where :math:`X^{\pi(j)}` corresponds to the input distribution where the :math:`
 has been replaced by a marginally independent :math:`X^j`. Then, it preserves the
 same marginal distribution :math:`P(X_j)` but is independent of the other features and the output.
 
-Note that this method was initially introduced as the mean decrease accuracy (MDA) 
-by :footcite:t:`breimanRandomForests2001` for Random Forests. It was initially proposed 
-as an heuristic Variable Importance Measure and not as a formal estimator of a 
-interesting theoretical quantity. Moreover, it was shown in
-:footcite:t:`benard2022SobolMDA` that PFI estimates a quantity that can be decomposed
-as the sum of the Total Sobol Index (TSI) :ref:`total_sobol_index` and two extra terms 
-that are not significant due to correlations. Thus, the theoretical quantity estimated by PFI is 
-not a relevant quantity contrarily to :ref:`leave_one_covariate_out` or 
-:ref:`conditional_feature_importance`.
+.. note:: **Uninteresting theoretical target** 
+
+    It was initially proposed as an heuristic Variable Importance Measure and not as a formal estimator of a 
+    interesting theoretical quantity. Moreover, it was shown in
+    :footcite:t:`benard2022SobolMDA` that PFI estimates a quantity that is not interpretable. They proved that it can be decomposed
+    as the sum of the Total Sobol Index (TSI) :ref:`total_sobol_index` and two extra terms 
+    that are not significant due to correlations. Thus, the theoretical quantity estimated by PFI is 
+    not a relevant quantity contrarily to :ref:`leave_one_covariate_out` or 
+    :ref:`conditional_feature_importance`.
 
 
 Estimation procedure
@@ -42,10 +43,10 @@ Estimation procedure
 
 The estimation of the PFI is relatively simple since there is no need of retraining 
 any model as happens with other methods such as :ref:`leave_one_covariate_out` or 
-estimating a conditional sampler as in :ref:`conditional_feature_importance`. Since
-the distribution from which we are sampling is the marginal distribution of the feature
-breaking the relationship with the others, a simple permutation of the feature values
-across the individuals is sufficient. Also, note that the same estimated model is 
+estimating a conditional sampler as in :ref:`conditional_feature_importance`. A simple permutation 
+of the feature values across the individuals is sufficient since the distribution from which we are sampling is the
+ marginal distribution of the feature, thus breaking the relationship with the others. Also, note that the 
+ same estimated model is 
 used for predicting both the original and perturbed datasets.
 
 
