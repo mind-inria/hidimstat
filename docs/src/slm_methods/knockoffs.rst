@@ -90,7 +90,7 @@ predict the target :math:`Y` using both the original and knockoff variables
 where :math:`\hat{\beta}_j` is the Lasso coefficient associated to the original variable
 :math:`X^j`, and :math:`\hat{\beta}_{j + p}` is the coefficient associated to its
 knockoff counterpart :math:`\tilde{X}^j`. intuitively, a large positive value of 
-:math:`W_j` indicates that the original variable contains information that is not 
+:math:`w_j` indicates that the original variable contains information that is not 
 captured by its knockoff counterpart, and thus provides additional information about the
 response :math:`Y`, that is not explained by other variables.
 
