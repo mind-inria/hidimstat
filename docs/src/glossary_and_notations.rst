@@ -45,7 +45,7 @@ Notations
     :math:`X^{\pi(j| -j)}`
         To denote a perturbed version of an input :math:`X` where the :math:`j^{th}` 
         feature has been sampled from its conditional distribution given all other 
-        features, we use the notation :math:` X^{\pi(j| -j)}`. This means that the 
+        features, we use the notation :math:`X^{\pi(j| -j)}`. This means that the 
         values of the :math:`j^{th}` are drawn from the distribution 
         :math:`P(X^{j} | X^{-j})`. 
 
