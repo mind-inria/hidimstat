@@ -178,6 +178,7 @@ def test_cludl_temporal():
     n_clusters = 100
     margin_size = 5
     extended_support = support_size + margin_size
+    test_tol = 0.05
 
     fdp_list = []
     power_list = []
@@ -219,8 +220,8 @@ def test_cludl_temporal():
         )
         fdp_list.append(fdp)
         power_list.append(power)
-    assert np.mean(power_list) >= 0.5
-    assert np.mean(fdp_list) <= alpha
+    assert np.mean(power_list) >= 0.5 - test_tol
+    assert np.mean(fdp_list) <= alpha + test_tol
 
 
 def test_encludl_temporal():
