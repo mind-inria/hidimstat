@@ -97,9 +97,9 @@ response :math:`Y`, that is not explained by other variables.
 Inference 
 ---------
 
-The variable selection set :math:`\hat{S}` is obtained by chossing a threshold :math:`\tau` on
+The variable selection set :math:`\hat{S}` is obtained by choosing a threshold :math:`\tau` on
 the knockoff statistics :math:`W_j`, such that all variables with a statistic larger than
-:math:`\tau` are selected. For a target FDR level :math:`\alpha`, chossing the threshold
+:math:`\tau` are selected. For a target FDR level :math:`\alpha`, choosing the threshold
 as:
 
 .. math::
