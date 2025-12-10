@@ -66,6 +66,12 @@ Glossary
 
         where :math:`|\cdot|` denotes the cardinality of a set.
 
+    FDR
+    False Discovery Rate
+        The False Discovery Rate (FDR) is the expected value of the False Discovery 
+        Proportion (FDP). For a selection set :math:`\hat S` it is defined as
+        :math:`\text{FDR}(\hat S) = \mathbb{E}[\text{FDP}(\hat S)]`.
+
     LOCO
     Leave-One-Covariate-Out
         The Leave-One-Covariate-Out (LOCO) is a measure of feature importance that 
