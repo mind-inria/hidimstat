@@ -99,7 +99,7 @@ Inference
 ---------
 
 The variable selection set :math:`\hat{S}` is obtained by choosing a threshold :math:`\tau` on
-the knockoff statistics :math:`W_j`, such that all variables with a statistic larger than
+the knockoff statistics :math:`w_j`, such that all variables with a statistic larger than
 :math:`\tau` are selected. For a target FDR level :math:`\alpha`, choosing the threshold
 as:
 
