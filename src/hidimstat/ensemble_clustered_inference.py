@@ -113,7 +113,7 @@ class CluDL(BaseVariableImportance):
 
         # Desparsified lasso inference
         self.desparsified_lasso.random_state = self.random_state
-        self.desparsified_lasso_ = memory.cache(self.desparsified_lasso.fit)(
+        self.desparsified_lasso_ = self.desparsified_lasso.fit(
             X_reduced, y
         )
 

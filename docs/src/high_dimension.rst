@@ -63,7 +63,8 @@ Using the same example as previously, we start by defining a clustering method t
 Equipped with this, we can use CluDL::
 
     >>> from hidimstat import CluDL
-    >>> cludl = CluDL(clustering=ward)
+    >>> from sklearn.linear_model import LassoCV
+    >>> cludl = CluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
     >>> cludl.fit_importance(X_init, y)
     # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
@@ -80,7 +81,8 @@ The behavior is illustrated here::
     >>> from hidimstat import EnCluDL
 
     # ensemble of clustered desparsified lasso (EnCluDL)
-    >>> encludl = EnCluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso(), n_bootstraps=20, random_state=0,)
+    >>> encludl = EnCluDL(
+    >>>     clustering=ward, desparsified_lasso=DesparsifiedLasso(), n_bootstraps=20, random_state=0)
     >>> encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl)} features among {np.sum(beta > 0)} ')
