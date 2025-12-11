@@ -1,7 +1,3 @@
-.. _knockoffs:
-
-
-=================
 Model-X Knockoffs
 =================
 
@@ -11,8 +7,8 @@ high-dimensional settings since its default implementation leverages sparse regr
 with the Lasso.  
 
 
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_knockoffs_wisconsin_001.png
-    :target: ../generated/gallery/examples/plot_knockoffs_wisconsin.html
+.. figure:: ./generated/gallery/examples/images/sphx_glr_plot_knockoffs_wisconsin_001.png
+    :target: ./generated/gallery/examples/plot_knockoffs_wisconsin.html
     :align: center
     
 
