@@ -9,9 +9,17 @@ The methods presented in this section assume that the dependencies between varia
 They are specifically designed to tackle feature importance and selection in 
 high-dimensional settings by leveraging sparse linear models (SLM).  
 
-.. toctree::
-   :maxdepth: 2
+.. contents:: Table of Contents
+   :local:
+   :depth: 2
 
-   slm_methods/desparsified_lasso.rst
-   slm_methods/knockoffs.rst
-   slm_methods/dcrt.rst
+---
+
+.. include:: slm_methods/desparsified_lasso.rst
+   :start-after: .. _desparsified_lasso:
+
+.. include:: slm_methods/knockoffs.rst
+   :start-after: .. _knockoffs:
+
+.. include:: slm_methods/dcrt.rst
+   :start-after: .. _dcrt:
