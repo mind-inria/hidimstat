@@ -6,7 +6,8 @@ Permutation Feature Importance
 ==============================
 
 Permutation Feature Importance (PFI) is a model-agnostic approach for quantifying the 
-relevance of individual or groups of features in predictive models. It was initially introduced as the mean decrease accuracy (MDA) 
+relevance of individual or groups of features in predictive models. 
+It was initially introduced as the mean decrease in accuracy (MDA) 
 by :footcite:t:`breimanRandomForests2001` for Random Forests. It is a 
 perturbation-based method that compares the predictive performance of a model on 
 unmodified test data—following the same distribution as the training data—
