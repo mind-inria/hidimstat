@@ -1,9 +1,9 @@
 .. _slm_methods:
 
 
-=====================
+
 Sparse Linear Models
-=====================
+********************
 
 The methods presented in this section assume that the dependencies between variables can be captured by a linear model. 
 They are specifically designed to tackle feature importance and selection in 
@@ -16,10 +16,7 @@ high-dimensional settings by leveraging sparse linear models (SLM).
 ---
 
 .. include:: slm_methods/desparsified_lasso.rst
-   :start-after: .. _desparsified_lasso:
 
 .. include:: slm_methods/knockoffs.rst
-   :start-after: .. _knockoffs:
 
 .. include:: slm_methods/dcrt.rst
-   :start-after: .. _dcrt:
