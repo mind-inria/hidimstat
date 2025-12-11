@@ -179,6 +179,6 @@ intersphinx_mapping = {
 linkcheck_ignore = [
     # A lot of link DOI "fail" - false positives: easier to ignore them
     r"https://doi.org/.*",
-    r"../generated/gallery/examples/.*",
+    r"./generated/gallery/examples/.*",
     r"https://github.com/*",
 ]
