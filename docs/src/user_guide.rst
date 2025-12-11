@@ -12,7 +12,7 @@ Table of contents
 
 .. toctree::
    :numbered:
-   :maxdepth: 1
+   :maxdepth: 2
 
    concepts.rst
    slm_methods.rst
