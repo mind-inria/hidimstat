@@ -60,7 +60,7 @@ Using the same example as previously, we start by defining a clustering method t
     >>> ward = FeatureAgglomeration(
     >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
 
-Equipped with this, we can use CluDL::
+Equipped with this, we can use CluDL:
 
     >>> from hidimstat import CluDL
     >>> from sklearn.linear_model import LassoCV
@@ -108,6 +108,14 @@ What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL pr
 
 The details of the method and the underlying guarantees are described in :footcite:t:`chevalier2022spatially`
 
+
+.. topic:: **Other examples**
+
+    See the following example for an application to the analysis of fMRI data:
+    :ref:`sphx_glr_generated_gallery_examples_plot_fmri_data_example.py`
+
+    See the following example for an illustration on digit classification with MNIST:
+    :ref:`sphx_glr_generated_gallery_examples_plot_digits.py`
 
 
 References
