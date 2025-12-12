@@ -57,7 +57,6 @@ class CluDL(BaseVariableImportance):
     def __init__(
         self,
         clustering,
-        # desparsified_lasso=DesparsifiedLasso(),
         cluster_boostrap_size=1.0,
         bootstrap_groups=None,
         random_state=None,
