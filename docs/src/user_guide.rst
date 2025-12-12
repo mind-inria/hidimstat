@@ -12,10 +12,10 @@ Table of contents
 
 .. toctree::
    :numbered:
-   :maxdepth: 3
+   :maxdepth: 2
 
    concepts.rst
-   glm_methods.rst
+   slm_methods.rst
    model_agnostic_methods.rst
    marginal_methods.rst
    visualization.rst
