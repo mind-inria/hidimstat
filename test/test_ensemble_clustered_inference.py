@@ -178,6 +178,7 @@ def test_cludl_temporal():
     n_clusters = 100
     margin_size = 5
     extended_support = support_size + margin_size
+    test_tol = 0.05
 
     fdp_list = []
     power_list = []

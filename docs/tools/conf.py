@@ -28,6 +28,8 @@ git_root_url = "https://github.com/mind-inria/hidimstat"
 # We avoid duplicating the information, but we do not use symlinks to be
 # able to build the docs on Windows
 shutil.copyfile("../../CONTRIBUTING.rst", "../src/dev/CONTRIBUTING.rst")
+shutil.copyfile("../../CONTRIBUTOR.rst", "../src/dev/CONTRIBUTORS.rst")
+shutil.copyfile("../../CHANGELOG.rst", "../src/whats_news/CHANGELOG.rst")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -95,6 +97,12 @@ html_theme_options = {
     "header_links_before_dropdown": 4,
     "pygments_light_style": "sas",
     "pygments_dark_style": "monokai",
+    "switcher": {
+        "json_url": (
+            "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"
+        ),
+        "version_match": release,
+    },
 }
 
 html_title = "HiDimStat"
@@ -171,6 +179,7 @@ intersphinx_mapping = {
 linkcheck_ignore = [
     # A lot of link DOI "fail" - false positives: easier to ignore them
     r"https://doi.org/.*",
+    r"./generated/gallery/examples/.*",
     r"../generated/gallery/examples/.*",
     r"https://github.com/*",
 ]
