@@ -23,8 +23,6 @@ class CluDL(BaseVariableImportance):
     ----------
     clustering: sklearn.cluster.FeatureAgglomeration
         An instance of a clustering method that operates on features.
-    desparsified_lasso: DesparsifiedLasso
-        An instance of the DesparsifiedLasso class for statistical inference.
     cluster_boostrap_size: float, optional (default=1.0)
         Fraction of samples used for computing the clustering.
         When cluster_boostrap_size=1.0, all samples are used.
@@ -36,6 +34,8 @@ class CluDL(BaseVariableImportance):
         Used to cache the output of the clustering and inference computation.
         By default, no caching is done. If provided, it should be the path
         to the caching directory or a joblib.Memory object.
+    **kwargs :
+        Additional parameters passed to the DesparsifiedLasso constructor.
 
     Attributes
     ----------
@@ -57,19 +57,17 @@ class CluDL(BaseVariableImportance):
     def __init__(
         self,
         clustering,
-        desparsified_lasso=DesparsifiedLasso(),
+        # desparsified_lasso=DesparsifiedLasso(),
         cluster_boostrap_size=1.0,
         bootstrap_groups=None,
         random_state=None,
         memory=None,
+        **kwargs,
     ):
-        assert issubclass(
-            desparsified_lasso.__class__, DesparsifiedLasso
-        ), "desparsified_lasso need to be an instance of DesparsifiedLasso"
         assert issubclass(
             clustering.__class__, FeatureAgglomeration
         ), "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
-        self.desparsified_lasso = desparsified_lasso
+        self.desparsified_lasso = DesparsifiedLasso(random_state=random_state, **kwargs)
         self.clustering = clustering
         self.cluster_boostrap_size = cluster_boostrap_size
         self.bootstrap_groups = bootstrap_groups

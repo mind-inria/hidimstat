@@ -129,7 +129,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             self.n_task_ = -1
         else:
             raise AssertionError("lasso_cv needs to be a LassoCV or a MultiTaskLassoCV")
-        self.estimator = estimator
+        self.estimator = clone(estimator)
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
         # model x
