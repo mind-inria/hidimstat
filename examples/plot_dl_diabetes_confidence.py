@@ -46,7 +46,7 @@ y = StandardScaler().fit_transform(y.reshape(-1, 1)).ravel()
 
 seed = 0
 rng = np.random.default_rng(seed=seed)
-n_spurious = 5
+n_spurious = 10
 X_spurious_list = []
 for i in range(n_spurious):
     X_spurious = (
@@ -60,18 +60,38 @@ X = np.hstack([X] + X_spurious_list)
 
 
 # %%
+# Predictive performance benchmark
+# --------------------------------
+# Before assessing feature importance, we evaluate the predictive performance of the
+# Lasso model (that will be used as base estimator in Desparsified Lasso) and a standard
+# Linear Regression model using 5-fold cross-validation. We expect the Lasso to perform
+# better thanks to its regularization effect, especially with the added spurious features.
+
+from sklearn.linear_model import LassoCV, LinearRegression
+from sklearn.model_selection import cross_val_score
+
+lasso_model = LassoCV(max_iter=1000)
+linear_model = LinearRegression()
+
+print(
+    "Linear Regression CV R2: "
+    f"{cross_val_score(linear_model, X, y, cv=5).mean():.3f}"
+)
+print("Lasso CV R2: " f"{cross_val_score(lasso_model, X, y, cv=5).mean():.3f}")
+
+
+# %%
 # Feature importance with Desparsified Lasso
 # ------------------------------------------
 # We fit the Desparsified Lasso on the dataset to obtain de-biased coefficient
 # estimates and 95% confidence intervals.
 
 import pandas as pd
-from sklearn.linear_model import LassoCV
 
 from hidimstat import DesparsifiedLasso
 
 dl = DesparsifiedLasso(
-    estimator=LassoCV(max_iter=1000, fit_intercept=False),
+    estimator=LassoCV(max_iter=1000),
     confidence=0.95,
     model_x=LassoCV(),
     n_jobs=5,
@@ -125,19 +145,24 @@ ax.errorbar(
 sns.pointplot(
     data=df_plot,
     x="feature",
+    y="importance",
+    hue="selected",
+    linestyles="",
+    palette=["tab:green", "tab:red"],
+    markeredgewidth=0.5,
+    markeredgecolor="gray",
+    markersize=8,
+)
+sns.pointplot(
+    data=df_plot,
+    x="feature",
     y="lasso_coef",
     hue=np.abs(df_plot["lasso_coef"]) > 1e-3,
     linestyles="",
     markers="^",
     palette=["tab:orange", "tab:blue"],
-)
-sns.pointplot(
-    data=df_plot,
-    x="feature",
-    y="importance",
-    hue="selected",
-    linestyles="",
-    palette=["tab:green", "tab:red"],
+    markeredgewidth=0.5,
+    markeredgecolor="gray",
 )
 
 legend_elements = [
@@ -161,7 +186,7 @@ legend_elements = [
 ax.legend(handles=legend_elements, loc="best")
 
 ax.axhline(y=0, color="k", linestyle="--", linewidth=0.8)
-ax.set_xticklabels(df_plot["feature"], rotation=50)
+ax.set_xticklabels(df_plot["feature"], rotation=45, ha="right")
 ax.set_ylabel("$\\hat{\\beta}$: Coefficient estimates")
 ax.set_xlabel("")
 
