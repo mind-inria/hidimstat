@@ -64,20 +64,36 @@ X = np.hstack([X] + X_spurious_list)
 # --------------------------------
 # Before assessing feature importance, we evaluate the predictive performance of the
 # Lasso model (that will be used as base estimator in Desparsified Lasso) and a standard
-# Linear Regression model using 5-fold cross-validation. We expect the Lasso to perform
+# Linear Regression model using cross-validation. We expect the Lasso to perform
 # better thanks to its regularization effect, especially with the added spurious features.
+# We visualize the correlation matrix of the features and the distribution of R2 scores.
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.linear_model import LassoCV, LinearRegression
 from sklearn.model_selection import cross_val_score
 
 lasso_model = LassoCV(max_iter=1000)
 linear_model = LinearRegression()
 
-print(
-    "Linear Regression CV R2: "
-    f"{cross_val_score(linear_model, X, y, cv=5).mean():.3f}"
+cv_score_lasso = cross_val_score(lasso_model, X, y, cv=3)
+cv_score_linear = cross_val_score(linear_model, X, y, cv=3)
+
+_, ax = plt.subplots(1, 2, width_ratios=[2, 1], figsize=(7, 4))
+corr_mat = data["data"].corr()
+sns.heatmap(
+    corr_mat,
+    cmap="coolwarm",
+    ax=ax[0],
+    cbar_kws={"label": "Correlation"},
+    mask=np.triu(np.ones_like(corr_mat, dtype=bool)),
 )
-print("Lasso CV R2: " f"{cross_val_score(lasso_model, X, y, cv=5).mean():.3f}")
+sns.boxplot(data=[cv_score_lasso, cv_score_linear], ax=ax[1])
+ax[1].set_xticklabels(["Lasso", "Linear\nRegression"])
+ax[1].set_ylabel("R2 score")
+sns.despine()
+plt.tight_layout()
+_ = plt.show()
 
 
 # %%
@@ -124,10 +140,9 @@ df_plot.sort_values(by="importance", key=np.abs, ascending=False, inplace=True)
 # Lasso coefficients are shrunk towards zero, the Desparsified Lasso provides a
 # correction, often resulting in larger absolute coefficient estimates.
 
-
-import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib.lines import Line2D
+
+# sphinx_gallery_thumbnail_number = 2
 
 _, ax = plt.subplots(figsize=(6, 4))
 
