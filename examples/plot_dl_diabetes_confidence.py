@@ -213,7 +213,7 @@ _ = plt.show()
 # %%
 # While some spurious features are selected by the Lasso, the Desparsified Lasso
 # provides better control over false discoveries. The combination of point estimates
-# and confidence intervals allows for both robust feature selection and feature
+# and confidence intervals allows for both robust feature selection and statistically-grounded feature
 # importance quantification.
 
 # References
