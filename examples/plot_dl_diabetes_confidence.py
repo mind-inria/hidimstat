@@ -9,7 +9,7 @@ This example is inspired by :footcite:t:`hastie2015statistical`.
 While the L1 penalty used in Lasso regression is a powerful regularization technique for
 building predictive models, it introduces a bias in the coefficient estimates (shrinkage).
 When the goal is to interpret the importance of features or perform inference, this bias
-should be corrected. The Desparsified Lasso provides a method to obtain unbiased coefficient
+has to be corrected. The Desparsified Lasso provides a method to obtain unbiased coefficient
 estimates, along with confidence intervals and p-values for hypothesis testing.
 Read more in the :ref:`User Guide <slm_methods>`.
 """
