@@ -216,6 +216,8 @@ _ = plt.show()
 # and confidence intervals allows for both robust feature selection and statistically-grounded feature
 # importance quantification.
 
+
+# %%
 # References
 # ----------
 # .. footbibliography::
