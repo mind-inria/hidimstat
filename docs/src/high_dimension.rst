@@ -50,9 +50,17 @@ As discussed earlier, feature grouping is a meaningful solution to deal with suc
    * The :ref:`Grouping documentation <grouping>`
 
 
-As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal with such configuration is to take the per-group average of the features: this leads to a *reduced design*. After inference, all the feature in a given group obtain the p-value of the group representative. When the inference engine is Desparsified Lasso, the resulting method is called Clustered Desparsified lasso, or :class:`hidimstat.CluDL`.
+As hinted in :footcite:t:`meinshausen2009pvalues` an efficient way to deal
+with such configuration is to take the per-group average of the features:
+this leads to a *reduced design*. After inference, all the feature in a given
+group obtain the p-value of the group representative. When the inference
+engine is Desparsified Lasso, the resulting method is called Clustered
+Desparsified lasso, or :class:`hidimstat.CluDL`.
 
-Using the same example as previously, we start by defining a clustering method that will perform the grouping. For image data, Ward clustering is a good default model, because it takes into account the neighboring structure among pixels, which avoids creating overly messy clusters::
+Using the same example as previously, we start by defining a clustering
+method that will perform the grouping. For image data, Ward clustering is a
+good default model, because it takes into account the neighboring structure
+among pixels, which avoids creating overly messy clusters::
 
     >>> from sklearn.feature_extraction import image
     >>> from sklearn.cluster import FeatureAgglomeration
@@ -65,17 +73,30 @@ Equipped with this, we can use CluDL:
 
     >>> from hidimstat import CluDL
     >>> from sklearn.linear_model import LassoCV
-    >>> cludl = CluDL(clustering=ward, desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
+    >>> cludl = CluDL(
+        clustering=ward,
+        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
     >>> cludl.fit_importance(X_init, y)
     # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl *  true_support)} features among {np.sum(true_support)} ')
+    >>> print(f'Clustered Desparsified Lasso selected
+        {np.sum(selected_cdl *  true_support)} features among
+        {np.sum(true_support)}')
     Clustered Desparsified Lasso selected 51 features among 64 
 
   
 Note that inference is also way faster on the compressed representation.
     
-The issue is that  very-high-dimensional data (biological, images, etc.) do not have any canonical grouping structure. Hence, they rely on grouping obtained from the data, typically with clustering technique. However, the resulting clusters bring some undesirable randomness. Think that imputing slightly different data would lead to different clusters. Since there is no globally optimal clustering, the wiser solution is to *average* the results across clusterings. Since it may not be a good idea to average p-values, an alternative *ensembling* or  *aggregation* strategy is used instead. When the inference engine is Desparsified Lasso, the resulting method is called Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnCluDL`.
+The issue is that  very-high-dimensional data (biological, images, etc.) do
+not have any canonical grouping structure. Hence, they rely on grouping
+obtained from the data, typically with clustering technique. However, the
+resulting clusters bring some undesirable randomness. Think that imputing
+slightly different data would lead to different clusters. Since there is no
+globally optimal clustering, the wiser solution is to *average* the results
+across clusterings. Since it may not be a good idea to average p-values, an
+alternative *ensembling* or  *aggregation* strategy is used instead. When the
+inference engine is Desparsified Lasso, the resulting method is called
+Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnCluDL`.
 
 The behavior is illustrated here::
 
@@ -83,10 +104,15 @@ The behavior is illustrated here::
 
     # ensemble of clustered desparsified lasso (EnCluDL)
     >>> encludl = EnCluDL(
-    >>>     clustering=ward, desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()), n_bootstraps=20, random_state=0)
+    >>>     clustering=ward,
+            desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+            n_bootstraps=20,
+            random_state=0)
     >>> encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl *  true_support)} features among {np.sum(true_support)} ')
+    >>> print(f'Ensemble of Clustered Desparsified Lasso selected
+        {np.sum(selected_ecdl *  true_support)} features among
+        {np.sum(true_support)} ')
     Ensemble of Clustered Desparsified Lasso selected 57 features among 64
 
 .. topic:: **Full example**
@@ -97,17 +123,23 @@ The behavior is illustrated here::
 What type of Control does this Ensemble of CLustered inference come with ?
 --------------------------------------------------------------------------
 
-Ensemble of Clustered Inference is not a local method, so control cannot be maintained at each brain site in isolation.
-The notion of a false positive must be mitigated by the non-local characteristic of the inference performed.
+Ensemble of Clustered Inference is not a local method, so control cannot be
+maintained at each brain site in isolation. The notion of a false positive
+must be mitigated by the non-local characteristic of the inference performed.
 Thus, we introduce the concept of a :math:`\delta`-false positive:
-A detection is a delta-false positive if it is at a distance greater than :math:`\delta` from the support, which is the set of true positives.
-Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of reporting a single :math:`\delta`-false positive.
-In other words, EnCluDL will likely only report detections at a distance less than :math:`\delta` from the true support.
+A detection is a delta-false positive if it is at a distance greater than
+:math:`\delta` from the support, which is the set of true positives.
+Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of
+reporting a single :math:`\delta`-false positive.
+In other words, EnCluDL will likely only report detections at a distance less
+than :math:`\delta` from the true support.
 
-What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL procedure.
+What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL
+procedure.
 
 
-The details of the method and the underlying guarantees are described in :footcite:t:`chevalier2022spatially`
+The details of the method and the underlying guarantees are described in
+:footcite:t:`chevalier2022spatially`
 
 
 .. topic:: **Other examples**
@@ -115,7 +147,7 @@ The details of the method and the underlying guarantees are described in :footci
     See the following example for an application to the analysis of fMRI data:
     :ref:`sphx_glr_generated_gallery_examples_plot_fmri_data_example.py`
 
-    See the following example for an illustration on digit classification with MNIST:
+    See this example for an illustration on MNIST digit classification:
     :ref:`sphx_glr_generated_gallery_examples_plot_digits.py`
 
 
