@@ -69,8 +69,8 @@ class CluDL(BaseVariableImportance):
         assert issubclass(
             clustering.__class__, FeatureAgglomeration
         ), "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
-        self.desparsified_lasso = desparsified_lasso
-        self.clustering = clustering
+        self.desparsified_lasso = clone(desparsified_lasso)
+        self.clustering = clone(clustering)
         self.cluster_boostrap_size = cluster_boostrap_size
         self.bootstrap_groups = bootstrap_groups
         self.random_state = random_state
