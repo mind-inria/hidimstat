@@ -8,12 +8,20 @@ Inference in high dimension
 Naive inference in high dimension is ill-posed
 ----------------------------------------------
 
-In some cases, data represent high-dimensional measurements of some phenomenon of interest (e.g. imaging or genotyping). The common characteristic of these problems is to be very high-dimensional and lead to correlated features. Both aspects are clearly detrimental to conditional inference, making it both expensive and powerless:
+In some cases, data represent high-dimensional measurements of some phenomenon
+of interest (e.g. imaging or genotyping). The common characteristic of these
+problems is to be very high-dimensional and lead to correlated features. Both
+aspects are clearly detrimental to conditional inference, making it both
+expensive and powerless:
 
-* Expensive: most learers are quadratic or cubic in the number of features. Moreover per-feature inference generally entails a loop over features
-* powerless: As dimensionality and correlation increase, it  becomes harder and harder to isolate the contribution of each variable, meaning that conditional inference is ill-posed.
+* Expensive: most learers are quadratic or cubic in the number of features.
+  Moreover per-feature inference generally entails a loop over features
+* powerless: As dimensionality and correlation increase, it  becomes harder
+  and harder to isolate the contribution of each variable, meaning that
+  conditional inference is ill-posed.
 
-This is illustrated in the above example, where the Desparsified Lasso (:class:`hidimstat.DesparsifiedLasso`) struggles
+This is illustrated in the above example, where the Desparsified Lasso
+(:class:`hidimstat.DesparsifiedLasso`) struggles
 to identify relevant features. We need some data to start::
 
     >>> n_samples = 100
@@ -29,21 +37,25 @@ Then we perform inference on this data using the Desparsified Lasso::
 
     >>> from hidimstat.desparsified_lasso import DesparsifiedLasso
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
-    >>> dlasso.importance(X_init, y) # compute importance score and associated corrected p-values
+    >>> dlasso.importance(X_init, y) # compute importance score and associated
+        corrected p-values
         
     # compute estimated support
     >>> import numpy as np
     >>> alpha = .05 # alpha is the significance level for the statistical test 
     >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> true_support = beta > 0
-    >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)} features among {np.sum(true_support)} ')
+    >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)}
+        features among {np.sum(true_support)} ')
     Desparsified Lasso selected 19 features among 64 
 
 
 Feature Grouping and its shortcomings
 -------------------------------------
 
-As discussed earlier, feature grouping is a meaningful solution to deal with such cases: it reduces the number of features to condition on, and generally also decreases the level of correlation between features.
+As discussed earlier, feature grouping is a meaningful solution to deal with
+such cases: it reduces the number of features to condition on, and generally
+also decreases the level of correlation between features.
 
 .. seealso::
 
