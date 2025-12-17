@@ -100,8 +100,8 @@ What type of Control does this Ensemble of CLustered inference come with ?
 Ensemble of Clustered Inference is not a local method, so control cannot be maintained at each brain site in isolation.
 The notion of a false positive must be mitigated by the non-local characteristic of the inference performed.
 Thus, we introduce the concept of a :math:`\delta`-false positive:
-A detection is a delta-false positive if it is at a distance greater than $\delta$ from the support, which is the set of true positives.
-Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of reporting a single false :math:`\delta`-false positive.
+A detection is a delta-false positive if it is at a distance greater than :math:`\delta` from the support, which is the set of true positives.
+Thus, what is controlled is the :math:`\delta`-FWER, i.e., the probability of reporting a single :math:`\delta`-false positive.
 In other words, EnCluDL will likely only report detections at a distance less than :math:`\delta` from the true support.
 
 What is :math:`\delta` ? It is the diameter of the clusters used in the CluDL procedure.
