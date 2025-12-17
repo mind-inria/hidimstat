@@ -22,6 +22,10 @@ regression and corrects the bias induced by the L1-penalty. This method is parti
 useful in high-dimensional settings where the number of features exceeds the number of 
 samples.
 
+.. figure:: ./generated/gallery/examples/images/sphx_glr_plot_dl_diabetes_confidence_001.png
+    :target: ./generated/gallery/examples/plot_dl_diabetes_confidence.html
+    :align: center
+
 
 Regression example
 ------------------
