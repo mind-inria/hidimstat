@@ -111,17 +111,19 @@ def test_cludl_independence():
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
     X_init, y, beta, epsilon = multivariate_simulation_spatial(
-        n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1)
+        n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1
+    )
     alpha = .05 # alpha is the significance level for the statistical test
     n_clusters = 50
     connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
 
     c1 = CluDL(clustering=ward)
     c1.fit_importance(X_init, y)
     s1 = c1.fwer_selection(alpha, n_tests=n_clusters)
-    c2 = CluDL(clustering=ward,cluster_boostrap_size=0.5)
+    c2 = CluDL(clustering=ward, cluster_bootstrap_size=0.5)
     c2.fit_importance(X_init, y)
     s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
     assert np.sum(s2) > np.sum(s1 / 2)
@@ -314,20 +316,21 @@ def test_encludl_independence():
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
     X_init, y, beta, epsilon = multivariate_simulation_spatial(
-        n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1)
+        n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1
+    )
     alpha = .05 # alpha is the significance level for the statistical test
     n_clusters = 50
     connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     ward = FeatureAgglomeration(
-        n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
+        n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
+    )
     encludl = EnCluDL(
         clustering=ward,
         n_bootstraps=20,
-        cluster_boostrap_size=.5,
+        cluster_bootstrap_size=0.5,
         random_state=1,
         n_jobs=1
     )
     encludl.fit_importance(X_init, y)
     selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
     assert np.sum(selected_ecdl ) > 10
-
