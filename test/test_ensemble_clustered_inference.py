@@ -325,7 +325,8 @@ def test_encludl_independence():
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
     )
     encludl = EnCluDL(
-        desparsified_lasso=DesparsifiedLasso(),
+        desparsified_lasso=DesparsifiedLasso(
+            estimator=MultiTaskLassoCV(max_iter=1000)),
         clustering=ward,
         n_bootstraps=20,
         cluster_bootstrap_size=0.5,
