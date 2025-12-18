@@ -104,7 +104,7 @@ class CluDL(BaseVariableImportance):
         # Clustering
         self.clustering_samples_ = self._subsampling(
             n_samples=X.shape[0],
-            train_size=self.cluster_bootstraps_size,
+            train_size=self.cluster_bootstrap_size,
             groups=self.bootstrap_groups,
             random_state=rng,
         )
