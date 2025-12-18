@@ -113,7 +113,7 @@ def test_cludl_independence():
     X_init, y, beta, epsilon = multivariate_simulation_spatial(
         n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     )
-    alpha = 0.05 # alpha is the significance level for the statistical test
+    alpha = 0.05  # alpha is the significance level for the statistical test
     n_clusters = 50
     connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     ward = FeatureAgglomeration(
@@ -318,7 +318,7 @@ def test_encludl_independence():
     X_init, y, beta, epsilon = multivariate_simulation_spatial(
         n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     )
-    alpha = 0.05 # alpha is the significance level for the statistical test
+    alpha = 0.05  # alpha is the significance level for the statistical test
     n_clusters = 50
     connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     ward = FeatureAgglomeration(
@@ -333,4 +333,4 @@ def test_encludl_independence():
     )
     encludl.fit_importance(X_init, y)
     selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
-    assert np.sum(selected_ecdl ) > 10
+    assert np.sum(selected_ecdl) > 10
