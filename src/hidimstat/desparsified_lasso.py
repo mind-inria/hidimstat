@@ -216,7 +216,6 @@ class DesparsifiedLasso(BaseVariableImportance):
             X_ = X
             y_ = y
         self.n_samples_, n_features = X_.shape
-
         try:
             check_is_fitted(self.estimator)
         except NotFittedError:
@@ -233,9 +232,8 @@ class DesparsifiedLasso(BaseVariableImportance):
             # use the cross-validation for define the best alpha of Lasso
             self.estimator.set_params(n_jobs=self.n_jobs)
             self.estimator.fit(X_, y_)
-
         # Lasso regression and noise standard deviation estimation
-        self.sigma_hat_ = memory.cache(reid, ignore=["n_jobs"])(
+        self.sigma_hat_ = reid(
             self.estimator.coef_,  # estimated support of the variable importance
             self.estimator.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
