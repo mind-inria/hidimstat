@@ -25,9 +25,9 @@ class CluDL(BaseVariableImportance):
         An instance of a clustering method that operates on features.
     desparsified_lasso: DesparsifiedLasso
         An instance of the DesparsifiedLasso class for statistical inference.
-    cluster_boostrap_size: float, optional (default=1.0)
+    cluster_bootstrap_size: float, optional (default=1.0)
         Fraction of samples used for computing the clustering.
-        When cluster_boostrap_size=1.0, all samples are used.
+        When cluster_bootstrap_size=1.0, all samples are used.
     bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
     random_state: int, optional (default=None)
@@ -43,7 +43,7 @@ class CluDL(BaseVariableImportance):
         Fitted desparsified lasso estimator.
     clustering_ : sklearn.cluster.FeatureAgglomeration
         Fitted clustering object.
-    clustering_samples_ : ndarray, (n_samples*cluster_boostrap_size,)
+    clustering_samples_ : ndarray, (n_samples*cluster_bootstrap_size,)
         Indices of samples used for clustering.
     importances_ : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
         Estimated coefficients at cluster level.
@@ -58,7 +58,7 @@ class CluDL(BaseVariableImportance):
         self,
         clustering,
         desparsified_lasso=DesparsifiedLasso(),
-        cluster_boostrap_size=1.0,
+        cluster_bootstrap_size=1.0,
         bootstrap_groups=None,
         random_state=None,
         memory=None,
@@ -69,9 +69,9 @@ class CluDL(BaseVariableImportance):
         assert issubclass(
             clustering.__class__, FeatureAgglomeration
         ), "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
-        self.desparsified_lasso = desparsified_lasso
-        self.clustering = clustering
-        self.cluster_boostrap_size = cluster_boostrap_size
+        self.desparsified_lasso = clone(desparsified_lasso)
+        self.clustering = clone(clustering)
+        self.cluster_bootstrap_size = cluster_bootstrap_size
         self.bootstrap_groups = bootstrap_groups
         self.random_state = random_state
         self.memory = memory
@@ -104,7 +104,7 @@ class CluDL(BaseVariableImportance):
         # Clustering
         self.clustering_samples_ = self._subsampling(
             n_samples=X.shape[0],
-            train_size=self.cluster_boostrap_size,
+            train_size=self.cluster_bootstrap_size,
             groups=self.bootstrap_groups,
             random_state=rng,
         )
@@ -113,10 +113,7 @@ class CluDL(BaseVariableImportance):
 
         # Desparsified lasso inference
         self.desparsified_lasso.random_state = self.random_state
-        self.desparsified_lasso_ = memory.cache(self.desparsified_lasso.fit)(
-            X_reduced, y
-        )
-
+        self.desparsified_lasso_ = self.desparsified_lasso.fit(X_reduced, y)
         return self
 
     def importance(self, X=None, y=None):
@@ -278,9 +275,9 @@ class EnCluDL(BaseVariableImportance):
         An instance of a clustering method that operates on features.
     n_bootstraps: int, optional (default=25)
         Number of bootstrap iterations for ensemble inference.
-    cluster_boostrap_size: float, optional (default=0.3)
+    cluster_bootstrap_size: float, optional (default=0.3)
         Fraction of samples used for computing the clustering.
-        When cluster_boostrap_size=1.0, all samples are used.
+        When cluster_bootstrap_size=1.0, all samples are used.
     bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
         Sample group labels for stratified subsampling.
     n_jobs : int or None, optional (default=1)
@@ -319,7 +316,7 @@ class EnCluDL(BaseVariableImportance):
         desparsified_lasso,
         clustering,
         n_bootstraps=25,
-        cluster_boostrap_size=0.3,
+        cluster_bootstrap_size=0.3,
         bootstrap_groups=None,
         n_jobs=1,
         random_state=None,
@@ -331,7 +328,7 @@ class EnCluDL(BaseVariableImportance):
         self.desparsified_lasso = desparsified_lasso
         self.clustering = clustering
         self.n_bootstraps = n_bootstraps
-        self.cluster_boostrap_size = cluster_boostrap_size
+        self.cluster_bootstrap_size = cluster_bootstrap_size
         self.bootstrap_groups = bootstrap_groups
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -346,7 +343,7 @@ class EnCluDL(BaseVariableImportance):
     def _joblib_fit_one(
         desparsified_lasso,
         clustering,
-        cluster_boostrap_size,
+        cluster_bootstrap_size,
         bootstrap_groups,
         X,
         y,
@@ -356,7 +353,7 @@ class EnCluDL(BaseVariableImportance):
         clu_dl = CluDL(
             desparsified_lasso=desparsified_lasso,
             clustering=clustering,
-            cluster_boostrap_size=cluster_boostrap_size,
+            cluster_bootstrap_size=cluster_bootstrap_size,
             bootstrap_groups=bootstrap_groups,
             random_state=random_state,
             memory=memory,
@@ -384,9 +381,9 @@ class EnCluDL(BaseVariableImportance):
 
         self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one)(
-                desparsified_lasso=self.desparsified_lasso,
-                clustering=self.clustering,
-                cluster_boostrap_size=self.cluster_boostrap_size,
+                desparsified_lasso=clone(self.desparsified_lasso),
+                clustering=clone(self.clustering),
+                cluster_bootstrap_size=self.cluster_bootstrap_size,
                 bootstrap_groups=self.bootstrap_groups,
                 X=X,
                 y=y,

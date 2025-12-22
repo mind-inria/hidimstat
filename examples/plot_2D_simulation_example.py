@@ -203,7 +203,7 @@ enclu_dl = EnCluDL(
     n_bootstraps=20,
     random_state=0,
     n_jobs=n_jobs,
-    cluster_boostrap_size=0.5,
+    cluster_bootstrap_size=0.5,
 )
 enclu_dl.fit_importance(X_init, y)
 

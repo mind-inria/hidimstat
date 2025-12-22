@@ -189,7 +189,7 @@ encludl = EnCluDL(
     desparsified_lasso=deepcopy(desparsified_lasso_1),
     n_jobs=n_jobs,
     n_bootstraps=10,
-    cluster_boostrap_size=0.75,
+    cluster_bootstrap_size=0.75,
     random_state=0,
 )
 encludl.fit_importance(X, y)

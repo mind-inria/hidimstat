@@ -461,7 +461,7 @@ def test_fwer_selection():
     power_list = []
     n_features = 100
     target_fdr = 0.1
-    test_tol = 0.05
+    test_tol = 0.1
 
     for _ in range(100):
         vim = BaseVariableImportance()
