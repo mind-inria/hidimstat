@@ -99,7 +99,7 @@ html_theme_options = {
     "pygments_dark_style": "monokai",
     "switcher": {
         "json_url": (
-            "https://raw.githubusercontent.com/mind_inria/hidimstat/main/doc_conf/version.json"
+            "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"
         ),
         "version_match": release,
     },
@@ -179,6 +179,7 @@ intersphinx_mapping = {
 linkcheck_ignore = [
     # A lot of link DOI "fail" - false positives: easier to ignore them
     r"https://doi.org/.*",
+    r"./generated/gallery/examples/.*",
     r"../generated/gallery/examples/.*",
     r"https://github.com/*",
 ]

@@ -151,5 +151,7 @@ Merging this PR will update the documentation automatically
       package to be available from the conda-forge channel
     - when it becomes available, install in a fresh env & test
     - NOTE: to add new maintainers to that repo add them to the list at the end of meta.yml
+  
+13\. Update the symbolic link of the folder `stable` in the documentary repository: https://github.com/hidimstat/hidimstat.github.io . This is for be sure that the people go to the documentation of the last stable version. 
 
-13\. Once everything is done take a break by announced the release on social network channels.
+14\. Once everything is done take a break by announced the release on social network channels.
