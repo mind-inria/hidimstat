@@ -11,8 +11,6 @@ __pycache__
 *.egg-info
 .coverage*
 
-hidimpy*
-
 # documentation 
 docs/_build/
 docs/src/generated/
