@@ -45,10 +45,10 @@ Estimation procedure
 The estimation of the PFI is relatively simple since there is no need of retraining 
 any model as happens with other methods such as :ref:`leave_one_covariate_out` or 
 estimating a conditional sampler as in :ref:`conditional_feature_importance`. A simple permutation 
-of the feature values across the individuals is sufficient since the distribution from which we are sampling is the
- marginal distribution of the feature, thus breaking the relationship with the others. Also, note that the 
- same estimated model is 
-used for predicting both the original and perturbed datasets.
+of the feature values across the individuals is sufficient since the distribution from 
+which we are sampling is the marginal distribution of the feature, thus breaking the 
+relationship with the others. Also, note that the same estimated model is used for 
+predicting both the original and perturbed datasets.
 
 
 .. note:: **Extrapolation issues** 
