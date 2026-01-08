@@ -32,7 +32,7 @@ sampled version. The importance of the feature is quantified by the resulting dr
 .. math::
     \psi^j_{CFI} = \mathbb{E} [\mathcal{L}(Y, \mu(X^{\pi(j| -j)}))] - \mathbb{E} [\mathcal{L}(Y, \mu(X))].
 
-The target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
+In the case of the MSE, the target quantity estimated by CFI is the Total Sobol Index (TSI) :ref:`total_sobol_index`. 
 Indeed, 
 
 .. math::

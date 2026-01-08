@@ -13,6 +13,8 @@ high-dimensional settings by leveraging sparse linear models (SLM).
    :depth: 2
 
 
+.. _desparsified_lasso:
+
 Desparsified Lasso
 ======================
 
@@ -103,6 +105,8 @@ References
 ----------
 .. footbibliography::
 
+
+.. _knockoffs:
 
 Model-X Knockoffs
 =================
@@ -233,6 +237,8 @@ References
 ----------
 .. footbibliography::
 
+
+.. _d0crt:
 
 Distilled Conditional Randomization Test 
 ========================================
