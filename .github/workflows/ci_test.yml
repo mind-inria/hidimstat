@@ -16,63 +16,79 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  get_information:
-    name: Get Information
-    # information is: commit message for PR
-    runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'reposit'
-    outputs:
-      COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+  build-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true  # if on job fail all the other jobs are cancelled
+      matrix:
+        python-version: ["3.10"] #CHECK: not forget to add new version of python
+        os: [ubuntu-latest]
+    
+    # name for files
+    env:
+      REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 3 
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-          # require to get the previous commit for getting their messages
-          # in a PR the last commit is the commit merge with main
+    # Checkout to the branch for getting the right code
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      - name: Get commit message
-        id: get_commit_message
-        # return an empty message when the event is not from a PR
-        run: |
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
-            echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
-            echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
-            echo "$EOF" >> $GITHUB_OUTPUT
-          else
-            echo "$EOF" >> $GITHUB_OUTPUT
-          fi
+      # skip tests
+    - name: Skip the tests
+      if: ${{ inputs.skip_test }}
+      run: |
+        (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
+        touch log-${{env.REPORT_NAME}}.txt
+        mkdir cov
+        touch cov/cov-${{env.REPORT_NAME}}.xml
 
-  linter:
-    name: Linter
-    needs: [get_information]
-    uses: ./.github/workflows/call_linter.yml
+    # Install python
+    - name: Install the latest version of uv and the right verion of python
+      if:  ${{ inputs.skip_test == false }}
+      uses: astral-sh/setup-uv@v7
+      with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+    
+    # Install dependency for running the tests
+    - name: Install the dependance
+      if: ${{ inputs.skip_test == false }}
+      run: |
+        sudo apt-get install -y libfreetype6-dev
+        uv pip install --reinstall --upgrade --resolution lowest-direct -e ".[test]"
   
-  tests:
-    name: tests
-    needs: [linter, get_information]
-    uses: ./.github/workflows/call_test_package.yml
-    with: 
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
-  
-  tests_minimal:
-    name: tests minimal
-    needs: [linter, get_information]
-    uses: ./.github/workflows/call_test_minimal.yml
-    with: 
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+    # Run the tests with coverage and report add this end
+    # option for the coverage: --cov=. --cov-report=xml:... 
+    # option for mardown report: --md-report --md-report-output= ...
+    # option for html report: --self-contained-html --html=report-...
+    # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
+    # inline command for being compatible on linux and windows
+    - name: Run pytest
+      if: ${{ inputs.skip_test == false }}
+      run: |
+          uv run --frozen --no-sync pytest -o "timeout=300" --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
-  # tests_publish:
-  #   name: tests_publish
-  #   needs: [tests]
-  #   if: |
-  #     ${{ github.event.pull_request.draft == false 
-  #         || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
-  #       }}
-  #   permissions:
-  #     pull-requests: write
-  #   secrets: inherit
-  #   uses: ./.github/workflows/call_publish_result.yml
+    # publish different reports (HTML, duration, Coverage)
+    - name: Upload HTML test result
+      if: ${{ always() && !cancelled()}}
+      id: html_report
+      uses: actions/upload-artifact@v6
+      with:
+        name: pytest-results-html-${{env.REPORT_NAME}}
+        path: report-${{env.REPORT_NAME}}.html
+        if-no-files-found: error
+    - name: Upload duration test result
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v6
+      with:
+        name: pytest-results-log-${{env.REPORT_NAME}}
+        path: log-${{env.REPORT_NAME}}.txt
+        if-no-files-found: error
+    - name: Upload coverage data
+      if: ${{ always() && !cancelled()}}
+      uses: actions/upload-artifact@v6
+      with:
+        name: cov-results-${{env.REPORT_NAME}}
+        path: cov/cov-${{env.REPORT_NAME}}.xml
+        if-no-files-found: error
