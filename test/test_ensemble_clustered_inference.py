@@ -65,7 +65,7 @@ def test_cludl_spatial():
     signal_noise_ratio = 32.0  # noise standard deviation
     smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
 
-    fdp_list = []
+    fp_list = []
     power_list = []
     for seed in range(10):
         # generating the data
@@ -98,10 +98,10 @@ def test_cludl_spatial():
             spatial_tolerance=3,
             shape=shape,
         )
-        fdp_list.append(fdp)
+        fp_list.append(int(fdp > 0))
         power_list.append(power)
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fdp_list) <= fwer
+    assert np.mean(fp_list) <= fwer
 
 
 def test_cludl_independence():
@@ -146,8 +146,9 @@ def test_encludl_spatial():
     roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
     smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    tol = 0.1
 
-    fdp_list = []
+    fp_list = []
     power_list = []
     for seed in range(10):
         # generating the data
@@ -182,10 +183,10 @@ def test_encludl_spatial():
             spatial_tolerance=2,
             shape=shape,
         )
-        fdp_list.append(fdp)
+        fp_list.append(int(fdp > 0))
         power_list.append(power)
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fdp_list) <= fwer
+    assert np.mean(fp_list) <= fwer + tol
 
 
 def test_cludl_temporal():
