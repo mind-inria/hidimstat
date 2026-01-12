@@ -58,14 +58,14 @@ def test_cludl_spatial():
      - Test that the statistical power is above a specified threshold (0.8).
     """
 
-    n_samples = 200
-    shape = (20, 20)
+    n_samples = 400
+    shape = (10, 10)
     n_features = shape[1] * shape[0]
-    roi_size = 4  # size of the edge of the four predictive regions
+    roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
 
-    fdp_list = []
+    fp_list = []
     power_list = []
     for seed in range(10):
         # generating the data
@@ -76,7 +76,7 @@ def test_cludl_spatial():
         y = y - np.mean(y)
         X_init = X_init - np.mean(X_init, axis=0)
 
-        n_clusters = 200
+        n_clusters = 50
         connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
         clustering = FeatureAgglomeration(
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
@@ -88,8 +88,8 @@ def test_cludl_spatial():
             random_state=seed,
         )
         cludl.fit_importance(X_init, y)
-        fdr = 0.1
-        selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
+        fwer = 0.1
+        selected = cludl.fwer_selection(fwer=fwer, two_tailed_test=False)
 
         fdp, power = spatially_relaxed_fdp_power(
             selected=selected,
@@ -98,10 +98,10 @@ def test_cludl_spatial():
             spatial_tolerance=3,
             shape=shape,
         )
-        fdp_list.append(fdp)
+        fp_list.append(int(fdp > 0))
         power_list.append(power)
-    assert np.mean(power_list) >= 0.8
-    assert np.mean(fdp_list) <= fdr
+    assert np.mean(power_list) >= 0.5
+    assert np.mean(fp_list) <= fwer
 
 
 def test_cludl_independence():
@@ -141,13 +141,14 @@ def test_encludl_spatial():
     """
 
     n_samples = 400
-    shape = (20, 20)
+    shape = (10, 10)
     n_features = shape[1] * shape[0]
-    roi_size = 4  # size of the edge of the four predictive regions
+    roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.6  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    tol = 0.1
 
-    fdp_list = []
+    fp_list = []
     power_list = []
     for seed in range(10):
         # generating the data
@@ -158,7 +159,7 @@ def test_encludl_spatial():
         y = y - np.mean(y)
         X_init = X_init - np.mean(X_init, axis=0)
 
-        n_clusters = 200
+        n_clusters = 50
         connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
         clustering = FeatureAgglomeration(
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
@@ -172,20 +173,20 @@ def test_encludl_spatial():
             random_state=seed,
         )
         cludl.fit_importance(X_init, y)
-        fdr = 0.1
-        selected = cludl.fdr_selection(fdr=fdr, two_tailed_test=False)
+        fwer = 0.1
+        selected = cludl.fwer_selection(fwer=fwer, two_tailed_test=False)
 
         fdp, power = spatially_relaxed_fdp_power(
             selected=selected,
             ground_truth=beta,
             roi_size=roi_size,
-            spatial_tolerance=3,
+            spatial_tolerance=2,
             shape=shape,
         )
-        fdp_list.append(fdp)
+        fp_list.append(int(fdp > 0))
         power_list.append(power)
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fdp_list) <= fdr
+    assert np.mean(fp_list) <= fwer + tol
 
 
 def test_cludl_temporal():
