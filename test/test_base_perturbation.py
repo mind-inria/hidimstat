@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
-from sklearn.utils.estimator_checks import parametrize_with_checks
 
 def fitted_linear_regression():
     X = np.random.randint(0, 2, size=(100, 2, 1))
@@ -13,9 +13,13 @@ def fitted_linear_regression():
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
 
-@parametrize_with_checks(estimators=[BasePerturbation(estimator=fitted_linear_regression())])
+
+@parametrize_with_checks(
+    estimators=[BasePerturbation(estimator=fitted_linear_regression())]
+)
 def test_check_estimator_sklearn_basic(estimator, check):
-   check(estimator)
+    check(estimator)
+
 
 def test_no_implemented_methods():
     """test that the methods are not implemented in the base class"""

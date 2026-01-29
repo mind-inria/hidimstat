@@ -100,7 +100,7 @@ skip = "./.git,*.bib,./docs/_build"
 
 [tool.isort]
 profile = "black"
-skip = ["src/hidimstat/_version.py", "docs/_build", "build/"]
+skip = ["src/hidimstat/_version.py", "docs/_build", "build/", ".venv"]
 
 # file where the version is save
 [tool.setuptools_scm]
