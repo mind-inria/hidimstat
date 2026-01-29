@@ -7,7 +7,6 @@ from sklearn.base import BaseEstimator
 
 from hidimstat._utils.exception import InternalError
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.p_values import pval_from_two_sided_pval_and_sign
 
 
 def _selection_generic(

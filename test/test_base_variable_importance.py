@@ -10,6 +10,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
+
 @pytest.fixture
 def set_100_variable_sorted():
     """Create a BaseVariableImportance instance with test data for testing purposes.
