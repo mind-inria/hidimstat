@@ -142,7 +142,7 @@ class BaseVariableImportance(BaseEstimator):
     def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
         """Run initial fit of a sklearn estimator.
 
-        Use during fit if an unfitted estimator was passed at instanciation.
+        Use during fit if an unfitted estimator was passed at instantiation.
         """
         if (
             hasattr(estimator, "__sklearn_is_fitted__")
