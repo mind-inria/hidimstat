@@ -33,9 +33,9 @@ def expected_failed_checks(estimator):
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
             "check_dont_overwrite_parameters": "TODO",
             "check_dtype_object": "TODO",
-            "check_estimator_repr" :"TODO",
-            "check_estimator_cloneable0" :"TODO",
-            "check_estimator_cloneable1" :"TODO",
+            "check_estimator_repr": "TODO",
+            "check_estimator_cloneable0": "TODO",
+            "check_estimator_cloneable1": "TODO",
             "check_estimator_sparse_array": "TODO",
             "check_estimator_sparse_matrix": "TODO",
             "check_estimator_sparse_tag": "TODO",
@@ -60,13 +60,12 @@ def expected_failed_checks(estimator):
             "check_pipeline_consistency": "TODO",
             "check_positive_only_tag_during_fit": "TODO",
             "check_readonly_memmap_input": "TODO",
-            "check_get_params_invariance" : "TODO",
-            "check_set_params" : "TODO",
-            "check_estimators_empty_data_messages" : "TODO",
-            "check_complex_data" : "TODO",
-            "check_parameters_default_constructible" : "TODO",
-            "check_estimators_unfitted" : "TODO",
-            
+            "check_get_params_invariance": "TODO",
+            "check_set_params": "TODO",
+            "check_estimators_empty_data_messages": "TODO",
+            "check_complex_data": "TODO",
+            "check_parameters_default_constructible": "TODO",
+            "check_estimators_unfitted": "TODO",
         }
 
 
