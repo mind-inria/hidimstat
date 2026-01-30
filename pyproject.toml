@@ -118,11 +118,11 @@ addopts = [
     "--showlocals",            # show local variable inn trackbacks
     "--strict-config",         # no warning from parsing pytest configuration file
     "--strict-markers",        # undefine markers will raise an error
+    "--color=yes", # Color terminal output
     # pytest-randomly
     # "--randomly-dont-reset-seed", # turn off the rest of the random seed 
     # pytest-xdist option
     "-n=auto", # automatically define the number of process
-    "--color=yes" # Color terminal output
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
