@@ -21,6 +21,10 @@ from hidimstat.desparsified_lasso import (
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
+from .conftest import SKLEARN_LT_1_6, check_estimator
+
+ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
+
 
 def expected_failed_checks(estimator):
     if isinstance(estimator, DesparsifiedLasso):
@@ -39,12 +43,40 @@ def expected_failed_checks(estimator):
         }
 
 
-@parametrize_with_checks(
-    estimators=[DesparsifiedLasso(confidence=0.9, random_state=0)],
-    expected_failed_checks=expected_failed_checks,
-)
-def test_check_estimator_sklearn(estimator, check):
-    check(estimator)
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+else:
+
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
 
 
 def test_desparsified_lasso():

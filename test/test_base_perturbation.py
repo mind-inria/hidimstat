@@ -6,12 +6,26 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
+from .conftest import SKLEARN_LT_1_6, check_estimator
+
 
 def _fitted_linear_regression():
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
+
+
+ESTIMATORS_TO_CHECK = [
+    BasePerturbation(estimator=_fitted_linear_regression()),
+    BasePerturbation(estimator=LinearRegression()),
+    BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
+    # TODO
+    # BasePerturbationCV(
+    #     estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
+    #     cv=KFold(n_splits=2),
+    # ),
+]
 
 
 def expected_failed_checks(estimator):
@@ -26,6 +40,7 @@ def expected_failed_checks(estimator):
             "check_n_features_in_after_fitting": "TODO",
             "check_no_attributes_set_in_init": "TODO",
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_parameters_default_constructible": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
         return {
@@ -49,6 +64,7 @@ def expected_failed_checks(estimator):
             "check_fit_score_takes_y": "TODO",
             "check_fit2d_1feature": "TODO",
             "check_fit2d_predict1d": "TODO",
+            "check_parameters_default_constructible": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
             "check_no_attributes_set_in_init": "TODO",
@@ -60,21 +76,40 @@ def expected_failed_checks(estimator):
         }
 
 
-@parametrize_with_checks(
-    estimators=[
-        BasePerturbation(estimator=_fitted_linear_regression()),
-        BasePerturbation(estimator=LinearRegression()),
-        BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
-        # TODO
-        # BasePerturbationCV(
-        #     estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
-        #     cv=KFold(n_splits=2),
-        # ),
-    ],
-    expected_failed_checks=expected_failed_checks,
-)
-def test_check_estimator_sklearn(estimator, check):
-    check(estimator)
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+else:
+
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
 
 
 def test_no_implemented_methods():
