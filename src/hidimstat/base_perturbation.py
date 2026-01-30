@@ -1,7 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
-from sklearn.exceptions import NotFittedError
 from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 
@@ -113,15 +112,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         --------
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
-        if (
-            hasattr(self.estimator, "__sklearn_is_fitted__")
-            and not self.estimator.__sklearn_is_fitted__()
-        ):
-            self.estimator.fit(X, y)
-        try:
-            check_is_fitted(self.estimator)
-        except NotFittedError:
-            self.estimator.fit(X, y)
+        self.estimator = self._initial_fit(self.estimator, X, y)
 
         GroupVariableImportanceMixin.fit(self, X, y)
         return self

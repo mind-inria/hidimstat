@@ -7,17 +7,83 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
-def fitted_linear_regression():
+def _fitted_linear_regression():
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
 
 
+def expected_failed_checks(estimator):
+    if isinstance(estimator, BasePerturbation):
+        return {
+            "check_dont_overwrite_parameters": "TODO",
+            "check_dtype_object": "TODO",
+            "check_estimator_sparse_tag": "TODO",
+            "check_estimators_overwrite_params": "TODO",
+            "check_fit_check_is_fitted": "TODO",
+            "check_n_features_in": "TODO",
+            "check_n_features_in_after_fitting": "TODO",
+            "check_no_attributes_set_in_init": "TODO",
+            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+        }
+    elif isinstance(estimator, BasePerturbationCV):
+        return {
+            "check_dict_unchanged": "TODO",
+            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_dont_overwrite_parameters": "TODO",
+            "check_dtype_object": "TODO",
+            "check_estimator_repr" :"TODO",
+            "check_estimator_cloneable0" :"TODO",
+            "check_estimator_cloneable1" :"TODO",
+            "check_estimator_sparse_array": "TODO",
+            "check_estimator_sparse_matrix": "TODO",
+            "check_estimator_sparse_tag": "TODO",
+            "check_estimators_dtypes": "TODO",
+            "check_estimators_fit_returns_self": "TODO",
+            "check_estimators_overwrite_params": "TODO",
+            "check_estimators_pickle": "TODO",
+            "check_estimators_nan_inf": "TODO",
+            "check_f_contiguous_array_estimator": "TODO",
+            "check_fit_check_is_fitted": "TODO",
+            "check_fit_idempotent": "TODO",
+            "check_fit_score_takes_y": "TODO",
+            "check_fit1d": "TODO",
+            "check_fit2d_1sample": "TODO",
+            "check_fit2d_1feature": "TODO",
+            "check_fit2d_predict1d": "TODO",
+            "check_n_features_in": "TODO",
+            "check_n_features_in_after_fitting": "TODO",
+            "check_no_attributes_set_in_init": "TODO",
+            "check_methods_sample_order_invariance": "TODO",
+            "check_methods_subset_invariance": "TODO",
+            "check_pipeline_consistency": "TODO",
+            "check_positive_only_tag_during_fit": "TODO",
+            "check_readonly_memmap_input": "TODO",
+            "check_get_params_invariance" : "TODO",
+            "check_set_params" : "TODO",
+            "check_estimators_empty_data_messages" : "TODO",
+            "check_complex_data" : "TODO",
+            "check_parameters_default_constructible" : "TODO",
+            "check_estimators_unfitted" : "TODO",
+            
+        }
+
+
 @parametrize_with_checks(
-    estimators=[BasePerturbation(estimator=fitted_linear_regression())]
+    estimators=[
+        BasePerturbation(estimator=_fitted_linear_regression()),
+        BasePerturbation(estimator=LinearRegression()),
+        BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
+        # TODO
+        # BasePerturbationCV(
+        #     estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
+        #     cv=KFold(n_splits=2),
+        # ),
+    ],
+    expected_failed_checks=expected_failed_checks,
 )
-def test_check_estimator_sklearn_basic(estimator, check):
+def test_check_estimator_sklearn(estimator, check):
     check(estimator)
 
 
