@@ -1,7 +1,5 @@
-from functools import partial
 
 import numpy as np
-from scipy.stats import wilcoxon
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring

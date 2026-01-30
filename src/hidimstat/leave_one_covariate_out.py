@@ -1,16 +1,13 @@
-from functools import partial
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
-from hidimstat.base_variable_importance import GroupVariableImportanceMixin
 
 
 class LOCO(BasePerturbation):
