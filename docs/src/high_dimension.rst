@@ -39,15 +39,15 @@ Then we perform inference on this data using the Desparsified Lasso::
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
     >>> dlasso.importance(X_init, y) # compute importance score and associated
         corrected p-values
-        
+
     # compute estimated support
     >>> import numpy as np
-    >>> alpha = .05 # alpha is the significance level for the statistical test 
+    >>> alpha = .05 # alpha is the significance level for the statistical test
     >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> true_support = beta > 0
     >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)}
         features among {np.sum(true_support)} ')
-    Desparsified Lasso selected 19 features among 64 
+    Desparsified Lasso selected 19 features among 64
 
 
 Feature Grouping and its shortcomings
@@ -76,7 +76,7 @@ among pixels, which avoids creating overly messy clusters::
 
     >>> from sklearn.feature_extraction import image
     >>> from sklearn.cluster import FeatureAgglomeration
-    >>> n_clusters = 200 
+    >>> n_clusters = 200
     >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     >>> ward = FeatureAgglomeration(
     >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
@@ -94,11 +94,11 @@ Equipped with this, we can use CluDL:
     >>> print(f'Clustered Desparsified Lasso selected
         {np.sum(selected_cdl *  true_support)} features among
         {np.sum(true_support)}')
-    Clustered Desparsified Lasso selected 51 features among 64 
+    Clustered Desparsified Lasso selected 51 features among 64
 
-  
+
 Note that inference is also way faster on the compressed representation.
-    
+
 The issue is that  very-high-dimensional data (biological, images, etc.) do
 not have any canonical grouping structure. Hence, they rely on grouping
 obtained from the data, typically with clustering technique. However, the

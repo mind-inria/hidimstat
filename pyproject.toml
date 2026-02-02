@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools             >= 64, < 100", # builder for python packages 
+    "setuptools             >= 64, < 100", # builder for python packages
     "setuptools_scm[toml]   >= 8,     < 50"  # plugging for getting the version from github
     ]
 build-backend = "setuptools.build_meta"
@@ -89,7 +89,7 @@ Teams = "https://team.inria.fr/mind/"
 Issues = "https://github.com/mind-inria/hidimstat/issues"
 Discussion = "https://github.com/mind-inria/hidimstat/discussions" # TODO see if we keep it or not
 
-# Configuration of the builder 
+# Configuration of the builder
 [tool.setuptools]
 package-dir = {"" = "src"} # define the root of the packages as src
 
@@ -116,7 +116,7 @@ addopts = [
     "--strict-config",         # no warning from parsing pytest configuration file
     "--strict-markers",        # undefine markers will raise an error
     # pytest-randomly
-    # "--randomly-dont-reset-seed", # turn off the rest of the random seed 
+    # "--randomly-dont-reset-seed", # turn off the rest of the random seed
     # pytest-xdist option
     "-n=auto", # automatically define the number of process
 ]

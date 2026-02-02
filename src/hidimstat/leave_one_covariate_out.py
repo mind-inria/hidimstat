@@ -268,7 +268,7 @@ loco_importance.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_features,)
         Feature importance scores/test statistics.
     pvalues : ndarray of shape (n_features,)
-        None because there is no p-value for this method 
+        None because there is no p-value for this method
     """,
 )
 

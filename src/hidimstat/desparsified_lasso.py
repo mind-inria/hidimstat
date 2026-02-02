@@ -613,7 +613,7 @@ desparsified_lasso_importance.__doc__ = _aggregate_docstring(
     selection : ndarray of shape (n_features,)
         Boolean array indicating selected features (True = selected)
     importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected 
+        Feature importance scores/test statistics. For features not selected
         during screening, scores are set to 0.
     pvalues : ndarray of shape (n_features,)
         Two-sided p-values for each feature under Gaussian null hypothesis.

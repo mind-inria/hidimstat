@@ -5,7 +5,7 @@
 Generalized Linear Model (GLM) Coefficient
 ===========================================
 
-Assuming that the data is generated from a Linear Model, 
+Assuming that the data is generated from a Linear Model,
 
 .. math::
     Y = \sum \beta_j X^j+ \epsilon,
@@ -18,17 +18,17 @@ of the corresponding coefficient :math:`\beta_j` :footcite:`verdinelli2024featur
     \psi^j_{GLM} = \beta_j^2.
 
 This definition has the advantage of being simple and interpretable. Moreover, it
-can be directly extended to classification for example by considering the 
+can be directly extended to classification for example by considering the
 coefficients of a Generalized Linear Model (GLM).
 
 
-.. note:: **Misspecification of the underlying distribution** 
+.. note:: **Misspecification of the underlying distribution**
 
     This definition relies on the strong assumption that the data is generated
     from a (Generalized) Linear Model. In practice, this assumption is often violated,
     which can lead to misspecifying the underlying data distribution and therefore
-    to misleading importance measures (:footcite:`Molnar2022Pitfalls`). See 
-    :ref:`sphx_glr_generated_gallery_examples_plot_model_agnostic_importance.py`. 
+    to misleading importance measures (:footcite:`Molnar2022Pitfalls`). See
+    :ref:`sphx_glr_generated_gallery_examples_plot_model_agnostic_importance.py`.
 
 
 They can be estimated using standard statistical techniques for fitting GLMs.

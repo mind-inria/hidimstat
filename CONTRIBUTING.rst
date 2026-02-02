@@ -1,4 +1,4 @@
-.. ## for plotting and for examples 
+.. ## for plotting and for examples
     #TODO Need to be updated if it's necessary
 .. |MatplotlibMinVersion| replace:: 3.9.0
 .. |SeabornMinVersion| replace:: 0.9.0
@@ -22,8 +22,8 @@ For testing, we recommend you install the test dependencies with pip:
 .. code-block:: sh
 
    pip install hidimstat[test]
-  
-This will install ``pytest`` and the following extensions: 
+
+This will install ``pytest`` and the following extensions:
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
 ``pytest-timeout``, ``pytest-durations``
 

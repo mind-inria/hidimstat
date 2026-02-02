@@ -7,19 +7,19 @@ ci:
     autofix_prs: false
 
 repos:
-# -   repo: https://github.com/pre-commit/pre-commit-hooks
-#     rev: v6.0.0
-#     hooks:
-#     -   id: check-ast
-#     -   id: check-case-conflict
-#     -   id: check-json
-#     -   id: check-merge-conflict
-#     -   id: check-toml
-#     -   id: check-yaml
-#     -   id: end-of-file-fixer
-#     -   id: mixed-line-ending
-#         args: [--fix=lf]
-#     -   id: trailing-whitespace
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+    -   id: check-ast
+    -   id: check-case-conflict
+    -   id: check-json
+    -   id: check-merge-conflict
+    -   id: check-toml
+    -   id: check-yaml
+    # -   id: end-of-file-fixer
+    # -   id: mixed-line-ending
+    #     args: [--fix=lf]
+    -   id: trailing-whitespace
 
     # Checks for spelling errors
 -   repo: https://github.com/codespell-project/codespell
@@ -29,12 +29,12 @@ repos:
         args: [--toml, pyproject.toml]
         additional_dependencies: [tomli]
 
-    # Lint and format Python code
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
-    hooks:
-    -   id: ruff-check
-        # args: [--statistics]
-        args: [--fix, --show-fixes, --unsafe-fixes]
-    -   id: ruff-format
-        # args: [--diff]
+#     # Lint and format Python code
+# -   repo: https://github.com/astral-sh/ruff-pre-commit
+#     rev: v0.14.14
+#     hooks:
+#     -   id: ruff-check
+#         # args: [--statistics]
+#         args: [--fix, --show-fixes, --unsafe-fixes]
+#     -   id: ruff-format
+#         # args: [--diff]
