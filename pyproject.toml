@@ -61,7 +61,7 @@ doc = [
     "sphinx-copybutton",
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
-style = ["black  >= 24.4.2", "codespell >=2.4.0", "isort  >= 5.13.2"]
+style = ["ruff  >= 0.14", "codespell >=2.4.0"]
 
 # For running unit and docstring tests
 test = [
@@ -98,9 +98,6 @@ package-dir = {"" = "src"} # define the root of the packages as src
 builtin = "clear,rare,en-GB_to_en-US"
 skip = "./.git,*.bib,./docs/_build"
 
-[tool.isort]
-profile = "black"
-skip = ["src/hidimstat/_version.py", "docs/_build", "build/"]
 
 # file where the version is save
 [tool.setuptools_scm]
@@ -136,3 +133,95 @@ OPENBLAS_NUM_THREADS = 1
 BLIS_NUM_THREADS = 1
 MKL_NUM_THREADS = 1
 OMP_NUM_THREADS = 1
+
+
+[tool.ruff]
+extend-exclude = ["doc/auto_examples/*", "hidimstat/_version.py"]
+include = [
+    "pyproject.toml",
+    "src/**/*.py",
+    "examples/**/*.py",
+    "test/**/*.py",
+    "tools/**/*.py",
+    "doc/**/*.py"
+]
+indent-width = 4
+line-length = 79
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = [
+    "ARG005",
+    "B904",
+    "D105",
+    "D205",
+    "D301",
+    "E741",
+    "ERA001",
+    "N803",
+    "N806",
+    "PERF203",
+    "PLR2004",
+    "PTH207",
+    "RUF005",
+    # Avoid linter rules conflicting with the formatter
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "COM812",
+    "COM819",
+    "E111",
+    "E114",
+    "E117",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191"
+]
+# List of all the ruff rules (includes why the rule matters)
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "ARG",
+    "B",
+    "C4",
+    "C90",
+    "D",
+    "E",
+    "ERA",
+    "F",
+    "FLY",
+    "FURB",
+    "I",
+    "N",
+    "NPY",
+    "PERF",
+    "PIE",
+    "PTH",
+    "PD",
+    "PGH",
+    "PLR",
+    "RUF",
+    "SIM",
+    "UP",
+    "W"
+]
+unfixable = []
+
+
+[tool.ruff.lint.per-file-ignores]
+"**/{doc}/*" = ["B018", "D103"]
+"**/{examples}/*" = ["B018", "D103", "D400", "E402"]
+"__init__.py" = ["D104", "E402"]
+"nilearn/**/tests/test_*" = ["D100"]
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+

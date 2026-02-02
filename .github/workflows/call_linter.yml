@@ -24,12 +24,12 @@ jobs:
         run: |
           pip install .[style]
           codespell --toml pyproject.toml
-
-      # Isort check
-      - uses: isort/isort-action@v1
       
-      # Black formatting check
-      - uses: psf/black@stable
+      # Ruff check
+      - name: Install the latest version of ruff
+        uses: astral-sh/ruff-action@v3
         with:
-          jupyter: true
+          version: "latest"
       
+      - run: ruff check --fix
+      - run: ruff format
