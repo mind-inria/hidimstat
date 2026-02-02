@@ -160,7 +160,12 @@ skip-magic-trailing-comma = false
 fixable = ["ALL"]
 ignore = [
     "ARG002",
+    "ARG004",
     "ARG005",
+    "B007",
+    "B008",
+    "B017",
+    "B018",
     "B028",
     "B904",
     "B905",
@@ -168,6 +173,7 @@ ignore = [
     "D101",
     "D102",
     "D103",
+    "D104",
     "D105",
     "D205",
     "D200",
@@ -175,12 +181,16 @@ ignore = [
     "D400",
     "D401",
     "D404",
+    "E402",
     "E501",
     "E741",
     "ERA001",
+    "F401",
     "F841",
     "NPY002",
     "PERF203",
+    "PERF401",
+    "PD011",
     "PLR2004",
     "PTH100",
     "PTH120",
@@ -233,17 +243,18 @@ select = [
 ]
 unfixable = []
 
-
-
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.pylint]
 # https://docs.astral.sh/ruff/settings/#lint_pylint_max-args
-max-args = 27
+max-args = 30
 # https://docs.astral.sh/ruff/settings/#lint_pylint_max-branches
-max-branches = 22
+max-branches = 20
 # https://docs.astral.sh/ruff/settings/#lint_pylint_max-returns
 max-returns = 8
 # https://docs.astral.sh/ruff/settings/#lint_pylint_max-statements
-max-statements = 96
+max-statements = 90

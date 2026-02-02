@@ -34,7 +34,6 @@ repos:
     rev: v0.14.14
     hooks:
     -   id: ruff-check
-        # args: [--statistics]
         args: [--fix, --show-fixes, --unsafe-fixes]
     -   id: ruff-format
         # args: [--diff]
