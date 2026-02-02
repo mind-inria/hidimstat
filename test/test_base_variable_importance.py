@@ -44,42 +44,42 @@ class TestSelection:
     """Test selection based on importance"""
 
     def test_selection_k_best(self, set_100_variable_sorted):
-        "test selection of the k_best"
+        """Test selection of the k_best"""
         vi = set_100_variable_sorted
         true_value = vi.importances_ >= 95
         selection = vi.importance_selection(k_best=5)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_k_best_none(self, set_100_variable_sorted):
-        "test selection when there none"
+        """Test selection when there none"""
         vi = set_100_variable_sorted
         true_value = np.ones_like(vi.importances_, dtype=bool)
         selection = vi.importance_selection(k_best=None)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_k_lowest(self, set_100_variable_sorted):
-        "test selection of the k_lowest"
+        """Test selection of the k_lowest"""
         vi = set_100_variable_sorted
         true_value = vi.pvalues_ < vi.pvalues_[np.argsort(vi.pvalues_)[5]]
         selection = vi.pvalue_selection(k_lowest=5, threshold_max=None)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_k_lowest_none(self, set_100_variable_sorted):
-        "test selection when there none"
+        """Test selection when there none"""
         vi = set_100_variable_sorted
         true_value = np.ones_like(vi.pvalues_ > 0, dtype=bool)
         selection = vi.pvalue_selection(k_lowest=None, threshold_max=None)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_percentile(self, set_100_variable_sorted):
-        "test selection bae on percentile"
+        """Test selection bae on percentile"""
         vi = set_100_variable_sorted
         true_value = vi.importances_ >= 50
         selection = vi.importance_selection(percentile=50)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_percentile_all(self, set_100_variable_sorted):
-        "test selection when percentile is 100"
+        """Test selection when percentile is 100"""
         vi = set_100_variable_sorted
         true_value = np.ones_like(vi.importances_, dtype=bool)
         true_value[np.argsort(vi.importances_)[0]] = False
@@ -87,7 +87,7 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_percentile_none(self, set_100_variable_sorted):
-        "test selection when percentile is 0"
+        """Test selection when percentile is 0"""
         vi = set_100_variable_sorted
         true_value = np.zeros_like(vi.importances_, dtype=bool)
         true_value[np.argsort(vi.importances_)[-1:]] = True
@@ -97,7 +97,7 @@ class TestSelection:
     def test_selection_percentile_threshols_value(
         self, set_100_variable_sorted
     ):
-        "test selection when percentile when the percentile equal on value"
+        """Test selection when percentile when the percentile equal on value"""
         vi = set_100_variable_sorted
         mask = np.ones_like(vi.importances_, dtype=bool)
         mask[np.where(vi.importances_ == 99)] = False
@@ -107,14 +107,14 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_threshold_min(self, set_100_variable_sorted):
-        "test threshold minimal on importance"
+        """Test threshold minimal on importance"""
         vi = set_100_variable_sorted
         true_value = vi.importances_ > 5
         selection = vi.importance_selection(threshold_min=5)
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_threshold_max(self, set_100_variable_sorted):
-        "test threshold maximal on importance"
+        """Test threshold maximal on importance"""
         vi = set_100_variable_sorted
         true_value = vi.importances_ < 5
         selection = vi.importance_selection(threshold_max=5)
@@ -261,7 +261,7 @@ class TestBVIExceptions:
     """Test class for BVI Exception"""
 
     def test_not_fit(self):
-        "test detection unfit"
+        """Test detection unfit"""
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
@@ -275,7 +275,7 @@ class TestBVIExceptions:
             vi.importance_selection()
 
     def test_selection_k_best(self, set_100_variable_sorted):
-        "test selection k_best wrong"
+        """Test selection k_best wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError, match="k_best needs to be positive"
@@ -285,7 +285,7 @@ class TestBVIExceptions:
             vi.importance_selection(k_best=1000)
 
     def test_selection_k_lowest(self, set_100_variable_sorted):
-        "test selection k_lowest wrong"
+        """Test selection k_lowest wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError, match="k_lowest needs to be positive"
@@ -295,7 +295,7 @@ class TestBVIExceptions:
             vi.pvalue_selection(k_lowest=1000, threshold_max=None)
 
     def test_selection_percentile(self, set_100_variable_sorted):
-        "test selection percentile wrong"
+        """Test selection percentile wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError,
@@ -319,7 +319,7 @@ class TestBVIExceptions:
             vi.importance_selection(percentile=100)
 
     def test_selection_pvalue_None(self, set_100_variable_sorted):
-        "test selection on pvalue without it"
+        """Test selection on pvalue without it"""
         vi = set_100_variable_sorted
         vi.pvalues_ = None
         with pytest.raises(
@@ -329,7 +329,7 @@ class TestBVIExceptions:
             vi.pvalue_selection(threshold_min=-1)
 
     def test_selection_threshold(self, set_100_variable_sorted):
-        "test selection threshold wrong"
+        """Test selection threshold wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError, match="threshold_min needs to be between 0 and 1"
@@ -356,8 +356,7 @@ class TestBVIExceptions:
 
 class TestSelectionFDRExceptions:
     def test_not_fit(self):
-        "test detection unfit"
-
+        """Test detection unfit"""
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
@@ -366,7 +365,7 @@ class TestSelectionFDRExceptions:
             vi.fdr_selection(0.1)
 
     def test_selection_fdr_wrong_fdr(self, set_100_variable_sorted):
-        "test selection fdr with wrong fdr"
+        """Test selection fdr with wrong fdr"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError,
@@ -385,7 +384,7 @@ class TestSelectionFDRExceptions:
             vi.fdr_selection(fdr=-1.0)
 
     def test_selection_fdr_pvalue_None(self, set_100_variable_sorted):
-        "test selection fdr without pvalue"
+        """Test selection fdr without pvalue"""
         vi = set_100_variable_sorted
         vi.pvalues_ = None
         with pytest.raises(
@@ -395,7 +394,7 @@ class TestSelectionFDRExceptions:
             vi.fdr_selection(fdr=0.1)
 
     def test_selection_fdr_fdr_control(self, set_100_variable_sorted):
-        "test selection fdr_control wrong"
+        """Test selection fdr_control wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
             AssertionError,
@@ -530,7 +529,6 @@ def test_clustered_fwer_selection():
     Test to improve coverage by exploring the case where the number of clusters is used
     as default for `n_tests` in fwer_selection.
     """
-
     n_features = 10
     cludl = CluDL(
         desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),

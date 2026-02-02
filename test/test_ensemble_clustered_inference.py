@@ -3,7 +3,6 @@ Test the clustered_inference module
 """
 
 import numpy as np
-from numpy.testing import assert_almost_equal
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -57,7 +56,6 @@ def test_cludl_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-
     n_samples = 400
     shape = (10, 10)
     n_features = shape[1] * shape[0]
@@ -110,7 +108,8 @@ def test_cludl_spatial():
 
 def test_cludl_independence():
     """Test that CluDL works with repeated calls
-    non-regression test for #425"""
+    non-regression test for #425
+    """
     n_samples = 50
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
@@ -143,7 +142,6 @@ def test_encludl_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-
     n_samples = 400
     shape = (10, 10)
     n_features = shape[1] * shape[0]

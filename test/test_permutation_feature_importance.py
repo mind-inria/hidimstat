@@ -257,7 +257,6 @@ def test_pfi_cv(data_generator):
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
     """
-
     X, y, important_features, not_important_features = data_generator
 
     model = LassoCV()

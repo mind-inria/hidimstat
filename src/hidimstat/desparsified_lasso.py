@@ -502,7 +502,6 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     -----
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
-
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
@@ -793,7 +792,7 @@ def reid(
 
             # estimation of the variance of an AR process
             sigma_hat[:] = sigma_epsilon / np.sqrt(
-                (1 - np.dot(coefficients_ar, rho_ar[1:]))
+                1 - np.dot(coefficients_ar, rho_ar[1:])
             )
             # estimation of the covariance based on the
             # correlation matrix and sigma

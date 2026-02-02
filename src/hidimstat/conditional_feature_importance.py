@@ -1,8 +1,6 @@
-from functools import partial
 
 import numpy as np
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error
@@ -113,6 +111,7 @@ class CFI(BasePerturbation):
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
+
         Returns
         -------
         self : object
@@ -192,7 +191,8 @@ class CFI(BasePerturbation):
         self, estimator, X, features_groups_ids
     ):
         """Fit a single imputation model, for a single group of features. This method
-        is parallelized."""
+        is parallelized.
+        """
         X_j = X[:, features_groups_ids].copy()
         X_minus_j = np.delete(X, features_groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
@@ -220,7 +220,8 @@ class CFI(BasePerturbation):
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
-        residuals."""
+        residuals.
+        """
         X_j = X[:, self._features_groups_ids[features_group_id]].copy()
         X_minus_j = np.delete(
             X, self._features_groups_ids[features_group_id], axis=1

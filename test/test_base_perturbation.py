@@ -7,7 +7,7 @@ from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
 def test_no_implemented_methods():
-    """test that the methods are not implemented in the base class"""
+    """Test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
@@ -17,7 +17,7 @@ def test_no_implemented_methods():
 
 
 def test_check_importance():
-    """test that the methods are not implemented in the base class"""
+    """Test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])

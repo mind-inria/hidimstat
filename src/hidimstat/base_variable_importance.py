@@ -7,9 +7,6 @@ from sklearn.base import BaseEstimator
 
 from hidimstat._utils.exception import InternalError
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-from hidimstat.statistical_tools.p_values import (
-    pval_from_two_sided_pval_and_sign,
-)
 
 
 def _selection_generic(
@@ -86,9 +83,7 @@ def _selection_generic(
         return mask_k_lowest
     elif percentile is not None:
         assert 0 < percentile < 100, (
-            "percentile must be between 0 and 100 (exclusive). Got {}.".format(
-                percentile
-            )
+            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
         )
         # based on SelectPercentile in Scikit-Learn
         threshold_percentile = np.percentile(values, 100 - percentile)
@@ -216,11 +211,11 @@ class BaseVariableImportance(BaseEstimator):
             "The selection on p-value can't be done because the current method does not compute p-values."
         )
         if threshold_min is not None:
-            assert 0 < threshold_min and threshold_min < 1, (
+            assert threshold_min > 0 and threshold_min < 1, (
                 "threshold_min needs to be between 0 and 1"
             )
         if threshold_max is not None:
-            assert 0 < threshold_max and threshold_max < 1, (
+            assert threshold_max > 0 and threshold_max < 1, (
                 "threshold_max needs to be between 0 and 1"
             )
         assert alternative_hypothesis is None or isinstance(
@@ -278,7 +273,7 @@ class BaseVariableImportance(BaseEstimator):
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
-        assert 0 < fdr and fdr < 1, "FDR needs to be between 0 and 1 excluded"
+        assert fdr > 0 and fdr < 1, "FDR needs to be between 0 and 1 excluded"
         assert self.pvalues_ is not None, (
             "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
         )

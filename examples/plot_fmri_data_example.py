@@ -43,7 +43,6 @@ from sklearn.utils import Bunch
 
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
-
     # Gathering data
     haxby_dataset = datasets.fetch_haxby(subjects=[subject])
     fmri_filename = haxby_dataset.func[0]
@@ -222,8 +221,6 @@ target_fwer = 0.1
 
 from matplotlib.pyplot import get_cmap
 from nilearn.plotting import plot_stat_map, show
-
-from hidimstat.statistical_tools.p_values import zscore_from_pval
 
 
 def plot_map(

@@ -29,6 +29,7 @@ def run_cfi(X, y, n_permutation, seed):
     """
     Configure Conditional Feature Importance (CFI) model with linear regression
     for feature importance analysis.
+
     Parameters
     ----------
     X : array-like of shape (n_samples, n_features)
@@ -40,12 +41,14 @@ def run_cfi(X, y, n_permutation, seed):
         Number of permutations to perform for the CFI analysis.
     seed : int
         Random seed for reproducibility.
+
     Returns
     -------
     importance : array-like
         Array containing importance scores for each feature.
         Higher values indicate greater feature importance in predicting
         the target variable.
+
     Notes
     -----
     The function performs the following steps:
@@ -166,8 +169,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
     importance_sort = np.flip(np.argsort(importance))
     for index in important_features:
         rank = np.where(importance_sort == index)[0]
-        if rank > min_rank:
-            min_rank = rank
+        min_rank = max(min_rank, rank)
     # accept missing ranking of 15 elements
     assert min_rank < 25
 
@@ -562,7 +564,7 @@ class TestCFIExceptions:
         X = np.array(X, dtype=X.dtype.descr)
         with pytest.raises(
             InternalError,
-            match=f"A problem with indexing has happened during the fit.",
+            match="A problem with indexing has happened during the fit.",
         ):
             cfi.importance(X, y)
 
@@ -644,7 +646,7 @@ class TestCFIExceptions:
             cfi.importance(X, y)
 
     def test_assert_dimension_pvalue(self, data_generator):
-        """test that assert is raise if function stat is not good"""
+        """Test that assert is raise if function stat is not good"""
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(

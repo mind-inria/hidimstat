@@ -6,7 +6,7 @@ from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs, _s_equi
 
 
 def test_gaussian_equi():
-    """test function of gaussian"""
+    """Test function of gaussian"""
     seed = 42
     n = 100
     p = 50
@@ -20,7 +20,7 @@ def test_gaussian_equi():
 
 
 def test_gaussian_error():
-    """test function error"""
+    """Test function error"""
     seed = 42
     n = 100
     p = 50
@@ -34,7 +34,7 @@ def test_gaussian_error():
 
 
 def test_s_equi_not_definite_positive():
-    """test the warning and error of s_equi function"""
+    """Test the warning and error of s_equi function"""
     n = 10
     tol = 1e-7
     seed = 42

@@ -32,8 +32,8 @@ def _check_vim_predict_method(method):
         return method
     else:
         raise ValueError(
-            "The method {} is not a valid method "
-            "for variable importance measure prediction".format(method)
+            f"The method {method} is not a valid method "
+            "for variable importance measure prediction"
         )
 
 
@@ -134,12 +134,12 @@ def seed_estimator(estimator, random_state=None):
     rng = check_random_state(random_state)
     # Set the random_state of the main estimator
     if hasattr(estimator, "random_state"):
-        setattr(estimator, "random_state", RandomState(rng.bit_generator))
+        estimator.random_state = RandomState(rng.bit_generator)
 
     if hasattr(estimator, "__dict__"):
         for _, value in estimator.__dict__.items():
             if hasattr(value, "random_state"):
-                setattr(value, "random_state", RandomState(rng.bit_generator))
+                value.random_state = RandomState(rng.bit_generator)
 
     return estimator
 

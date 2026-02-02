@@ -190,7 +190,6 @@ def test_multivariate_simulation_invalid():
 
 def test_multivariate_simulation_reproducibility():
     """Test reproducibility with same seed"""
-
     params = {"n_samples": 10, "shape": (6, 6), "roi_size": 2, "seed": 42}
 
     X1, y1, beta1, noise1 = multivariate_simulation_spatial(**params)
@@ -204,7 +203,6 @@ def test_multivariate_simulation_reproducibility():
 
 def test_multivariate_simulation_weights_2D():
     """Test weight map generation and properties"""
-
     # 2D weights
     shape = (6, 6)
     roi_size = 2
@@ -271,7 +269,6 @@ def test_multivariate_simulation_all(
     shuffle,
 ):
     """Test multivariate autoregressive simulation with various configurations"""
-
     # Create simulation
     params = {
         "n_samples": n_samples,
@@ -418,8 +415,8 @@ def test_multivariate_simulation_ar_n_target():
 def test_empirical_snr():
     """Computing empirical signal to noise ratio in presence of high level of
     noise from the target `y`, the data `X` and the true parameter vector `beta`
-    in a simple scenario with a 1D data structure."""
-
+    in a simple scenario with a 1D data structure.
+    """
     n_samples, n_features = 100, 20
     support_size = 10
     signal_noise_ratio_expected = 0.5
@@ -442,8 +439,8 @@ def test_empirical_snr():
 def test_empirical_snr_2():
     """Computing empirical signal to noise ratio from the target `y`,
     the data `X` and the true parameter vector `beta` in a simple
-    scenario with a 1D data structure."""
-
+    scenario with a 1D data structure.
+    """
     n_samples, n_features = 100, 20
     support_size = 10
     signal_noise_ratio_expected = 10.0

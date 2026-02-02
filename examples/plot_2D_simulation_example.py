@@ -22,7 +22,6 @@ We then show how to use clustered inference with Ensembled CluDL
 # Gaussian filter.
 
 import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib.colors import ListedColormap
 from matplotlib.patches import Patch
 

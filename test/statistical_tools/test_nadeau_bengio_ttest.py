@@ -1,13 +1,10 @@
-from functools import partial
 
 import numpy as np
 import numpy.ma.testutils as ma_npt
-import numpy.testing as npt
 import pytest
-import scipy.stats.mstats as mstats
 from numpy.ma.testutils import assert_allclose
 from scipy import stats
-from scipy.stats import ttest_1samp
+from scipy.stats import mstats, ttest_1samp
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
 
@@ -126,7 +123,7 @@ class TestTtest_1samp:
         assert not np.array_equal(p_ex_1, p)
 
     def test_alternative_exception(self):
-        """test exception for bad alternative"""
+        """Test exception for bad alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
         with pytest.raises(
             ValueError,

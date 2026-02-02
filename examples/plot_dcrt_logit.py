@@ -84,7 +84,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
     )
     dcrt_logit.fit(X, y)
     importance_logit = dcrt_logit.importance(X, y)
-    power_logit = np.mean((dcrt_logit.pvalues_[beta_true] < 0.05))
+    power_logit = np.mean(dcrt_logit.pvalues_[beta_true] < 0.05)
 
     # Fit the dCRT with Lasso-distillation
     dcrt = D0CRT(
@@ -94,7 +94,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
     )
     dcrt.fit(X, y)
     importance = dcrt.importance(X, y)
-    power = np.mean((dcrt.pvalues_[beta_true] < 0.05))
+    power = np.mean(dcrt.pvalues_[beta_true] < 0.05)
 
     # Store the results in a DataFrame
     results_list.append(

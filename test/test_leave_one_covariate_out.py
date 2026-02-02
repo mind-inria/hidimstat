@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
@@ -207,7 +206,6 @@ def test_loco_cv(data_generator):
     Note: even though the only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-
     X, y, important_features, not_important_features = data_generator
 
     model = RidgeCV()

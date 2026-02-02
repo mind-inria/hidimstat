@@ -16,7 +16,6 @@ MNIST dataset contains 28x28 pixel images of handwritten digits.
 # downsample the dataset to 4000 samples for each task.
 
 import matplotlib.pyplot as plt
-import numpy as np
 from sklearn.datasets import fetch_openml
 from sklearn.utils import resample
 

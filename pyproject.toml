@@ -159,19 +159,37 @@ skip-magic-trailing-comma = false
 [tool.ruff.lint]
 fixable = ["ALL"]
 ignore = [
+    "ARG002",
     "ARG005",
     "B904",
+    "B905",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
     "D105",
     "D205",
+    "D200",
     "D301",
+    "D400",
+    "D404",
+    "E501",
     "E741",
     "ERA001",
-    "N803",
-    "N806",
+    "F841",
+    "NPY002",
     "PERF203",
     "PLR2004",
+    "PTH100",
+    "PTH120",
+    "PTH123",
     "PTH207",
+    "SIM108",
+    "SIM210",
     "RUF005",
+    "RUF015",
+    "RUF043",
+    "RUF059",
     # Avoid linter rules conflicting with the formatter
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "COM812",
@@ -199,29 +217,31 @@ select = [
     "FLY",
     "FURB",
     "I",
-    "N",
     "NPY",
     "PERF",
     "PIE",
-    "PTH",
     "PD",
     "PGH",
     "PLR",
+    "PTH",
     "RUF",
     "SIM",
     "UP",
-    "W"
+    "W",
 ]
 unfixable = []
 
-
-[tool.ruff.lint.per-file-ignores]
-"**/{doc}/*" = ["B018", "D103"]
-"**/{examples}/*" = ["B018", "D103", "D400", "E402"]
-"__init__.py" = ["D104", "E402"]
-"nilearn/**/tests/test_*" = ["D100"]
 
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.lint.pylint]
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-args
+max-args = 27
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-branches
+max-branches = 22
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-returns
+max-returns = 8
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-statements
+max-statements = 96

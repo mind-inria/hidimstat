@@ -10,7 +10,7 @@ sys.path.append(
 
 
 def run_joblib(i):
-    import plot_knockoff_aggregation  # include the example to test
+    pass  # include the example to test
 
 
 # run in parallel the same example for compare result

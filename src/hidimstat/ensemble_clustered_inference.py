@@ -128,7 +128,6 @@ class CluDL(BaseVariableImportance):
         y :
             Not used, present for API consistency by convention.
         """
-
         self.desparsified_lasso_.importance()
 
         self.pvalues_ = self.clustering_.inverse_transform(

@@ -172,7 +172,8 @@ def test_error_no_model_provide():
 
 def test_group_case():
     """Test for group case: Sample a group of variables given the complementary
-    set of variables."""
+    set of variables.
+    """
     np.random.seed(40)
     cov_matrix = np.ones((4, 4)) * 0.6
     np.fill_diagonal(cov_matrix, 1)

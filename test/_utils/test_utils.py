@@ -26,27 +26,27 @@ def test_generated_attributes():
 
 
 def test_none():
-    "test random state is None"
+    """Test random state is None"""
     random_state = None
     rng = check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
 def test_integer():
-    "test random state is integer"
+    """Test random state is integer"""
     random_state = 10
     rng = check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
 def test_rng():
-    "test random state is rng"
+    """Test random state is rng"""
     rng = np.random.default_rng(0)
     assert isinstance(rng, np.random.Generator)
 
 
 def test_random_state():
-    "test random state is RandomState"
+    """Test random state is RandomState"""
     random_state = np.random.RandomState(0)
     with pytest.raises(
         ValueError,
@@ -56,7 +56,7 @@ def test_random_state():
 
 
 def test_error():
-    "test random state is rng"
+    """Test random state is rng"""
     random_state = [1, 2, 3]
     with pytest.raises(
         ValueError,
@@ -66,7 +66,7 @@ def test_error():
 
 
 def test_check_test_statistic():
-    "test the function of check"
+    """Test the function of check"""
     test_func = check_statistical_test("wilcoxon")
     assert test_func.func == wilcoxon
     test_func = check_statistical_test("ttest")
@@ -80,7 +80,7 @@ def test_check_test_statistic():
 
 
 def test_check_test_statistic_warning():
-    "test the exception"
+    """Test the exception"""
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
         check_statistical_test("test")
     with pytest.raises(

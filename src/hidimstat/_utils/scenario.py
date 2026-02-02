@@ -7,8 +7,8 @@ def _generate_2D_weight(shape, roi_size):
     """
     Create a 2D weight map with four ROIs (Regions of Interest) in the corners.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     shape : tuple of int (n_x, n_z)
         Shape of the 2D data array for which to generate weights.
         n_x : int

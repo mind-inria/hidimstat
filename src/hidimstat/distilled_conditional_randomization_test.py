@@ -264,17 +264,16 @@ class D0CRT(BaseVariableImportance):
             self.intercept_ = lasso_model_.intercept_
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
+        # If the model is linear, store the coefficients
+        elif hasattr(self.estimator, "coef_"):
+            self.coefficient_ = np.zeros(X.shape[1])
+            self.coefficient_[self.selection_set_] = (
+                self.estimator.coef_.flatten()
+            )
+            self.estimator.coef_ = self.coefficient_
+            self.intercept_ = self.estimator.intercept_
         else:
-            # If the model is linear, store the coefficients
-            if hasattr(self.estimator, "coef_"):
-                self.coefficient_ = np.zeros(X.shape[1])
-                self.coefficient_[self.selection_set_] = (
-                    self.estimator.coef_.flatten()
-                )
-                self.estimator.coef_ = self.coefficient_
-                self.intercept_ = self.estimator.intercept_
-            else:
-                self.coefficient_ = None
+            self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation (equation
         # 10 in :footcite:t:`nguyen2022conditional`) and computing the Fisher
         # information matrix

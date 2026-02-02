@@ -32,7 +32,6 @@ def test_desparsified_lasso():
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-
     n_samples, n_features = 500, 50
     support_size = 5
     signal_noise_ratio = 32
@@ -110,7 +109,6 @@ def test_desparsified_group_lasso():
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-
     n_samples = 500
     n_features = 50
     n_target = 10
@@ -300,8 +298,8 @@ def test_function_not_center():
 def test_reid():
     """Estimating noise standard deviation in two scenarios.
     First scenario: no structure and a support of size 2.
-    Second scenario: no structure and an empty support."""
-
+    Second scenario: no structure and an empty support.
+    """
     n_samples, n_features = 100, 20
     signal_noise_ratio = 2.0
 
@@ -349,8 +347,8 @@ def test_reid():
 def test_group_reid():
     """Estimating (temporal) noise covariance matrix in two scenarios.
     First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support."""
-
+    Second scenario: no data structure and an empty support.
+    """
     n_samples = 100
     n_features = 20
     n_target = 50
@@ -409,8 +407,8 @@ def test_group_reid():
 def test_group_reid_2():
     """Estimating (temporal) noise covariance matrix in two scenarios.
     First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support."""
-
+    Second scenario: no data structure and an empty support.
+    """
     n_samples = 100
     n_features = 20
     n_target = 50
@@ -454,7 +452,7 @@ def test_group_reid_2():
 
 
 def test_reid_exception():
-    "Test for testing the exceptions on the arguments of reid function"
+    """Test for testing the exceptions on the arguments of reid function"""
     n_samples, n_features = 100, 20
     n_target = 50
     signal_noise_ratio = 1.0

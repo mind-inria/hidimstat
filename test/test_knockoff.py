@@ -182,7 +182,7 @@ def test_model_x_knockoff_estimator():
 
 def test_estimate_distribution():
     """
-    test different estimation of the covariance
+    Test different estimation of the covariance
     """
     seed = 42
     fdr = 0.1
