@@ -144,6 +144,8 @@ class BaseVariableImportance(BaseEstimator):
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
+        if self.estimator is None:
+            raise ValueError("'estimator' must be a valid sklearn estimator.")
         if (
             hasattr(estimator, "__sklearn_is_fitted__")
             and not estimator.__sklearn_is_fitted__()

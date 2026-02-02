@@ -40,7 +40,6 @@ def expected_failed_checks(estimator):
             "check_n_features_in_after_fitting": "TODO",
             "check_no_attributes_set_in_init": "TODO",
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_parameters_default_constructible": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
         return {

@@ -63,7 +63,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
