@@ -52,5 +52,3 @@ jobs:
           artifact-path: 0/documentation/_changed.html
           circleci-jobs: build-documentation
           job-title: Check change in the PR!
-
-

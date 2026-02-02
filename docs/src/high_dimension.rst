@@ -166,5 +166,3 @@ The details of the method and the underlying guarantees are described in
 References
 ----------
 .. footbibliography::
-
-

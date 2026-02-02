@@ -24,4 +24,3 @@ References
 ----------
 
 .. footbibliography::
-

@@ -97,5 +97,3 @@ References
 ----------
 
 .. footbibliography::
-
-
