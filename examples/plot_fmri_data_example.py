@@ -227,12 +227,14 @@ def plot_map(
     data,
     threshold,
     title=None,
-    cut_coords=[-25, -40, -5],
+    cut_coords=None,
     masker=masker,
     bg_img=data.bg_img,
     vmin=None,
     vmax=None,
 ):
+    if cut_coords is None:
+        cut_coords = [-25, -40, -5]
     zscore_img = masker.inverse_transform(data)
     plot_stat_map(
         zscore_img,

@@ -18,7 +18,8 @@ def test_fdr_threshold():
 
     e_values = 1 / p_values
 
-    identity = lambda i: i
+    def identity(i):
+        return i
 
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
@@ -45,7 +46,8 @@ def test_fdr_threshold_extreme_values():
     p_values = np.ones(100)
     e_values = 1 / p_values
 
-    identity = lambda i: i
+    def identity(i):
+        return i
 
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")

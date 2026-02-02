@@ -1,4 +1,3 @@
-
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
@@ -73,7 +72,7 @@ class CFI(BasePerturbation):
         feature_types="auto",
         categorical_max_cardinality: int = 10,
         statistical_test="ttest",
-        random_state: int = None,
+        random_state: int | None = None,
         n_jobs: int = 1,
     ):
         super().__init__(
@@ -251,7 +250,7 @@ def cfi_importance(
     percentile=None,
     threshold_max=None,
     threshold_min=None,
-    random_state: int = None,
+    random_state: int | None = None,
     n_jobs: int = 1,
 ):
     methods = CFI(

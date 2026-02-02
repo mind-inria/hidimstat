@@ -58,7 +58,8 @@ def _selection_generic(
         if k_best > values.shape[0]:
             warnings.warn(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned."
+                "All the features will be returned.",
+                stacklevel=2,
             )
         mask_k_best = np.zeros_like(values, dtype=bool)
 
@@ -72,7 +73,8 @@ def _selection_generic(
         if k_lowest > values.shape[0]:
             warnings.warn(
                 f"k={k_lowest} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned."
+                "All the features will be returned.",
+                stacklevel=2,
             )
         mask_k_lowest = np.zeros_like(values, dtype=bool)
 
@@ -277,7 +279,7 @@ class BaseVariableImportance(BaseEstimator):
         assert self.pvalues_ is not None, (
             "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
         )
-        assert fdr_control == "bhq" or fdr_control == "bhy", (
+        assert fdr_control in {"bhq", "bhy"}, (
             "only 'bhq' and 'bhy' are supported"
         )
 
@@ -502,7 +504,7 @@ class GroupVariableImportanceMixin:
                 j: [j] for j in range(self.n_features_groups_)
             }
             self._features_groups_ids = np.array(
-                sorted(list(self.features_groups.values())), dtype=int
+                sorted(self.features_groups.values()), dtype=int
             )
         elif isinstance(self.features_groups, dict):
             self.n_features_groups_ = len(self.features_groups)
@@ -594,13 +596,12 @@ class GroupVariableImportanceMixin:
                     "A problem with indexing has happened during the fit."
                 )
         number_unique_feature_in_groups = np.unique(
-            np.concatenate(
-                [values for values in self.features_groups.values()]
-            )
+            np.concatenate(list(self.features_groups.values()))
         ).shape[0]
         if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
-                f"{number_unique_feature_in_groups}"
+                f"{number_unique_feature_in_groups}",
+                stacklevel=2,
             )

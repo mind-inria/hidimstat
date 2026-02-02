@@ -109,7 +109,7 @@ def check_random_state(seed):
             "https://numpy.org/doc/stable/reference/random/generator.html for details."
         )
     raise ValueError(
-        "%r cannot be used to seed a numpy.random.Generator instance" % seed
+        f"{seed!r} cannot be used to seed a numpy.random.Generator instance"
     )
 
 
@@ -137,7 +137,7 @@ def seed_estimator(estimator, random_state=None):
         estimator.random_state = RandomState(rng.bit_generator)
 
     if hasattr(estimator, "__dict__"):
-        for _, value in estimator.__dict__.items():
+        for value in estimator.__dict__.values():
             if hasattr(value, "random_state"):
                 value.random_state = RandomState(rng.bit_generator)
 

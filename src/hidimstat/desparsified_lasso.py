@@ -162,7 +162,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.distribution = distribution
         self.epsilon_pvalue = epsilon_pvalue
         self.covariance = covariance
-        assert test == "chi2" or test == "F", f"Unknown test '{test}'"
+        assert test in {"chi2", "F"}, f"Unknown test '{test}'"
         self.test = test
         # parameters for optimization
         self.n_jobs = n_jobs
@@ -237,7 +237,8 @@ class DesparsifiedLasso(BaseVariableImportance):
                     max_iter=n_features * self.estimator.cv.n_splits
                 )
                 warnings.warn(
-                    f"'max_iter' has been increased to {self.estimator.max_iter}"
+                    f"'max_iter' has been increased to {self.estimator.max_iter}",
+                    stacklevel=2,
                 )
             # use the cross-validation for define the best alpha of Lasso
             self.estimator.set_params(n_jobs=self.n_jobs)
@@ -283,7 +284,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         results = np.asarray(results, dtype=object)
         Z = np.stack(results[:, 0], axis=1)
         precision_diagonal = np.stack(results[:, 1])
-        self.clf_ = [clf for clf in results[:, 2]]
+        self.clf_ = list(results[:, 2])
 
         # Computing the degrees of freedom adjustment
         if self.dof_ajdustement:
@@ -371,9 +372,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         configured by the test parameter ('chi2' or 'F').
         """
         if X is not None:
-            warnings.warn("X won't be used.")
+            warnings.warn("X won't be used.", stacklevel=2)
         if y is not None:
-            warnings.warn("y won't be used.")
+            warnings.warn("y won't be used.", stacklevel=2)
         self._check_fit()
         beta_hat = self.importances_
 

@@ -81,7 +81,7 @@ repeats_noise = 5  # Number of synthetic noisy sets to add
 
 noises_train = [X_train]
 noises_test = [X_test]
-feature_names_noise = [x for x in feature_names]
+feature_names_noise = list(feature_names)
 for k in range(repeats_noise):
     X_train_c = X_train.copy()
     X_test_c = X_test.copy()
@@ -110,10 +110,8 @@ lasso_noisy = LogisticRegressionCV(
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
 print(
-
-        "Accuracy of Lasso on test set with noise: "
-        f"{lasso_noisy.score(noisy_test, y_test):.3f}"
-
+    "Accuracy of Lasso on test set with noise: "
+    f"{lasso_noisy.score(noisy_test, y_test):.3f}"
 )
 
 selected_mask = [

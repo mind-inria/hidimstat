@@ -1,4 +1,3 @@
-
 import numpy as np
 import numpy.ma.testutils as ma_npt
 import pytest

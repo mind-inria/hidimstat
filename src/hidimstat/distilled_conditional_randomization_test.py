@@ -224,7 +224,8 @@ class D0CRT(BaseVariableImportance):
             if self.estimated_coef is not None:
                 warnings.warn(
                     "Precomputed coefficients were provided, screening is skipped and "
-                    "screening_threshold is set to 100."
+                    "screening_threshold is set to 100.",
+                    stacklevel=2,
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
@@ -569,7 +570,7 @@ class D0CRT(BaseVariableImportance):
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
-            warnings.warn("cv won't be used")
+            warnings.warn("cv won't be used", stacklevel=2)
         self.fit(X, y)
         return self.importance(X, y)
 
@@ -831,10 +832,10 @@ def run_lasso_screening(
         Fitted Lasso model used for screening.
     """
     if not (
-        isinstance(lasso_model, LassoCV)
-        or isinstance(lasso_model, Lasso)
-        or isinstance(lasso_model, LogisticRegressionCV)
-        or isinstance(lasso_model, LogisticRegression)
+        isinstance(
+            lasso_model,
+            (LassoCV, Lasso, LogisticRegressionCV, LogisticRegression),
+        )
     ):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
     lasso_model = seed_estimator(lasso_model, random_state=random_state)

@@ -203,7 +203,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self._predict(X)
-        self.loss_ = dict()
+        self.loss_ = {}
         for j, y_pred_j in enumerate(y_pred):
             list_loss = []
             for y_pred_perm in y_pred_j:

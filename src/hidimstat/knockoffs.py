@@ -252,9 +252,9 @@ class ModelXKnockoff(BaseVariableImportance):
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         if X is not None:
-            warnings.warn("X won't be used")
+            warnings.warn("X won't be used", stacklevel=2)
         if y is not None:
-            warnings.warn("y won't be used")
+            warnings.warn("y won't be used", stacklevel=2)
         self._check_fit()
 
         self.importances_ = self.lasso_coefficient_difference_statistic(

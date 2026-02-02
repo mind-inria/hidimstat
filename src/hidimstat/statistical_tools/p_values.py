@@ -37,7 +37,9 @@ def _replace_infinity(x, replace_val=None, method="times-two"):
     elif method == "plus-one":
         replace_val_min = largest_non_inf + 1
 
-    if ((replace_val is not None) and (replace_val < largest_non_inf)) or replace_val is None:
+    if (
+        (replace_val is not None) and (replace_val < largest_non_inf)
+    ) or replace_val is None:
         replace_val = replace_val_min
 
     x_new = np.copy(x)
@@ -115,7 +117,7 @@ def pval_from_scale(beta, scale, distribution="norm", eps=1e-14):
     """
     n_features = beta.size
 
-    index_no_nan = tuple([scale != 0.0])
+    index_no_nan = (scale != 0.0,)
 
     pval = np.zeros(n_features) + 0.5
     one_minus_pval = np.zeros(n_features) + 0.5

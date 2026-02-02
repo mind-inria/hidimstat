@@ -87,6 +87,7 @@ class GaussianKnockoffs:
                 "The conditional covariance matrix for knockoffs is not positive "
                 "definite. Adding minor positive value to the matrix.",
                 UserWarning,
+                stacklevel=2,
             )
 
         self.sigma_tilde_decompose_ = np.linalg.cholesky(sigma_tilde)
@@ -137,7 +138,7 @@ class GaussianKnockoffs:
         n_samples, n_features = self.mu_tilde_.shape
 
         X_tildes = []
-        for i in range(n_repeats):
+        for _i in range(n_repeats):
             # create a uniform noise for all the data
             u_tilde = rng.standard_normal([n_samples, n_features])
 
@@ -211,6 +212,7 @@ def _s_equi(sigma, tol=1e-14):
             "The equi-correlated matrix for knockoffs is not positive "
             f"definite. Reduce the value of distance by {s_eps}.",
             UserWarning,
+            stacklevel=2,
         )
 
     s = s * (1 - s_eps)

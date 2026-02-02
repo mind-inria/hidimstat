@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -152,7 +151,7 @@ class LOCO(BasePerturbation):
 
         y_pred = self._predict(X)
         test_result = []
-        self.loss_ = dict()
+        self.loss_ = {}
         for j, y_pred_j in enumerate(y_pred):
             self.loss_[j] = np.array([self.loss(y, y_pred_j[0])])
             if np.all(np.equal(y.shape, y_pred_j[0].shape)):
