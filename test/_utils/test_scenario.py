@@ -31,7 +31,13 @@ from hidimstat._utils.scenario import (
     ],
 )
 def test_multivariate_simulation_2D(
-    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, rho_expected, seed
+    n_samples,
+    shape,
+    roi_size,
+    signal_noise_ratio,
+    smooth_X,
+    rho_expected,
+    seed,
 ):
     """Test concerns a simulation with a 2D
     if the data has expected shape,
@@ -62,7 +68,9 @@ def test_multivariate_simulation_2D(
             signal_noise_ratio,
         )
     else:
-        assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
+        assert_almost_equal(
+            signal_noise_ratio_hat, signal_noise_ratio, decimal=1
+        )
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
     if signal_noise_ratio == 0:
         assert_equal(y, noise)
@@ -174,7 +182,9 @@ def test_multivariate_simulation_invalid():
         multivariate_simulation_spatial(shape=(4, 4), roi_size=5)
 
     # Invalid n_samples
-    with pytest.raises(AssertionError, match="n_samples must be strictly positive"):
+    with pytest.raises(
+        AssertionError, match="n_samples must be strictly positive"
+    ):
         multivariate_simulation_spatial(n_samples=0)
 
 
@@ -288,10 +298,14 @@ def test_multivariate_simulation_all(
     assert beta.shape[0] == n_features
 
     # Common assertions
-    signal_noise_ratio_estimated = np.linalg.norm(y - noise) / np.linalg.norm(noise)
+    signal_noise_ratio_estimated = np.linalg.norm(y - noise) / np.linalg.norm(
+        noise
+    )
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
-    assert_almost_equal(signal_noise_ratio_estimated, signal_noise_ratio, decimal=0)
+    assert_almost_equal(
+        signal_noise_ratio_estimated, signal_noise_ratio, decimal=0
+    )
     if n_targets is None:
         sigma_hat = np.std(noise)
         assert_almost_equal(sigma_hat, signal_noise_ratio, decimal=0)
@@ -350,7 +364,9 @@ def test_multivariate_simulation_ar_support_size():
     with pytest.raises(
         AssertionError, match="support_size cannot be larger than n_features"
     ):
-        multivariate_simulation(n_samples=10, n_features=5, support_size=10, seed=42)
+        multivariate_simulation(
+            n_samples=10, n_features=5, support_size=10, seed=42
+        )
 
 
 def test_multivariate_simulation_ar_rho():
@@ -361,7 +377,9 @@ def test_multivariate_simulation_ar_rho():
 
 def test_multivariate_simulation_ar_rho_noise():
     """Test rho_serial validation."""
-    with pytest.raises(AssertionError, match="rho_serial must be between -1 and 1"):
+    with pytest.raises(
+        AssertionError, match="rho_serial must be between -1 and 1"
+    ):
         multivariate_simulation(
             n_samples=10, n_features=20, n_targets=5, rho_serial=1.2, seed=42
         )
@@ -369,7 +387,9 @@ def test_multivariate_simulation_ar_rho_noise():
 
 def test_multivariate_simulation_ar_snr():
     """Test signal noise ratio (signal_noise_ratio) validation."""
-    with pytest.raises(AssertionError, match="signal_noise_ratio must be positive"):
+    with pytest.raises(
+        AssertionError, match="signal_noise_ratio must be positive"
+    ):
         multivariate_simulation(
             n_samples=10, n_features=20, signal_noise_ratio=-1.0, seed=42
         )
@@ -390,7 +410,9 @@ def test_multivariate_simulation_ar_n_features():
 def test_multivariate_simulation_ar_n_target():
     """Test n_target validation."""
     with pytest.raises(AssertionError, match="n_target must be positive"):
-        multivariate_simulation(n_samples=10, n_features=20, n_targets=0, seed=42)
+        multivariate_simulation(
+            n_samples=10, n_features=20, n_targets=0, seed=42
+        )
 
 
 def test_empirical_snr():
@@ -412,7 +434,9 @@ def test_empirical_snr():
 
     signal_noise_ratio = empirical_snr(X, y, beta)
 
-    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=2)
+    assert_almost_equal(
+        signal_noise_ratio, signal_noise_ratio_expected, decimal=2
+    )
 
 
 def test_empirical_snr_2():
@@ -434,4 +458,6 @@ def test_empirical_snr_2():
 
     signal_noise_ratio = empirical_snr(X, y, beta)
 
-    assert_almost_equal(signal_noise_ratio, signal_noise_ratio_expected, decimal=0)
+    assert_almost_equal(
+        signal_noise_ratio, signal_noise_ratio_expected, decimal=0
+    )

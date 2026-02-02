@@ -73,7 +73,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
     ):
         super().__init__()
-        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
+        GroupVariableImportanceMixin.__init__(
+            self, features_groups=features_groups
+        )
         check_is_fitted(estimator)
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
@@ -216,9 +218,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = statistical_test(test_result).pvalue
-        assert (
-            self.pvalues_.shape[0] == y_pred.shape[0]
-        ), "The statistical test doesn't provide the correct dimension."
+        assert self.pvalues_.shape[0] == y_pred.shape[0], (
+            "The statistical test doesn't provide the correct dimension."
+        )
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -272,11 +274,15 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The random state to use for sampling.
         """
         features_group_ids = self._features_groups_ids[features_group_id]
-        non_features_group_ids = np.delete(np.arange(X.shape[1]), features_group_ids)
+        non_features_group_ids = np.delete(
+            np.arange(X.shape[1]), features_group_ids
+        )
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        X_perm[:, :, non_features_group_ids] = np.delete(X, features_group_ids, axis=1)
+        X_perm[:, :, non_features_group_ids] = np.delete(
+            X, features_group_ids, axis=1
+        )
         X_perm[:, :, features_group_ids] = self._permutation(
             X, features_group_id=features_group_id, random_state=random_state
         )
@@ -385,7 +391,9 @@ class BasePerturbationCV(BaseVariableImportance):
                 )
             )
         self.importance_estimators_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._fit_single_split)(estimator, X[train_idx], y[train_idx])
+            delayed(self._fit_single_split)(
+                estimator, X[train_idx], y[train_idx]
+            )
             for (train_idx, _), estimator in tqdm(
                 zip(self.cv.split(X, y), self.estimators_),
                 total=self.cv.get_n_splits(),

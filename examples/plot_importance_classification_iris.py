@@ -88,7 +88,8 @@ def run_one_fold(
         vim = CFI(
             estimator=model_c,
             imputation_model_continuous=RidgeCV(
-                alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
+                alphas=np.logspace(-3, 3, 10),
+                cv=KFold(shuffle=True, random_state=1),
             ),
             n_permutations=50,
             random_state=2,

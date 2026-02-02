@@ -70,7 +70,9 @@ def pval_corr_from_pval(one_sided_pval):
     one_sided_pval_corr = np.zeros(n_features) + 0.5
 
     ind = one_sided_pval < 0.5
-    one_sided_pval_corr[ind] = np.minimum(one_sided_pval[ind] * n_features, 0.5)
+    one_sided_pval_corr[ind] = np.minimum(
+        one_sided_pval[ind] * n_features, 0.5
+    )
 
     ind = one_sided_pval > 0.5
     one_sided_pval_corr[ind] = np.maximum(
@@ -124,8 +126,9 @@ def pval_from_scale(beta, scale, distribution="norm", eps=1e-14):
     one_minus_pval = np.zeros(n_features) + 0.5
 
     if distribution == "norm":
-
-        pval[index_no_nan] = norm.sf(beta[index_no_nan], scale=scale[index_no_nan])
+        pval[index_no_nan] = norm.sf(
+            beta[index_no_nan], scale=scale[index_no_nan]
+        )
         one_minus_pval[index_no_nan] = norm.cdf(
             beta[index_no_nan], scale=scale[index_no_nan]
         )
@@ -174,7 +177,9 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
     return zscore
 
 
-def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14):
+def pval_from_cb(
+    cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
+):
     """Computing one-sided p-values from confidence intervals.
 
     Parameters
@@ -218,7 +223,6 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
     )
 
     if distribution == "norm":
-
         pval = norm.sf(zscore)
         one_minus_pval = norm.cdf(zscore)
 
@@ -261,7 +265,9 @@ def two_sided_pval_from_zscore(zscore, distribution="norm"):
     return two_sided_pval, two_sided_pval_corr
 
 
-def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
+def two_sided_pval_from_cb(
+    cb_min, cb_max, confidence=0.95, distribution="norm"
+):
     """Computing two-sided p-values from confidence intervals.
 
     Parameters
@@ -323,11 +329,9 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
     """
 
     if distribution == "norm":
-
         zscore = norm.isf(pval)
 
         if one_minus_pval is not None:
-
             ind = pval > 0.5
             zscore[ind] = norm.ppf(one_minus_pval[ind])
 
@@ -336,7 +340,9 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
     return zscore
 
 
-def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14):
+def pval_from_two_sided_pval_and_sign(
+    two_sided_pval, parameter_sign, eps=1e-14
+):
     """Computing one-sided p-values from two-sided p-value and parameter sign.
 
     Parameters
@@ -375,7 +381,9 @@ def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14)
     pval[parameter_sign > 0] = two_sided_pval[parameter_sign > 0] / 2
     pval[parameter_sign < 0] = 1 - two_sided_pval[parameter_sign < 0] / 2
 
-    one_minus_pval[parameter_sign > 0] = 1 - two_sided_pval[parameter_sign > 0] / 2
+    one_minus_pval[parameter_sign > 0] = (
+        1 - two_sided_pval[parameter_sign > 0] / 2
+    )
     one_minus_pval[parameter_sign < 0] = two_sided_pval[parameter_sign < 0] / 2
 
     pval[pval > 1 - eps] = 1 - eps

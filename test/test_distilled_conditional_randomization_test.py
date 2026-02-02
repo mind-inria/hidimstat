@@ -178,7 +178,9 @@ def test_dcrt_lasso_center():
     """
     Test for not center the data
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.2, random_state=2024
+    )
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         centered=False,
@@ -196,7 +198,9 @@ def test_dcrt_lasso_refit():
     """
     This function tests the dcrt function using the Lasso learner and refit
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.2, random_state=2024
+    )
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         refit=True,
@@ -215,7 +219,9 @@ def test_dcrt_lasso_no_selection():
     This function tests the dcrt function using the Lasso learner
     with distillation y when precomputed coefficients are provided.
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.8, random_state=20
+    )
     d0crt = D0CRT(estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10)
     with pytest.warns(
         UserWarning,
@@ -230,7 +236,9 @@ def test_dcrt_distillation_x_different():
     This function tests the dcrt function using the Lasso learner
     with distillation x using different argument
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.8, random_state=20
+    )
     d0crt = D0CRT(
         estimator=Lasso(alpha=0.5 * _alpha_max(X, y), fit_intercept=False),
         scaled_statistics=True,
@@ -247,7 +255,9 @@ def test_dcrt_distillation_y_different():
     """
     This function tests the dcrt function using the Lasso learner
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.8, random_state=20)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.8, random_state=20
+    )
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         model_distillation_x=Lasso(),
@@ -265,7 +275,9 @@ def test_dcrt_lasso_fit_with_no_cv():
     """
     Test the dcrt function using the Lasso learner
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.2, random_state=2024
+    )
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         fit_y=True,
@@ -285,10 +297,14 @@ def test_dcrt_RF_regression():
     """
     This function tests the dcrt function using the Random Forest learner
     """
-    X, y = make_regression(n_samples=100, n_features=10, noise=0.2, random_state=2024)
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=0.2, random_state=2024
+    )
 
     d0crt = D0CRT(
-        estimator=RandomForestRegressor(n_estimators=100, random_state=2026, n_jobs=1),
+        estimator=RandomForestRegressor(
+            n_estimators=100, random_state=2026, n_jobs=1
+        ),
         method="predict",
         screening_threshold=None,
         scaled_statistics=True,
@@ -307,7 +323,9 @@ def test_dcrt_RF_classification():
     """
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
-        estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
+        estimator=RandomForestClassifier(
+            n_estimators=100, random_state=2026, n_jobs=1
+        ),
         method="predict_proba",
         screening_threshold=None,
         scaled_statistics=True,
@@ -324,7 +342,9 @@ def test_exception_not_fitted():
     """Test if an exception is raised when the method is not fitted"""
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
-        estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
+        estimator=RandomForestClassifier(
+            n_estimators=100, random_state=2026, n_jobs=1
+        ),
         method="predict_proba",
         screening_threshold=None,
         scaled_statistics=True,
@@ -339,7 +359,9 @@ def test_warning_not_used_parameters():
     """Test if an exception is raised when the method is not fitted"""
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
-        estimator=RandomForestClassifier(n_estimators=100, random_state=2026, n_jobs=1),
+        estimator=RandomForestClassifier(
+            n_estimators=100, random_state=2026, n_jobs=1
+        ),
         method="predict_proba",
         screening_threshold=None,
     )
@@ -478,7 +500,9 @@ def test_d0crt_linear():
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
+    assert np.mean(importances[important_ids]) > np.mean(
+        importances[~important_ids]
+    )
     assert np.array_equal(np.where(sv)[0], important_ids)
 
 
@@ -497,14 +521,18 @@ def test_d0crt_rf():
     )
     important_ids = np.where(coef != 0)[0]
     d0crt = D0CRT(
-        estimator=RandomForestRegressor(n_estimators=100, random_state=0, n_jobs=1),
+        estimator=RandomForestRegressor(
+            n_estimators=100, random_state=0, n_jobs=1
+        ),
         screening_threshold=None,
         random_state=0,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.mean(importances[important_ids]) > np.mean(importances[~important_ids])
+    assert np.mean(importances[important_ids]) > np.mean(
+        importances[~important_ids]
+    )
     assert np.array_equal(np.where(sv)[0], important_ids)
 
 
@@ -639,8 +667,12 @@ def test_regression_intercept(d0crt_test_data):
     alpha = 0.1
     tp_intercept = np.sum((beta != 0) & (d0crt_intercept.pvalues_ <= alpha))
     fp_intercept = np.sum((beta == 0) & (d0crt_intercept.pvalues_ <= alpha))
-    tp_no_intercept = np.sum((beta != 0) & (d0crt_no_intercept.pvalues_ <= alpha))
-    fp_no_intercept = np.sum((beta == 0) & (d0crt_no_intercept.pvalues_ <= alpha))
+    tp_no_intercept = np.sum(
+        (beta != 0) & (d0crt_no_intercept.pvalues_ <= alpha)
+    )
+    fp_no_intercept = np.sum(
+        (beta == 0) & (d0crt_no_intercept.pvalues_ <= alpha)
+    )
 
     assert tp_intercept == tp_no_intercept
     assert fp_intercept == fp_no_intercept

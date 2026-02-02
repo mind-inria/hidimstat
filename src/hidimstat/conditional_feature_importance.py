@@ -188,7 +188,9 @@ class CFI(BasePerturbation):
         self.fit(X, y)
         return self.importance(X, y)
 
-    def _joblib_fit_one_features_group(self, estimator, X, features_groups_ids):
+    def _joblib_fit_one_features_group(
+        self, estimator, X, features_groups_ids
+    ):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized."""
         X_j = X[:, features_groups_ids].copy()
@@ -220,9 +222,14 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals."""
         X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
+        X_minus_j = np.delete(
+            X, self._features_groups_ids[features_group_id], axis=1
+        )
         return self._list_imputation_models[features_group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
+            X_minus_j,
+            X_j,
+            n_samples=self.n_permutations,
+            random_state=random_state,
         )
 
 

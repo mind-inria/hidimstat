@@ -58,7 +58,9 @@ def test_loco():
         "the_group_1": [f"col_{i}" for i in non_important_features],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
+    X_train_df, X_test_df, y_train, y_test = train_test_split(
+        X_df, y, random_state=0
+    )
     regression_model.fit(X_train_df, y_train)
     loco = LOCO(
         estimator=regression_model,
@@ -71,7 +73,9 @@ def test_loco():
         y_train,
     )
     # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
+    with pytest.warns(
+        UserWarning, match="X does not have valid feature names, but"
+    ):
         importance = loco.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()

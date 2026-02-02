@@ -59,7 +59,8 @@ def test_error():
     "test random state is rng"
     random_state = [1, 2, 3]
     with pytest.raises(
-        ValueError, match="cannot be used to seed a numpy.random.Generator instance"
+        ValueError,
+        match="cannot be used to seed a numpy.random.Generator instance",
     ):
         check_random_state(random_state)
 
@@ -82,5 +83,7 @@ def test_check_test_statistic_warning():
     "test the exception"
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
         check_statistical_test("test")
-    with pytest.raises(ValueError, match="Unsupported value for 'statistical_test'."):
+    with pytest.raises(
+        ValueError, match="Unsupported value for 'statistical_test'."
+    ):
         check_statistical_test([])

@@ -56,7 +56,9 @@ def get_fitted_attributes(cls):
     all_attributes = dir(cls)
 
     # Filter out attributes that start with an underscore
-    filtered_attributes = [attr for attr in all_attributes if not attr.startswith("_")]
+    filtered_attributes = [
+        attr for attr in all_attributes if not attr.startswith("_")
+    ]
 
     # Filter out attributes that do not end with a single underscore
     result = [
@@ -170,7 +172,9 @@ def check_statistical_test(statistical_test, test_frac=None):
     """
     if isinstance(statistical_test, str):
         if statistical_test == "ttest":
-            return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
+            return partial(
+                ttest_1samp, popmean=0, alternative="greater", axis=1
+            )
         elif statistical_test == "wilcoxon":
             return partial(wilcoxon, alternative="greater", axis=1)
         elif statistical_test == "nb-ttest":

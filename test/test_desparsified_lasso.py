@@ -71,7 +71,9 @@ def test_desparsified_lasso():
         # Check p-values for important and non-important features
         important = beta != 0
         # Run two sided test for coverage
-        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fdr_selection(
+            fdr=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fdp_list.append(fdp)
         powr_list.append(power)
@@ -88,7 +90,9 @@ def test_desparsified_lasso():
         )
 
         # Check p-values for important and non-important features
-        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=True)
+        selected = desparsified_lasso.fdr_selection(
+            fdr=alpha, two_tailed_test=True
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         assert correct_interval >= int(0.7 * n_features)
         fdp_dof_list.append(fdp)
@@ -122,7 +126,9 @@ def test_desparsified_group_lasso():
     fd_ftest_list = []
     power_ftest_list = []
     for seed in range(10):
-        corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+        corr = toeplitz(
+            np.geomspace(1, rho_serial ** (n_target - 1), n_target)
+        )
         multi_task_lasso_cv = MultiTaskLassoCV(
             eps=1e-2,
             fit_intercept=False,
@@ -157,7 +163,9 @@ def test_desparsified_group_lasso():
         important = beta[:, 0] != 0
 
         assert_almost_equal(importances, beta, decimal=1)
-        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fwer_selection(
+            fwer=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_list.append(fdp > 0)
         power_list.append(power)
@@ -172,7 +180,9 @@ def test_desparsified_group_lasso():
         importances = desparsified_lasso.importance()
 
         assert_almost_equal(importances, beta, decimal=1)
-        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fwer_selection(
+            fwer=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_ftest_list.append(fdp > 0)
         power_ftest_list.append(power)
@@ -237,7 +247,8 @@ def test_exception():
     ):
         DesparsifiedLasso(model_x=RandomForestClassifier())
     with pytest.raises(
-        AssertionError, match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
+        AssertionError,
+        match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
     ):
         DesparsifiedLasso(estimator=RandomForestClassifier())
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
@@ -249,12 +260,16 @@ def test_exception():
     ):
         desparsified_lasso.importance()
 
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
+        X, y
+    )
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_lasso.test = "r2"
         desparsified_lasso.importance()
 
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
+        X, y
+    )
     with pytest.warns(Warning, match="X won't be used."):
         desparsified_lasso.importance(X=X)
     with pytest.warns(Warning, match="y won't be used."):
@@ -415,7 +430,9 @@ def test_group_reid_2():
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
+    corr = toeplitz(
+        rho_serial ** np.arange(0, n_target)
+    )  # covariance matrix of time
     cov = 1.0 * corr
 
     lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
@@ -429,7 +446,9 @@ def test_group_reid_2():
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, stationary=False)
+    cov_hat = reid(
+        lasso_cv.coef_, residual, multioutput=True, stationary=False
+    )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 
@@ -458,10 +477,13 @@ def test_reid_exception():
     ):
         _, _ = reid(X, y, method="test", multioutput=True)
     with pytest.raises(
-        ValueError, match="The AR method is not compatible with the non-stationary"
+        ValueError,
+        match="The AR method is not compatible with the non-stationary",
     ):
         _, _ = reid(X, y, method="AR", stationary=False, multioutput=True)
-    with pytest.raises(ValueError, match="The requested AR order is to high with"):
+    with pytest.raises(
+        ValueError, match="The requested AR order is to high with"
+    ):
         _, _ = reid(X, y, method="AR", order=1e4, multioutput=True)
 
 

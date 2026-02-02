@@ -168,7 +168,9 @@ desparsified_lasso_1 = DesparsifiedLasso(
 )
 
 cludl = CluDL(
-    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso_1), random_state=0
+    clustering=ward,
+    desparsified_lasso=deepcopy(desparsified_lasso_1),
+    random_state=0,
 )
 cludl.fit_importance(X, y)
 
@@ -255,7 +257,9 @@ plot_map(
     title="CluDL",
 )
 
-selected_encludl = encludl.fwer_selection(fwer=target_fwer, two_tailed_test=True)
+selected_encludl = encludl.fwer_selection(
+    fwer=target_fwer, two_tailed_test=True
+)
 z_score_encludl = zscore_from_pval(encludl.pvalues_) * selected_encludl
 plot_map(
     z_score_encludl,

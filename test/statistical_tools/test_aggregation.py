@@ -1,5 +1,9 @@
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_equal
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_equal,
+)
 
 from hidimstat.statistical_tools.aggregation import (
     _adaptive_quantile_aggregation,
@@ -18,13 +22,16 @@ def test_quantile_aggregation():
     p_values = np.tile(col, (nb_features, 1)).T / 100
 
     assert_array_almost_equal(
-        0.1 * quantile_aggregation(p_values, 0.1), [col[-1] / 100 * 0.1] * nb_features
+        0.1 * quantile_aggregation(p_values, 0.1),
+        [col[-1] / 100 * 0.1] * nb_features,
     )
     assert_array_almost_equal(
-        0.3 * quantile_aggregation(p_values, 0.3), [col[-1] / 100 * 0.3] * nb_features
+        0.3 * quantile_aggregation(p_values, 0.3),
+        [col[-1] / 100 * 0.3] * nb_features,
     )
     assert_array_almost_equal(
-        0.5 * quantile_aggregation(p_values, 0.5), [col[-1] / 100 * 0.5] * nb_features
+        0.5 * quantile_aggregation(p_values, 0.5),
+        [col[-1] / 100 * 0.5] * nb_features,
     )
 
     # with adaptation

@@ -63,12 +63,12 @@ class CluDL(BaseVariableImportance):
         random_state=None,
         memory=None,
     ):
-        assert issubclass(
-            desparsified_lasso.__class__, DesparsifiedLasso
-        ), "desparsified_lasso need to be an instance of DesparsifiedLasso"
-        assert issubclass(
-            clustering.__class__, FeatureAgglomeration
-        ), "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
+        assert issubclass(desparsified_lasso.__class__, DesparsifiedLasso), (
+            "desparsified_lasso need to be an instance of DesparsifiedLasso"
+        )
+        assert issubclass(clustering.__class__, FeatureAgglomeration), (
+            "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
+        )
         self.desparsified_lasso = clone(desparsified_lasso)
         self.clustering = clone(clustering)
         self.cluster_bootstrap_size = cluster_bootstrap_size
@@ -215,7 +215,9 @@ class CluDL(BaseVariableImportance):
         # degroup beta_hat
         if len(beta_hat.shape) == 1:
             # weighting the weight of beta with the size of the cluster
-            beta_hat_degrouped = ward.inverse_transform(beta_hat) / clusters_size
+            beta_hat_degrouped = (
+                ward.inverse_transform(beta_hat) / clusters_size
+            )
         elif len(beta_hat.shape) == 2:
             n_tasks = beta_hat.shape[1]
             beta_hat_degrouped = np.zeros((n_features, n_tasks))
@@ -247,7 +249,9 @@ class CluDL(BaseVariableImportance):
         train_index : ndarray
             Indices of selected samples for training.
         """
-        index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+        index_row = (
+            np.arange(n_samples) if groups is None else np.unique(groups)
+        )
         train_index = resample(
             index_row,
             n_samples=int(len(index_row) * train_size),
@@ -419,13 +423,19 @@ class EnCluDL(BaseVariableImportance):
             self.clustering_desparsified_lassos_[i].importance()
 
         self.importances_ = np.mean(
-            [clu_dl.importances_ for clu_dl in self.clustering_desparsified_lassos_],
+            [
+                clu_dl.importances_
+                for clu_dl in self.clustering_desparsified_lassos_
+            ],
             axis=0,
         )
 
         self.pvalues_ = quantile_aggregation(
             np.array(
-                [clu_dl.pvalues_ for clu_dl in self.clustering_desparsified_lassos_]
+                [
+                    clu_dl.pvalues_
+                    for clu_dl in self.clustering_desparsified_lassos_
+                ]
             ),
             gamma=self.gamma,
             adaptive=self.adaptive_aggregation,

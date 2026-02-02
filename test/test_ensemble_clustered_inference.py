@@ -63,7 +63,9 @@ def test_cludl_spatial():
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = (
+        0.2  # level of spatial smoothing introduced by the Gaussian filter
+    )
 
     fp_list = []
     power_list = []
@@ -81,7 +83,9 @@ def test_cludl_spatial():
         clustering = FeatureAgglomeration(
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
         )
-        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        estimator = LassoCV(
+            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+        )
         cludl = CluDL(
             desparsified_lasso=DesparsifiedLasso(estimator=estimator),
             clustering=clustering,
@@ -145,7 +149,9 @@ def test_encludl_spatial():
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = (
+        0.2  # level of spatial smoothing introduced by the Gaussian filter
+    )
     tol = 0.1
 
     fp_list = []
@@ -165,7 +171,9 @@ def test_encludl_spatial():
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
         )
 
-        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        estimator = LassoCV(
+            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+        )
         cludl = EnCluDL(
             desparsified_lasso=DesparsifiedLasso(estimator=estimator),
             clustering=clustering,

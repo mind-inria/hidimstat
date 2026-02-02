@@ -244,15 +244,21 @@ class D0CRT(BaseVariableImportance):
             (self.screening_threshold is None) and self.estimated_coef is None
         ):
             self.estimator.fit(X_[:, self.selection_set_], y_)
-        elif (self.screening_threshold is not None) and (self.estimated_coef is None):
+        elif (self.screening_threshold is not None) and (
+            self.estimated_coef is None
+        ):
             self.estimator = lasso_model_
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
             self.intercept_ = (
-                self.estimated_intercept if self.estimated_intercept is not None else 0
+                self.estimated_intercept
+                if self.estimated_intercept is not None
+                else 0
             )
-        elif self.reuse_screening_model and (self.screening_threshold is not None):
+        elif self.reuse_screening_model and (
+            self.screening_threshold is not None
+        ):
             # Flatten to handle logistic regression case
             self.coefficient_ = lasso_model_.coef_.flatten()
             self.intercept_ = lasso_model_.intercept_
@@ -262,7 +268,9 @@ class D0CRT(BaseVariableImportance):
             # If the model is linear, store the coefficients
             if hasattr(self.estimator, "coef_"):
                 self.coefficient_ = np.zeros(X.shape[1])
-                self.coefficient_[self.selection_set_] = self.estimator.coef_.flatten()
+                self.coefficient_[self.selection_set_] = (
+                    self.estimator.coef_.flatten()
+                )
                 self.estimator.coef_ = self.coefficient_
                 self.intercept_ = self.estimator.intercept_
             else:
@@ -321,7 +329,9 @@ class D0CRT(BaseVariableImportance):
             or self.model_y_ is None
             or self.selection_set_ is None
         ):
-            raise ValueError("The D0CRT requires to be fit before any analysis")
+            raise ValueError(
+                "The D0CRT requires to be fit before any analysis"
+            )
 
     def importance(
         self,
@@ -383,7 +393,9 @@ class D0CRT(BaseVariableImportance):
                 if self.fit_y:
                     coefficient_minus_idx = self.model_y_[index]
                 else:
-                    coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
+                    coefficient_minus_idx = np.delete(
+                        np.copy(self.coefficient_), idx
+                    )
             elif self.is_logistic_:
                 coefficient_minus_idx = self.model_y_[index]
             else:
@@ -419,18 +431,22 @@ class D0CRT(BaseVariableImportance):
                 n_samples,
             )
         else:
-            test_statistic_selected_variables = self._regression_test_statistic(
-                X_residual,
-                y_residual,
-                sigma2,
-                n_samples,
+            test_statistic_selected_variables = (
+                self._regression_test_statistic(
+                    X_residual,
+                    y_residual,
+                    sigma2,
+                    n_samples,
+                )
             )
         # get the results
         test_statistic = np.zeros(n_features)
         test_statistic[selection_features] = test_statistic_selected_variables
 
         self.importances_ = test_statistic
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
+        self.pvalues_ = np.minimum(
+            2 * stats.norm.sf(np.abs(test_statistic)), 1
+        )
 
         return self.importances_
 
@@ -469,7 +485,10 @@ class D0CRT(BaseVariableImportance):
         ]
 
         # Don't scale when there is only one element.
-        if self.scaled_statistics and len(test_statistic_selected_variables) > 1:
+        if (
+            self.scaled_statistics
+            and len(test_statistic_selected_variables) > 1
+        ):
             test_statistic_selected_variables = (
                 test_statistic_selected_variables
                 - np.mean(test_statistic_selected_variables)
@@ -508,7 +527,9 @@ class D0CRT(BaseVariableImportance):
         X_selection = X[:, self.selection_set_]
         fisher_minus_idx = np.array(
             [
-                np.mean(self.lasso_weights_ * X_selection[:, i] * X_residual[i])
+                np.mean(
+                    self.lasso_weights_ * X_selection[:, i] * X_residual[i]
+                )
                 for i in range(X_residual.shape[0])
             ]
         )
@@ -567,7 +588,8 @@ class D0CRT(BaseVariableImportance):
             (
                 self.screening_threshold is not None
                 and not isinstance(
-                    self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+                    self.lasso_screening,
+                    (LogisticRegression, LogisticRegressionCV),
                 )
             )
             or (
@@ -652,7 +674,9 @@ def _joblib_fit(
     # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
     # in :footcite:t:`nguyen2022conditional` equation (10).
     if sigma_X or (lasso_weights is not None):
-        sample_weight = 2 * lasso_weights if lasso_weights is not None else None
+        sample_weight = (
+            2 * lasso_weights if lasso_weights is not None else None
+        )
         model_x = clone(model_distillation_x)
         model_x = seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
@@ -742,9 +766,9 @@ def _joblib_distill(
         # In the original paper and implementation, the term:
         #  alpha * np.linalg.norm(clf.coef_, ord=1)
         # is not present and has been added without any reference actually
-        sigma2 = np.linalg.norm(X_residual) ** 2 / n_samples + alpha * np.linalg.norm(
-            model_x.coef_, ord=1
-        )
+        sigma2 = np.linalg.norm(
+            X_residual
+        ) ** 2 / n_samples + alpha * np.linalg.norm(model_x.coef_, ord=1)
     else:
         # Distill X with sigma_X
         sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
@@ -758,7 +782,9 @@ def _joblib_distill(
 
     # Distill Y - calculate residual
     if is_logistic:
-        y_residual = y - expit(X_minus_idx.dot(coefficient_minus_idx.T) + intercept)
+        y_residual = y - expit(
+            X_minus_idx.dot(coefficient_minus_idx.T) + intercept
+        )
 
     elif coefficient_minus_idx is not None:
         # get the coefficients

@@ -27,7 +27,8 @@ def test_gaussian_error():
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs()
     with pytest.raises(
-        ValueError, match="The GaussianGenerator requires to be fit before sampling"
+        ValueError,
+        match="The GaussianGenerator requires to be fit before sampling",
     ):
         generator.sample(random_state=seed * 2)
 

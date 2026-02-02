@@ -29,7 +29,9 @@ sns.scatterplot(x=X[:, 0], y=X[:, 1], hue=y, ax=ax)
 ax.set_xlabel("X0")
 ax.set_ylabel("X1")
 sns.despine(ax=ax)
-c1 = plt.Circle((0, 0), 0.85, color="k", ls="--", fill=False, label="class boundary")
+c1 = plt.Circle(
+    (0, 0), 0.85, color="k", ls="--", fill=False, label="class boundary"
+)
 ax.add_patch(c1)
 _ = ax.legend(loc="upper right")
 
@@ -46,7 +48,9 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
 model = HistGradientBoostingClassifier(random_state=0)
 
 model.fit(X_train, y_train)

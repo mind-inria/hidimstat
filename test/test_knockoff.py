@@ -29,7 +29,10 @@ def test_knockoff_bootstrap_quantile():
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
+            estimator=LassoCV(),
+            n_repeats=n_repeats,
+            random_state=seed,
+            n_jobs=5,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -61,7 +64,10 @@ def test_knockoff_bootstrap_e_values():
 
         # Using e-values aggregation
         model_x_knockoff = ModelXKnockoff(
-            estimator=LassoCV(), n_repeats=n_repeats, random_state=seed, n_jobs=5
+            estimator=LassoCV(),
+            n_repeats=n_repeats,
+            random_state=seed,
+            n_jobs=5,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -92,7 +98,9 @@ def test_invariant_with_bootstrap():
     # Single AKO (or vanilla KO) (verbose vs no verbose)
     model_x_knockoff = ModelXKnockoff(
         estimator=LassoCV(),
-        ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        ko_generator=GaussianKnockoffs(
+            cov_estimator=LedoitWolf(assume_centered=True)
+        ),
         random_state=0,
         n_repeats=1,
     ).fit(X, y)
@@ -102,7 +110,9 @@ def test_invariant_with_bootstrap():
 
     model_x_knockoff_repeat = ModelXKnockoff(
         estimator=LassoCV(),
-        ko_generator=GaussianKnockoffs(cov_estimator=LedoitWolf(assume_centered=True)),
+        ko_generator=GaussianKnockoffs(
+            cov_estimator=LedoitWolf(assume_centered=True)
+        ),
         random_state=0,
         n_repeats=3,
     ).fit(X, y)
@@ -111,7 +121,8 @@ def test_invariant_with_bootstrap():
     fdp_repeat, power_repeat = fdp_power(selected_repeat, beta)
 
     np.testing.assert_array_equal(
-        model_x_knockoff.importances_[0], model_x_knockoff_repeat.importances_[0]
+        model_x_knockoff.importances_[0],
+        model_x_knockoff_repeat.importances_[0],
     )
     assert not np.array_equal(
         model_x_knockoff.pvalues_, model_x_knockoff_repeat.pvalues_
@@ -157,7 +168,9 @@ def test_model_x_knockoff_estimator():
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
-        estimator=GridSearchCV(Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}),
+        estimator=GridSearchCV(
+            Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
+        ),
         preconfigure_lasso_path=None,
     ).fit(X, y)
     model_x_knockoff.importance()
@@ -227,7 +240,9 @@ class TestModelXKnockoffExceptions:
         with pytest.warns(Warning, match="y won't be used"):
             model_x_knockoff.importance(y=y)
 
-    def test_error_lasso_statistic_with_sampling_with_bad_config(self, data_generator):
+    def test_error_lasso_statistic_with_sampling_with_bad_config(
+        self, data_generator
+    ):
         """Test error lasso statistic"""
         X, y, _, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeats=1, estimator=SVR())
@@ -267,7 +282,9 @@ class TestModelXKnockoffExceptions:
 
     def test_invalid_n_samplings(self, data_generator):
         """Test when invalid number of permutations is provided"""
-        with pytest.raises(AssertionError, match="n_samplings must be positive"):
+        with pytest.raises(
+            AssertionError, match="n_samplings must be positive"
+        ):
             ModelXKnockoff(n_repeats=-1)
 
 
@@ -275,7 +292,8 @@ class TestModelXKnockoffExceptions:
 def test_preconfigure_LassoCV():
     """Test type errors"""
     with pytest.raises(
-        TypeError, match="You should not use this function to configure the estimator"
+        TypeError,
+        match="You should not use this function to configure the estimator",
     ):
         set_alpha_max_lasso_path(
             estimator=RidgeCV(),

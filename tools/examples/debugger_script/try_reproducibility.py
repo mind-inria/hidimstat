@@ -4,7 +4,9 @@ import sys
 from joblib import Parallel, delayed
 
 # add the example for import them
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../../../examples")
+sys.path.append(
+    os.path.dirname(os.path.abspath(__file__)) + "/../../../examples"
+)
 
 
 def run_joblib(i):

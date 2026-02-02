@@ -53,7 +53,9 @@ def test_ttest_1samp_corrected_NB(data_generator):
         importance_list.append(importances)
     importance_array = np.array(importance_list)
 
-    pvalue_corr = nadeau_bengio_ttest(importance_array, 0, test_frac=0.2).pvalue
+    pvalue_corr = nadeau_bengio_ttest(
+        importance_array, 0, test_frac=0.2
+    ).pvalue
     pvalue = ttest_1samp(importance_array, 0, alternative="greater").pvalue
     n_features = X.shape[1]
     alpha = 0.05
@@ -61,7 +63,8 @@ def test_ttest_1samp_corrected_NB(data_generator):
     assert np.all(pvalue_corr >= pvalue)
     assert np.all(pvalue_corr[important_features] < alpha)
     assert np.all(
-        pvalue_corr[np.setdiff1d(np.arange(n_features), important_features)] >= alpha
+        pvalue_corr[np.setdiff1d(np.arange(n_features), important_features)]
+        >= alpha
     )
 
 
@@ -86,7 +89,9 @@ class TestTtest_1samp:
         """Test option alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
 
-        t_ex, p_ex = nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative=alternative)
+        t_ex, p_ex = nadeau_bengio_ttest(
+            x, 9, test_frac=0.0, alternative=alternative
+        )
         t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
         assert_allclose(t, t_ex, rtol=1e-14)
         assert_allclose(p, p_ex, rtol=1e-14)
@@ -124,6 +129,9 @@ class TestTtest_1samp:
         """test exception for bad alternative"""
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
         with pytest.raises(
-            ValueError, match="`alternative` must be 'less', 'greater', or 'two-sided'."
+            ValueError,
+            match="`alternative` must be 'less', 'greater', or 'two-sided'.",
         ):
-            t_ex, p_ex = nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")
+            t_ex, p_ex = nadeau_bengio_ttest(
+                x, 9, test_frac=0.0, alternative="ttt"
+            )

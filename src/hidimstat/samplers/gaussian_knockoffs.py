@@ -33,7 +33,9 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14):
+    def __init__(
+        self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14
+    ):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
@@ -104,7 +106,9 @@ class GaussianKnockoffs:
         if not hasattr(self, "mu_tilde_") or not hasattr(
             self, "sigma_tilde_decompose_"
         ):
-            raise ValueError("The GaussianGenerator requires to be fit before sampling")
+            raise ValueError(
+                "The GaussianGenerator requires to be fit before sampling"
+            )
 
     def sample(
         self,
@@ -200,7 +204,8 @@ def _s_equi(sigma, tol=1e-14):
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
         psd = np.all(
-            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps))) > tol
+            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps)))
+            > tol
         )
         warnings.warn(
             "The equi-correlated matrix for knockoffs is not positive "

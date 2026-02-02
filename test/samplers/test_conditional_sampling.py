@@ -47,7 +47,9 @@ def test_continuous_case():
         assert np.corrcoef([X_1_perm[i], X[:, 1]])[0, 1] < 0.1
 
     # Test for medium correlated features
-    X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.6], [0.6, 1]], size=n)
+    X = np.random.multivariate_normal(
+        mean=[0, 0], cov=[[1, 0.6], [0.6, 1]], size=n
+    )
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
     X_1_perm = sampler.sample(
@@ -68,7 +70,9 @@ def test_binary_case():
     )
 
     # Test for perfectly correlated features
-    X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=n)
+    X = np.random.multivariate_normal(
+        mean=[0, 0], cov=[[1, 0], [0, 1]], size=n
+    )
     X[:, 1] = (X[:, 0] > 0).astype(float)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
@@ -79,7 +83,9 @@ def test_binary_case():
         assert accuracy_score(X_1_perm[i], X[:, 1]) > 0.7
 
     # independent features
-    X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=n)
+    X = np.random.multivariate_normal(
+        mean=[0, 0], cov=[[1, 0], [0, 1]], size=n
+    )
     X[:, 1] = np.random.randint(0, 2, size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
@@ -95,7 +101,9 @@ def test_binary_case():
         model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
         data_type="auto",
     )
-    X = np.random.multivariate_normal(mean=[0, 0], cov=[[1, 0.0], [0.0, 1]], size=n)
+    X = np.random.multivariate_normal(
+        mean=[0, 0], cov=[[1, 0.0], [0.0, 1]], size=n
+    )
     X[:, 1] = (X[:, 0] + np.random.randn(n) * -0.5) > 0
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
@@ -139,7 +147,8 @@ def test_error_no_predic():
     )
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     with pytest.raises(
-        AttributeError, match="The model must have a `predict` method to be used for"
+        AttributeError,
+        match="The model must have a `predict` method to be used for",
     ):
         sampler.sample(np.delete(X, 1, axis=1), X[:, 1])
 
@@ -178,7 +187,9 @@ def test_group_case():
     )
     sampler.fit(X[:, :2], X[:, 2:])
     n_samples = 10
-    X_2_perm = sampler.sample(X[:, :2], X[:, 2:], n_samples=n_samples, random_state=0)
+    X_2_perm = sampler.sample(
+        X[:, :2], X[:, 2:], n_samples=n_samples, random_state=0
+    )
     assert X_2_perm.shape == (n_samples, n, 2)
     for i in range(n_samples):
         assert 0.2 < np.corrcoef([X_2_perm[i, :, 0], X[:, 2]])[0, 1] < 0.9
@@ -191,14 +202,20 @@ def test_group_case():
 
     # Binary case
     X = np.random.randn(n, 5)
-    X[:, 3] = X[:, 0] + X[:, 1] + X[:, 2] + np.random.randn(X.shape[0]) * 0.3 > 0
+    X[:, 3] = (
+        X[:, 0] + X[:, 1] + X[:, 2] + np.random.randn(X.shape[0]) * 0.3 > 0
+    )
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
     model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
-    sampler = ConditionalSampler(model_categorical=model, data_type="categorical")
+    sampler = ConditionalSampler(
+        model_categorical=model, data_type="categorical"
+    )
     sampler.fit(X[:, :3], X[:, 3:])
 
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
+    X_3_perm = sampler.sample(
+        X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0
+    )
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # TODO check why so good accuracy
@@ -212,10 +229,14 @@ def test_sample_categorical():
     n = 1000
     X = np.random.randn(n, 5)
     X[:, 3] = np.digitize(
-        X[:, 0], bins=np.quantile(X[:, 0], [0, 0.2, 0.4, 0.6, 0.8, 1]), right=True
+        X[:, 0],
+        bins=np.quantile(X[:, 0], [0, 0.2, 0.4, 0.6, 0.8, 1]),
+        right=True,
     )
     X[:, 4] = np.digitize(
-        X[:, 1], bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]), right=True
+        X[:, 1],
+        bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]),
+        right=True,
     )
     X[:, 3:][np.where(X[:, 3:] == 0)] = 1
 
@@ -226,7 +247,9 @@ def test_sample_categorical():
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
+    X_3_perm = sampler.sample(
+        X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0
+    )
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5
@@ -243,7 +266,9 @@ def test_sample_categorical():
 
     sampler.fit(X[:, :3], X[:, 3:])
     n_samples = 10
-    X_3_perm = sampler.sample(X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0)
+    X_3_perm = sampler.sample(
+        X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0
+    )
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # Chance level is now 1/5

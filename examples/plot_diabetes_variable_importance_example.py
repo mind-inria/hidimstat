@@ -59,7 +59,10 @@ regressor_list = [clone(regressor) for _ in range(n_folds)]
 for i, (train_index, test_index) in enumerate(cv.split(X)):
     regressor_list[i].fit(X[train_index], y[train_index])
     scores.append(
-        r2_score(y_true=y[test_index], y_pred=regressor_list[i].predict(X[test_index]))
+        r2_score(
+            y_true=y[test_index],
+            y_pred=regressor_list[i].predict(X[test_index]),
+        )
     )
 print(f"R2 scores across folds: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
 regressor
