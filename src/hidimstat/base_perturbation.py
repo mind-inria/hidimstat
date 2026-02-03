@@ -74,10 +74,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     ):
         super().__init__()
         GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
-        assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
-        _check_vim_predict_method(method)
+        
         self.method = method
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
@@ -112,6 +111,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         --------
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
+        assert self.n_permutations > 0, "n_permutations must be positive"
+        _check_vim_predict_method(self.method)
+
         self.estimator = self._initial_fit(self.estimator, X, y)
 
         GroupVariableImportanceMixin.fit(self, X, y)
