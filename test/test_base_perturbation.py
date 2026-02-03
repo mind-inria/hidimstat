@@ -116,9 +116,7 @@ def test_check_importance():
     """test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
-    # estimator.fit(X[:, 0], X[:, 1])
     basic_class = BasePerturbation(estimator=estimator).fit(X[:, 0], X[:, 1])
-    # basic_class.importances_ = []
     with pytest.raises(
         ValueError,
         match="The importance method need to be called before calling this method.",
