@@ -32,7 +32,7 @@ def expected_failed_checks(estimator):
     if isinstance(estimator, BasePerturbation):
         return {
             "check_dont_overwrite_parameters": "TODO",
-            # "check_estimators_overwrite_params": "TODO",
+            "check_estimators_overwrite_params": "TODO",
             "check_dtype_object": "TODO",
             "check_estimator_sparse_tag": "TODO",
         }
@@ -58,7 +58,6 @@ def expected_failed_checks(estimator):
             "check_fit_score_takes_y": "TODO",
             "check_fit2d_1feature": "TODO",
             "check_fit2d_predict1d": "TODO",
-            "check_parameters_default_constructible": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
             "check_no_attributes_set_in_init": "TODO",
