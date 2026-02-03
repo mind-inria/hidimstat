@@ -144,7 +144,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         self.importances_ = None
         self.pvalues_ = None
-        
+
         if self.estimator is None:
             raise ValueError("'estimator' must be a valid sklearn estimator.")
 
@@ -166,7 +166,7 @@ class BaseVariableImportance(BaseEstimator):
             return clone(estimator).fit(*args)
 
         return estimator
-    
+
     def __sklearn_is_fitted__(self):
         return hasattr(self, "estimator_")
 
@@ -532,8 +532,8 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("features_groups needs to be a dictionary")
         return self
-    
-    def __sklearn_is_fitted__(self)-> bool:
+
+    def __sklearn_is_fitted__(self) -> bool:
         return (
             getattr(self, "n_features_groups_", None) is None
             or getattr(self, "_features_groups_ids", None) is None
