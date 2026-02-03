@@ -38,7 +38,6 @@ def expected_failed_checks(estimator):
             "check_fit_check_is_fitted": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
         return {

@@ -82,9 +82,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
-        # variable set in importance
-        self.loss_reference_ = None
-        self.loss_ = None
         # internal variables
         self._n_groups = None
         self._groups_ids = None
@@ -113,6 +110,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         assert self.n_permutations > 0, "n_permutations must be positive"
         _check_vim_predict_method(self.method)
+
+        # variable set in importance
+        self.loss_reference_ = None
+        self.loss_ = None
 
         self.estimator = self._initial_fit(self.estimator, X, y)
 
@@ -255,7 +256,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Checks if the loss has been computed.
         """
         super()._check_importance()
-        if (self.loss_reference_ is None) or (self.loss_ is None):
+        if getattr(self, 'loss_reference_', None) is None or getattr(self, 'loss_', None) is None:
             raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_features_group(

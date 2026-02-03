@@ -127,14 +127,12 @@ class BaseVariableImportance(BaseEstimator):
 
     def __init__(self):
         super().__init__()
-        self.importances_ = None
-        self.pvalues_ = None
 
     def _check_importance(self):
         """
         Checks if the importance scores have been computed.
         """
-        if self.importances_ is None:
+        if getattr(self, 'importances_', None) is None:
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
@@ -144,6 +142,8 @@ class BaseVariableImportance(BaseEstimator):
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
+        self.importances_ = None
+        self.pvalues_ = None
         if self.estimator is None:
             raise ValueError("'estimator' must be a valid sklearn estimator.")
         if (
@@ -480,7 +480,6 @@ class GroupVariableImportanceMixin:
 
     def __init__(self, features_groups=None):
         self.features_groups = features_groups
-        self.n_features_groups_ = None
         self._features_groups_ids = None
 
     def fit(self, X, y=None):
@@ -537,7 +536,7 @@ class GroupVariableImportanceMixin:
             If the class has not been fitted (i.e., if n_features_groups_
             or _features_groups_ids attributes are missing).
         """
-        if self.n_features_groups_ is None or self._features_groups_ids is None:
+        if getattr(self, 'n_features_groups_', None) is None or getattr(self, '_features_groups_ids', None) is None:
             raise ValueError("The class is not fitted.")
 
     def _check_compatibility(self, X):
