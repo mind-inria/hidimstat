@@ -1,6 +1,6 @@
-=====================================
-Version 0.0.4 (under devellopement)
-=====================================
+===================================
+Version 0.4.0 (under devellopement)
+===================================
 
 HIGHLIGHTS
 ----------
@@ -9,6 +9,7 @@ New features
 ------------
 
 * documentation: added high dimension section (PR #425)
+* API: ``BasePerturbation`` can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (PR #571)
 
 Changes
 -------
@@ -27,4 +28,5 @@ Contributors
 
 * Bertrand Thirion
 * Joseph Paillard
+* Rémi Gau
   

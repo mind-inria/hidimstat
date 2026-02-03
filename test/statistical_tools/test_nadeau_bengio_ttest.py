@@ -1,8 +1,5 @@
-from functools import partial
-
 import numpy as np
 import numpy.ma.testutils as ma_npt
-import numpy.testing as npt
 import pytest
 import scipy.stats.mstats as mstats
 from numpy.ma.testutils import assert_allclose
