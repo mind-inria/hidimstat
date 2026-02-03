@@ -132,7 +132,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         Checks if the importance scores have been computed.
         """
-        if getattr(self, 'importances_', None) is None:
+        if getattr(self, "importances_", None) is None:
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
@@ -146,7 +146,7 @@ class BaseVariableImportance(BaseEstimator):
         self.pvalues_ = None
         if self.estimator is None:
             raise ValueError("'estimator' must be a valid sklearn estimator.")
-        
+
         if (
             hasattr(estimator, "__sklearn_is_fitted__")
             and not estimator.__sklearn_is_fitted__()
@@ -155,7 +155,6 @@ class BaseVariableImportance(BaseEstimator):
                 f"Running initial fit of the estimator {estimator.__class__.__name__}."
             )
             return clone(estimator).fit(*args)
-            
 
         try:
             check_is_fitted(estimator)
@@ -164,7 +163,7 @@ class BaseVariableImportance(BaseEstimator):
                 f"Running initial fit of the estimator {estimator.__class__.__name__}."
             )
             return clone(estimator).fit(*args)
-        
+
         return estimator
 
     def importance_selection(
@@ -540,7 +539,10 @@ class GroupVariableImportanceMixin:
             If the class has not been fitted (i.e., if n_features_groups_
             or _features_groups_ids attributes are missing).
         """
-        if getattr(self, 'n_features_groups_', None) is None or getattr(self, '_features_groups_ids', None) is None:
+        if (
+            getattr(self, "n_features_groups_", None) is None
+            or getattr(self, "_features_groups_ids", None) is None
+        ):
             raise ValueError("The class is not fitted.")
 
     def _check_compatibility(self, X):

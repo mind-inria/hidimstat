@@ -31,7 +31,6 @@ ESTIMATORS_TO_CHECK = [
 def expected_failed_checks(estimator):
     if isinstance(estimator, BasePerturbation):
         return {
-            "check_dont_overwrite_parameters": "TODO",
             "check_estimator_sparse_tag": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):

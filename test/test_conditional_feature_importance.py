@@ -368,13 +368,13 @@ class TestCFIExceptions:
         fitted_model = LinearRegression().fit(X, y)
 
         cfi = CFI(
-                estimator=fitted_model,
-                method="unknown method",
-            )
+            estimator=fitted_model,
+            method="unknown method",
+        )
 
         with pytest.raises(ValueError):
             cfi.fit(X, y)
-            
+
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
         X, y, _, _ = data_generator

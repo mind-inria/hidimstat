@@ -78,7 +78,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
         self.estimator = estimator
         self.loss = loss
-        
+
         self.method = method
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
@@ -260,7 +260,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Checks if the loss has been computed.
         """
         super()._check_importance()
-        if getattr(self, 'loss_reference_', None) is None or getattr(self, 'loss_', None) is None:
+        if (
+            getattr(self, "loss_reference_", None) is None
+            or getattr(self, "loss_", None) is None
+        ):
             raise ValueError("The importance method has not yet been called.")
 
     def _joblib_predict_one_features_group(
