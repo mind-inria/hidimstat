@@ -247,12 +247,12 @@ class TestBVIExceptions:
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi._check_importance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi.importance_selection()
 
@@ -338,7 +338,7 @@ class TestSelectionFDRExceptions:
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi.fdr_selection(0.1)
 

@@ -134,7 +134,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         if getattr(self, "importances_", None) is None:
             raise ValueError(
-                "The importances need to be called before calling this method"
+                "The importance method need to be called before calling this method."
             )
 
     def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
