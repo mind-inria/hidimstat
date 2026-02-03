@@ -23,7 +23,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     Parameters
     ----------
     estimator : sklearn-compatible estimator
-        The fitted estimator used for predictions.
+        The estimator that will be used for predictions.
     method : str, default="predict"
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
@@ -44,7 +44,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     Attributes
     ----------
-    features_groups : dict
+    estimator_ : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    features_groups_ : dict
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
         Importance scores for each feature group.
@@ -115,9 +117,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self.loss_reference_ = None
         self.loss_ = None
 
-        self.estimator = self._initial_fit(self.estimator, X, y)
+        self.estimator_ = self._initial_fit(self.estimator, X, y)
 
-        self.n_features_in_ = self.estimator.n_features_in_
+        self.n_features_in_ = self.estimator_.n_features_in_
 
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
@@ -203,7 +205,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
-        y_pred = getattr(self.estimator, self.method)(X)
+        y_pred = getattr(self.estimator_, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self._predict(X)
@@ -288,7 +290,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
-        y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
+        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
 
         # In case of classification, the output is a 2D array. Reshape accordingly
         if y_pred_perm.ndim == 1:
