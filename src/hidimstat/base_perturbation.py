@@ -123,9 +123,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
-    
-    # def __sklearn_is_fitted__(self) -> bool:
-    #     return BaseVariableImportance.__sklearn_is_fitted__(self) and GroupVariableImportanceMixin.__sklearn_is_fitted__(self)
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
@@ -269,7 +266,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             getattr(self, "loss_reference_", None) is None
             or getattr(self, "loss_", None) is None
         ):
-            raise ValueError("The importance method need to be called before calling this method.")
+            raise ValueError(
+                "The importance method need to be called before calling this method."
+            )
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, random_state=None
