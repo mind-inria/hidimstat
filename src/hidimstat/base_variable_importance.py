@@ -144,6 +144,7 @@ class BaseVariableImportance(BaseEstimator):
         """
         self.importances_ = None
         self.pvalues_ = None
+        
         if self.estimator is None:
             raise ValueError("'estimator' must be a valid sklearn estimator.")
 
@@ -165,6 +166,9 @@ class BaseVariableImportance(BaseEstimator):
             return clone(estimator).fit(*args)
 
         return estimator
+    
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimator_")
 
     def importance_selection(
         self, k_best=None, percentile=None, threshold_max=None, threshold_min=None
@@ -411,7 +415,7 @@ class BaseVariableImportance(BaseEstimator):
             _, ax = plt.subplots()
 
         if feature_names is None:
-            if hasattr(self, "features_groups"):
+            if hasattr(self, "features_groups_"):
                 feature_names = list(self.features_groups_.keys())
             else:
                 feature_names = [str(j) for j in range(self.importances_.shape[-1])]
@@ -528,6 +532,12 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("features_groups needs to be a dictionary")
         return self
+    
+    def __sklearn_is_fitted__(self)-> bool:
+        return (
+            getattr(self, "n_features_groups_", None) is None
+            or getattr(self, "_features_groups_ids", None) is None
+        )
 
     def _check_fit(self):
         """
@@ -539,10 +549,7 @@ class GroupVariableImportanceMixin:
             If the class has not been fitted (i.e., if n_features_groups_
             or _features_groups_ids attributes are missing).
         """
-        if (
-            getattr(self, "n_features_groups_", None) is None
-            or getattr(self, "_features_groups_ids", None) is None
-        ):
+        if not self.__sklearn_is_fitted__():
             raise ValueError("The class is not fitted.")
 
     def _check_compatibility(self, X):

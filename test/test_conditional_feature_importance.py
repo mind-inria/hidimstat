@@ -384,7 +384,7 @@ class TestCFIExceptions:
             method="predict",
         )
 
-        with pytest.raises(ValueError, match="The class is not fitted."):
+        with pytest.raises(ValueError, match="This CFI instance is not fitted yet"):
             cfi.importance(X, y)
 
     def test_unfitted_base_perturbation(self, data_generator):

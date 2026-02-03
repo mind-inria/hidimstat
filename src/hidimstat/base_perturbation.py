@@ -126,6 +126,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
+        check_is_fitted(self)
         GroupVariableImportanceMixin._check_fit(self)
 
     def _check_compatibility(self, X):

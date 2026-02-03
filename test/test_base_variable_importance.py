@@ -438,7 +438,7 @@ def test_plot_importance_feature_names():
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    vi.features_groups = {str(j * 2): [] for j in np.flip(np.sort(vi.importances_))}
+    vi.features_groups_ = {str(j * 2): [] for j in np.flip(np.sort(vi.importances_))}
     features_name = [str(j * 2) for j in np.flip(np.sort(vi.importances_))]
     ax_none_group = vi.plot_importance(feature_names=None)
     assert np.all(
