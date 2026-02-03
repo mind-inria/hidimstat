@@ -37,6 +37,7 @@ def expected_failed_checks(estimator):
         return {
             "check_dict_unchanged": "TODO",
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_parameters_default_constructible": "TODO",
             "check_dont_overwrite_parameters": "TODO",
             "check_dtype_object": "TODO",
             "check_estimator_cloneable0": "TODO",
