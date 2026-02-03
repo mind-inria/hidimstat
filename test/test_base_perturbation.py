@@ -32,12 +32,9 @@ def expected_failed_checks(estimator):
     if isinstance(estimator, BasePerturbation):
         return {
             "check_dont_overwrite_parameters": "TODO",
+            # "check_estimators_overwrite_params": "TODO",
             "check_dtype_object": "TODO",
             "check_estimator_sparse_tag": "TODO",
-            "check_estimators_overwrite_params": "TODO",
-            # "check_fit_check_is_fitted": "TODO",
-            "check_n_features_in": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
         return {

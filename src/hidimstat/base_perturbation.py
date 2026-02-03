@@ -117,6 +117,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         self.estimator = self._initial_fit(self.estimator, X, y)
 
+        self.n_features_in_ = self.estimator.n_features_in_
+
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
 
