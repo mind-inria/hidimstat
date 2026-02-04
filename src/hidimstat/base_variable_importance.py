@@ -535,8 +535,8 @@ class GroupVariableImportanceMixin:
 
     def __sklearn_is_fitted__(self) -> bool:
         return (
-            getattr(self, "n_features_groups_", None) is None
-            or getattr(self, "_features_groups_ids", None) is None
+            getattr(self, "n_features_groups_", None) is not None
+            or getattr(self, "_features_groups_ids", None) is not None
         )
 
     def _check_fit(self):
