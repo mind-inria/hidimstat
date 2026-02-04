@@ -18,7 +18,9 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 from .conftest import SKLEARN_LT_1_6, check_estimator
 
-ESTIMATORS_TO_CHECK = [D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)]
+ESTIMATORS_TO_CHECK = [
+    D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
+]
 
 
 def expected_failed_checks(estimator):
@@ -32,7 +34,6 @@ def expected_failed_checks(estimator):
             "check_n_features_in": "TODO",
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
             "check_parameters_default_constructible": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
         }
 
 

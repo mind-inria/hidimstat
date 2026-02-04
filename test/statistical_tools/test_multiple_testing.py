@@ -166,7 +166,9 @@ def test_aggregate_docstring():
         Vector of aggregated p-values
         """,
     )
-    assert final_doc == """Short Summary
+    assert (
+        final_doc
+        == """Short Summary
 Parameters
 ----------
 param_1: ndarray of shape (n_sampling,)
@@ -189,3 +191,4 @@ Returns
 -------
 3D ndarray (n_tests, )
 Vector of aggregated p-values"""
+    )

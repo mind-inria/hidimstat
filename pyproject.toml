@@ -95,7 +95,7 @@ package-dir = {"" = "src"} # define the root of the packages as src
 
 # Configuration of static analysis
 [tool.codespell]
-builtin = "clear,rare,en-GB_to_en-US"
+builtin = "clear,rare"
 skip = "./.git,*.bib,./docs/_build"
 
 

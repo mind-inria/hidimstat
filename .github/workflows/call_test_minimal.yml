@@ -18,13 +18,13 @@ permissions: {}
 
 # Force to use color
 env:
-    FORCE_COLOR: true
+  FORCE_COLOR: true
 
 jobs:
   build-test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true # if on job fail all the other jobs are canceled
+      fail-fast: true # if on job fail all the other jobs are cancelled
       matrix:
         python-version: ["3.10"] #CHECK: not forget to add new version of python
         os: [ubuntu-latest]
@@ -74,26 +74,26 @@ jobs:
         run: |
           uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
-    # publish different reports (HTML, duration, Coverage)
-    - name: Upload HTML test result
-      if: ${{ always() && !cancelled()}}
-      id: html_report
-      uses: actions/upload-artifact@v6
-      with:
-        name: pytest-results-html-${{env.REPORT_NAME}}
-        path: report-${{env.REPORT_NAME}}.html
-        if-no-files-found: error
-    - name: Upload duration test result
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v6
-      with:
-        name: pytest-results-log-${{env.REPORT_NAME}}
-        path: log-${{env.REPORT_NAME}}.txt
-        if-no-files-found: error
-    - name: Upload coverage data
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v6
-      with:
-        name: cov-results-${{env.REPORT_NAME}}
-        path: cov/cov-${{env.REPORT_NAME}}.xml
-        if-no-files-found: error
+      # publish different reports (HTML, duration, Coverage)
+      - name: Upload HTML test result
+        if: ${{ always() && !cancelled()}}
+        id: html_report
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-results-html-${{env.REPORT_NAME}}
+          path: report-${{env.REPORT_NAME}}.html
+          if-no-files-found: error
+      - name: Upload duration test result
+        if: ${{ always() && !cancelled()}}
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-results-log-${{env.REPORT_NAME}}
+          path: log-${{env.REPORT_NAME}}.txt
+          if-no-files-found: error
+      - name: Upload coverage data
+        if: ${{ always() && !cancelled()}}
+        uses: actions/upload-artifact@v6
+        with:
+          name: cov-results-${{env.REPORT_NAME}}
+          path: cov/cov-${{env.REPORT_NAME}}.xml
+          if-no-files-found: error

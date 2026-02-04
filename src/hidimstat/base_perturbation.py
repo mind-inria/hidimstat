@@ -73,7 +73,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
     ):
         super().__init__()
-        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
+        GroupVariableImportanceMixin.__init__(
+            self, features_groups=features_groups
+        )
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
