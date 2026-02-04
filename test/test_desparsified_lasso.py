@@ -11,6 +11,7 @@ from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
@@ -19,6 +20,63 @@ from hidimstat.desparsified_lasso import (
     reid,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
+
+from .conftest import SKLEARN_LT_1_6, check_estimator
+
+ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
+
+
+def expected_failed_checks(estimator):
+    if isinstance(estimator, DesparsifiedLasso):
+        return {
+            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_fit_check_is_fitted": "TODO",
+            "check_no_attributes_set_in_init": "TODO",
+            "check_n_features_in": "TODO",
+            "check_fit_check_is_fitted": "TODO",
+            "check_parameters_default_constructible": "TODO",
+            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_no_attributes_set_in_init": "TODO",
+            "check_fit2d_1feature": "TODO",
+            "check_estimators_overwrite_params": "TODO",
+            "check_n_features_in_after_fitting": "TODO",
+        }
+
+
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+else:
+
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
 
 
 def test_desparsified_lasso():

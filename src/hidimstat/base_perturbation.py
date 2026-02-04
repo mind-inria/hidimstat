@@ -63,7 +63,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
@@ -73,10 +73,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
     ):
         super().__init__()
-        GroupVariableImportanceMixin.__init__(
-            self, features_groups=features_groups
-        )
-        check_is_fitted(estimator)
+        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
         assert n_permutations > 0, "n_permutations must be positive"
         self.estimator = estimator
         self.loss = loss
@@ -115,6 +112,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         --------
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
+        self.estimator = self._initial_fit(self.estimator, X, y)
+
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
 

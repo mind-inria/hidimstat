@@ -3,7 +3,8 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
@@ -143,6 +144,30 @@ class BaseVariableImportance(BaseEstimator):
             raise ValueError(
                 "The importances need to be called before calling this method"
             )
+
+    def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
+        """Run initial fit of a sklearn estimator.
+
+        Use during fit if an unfitted estimator was passed at instantiation.
+        """
+        if self.estimator is None:
+            raise ValueError("'estimator' must be a valid sklearn estimator.")
+        if (
+            hasattr(estimator, "__sklearn_is_fitted__")
+            and not estimator.__sklearn_is_fitted__()
+        ):
+            print(
+                f"Running initial fit of the estimator {estimator.__class__.__name__}."
+            )
+            estimator.fit(*args)
+        try:
+            check_is_fitted(estimator)
+        except NotFittedError:
+            print(
+                f"Running initial fit of the estimator {estimator.__class__.__name__}."
+            )
+            estimator.fit(*args)
+        return estimator
 
     def importance_selection(
         self,

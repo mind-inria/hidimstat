@@ -14,6 +14,18 @@ from hidimstat.knockoffs import (
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
+# TODO
+# currently fails
+# probably because parameter 'ko_generator' gets stored in 'self.generator'
+# from sklearn.utils.estimator_checks import parametrize_with_checks
+# @parametrize_with_checks(
+#     estimators=[
+#         ModelXKnockoff()
+#     ],
+# )
+# def test_check_estimator_sklearn(estimator, check):
+#     check(estimator)
+
 
 def test_knockoff_bootstrap_quantile():
     """Test bootstrap knockoof with quantile aggregation"""

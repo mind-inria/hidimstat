@@ -398,14 +398,6 @@ class TestCFIClass:
 class TestCFIExceptions:
     """Test class for CFI exceptions"""
 
-    def test_unfitted_estimator(self, data_generator):
-        """Test when using an unfitted estimator"""
-        with pytest.raises(NotFittedError):
-            CFI(
-                estimator=LinearRegression(),
-                method="predict",
-            )
-
     def test_unknown_predict_method(self, data_generator):
         """Test when an unknown prediction method is provided"""
         X, y, _, _ = data_generator
