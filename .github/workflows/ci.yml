@@ -57,6 +57,12 @@ jobs:
           echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
 
+      - name: Get branch name
+        id: get_branch_name
+        run: |
+          echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
+
+
   linter:
     name: Linter
     needs: [get_information]
@@ -67,21 +73,22 @@ jobs:
     needs: [linter, get_information]
     uses: ./.github/workflows/call_test_package.yml
     with: 
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') && github.event_name != 'push' }}
   
   tests_minimal:
     name: tests minimal
     needs: [linter, get_information]
     uses: ./.github/workflows/call_test_minimal.yml
     with: 
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') && github.event_name != 'push' }}
 
   tests_publish:
     name: tests_publish
     needs: [tests, get_information]
     if: |
-      ${{ github.event.pull_request.draft == false 
-          || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
+      ${{ github.event_name != 'push' &&
+       ( github.event.pull_request.draft == false 
+          || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ') )
         }}
     permissions:
       pull-requests: write
