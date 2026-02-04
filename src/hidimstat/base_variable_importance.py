@@ -549,8 +549,7 @@ class GroupVariableImportanceMixin:
             If the class has not been fitted (i.e., if n_features_groups_
             or _features_groups_ids attributes are missing).
         """
-        if not self.__sklearn_is_fitted__():
-            raise ValueError("The class is not fitted.")
+        check_is_fitted(self)
 
     def _check_compatibility(self, X):
         """
