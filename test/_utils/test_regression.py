@@ -11,7 +11,7 @@ def test_alpha_max():
     n = 500
     p = 100
     signal_noise_ratio = 5
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _beta, _noise = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
     max_alpha = _alpha_max(X, y)

@@ -96,7 +96,7 @@ parameter_exact = [
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     zip(*(list(zip(*parameter_exact))[1:])),
-    ids=list(zip(*parameter_exact))[0],
+    ids=next(zip(*parameter_exact)),
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -153,7 +153,7 @@ parameter_partial = [
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     zip(*(list(zip(*parameter_partial))[1:])),
-    ids=list(zip(*parameter_partial))[0],
+    ids=next(zip(*parameter_partial)),
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -253,7 +253,7 @@ def test_group(data_generator):
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     zip(*(list(zip(*parameter_exact))[1:])),
-    ids=list(zip(*parameter_exact))[0],
+    ids=next(zip(*parameter_exact)),
 )
 def test_classication(data_generator):
     """Test CFI for a classification problem"""
@@ -437,7 +437,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             ValueError,
-            match="The imputation models require to be fitted before being used.",
+            match="The imputation models require to be fitted before being used",
         ):
             cfi.importance(X, y)
 
@@ -479,7 +479,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             ValueError,
-            match="X should be a pandas dataframe or a numpy array.",
+            match="X should be a pandas dataframe or a numpy array",
         ):
             cfi.importance(X.tolist(), y)
 
@@ -497,7 +497,7 @@ class TestCFIExceptions:
         cfi.fit(X)
 
         with pytest.raises(
-            AssertionError, match="X does not correspond to the fitting data."
+            AssertionError, match="X does not correspond to the fitting data"
         ):
             cfi.importance(X[:, :-1], y)
 
@@ -561,7 +561,7 @@ class TestCFIExceptions:
         X = np.array(X, dtype=X.dtype.descr)
         with pytest.raises(
             InternalError,
-            match="A problem with indexing has happened during the fit.",
+            match="A problem with indexing has happened during the fit",
         ):
             cfi.importance(X, y)
 
@@ -577,7 +577,7 @@ class TestCFIExceptions:
         )
 
         with pytest.raises(
-            ValueError, match="type of data 'invalid_type' unknown."
+            ValueError, match="type of data 'invalid_type' unknown"
         ):
             cfi.fit(X)
 
@@ -654,7 +654,7 @@ class TestCFIExceptions:
         cfi.fit(X, y)
         with pytest.raises(
             AssertionError,
-            match="The statistical test doesn't provide the correct dimension.",
+            match="The statistical test doesn't provide the correct dimension",
         ):
             cfi.importance(X, y)
 
@@ -689,7 +689,7 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
 def test_cfi_plot(data_generator):
     """Test CFI plot function"""
     X, y, _, _ = data_generator
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, _X_test, y_train, _y_test = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -718,7 +718,7 @@ def test_cfi_plot(data_generator):
 def test_cfi_plot_2d_imp(data_generator):
     """Test CFI plot function"""
     X, y, _, _ = data_generator
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, _X_test, y_train, _y_test = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -752,7 +752,7 @@ def test_cfi_plot_2d_imp(data_generator):
 def test_cfi_plot_coverage(data_generator):
     """Add arguments combinations to test coverage of the plot function"""
     X, y, _, _ = data_generator
-    X_train, X_test, y_train, y_test = train_test_split(
+    X_train, _X_test, y_train, _y_test = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -920,7 +920,7 @@ def test_cfi_cv(data_generator):
     Note: Although only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-    X, y, important_features, not_important_features = data_generator
+    X, y, important_features, _not_important_features = data_generator
 
     model = RidgeCV(alphas=np.logspace(-3, 3, 13))
     cv = KFold(n_splits=5, shuffle=True, random_state=0)

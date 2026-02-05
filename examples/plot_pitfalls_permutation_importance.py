@@ -43,7 +43,7 @@ redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
 X_spurious += rng.normal(0, scale=np.std(X_spurious) * 0.5, size=X.shape[0])
 X = np.hstack([X, X_spurious[:, np.newaxis]])
-feature_names = dataset.feature_names + ["Spurious"]
+feature_names = [*dataset.feature_names, "Spurious"]
 print(f"The dataset contains {X.shape[0]} samples and {X.shape[1]} features.")
 
 # Compute the correlation matrix

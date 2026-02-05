@@ -37,7 +37,7 @@ def test_knockoff_bootstrap_quantile():
     fdp_list = []
     power_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, beta, _noise = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
@@ -70,7 +70,7 @@ def test_knockoff_bootstrap_e_values():
     fdp_list = []
     power_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, beta, _noise = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
 
@@ -104,7 +104,7 @@ def test_invariant_with_bootstrap():
     p = 50
     signal_noise_ratio = 5
     fdr = 0.2
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _noise = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
     # Single AKO (or vanilla KO) (verbose vs no verbose)
@@ -118,7 +118,7 @@ def test_invariant_with_bootstrap():
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp, power = fdp_power(selected, beta)
+    _fdp, _power = fdp_power(selected, beta)
 
     model_x_knockoff_repeat = ModelXKnockoff(
         estimator=LassoCV(),
@@ -130,7 +130,7 @@ def test_invariant_with_bootstrap():
     ).fit(X, y)
     model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)
-    fdp_repeat, power_repeat = fdp_power(selected_repeat, beta)
+    _fdp_repeat, _power_repeat = fdp_power(selected_repeat, beta)
 
     np.testing.assert_array_equal(
         model_x_knockoff.importances_[0],
@@ -154,7 +154,7 @@ def test_model_x_knockoff():
     fdp_list = []
     power_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, beta, _noise = multivariate_simulation(
             n, p, support_size=support_size, seed=seed
         )
         model_x_knockoff = ModelXKnockoff(
@@ -177,7 +177,7 @@ def test_model_x_knockoff_estimator():
     fdr = 0.2
     n = 200
     p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    X, y, beta, _noise = multivariate_simulation(n, p, seed=seed)
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
         estimator=GridSearchCV(
@@ -187,7 +187,7 @@ def test_model_x_knockoff_estimator():
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp, power = fdp_power(selected, beta)
+    _fdp, _power = fdp_power(selected, beta)
 
     assert selected.shape == (p,)
 
@@ -200,7 +200,7 @@ def test_estimate_distribution():
     fdr = 0.1
     n = 100
     p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    X, y, beta, _noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
@@ -223,11 +223,11 @@ def test_knockoff_function_not_centered():
     seed = 0
     fdp_list = []
     power_list = []
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
+    X, y, beta, _noise = multivariate_simulation(n, p, seed=seed)
     selected, importances, pvalues = model_x_knockoff_importance(
         X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
     )
-    fdp, power = fdp_power(selected, beta)
+    _fdp, _power = fdp_power(selected, beta)
     assert selected.shape == (p,)
     assert importances.shape == (5, p)
     assert pvalues.shape == (5, p)

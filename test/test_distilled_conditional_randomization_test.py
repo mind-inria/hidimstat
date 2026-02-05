@@ -650,7 +650,7 @@ def test_dcrt_logit_errors():
         )
     with pytest.raises(
         ValueError,
-        match="For logistic regression, lasso_screening.penalty must be 'l1'",
+        match=r"For logistic regression, lasso_screening\.penalty must be 'l1'",
     ):
         D0CRT(
             estimator=LogisticRegressionCV(

@@ -50,7 +50,7 @@ def test_random_state():
     random_state = np.random.RandomState(0)
     with pytest.raises(
         ValueError,
-        match="numpy.random.RandomState is deprecated. Please use numpy.random.Generator",
+        match=r"numpy\.random\.RandomState is deprecated\. Please use numpy\.random.Generator",
     ):
         _ = check_random_state(random_state)
 
@@ -60,7 +60,7 @@ def test_error():
     random_state = [1, 2, 3]
     with pytest.raises(
         ValueError,
-        match="cannot be used to seed a numpy.random.Generator instance",
+        match=r"cannot be used to seed a numpy\.random\.Generator instance",
     ):
         check_random_state(random_state)
 
@@ -84,6 +84,6 @@ def test_check_test_statistic_warning():
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
         check_statistical_test("test")
     with pytest.raises(
-        ValueError, match="Unsupported value for 'statistical_test'."
+        ValueError, match="Unsupported value for 'statistical_test'"
     ):
         check_statistical_test([])

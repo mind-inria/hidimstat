@@ -17,7 +17,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 def test_loco():
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _noise = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
@@ -139,7 +139,7 @@ def test_raises_value_error():
 
     with pytest.raises(
         AssertionError,
-        match="The statistical test doesn't provide the correct dimension.",
+        match="The statistical test doesn't provide the correct dimension",
     ):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
@@ -151,7 +151,7 @@ def test_raises_value_error():
 
 def test_loco_function():
     """Test the function of LOCO algorithm on a linear scenario."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _noise = multivariate_simulation(
         n_samples=150,
         n_features=100,
         support_size=10,
@@ -161,12 +161,12 @@ def test_loco_function():
     important_features = np.where(beta != 0)[0]
     non_important_features = np.where(beta == 0)[0]
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    X_train, _X_test, y_train, _y_test = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
 
-    selection, importance, pvalue = loco_importance(
+    _selection, importance, _pvalue = loco_importance(
         regression_model,
         X,
         y,
@@ -195,7 +195,7 @@ def test_loco_cv(data_generator):
     Note: even though the only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-    X, y, important_features, not_important_features = data_generator
+    X, y, important_features, _not_important_features = data_generator
 
     model = RidgeCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
