@@ -46,7 +46,7 @@ def expected_failed_checks(estimator):
             "check_estimators_nan_inf": "'fit' requires '_fit_single_split' to be implemented.",
             "check_estimators_overwrite_params": "'fit' requires '_fit_single_split' to be implemented.",
             "check_f_contiguous_array_estimator": "'fit' requires '_fit_single_split' to be implemented.",
-            "check_fit_check_is_fitted":  "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit_check_is_fitted": "'fit' requires '_fit_single_split' to be implemented.",
             "check_fit_idempotent": "'fit' requires '_fit_single_split' to be implemented.",
             "check_fit_score_takes_y": "'fit' requires '_fit_single_split' to be implemented.",
             "check_fit2d_1feature": "'fit' requires '_fit_single_split' to be implemented.",

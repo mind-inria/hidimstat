@@ -152,7 +152,9 @@ class BaseVariableImportance(BaseEstimator):
         self.pvalues_ = None
 
         if self.estimator is None:
-            raise ValueError("'estimator' must be a valid sklearn compartible estimator.")
+            raise ValueError(
+                "'estimator' must be a valid sklearn compartible estimator."
+            )
 
         if (
             hasattr(estimator, "__sklearn_is_fitted__")
