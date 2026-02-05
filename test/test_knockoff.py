@@ -187,7 +187,7 @@ def test_model_x_knockoff_estimator():
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    _fdp, _power = fdp_power(selected, beta)
+    fdp_power(selected, beta)
 
     assert selected.shape == (p,)
 
@@ -221,13 +221,11 @@ def test_knockoff_function_not_centered():
     n = 100
     p = 50
     seed = 0
-    fdp_list = []
-    power_list = []
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     selected, importances, pvalues = model_x_knockoff_importance(
         X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
     )
-    _fdp, _power = fdp_power(selected, beta)
+    fdp_power(selected, beta)
     assert selected.shape == (p,)
     assert importances.shape == (5, p)
     assert pvalues.shape == (5, p)

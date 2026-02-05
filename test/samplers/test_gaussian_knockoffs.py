@@ -52,7 +52,7 @@ def test_s_equi_not_definite_positive():
         _s_equi(a)
 
     # positive definite matrix
-    u, _s, _vh = np.linalg.svd(a)
+    u, _, _ = np.linalg.svd(a)
     d = np.eye(n)
     sigma = u * d * u.T
     res = _s_equi(sigma)
