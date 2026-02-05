@@ -403,11 +403,13 @@ class TestCFIExceptions:
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
 
+        cfi = CFI(
+            estimator=fitted_model,
+            method="unknown method",
+        )
+
         with pytest.raises(ValueError):
-            CFI(
-                estimator=fitted_model,
-                method="unknown method",
-            )
+            cfi.fit(X, y)
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
@@ -418,7 +420,7 @@ class TestCFIExceptions:
             method="predict",
         )
 
-        with pytest.raises(ValueError, match="The class is not fitted."):
+        with pytest.raises(ValueError, match="This CFI instance is not fitted yet"):
             cfi.importance(X, y)
 
     def test_unfitted_base_perturbation(self, data_generator):
@@ -454,10 +456,9 @@ class TestCFIExceptions:
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
 
-        with pytest.raises(
-            AssertionError, match="n_permutations must be positive"
-        ):
-            CFI(estimator=fitted_model, n_permutations=-1, method="predict")
+        cfi = CFI(estimator=fitted_model, n_permutations=-1, method="predict")
+        with pytest.raises(AssertionError, match="n_permutations must be positive"):
+            cfi.fit(X, y)
 
     def test_not_good_type_X(self, data_generator):
         """Test when X is wrong type"""

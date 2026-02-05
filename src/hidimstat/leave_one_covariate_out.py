@@ -98,7 +98,7 @@ class LOCO(BasePerturbation):
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
-                self.features_groups.keys(), self._list_estimators
+                self.features_groups_.keys(), self._list_estimators
             )
         )
         return self
@@ -179,13 +179,9 @@ class LOCO(BasePerturbation):
     ):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(
-                columns=self.features_groups[key_features_group]
-            )
+            X_minus_j = X.drop(columns=self.features_groups_[key_features_group])
         else:
-            X_minus_j = np.delete(
-                X, self.features_groups[key_features_group], axis=1
-            )
+            X_minus_j = np.delete(X, self.features_groups_[key_features_group], axis=1)
         estimator.fit(X_minus_j, y)
         return estimator
 

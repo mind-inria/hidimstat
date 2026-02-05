@@ -265,12 +265,12 @@ class TestBVIExceptions:
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi._check_importance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi.importance_selection()
 
@@ -360,7 +360,7 @@ class TestSelectionFDRExceptions:
         vi = BaseVariableImportance()
         with pytest.raises(
             ValueError,
-            match="The importances need to be called before calling this method",
+            match="The importance method need to be called before calling this method",
         ):
             vi.fdr_selection(0.1)
 
@@ -465,9 +465,7 @@ def test_plot_importance_feature_names():
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    vi.features_groups = {
-        str(j * 2): [] for j in np.flip(np.sort(vi.importances_))
-    }
+    vi.features_groups_ = {str(j * 2): [] for j in np.flip(np.sort(vi.importances_))}
     features_name = [str(j * 2) for j in np.flip(np.sort(vi.importances_))]
     ax_none_group = vi.plot_importance(feature_names=None)
     assert np.all(

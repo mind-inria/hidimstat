@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, check_is_fitted
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
@@ -133,16 +133,14 @@ class BaseVariableImportance(BaseEstimator):
 
     def __init__(self):
         super().__init__()
-        self.importances_ = None
-        self.pvalues_ = None
 
     def _check_importance(self):
         """
         Checks if the importance scores have been computed.
         """
-        if self.importances_ is None:
+        if getattr(self, "importances_", None) is None:
             raise ValueError(
-                "The importances need to be called before calling this method"
+                "The importance method need to be called before calling this method."
             )
 
     def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
@@ -150,8 +148,12 @@ class BaseVariableImportance(BaseEstimator):
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
+        self.importances_ = None
+        self.pvalues_ = None
+
         if self.estimator is None:
             raise ValueError("'estimator' must be a valid sklearn estimator.")
+
         if (
             hasattr(estimator, "__sklearn_is_fitted__")
             and not estimator.__sklearn_is_fitted__()
@@ -159,15 +161,20 @@ class BaseVariableImportance(BaseEstimator):
             print(
                 f"Running initial fit of the estimator {estimator.__class__.__name__}."
             )
-            estimator.fit(*args)
+            return clone(estimator).fit(*args)
+
         try:
             check_is_fitted(estimator)
         except NotFittedError:
             print(
                 f"Running initial fit of the estimator {estimator.__class__.__name__}."
             )
-            estimator.fit(*args)
+            return clone(estimator).fit(*args)
+
         return estimator
+
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimator_")
 
     def importance_selection(
         self,
@@ -426,8 +433,8 @@ class BaseVariableImportance(BaseEstimator):
             _, ax = plt.subplots()
 
         if feature_names is None:
-            if hasattr(self, "features_groups"):
-                feature_names = list(self.features_groups.keys())
+            if hasattr(self, "features_groups_"):
+                feature_names = list(self.features_groups_.keys())
             else:
                 feature_names = [
                     str(j) for j in range(self.importances_.shape[-1])
@@ -504,7 +511,6 @@ class GroupVariableImportanceMixin:
 
     def __init__(self, features_groups=None):
         self.features_groups = features_groups
-        self.n_features_groups_ = None
         self._features_groups_ids = None
 
     def fit(self, X, y=None):
@@ -525,33 +531,37 @@ class GroupVariableImportanceMixin:
         """
         if self.features_groups is None:
             self.n_features_groups_ = X.shape[1]
-            self.features_groups = {
-                j: [j] for j in range(self.n_features_groups_)
-            }
+            self.features_groups_ = {j: [j] for j in range(self.n_features_groups_)}
             self._features_groups_ids = np.array(
-                sorted(self.features_groups.values()), dtype=int
+                sorted(list(self.features_groups_.values())), dtype=int
             )
         elif isinstance(self.features_groups, dict):
-            self.n_features_groups_ = len(self.features_groups)
-            self.features_groups = self.features_groups
+            self.features_groups_ = self.features_groups
+            self.n_features_groups_ = len(self.features_groups_)
             if isinstance(X, pd.DataFrame):
                 self._features_groups_ids = []
-                for features_group_key in sorted(self.features_groups.keys()):
+                for features_group_key in sorted(self.features_groups_.keys()):
                     self._features_groups_ids.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
-                            if col in self.features_groups[features_group_key]
+                            if col in self.features_groups_[features_group_key]
                         ]
                     )
             else:
                 self._features_groups_ids = [
                     np.array(ids, dtype=int)
-                    for ids in list(self.features_groups.values())
+                    for ids in list(self.features_groups_.values())
                 ]
         else:
             raise ValueError("features_groups needs to be a dictionary")
         return self
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "n_features_groups_", None) is not None
+            or getattr(self, "_features_groups_ids", None) is not None
+        )
 
     def _check_fit(self):
         """
@@ -563,11 +573,7 @@ class GroupVariableImportanceMixin:
             If the class has not been fitted (i.e., if n_features_groups_
             or _features_groups_ids attributes are missing).
         """
-        if (
-            self.n_features_groups_ is None
-            or self._features_groups_ids is None
-        ):
-            raise ValueError("The class is not fitted.")
+        check_is_fitted(self)
 
     def _check_compatibility(self, X):
         """
@@ -605,7 +611,7 @@ class GroupVariableImportanceMixin:
                 "X should be a pandas dataframe or a numpy array."
             )
         number_columns = X.shape[1]
-        for index_variables in self.features_groups.values():
+        for index_variables in self.features_groups_.values():
             if isinstance(index_variables[0], numbers.Integral):
                 assert np.all(
                     np.array(index_variables, dtype=int) < number_columns
@@ -621,7 +627,7 @@ class GroupVariableImportanceMixin:
                     "A problem with indexing has happened during the fit."
                 )
         number_unique_feature_in_groups = np.unique(
-            np.concatenate(list(self.features_groups.values()))
+            np.concatenate([values for values in self.features_groups_.values()])
         ).shape[0]
         if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(

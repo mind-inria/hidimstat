@@ -98,6 +98,7 @@ User installation
 
 HiDimStat can easily be installed via ``pip``. For more installation information,
 see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
+
 .. code-block:: bash
 
   pip install -U hidimstat
