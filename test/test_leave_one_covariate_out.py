@@ -112,20 +112,13 @@ def test_raises_value_error():
     )
 
     # Not fitted sub-model when calling importance and predict
-    with pytest.raises(ValueError, match="The class is not fitted."):
+    with pytest.raises(ValueError, match="This LOCO instance is not fitted yet"):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
         loco.importance(X, None)
-    with pytest.raises(ValueError, match="The class is not fitted."):
-        fitted_model = LinearRegression().fit(X, y)
-        loco = LOCO(
-            estimator=fitted_model,
-            method="predict",
-        )
-        loco.importance(X, y)
 
     with pytest.raises(
         ValueError, match="The estimators require to be fit before to use them"

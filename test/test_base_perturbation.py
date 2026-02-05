@@ -31,20 +31,13 @@ ESTIMATORS_TO_CHECK = [
 def expected_failed_checks(estimator):
     if isinstance(estimator, BasePerturbation):
         return {
-            "check_dont_overwrite_parameters": "TODO",
-            "check_dtype_object": "TODO",
             "check_estimator_sparse_tag": "TODO",
-            "check_estimators_overwrite_params": "TODO",
-            "check_fit_check_is_fitted": "TODO",
-            "check_n_features_in": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
         return {
             "check_dict_unchanged": "TODO",
             "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_parameters_default_constructible": "TODO",
             "check_dont_overwrite_parameters": "TODO",
             "check_dtype_object": "TODO",
             "check_estimator_cloneable0": "TODO",
@@ -63,7 +56,6 @@ def expected_failed_checks(estimator):
             "check_fit_score_takes_y": "TODO",
             "check_fit2d_1feature": "TODO",
             "check_fit2d_predict1d": "TODO",
-            "check_parameters_default_constructible": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
             "check_no_attributes_set_in_init": "TODO",
@@ -125,11 +117,10 @@ def test_check_importance():
     """test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
-    estimator.fit(X[:, 0], X[:, 1])
-    basic_class = BasePerturbation(estimator=estimator)
-    basic_class.importances_ = []
+    basic_class = BasePerturbation(estimator=estimator).fit(X[:, 0], X[:, 1])
     with pytest.raises(
-        ValueError, match="The importance method has not yet been called."
+        ValueError,
+        match="The importance method need to be called before calling this method.",
     ):
         basic_class.importance_selection()
 
