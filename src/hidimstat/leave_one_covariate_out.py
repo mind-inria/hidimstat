@@ -1,16 +1,12 @@
-from functools import partial
-
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
-from hidimstat.base_variable_importance import GroupVariableImportanceMixin
 
 
 class LOCO(BasePerturbation):
@@ -102,7 +98,7 @@ class LOCO(BasePerturbation):
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
-                self.features_groups.keys(), self._list_estimators
+                self.features_groups_.keys(), self._list_estimators
             )
         )
         return self
@@ -179,9 +175,9 @@ class LOCO(BasePerturbation):
     def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(columns=self.features_groups[key_features_group])
+            X_minus_j = X.drop(columns=self.features_groups_[key_features_group])
         else:
-            X_minus_j = np.delete(X, self.features_groups[key_features_group], axis=1)
+            X_minus_j = np.delete(X, self.features_groups_[key_features_group], axis=1)
         estimator.fit(X_minus_j, y)
         return estimator
 

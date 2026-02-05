@@ -1,8 +1,5 @@
-from functools import partial
-
 import numpy as np
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error

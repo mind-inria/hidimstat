@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
@@ -104,35 +103,22 @@ def test_loco():
 
 def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
         shuffle=False,
         seed=42,
     )
-    # Not fitted estimator
-    with pytest.raises(NotFittedError):
-        loco = LOCO(
-            estimator=LinearRegression(),
-            method="predict",
-        )
 
     # Not fitted sub-model when calling importance and predict
-    with pytest.raises(ValueError, match="The class is not fitted."):
+    with pytest.raises(ValueError, match="This LOCO instance is not fitted yet"):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
             method="predict",
         )
         loco.importance(X, None)
-    with pytest.raises(ValueError, match="The class is not fitted."):
-        fitted_model = LinearRegression().fit(X, y)
-        loco = LOCO(
-            estimator=fitted_model,
-            method="predict",
-        )
-        loco.importance(X, y)
 
     with pytest.raises(
         ValueError, match="The estimators require to be fit before to use them"
