@@ -689,7 +689,7 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
 def test_cfi_plot(data_generator):
     """Test CFI plot function"""
     X, y, _, _ = data_generator
-    X_train, _X_test, y_train, _y_test = train_test_split(
+    X_train, _, y_train, _ = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -718,7 +718,7 @@ def test_cfi_plot(data_generator):
 def test_cfi_plot_2d_imp(data_generator):
     """Test CFI plot function"""
     X, y, _, _ = data_generator
-    X_train, _X_test, y_train, _y_test = train_test_split(
+    X_train, _, y_train, _ = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -752,7 +752,7 @@ def test_cfi_plot_2d_imp(data_generator):
 def test_cfi_plot_coverage(data_generator):
     """Add arguments combinations to test coverage of the plot function"""
     X, y, _, _ = data_generator
-    X_train, _X_test, y_train, _y_test = train_test_split(
+    X_train, _, y_train, _ = train_test_split(
         X, y, test_size=0.5, random_state=0
     )
     fitted_model = LinearRegression().fit(X_train, y_train)
@@ -920,7 +920,7 @@ def test_cfi_cv(data_generator):
     Note: Although only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-    X, y, important_features, _not_important_features = data_generator
+    X, y, important_features, _ = data_generator
 
     model = RidgeCV(alphas=np.logspace(-3, 3, 13))
     cv = KFold(n_splits=5, shuffle=True, random_state=0)

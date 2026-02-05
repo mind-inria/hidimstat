@@ -128,6 +128,4 @@ class TestTtest_1samp:
             ValueError,
             match="`alternative` must be 'less', 'greater', or 'two-sided'",
         ):
-            _t_ex, _p_ex = nadeau_bengio_ttest(
-                x, 9, test_frac=0.0, alternative="ttt"
-            )
+            nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")

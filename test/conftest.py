@@ -66,7 +66,7 @@ def data_generator(
     not_important_features : ndarray
         Indices of features with zero coefficients.
     """
-    X, y, beta, _noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,

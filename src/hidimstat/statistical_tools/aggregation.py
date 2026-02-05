@@ -97,7 +97,7 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """
     assert gamma_min > 0 and gamma_min <= 1, "gamma min should between 0 and 1"
 
-    n_iter, _n_features = pvals.shape
+    n_iter, _ = pvals.shape
 
     n_min = int(np.floor(gamma_min * n_iter))
     ordered_pval = np.sort(pvals, axis=0)[n_min:]

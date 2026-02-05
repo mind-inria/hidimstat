@@ -101,7 +101,7 @@ def test_desparsified_lasso():
     fdp_dof_list = []
     powr_dof_list = []
     for seed in range(10):
-        X, y, beta, _noise = multivariate_simulation(
+        X, y, beta, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
@@ -284,7 +284,7 @@ def test_exception():
         n_jobs=1,
     )
 
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -336,7 +336,7 @@ def test_function_not_center():
     signal_noise_ratio = 50
     rho = 0.0
 
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -345,9 +345,7 @@ def test_function_not_center():
         shuffle=False,
         seed=10,
     )
-    _selection, _importances, _pvalues = desparsified_lasso_importance(
-        X, y, centered=False
-    )
+    desparsified_lasso_importance(X, y, centered=False)
 
 
 def test_reid():
@@ -383,7 +381,7 @@ def test_reid():
     # ###########
     support_size = 0
 
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -414,7 +412,7 @@ def test_group_reid():
     # First expe
     # ##########
     support_size = 2
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -473,7 +471,7 @@ def test_group_reid_2():
     # Second expe
     # ###########
     support_size = 0
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -517,7 +515,7 @@ def test_reid_exception():
     # ##########
     support_size = 2
 
-    X, y, _beta, _noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -547,7 +545,7 @@ def dl_y1d_test_data():
     as the estimator with shuffling in the cross-validation to introduce randomness in
     the training process.
     """
-    X, y, _beta, _ = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=100,
         n_features=20,
         # n_targets=1,

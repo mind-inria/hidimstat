@@ -22,9 +22,6 @@ def test_gaussian_equi():
 def test_gaussian_error():
     """Test function error"""
     seed = 42
-    n = 100
-    p = 50
-    _X, _y, _beta, _noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs()
     with pytest.raises(
         ValueError,
