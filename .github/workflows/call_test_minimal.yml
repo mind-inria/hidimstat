@@ -55,23 +55,23 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-    
-    # Install dependency for running the tests
-    - name: Install the dependance
-      if: ${{ inputs.skip_test == false }}
-      run: |
-        uv pip install --reinstall --upgrade --resolution lowest-direct -e ".[test]"
-  
-    # Run the tests with coverage and report add this end
-    # option for the coverage: --cov=. --cov-report=xml:... 
-    # option for mardown report: --md-report --md-report-output= ...
-    # option for html report: --self-contained-html --html=report-...
-    # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
-    # inline command for being compatible on linux and windows
-    - name: Run pytest
-      if: ${{ inputs.skip_test == false }}
-      run: |
-          uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
+
+      # Install dependency for running the tests
+      - name: Install the dependence
+        if: ${{ inputs.skip_test == false }}
+        run: |
+          uv pip install --reinstall --upgrade --resolution lowest-direct -e ".[test]"
+
+      # Run the tests with coverage and report add this end
+      # option for the coverage: --cov=. --cov-report=xml:...
+      # option for mardown report: --md-report --md-report-output= ...
+      # option for html report: --self-contained-html --html=report-...
+      # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
+      # inline command for being compatible on linux and windows
+      - name: Run pytest
+        if: ${{ inputs.skip_test == false }}
+        run: |
+            uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
       # publish different reports (HTML, duration, Coverage)
       - name: Upload HTML test result

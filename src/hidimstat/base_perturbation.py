@@ -76,7 +76,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
     ):
         super().__init__()
-        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
+        GroupVariableImportanceMixin.__init__(
+            self, features_groups=features_groups
+        )
         self.estimator = estimator
         self.loss = loss
 

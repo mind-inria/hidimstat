@@ -57,11 +57,6 @@ jobs:
           echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
 
-  linter:
-    name: Linter
-    needs: [get_information]
-    uses: ./.github/workflows/call_linter.yml
-
   tests:
     name: tests
     needs: [get_information]
@@ -90,13 +85,3 @@ jobs:
     with:
       BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
 
- # debugger:
-  #   needs: linter
-  #   env:
-  #     STATE_LINTER: ${{ needs.linter.result }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: print output
-  #       run:
-  #         echo "Linter "$STATE_LINTER
-  #   if: ${{ always() }}

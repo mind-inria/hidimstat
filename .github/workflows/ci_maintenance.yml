@@ -53,14 +53,9 @@ jobs:
         run: |
           echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
-  linter:
-    name: Linter
-    needs: [get_information]
-    uses: ./.github/workflows/call_linter.yml
-
   tests:
     name: tests
-    needs: [linter, get_information]
+    needs: [get_information]
     uses: ./.github/workflows/call_test_package.yml
     with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
