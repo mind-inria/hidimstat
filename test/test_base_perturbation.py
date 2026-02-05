@@ -60,6 +60,7 @@ def expected_failed_checks(estimator):
             "check_readonly_memmap_input": "'fit' requires '_fit_single_split' to be implemented.",
         }
         if isinstance(estimator.estimators, list):
+            # there are some extra failures when BasePerturbationCV has a list of estimators
             failed_checks |= {
                 "check_fit2d_1sample": "'fit' requires '_fit_single_split' to be implemented.",
                 "check_complex_data": "'fit' requires '_fit_single_split' to be implemented.",
