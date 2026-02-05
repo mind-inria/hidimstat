@@ -359,8 +359,8 @@ class BasePerturbationCV(BaseVariableImportance):
 
     def __init__(
         self,
-        estimators,
-        cv,
+        estimators = None,
+        cv = None,
         statistical_test="nb-ttest",
         n_jobs: int = 1,
     ):
@@ -369,21 +369,8 @@ class BasePerturbationCV(BaseVariableImportance):
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
-        self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
-        self.importances_ = None
-        self.pvalues_ = None
-        self.estimators_ = None
-        if isinstance(self.estimators, list):
-            if len(self.estimators) != self.cv.get_n_splits():
-                raise ValueError(
-                    "If estimators is a list, its length must be equal to the number "
-                    "of folds."
-                )
-            else:
-                for est in self.estimators:
-                    check_is_fitted(est)
-            self.estimators_ = self.estimators
-        self.importance_estimators_ = None
+        
+
 
     def _fit_single_split(self, estimator, X_train, y_train):
         """
@@ -395,6 +382,30 @@ class BasePerturbationCV(BaseVariableImportance):
         """
         Fit the importance estimators on each fold of the cross-validation.
         """
+        assert self.cv is not None, 'cv must be valid cross-validation generator.'
+
+        self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
+        
+        self.importances_ = None
+        self.pvalues_ = None
+
+        self.estimators_ = None
+
+        self.importance_estimators_ = None
+
+
+        if isinstance(self.estimators, list):
+            if len(self.estimators) != self.cv.get_n_splits():
+                raise ValueError(
+                    "If estimators is a list, its length must be equal to the number "
+                    "of folds."
+                )
+            else:
+                for est in self.estimators:
+                    check_is_fitted(est)
+            self.estimators_ = self.estimators
+
+
         if self.estimators_ is None:
             self.estimators_ = Parallel(n_jobs=self.n_jobs)(
                 delayed(lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr))(

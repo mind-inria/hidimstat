@@ -36,8 +36,6 @@ def expected_failed_checks(estimator):
     elif isinstance(estimator, BasePerturbationCV):
         return {
             "check_dict_unchanged": "TODO",
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_parameters_default_constructible": "TODO",
             "check_dont_overwrite_parameters": "TODO",
             "check_dtype_object": "TODO",
             "check_estimator_cloneable0": "TODO",
@@ -58,7 +56,6 @@ def expected_failed_checks(estimator):
             "check_fit2d_predict1d": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
             "check_methods_sample_order_invariance": "TODO",
             "check_methods_subset_invariance": "TODO",
             "check_pipeline_consistency": "TODO",
@@ -127,19 +124,22 @@ def test_check_importance():
 
 def test_base_cv_errors():
     """Test the errors of the BasePerturbationCV class"""
+    basic_class = BasePerturbationCV(
+        estimators=[LinearRegression(), LinearRegression()],
+        cv=KFold(n_splits=4),
+    )
+
+    X = np.random.randn(100, 5)
+    y = np.random.randn(100)
+
     with pytest.raises(
         ValueError,
         match="If estimators is a list, its length must be equal to the number of folds",
     ):
-        BasePerturbationCV(
-            estimators=[LinearRegression(), LinearRegression()],
-            cv=KFold(n_splits=4),
-        )
+        basic_class.fit(X, y)
 
-    X = np.random.randn(100, 5)
-    y = np.random.randn(100)
+    vim = BasePerturbationCV(
+        estimators=LinearRegression(), cv=KFold(n_splits=2)
+    )
     with pytest.raises(NotImplementedError):
-        vim = BasePerturbationCV(
-            estimators=LinearRegression(), cv=KFold(n_splits=2)
-        )
         vim.fit(X, y)
