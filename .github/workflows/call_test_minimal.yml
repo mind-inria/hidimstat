@@ -17,6 +17,10 @@ on:
 # disable all the permissions for the workflow
 permissions: {}
 
+# Force to use color
+env:
+    FORCE_COLOR: true
+
 jobs:
   build-test:
     runs-on: ${{ matrix.os }}
@@ -57,7 +61,6 @@ jobs:
     - name: Install the dependance
       if: ${{ inputs.skip_test == false }}
       run: |
-        sudo apt-get install -y libfreetype6-dev
         uv pip install --reinstall --upgrade --resolution lowest-direct -e ".[test]"
   
     # Run the tests with coverage and report add this end

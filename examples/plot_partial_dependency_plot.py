@@ -17,7 +17,6 @@ We'll use the circles dataset to illustrate the basic usage.
 # `sklearn.datasets`.
 
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 from sklearn.datasets import make_circles
 

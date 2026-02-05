@@ -99,7 +99,7 @@ skip = "./.git,*.bib,./docs/_build"
 
 [tool.isort]
 profile = "black"
-skip = ["src/hidimstat/_version.py", "docs/_build", "build/"]
+skip = ["src/hidimstat/_version.py", "docs/_build", "build/", ".venv"]
 
 # file where the version is save
 [tool.setuptools_scm]
@@ -117,6 +117,7 @@ addopts = [
     "--showlocals",            # show local variable inn trackbacks
     "--strict-config",         # no warning from parsing pytest configuration file
     "--strict-markers",        # undefine markers will raise an error
+    "--color=yes", # Color terminal output
     # pytest-randomly
     # "--randomly-dont-reset-seed", # turn off the rest of the random seed 
     # pytest-xdist option
