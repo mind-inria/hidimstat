@@ -23,7 +23,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     Parameters
     ----------
     estimator : sklearn-compatible estimator
-        The estimator that will be used for predictions. It will be automatically fitted if it has not already been.
+        The estimator that will be used for predictions.
+        It will be automatically fitted if it has not already been.
     method : str, default="predict"
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
