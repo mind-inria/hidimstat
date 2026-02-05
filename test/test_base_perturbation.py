@@ -104,7 +104,7 @@ else:
 
 
 def test_no_implemented_methods():
-    """test that the methods are not implemented in the base class"""
+    """Test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
@@ -114,7 +114,7 @@ def test_no_implemented_methods():
 
 
 def test_check_importance():
-    """test that the methods are not implemented in the base class"""
+    """Test that the methods are not implemented in the base class"""
     X = np.random.randint(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     basic_class = BasePerturbation(estimator=estimator).fit(X[:, 0], X[:, 1])
@@ -132,11 +132,14 @@ def test_base_cv_errors():
         match="If estimators is a list, its length must be equal to the number of folds",
     ):
         BasePerturbationCV(
-            estimators=[LinearRegression(), LinearRegression()], cv=KFold(n_splits=4)
+            estimators=[LinearRegression(), LinearRegression()],
+            cv=KFold(n_splits=4),
         )
 
     X = np.random.randn(100, 5)
     y = np.random.randn(100)
     with pytest.raises(NotImplementedError):
-        vim = BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2))
+        vim = BasePerturbationCV(
+            estimators=LinearRegression(), cv=KFold(n_splits=2)
+        )
         vim.fit(X, y)

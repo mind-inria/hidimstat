@@ -55,7 +55,7 @@ class PFI(BasePerturbation):
         n_permutations: int = 50,
         statistical_test="ttest",
         features_groups=None,
-        random_state: int = None,
+        random_state: int | None = None,
         n_jobs: int = 1,
     ):
         super().__init__(
@@ -96,7 +96,7 @@ def pfi_importance(
     percentile=None,
     threshold_min=None,
     threshold_max=None,
-    random_state: int = None,
+    random_state: int | None = None,
     n_jobs: int = 1,
 ):
     methods = PFI(

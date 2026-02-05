@@ -126,7 +126,7 @@ df_plot = pd.DataFrame(
         "confidence_max": dl.confidence_bound_max_,
     }
 )
-df_plot.sort_values(by="importance", key=np.abs, ascending=False, inplace=True)
+df_plot = df_plot.sort_values(by="importance", key=np.abs, ascending=False)
 
 
 # %%

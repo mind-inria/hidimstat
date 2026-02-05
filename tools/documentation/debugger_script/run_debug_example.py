@@ -7,15 +7,15 @@ compiler = codeop.Compile()
 
 def run_example(path):
     """
-    run the code like sphinx gallery do it
+    Run the code like sphinx gallery do it
 
-    PARAMETERS:
-    -----------
+    Parameters
+    ----------
     path: string
         path of the example
     """
     # Read the file
-    with open(path, "r") as f:
+    with open(path) as f:
         code = f.read()
 
     # Compile the code

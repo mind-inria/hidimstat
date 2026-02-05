@@ -43,7 +43,6 @@ from sklearn.utils import Bunch
 
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
-
     # Gathering data
     haxby_dataset = datasets.fetch_haxby(subjects=[subject])
     fmri_filename = haxby_dataset.func[0]
@@ -168,7 +167,9 @@ desparsified_lasso_1 = DesparsifiedLasso(
 )
 
 cludl = CluDL(
-    clustering=ward, desparsified_lasso=deepcopy(desparsified_lasso_1), random_state=0
+    clustering=ward,
+    desparsified_lasso=deepcopy(desparsified_lasso_1),
+    random_state=0,
 )
 cludl.fit_importance(X, y)
 
@@ -221,19 +222,19 @@ target_fwer = 0.1
 from matplotlib.pyplot import get_cmap
 from nilearn.plotting import plot_stat_map, show
 
-from hidimstat.statistical_tools.p_values import zscore_from_pval
-
 
 def plot_map(
     data,
     threshold,
     title=None,
-    cut_coords=[-25, -40, -5],
+    cut_coords=None,
     masker=masker,
     bg_img=data.bg_img,
     vmin=None,
     vmax=None,
 ):
+    if cut_coords is None:
+        cut_coords = [-25, -40, -5]
     zscore_img = masker.inverse_transform(data)
     plot_stat_map(
         zscore_img,
@@ -255,7 +256,9 @@ plot_map(
     title="CluDL",
 )
 
-selected_encludl = encludl.fwer_selection(fwer=target_fwer, two_tailed_test=True)
+selected_encludl = encludl.fwer_selection(
+    fwer=target_fwer, two_tailed_test=True
+)
 z_score_encludl = zscore_from_pval(encludl.pvalues_) * selected_encludl
 plot_map(
     z_score_encludl,

@@ -20,7 +20,7 @@ jobs:
     env:
       TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
     steps:
-      # get reports from previous job 
+      # get reports from previous job
       - name: Get HTML reports
         uses: actions/download-artifact@v7
         with:
@@ -56,8 +56,8 @@ jobs:
           PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
-          if [ $PULL_REQUEST_NUMBER == "null" ] 
-          then 
+          if [ $PULL_REQUEST_NUMBER == "null" ]
+          then
             BRANCH=${{ inputs.BRANCH_NAME }}
           else
             BRANCH=pull/$PULL_REQUEST_NUMBER/head
@@ -79,7 +79,7 @@ jobs:
           # display result for debugging
           cat result_post.txt
           # if there is no "id" in result_post, this mean that there is an error
-          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
+          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token
           # this is not apply also for dependabot
           if [[ $http_response == '201' \
                || ( ${{ ! github.event.pull_request.head.repo.fork }} \
@@ -100,8 +100,8 @@ jobs:
     steps:
     # initialize the reposititory
     - uses: actions/checkout@v6
-    
-    # get coverage only for 1 job 
+
+    # get coverage only for 1 job
     - name: Get data
       uses: actions/download-artifact@v7
       with:

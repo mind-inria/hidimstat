@@ -59,7 +59,9 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
     - The generated alpha grid is deterministic given X, X_tilde and y.
     """
     if type(estimator).__name__ != "LassoCV":
-        raise TypeError("You should not use this function to configure the estimator")
+        raise TypeError(
+            "You should not use this function to configure the estimator"
+        )
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
@@ -250,9 +252,9 @@ class ModelXKnockoff(BaseVariableImportance):
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         if X is not None:
-            warnings.warn("X won't be used")
+            warnings.warn("X won't be used", stacklevel=2)
         if y is not None:
-            warnings.warn("y won't be used")
+            warnings.warn("y won't be used", stacklevel=2)
         self._check_fit()
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
@@ -348,15 +350,19 @@ class ModelXKnockoff(BaseVariableImportance):
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
-        assert (
-            self.importances_ is not None
-        ), "this method doesn't support selection base on FDR"
+        assert self.importances_ is not None, (
+            "this method doesn't support selection base on FDR"
+        )
 
         if self.importances_.shape[0] == 1:
-            self.threshold_fdr_ = self.knockoff_threshold(self.importances_, fdr=fdr)
+            self.threshold_fdr_ = self.knockoff_threshold(
+                self.importances_, fdr=fdr
+            )
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
-            assert fdr_control != "ebh", "for p-values, the fdr control can't be 'ebh'"
+            assert fdr_control != "ebh", (
+                "for p-values, the fdr control can't be 'ebh'"
+            )
             pvalues = np.array(
                 [
                     self._empirical_knockoff_pval(test_score)
@@ -374,11 +380,15 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
-            assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
+            assert fdr_control == "ebh", (
+                "for e-value, the fdr control need to be 'ebh'"
+            )
             evalues = []
             for test_score in self.importances_:
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
-                evalues.append(self._empirical_knockoff_eval(test_score, ko_threshold))
+                evalues.append(
+                    self._empirical_knockoff_eval(test_score, ko_threshold)
+                )
             self.aggregated_eval_ = np.mean(evalues, axis=0)
             self.threshold_fdr_ = fdr_threshold(
                 self.aggregated_eval_,
@@ -399,9 +409,13 @@ class ModelXKnockoff(BaseVariableImportance):
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
-            if hasattr(estimator_, "alphas") and (estimator_.alphas is not None):
+            if hasattr(estimator_, "alphas") and (
+                estimator_.alphas is not None
+            ):
                 n_alphas = len(estimator_.alphas)
-            elif hasattr(estimator_, "n_alphas") and (estimator_.n_alphas is not None):
+            elif hasattr(estimator_, "n_alphas") and (
+                estimator_.n_alphas is not None
+            ):
                 n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
@@ -450,10 +464,14 @@ class ModelXKnockoff(BaseVariableImportance):
             elif hasattr(estimator, "best_estimator_") and hasattr(
                 estimator.best_estimator_, "coef_"
             ):
-                coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
+                coef = np.ravel(
+                    estimator.best_estimator_.coef_
+                )  # for CV object
             else:
                 raise TypeError("estimator should be linear")
-            statistic_tmp = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
+            statistic_tmp = np.abs(coef[:n_features]) - np.abs(
+                coef[n_features:]
+            )
             test_statistic_list.append(statistic_tmp)
 
         test_statistic = np.array(test_statistic_list)
@@ -522,7 +540,8 @@ class ModelXKnockoff(BaseVariableImportance):
                 pvals.append(1)
             else:
                 pvals.append(
-                    (offset + np.sum(test_score_inv >= test_score[i])) / n_features
+                    (offset + np.sum(test_score_inv >= test_score[i]))
+                    / n_features
                 )
 
         return np.array(pvals)

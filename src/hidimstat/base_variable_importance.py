@@ -44,7 +44,13 @@ def _selection_generic(
     n_criteria = np.sum(
         [
             criteria is not None
-            for criteria in [k_best, k_lowest, percentile, threshold_max, threshold_min]
+            for criteria in [
+                k_best,
+                k_lowest,
+                percentile,
+                threshold_max,
+                threshold_min,
+            ]
         ]
     )
     assert n_criteria <= 1, "Only support selection based on one criteria."
@@ -53,7 +59,8 @@ def _selection_generic(
         if k_best > values.shape[0]:
             warnings.warn(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned."
+                "All the features will be returned.",
+                stacklevel=2,
             )
         mask_k_best = np.zeros_like(values, dtype=bool)
 
@@ -67,7 +74,8 @@ def _selection_generic(
         if k_lowest > values.shape[0]:
             warnings.warn(
                 f"k={k_lowest} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned."
+                "All the features will be returned.",
+                stacklevel=2,
             )
         mask_k_lowest = np.zeros_like(values, dtype=bool)
 
@@ -77,10 +85,8 @@ def _selection_generic(
         mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
         return mask_k_lowest
     elif percentile is not None:
-        assert (
-            0 < percentile < 100
-        ), "percentile must be between 0 and 100 (exclusive). Got {}.".format(
-            percentile
+        assert 0 < percentile < 100, (
+            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
         )
         # based on SelectPercentile in Scikit-Learn
         threshold_percentile = np.percentile(values, 100 - percentile)
@@ -171,7 +177,11 @@ class BaseVariableImportance(BaseEstimator):
         return hasattr(self, "estimator_")
 
     def importance_selection(
-        self, k_best=None, percentile=None, threshold_max=None, threshold_min=None
+        self,
+        k_best=None,
+        percentile=None,
+        threshold_max=None,
+        threshold_min=None,
     ):
         """
         Selects features based on variable importance.
@@ -231,20 +241,22 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features (True for selected).
         """
         self._check_importance()
-        assert (
-            self.pvalues_ is not None
-        ), "The selection on p-value can't be done because the current method does not compute p-values."
+        assert self.pvalues_ is not None, (
+            "The selection on p-value can't be done because the current method does not compute p-values."
+        )
         if threshold_min is not None:
-            assert (
-                0 < threshold_min and threshold_min < 1
-            ), "threshold_min needs to be between 0 and 1"
+            assert threshold_min > 0 and threshold_min < 1, (
+                "threshold_min needs to be between 0 and 1"
+            )
         if threshold_max is not None:
-            assert (
-                0 < threshold_max and threshold_max < 1
-            ), "threshold_max needs to be between 0 and 1"
+            assert threshold_max > 0 and threshold_max < 1, (
+                "threshold_max needs to be between 0 and 1"
+            )
         assert alternative_hypothesis is None or isinstance(
             alternative_hypothesis, bool
-        ), "alternative_hippothesis can have only three values: True, False and None."
+        ), (
+            "alternative_hippothesis can have only three values: True, False and None."
+        )
         return _selection_generic(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
@@ -295,13 +307,13 @@ class BaseVariableImportance(BaseEstimator):
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
-        assert 0 < fdr and fdr < 1, "FDR needs to be between 0 and 1 excluded"
-        assert (
-            self.pvalues_ is not None
-        ), "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
-        assert (
-            fdr_control == "bhq" or fdr_control == "bhy"
-        ), "only 'bhq' and 'bhy' are supported"
+        assert fdr > 0 and fdr < 1, "FDR needs to be between 0 and 1 excluded"
+        assert self.pvalues_ is not None, (
+            "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
+        )
+        assert fdr_control in {"bhq", "bhy"}, (
+            "only 'bhq' and 'bhy' are supported"
+        )
 
         # Adjust fdr for two-tailed test
         if two_tailed_test:
@@ -358,10 +370,14 @@ class BaseVariableImportance(BaseEstimator):
         if procedure == "bonferroni":
             if n_tests is None:
                 if hasattr(self, "clustering_"):
-                    print("Using number of clusters for multiple testing correction.")
+                    print(
+                        "Using number of clusters for multiple testing correction."
+                    )
                     n_tests = self.clustering_.n_clusters_
                 else:
-                    print("Using number of features for multiple testing correction.")
+                    print(
+                        "Using number of features for multiple testing correction."
+                    )
                     n_tests = self.importances_.shape[0]
 
             # Adjust fwer for two-tailed test
@@ -407,7 +423,9 @@ class BaseVariableImportance(BaseEstimator):
             import matplotlib.pyplot as plt
             import seaborn as sns
         except ImportError:
-            raise Exception("You need to install seaborn for using this functionality")
+            raise Exception(
+                "You need to install seaborn for using this functionality"
+            )
 
         self._check_importance()
 
@@ -418,11 +436,13 @@ class BaseVariableImportance(BaseEstimator):
             if hasattr(self, "features_groups_"):
                 feature_names = list(self.features_groups_.keys())
             else:
-                feature_names = [str(j) for j in range(self.importances_.shape[-1])]
+                feature_names = [
+                    str(j) for j in range(self.importances_.shape[-1])
+                ]
         elif isinstance(feature_names, list):
-            assert np.all(
-                isinstance(name, str) for name in feature_names
-            ), "The feature_names should be a list of the string"
+            assert np.all(isinstance(name, str) for name in feature_names), (
+                "The feature_names should be a list of the string"
+            )
         else:
             raise ValueError("feature_names should be a list")
 
@@ -449,7 +469,11 @@ class BaseVariableImportance(BaseEstimator):
             ordered=True,
         )
         sns.barplot(
-            df_plot, x="Importance", y="Feature", ax=ax, **seaborn_barplot_kwargs
+            df_plot,
+            x="Importance",
+            y="Feature",
+            ax=ax,
+            **seaborn_barplot_kwargs,
         )
         sns.despine(ax=ax)
         ax.set_ylabel("")
@@ -583,7 +607,9 @@ class GroupVariableImportanceMixin:
         elif isinstance(X, np.ndarray):
             names = None
         else:
-            raise ValueError("X should be a pandas dataframe or a numpy array.")
+            raise ValueError(
+                "X should be a pandas dataframe or a numpy array."
+            )
         number_columns = X.shape[1]
         for index_variables in self.features_groups_.values():
             if isinstance(index_variables[0], numbers.Integral):
@@ -593,9 +619,9 @@ class GroupVariableImportanceMixin:
             elif type(index_variables[0]) is str or np.issubdtype(
                 type(index_variables[0]), str
             ):
-                assert np.all(
-                    [name in names for name in index_variables]
-                ), f"The array is missing at least one of the following columns {index_variables}."
+                assert np.all([name in names for name in index_variables]), (
+                    f"The array is missing at least one of the following columns {index_variables}."
+                )
             else:
                 raise InternalError(
                     "A problem with indexing has happened during the fit."
@@ -607,5 +633,6 @@ class GroupVariableImportanceMixin:
             warnings.warn(
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
-                f"{number_unique_feature_in_groups}"
+                f"{number_unique_feature_in_groups}",
+                stacklevel=2,
             )

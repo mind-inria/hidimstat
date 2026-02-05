@@ -104,7 +104,9 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     # calculation of the pvalue / quantile (=j/m)
     # see equation 2.2 of `meinshausen2009p`
     P = (
-        np.min(ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0)
+        np.min(
+            ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0
+        )
         * n_iter
     )
     # see equation 2.3 of `meinshausen2009p`

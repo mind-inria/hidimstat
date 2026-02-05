@@ -8,92 +8,91 @@ on:
   workflow_call:
     inputs:
       skip_test:
-        description: 'check if the tests are skkiped or not'
+        description: "check if the tests are skkiped or not"
         required: true
         type: boolean
         default: false
-
 
 # disable all the permission for the workflow
 permissions: {}
 
 # Force to use color
 env:
-    FORCE_COLOR: true
+  FORCE_COLOR: true
 
 jobs:
   build-test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true  # if on job fail all the other jobs are cancelled
+      fail-fast: true # if on job fail all the other jobs are cancelled
       matrix:
         python-version: ["3.14", "3.10"] #CHECK: not forget to add new version of python
         os: [macos-latest, ubuntu-latest, windows-latest]
-    
+
     # name for files
     env:
       REPORT_NAME: ${{ matrix.python-version }}-os-${{ matrix.os }}
 
     steps:
-    # Checkout to the branch for getting the right code
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || github.ref }}
+      # Checkout to the branch for getting the right code
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
 
-      # skip tests
-    - name: Skip the tests
-      if: ${{ inputs.skip_test }}
-      run: |
-        (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
-        touch log-${{env.REPORT_NAME}}.txt
-        mkdir cov
-        touch cov/cov-${{env.REPORT_NAME}}.xml
+        # skip tests
+      - name: Skip the tests
+        if: ${{ inputs.skip_test }}
+        run: |
+          (echo '<html><body><p>NO TESTS</p></body></html>') > report-${{env.REPORT_NAME}}.html
+          touch log-${{env.REPORT_NAME}}.txt
+          mkdir cov
+          touch cov/cov-${{env.REPORT_NAME}}.xml
 
-    # Install python
-    - name: Install the latest version of uv and the right verion of python
-      if:  ${{ inputs.skip_test == false }}
-      uses: astral-sh/setup-uv@v7
-      with:
+      # Install python
+      - name: Install the latest version of uv and the right version of python
+        if: ${{ inputs.skip_test == false }}
+        uses: astral-sh/setup-uv@v7
+        with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
-    
-    # Install dependency for running the tests
-    - name: Install the dependance
-      if: ${{ inputs.skip_test == false }}
-      run: |
-        uv pip install -e ".[test]"
-  
-    # Run the tests with coverage and report add this end
-    # option for the coverage: --cov=. --cov-report=xml:... 
-    # option for mardown report: --md-report --md-report-output= ...
-    # option for html report: --self-contained-html --html=report-...
-    # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
-    # inline command for being compatible on linux and windows
-    - name: Run pytest
-      if: ${{ inputs.skip_test == false }}
-      run: |
+
+      # Install dependency for running the tests
+      - name: Install the dependence
+        if: ${{ inputs.skip_test == false }}
+        run: |
+          uv pip install -e ".[test]"
+
+      # Run the tests with coverage and report add this end
+      # option for the coverage: --cov=. --cov-report=xml:...
+      # option for mardown report: --md-report --md-report-output= ...
+      # option for html report: --self-contained-html --html=report-...
+      # option for duration report: --pytest-durations= number of second --pytest-resultlog=log-...
+      # inline command for being compatible on linux and windows
+      - name: Run pytest
+        if: ${{ inputs.skip_test == false }}
+        run: |
           uv run --frozen --no-sync pytest --cov=. --cov-report=xml:cov/cov-${{env.REPORT_NAME}}.xml --self-contained-html --html=report-${{env.REPORT_NAME}}.html --pytest-durations=10 --report-log=log-${{env.REPORT_NAME}}.txt --mpl-baseline-path=tests/baseline_plots
 
-    # publish different reports (HTML, duration, Coverage)
-    - name: Upload HTML test result
-      if: ${{ always() && !cancelled()}}
-      id: html_report
-      uses: actions/upload-artifact@v6
-      with:
-        name: pytest-results-html-${{env.REPORT_NAME}}
-        path: report-${{env.REPORT_NAME}}.html
-        if-no-files-found: error
-    - name: Upload duration test result
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v6
-      with:
-        name: pytest-results-log-${{env.REPORT_NAME}}
-        path: log-${{env.REPORT_NAME}}.txt
-        if-no-files-found: error
-    - name: Upload coverage data
-      if: ${{ always() && !cancelled()}}
-      uses: actions/upload-artifact@v6
-      with:
-        name: cov-results-${{env.REPORT_NAME}}
-        path: cov/cov-${{env.REPORT_NAME}}.xml
-        if-no-files-found: error
+      # publish different reports (HTML, duration, Coverage)
+      - name: Upload HTML test result
+        if: ${{ always() && !cancelled()}}
+        id: html_report
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-results-html-${{env.REPORT_NAME}}
+          path: report-${{env.REPORT_NAME}}.html
+          if-no-files-found: error
+      - name: Upload duration test result
+        if: ${{ always() && !cancelled()}}
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-results-log-${{env.REPORT_NAME}}
+          path: log-${{env.REPORT_NAME}}.txt
+          if-no-files-found: error
+      - name: Upload coverage data
+        if: ${{ always() && !cancelled()}}
+        uses: actions/upload-artifact@v6
+        with:
+          name: cov-results-${{env.REPORT_NAME}}
+          path: cov/cov-${{env.REPORT_NAME}}.xml
+          if-no-files-found: error
