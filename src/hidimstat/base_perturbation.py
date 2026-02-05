@@ -369,8 +369,6 @@ class BasePerturbationCV(BaseVariableImportance):
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
-        
-
 
     def _fit_single_split(self, estimator, X_train, y_train):
         """
@@ -382,7 +380,11 @@ class BasePerturbationCV(BaseVariableImportance):
         """
         Fit the importance estimators on each fold of the cross-validation.
         """
-        assert self.cv is not None, 'cv must be valid cross-validation generator.'
+        if self.estimators is None:
+            raise ValueError("'estimator' must be a valid sklearn compartible estimator.")
+        
+        if self.cv is None:
+            raise ValueError("'cv' must be valid cross-validation generator.")
 
         self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
         

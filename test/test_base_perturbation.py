@@ -20,11 +20,10 @@ ESTIMATORS_TO_CHECK = [
     BasePerturbation(estimator=_fitted_linear_regression()),
     BasePerturbation(estimator=LinearRegression()),
     BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
-    # TODO
-    # BasePerturbationCV(
-    #     estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
-    #     cv=KFold(n_splits=2),
-    # ),
+    BasePerturbationCV(
+        estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
+        cv=KFold(n_splits=2),
+    ),
 ]
 
 
@@ -34,34 +33,39 @@ def expected_failed_checks(estimator):
             "check_estimator_sparse_tag": "TODO",
         }
     elif isinstance(estimator, BasePerturbationCV):
-        return {
-            "check_dict_unchanged": "TODO",
-            "check_dont_overwrite_parameters": "TODO",
-            "check_dtype_object": "TODO",
-            "check_estimator_cloneable0": "TODO",
-            "check_estimator_cloneable1": "TODO",
-            "check_estimator_sparse_array": "TODO",
-            "check_estimator_sparse_matrix": "TODO",
-            "check_estimator_sparse_tag": "TODO",
-            "check_estimators_dtypes": "TODO",
-            "check_estimators_fit_returns_self": "TODO",
-            "check_estimators_overwrite_params": "TODO",
-            "check_estimators_pickle": "TODO",
-            "check_estimators_nan_inf": "TODO",
-            "check_f_contiguous_array_estimator": "TODO",
-            "check_fit_check_is_fitted": "TODO",
-            "check_fit_idempotent": "TODO",
-            "check_fit_score_takes_y": "TODO",
-            "check_fit2d_1feature": "TODO",
-            "check_fit2d_predict1d": "TODO",
-            "check_n_features_in": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
-            "check_methods_sample_order_invariance": "TODO",
-            "check_methods_subset_invariance": "TODO",
-            "check_pipeline_consistency": "TODO",
-            "check_positive_only_tag_during_fit": "TODO",
-            "check_readonly_memmap_input": "TODO",
+        failed_checks = {
+            "check_dict_unchanged": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_dont_overwrite_parameters": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_dtype_object": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimator_sparse_array": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimator_sparse_matrix": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimator_sparse_tag": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimators_dtypes": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimators_fit_returns_self": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimators_pickle": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimators_nan_inf": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_estimators_overwrite_params": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_f_contiguous_array_estimator": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit_check_is_fitted":  "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit_idempotent": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit_score_takes_y": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit2d_1feature": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_fit2d_predict1d": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_n_features_in": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_n_features_in_after_fitting": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_methods_sample_order_invariance": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_methods_subset_invariance": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_pipeline_consistency": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_positive_only_tag_during_fit": "'fit' requires '_fit_single_split' to be implemented.",
+            "check_readonly_memmap_input": "'fit' requires '_fit_single_split' to be implemented.",
         }
+        if isinstance(estimator.estimators, list):
+            failed_checks |= {
+                "check_fit2d_1sample": "'fit' requires '_fit_single_split' to be implemented.",
+                "check_complex_data": "'fit' requires '_fit_single_split' to be implemented.",
+                "check_estimators_empty_data_messages": "'fit' requires '_fit_single_split' to be implemented.",
+            }
+        return failed_checks
 
 
 if SKLEARN_LT_1_6:
