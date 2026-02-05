@@ -33,7 +33,9 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14):
+    def __init__(
+        self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14
+    ):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
@@ -85,6 +87,7 @@ class GaussianKnockoffs:
                 "The conditional covariance matrix for knockoffs is not positive "
                 "definite. Adding minor positive value to the matrix.",
                 UserWarning,
+                stacklevel=2,
             )
 
         self.sigma_tilde_decompose_ = np.linalg.cholesky(sigma_tilde)
@@ -104,7 +107,9 @@ class GaussianKnockoffs:
         if not hasattr(self, "mu_tilde_") or not hasattr(
             self, "sigma_tilde_decompose_"
         ):
-            raise ValueError("The GaussianGenerator requires to be fit before sampling")
+            raise ValueError(
+                "The GaussianGenerator requires to be fit before sampling"
+            )
 
     def sample(
         self,
@@ -133,7 +138,7 @@ class GaussianKnockoffs:
         n_samples, n_features = self.mu_tilde_.shape
 
         X_tildes = []
-        for i in range(n_repeats):
+        for _i in range(n_repeats):
             # create a uniform noise for all the data
             u_tilde = rng.standard_normal([n_samples, n_features])
 
@@ -200,12 +205,14 @@ def _s_equi(sigma, tol=1e-14):
             s_eps *= 10
         # if all eigval > 0 then the matrix is positive define
         psd = np.all(
-            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps))) > tol
+            np.linalg.eigvalsh(2 * corr_matrix - np.diag(s * (1 - s_eps)))
+            > tol
         )
         warnings.warn(
             "The equi-correlated matrix for knockoffs is not positive "
             f"definite. Reduce the value of distance by {s_eps}.",
             UserWarning,
+            stacklevel=2,
         )
 
     s = s * (1 - s_eps)

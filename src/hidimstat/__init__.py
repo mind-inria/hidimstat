@@ -1,5 +1,8 @@
 from .conditional_feature_importance import CFI, CFICV, cfi_importance
-from .desparsified_lasso import DesparsifiedLasso, desparsified_lasso_importance
+from .desparsified_lasso import (
+    DesparsifiedLasso,
+    desparsified_lasso_importance,
+)
 from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
 from .ensemble_clustered_inference import CluDL, EnCluDL
 from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
@@ -14,19 +17,19 @@ except ImportError:
 __all__ = [
     "CFI",
     "CFICV",
-    "cfi_importance",
-    "CluDL",
-    "DesparsifiedLasso",
-    "desparsified_lasso_importance",
     "D0CRT",
-    "d0crt_importance",
-    "EnCluDL",
     "LOCO",
     "LOCOCV",
-    "loco_importance",
-    "ModelXKnockoff",
-    "model_x_knockoff_importance",
     "PFI",
     "PFICV",
+    "CluDL",
+    "DesparsifiedLasso",
+    "EnCluDL",
+    "ModelXKnockoff",
+    "cfi_importance",
+    "d0crt_importance",
+    "desparsified_lasso_importance",
+    "loco_importance",
+    "model_x_knockoff_importance",
     "pfi_importance",
 ]

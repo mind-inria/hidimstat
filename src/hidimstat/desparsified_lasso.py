@@ -7,7 +7,12 @@ from scipy import stats
 from scipy.linalg import inv, solve, toeplitz
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
-from sklearn.linear_model import Lasso, LassoCV, MultiTaskLasso, MultiTaskLassoCV
+from sklearn.linear_model import (
+    Lasso,
+    LassoCV,
+    MultiTaskLasso,
+    MultiTaskLassoCV,
+)
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
@@ -97,7 +102,9 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False),
+        estimator=LassoCV(
+            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+        ),
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
@@ -128,7 +135,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         elif issubclass(MultiTaskLassoCV, estimator.__class__):
             self.n_task_ = -1
         else:
-            raise AssertionError("lasso_cv needs to be a LassoCV or a MultiTaskLassoCV")
+            raise AssertionError(
+                "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
+            )
         self.estimator = estimator
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
@@ -153,7 +162,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.distribution = distribution
         self.epsilon_pvalue = epsilon_pvalue
         self.covariance = covariance
-        assert test == "chi2" or test == "F", f"Unknown test '{test}'"
+        assert test in {"chi2", "F"}, f"Unknown test '{test}'"
         self.test = test
         # parameters for optimization
         self.n_jobs = n_jobs
@@ -221,13 +230,15 @@ class DesparsifiedLasso(BaseVariableImportance):
         except NotFittedError:
             # check if max_iter is large enough
             if hasattr(self.estimator.cv, "n_splits") and (
-                self.estimator.max_iter // self.estimator.cv.n_splits <= n_features
+                self.estimator.max_iter // self.estimator.cv.n_splits
+                <= n_features
             ):
                 self.estimator.set_params(
                     max_iter=n_features * self.estimator.cv.n_splits
                 )
                 warnings.warn(
-                    f"'max_iter' has been increased to {self.estimator.max_iter}"
+                    f"'max_iter' has been increased to {self.estimator.max_iter}",
+                    stacklevel=2,
                 )
             # use the cross-validation for define the best alpha of Lasso
             self.estimator.set_params(n_jobs=self.n_jobs)
@@ -257,7 +268,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         gram = np.dot(X_.T, X_)  # Gram matrix
 
         # Calculating precision matrix (Nodewise Lasso)
-        results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose)(
+        results = Parallel(
+            n_jobs=self.n_jobs, verbose=self.verbose
+        )(
             delayed(_joblib_compute_residuals)(
                 X=X_,
                 id_column=i,
@@ -271,12 +284,14 @@ class DesparsifiedLasso(BaseVariableImportance):
         results = np.asarray(results, dtype=object)
         Z = np.stack(results[:, 0], axis=1)
         precision_diagonal = np.stack(results[:, 1])
-        self.clf_ = [clf for clf in results[:, 2]]
+        self.clf_ = list(results[:, 2])
 
         # Computing the degrees of freedom adjustment
         if self.dof_ajdustement:
             coefficient_max = np.max(np.abs(self.estimator.coef_))
-            support = np.sum(np.abs(self.estimator.coef_) > 0.01 * coefficient_max)
+            support = np.sum(
+                np.abs(self.estimator.coef_) > 0.01 * coefficient_max
+            )
             support = min(support, self.n_samples_ - 1)
             dof_factor = self.n_samples_ / (self.n_samples_ - support)
         else:
@@ -289,10 +304,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         # beta hat
         p = (np.dot(X_.T, Z) / np.sum(X_ * Z, axis=0)).T
         p_nodiagonal = p - np.diag(np.diag(p))
-        p_nodiagonal = dof_factor * p_nodiagonal + (dof_factor - 1) * np.identity(
-            n_features
+        p_nodiagonal = dof_factor * p_nodiagonal + (
+            dof_factor - 1
+        ) * np.identity(n_features)
+        self.importances_ = beta_bias.T - p_nodiagonal.dot(
+            self.estimator.coef_.T
         )
-        self.importances_ = beta_bias.T - p_nodiagonal.dot(self.estimator.coef_.T)
         # confidence intervals
         self.precision_diagonal_ = precision_diagonal * dof_factor**2
 
@@ -355,9 +372,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         configured by the test parameter ('chi2' or 'F').
         """
         if X is not None:
-            warnings.warn("X won't be used.")
+            warnings.warn("X won't be used.", stacklevel=2)
         if y is not None:
-            warnings.warn("y won't be used.")
+            warnings.warn("y won't be used.", stacklevel=2)
         self._check_fit()
         beta_hat = self.importances_
 
@@ -404,7 +421,10 @@ class DesparsifiedLasso(BaseVariableImportance):
                     / self.n_task_
                 )
                 two_sided_pval = np.minimum(
-                    2 * stats.f.sf(f_scores, dfd=self.n_samples_, dfn=self.n_task_),
+                    2
+                    * stats.f.sf(
+                        f_scores, dfd=self.n_samples_, dfn=self.n_task_
+                    ),
                     1.0,
                 )
             else:
@@ -483,7 +503,6 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     -----
     Uses sklearn's Lasso with precomputed Gram matrix for efficiency.
     """
-
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
@@ -491,7 +510,9 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     X_i = np.copy(X[:, id_column])
 
     clf.set_params(
-        precompute=np.delete(np.delete(gram, id_column, axis=0), id_column, axis=1)
+        precompute=np.delete(
+            np.delete(gram, id_column, axis=0), id_column, axis=1
+        )
     )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
@@ -593,7 +614,7 @@ desparsified_lasso_importance.__doc__ = _aggregate_docstring(
     selection : ndarray of shape (n_features,)
         Boolean array indicating selected features (True = selected)
     importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected 
+        Feature importance scores/test statistics. For features not selected
         during screening, scores are set to 0.
     pvalues : ndarray of shape (n_features,)
         Two-sided p-values for each feature under Gaussian null hypothesis.
@@ -706,7 +727,9 @@ def reid(
                     + " noise assumption."
                 )
         else:
-            raise ValueError("Unknown method for estimating the covariance matrix")
+            raise ValueError(
+                "Unknown method for estimating the covariance matrix"
+            )
         ## compute empirical correlation of the residual
         if stationary:
             # consideration of stationary noise
@@ -725,7 +748,9 @@ def reid(
         if not stationary or method == "median":
             rho_hat = np.median(np.diag(correlation_empirical, 1))
             # estimate M (section 2.5 of `chevalier2020statistical`)
-            correlation_hat = toeplitz(np.geomspace(1, rho_hat ** (n_task - 1), n_task))
+            correlation_hat = toeplitz(
+                np.geomspace(1, rho_hat ** (n_task - 1), n_task)
+            )
             covariance_hat = np.outer(sigma_hat, sigma_hat) * correlation_hat
 
         # Yule-Walker method (algorithm in section 3 of `eshel2003yule`)
@@ -747,7 +772,9 @@ def reid(
                 # time window used to estimate the residual from AR model
                 start = order - i - 1
                 end = -i - 1
-                residual_estimate += coefficients_ar[i] * residual[:, start:end]
+                residual_estimate += (
+                    coefficients_ar[i] * residual[:, start:end]
+                )
             residual_difference = residual[:, order:] - residual_estimate
             sigma_epsilon = np.median(
                 norm(residual_difference, axis=0) / np.sqrt(n_samples)
@@ -759,12 +786,14 @@ def reid(
             for i in range(order + 1, n_task):
                 start = i - order
                 end = i
-                rho_ar_full[i] = np.dot(coefficients_ar[::-1], rho_ar_full[start:end])
+                rho_ar_full[i] = np.dot(
+                    coefficients_ar[::-1], rho_ar_full[start:end]
+                )
             correlation_hat = toeplitz(rho_ar_full)
 
             # estimation of the variance of an AR process
             sigma_hat[:] = sigma_epsilon / np.sqrt(
-                (1 - np.dot(coefficients_ar, rho_ar[1:]))
+                1 - np.dot(coefficients_ar, rho_ar[1:])
             )
             # estimation of the covariance based on the
             # correlation matrix and sigma

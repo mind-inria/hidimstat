@@ -21,7 +21,7 @@ CONTRIBUTORS
 
 .. toctree::
   :hidden:
-  
+
   developer_guidelines
   how_to_contribute
   building_documentation

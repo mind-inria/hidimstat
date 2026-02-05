@@ -10,7 +10,7 @@ p-values
 ----------
 
 
-Family Wise Error Rate (FWER) 
+Family Wise Error Rate (FWER)
 ------------------------------
 
 
@@ -24,4 +24,3 @@ References
 ----------
 
 .. footbibliography::
-

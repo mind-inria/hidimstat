@@ -54,7 +54,9 @@ def test_permutation_importance():
         "the_group_1": [f"col_{i}" for i in non_important_features],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    X_train_df, X_test_df, y_train, y_test = train_test_split(X_df, y, random_state=0)
+    X_train_df, X_test_df, y_train, y_test = train_test_split(
+        X_df, y, random_state=0
+    )
     regression_model.fit(X_train_df, y_train)
     pfi = PFI(
         estimator=regression_model,
@@ -69,7 +71,9 @@ def test_permutation_importance():
         y_train,
     )
     # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(UserWarning, match="X does not have valid feature names, but"):
+    with pytest.warns(
+        UserWarning, match="X does not have valid feature names, but"
+    ):
         importance = pfi.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()
@@ -127,7 +131,8 @@ def test_permutation_importance_function():
 
     assert importance.shape == (X.shape[1],)
     assert (
-        importance[important_features].mean() > importance[~important_features].mean()
+        importance[important_features].mean()
+        > importance[~important_features].mean()
     )
 
 
@@ -252,7 +257,6 @@ def test_pfi_cv(data_generator):
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
     """
-
     X, y, important_features, not_important_features = data_generator
 
     model = LassoCV()
@@ -270,7 +274,8 @@ def test_pfi_cv(data_generator):
     alpha = 0.05
     selected = pfi_cv.fdr_selection(fdr=alpha)
     fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(), ground_truth=important_features
+        selected=np.argwhere(selected).flatten(),
+        ground_truth=important_features,
     )
     assert fdp < alpha
     assert power > 0.8

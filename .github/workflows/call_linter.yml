@@ -1,12 +1,8 @@
-# For more information see: https://black.readthedocs.io/en/stable/integrations/github_actions.html
 name: Lint
 
-on: 
-  # Allows you to run this workflow from another workflow
-  workflow_call
-
-# disable all the permission for the workflow
-permissions: {}
+on:
+  pull_request:
+  push:
 
 jobs:
   lint:
@@ -15,21 +11,5 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      
-      # Codespell check
       - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-      - name: Run codespell with pyproject.toml config
-        run: |
-          pip install .[style]
-          codespell --toml pyproject.toml
-
-      # Isort check
-      - uses: isort/isort-action@v1
-      
-      # Black formatting check
-      - uses: psf/black@stable
-        with:
-          jupyter: true
-      
+      - uses: pre-commit/action@v3.0.1

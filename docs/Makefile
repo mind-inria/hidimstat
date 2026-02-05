@@ -3,10 +3,10 @@
 
 # You can set these variables from the command line.
 N_JOB         = auto
-SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n 
+SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n
 # -j/--jobs:		    N processes in parallel (auto=number of CPUs)
 # -W/--fail-on-warning: Turn warnings into errors.
-# --keep-going:         Runs sphinx-build to completion and exits  
+# --keep-going:         Runs sphinx-build to completion and exits
 #			    		with exit status 1 if errors are encountered.
 # -n/--nitpicky:	    This generates warnings for all missing references.
 SPHINXBUILD   = sphinx-build

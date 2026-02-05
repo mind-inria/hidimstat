@@ -15,7 +15,6 @@ MNIST dataset contains 28x28 pixel images of handwritten digits.
 # for the second task and digits 0 and 9 for the third task. To speed up the example, we
 # downsample the dataset to 4000 samples for each task.
 
-
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_openml
 from sklearn.utils import resample
@@ -27,26 +26,43 @@ n_samples = 5000
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
 X_4_7, y_4_7 = resample(
-    X_4_7, y_4_7, n_samples=n_samples, replace=False, random_state=0, stratify=y_4_7
+    X_4_7,
+    y_4_7,
+    n_samples=n_samples,
+    replace=False,
+    random_state=0,
+    stratify=y_4_7,
 )
 
 mask_0_1 = (y_mnist == "0") | (y_mnist == "1")
 X_0_1, y_0_1 = X_mnist[mask_0_1], y_mnist[mask_0_1].astype(int)
 X_0_1, y_0_1 = resample(
-    X_0_1, y_0_1, n_samples=n_samples, replace=False, random_state=0, stratify=y_0_1
+    X_0_1,
+    y_0_1,
+    n_samples=n_samples,
+    replace=False,
+    random_state=0,
+    stratify=y_0_1,
 )
 
 mask_0_9 = (y_mnist == "0") | (y_mnist == "9")
 X_0_9, y_0_9 = X_mnist[mask_0_9], y_mnist[mask_0_9].astype(int)
 X_0_9, y_0_9 = resample(
-    X_0_9, y_0_9, n_samples=n_samples, replace=False, random_state=0, stratify=y_0_9
+    X_0_9,
+    y_0_9,
+    n_samples=n_samples,
+    replace=False,
+    random_state=0,
+    stratify=y_0_9,
 )
 
 
 # %%
 # Visualizing samples from each classification task
 
-_, axes = plt.subplots(3, 5, figsize=(6, 4), subplot_kw={"xticks": [], "yticks": []})
+_, axes = plt.subplots(
+    3, 5, figsize=(6, 4), subplot_kw={"xticks": [], "yticks": []}
+)
 for i in range(5):
     # Plot 0 vs 1
     label = 1 if i % 2 == 0 else 0
@@ -88,8 +104,12 @@ connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
 _, axes = plt.subplots(1, 4, figsize=(9, 3))
 
 for i, ax in enumerate(axes):
-    X_cluster = resample(X_4_7, n_samples=n_samples // 2, replace=False, random_state=i)
-    clustering = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
+    X_cluster = resample(
+        X_4_7, n_samples=n_samples // 2, replace=False, random_state=i
+    )
+    clustering = FeatureAgglomeration(
+        n_clusters=n_clusters, connectivity=connectivity
+    )
     clustering.fit(X_cluster)
     ax.imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
     ax.axis("off")
@@ -152,7 +172,9 @@ selected_0_9 = encludl.fwer_selection(
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-_, axes = plt.subplots(1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []})
+_, axes = plt.subplots(
+    1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []}
+)
 
 for i, (title, selected) in enumerate(
     [

@@ -21,7 +21,6 @@ original D0CRT.
 # features are null. This information will be used to plot the quantiles of the test
 # statistics under the null hypothesis.
 
-
 import numpy as np
 from scipy.special import expit
 
@@ -73,7 +72,6 @@ from hidimstat import D0CRT
 # Run dCRT and dCRT-logit for each random seed
 results_list = []
 for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
-
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(
@@ -86,7 +84,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
     )
     dcrt_logit.fit(X, y)
     importance_logit = dcrt_logit.importance(X, y)
-    power_logit = np.mean((dcrt_logit.pvalues_[beta_true] < 0.05))
+    power_logit = np.mean(dcrt_logit.pvalues_[beta_true] < 0.05)
 
     # Fit the dCRT with Lasso-distillation
     dcrt = D0CRT(
@@ -96,7 +94,7 @@ for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
     )
     dcrt.fit(X, y)
     importance = dcrt.importance(X, y)
-    power = np.mean((dcrt.pvalues_[beta_true] < 0.05))
+    power = np.mean(dcrt.pvalues_[beta_true] < 0.05)
 
     # Store the results in a DataFrame
     results_list.append(
@@ -142,7 +140,11 @@ sns.scatterplot(
     edgecolor=None,
 )
 axes[0].plot(
-    theoretical_quantiles, theoretical_quantiles, color="tab:red", ls="--", lw=2
+    theoretical_quantiles,
+    theoretical_quantiles,
+    color="tab:red",
+    ls="--",
+    lw=2,
 )
 axes[0].set_title("dCRT")
 sns.scatterplot(
@@ -152,7 +154,11 @@ sns.scatterplot(
     edgecolor=None,
 )
 axes[1].plot(
-    theoretical_quantiles, theoretical_quantiles, color="tab:red", ls="--", lw=2
+    theoretical_quantiles,
+    theoretical_quantiles,
+    color="tab:red",
+    ls="--",
+    lw=2,
 )
 axes[1].set_title("dCRT-logit")
 axes[0].set_xlabel("Theoretical quantiles")

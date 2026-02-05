@@ -81,7 +81,7 @@ get_build_type() {
             echo "$pattern"
             return
         fi
-        # case where there is no modified example 
+        # case where there is no modified example
         echo QUICK BUILD: no examples/ filename modified in $git_range:
         echo "$filenames"
         return
@@ -125,13 +125,13 @@ affected_doc_paths() {
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
     # list of the modified documentation files
     echo "$files" | grep ^docs/src/.*\.rst | sed 's/^docs\/src\/\(.*\)\.rst$/\1.html/'
-    # list of the modified examples 
+    # list of the modified examples
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/generated\/gallery\/\1.html/'
     # list of the modified source file
     project_files=$(echo "$files" | grep 'src/hidimstat/')
     if [ -n "$project_files" ]
     then
-        grep -hlR -f<(echo "$project_files" | sed 's/src\/hidimstat\//hidimstat\./') docs/_build/html/generated | cut -d/ -f4- 
+        grep -hlR -f<(echo "$project_files" | sed 's/src\/hidimstat\//hidimstat\./') docs/_build/html/generated | cut -d/ -f4-
     fi
 }
 
