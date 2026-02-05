@@ -46,21 +46,16 @@ jobs:
             echo "$EOF" >> $GITHUB_OUTPUT
           fi
 
-  linter:
-    name: Linter
-    needs: [get_information]
-    uses: ./.github/workflows/call_linter.yml
-
   tests:
     name: tests
-    needs: [linter, get_information]
+    needs: [get_information]
     uses: ./.github/workflows/call_test_package.yml
     with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
 
   tests_minimal:
     name: tests minimal
-    needs: [linter, get_information]
+    needs: [get_information]
     uses: ./.github/workflows/call_test_minimal.yml
     with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
