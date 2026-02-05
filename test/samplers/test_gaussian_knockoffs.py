@@ -6,7 +6,7 @@ from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs, _s_equi
 
 
 def test_gaussian_equi():
-    """test function of gaussian"""
+    """Test function of gaussian"""
     seed = 42
     n = 100
     p = 50
@@ -20,20 +20,21 @@ def test_gaussian_equi():
 
 
 def test_gaussian_error():
-    """test function error"""
+    """Test function error"""
     seed = 42
     n = 100
     p = 50
     X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs()
     with pytest.raises(
-        ValueError, match="The GaussianGenerator requires to be fit before sampling"
+        ValueError,
+        match="The GaussianGenerator requires to be fit before sampling",
     ):
         generator.sample(random_state=seed * 2)
 
 
 def test_s_equi_not_definite_positive():
-    """test the warning and error of s_equi function"""
+    """Test the warning and error of s_equi function"""
     n = 10
     tol = 1e-7
     seed = 42

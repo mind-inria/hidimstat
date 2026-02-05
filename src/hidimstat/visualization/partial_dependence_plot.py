@@ -7,7 +7,7 @@ from sklearn.inspection import partial_dependence
 
 
 class PDP:
-    """
+    r"""
     Partial Dependence Plot (PDP) visualization. This class is based on
     `sklearn.inspection.partial_dependence` to compute the partial dependence
     values and provides methods to plot 1D and 2D PDPs. For each realization of a feature
@@ -66,7 +66,6 @@ class PDP:
 
     @staticmethod
     def _plot_1d(pd, feature_names, cmap=None, **kwargs):
-
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1])
         ax = axes[0]
 

@@ -29,4 +29,3 @@ Contributors
 * Bertrand Thirion
 * Joseph Paillard
 * Rémi Gau
-  

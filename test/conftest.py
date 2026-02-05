@@ -2,7 +2,9 @@ import numpy as np
 import pytest
 from packaging.version import parse
 from sklearn import __version__ as sklearn_version
-from sklearn.utils.estimator_checks import check_estimator as sklearn_check_estimator
+from sklearn.utils.estimator_checks import (
+    check_estimator as sklearn_check_estimator,
+)
 
 from hidimstat._utils.scenario import multivariate_simulation
 
@@ -80,7 +82,9 @@ def data_generator(
     return X, y, important_features, not_important_features
 
 
-def check_estimator(estimators, return_expected_failed_checks, valid: bool = True):
+def check_estimator(
+    estimators, return_expected_failed_checks, valid: bool = True
+):
     """Yield a valid or invalid sklearn estimators check.
 
     ONLY USED FOR sklearn<1.6
@@ -110,12 +114,16 @@ def check_estimator(estimators, return_expected_failed_checks, valid: bool = Tru
     """
     # TODO (sklearn >= 1.6.0) remove this function
     if not SKLEARN_LT_1_6:  # pragma: no cover
-        raise RuntimeError("Use dedicated sklearn utilities to test estimators.")
+        raise RuntimeError(
+            "Use dedicated sklearn utilities to test estimators."
+        )
 
     for est in estimators:
         expected_failed_checks = return_expected_failed_checks(est)
 
-        for e, check in sklearn_check_estimator(estimator=est, generate_only=True):
+        for e, check in sklearn_check_estimator(
+            estimator=est, generate_only=True
+        ):
             if not valid and check.func.__name__ in expected_failed_checks:
                 yield e, check, check.func.__name__
             if valid and check.func.__name__ not in expected_failed_checks:

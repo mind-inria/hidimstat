@@ -38,11 +38,15 @@ smooth_X = 1.0  # level of spatial smoothing introduced by the Gaussian filter
 X_init, y, beta, epsilon = multivariate_simulation_spatial(
     n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=0
 )
-print(f"Number of samples: {X_init.shape[0]}, Number of features: {n_features}")
+print(
+    f"Number of samples: {X_init.shape[0]}, Number of features: {n_features}"
+)
 
 
 # visualize the data
-cmap = ListedColormap(["white", "tab:green"])  # 0 -> blue (null), 1 -> green (support)
+cmap = ListedColormap(
+    ["white", "tab:green"]
+)  # 0 -> blue (null), 1 -> green (support)
 fig, ax = plt.subplots(figsize=(4, 4), subplot_kw={"xticks": [], "yticks": []})
 ax.imshow(
     beta.reshape(shape),
@@ -290,11 +294,17 @@ def compute_spatially_relaxed_mask(mask, beta_extended):
 
 mask_dl_relaxed = compute_spatially_relaxed_mask(mask_dl, beta_extended)
 mask_cludl_relaxed = compute_spatially_relaxed_mask(mask_cludl, beta_extended)
-mask_encldl_relaxed = compute_spatially_relaxed_mask(mask_encludl, beta_extended)
-cmap = ListedColormap(["tab:orange", "tab:red", "tab:purple", "white", "tab:green"])
+mask_encldl_relaxed = compute_spatially_relaxed_mask(
+    mask_encludl, beta_extended
+)
+cmap = ListedColormap(
+    ["tab:orange", "tab:red", "tab:purple", "white", "tab:green"]
+)
 
 # sphinx_gallery_thumbnail_number = 6
-_, axes = plt.subplots(1, 3, figsize=(10, 4), subplot_kw={"xticks": [], "yticks": []})
+_, axes = plt.subplots(
+    1, 3, figsize=(10, 4), subplot_kw={"xticks": [], "yticks": []}
+)
 axes[0].imshow(mask_dl_relaxed, cmap=cmap, vmin=-3, vmax=1)
 axes[0].set_title("Desparsified Lasso", fontweight="bold")
 axes[1].imshow(mask_cludl_relaxed, cmap=cmap, vmin=-3, vmax=1)
@@ -303,8 +313,16 @@ axes[2].imshow(mask_encldl_relaxed, cmap=cmap, vmin=-3, vmax=1)
 axes[2].set_title("EnCluDL", fontweight="bold")
 legend_handles = [
     Patch(facecolor="tab:green", edgecolor="k", label="True Positive"),
-    Patch(facecolor="tab:orange", edgecolor="k", label="False Positive in tolerance"),
-    Patch(facecolor="tab:red", edgecolor="k", label="False Positive out of tolerance"),
+    Patch(
+        facecolor="tab:orange",
+        edgecolor="k",
+        label="False Positive in tolerance",
+    ),
+    Patch(
+        facecolor="tab:red",
+        edgecolor="k",
+        label="False Positive out of tolerance",
+    ),
     Patch(facecolor="tab:purple", edgecolor="k", label="False Negative"),
 ]
 axes[0].legend(handles=legend_handles, loc="lower center")

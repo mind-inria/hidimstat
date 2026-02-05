@@ -72,7 +72,7 @@ class CFI(BasePerturbation):
         feature_types="auto",
         categorical_max_cardinality: int = 10,
         statistical_test="ttest",
-        random_state: int = None,
+        random_state: int | None = None,
         n_jobs: int = 1,
     ):
         super().__init__(
@@ -110,6 +110,7 @@ class CFI(BasePerturbation):
             The input samples.
         y: array-like of shape (n_samples,)
             Not used, only present for consistency with the sklearn API.
+
         Returns
         -------
         self : object
@@ -185,9 +186,12 @@ class CFI(BasePerturbation):
         self.fit(X, y)
         return self.importance(X, y)
 
-    def _joblib_fit_one_features_group(self, estimator, X, features_groups_ids):
+    def _joblib_fit_one_features_group(
+        self, estimator, X, features_groups_ids
+    ):
         """Fit a single imputation model, for a single group of features. This method
-        is parallelized."""
+        is parallelized.
+        """
         X_j = X[:, features_groups_ids].copy()
         X_minus_j = np.delete(X, features_groups_ids, axis=1)
         estimator.fit(X_minus_j, X_j)
@@ -215,11 +219,17 @@ class CFI(BasePerturbation):
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
-        residuals."""
+        residuals.
+        """
         X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
+        X_minus_j = np.delete(
+            X, self._features_groups_ids[features_group_id], axis=1
+        )
         return self._list_imputation_models[features_group_id].sample(
-            X_minus_j, X_j, n_samples=self.n_permutations, random_state=random_state
+            X_minus_j,
+            X_j,
+            n_samples=self.n_permutations,
+            random_state=random_state,
         )
 
 
@@ -240,7 +250,7 @@ def cfi_importance(
     percentile=None,
     threshold_max=None,
     threshold_min=None,
-    random_state: int = None,
+    random_state: int | None = None,
     n_jobs: int = 1,
 ):
     methods = CFI(
@@ -283,7 +293,7 @@ cfi_importance.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_features,)
         Feature importance scores/test statistics.
     pvalues : ndarray of shape (n_features,)
-        P-values for importance scores. 
+        P-values for importance scores.
     """,
 )
 

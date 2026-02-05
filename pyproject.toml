@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "setuptools             >= 64, < 100", # builder for python packages 
+    "setuptools             >= 64, < 100", # builder for python packages
     "setuptools_scm[toml]   >= 8,     < 50"  # plugging for getting the version from github
     ]
 build-backend = "setuptools.build_meta"
@@ -61,7 +61,7 @@ doc = [
     "sphinx-copybutton",
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
-style = ["black  >= 24.4.2", "codespell >=2.4.0", "isort  >= 5.13.2"]
+style = ["ruff  >= 0.14", "codespell >=2.4.0"]
 
 # For running unit and docstring tests
 test = [
@@ -89,18 +89,15 @@ Teams = "https://team.inria.fr/mind/"
 Issues = "https://github.com/mind-inria/hidimstat/issues"
 Discussion = "https://github.com/mind-inria/hidimstat/discussions" # TODO see if we keep it or not
 
-# Configuration of the builder 
+# Configuration of the builder
 [tool.setuptools]
 package-dir = {"" = "src"} # define the root of the packages as src
 
 # Configuration of static analysis
 [tool.codespell]
-builtin = "clear,rare,en-GB_to_en-US"
+builtin = "clear,rare"
 skip = "./.git,*.bib,./docs/_build"
 
-[tool.isort]
-profile = "black"
-skip = ["src/hidimstat/_version.py", "docs/_build", "build/", ".venv"]
 
 # file where the version is save
 [tool.setuptools_scm]
@@ -120,7 +117,7 @@ addopts = [
     "--strict-markers",        # undefine markers will raise an error
     "--color=yes", # Color terminal output
     # pytest-randomly
-    # "--randomly-dont-reset-seed", # turn off the rest of the random seed 
+    # "--randomly-dont-reset-seed", # turn off the rest of the random seed
     # pytest-xdist option
     "-n=auto", # automatically define the number of process
 ]
@@ -137,3 +134,128 @@ OPENBLAS_NUM_THREADS = 1
 BLIS_NUM_THREADS = 1
 MKL_NUM_THREADS = 1
 OMP_NUM_THREADS = 1
+
+
+[tool.ruff]
+extend-exclude = ["doc/auto_examples/*", "hidimstat/_version.py"]
+include = [
+    "pyproject.toml",
+    "src/**/*.py",
+    "examples/**/*.py",
+    "test/**/*.py",
+    "tools/**/*.py",
+    "doc/**/*.py"
+]
+indent-width = 4
+line-length = 79
+
+[tool.ruff.format]
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+ignore = [
+    "ARG002",
+    "ARG004",
+    "ARG005",
+    "B007",
+    "B008",
+    "B017",
+    "B018",
+    "B028",
+    "B904",
+    "B905",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D205",
+    "D200",
+    "D301",
+    "D400",
+    "D401",
+    "D404",
+    "E402",
+    "E501",
+    "E741",
+    "ERA001",
+    "F401",
+    "F841",
+    "NPY002",
+    "PERF203",
+    "PERF401",
+    "PD011",
+    "PLR2004",
+    "PTH100",
+    "PTH120",
+    "PTH123",
+    "PTH207",
+    "SIM108",
+    "SIM210",
+    "RUF005",
+    "RUF015",
+    "RUF043",
+    "RUF059",
+    # Avoid linter rules conflicting with the formatter
+    # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "COM812",
+    "COM819",
+    "E111",
+    "E114",
+    "E117",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191"
+]
+# List of all the ruff rules (includes why the rule matters)
+# https://docs.astral.sh/ruff/rules/
+select = [
+    "ARG",
+    "B",
+    "C4",
+    "C90",
+    "D",
+    "E",
+    "ERA",
+    "F",
+    "FLY",
+    "FURB",
+    "I",
+    "NPY",
+    "PERF",
+    "PIE",
+    "PD",
+    "PGH",
+    "PLR",
+    "PTH",
+    "RUF",
+    "SIM",
+    "UP",
+    "W",
+]
+unfixable = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pylint]
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-args
+max-args = 30
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-branches
+max-branches = 20
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-returns
+max-returns = 8
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-statements
+max-statements = 90

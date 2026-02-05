@@ -24,7 +24,7 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 results_list = []
 for sim_ind in range(10):
-    print(f"Processing: {sim_ind+1}")
+    print(f"Processing: {sim_ind + 1}")
 
     # Number of observations
     n = 100
@@ -82,7 +82,9 @@ for sim_ind in range(10):
     results_list.append(
         {
             "model": "RF",
-            "type-1 error": sum(pvals_forest[np.logical_not(beta_true)] < alpha)
+            "type-1 error": sum(
+                pvals_forest[np.logical_not(beta_true)] < alpha
+            )
             / (n_signal),
             "power": sum(pvals_forest[beta_true] < alpha) / (n_signal),
         }

@@ -56,13 +56,14 @@ def test_cludl_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-
     n_samples = 400
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = (
+        0.2  # level of spatial smoothing introduced by the Gaussian filter
+    )
 
     fp_list = []
     power_list = []
@@ -80,7 +81,9 @@ def test_cludl_spatial():
         clustering = FeatureAgglomeration(
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
         )
-        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        estimator = LassoCV(
+            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+        )
         cludl = CluDL(
             desparsified_lasso=DesparsifiedLasso(estimator=estimator),
             clustering=clustering,
@@ -105,7 +108,8 @@ def test_cludl_spatial():
 
 def test_cludl_independence():
     """Test that CluDL works with repeated calls
-    non-regression test for #425"""
+    non-regression test for #425
+    """
     n_samples = 50
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
@@ -138,13 +142,14 @@ def test_encludl_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-
     n_samples = 400
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
     signal_noise_ratio = 32.0  # noise standard deviation
-    smooth_X = 0.2  # level of spatial smoothing introduced by the Gaussian filter
+    smooth_X = (
+        0.2  # level of spatial smoothing introduced by the Gaussian filter
+    )
     tol = 0.1
 
     fp_list = []
@@ -164,7 +169,9 @@ def test_encludl_spatial():
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
         )
 
-        estimator = LassoCV(max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False)
+        estimator = LassoCV(
+            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+        )
         cludl = EnCluDL(
             desparsified_lasso=DesparsifiedLasso(estimator=estimator),
             clustering=clustering,

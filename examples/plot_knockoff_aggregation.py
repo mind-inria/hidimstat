@@ -69,7 +69,9 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 fdr = 0.1
 n_repeats = 25
 n_jobs = 4
-model_x_knockoff = ModelXKnockoff(n_repeats=n_repeats, n_jobs=n_jobs, random_state=0)
+model_x_knockoff = ModelXKnockoff(
+    n_repeats=n_repeats, n_jobs=n_jobs, random_state=0
+)
 model_x_knockoff.fit_importance(X, y)
 
 fdp_individual = []
@@ -140,13 +142,19 @@ _ = plt.tight_layout()
 # :footcite:t:`Ren_2023`. We then compare the results of both procedures in terms of
 # FDP and power.
 
-pval_aggregation = model_x_knockoff.fdr_selection(fdr=fdr, adaptive_aggregation=True)
-fdp_pval_agg, power_pval_agg = fdp_power(pval_aggregation, ground_truth=beta_true)
+pval_aggregation = model_x_knockoff.fdr_selection(
+    fdr=fdr, adaptive_aggregation=True
+)
+fdp_pval_agg, power_pval_agg = fdp_power(
+    pval_aggregation, ground_truth=beta_true
+)
 
 eval_aggregation = model_x_knockoff.fdr_selection(
     fdr=fdr, fdr_control="ebh", evalues=True
 )
-fdp_eval_agg, power_eval_agg = fdp_power(eval_aggregation, ground_truth=beta_true)
+fdp_eval_agg, power_eval_agg = fdp_power(
+    eval_aggregation, ground_truth=beta_true
+)
 
 df_plot["Method"] = "Individual KO"
 df_plot_2 = pd.concat(

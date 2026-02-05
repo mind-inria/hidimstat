@@ -2,7 +2,10 @@ import numpy as np
 import pytest
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat.statistical_tools.multiple_testing import fdp_power, fdr_threshold
+from hidimstat.statistical_tools.multiple_testing import (
+    fdp_power,
+    fdr_threshold,
+)
 
 
 def test_fdr_threshold():
@@ -15,7 +18,8 @@ def test_fdr_threshold():
 
     e_values = 1 / p_values
 
-    identity = lambda i: i
+    def identity(i):
+        return i
 
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
@@ -38,11 +42,12 @@ def test_fdr_threshold():
 
 
 def test_fdr_threshold_extreme_values():
-    """test FDR computation for extreme numerical value of the p-values"""
+    """Test FDR computation for extreme numerical value of the p-values"""
     p_values = np.ones(100)
     e_values = 1 / p_values
 
-    identity = lambda i: i
+    def identity(i):
+        return i
 
     bhq_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhq")
     bhy_cutoff = fdr_threshold(p_values, fdr=0.1, method="bhy")
@@ -90,42 +95,42 @@ def test_aggregate_docstring():
     """Test docstring grouping"""
     doc_minimum_1 = """
     Short Summary
-    
+
     Parameters
     ----------
     param_1: ndarray of shape (n_sampling,)
         short description
-    
+
     param_2: float, default=2.0
         short description 2
-    
+
     Returns
     -------
     ndarray of shape (n_sampling,)
         short description for return
-    
+
     References
     ----------
     .. footbibliography::
-    
+
     Notes
     -----
-    
+
     Complementary information
     """
     doc_minimum_2 = """
     Name object
-    
+
     Description
-    
+
     Parameters
     ----------
     param2_1: float, default=2.0
         description param2_1
-    
+
     param2_2: ndarray of shape (n_sampling,)
         description param2_2
-    
+
     Returns
     -------
     time_example (float)
@@ -133,24 +138,24 @@ def test_aggregate_docstring():
     """
     doc_minimum_3 = """
     Short Description
-    
+
     Parameters
     ----------
     param_first: int, default=10
         integer interpretation
-    
+
     param_second: float, default=2.0
         float interpretation
-    
+
     Returns
     -------
     None
-        
-    
+
+
     References
     ----------
     .. footbibliography::
-    
+
     """
     final_doc = _aggregate_docstring(
         [doc_minimum_1, None, doc_minimum_2, doc_minimum_3],
@@ -161,7 +166,9 @@ def test_aggregate_docstring():
         Vector of aggregated p-values
         """,
     )
-    assert final_doc == """Short Summary
+    assert (
+        final_doc
+        == """Short Summary
 Parameters
 ----------
 param_1: ndarray of shape (n_sampling,)
@@ -184,3 +191,4 @@ Returns
 -------
 3D ndarray (n_tests, )
 Vector of aggregated p-values"""
+    )

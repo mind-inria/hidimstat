@@ -5,7 +5,6 @@ import sys
 sys.path.insert(0, os.path.abspath("."))
 
 import matplotlib
-from utils import linkcode_resolve
 
 from hidimstat import __version__
 
@@ -158,7 +157,7 @@ sphinx_gallery_conf = {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
         # We don't specify the other modules as we use the intershpinx ext.
-        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation  # noqa
+        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
 }
 

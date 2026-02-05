@@ -1,4 +1,4 @@
-# Testing workflow of the CI 
+# Testing workflow of the CI
 
 name: 'CI Github TEST'
 on:
@@ -10,7 +10,7 @@ on:
 # disable all the permission for the workflow
 permissions: {}
 
-# Cancel existing runs 
+# Cancel existing runs
 concurrency:
   group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 3 
+          fetch-depth: 3
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           # require to get the previous commit for getting their messages
           # in a PR the last commit is the commit merge with main
@@ -50,26 +50,26 @@ jobs:
     name: Linter
     needs: [get_information]
     uses: ./.github/workflows/call_linter.yml
-  
+
   tests:
     name: tests
     needs: [linter, get_information]
     uses: ./.github/workflows/call_test_package.yml
-    with: 
+    with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
-  
+
   tests_minimal:
     name: tests minimal
     needs: [linter, get_information]
     uses: ./.github/workflows/call_test_minimal.yml
-    with: 
+    with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
 
   # tests_publish:
   #   name: tests_publish
   #   needs: [tests]
   #   if: |
-  #     ${{ github.event.pull_request.draft == false 
+  #     ${{ github.event.pull_request.draft == false
   #         || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
   #       }}
   #   permissions:

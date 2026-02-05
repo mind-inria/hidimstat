@@ -30,7 +30,6 @@ def _replace_infinity(x, replace_val=None, method="times-two"):
     -----
     The function preserves the sign of infinite values in the replacement.
     """
-
     largest_non_inf = np.max(np.abs(x)[np.abs(x) != np.inf])
 
     if method == "times-two":
@@ -38,9 +37,9 @@ def _replace_infinity(x, replace_val=None, method="times-two"):
     elif method == "plus-one":
         replace_val_min = largest_non_inf + 1
 
-    if (replace_val is not None) and (replace_val < largest_non_inf):
-        replace_val = replace_val_min
-    elif replace_val is None:
+    if (
+        (replace_val is not None) and (replace_val < largest_non_inf)
+    ) or replace_val is None:
         replace_val = replace_val_min
 
     x_new = np.copy(x)
@@ -64,13 +63,14 @@ def pval_corr_from_pval(one_sided_pval):
     one_sided_pval_corr : ndarray, shape (n_features,)
         Corrected one-sided p-values.
     """
-
     n_features = one_sided_pval.size
 
     one_sided_pval_corr = np.zeros(n_features) + 0.5
 
     ind = one_sided_pval < 0.5
-    one_sided_pval_corr[ind] = np.minimum(one_sided_pval[ind] * n_features, 0.5)
+    one_sided_pval_corr[ind] = np.minimum(
+        one_sided_pval[ind] * n_features, 0.5
+    )
 
     ind = one_sided_pval > 0.5
     one_sided_pval_corr[ind] = np.maximum(
@@ -115,17 +115,17 @@ def pval_from_scale(beta, scale, distribution="norm", eps=1e-14):
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-
     n_features = beta.size
 
-    index_no_nan = tuple([scale != 0.0])
+    index_no_nan = (scale != 0.0,)
 
     pval = np.zeros(n_features) + 0.5
     one_minus_pval = np.zeros(n_features) + 0.5
 
     if distribution == "norm":
-
-        pval[index_no_nan] = norm.sf(beta[index_no_nan], scale=scale[index_no_nan])
+        pval[index_no_nan] = norm.sf(
+            beta[index_no_nan], scale=scale[index_no_nan]
+        )
         one_minus_pval[index_no_nan] = norm.cdf(
             beta[index_no_nan], scale=scale[index_no_nan]
         )
@@ -163,7 +163,6 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
     zscore : ndarray, shape (n_features,)
         z-scores.
     """
-
     if distribution == "norm":
         quantile = norm.ppf(1 - (1 - confidence) / 2)
 
@@ -174,7 +173,9 @@ def zscore_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
     return zscore
 
 
-def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14):
+def pval_from_cb(
+    cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
+):
     """Computing one-sided p-values from confidence intervals.
 
     Parameters
@@ -212,13 +213,11 @@ def pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm", eps=1e-14
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-
     zscore = zscore_from_cb(
         cb_min, cb_max, confidence=confidence, distribution=distribution
     )
 
     if distribution == "norm":
-
         pval = norm.sf(zscore)
         one_minus_pval = norm.cdf(zscore)
 
@@ -261,7 +260,9 @@ def two_sided_pval_from_zscore(zscore, distribution="norm"):
     return two_sided_pval, two_sided_pval_corr
 
 
-def two_sided_pval_from_cb(cb_min, cb_max, confidence=0.95, distribution="norm"):
+def two_sided_pval_from_cb(
+    cb_min, cb_max, confidence=0.95, distribution="norm"
+):
     """Computing two-sided p-values from confidence intervals.
 
     Parameters
@@ -321,13 +322,10 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
     zscore : ndarray, shape (n_features,)
         z-scores.
     """
-
     if distribution == "norm":
-
         zscore = norm.isf(pval)
 
         if one_minus_pval is not None:
-
             ind = pval > 0.5
             zscore[ind] = norm.ppf(one_minus_pval[ind])
 
@@ -336,7 +334,9 @@ def zscore_from_pval(pval, one_minus_pval=None, distribution="norm"):
     return zscore
 
 
-def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14):
+def pval_from_two_sided_pval_and_sign(
+    two_sided_pval, parameter_sign, eps=1e-14
+):
     """Computing one-sided p-values from two-sided p-value and parameter sign.
 
     Parameters
@@ -366,7 +366,6 @@ def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14)
     one_minus_pval_corr : ndarray, shape (n_features,)
         One minus the p-value corrected for multiple testing.
     """
-
     n_features = two_sided_pval.size
 
     pval = 0.5 * np.ones(n_features)
@@ -375,7 +374,9 @@ def pval_from_two_sided_pval_and_sign(two_sided_pval, parameter_sign, eps=1e-14)
     pval[parameter_sign > 0] = two_sided_pval[parameter_sign > 0] / 2
     pval[parameter_sign < 0] = 1 - two_sided_pval[parameter_sign < 0] / 2
 
-    one_minus_pval[parameter_sign > 0] = 1 - two_sided_pval[parameter_sign > 0] / 2
+    one_minus_pval[parameter_sign > 0] = (
+        1 - two_sided_pval[parameter_sign > 0] / 2
+    )
     one_minus_pval[parameter_sign < 0] = two_sided_pval[parameter_sign < 0] / 2
 
     pval[pval > 1 - eps] = 1 - eps
@@ -412,7 +413,6 @@ def two_sided_pval_from_pval(pval, one_minus_pval=None, distribution="norm"):
     two_sided_pval_corr : ndarray, shape (n_features,)
         Two-sided p-values corrected for multiple testing.
     """
-
     zscore = zscore_from_pval(pval, one_minus_pval, distribution=distribution)
 
     two_sided_pval, two_sided_pval_corr = two_sided_pval_from_zscore(

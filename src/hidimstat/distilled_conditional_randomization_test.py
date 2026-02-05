@@ -224,7 +224,8 @@ class D0CRT(BaseVariableImportance):
             if self.estimated_coef is not None:
                 warnings.warn(
                     "Precomputed coefficients were provided, screening is skipped and "
-                    "screening_threshold is set to 100."
+                    "screening_threshold is set to 100.",
+                    stacklevel=2,
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
@@ -244,29 +245,36 @@ class D0CRT(BaseVariableImportance):
             (self.screening_threshold is None) and self.estimated_coef is None
         ):
             self.estimator.fit(X_[:, self.selection_set_], y_)
-        elif (self.screening_threshold is not None) and (self.estimated_coef is None):
+        elif (self.screening_threshold is not None) and (
+            self.estimated_coef is None
+        ):
             self.estimator = lasso_model_
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
             self.intercept_ = (
-                self.estimated_intercept if self.estimated_intercept is not None else 0
+                self.estimated_intercept
+                if self.estimated_intercept is not None
+                else 0
             )
-        elif self.reuse_screening_model and (self.screening_threshold is not None):
+        elif self.reuse_screening_model and (
+            self.screening_threshold is not None
+        ):
             # Flatten to handle logistic regression case
             self.coefficient_ = lasso_model_.coef_.flatten()
             self.intercept_ = lasso_model_.intercept_
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
+        # If the model is linear, store the coefficients
+        elif hasattr(self.estimator, "coef_"):
+            self.coefficient_ = np.zeros(X.shape[1])
+            self.coefficient_[self.selection_set_] = (
+                self.estimator.coef_.flatten()
+            )
+            self.estimator.coef_ = self.coefficient_
+            self.intercept_ = self.estimator.intercept_
         else:
-            # If the model is linear, store the coefficients
-            if hasattr(self.estimator, "coef_"):
-                self.coefficient_ = np.zeros(X.shape[1])
-                self.coefficient_[self.selection_set_] = self.estimator.coef_.flatten()
-                self.estimator.coef_ = self.coefficient_
-                self.intercept_ = self.estimator.intercept_
-            else:
-                self.coefficient_ = None
+            self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation (equation
         # 10 in :footcite:t:`nguyen2022conditional`) and computing the Fisher
         # information matrix
@@ -321,7 +329,9 @@ class D0CRT(BaseVariableImportance):
             or self.model_y_ is None
             or self.selection_set_ is None
         ):
-            raise ValueError("The D0CRT requires to be fit before any analysis")
+            raise ValueError(
+                "The D0CRT requires to be fit before any analysis"
+            )
 
     def importance(
         self,
@@ -383,7 +393,9 @@ class D0CRT(BaseVariableImportance):
                 if self.fit_y:
                     coefficient_minus_idx = self.model_y_[index]
                 else:
-                    coefficient_minus_idx = np.delete(np.copy(self.coefficient_), idx)
+                    coefficient_minus_idx = np.delete(
+                        np.copy(self.coefficient_), idx
+                    )
             elif self.is_logistic_:
                 coefficient_minus_idx = self.model_y_[index]
             else:
@@ -419,18 +431,22 @@ class D0CRT(BaseVariableImportance):
                 n_samples,
             )
         else:
-            test_statistic_selected_variables = self._regression_test_statistic(
-                X_residual,
-                y_residual,
-                sigma2,
-                n_samples,
+            test_statistic_selected_variables = (
+                self._regression_test_statistic(
+                    X_residual,
+                    y_residual,
+                    sigma2,
+                    n_samples,
+                )
             )
         # get the results
         test_statistic = np.zeros(n_features)
         test_statistic[selection_features] = test_statistic_selected_variables
 
         self.importances_ = test_statistic
-        self.pvalues_ = np.minimum(2 * stats.norm.sf(np.abs(test_statistic)), 1)
+        self.pvalues_ = np.minimum(
+            2 * stats.norm.sf(np.abs(test_statistic)), 1
+        )
 
         return self.importances_
 
@@ -469,7 +485,10 @@ class D0CRT(BaseVariableImportance):
         ]
 
         # Don't scale when there is only one element.
-        if self.scaled_statistics and len(test_statistic_selected_variables) > 1:
+        if (
+            self.scaled_statistics
+            and len(test_statistic_selected_variables) > 1
+        ):
             test_statistic_selected_variables = (
                 test_statistic_selected_variables
                 - np.mean(test_statistic_selected_variables)
@@ -508,7 +527,9 @@ class D0CRT(BaseVariableImportance):
         X_selection = X[:, self.selection_set_]
         fisher_minus_idx = np.array(
             [
-                np.mean(self.lasso_weights_ * X_selection[:, i] * X_residual[i])
+                np.mean(
+                    self.lasso_weights_ * X_selection[:, i] * X_residual[i]
+                )
                 for i in range(X_residual.shape[0])
             ]
         )
@@ -549,7 +570,7 @@ class D0CRT(BaseVariableImportance):
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
-            warnings.warn("cv won't be used")
+            warnings.warn("cv won't be used", stacklevel=2)
         self.fit(X, y)
         return self.importance(X, y)
 
@@ -567,7 +588,8 @@ class D0CRT(BaseVariableImportance):
             (
                 self.screening_threshold is not None
                 and not isinstance(
-                    self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+                    self.lasso_screening,
+                    (LogisticRegression, LogisticRegressionCV),
                 )
             )
             or (
@@ -652,7 +674,9 @@ def _joblib_fit(
     # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
     # in :footcite:t:`nguyen2022conditional` equation (10).
     if sigma_X or (lasso_weights is not None):
-        sample_weight = 2 * lasso_weights if lasso_weights is not None else None
+        sample_weight = (
+            2 * lasso_weights if lasso_weights is not None else None
+        )
         model_x = clone(model_distillation_x)
         model_x = seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
@@ -742,9 +766,9 @@ def _joblib_distill(
         # In the original paper and implementation, the term:
         #  alpha * np.linalg.norm(clf.coef_, ord=1)
         # is not present and has been added without any reference actually
-        sigma2 = np.linalg.norm(X_residual) ** 2 / n_samples + alpha * np.linalg.norm(
-            model_x.coef_, ord=1
-        )
+        sigma2 = np.linalg.norm(
+            X_residual
+        ) ** 2 / n_samples + alpha * np.linalg.norm(model_x.coef_, ord=1)
     else:
         # Distill X with sigma_X
         sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
@@ -758,7 +782,9 @@ def _joblib_distill(
 
     # Distill Y - calculate residual
     if is_logistic:
-        y_residual = y - expit(X_minus_idx.dot(coefficient_minus_idx.T) + intercept)
+        y_residual = y - expit(
+            X_minus_idx.dot(coefficient_minus_idx.T) + intercept
+        )
 
     elif coefficient_minus_idx is not None:
         # get the coefficients
@@ -806,10 +832,10 @@ def run_lasso_screening(
         Fitted Lasso model used for screening.
     """
     if not (
-        isinstance(lasso_model, LassoCV)
-        or isinstance(lasso_model, Lasso)
-        or isinstance(lasso_model, LogisticRegressionCV)
-        or isinstance(lasso_model, LogisticRegression)
+        isinstance(
+            lasso_model,
+            (LassoCV, Lasso, LogisticRegressionCV, LogisticRegression),
+        )
     ):
         raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
     lasso_model = seed_estimator(lasso_model, random_state=random_state)
@@ -897,7 +923,7 @@ d0crt_importance.__doc__ = _aggregate_docstring(
     selection : ndarray of shape (n_features,)
         Boolean array indicating selected features (True = selected)
     importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected 
+        Feature importance scores/test statistics. For features not selected
         during screening, scores are set to 0.
     pvalues : ndarray of shape (n_features,)
         Two-sided p-values for each feature under Gaussian null hypothesis.
