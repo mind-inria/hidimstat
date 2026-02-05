@@ -84,4 +84,3 @@ jobs:
     uses: ./.github/workflows/call_publish_result.yml
     with:
       BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}
-
