@@ -531,9 +531,11 @@ class GroupVariableImportanceMixin:
         """
         if self.features_groups is None:
             self.n_features_groups_ = X.shape[1]
-            self.features_groups_ = {j: [j] for j in range(self.n_features_groups_)}
+            self.features_groups_ = {
+                j: [j] for j in range(self.n_features_groups_)
+            }
             self._features_groups_ids = np.array(
-                sorted(list(self.features_groups_.values())), dtype=int
+                sorted(self.features_groups_.values()), dtype=int
             )
         elif isinstance(self.features_groups, dict):
             self.features_groups_ = self.features_groups
@@ -627,7 +629,7 @@ class GroupVariableImportanceMixin:
                     "A problem with indexing has happened during the fit."
                 )
         number_unique_feature_in_groups = np.unique(
-            np.concatenate([values for values in self.features_groups_.values()])
+            np.concatenate(list(self.features_groups_.values()))
         ).shape[0]
         if X.shape[1] != number_unique_feature_in_groups:
             warnings.warn(

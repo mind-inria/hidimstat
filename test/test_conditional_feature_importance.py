@@ -420,7 +420,9 @@ class TestCFIExceptions:
             method="predict",
         )
 
-        with pytest.raises(ValueError, match="This CFI instance is not fitted yet"):
+        with pytest.raises(
+            ValueError, match="This CFI instance is not fitted yet"
+        ):
             cfi.importance(X, y)
 
     def test_unfitted_base_perturbation(self, data_generator):
@@ -457,7 +459,9 @@ class TestCFIExceptions:
         fitted_model = LinearRegression().fit(X, y)
 
         cfi = CFI(estimator=fitted_model, n_permutations=-1, method="predict")
-        with pytest.raises(AssertionError, match="n_permutations must be positive"):
+        with pytest.raises(
+            AssertionError, match="n_permutations must be positive"
+        ):
             cfi.fit(X, y)
 
     def test_not_good_type_X(self, data_generator):
