@@ -220,8 +220,8 @@ linkcheck_ignore = [
     r"https://github.com/*",
 ]
 
-
-# Temporary solution to nilearn/nilearn#3997
 nitpick_ignore = [
-    ("py:class"),
+    # Found here
+    # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+    ("py:class", "type"),
 ]
