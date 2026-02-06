@@ -225,25 +225,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         else:
             X_ = X
             y_ = y
-        self.n_samples_, n_features = X_.shape
 
-        try:
-            check_is_fitted(estimator)
-        except NotFittedError:
-            # check if max_iter is large enough
-            if hasattr(estimator.cv, "n_splits") and (
-                estimator.max_iter // estimator.cv.n_splits <= n_features
-            ):
-                estimator.set_params(
-                    max_iter=n_features * estimator.cv.n_splits
-                )
-                warnings.warn(
-                    f"'max_iter' has been increased to {estimator.max_iter}",
-                    stacklevel=2,
-                )
-            # use the cross-validation for define the best alpha of Lasso
-            estimator.set_params(n_jobs=self.n_jobs)
-            estimator.fit(X_, y_)
+        estimator = self._initial_fit(estimator, X_, y_)
 
         # Lasso regression and noise standard deviation estimation
         self.sigma_hat_ = reid(
@@ -257,7 +240,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             stationary=self.stationary,
         )
 
-        list_model_x = [clone(model_x) for _ in range(n_features)]
+        list_model_x = [clone(model_x) for _ in range(self.n_features_in_)]
         # define the alphas for the Nodewise Lasso
         if self.preconfigure_model_x_path is None:
             list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
@@ -280,7 +263,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 gram=gram,  # gram matrix is passed to the job to avoid memory issue
                 return_clf=self.save_model_x,
             )
-            for i, rng_spwan in enumerate(rng.spawn(n_features))
+            for i, rng_spwan in enumerate(rng.spawn(self.n_features_in_))
         )
         # Unpacking the results
         results = np.asarray(results, dtype=object)
@@ -306,7 +289,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         p_nodiagonal = p - np.diag(np.diag(p))
         p_nodiagonal = dof_factor * p_nodiagonal + (
             dof_factor - 1
-        ) * np.identity(n_features)
+        ) * np.identity(self.n_features_in_)
         self.importances_ = beta_bias.T - p_nodiagonal.dot(estimator.coef_.T)
         # confidence intervals
         self.precision_diagonal_ = precision_diagonal * dof_factor**2
@@ -324,27 +307,30 @@ class DesparsifiedLasso(BaseVariableImportance):
             and hasattr(self, "sigma_hat_")
         )
 
-    def _check_fit(self):
-        """
-        Check if the model has been fit properly.
+    def _initial_fit(self, estimator, X_, y_):
+        self.n_samples_, n_features = X_.shape
 
-        This method verifies that the model has been fitted by checking
-        essential attributes (sigma_hat_ and lasso_cv).
+        try:
+            check_is_fitted(estimator)
+        except NotFittedError:
+            # check if max_iter is large enough
+            if hasattr(estimator.cv, "n_splits") and (
+                estimator.max_iter // estimator.cv.n_splits <= n_features
+            ):
+                estimator.set_params(
+                    max_iter=n_features * estimator.cv.n_splits
+                )
+                warnings.warn(
+                    f"'max_iter' has been increased to {estimator.max_iter}",
+                    stacklevel=2,
+                )
+            # use the cross-validation for define the best alpha of Lasso
+            estimator.set_params(n_jobs=self.n_jobs)
+            estimator.fit(X_, y_)
 
-        Raises
-        ------
-        ValueError
-            If model hasn't been fit or required attributes are missing.
-        """
-        if (
-            self.clf_ is None
-            or self.importances_ is None
-            or self.precision_diagonal_ is None
-            or self.sigma_hat_ is None
-        ):
-            raise ValueError(
-                "The Desparsified Lasso requires to be fit before any analysis"
-            )
+        self.n_features_in_ = estimator.n_features_in_
+
+        return estimator
 
     def importance(self, X=None, y=None):
         """

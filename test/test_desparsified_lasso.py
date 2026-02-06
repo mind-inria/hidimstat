@@ -29,9 +29,7 @@ ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 def expected_failed_checks(estimator):
     if isinstance(estimator, DesparsifiedLasso):
         return {
-            "check_n_features_in": "TODO",
             "check_fit2d_1feature": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
         }
 
 
