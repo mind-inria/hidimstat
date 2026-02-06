@@ -106,7 +106,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
-        model_x=Lasso(),
+        model_x=None,
         preconfigure_model_x_path=True,
         alpha_max_fraction=0.01,
         random_state=None,
@@ -308,6 +308,10 @@ class DesparsifiedLasso(BaseVariableImportance):
         )
 
     def _initial_fit(self, estimator, X_, y_):
+        """Run initial fit of a sklearn estimator.
+
+        Use during fit if an unfitted estimator was passed at instantiation.
+        """
         self.n_samples_, n_features = X_.shape
 
         try:
