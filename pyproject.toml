@@ -198,10 +198,6 @@ ignore = [
     "PTH207",
     "SIM108",
     "SIM210",
-    "RUF005",
-    "RUF015",
-    "RUF043",
-    "RUF059",
     # Avoid linter rules conflicting with the formatter
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "COM812",

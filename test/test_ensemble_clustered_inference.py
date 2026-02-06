@@ -69,7 +69,7 @@ def test_cludl_spatial():
     power_list = []
     for seed in range(10):
         # generating the data
-        X_init, y, beta, epsilon = multivariate_simulation_spatial(
+        X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
         )
 
@@ -113,7 +113,7 @@ def test_cludl_independence():
     n_samples = 50
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
-    X_init, y, beta, epsilon = multivariate_simulation_spatial(
+    X_init, y, _, _ = multivariate_simulation_spatial(
         n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     )
     alpha = 0.05  # alpha is the significance level for the statistical test
@@ -156,7 +156,7 @@ def test_encludl_spatial():
     power_list = []
     for seed in range(10):
         # generating the data
-        X_init, y, beta, epsilon = multivariate_simulation_spatial(
+        X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
         )
 
@@ -215,7 +215,7 @@ def test_cludl_temporal():
     fdp_list = []
     power_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             n_targets=n_target,
@@ -275,7 +275,7 @@ def test_encludl_temporal():
     fdp_list = []
     power_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             n_targets=n_target,
@@ -322,7 +322,7 @@ def test_encludl_independence():
     n_samples = 50
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
-    X_init, y, beta, epsilon = multivariate_simulation_spatial(
+    X_init, y, _, _ = multivariate_simulation_spatial(
         n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     )
     alpha = 0.05  # alpha is the significance level for the statistical test

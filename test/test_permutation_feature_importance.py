@@ -12,7 +12,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 def test_permutation_importance():
     """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
@@ -105,7 +105,7 @@ def test_permutation_importance():
 
 def test_permutation_importance_function():
     """Test the function of Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=150,
         n_features=200,
         support_size=10,
@@ -114,12 +114,12 @@ def test_permutation_importance_function():
     )
     important_features = beta != 0
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
     regression_model.fit(X_train, y_train)
 
-    selection, importance, pvalue = pfi_importance(
+    _, importance, _ = pfi_importance(
         regression_model,
         X,
         y,
@@ -257,7 +257,7 @@ def test_pfi_cv(data_generator):
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
     """
-    X, y, important_features, not_important_features = data_generator
+    X, y, important_features, _ = data_generator
 
     model = LassoCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)

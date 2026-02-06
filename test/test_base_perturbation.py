@@ -122,7 +122,7 @@ def test_check_importance():
     basic_class = BasePerturbation(estimator=estimator).fit(X[:, 0], X[:, 1])
     with pytest.raises(
         ValueError,
-        match="The importance method need to be called before calling this method.",
+        match="The importance method need to be called before calling this method",
     ):
         basic_class.importance_selection()
 

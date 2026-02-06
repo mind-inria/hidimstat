@@ -38,7 +38,7 @@ def _generate_2D_weight(shape, roi_size):
         f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
     )
 
-    w = np.zeros(shape + (5,))
+    w = np.zeros((*shape, 5))
     w[0:roi_size, 0:roi_size, 0] = 1.0
     w[-roi_size:, -roi_size:, 1] = 1.0
     w[0:roi_size, -roi_size:, 2] = 1.0
@@ -81,7 +81,7 @@ def _generate_3D_weight(shape, roi_size):
         f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
     )
 
-    w = np.zeros(shape + (5,))
+    w = np.zeros((*shape, 5))
     w[0:roi_size, 0:roi_size, 0:roi_size, 0] = -1.0
     w[-roi_size:, -roi_size:, 0:roi_size, 1] = 1.0
     w[0:roi_size, -roi_size:, -roi_size:, 2] = -1.0
@@ -142,7 +142,7 @@ def multivariate_simulation_spatial(
     rng = np.random.default_rng(seed)
 
     # Generate the variables from normal distribution
-    X_ = rng.standard_normal((n_samples,) + shape)
+    X_ = rng.standard_normal((n_samples, *shape))
     ## Create local correlation
     X = []
     for i in np.arange(n_samples):
