@@ -96,7 +96,8 @@ User installation
 .. # Add the instruction for installation
   TODO add conda when it will be accessible
 
-HiDimStat can easily be installed via ``pip``. For more installation information,
+HiDimStat can easily be installed via ``pip``.
+For more installation information,
 see the `installation instructions <https://hidimstat.github.io/dev/index.html#installation>`_.
 
 .. code-block:: bash
