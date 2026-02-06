@@ -133,7 +133,7 @@ def test_cludl_independence():
     assert np.sum(s2) > np.sum(s1 / 2)
 
 
-@pytest.marl.slow
+@pytest.mark.slow
 def test_encludl_spatial():
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
