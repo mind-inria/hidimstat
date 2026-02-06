@@ -74,7 +74,7 @@ class TestTtest_1samp:
 
     def test_result_attributes(self):
         """Test attribute"""
-        outcome = self.rng.standard_normal((20, 4)) + [0, 0, 1, 2]
+        outcome = self.rng.standard_normal((20, 4)) + np.asarray([0, 0, 1, 2])
 
         res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
         attributes = ("statistic", "pvalue")
@@ -126,8 +126,6 @@ class TestTtest_1samp:
         x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
         with pytest.raises(
             ValueError,
-            match="`alternative` must be 'less', 'greater', or 'two-sided'.",
+            match="`alternative` must be 'less', 'greater', or 'two-sided'",
         ):
-            t_ex, p_ex = nadeau_bengio_ttest(
-                x, 9, test_frac=0.0, alternative="ttt"
-            )
+            nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")

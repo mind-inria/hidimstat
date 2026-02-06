@@ -324,7 +324,7 @@ class TestBVIExceptions:
         vi.pvalues_ = None
         with pytest.raises(
             AssertionError,
-            match="The selection on p-value can't be done because the current method does not compute p-values.",
+            match="The selection on p-value can't be done because the current method does not compute p-values",
         ):
             vi.pvalue_selection(threshold_min=-1)
 
@@ -349,7 +349,7 @@ class TestBVIExceptions:
             vi.pvalue_selection(threshold_max=1.1)
         with pytest.raises(
             AssertionError,
-            match="Only support selection based on one criteria.",
+            match="Only support selection based on one criteria",
         ):
             vi.pvalue_selection(threshold_max=0.5, threshold_min=0.9)
 
@@ -389,7 +389,7 @@ class TestSelectionFDRExceptions:
         vi.pvalues_ = None
         with pytest.raises(
             AssertionError,
-            match="FDR-based selection requires p-values to be computed first. The current method does not support p-values.",
+            match=r"FDR-based selection requires p-values to be computed first. The current method does not support p-values",
         ):
             vi.fdr_selection(fdr=0.1)
 

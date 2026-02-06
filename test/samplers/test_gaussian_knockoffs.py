@@ -22,9 +22,6 @@ def test_gaussian_equi():
 def test_gaussian_error():
     """Test function error"""
     seed = 42
-    n = 100
-    p = 50
-    X, y, beta, noise = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs()
     with pytest.raises(
         ValueError,
@@ -44,7 +41,7 @@ def test_s_equi_not_definite_positive():
     a = rgn.randn(n, n)
     a -= np.min(a)
     with pytest.raises(
-        Exception, match="The covariance matrix is not positive-definite."
+        Exception, match="The covariance matrix is not positive-definite"
     ):
         _s_equi(a)
 
@@ -55,7 +52,7 @@ def test_s_equi_not_definite_positive():
         _s_equi(a)
 
     # positive definite matrix
-    u, s, vh = np.linalg.svd(a)
+    u, _, _ = np.linalg.svd(a)
     d = np.eye(n)
     sigma = u * d * u.T
     res = _s_equi(sigma)

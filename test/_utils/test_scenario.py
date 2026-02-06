@@ -121,13 +121,13 @@ def test_multivariate_simulation_3D():
 def test_multivariate_simulation_edge_cases_2D():
     """Test minimum valid shape and roi_size"""
     shape = (2, 2)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 1
     seed = 42
     n_samples = 6
     w = _generate_2D_weight(shape=shape, roi_size=roi_size)
     assert_equal(w.shape, shape_weight)
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -136,13 +136,13 @@ def test_multivariate_simulation_edge_cases_2D():
 def test_multivariate_simulation_edge_cases_3D():
     """Test 3D minimum case"""
     shape = (2, 2, 2)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 1
     seed = 42
     n_samples = 6
     w = _generate_3D_weight(shape=shape, roi_size=roi_size)
     assert_equal(w.shape, shape_weight)
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -151,7 +151,7 @@ def test_multivariate_simulation_edge_cases_3D():
 def test_multivariate_simulation_edge_cases_roi_full():
     """Test roi_size equal to shape dimension"""
     shape = (4, 4)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 4
     seed = 42
     n_samples = 10
@@ -162,7 +162,7 @@ def test_multivariate_simulation_edge_cases_roi_full():
         assert np.all(w[:, :, i].sum() == 16)  # Full coverage of corners
     # only the background is empty
     assert np.all(w[:, :, 4].sum() == 0)  # Full coverage of corners
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -330,7 +330,7 @@ def test_multivariate_simulation_all(
 
 def test_multivariate_simulation_zero_support():
     """Test autoregressive simulation with zero support size."""
-    X, y, beta, noise = multivariate_simulation(
+    _, _, beta, _ = multivariate_simulation(
         n_samples=50, n_features=100, support_size=0, seed=42
     )
     assert_equal(np.count_nonzero(beta), 0)
@@ -338,7 +338,7 @@ def test_multivariate_simulation_zero_support():
 
 def test_multivariate_simulation_zero_signal_noise_ratio():
     """Test autoregressive simulation with zero SNR."""
-    X, y, beta, noise = multivariate_simulation(
+    _, y, _, noise = multivariate_simulation(
         n_samples=50, n_features=100, signal_noise_ratio=0.0, seed=42
     )
     assert_equal(y, noise)
@@ -347,7 +347,7 @@ def test_multivariate_simulation_zero_signal_noise_ratio():
 
 def test_multivariate_simulation_minimal():
     """Test autoregressive simulation with minimal dimensions."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=2, n_features=2, n_targets=2, support_size=1, seed=42
     )
     assert_equal(X.shape, (2, 2))
@@ -421,7 +421,7 @@ def test_empirical_snr():
     support_size = 10
     signal_noise_ratio_expected = 0.5
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -445,7 +445,7 @@ def test_empirical_snr_2():
     support_size = 10
     signal_noise_ratio_expected = 10.0
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
