@@ -133,7 +133,6 @@ def test_cludl_independence():
     assert np.sum(s2) > np.sum(s1 / 2)
 
 
-@pytest.mark.slow
 def test_encludl_spatial():
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
@@ -197,7 +196,6 @@ def test_encludl_spatial():
     assert np.mean(fp_list) <= fwer + tol
 
 
-@pytest.mark.slow
 def test_cludl_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
@@ -259,7 +257,6 @@ def test_cludl_temporal():
     assert np.mean(fdp_list) <= alpha + test_tol
 
 
-@pytest.mark.slow
 def test_encludl_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
@@ -321,7 +318,6 @@ def test_encludl_temporal():
     assert np.mean(fdp_list) <= alpha
 
 
-@pytest.mark.slow
 def test_encludl_independence():
     """Test that EnCluDL works with n_jobs=1. Non regression for #425"""
     n_samples = 50

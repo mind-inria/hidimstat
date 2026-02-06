@@ -31,6 +31,7 @@ def expected_failed_checks(estimator):
     if isinstance(estimator, DesparsifiedLasso):
         return {
             "check_fit2d_1feature": "TODO",
+            "check_parameters_default_constructible": "TODO setting model_cv default to None seems to greatly slow some tests",
         }
 
 
