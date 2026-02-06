@@ -29,13 +29,8 @@ ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 def expected_failed_checks(estimator):
     if isinstance(estimator, DesparsifiedLasso):
         return {
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_fit_check_is_fitted": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
             "check_n_features_in": "TODO",
-            "check_parameters_default_constructible": "TODO",
             "check_fit2d_1feature": "TODO",
-            "check_estimators_overwrite_params": "TODO",
             "check_n_features_in_after_fitting": "TODO",
         }
 
@@ -294,30 +289,36 @@ def test_exception():
         seed=10,
     )
 
+    desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
     with pytest.raises(
         AssertionError,
         match="model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso",
     ):
-        DesparsifiedLasso(model_x=RandomForestClassifier())
+        desparsified_lasso.fit(X, y)
+
+    desparsified_lasso = DesparsifiedLasso(estimator=RandomForestClassifier())
     with pytest.raises(
         AssertionError,
         match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
     ):
-        DesparsifiedLasso(estimator=RandomForestClassifier())
+        desparsified_lasso.fit(X, y)
+
+    desparsified_lasso = DesparsifiedLasso(test="r2")
     with pytest.raises(AssertionError, match="Unknown test 'r2'"):
-        DesparsifiedLasso(test="r2")
+        desparsified_lasso.fit(X, y)
+
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv)
     with pytest.raises(
         ValueError,
-        match="The Desparsified Lasso requires to be fit before any analysis",
+        match="This DesparsifiedLasso instance is not fitted yet",
     ):
         desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
         X, y
     )
+    desparsified_lasso.test = "r2"
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
-        desparsified_lasso.test = "r2"
         desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
