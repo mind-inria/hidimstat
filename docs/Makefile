@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 N_JOB         = auto
-SPHINXOPTS    = -j ${N_JOB} -W --keep-going -n
+SPHINXOPTS    = -j ${N_JOB} --fail-on-warning --keep-going --nitpicky --verbose
 # -j/--jobs:		    N processes in parallel (auto=number of CPUs)
 # -W/--fail-on-warning: Turn warnings into errors.
 # --keep-going:         Runs sphinx-build to completion and exits
