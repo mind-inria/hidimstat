@@ -3,7 +3,6 @@ Test the clustered_inference module
 """
 
 import numpy as np
-import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
