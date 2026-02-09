@@ -424,10 +424,10 @@ class BaseVariableImportance(BaseEstimator):
         try:
             import matplotlib.pyplot as plt
             import seaborn as sns
-        except ImportError:
+        except ImportError as e:
             raise Exception(
                 "You need to install seaborn for using this functionality"
-            )
+            ) from e
 
         self._check_importance()
 
