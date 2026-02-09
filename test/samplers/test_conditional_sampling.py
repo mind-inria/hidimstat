@@ -78,7 +78,7 @@ def test_binary_case(rng):
 
     # independent features
     X = rng.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=n)
-    X[:, 1] = rng.random((0, 2), size=n)
+    X[:, 1] = rng.integers(0, 2, size=n)
     sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
     n_samples = 10
     X_1_perm = sampler.sample(
@@ -107,7 +107,7 @@ def test_binary_case(rng):
 def test_error_wrong_type_data(rng):
     """Test for error when model does not have predict"""
     sampler = ConditionalSampler(data_type="wrong_type")
-    X = rng.random((0, 2), size=(100, 2))
+    X = rng.integers(0, 2, size=(100, 2))
     with pytest.raises(ValueError, match="type of data 'wrong_type' unknown"):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
 
@@ -129,7 +129,7 @@ def test_error_no_predic_proba(rng):
 
 def test_error_no_predic(rng):
     """Test for error when model does not have predict"""
-    X = rng.random((0, 2), size=(100, 2))
+    X = rng.integers(0, 2, size=(100, 2))
     sampler = ConditionalSampler(
         model_regression=StandardScaler(), data_type="continuous"
     )
@@ -143,12 +143,13 @@ def test_error_no_predic(rng):
 
 def test_error_no_model_provide(rng):
     """Test when there is no model for the category"""
-    X = rng.random((0, 2), size=(100, 2))
+    X = rng.integers(0, 2, size=(100, 2))
     sampler = ConditionalSampler(data_type="auto")
     with pytest.raises(
         AttributeError, match="No model was provided for categorical data"
     ):
         sampler.fit(np.delete(X, 1, axis=1), X[:, 1])
+
     X = rng.random((100, 2))
     sampler = ConditionalSampler(data_type="auto")
     with pytest.raises(
@@ -187,10 +188,15 @@ def test_group_case(rng):
     )
     sampler.fit(X[:, :2], X[:, 2:])
 
-    # Binary case
-    X = rng.random((n, 5))
+
+def test_group_case_binary_case(rng):
+    """Test for group case: with a binary case."""
+    n = 1000
+
+    X = np.random.randn(n, 5)
     X[:, 3] = X[:, 0] + X[:, 1] + X[:, 2] + rng.random(X.shape[0]) * 0.3 > 0
-    X[:, 4] = 2 * X[:, 1] - 1 + rng.random(X.shape[0]) * 0.3 > 0
+    X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
+
     model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
     sampler = ConditionalSampler(
         model_categorical=model, data_type="categorical"
@@ -199,7 +205,7 @@ def test_group_case(rng):
 
     n_samples = 10
     X_3_perm = sampler.sample(
-        X[:, :3], X[:, 3:], n_samples=n_samples, random_state=0
+        X[:, :3], X[:, 3:], n_samples=n_samples, random_state=42
     )
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
