@@ -209,9 +209,7 @@ def test_selection_bhq():
             .ravel()
             .max()
         )
-        selected_gt = np.array(
-            [True if i <= critical_k else False for i in range(n_features)]
-        )
+        selected_gt = np.array([i <= critical_k for i in range(n_features)])
 
         selected = vim.fdr_selection(fdr=fdr, fdr_control="bhq") != 0
         np.testing.assert_array_equal(selected_gt, selected)
@@ -237,12 +235,10 @@ def test_selection_bhq():
         selected_gt = np.array(
             [
                 (
-                    True
-                    if (
+                    bool(
                         i <= critical_k_lower
                         or i >= n_features - 1 - critical_k_upper
                     )
-                    else False
                 )
                 for i in range(n_features)
             ]

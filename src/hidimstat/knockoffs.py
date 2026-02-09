@@ -193,10 +193,7 @@ class ModelXKnockoff(BaseVariableImportance):
             Returns the instance itself.
         """
         rng = check_random_state(self.randoms_state)
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
+        X_ = StandardScaler().fit_transform(X) if self.centered else X
 
         self.generator.fit(X_)
         X_tildes = self.generator.sample(
