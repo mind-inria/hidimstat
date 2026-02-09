@@ -141,10 +141,7 @@ def _ebh_threshold(evals, fdr=0.1):
     for k, e_k in enumerate(evals_sorted, start=1):
         if k * e_k >= n_features / fdr:
             k_star = k
-    if k_star <= n_features:
-        threshold = evals_sorted[k_star - 1]
-    else:
-        threshold = np.inf
+    threshold = evals_sorted[k_star - 1] if k_star <= n_features else np.inf
     return threshold
 
 
