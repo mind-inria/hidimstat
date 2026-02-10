@@ -39,8 +39,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         Initial model for selecting relevant features. Must implement fit and predict.
         For single task use LassoCV, for multi-task use MultiTaskLassoCV.
         Set to LassoCV() if None is passed.
-    model_x : Lasso or MultiTaskLasso instance, default=Lasso()
+    model_x : Lasso or MultiTaskLasso instance, default=None
         Base model for nodewise regressions.
+        Set to Lasso() if None is passed.
     centered : bool, default=True
         Whether to center X and y before fitting.
     dof_ajdustement : bool, default=False
@@ -107,10 +108,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
-        # TODO: investigate
-        # setting Lasso() which goes against sklearn convention
-        # but setting to None slows many tests
-        model_x=Lasso(),
+        model_x=None,
         preconfigure_model_x_path=True,
         alpha_max_fraction=0.01,
         random_state=None,

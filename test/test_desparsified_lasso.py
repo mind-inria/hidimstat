@@ -29,10 +29,7 @@ ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 
 def expected_failed_checks(estimator):
     if isinstance(estimator, DesparsifiedLasso):
-        return {
-            "check_fit2d_1feature": "TODO",
-            "check_parameters_default_constructible": "TODO setting model_cv default to None seems to greatly slow some tests",
-        }
+        return {"check_fit2d_1feature": "TODO"}
 
 
 if SKLEARN_LT_1_6:
