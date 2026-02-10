@@ -189,13 +189,15 @@ def test_group_case(rng):
     sampler.fit(X[:, :2], X[:, 2:])
 
 
-def test_group_case_binary_case(rng):
+def test_group_case_binary_case():
     """Test for group case: with a binary case."""
     n = 1000
 
-    X = np.random.randn(n, 5)
-    X[:, 3] = X[:, 0] + X[:, 1] + X[:, 2] + rng.random(X.shape[0]) * 0.3 > 0
-    X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0
+    X = np.random.randn(n, 5)  # noqa : NPY002
+    X[:, 3] = (
+        X[:, 0] + X[:, 1] + X[:, 2] + np.random.randn(X.shape[0]) * 0.3 > 0  # noqa : NPY002
+    )
+    X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0  # noqa : NPY002
 
     model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
     sampler = ConditionalSampler(
