@@ -687,10 +687,7 @@ def reid(
     ----------
     .. footbibliography::
     """
-    if multioutput:
-        n_task = beta_hat.shape[0]
-    else:
-        n_task = None
+    n_task = beta_hat.shape[0] if multioutput else None
 
     n_samples = residual.shape[0]
 

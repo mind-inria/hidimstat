@@ -214,10 +214,7 @@ class D0CRT(BaseVariableImportance):
         rng = check_random_state(self.random_state)
         self.estimator = seed_estimator(self.estimator, random_state=rng)
 
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
+        X_ = StandardScaler().fit_transform(X) if self.centered else X
         y_ = y  # avoid modifying the original y
 
         if self.screening_threshold is not None:
@@ -375,10 +372,7 @@ class D0CRT(BaseVariableImportance):
 
         y_ = y  # avoid modifying the original y
 
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
+        X_ = StandardScaler().fit_transform(X) if self.centered else X
         n_samples, n_features = X_.shape
         selection_features = np.arange(n_features)[self.selection_set_]
 
@@ -756,10 +750,7 @@ def _joblib_distill(
     # Distill X with least square loss
     if sigma_X is None:
         n_samples = X.shape[0]
-        if hasattr(model_x, "alpha_"):
-            alpha = model_x.alpha_
-        else:
-            alpha = model_x.alpha
+        alpha = model_x.alpha_ if hasattr(model_x, "alpha_") else model_x.alpha
         # get the residuals
         X_residual = X[:, idx] - model_x.predict(X_minus_idx)
         # compute the variance of the residuals
@@ -793,10 +784,7 @@ def _joblib_distill(
     else:
         # get the residuals
         y_pred = getattr(model_y, method)(X_minus_idx)
-        if y_pred.ndim == 1:
-            y_residual = y - y_pred
-        else:
-            y_residual = y - y_pred[:, 1]  # IIABDFI
+        y_residual = y - y_pred if y_pred.ndim == 1 else y - y_pred[:, 1]
 
     return X_residual, sigma2, y_residual
 
