@@ -66,6 +66,7 @@ class PDP:
 
     @staticmethod
     def _plot_1d(pd, feature_names, cmap=None, **kwargs):
+        del cmap  # only there for API compatibility
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1])
         ax = axes[0]
 
