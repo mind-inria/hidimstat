@@ -56,21 +56,17 @@ ESTIMATORS_TO_CHECK = [
         estimator=LinearRegression(),
         imputation_model_continuous=LinearRegression(),
     ),
-    # TODO
-    # CFICV(
-    #     estimators=RidgeCV(),
-    #     cv=KFold(n_splits=2),
-    #     n_jobs=2,
-    # ),
+    CFICV(
+        estimators=RidgeCV(),
+        cv=KFold(n_splits=2),
+    ),
     CFICV(
         estimators=fitted_ridged_cv(),
         cv=KFold(n_splits=2),
-        n_jobs=2,
     ),
     CFICV(
         estimators=list_fitted_ridge_cv(),
         cv=KFold(n_splits=2, shuffle=True, random_state=0),
-        n_jobs=2,
     ),
 ]
 
