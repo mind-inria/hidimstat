@@ -28,7 +28,9 @@ def test_fdr_threshold():
     )
     ebh_cutoff = fdr_threshold(e_values, fdr=0.1, method="ebh")
 
-    with pytest.raises(Exception):
+    with pytest.raises(
+        ValueError, match="test is not support FDR control method"
+    ):
         _ = fdr_threshold(e_values, fdr=0.1, method="test")
 
     # Test BHq

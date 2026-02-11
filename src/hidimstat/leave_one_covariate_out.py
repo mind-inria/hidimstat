@@ -98,7 +98,9 @@ class LOCO(BasePerturbation):
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
-                self.features_groups_.keys(), self._list_estimators
+                self.features_groups_.keys(),
+                self._list_estimators,
+                strict=False,
             )
         )
         return self

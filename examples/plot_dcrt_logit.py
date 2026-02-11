@@ -71,7 +71,9 @@ from hidimstat import D0CRT
 
 # Run dCRT and dCRT-logit for each random seed
 results_list = []
-for seed, (X, y, beta_true) in enumerate(zip(X_list, y_list, beta_true_list)):
+for seed, (X, y, beta_true) in enumerate(
+    zip(X_list, y_list, beta_true_list, strict=False)
+):
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(

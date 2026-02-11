@@ -95,8 +95,8 @@ parameter_exact = [
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_exact))[1:])),
-    ids=next(zip(*parameter_exact)),
+    zip(*(list(zip(*parameter_exact, strict=False))[1:]), strict=False),
+    ids=next(zip(*parameter_exact, strict=False)),
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -152,8 +152,8 @@ parameter_partial = [
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_partial))[1:])),
-    ids=next(zip(*parameter_partial)),
+    zip(*(list(zip(*parameter_partial, strict=False))[1:]), strict=False),
+    ids=next(zip(*parameter_partial, strict=False)),
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -252,8 +252,8 @@ def test_group(data_generator):
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_exact))[1:])),
-    ids=next(zip(*parameter_exact)),
+    zip(*(list(zip(*parameter_exact, strict=False))[1:]), strict=False),
+    ids=next(zip(*parameter_exact, strict=False)),
 )
 def test_classication(data_generator):
     """Test CFI for a classification problem"""
