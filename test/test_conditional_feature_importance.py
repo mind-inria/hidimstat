@@ -45,7 +45,6 @@ def expected_failed_checks(estimator):  # noqa : ARG001
         "check_estimator_sparse_tag": "TODO",
         "check_estimators_dtypes": "TODO",
         "check_estimators_empty_data_messages": "TODO",
-        "check_estimators_fit_returns_self": "TODO",
         "check_estimators_pickle": "TODO",
         "check_estimators_nan_inf": "TODO",
         "check_estimators_overwrite_params": "TODO",
