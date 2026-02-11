@@ -132,10 +132,6 @@ def multivariate_simulation_spatial(
         Parameter vector (flattened weight map).
     noise : ndarray of shape (n_samples,)
         Additive white Gaussian noise vector.
-    X_ : ndarray of shape (n_samples,) + shape
-        Reshaped design matrix matching input dimensions.
-    w : ndarray of shape shape + (5,)
-        Weight map with 5 channels for different ROIs.
     """
     assert n_samples > 0, "n_samples must be strictly positive"
     # Setup seed generator
@@ -234,12 +230,9 @@ def multivariate_simulation(
         Target vector/matrix, generated as y = X @ beta + noise.
     beta_true : ndarray of shape (n_features,) or (n_features, n_target)
         True coefficient vector/matrix with support_size non-zero elements.
-    non_zero : ndarray
-        Indices of non-zero coefficients in beta_true.
-    noise_factor : float
-        Applied noise magnitude scaling factor.
-    eps : ndarray of shape (n_samples,) or (n_samples, n_target)
-        Noise vector/matrix with optional temporal correlation.
+    noise : ndarray of shape (n_samples,) or (n_samples, n_target)
+        Additive noise vector/matrix with optional serial correlation
+        controlled by rho_serial.
     """
     assert n_samples > 0, "n_samples must be positive"
     assert n_features > 0, "n_features must be positive"
