@@ -220,8 +220,8 @@ linkcheck_ignore = [
     r"https://github.com/*",
 ]
 
-nitpick_ignore = [
-    # Found here
-    # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
-    ("py:class", "type"),
-]
+# nitpick_ignore = [
+#     # Found here
+#     # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+#     ("py:class", "type"),
+# ]
