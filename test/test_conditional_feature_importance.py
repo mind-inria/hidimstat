@@ -25,43 +25,97 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
 
+
+def fitted_ridged_cv():
+    X, y, _, _ = multivariate_simulation(
+        n_samples=500,
+        n_features=50,
+    )
+    return RidgeCV(alphas=np.logspace(-3, 3, 13)).fit(X, y)
+
+
+def list_fitted_ridge_cv():
+    X, y, _, _ = multivariate_simulation(
+        n_samples=500,
+        n_features=50,
+    )
+    model = RidgeCV(alphas=np.logspace(-3, 3, 13))
+    cv = KFold(n_splits=2, shuffle=True, random_state=0)
+    return [
+        clone(model.fit(X[train_index], y[train_index]))
+        for train_index, _ in cv.split(X)
+    ]
+
+
 ESTIMATORS_TO_CHECK = [
-    CFI(
-        estimator=fitted_linear_regression(),
-        imputation_model_continuous=LinearRegression(),
+    # CFI(
+    #     estimator=fitted_linear_regression(),
+    #     imputation_model_continuous=LinearRegression(),
+    # ),
+    # CFI(
+    #     estimator=LinearRegression(),
+    #     imputation_model_continuous=LinearRegression(),
+    # ),
+    # CFICV(
+    #     estimators=RidgeCV(),
+    #     cv=KFold(n_splits=2),
+    #     n_jobs=2,
+    # ),
+    CFICV(
+        estimators=fitted_ridged_cv(),
+        cv=KFold(n_splits=2),
+        n_jobs=2,
     ),
-    CFI(
-        estimator=LinearRegression(),
-        imputation_model_continuous=LinearRegression(),
+    CFICV(
+        estimators=list_fitted_ridge_cv(),
+        cv=KFold(n_splits=2, shuffle=True, random_state=0),
+        n_jobs=2,
     ),
-    # CFICV(
-    #     estimators=LinearRegression(),
-    #     cv=KFold(n_splits=2),
-    #     imputation_model_continuous=LinearRegression(),
-    # ),
-    # CFICV(
-    #     estimators=fitted_linear_regression(),
-    #     cv=KFold(n_splits=2),
-    #     imputation_model_continuous=LinearRegression(),
-    # ),
-    # CFICV(
-    #     estimators=[fitted_linear_regression(), fitted_linear_regression()],
-    #     cv=KFold(n_splits=2),
-    #     imputation_model_continuous=LinearRegression(),
-    # ),
 ]
 
 
-def expected_failed_checks(estimator):  # noqa : ARG001
-    return {
-        "check_estimator_sparse_array": "TODO",
-        "check_estimator_sparse_matrix": "TODO",
-        "check_estimator_sparse_tag": "TODO",
-        "check_estimators_nan_inf": "TODO",
-        "check_fit2d_1feature": "TODO",
-        "check_fit2d_1sample": "TODO",
-        "check_parameters_default_constructible": "TODO",
-    }
+def expected_failed_checks(estimator):
+    if isinstance(estimator, CFI):
+        return {
+            "check_estimator_sparse_array": "TODO",
+            "check_estimator_sparse_matrix": "TODO",
+            "check_estimator_sparse_tag": "TODO",
+            "check_estimators_nan_inf": "TODO",
+            "check_fit2d_1feature": "TODO",
+            "check_fit2d_1sample": "TODO",
+            "check_parameters_default_constructible": "TODO",
+        }
+    elif isinstance(estimator, CFICV):
+        return {
+            "check_complex_data": "TODO",
+            "check_estimators_empty_data_messages": "TODO",
+            "check_fit2d_1feature": "TODO",
+            "check_fit2d_1sample": "TODO",
+            "check_parameters_default_constructible": "TODO",
+            "check_dict_unchanged": "TODO",
+            "check_dont_overwrite_parameters": "TODO",
+            "check_dtype_object": "TODO",
+            "check_estimator_sparse_array": "TODO",
+            "check_estimator_sparse_matrix": "TODO",
+            "check_estimator_sparse_tag": "TODO",
+            "check_estimators_dtypes": "TODO",
+            "check_estimators_pickle": "TODO",
+            "check_estimators_nan_inf": "TODO",
+            "check_estimators_fit_returns_self": "TODO",
+            "check_estimators_overwrite_params": "TODO",
+            "check_f_contiguous_array_estimator": "TODO",
+            "check_fit_check_is_fitted": "TODO",
+            "check_fit_idempotent": "TODO",
+            "check_fit_score_takes_y": "TODO",
+            "check_fit2d_predict1d": "TODO",
+            "check_n_features_in": "TODO",
+            "check_n_features_in_after_fitting": "TODO",
+            "check_methods_sample_order_invariance": "TODO",
+            "check_methods_subset_invariance": "TODO",
+            "check_pipeline_consistency": "TODO",
+            "check_positive_only_tag_during_fit": "TODO",
+            "check_readonly_memmap_input": "TODO",
+        }
 
 
 if SKLEARN_LT_1_6:
