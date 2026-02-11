@@ -105,7 +105,6 @@ jobs:
         path: coverage_artifacts
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
-      if: ${{ env.FILE_SIZE > 1 }}
       uses: codecov/codecov-action@v5.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
