@@ -7,7 +7,6 @@ import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
-from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
     LogisticRegression,
@@ -16,6 +15,7 @@ from sklearn.linear_model import (
 )
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
@@ -23,6 +23,84 @@ from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_feature_importance import CFICV
 from hidimstat.statistical_tools.multiple_testing import fdp_power
+
+from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
+
+ESTIMATORS_TO_CHECK = [
+    CFI(
+        estimator=fitted_linear_regression(),
+        imputation_model_continuous=LinearRegression(),
+    ),
+]
+
+
+def expected_failed_checks(estimator):  # noqa : ARG001
+    return {
+        "check_complex_data": "TODO",
+        "check_dict_unchanged": "TODO",
+        "check_dont_overwrite_parameters": "TODO",
+        "check_dtype_object": "TODO",
+        "check_estimator_sparse_array": "TODO",
+        "check_estimator_sparse_matrix": "TODO",
+        "check_estimator_sparse_tag": "TODO",
+        "check_estimators_dtypes": "TODO",
+        "check_estimators_empty_data_messages": "TODO",
+        "check_estimators_fit_returns_self": "TODO",
+        "check_estimators_pickle": "TODO",
+        "check_estimators_nan_inf": "TODO",
+        "check_estimators_overwrite_params": "TODO",
+        "check_f_contiguous_array_estimator": "TODO",
+        "check_fit_check_is_fitted": "TODO",
+        "check_fit_idempotent": "TODO",
+        "check_fit_score_takes_y": "TODO",
+        "check_fit2d_1feature": "TODO",
+        "check_fit2d_1sample": "TODO",
+        "check_fit2d_predict1d": "TODO",
+        "check_n_features_in": "TODO",
+        "check_n_features_in_after_fitting": "TODO",
+        "check_methods_sample_order_invariance": "TODO",
+        "check_methods_subset_invariance": "TODO",
+        "check_parameters_default_constructible": "TODO",
+        "check_pipeline_consistency": "TODO",
+        "check_positive_only_tag_during_fit": "TODO",
+        "check_readonly_memmap_input": "TODO",
+    }
+
+
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+else:
+
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
 
 
 def run_cfi(X, y, n_permutation, seed):
@@ -586,23 +664,25 @@ class TestCFIExceptions:
         X, y, _, _ = data_generator
         fitted_model = LinearRegression().fit(X, y)
 
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_continuous="invalid_imputer",
+            method="predict",
+        )
         with pytest.raises(
             AssertionError, match="Continuous imputation model invalid"
         ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_continuous="invalid_imputer",
-                method="predict",
-            )
+            cfi.fit(X)
 
+        cfi = CFI(
+            estimator=fitted_model,
+            imputation_model_categorical="invalid_imputer",
+            method="predict",
+        )
         with pytest.raises(
             AssertionError, match="Categorial imputation model invalid"
         ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_categorical="invalid_imputer",
-                method="predict",
-            )
+            cfi.fit(X)
 
     def test_invalid_groups_format(self, data_generator):
         """Test when groups are provided in invalid format"""

@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
@@ -64,7 +66,7 @@ class CFI(BasePerturbation):
         self,
         estimator,
         method: str = "predict",
-        loss: callable = mean_squared_error,
+        loss: Callable = mean_squared_error,
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(),
@@ -85,14 +87,6 @@ class CFI(BasePerturbation):
             features_groups=features_groups,
             random_state=random_state,
         )
-
-        # check the validity of the inputs
-        assert imputation_model_continuous is None or issubclass(
-            imputation_model_continuous.__class__, BaseEstimator
-        ), "Continuous imputation model invalid"
-        assert imputation_model_categorical is None or issubclass(
-            imputation_model_categorical.__class__, BaseEstimator
-        ), "Categorial imputation model invalid"
 
         self.feature_types = feature_types
         self._list_imputation_models = []
@@ -117,6 +111,15 @@ class CFI(BasePerturbation):
             Returns the instance itself.
         """
         del y
+
+        # check the validity of the inputs
+        assert self.imputation_model_continuous is None or issubclass(
+            self.imputation_model_continuous.__class__, BaseEstimator
+        ), "Continuous imputation model invalid"
+        assert self.imputation_model_categorical is None or issubclass(
+            self.imputation_model_categorical.__class__, BaseEstimator
+        ), "Categorial imputation model invalid"
+
         super().fit(X, None)
 
         # check the feature type
