@@ -359,13 +359,13 @@ class TestCFIClass:
     def test_categorical(
         self,
         n_samples,
-        n_features,
-        support_size,
-        rho,
+        n_features,  # noqa: ARG002
+        support_size,  # noqa: ARG002
+        rho,  # noqa: ARG002
         seed,
-        value,
-        signal_noise_ratio,
-        rho_serial,
+        value,  # noqa: ARG002
+        signal_noise_ratio,  # noqa: ARG002
+        rho_serial,  # noqa: ARG002
     ):
         """Test CFI with categorical variables"""
         rng = np.random.default_rng(seed)
