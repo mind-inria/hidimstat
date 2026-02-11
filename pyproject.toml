@@ -100,9 +100,11 @@ skip = "./.git,*.bib,./docs/_build"
 [tool.doc8]
 allow-long-titles = true
 ignore-path = [
+    "docs/src/whats_news/whats_news.rst",
     "docs/src/generated*",
+    "docs/tools/_templates",
     "src/HiDimStat.egg-info",
-    "docs/tools/_templates"
+    "tools/documentation_developer/index.rst",
 ]
 max-line-length = 240
 
