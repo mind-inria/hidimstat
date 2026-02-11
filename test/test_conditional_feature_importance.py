@@ -48,14 +48,15 @@ def list_fitted_ridge_cv():
 
 
 ESTIMATORS_TO_CHECK = [
-    # CFI(
-    #     estimator=fitted_linear_regression(),
-    #     imputation_model_continuous=LinearRegression(),
-    # ),
-    # CFI(
-    #     estimator=LinearRegression(),
-    #     imputation_model_continuous=LinearRegression(),
-    # ),
+    CFI(
+        estimator=fitted_linear_regression(),
+        imputation_model_continuous=LinearRegression(),
+    ),
+    CFI(
+        estimator=LinearRegression(),
+        imputation_model_continuous=LinearRegression(),
+    ),
+    # TODO
     # CFICV(
     #     estimators=RidgeCV(),
     #     cv=KFold(n_splits=2),
@@ -86,36 +87,40 @@ def expected_failed_checks(estimator):
             "check_parameters_default_constructible": "TODO",
         }
     elif isinstance(estimator, CFICV):
-        return {
-            "check_complex_data": "TODO",
-            "check_estimators_empty_data_messages": "TODO",
+        failed_checks = {
             "check_fit2d_1feature": "TODO",
-            "check_fit2d_1sample": "TODO",
             "check_parameters_default_constructible": "TODO",
             "check_dict_unchanged": "TODO",
             "check_dont_overwrite_parameters": "TODO",
-            "check_dtype_object": "TODO",
+            "check_estimator_sparse_tag": "TODO",
             "check_estimator_sparse_array": "TODO",
             "check_estimator_sparse_matrix": "TODO",
-            "check_estimator_sparse_tag": "TODO",
             "check_estimators_dtypes": "TODO",
-            "check_estimators_pickle": "TODO",
             "check_estimators_nan_inf": "TODO",
             "check_estimators_fit_returns_self": "TODO",
             "check_estimators_overwrite_params": "TODO",
             "check_f_contiguous_array_estimator": "TODO",
             "check_fit_check_is_fitted": "TODO",
-            "check_fit_idempotent": "TODO",
-            "check_fit_score_takes_y": "TODO",
             "check_fit2d_predict1d": "TODO",
             "check_n_features_in": "TODO",
             "check_n_features_in_after_fitting": "TODO",
             "check_methods_sample_order_invariance": "TODO",
             "check_methods_subset_invariance": "TODO",
-            "check_pipeline_consistency": "TODO",
-            "check_positive_only_tag_during_fit": "TODO",
             "check_readonly_memmap_input": "TODO",
         }
+        if isinstance(estimator.estimators, list):
+            failed_checks |= {
+                "check_complex_data": "TODO",
+                "check_dtype_object": "TODO",
+                "check_estimators_empty_data_messages": "TODO",
+                "check_estimators_pickle": "TODO",
+                "check_fit2d_1sample": "TODO",
+                "check_fit_idempotent": "TODO",
+                "check_fit_score_takes_y": "TODO",
+                "check_pipeline_consistency": "TODO",
+                "check_positive_only_tag_during_fit": "TODO",
+            }
+        return failed_checks
 
 
 if SKLEARN_LT_1_6:
