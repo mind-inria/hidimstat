@@ -11,26 +11,15 @@ from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
 @pytest.fixture
-def set_100_variable_sorted():
+def set_100_variable_sorted(rng):
     """Create a BaseVariableImportance instance with test data for testing purposes.
-
-    Parameters
-    ----------
-    pvalues : bool
-        If True, generate random p-values for testing.
-    test_score : bool
-        If True, generate random test scores for testing.
-    seed : int
-        Random seed for reproducibility.
 
     Returns
     -------
     BaseVariableImportance
         A BaseVariableImportance instance with test data.
     """
-    seed = 0
     n_features = 100
-    rng = np.random.RandomState(seed)
     vi = BaseVariableImportance()
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
@@ -121,7 +110,7 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-def test_selection_fdr():
+def test_selection_fdr(rng):
     """
     Test that the FDR-based selection using BH and BHY procedures achieve the good
     guarantees:
@@ -145,9 +134,9 @@ def test_selection_fdr():
         vim = BaseVariableImportance()
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
-        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        vim.pvalues_ = rng.uniform(0, 1, n_features)
         # Add a few important ones
-        important_ids = np.random.choice(
+        important_ids = rng.choice(
             vim.pvalues_.shape[0], size=10, replace=False
         )
         gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
@@ -399,7 +388,7 @@ class TestSelectionFDRExceptions:
             vi.fdr_selection(fdr=0.1, fdr_control="ehb")
 
 
-def test_plot_importance_axis():
+def test_plot_importance_axis(rng):
     """Test argument axis of plot function"""
     n_features = 10
     vi = BaseVariableImportance()
@@ -409,20 +398,20 @@ def test_plot_importance_axis():
     assert isinstance(ax_1, plt.Axes)
 
     _, ax_2 = plt.subplots()
-    vi.importances_ = np.random.standard_normal((3, n_features))
+    vi.importances_ = rng.standard_normal((3, n_features))
     ax_2_bis = vi.plot_importance(ax=ax_2)
     assert isinstance(ax_2_bis, plt.Axes)
     assert ax_2_bis == ax_2
 
 
-def test_plot_importance_ascending():
+def test_plot_importance_ascending(rng):
     """Test argument ascending of plot function"""
     n_features = 10
     vi = BaseVariableImportance()
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
-    np.random.shuffle(vi.importances_)
+    rng.shuffle(vi.importances_)
 
     ax_decending = vi.plot_importance(ascending=False)
     assert np.all(
@@ -436,14 +425,14 @@ def test_plot_importance_ascending():
     )
 
 
-def test_plot_importance_feature_names():
+def test_plot_importance_feature_names(rng):
     """Test argument feature of plot function"""
     n_features = 10
     vi = BaseVariableImportance()
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
-    np.random.shuffle(vi.importances_)
+    rng.shuffle(vi.importances_)
 
     features_name = [str(j) for j in np.flip(np.argsort(vi.importances_))]
     ax_none = vi.plot_importance(feature_names=None)
@@ -477,7 +466,7 @@ def test_plot_importance_feature_names():
         ax_none_group = vi.plot_importance(feature_names="ttt")
 
 
-def test_fwer_selection():
+def test_fwer_selection(rng):
     """
     Test that the FWER selection procedure achieves the desired guarantees.
     For 100 draws of p-values with 10 important ones the rest drawn from a uniform
@@ -494,9 +483,9 @@ def test_fwer_selection():
         vim = BaseVariableImportance()
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
-        vim.pvalues_ = np.random.uniform(0, 1, n_features)
+        vim.pvalues_ = rng.uniform(0, 1, n_features)
         # Add a few important ones
-        important_ids = np.random.choice(
+        important_ids = rng.choice(
             vim.pvalues_.shape[0], size=10, replace=False
         )
         gt_mask = np.zeros(vim.pvalues_.shape, dtype=int)
@@ -520,7 +509,7 @@ def test_fwer_selection():
         vim.fwer_selection(fwer=0.1, procedure="invalid_procedure")
 
 
-def test_clustered_fwer_selection():
+def test_clustered_fwer_selection(rng):
     """
     Test to improve coverage by exploring the case where the number of clusters is used
     as default for `n_tests` in fwer_selection.
@@ -530,9 +519,7 @@ def test_clustered_fwer_selection():
         desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
         clustering=FeatureAgglomeration(n_clusters=5),
     )
-    cludl.fit_importance(
-        np.random.randn(100, n_features), np.random.randn(100)
-    )
+    cludl.fit_importance(rng.random((100, n_features)), rng.random(100))
 
     selection_clusters = cludl.fwer_selection(fwer=0.5)
     assert selection_clusters.shape[0] == n_features

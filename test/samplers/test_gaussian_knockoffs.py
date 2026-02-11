@@ -30,15 +30,13 @@ def test_gaussian_error():
         generator.sample(random_state=seed * 2)
 
 
-def test_s_equi_not_definite_positive():
+def test_s_equi_not_definite_positive(rng):
     """Test the warning and error of s_equi function"""
     n = 10
     tol = 1e-7
-    seed = 42
 
     # random positive matrix
-    rgn = np.random.RandomState(seed)
-    a = rgn.randn(n, n)
+    a = rng.random((n, n))
     a -= np.min(a)
     with pytest.raises(
         Exception, match="The covariance matrix is not positive-definite"
