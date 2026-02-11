@@ -6,11 +6,11 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
-from .conftest import SKLEARN_LT_1_6, check_estimator
+from .conftest import SKLEARN_LT_1_6, _rng, check_estimator
 
 
 def _fitted_linear_regression():
-    X = np.random.randint(0, 2, size=(100, 2, 1))
+    X = _rng().integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
@@ -105,9 +105,9 @@ else:
         check(estimator)
 
 
-def test_no_implemented_methods():
+def test_no_implemented_methods(rng):
     """Test that the methods are not implemented in the base class"""
-    X = np.random.randint(0, 2, size=(100, 2, 1))
+    X = rng.integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     basic_class = BasePerturbation(estimator=estimator)
@@ -115,9 +115,9 @@ def test_no_implemented_methods():
         basic_class._permutation(X, features_group_id=None)
 
 
-def test_check_importance():
+def test_check_importance(rng):
     """Test that the methods are not implemented in the base class"""
-    X = np.random.randint(0, 2, size=(100, 2, 1))
+    X = rng.integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     basic_class = BasePerturbation(estimator=estimator).fit(X[:, 0], X[:, 1])
     with pytest.raises(
@@ -127,15 +127,15 @@ def test_check_importance():
         basic_class.importance_selection()
 
 
-def test_base_cv_errors():
+def test_base_cv_errors(rng):
     """Test the errors of the BasePerturbationCV class"""
     basic_class = BasePerturbationCV(
         estimators=[LinearRegression(), LinearRegression()],
         cv=KFold(n_splits=4),
     )
 
-    X = np.random.randn(100, 5)
-    y = np.random.randn(100)
+    X = rng.random((100, 5))
+    y = rng.random(100)
 
     with pytest.raises(
         ValueError,

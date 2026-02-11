@@ -749,7 +749,7 @@ def test_cfi_plot_2d_imp(data_generator):
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
 )
-def test_cfi_plot_coverage(data_generator):
+def test_cfi_plot_coverage(data_generator, rng):
     """Add arguments combinations to test coverage of the plot function"""
     X, y, _, _ = data_generator
     X_train, _, y_train, _ = train_test_split(
@@ -773,7 +773,7 @@ def test_cfi_plot_coverage(data_generator):
     assert isinstance(ax, plt.Axes)
 
     _, ax = plt.subplots()
-    cfi.importances_ = np.random.standard_normal((3, X.shape[1]))
+    cfi.importances_ = rng.standard_normal((3, X.shape[1]))
     ax = cfi.plot_importance(ax=ax)
     assert isinstance(ax, plt.Axes)
 
