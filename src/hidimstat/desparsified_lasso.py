@@ -204,7 +204,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         model_x = self.model_x
         if self.model_x is None:
-            model_x = LassoCV()
+            model_x = Lasso()
         assert (
             issubclass(Lasso, model_x.__class__)
             or issubclass(MultiTaskLasso, model_x.__class__)
