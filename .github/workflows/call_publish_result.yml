@@ -93,10 +93,6 @@ jobs:
 
   upload_coverage_data:
     runs-on: ubuntu-latest
-    # name for files
-    env:
-      OS: 'macos-latest'
-      PYTHON: '3.13'
     steps:
     # initialize the reposititory
     - uses: actions/checkout@v6
@@ -105,15 +101,8 @@ jobs:
     - name: Get data
       uses: actions/download-artifact@v7
       with:
-        pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
-        path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
-    # check the size of the file for not pushing empty file
-    - name: Check file size
-      id: check_size
-      run: |
-          FILE_SIZE=$(stat -c%s "cov-results-${PYTHON}-os-${OS}/cov-${PYTHON}-os-${OS}.xml")
-          echo "File size is $FILE_SIZE bytes"
-          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
+        pattern: cov-results-*  #CHECK: need to be updated when new version are available
+        path: coverage_artifacts
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
       if: ${{ env.FILE_SIZE > 1 }}
@@ -121,6 +110,5 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        env_vars: OS,PYTHON
-        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        files: coverage_artifacts/**/*.xml    #CHECK: need to be updated when new version are available
         fail_ci_if_error: true
