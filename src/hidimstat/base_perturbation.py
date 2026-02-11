@@ -421,7 +421,7 @@ class BasePerturbationCV(BaseVariableImportance):
                 estimator, X[train_idx], y[train_idx]
             )
             for (train_idx, _), estimator in tqdm(
-                zip(self.cv.split(X, y), self.estimators_),
+                zip(self.cv.split(X, y), self.estimators_, strict=False),
                 total=self.cv.get_n_splits(),
                 desc="Fitting importance estimators for each fold",
             )
@@ -460,7 +460,11 @@ class BasePerturbationCV(BaseVariableImportance):
                 importance_estimator, X[test_idx], y[test_idx]
             )
             for (_, test_idx), importance_estimator in tqdm(
-                zip(self.cv.split(X, y), self.importance_estimators_),
+                zip(
+                    self.cv.split(X, y),
+                    self.importance_estimators_,
+                    strict=False,
+                ),
                 total=self.cv.get_n_splits(),
                 desc="Computing importance scores over folds",
             )

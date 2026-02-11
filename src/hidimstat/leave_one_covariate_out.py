@@ -98,7 +98,9 @@ class LOCO(BasePerturbation):
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
-                self.features_groups_.keys(), self._list_estimators
+                self.features_groups_.keys(),
+                self._list_estimators,
+                strict=False,
             )
         )
         return self
@@ -195,6 +197,7 @@ class LOCO(BasePerturbation):
         """Predict the target feature after removing a group of covariates.
         Used in parallel.
         """
+        del random_state  # not used (only there for API compatibility)
         X_minus_j = np.delete(
             X, self._features_groups_ids[features_group_id], axis=1
         )

@@ -145,6 +145,7 @@ df_plot = pd.concat(
         for vim, vim_name in zip(
             [cfi_cv, loco_cv, pfi_cv],
             ["CFI", "LOCO", "PFI"],
+            strict=False,
         )
     ]
 )

@@ -22,6 +22,16 @@ def pytest_configure(config):  # noqa: ARG001
         matplotlib.use("Agg", force=True)
 
 
+def _rng(seed=42):
+    return np.random.default_rng(seed)
+
+
+@pytest.fixture()
+def rng():
+    """Return a seeded random number generator."""
+    return _rng()
+
+
 @pytest.fixture
 def data_generator(
     n_samples,
