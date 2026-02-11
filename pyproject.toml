@@ -160,9 +160,6 @@ skip-magic-trailing-comma = false
 [tool.ruff.lint]
 fixable = ["ALL"]
 ignore = [
-    "ARG002",
-    "ARG004",
-    "ARG005",
     "B008",
     "D100",
     "D101",

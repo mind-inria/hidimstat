@@ -531,6 +531,7 @@ class GroupVariableImportanceMixin:
         self : object
             Returns the instance itself.
         """
+        del y
         if self.features_groups is None:
             self.n_features_groups_ = X.shape[1]
             self.features_groups_ = {
