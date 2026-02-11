@@ -424,10 +424,10 @@ class BaseVariableImportance(BaseEstimator):
         try:
             import matplotlib.pyplot as plt
             import seaborn as sns
-        except ImportError:
+        except ImportError as e:
             raise Exception(
                 "You need to install seaborn for using this functionality"
-            )
+            ) from e
 
         self._check_importance()
 
@@ -531,6 +531,7 @@ class GroupVariableImportanceMixin:
         self : object
             Returns the instance itself.
         """
+        del y
         if self.features_groups is None:
             self.n_features_groups_ = X.shape[1]
             self.features_groups_ = {

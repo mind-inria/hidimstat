@@ -297,6 +297,7 @@ class D0CRT(BaseVariableImportance):
             for idx, rng in zip(
                 np.where(self.selection_set_)[0],
                 rng.spawn(np.sum(self.selection_set_)),
+                strict=False,
             )
         )
         self.model_x_ = [result[0] for result in results]
@@ -379,7 +380,7 @@ class D0CRT(BaseVariableImportance):
         ## Distillation & calculate
         list_job = []
         for index, (idx, model_y, model_x) in enumerate(
-            zip(selection_features, self.model_y_, self.model_x_)
+            zip(selection_features, self.model_y_, self.model_x_, strict=False)
         ):
             # TODO: Creating sub-models by simply deleting a coefficient is not
             # validated and should be removed

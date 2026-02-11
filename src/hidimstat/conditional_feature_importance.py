@@ -116,6 +116,7 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        del y
         super().fit(X, None)
 
         # check the feature type
@@ -154,7 +155,9 @@ class CFI(BasePerturbation):
                 imputation_model, X_, features_groups_ids
             )
             for features_groups_ids, imputation_model in zip(
-                self._features_groups_ids, self._list_imputation_models
+                self._features_groups_ids,
+                self._list_imputation_models,
+                strict=False,
             )
         )
 

@@ -290,7 +290,7 @@ class TestModelXKnockoffExceptions:
         ):
             model_x_knockoff.importance(X, y)
 
-    def test_invalid_n_samplings(self, data_generator):
+    def test_invalid_n_samplings(self, data_generator):  # noqa: ARG002
         """Test when invalid number of permutations is provided"""
         with pytest.raises(
             AssertionError, match="n_samplings must be positive"
@@ -299,7 +299,7 @@ class TestModelXKnockoffExceptions:
 
 
 ############################## test preconfigure #######################
-def test_preconfigure_LassoCV():
+def test_preconfigure_LassoCV(rng):
     """Test type errors"""
     with pytest.raises(
         TypeError,
@@ -307,7 +307,7 @@ def test_preconfigure_LassoCV():
     ):
         set_alpha_max_lasso_path(
             estimator=RidgeCV(),
-            X=np.random.rand(10, 10),
-            y=np.random.rand(10),
-            X_tilde=np.random.rand(10, 10),
+            X=rng.random((10, 10)),
+            y=rng.random(10),
+            X_tilde=rng.random((10, 10)),
         )

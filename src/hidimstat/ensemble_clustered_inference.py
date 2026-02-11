@@ -128,6 +128,8 @@ class CluDL(BaseVariableImportance):
         y :
             Not used, present for API consistency by convention.
         """
+        del y
+        del X
         self.desparsified_lasso_.importance()
 
         self.pvalues_ = self.clustering_.inverse_transform(
@@ -414,6 +416,8 @@ class EnCluDL(BaseVariableImportance):
         y :
             Not used, present for API consistency by convention.
         """
+        del y
+        del X
         for i in tqdm(
             range(self.n_bootstraps),
             desc="Computing importances",
