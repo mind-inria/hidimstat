@@ -110,8 +110,6 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        del y
-
         # check the validity of the inputs
         assert self.imputation_model_continuous is None or issubclass(
             self.imputation_model_continuous.__class__, BaseEstimator
@@ -120,7 +118,7 @@ class CFI(BasePerturbation):
             self.imputation_model_categorical.__class__, BaseEstimator
         ), "Categorial imputation model invalid"
 
-        super().fit(X, None)
+        super().fit(X, y)
 
         # check the feature type
         if isinstance(self.feature_types, str):
