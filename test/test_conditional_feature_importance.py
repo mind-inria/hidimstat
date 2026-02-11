@@ -17,11 +17,10 @@ from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.conditional_feature_importance import CFICV
+from hidimstat.conditional_feature_importance import CFI, CFICV, cfi_importance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
@@ -31,17 +30,34 @@ ESTIMATORS_TO_CHECK = [
         estimator=fitted_linear_regression(),
         imputation_model_continuous=LinearRegression(),
     ),
+    CFI(
+        estimator=LinearRegression(),
+        imputation_model_continuous=LinearRegression(),
+    ),
+    # CFICV(
+    #     estimators=LinearRegression(),
+    #     cv=KFold(n_splits=2),
+    #     imputation_model_continuous=LinearRegression(),
+    # ),
+    # CFICV(
+    #     estimators=fitted_linear_regression(),
+    #     cv=KFold(n_splits=2),
+    #     imputation_model_continuous=LinearRegression(),
+    # ),
+    # CFICV(
+    #     estimators=[fitted_linear_regression(), fitted_linear_regression()],
+    #     cv=KFold(n_splits=2),
+    #     imputation_model_continuous=LinearRegression(),
+    # ),
 ]
 
 
 def expected_failed_checks(estimator):  # noqa : ARG001
     return {
-        "check_dont_overwrite_parameters": "TODO",
         "check_estimator_sparse_array": "TODO",
         "check_estimator_sparse_matrix": "TODO",
         "check_estimator_sparse_tag": "TODO",
         "check_estimators_nan_inf": "TODO",
-        "check_estimators_overwrite_params": "TODO",
         "check_fit2d_1feature": "TODO",
         "check_fit2d_1sample": "TODO",
         "check_parameters_default_constructible": "TODO",

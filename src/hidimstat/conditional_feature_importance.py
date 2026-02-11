@@ -123,17 +123,19 @@ class CFI(BasePerturbation):
         # check the feature type
         if isinstance(self.feature_types, str):
             if self.feature_types in ["auto", "continuous", "categorical"]:
-                self.feature_types = [
+                self.feature_types_ = [
                     self.feature_types for _ in range(self.n_features_groups_)
                 ]
             else:
                 raise ValueError(
                     "feature_types support only the string 'auto', 'continuous', 'categorical'"
                 )
+        else:
+            self.feature_types_ = self.feature_types
 
         self._list_imputation_models = [
             ConditionalSampler(
-                data_type=self.feature_types[features_group_id],
+                data_type=self.feature_types_[features_group_id],
                 model_regression=(
                     None
                     if self.imputation_model_continuous is None
