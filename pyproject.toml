@@ -97,6 +97,15 @@ package-dir = {"" = "src"} # define the root of the packages as src
 builtin = "clear,rare"
 skip = "./.git,*.bib,./docs/_build"
 
+[tool.doc8]
+allow-long-titles = true
+ignore-path = [
+    "docs/src/generated*",
+    "src/HiDimStat.egg-info",
+    "docs/tools/_templates"
+]
+max-line-length = 240
+
 
 # file where the version is save
 [tool.setuptools_scm]
