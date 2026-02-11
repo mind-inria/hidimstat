@@ -195,6 +195,7 @@ class LOCO(BasePerturbation):
         """Predict the target feature after removing a group of covariates.
         Used in parallel.
         """
+        del random_state  # not used (only there for API compatibility)
         X_minus_j = np.delete(
             X, self._features_groups_ids[features_group_id], axis=1
         )
