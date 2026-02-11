@@ -160,13 +160,7 @@ skip-magic-trailing-comma = false
 [tool.ruff.lint]
 fixable = ["ALL"]
 ignore = [
-    "B007",
     "B008",
-    "B017",
-    "B018",
-    "B028",
-    "B904",
-    "B905",
     "D100",
     "D101",
     "D102",
@@ -247,3 +241,6 @@ max-branches = 20
 max-returns = 8
 # https://docs.astral.sh/ruff/settings/#lint_pylint_max-statements
 max-statements = 90
+
+[tool.ruff.lint.per-file-ignores]
+"**/{examples}/*" = ["B018"]

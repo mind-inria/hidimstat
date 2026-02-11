@@ -202,7 +202,7 @@ df_pval = compute_pval(df, threshold=threshold)
 # ----------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
-    for method, ax in zip(["CFI", "PFI"], axes):
+    for method, ax in zip(["CFI", "PFI"], axes, strict=False):
         df_method = df_importance[df_importance["vim"] == method]
         legend = ax == axes[0]
         sns.stripplot(
