@@ -1,73 +1,115 @@
 # Testing workflow of the CI
 
 name: 'CI Github TEST'
+
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
-  repository_dispatch:
-    types: [run-ci]
+  # Allows you to run this workflow from another workflow
+  workflow_call:
+    inputs:
+      BRANCH_NAME:
+        description: 'The name of the branch'
+        required: true
+        type: string
 
 # disable all the permission for the workflow
 permissions: {}
 
-# Cancel existing runs
-concurrency:
-  group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
-  get_information:
-    name: Get Information
-    # information is: commit message for PR
+  merge_and_upload_test_data:
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'reposit'
-    outputs:
-      COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
+    permissions:
+      pull-requests: write
+    env:
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      # get reports from previous job
+      - name: Get HTML reports
+        uses: actions/download-artifact@v7
         with:
-          fetch-depth: 3
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-          # require to get the previous commit for getting their messages
-          # in a PR the last commit is the commit merge with main
-
-      - name: Get commit message
-        id: get_commit_message
-        # return an empty message when the event is not from a PR
+          pattern: pytest-results-html-*-os-*
+      - name: Get time reports
+        uses: actions/download-artifact@v7
+        with:
+          pattern: pytest-results-log-*-os-*
+      # put all the reports in one folder and add an index
+      - name: gather reports and add an index
         run: |
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
-            echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
-            echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
-            echo "$EOF" >> $GITHUB_OUTPUT
+          mkdir reports
+          mv */*.html reports
+          mv */*.txt reports
+          (
+          echo '<html><body><p>List TESTs Reports:</p><ul>'
+          echo "$(ls reports)" | sed 's|.*|<li><a href="&">&</a></li>|'
+          echo '</ul></body></html>'
+          ) > index.html
+          mv index.html reports
+      - name: upload the reports
+        id: upload_all
+        uses: actions/upload-artifact@v6
+        with:
+          name: pytest-results-all
+          path: reports
+          if-no-files-found: error
+      - name: Trigger hosting job on circle ci
+        run: |
+          #display command executed with argument
+          set -x -a
+          # get the number of the PR
+          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          # get the branch of the PR
+          if [ $PULL_REQUEST_NUMBER == "null" ]
+          then
+            BRANCH=${{ inputs.BRANCH_NAME }}
           else
-            echo "$EOF" >> $GITHUB_OUTPUT
+            BRANCH=pull/$PULL_REQUEST_NUMBER/head
+          fi
+          # get URL for download artifact without identification
+          GITHUB_RUN_URL="https://nightly.link/$(echo ${{steps.upload_all.outputs.artifact-url}} | cut -d/ -f4-8)/pytest-results-all.zip"
+          # Send the information to circleci
+          http_response=$(curl --request POST \
+          --output result_post.txt \
+          --write-out "%{response_code}" \
+          --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline/run \
+          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header 'content-type: application/json' \
+          --header 'x-attribution-actor-id: github_actions' \
+          --header 'x-attribution-login: github_actions' \
+          --data \{\"definition_id\":\"303559b0-0f61-548c-acc0-803f0f8edfba\",\"config\":\{\"branch\":\"$BRANCH\"\},\"checkout\":\{\"branch\":\"$BRANCH\"\},\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\})
+          # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
+          # definition_id is the id of the pipeline of hidimstat
+          # display result for debugging
+          cat result_post.txt
+          # if there is no "id" in result_post, this mean that there is an error
+          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token
+          # this is not apply also for dependabot
+          if [[ $http_response == '201' \
+               || ( ${{ ! github.event.pull_request.head.repo.fork }} \
+                  && ${{ github.actor == 'dependabot[bot]' }} ) ]]
+            then
+              exit 0
+            else
+              exit 1
+            fi
           fi
 
-  tests:
-    name: tests
-    needs: [get_information]
-    uses: ./.github/workflows/call_test_package.yml
-    with:
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+  upload_coverage_data:
+    runs-on: ubuntu-latest
+    steps:
+    # initialize the reposititory
+    - uses: actions/checkout@v6
 
-  tests_minimal:
-    name: tests minimal
-    needs: [get_information]
-    uses: ./.github/workflows/call_test_minimal.yml
-    with:
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
-
-  # tests_publish:
-  #   name: tests_publish
-  #   needs: [tests]
-  #   if: |
-  #     ${{ github.event.pull_request.draft == false
-  #         || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
-  #       }}
-  #   permissions:
-  #     pull-requests: write
-  #   secrets: inherit
-  #   uses: ./.github/workflows/call_publish_result.yml
+    # get coverage only for 1 job
+    - name: Get data
+      uses: actions/download-artifact@v7
+      with:
+        pattern: cov-results-*  #CHECK: need to be updated when new version are available
+        path: coverage_artifacts
+    # Upload coverage report for Codecov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v5.5.2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        files: coverage_artifacts/**/*.xml    #CHECK: need to be updated when new version are available
+        fail_ci_if_error: true
