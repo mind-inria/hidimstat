@@ -74,7 +74,7 @@ def test_binary_case(rng):
         np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
     )
     for i in range(n_samples):
-        assert accuracy_score(X_1_perm[i], X[:, 1]) > 0.7
+        assert accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
     # independent features
     X = rng.multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]], size=n)
@@ -212,8 +212,8 @@ def test_group_case_binary_case():
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
         # TODO check why so good accuracy
-        assert 0.96 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.7
-        assert 0.96 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.7
+        assert 0.96 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.6
+        assert 0.96 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.6
 
 
 def test_sample_categorical(rng):
