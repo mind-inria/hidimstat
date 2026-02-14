@@ -42,7 +42,7 @@ Actually, only the workflow on the main branch is used for running the CI. This 
 done for security reasons.
 In consequence, for testing a modification of the actual workflow or a new workflow,
 it requires creating a pull request, which is modified .github/workflow/ci_test.yml for
-allowing the running of this modification. You need to add the label `testCI`
+allowing the running of this modification. You need to add the label ``testCI``
 to automatically trigger the test of the CI. You can also trigger the workflow
 using with the `HTTP POST request <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch>`_.
 

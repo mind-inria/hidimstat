@@ -144,7 +144,7 @@ Target quantity
 ---------------
 
 Model-X Knockoffs is a variable selection method that is not meant to estimate any
-particular measure of importance. The `ModelXKnockoff.importance()` method still returns
+particular measure of importance. The ``ModelXKnockoff.importance()`` method still returns
 the so-called Knockoff statistics, such as the Lasso coefficient difference statistics,
 which can be used to rank the selected variables. The main goal of the method is to
 select a set of features denoted :math:`\hat{S} \subset \{1, \ldots, p\}` such that the
