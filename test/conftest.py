@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from packaging.version import parse
 from sklearn import __version__ as sklearn_version
+from sklearn.linear_model import LinearRegression
 from sklearn.utils.estimator_checks import (
     check_estimator as sklearn_check_estimator,
 )
@@ -30,6 +31,13 @@ def _rng(seed=42):
 def rng():
     """Return a seeded random number generator."""
     return _rng()
+
+
+def fitted_linear_regression():
+    X = _rng().integers(0, 2, size=(100, 2, 1))
+    estimator = LinearRegression()
+    estimator.fit(X[:, 0], X[:, 1])
+    return estimator
 
 
 @pytest.fixture

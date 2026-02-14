@@ -110,6 +110,7 @@ minversion = "8.0"
 pythonpath = "src"
 testpaths = "test"
 addopts = [
+    "-v",                      # verbose
     "-rA",                     # short test summary info
     "--import-mode=importlib", # better control of importing packages
     "--showlocals",            # show local variable inn trackbacks
