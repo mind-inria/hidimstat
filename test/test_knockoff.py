@@ -4,6 +4,7 @@ from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVR
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
@@ -14,17 +15,58 @@ from hidimstat.knockoffs import (
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-# TODO
-# currently fails
-# probably because parameter 'ko_generator' gets stored in 'self.generator'
-# from sklearn.utils.estimator_checks import parametrize_with_checks
-# @parametrize_with_checks(
-#     estimators=[
-#         ModelXKnockoff()
-#     ],
-# )
-# def test_check_estimator_sklearn(estimator, check):
-#     check(estimator)
+from .conftest import SKLEARN_LT_1_6, check_estimator
+
+
+def expected_failed_checks(estimator):
+    if isinstance(estimator, ModelXKnockoff):
+        return {
+            "check_parameters_default_constructible": "TODO: change default value for estimator",
+            "check_fit_check_is_fitted": "TODO: ",
+            "check_n_features_in_after_fitting": "TODO: add `n_features_in_` attribute",
+            "check_estimators_overwrite_params": "TODO: add a fitted attribute ko_generator_",
+            "check_n_features_in": "TODO",
+            "check_fit2d_1sample": "TODO",
+            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
+            "check_no_attributes_set_in_init": "TODO",
+        }
+
+
+ESTIMATORS_TO_CHECK = [ModelXKnockoff()]
+
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+else:
+
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
 
 
 def test_knockoff_bootstrap_quantile():
