@@ -151,7 +151,7 @@ class BaseVariableImportance(BaseEstimator):
         self.importances_ = None
         self.pvalues_ = None
 
-        if self.estimator is None:
+        if estimator is None:
             raise ValueError(
                 "'estimator' must be a valid sklearn compartible estimator."
             )

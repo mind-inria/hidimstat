@@ -82,6 +82,9 @@ test = [
     "seaborn        >= 0.12,     < 1",
 ]
 
+dev = ["hidimstat[example,test,doc,style]"]
+
+
 [project.urls]
 Repository = "https://github.com/mind-inria/hidimstat"
 Documentation = "https://github.com/hidimstat/hidimstat.github.io"
@@ -118,8 +121,6 @@ addopts = [
     "--color=yes", # Color terminal output
     # pytest-randomly
     # "--randomly-dont-reset-seed", # turn off the rest of the random seed
-    # pytest-xdist option
-    "-n=auto", # automatically define the number of process
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
