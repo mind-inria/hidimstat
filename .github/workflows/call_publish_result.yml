@@ -96,7 +96,7 @@ jobs:
     # name for files
     env:
       OS: 'macos-latest'
-      PYTHON: '3.13'
+      PYTHON: '3.14'
     steps:
     # initialize the reposititory
     - uses: actions/checkout@v6
