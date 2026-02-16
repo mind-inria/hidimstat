@@ -154,7 +154,7 @@ class ModelXKnockoff(BaseVariableImportance):
         n_jobs=1,
     ):
         super().__init__()
-        self.generator = ko_generator
+        self.ko_generator = ko_generator
         assert n_repeats > 0, "n_samplings must be positive"
         self.n_repeats = n_repeats
         self.centered = centered
@@ -162,7 +162,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self.estimator = estimator
         self.preconfigure_lasso_path = preconfigure_lasso_path
 
-        self.randoms_state = random_state
+        self.random_state = random_state
         self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
         # unnecessary to have n_jobs > number of bootstraps
@@ -192,12 +192,12 @@ class ModelXKnockoff(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
-        rng = check_random_state(self.randoms_state)
+        rng = check_random_state(self.random_state)
         X_ = StandardScaler().fit_transform(X) if self.centered else X
 
-        self.generator.fit(X_)
-        X_tildes = self.generator.sample(
-            n_repeats=self.n_repeats, random_state=self.randoms_state
+        self.ko_generator.fit(X_)
+        X_tildes = self.ko_generator.sample(
+            n_repeats=self.n_repeats, random_state=self.random_state
         )
 
         self.estimators_ = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
@@ -581,7 +581,7 @@ def model_x_knockoff_importance(
     X,
     y,
     estimator=LassoCV(max_iter=200000),
-    generator=GaussianKnockoffs(),
+    ko_generator=GaussianKnockoffs(),
     n_repeats=1,
     centered=True,
     random_state=None,
@@ -597,7 +597,7 @@ def model_x_knockoff_importance(
     gamma=0.5,
 ):
     methods = ModelXKnockoff(
-        ko_generator=generator,
+        ko_generator=ko_generator,
         n_repeats=n_repeats,
         centered=centered,
         estimator=estimator,
