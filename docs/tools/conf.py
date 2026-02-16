@@ -174,6 +174,9 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 
+# -- Options for binder ----------------------------------------------------
+binder_branch = "main" if "dev" in __version__ else __version__
+
 
 # -- Options for gallery ----------------------------------------------------
 # Generate the plots for the gallery
@@ -195,6 +198,14 @@ sphinx_gallery_conf = {
         "hidimstat": None,
         # We don't specify the other modules as we use the intershpinx ext.
         # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
+    },
+    "binder": {
+        "org": "mind-inria",
+        "repo": "hidimstat",
+        "binderhub_url": "https://mybinder.org",
+        "branch": binder_branch,
+        "dependencies": "./binder/requirements.txt",
+        "use_jupyter_lab": True,
     },
 }
 
