@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
@@ -6,22 +5,14 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
-from .conftest import SKLEARN_LT_1_6, _rng, check_estimator
-
-
-def _fitted_linear_regression():
-    X = _rng().integers(0, 2, size=(100, 2, 1))
-    estimator = LinearRegression()
-    estimator.fit(X[:, 0], X[:, 1])
-    return estimator
-
+from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
 
 ESTIMATORS_TO_CHECK = [
-    BasePerturbation(estimator=_fitted_linear_regression()),
+    BasePerturbation(estimator=fitted_linear_regression()),
     BasePerturbation(estimator=LinearRegression()),
     BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
     BasePerturbationCV(
-        estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
+        estimators=[fitted_linear_regression(), fitted_linear_regression()],
         cv=KFold(n_splits=2),
     ),
 ]
