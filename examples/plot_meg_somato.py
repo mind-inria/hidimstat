@@ -15,7 +15,7 @@ recovery from spatio-temporal data.
 # Load somatosensory MEG data from MNE-Python
 # -------------------------------------------
 # We use the somatosensory MEG dataset available in MNE-Python. We visualize
-# the evoked response accross MEG sensors.
+# the evoked response across MEG sensors.
 
 import mne
 import numpy as np
@@ -107,7 +107,7 @@ y = np.dot(whitener, evoked.data)
 ##############################################################################
 # Spatially constrained clustering
 # --------------------------------
-# We then exctract the spatial adjacency matrix that is then used in the
+# We then extract the spatial adjacency matrix that is then used in the
 # clustering step to incorporate the spatial structure of the data.
 # For MEG data ``n_clusters = 1000`` is generally a good default choice.
 # Taking ``n_clusters > 2000`` might lead to an unpowerful inference.
