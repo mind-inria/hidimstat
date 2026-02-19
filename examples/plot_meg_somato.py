@@ -109,7 +109,7 @@ y = np.dot(whitener, evoked.data)
 # --------------------------------
 # We then extract the spatial adjacency matrix that is then used in the
 # clustering step to incorporate the spatial structure of the data.
-# For MEG data ``n_clusters = 1000`` is generally a good default choice.
+# For MEG data ``n_clusters = 750`` is generally a good default choice.
 # Taking ``n_clusters > 2000`` might lead to an unpowerful inference.
 # Taking ``n_clusters < 500`` might compress too much the data leading
 # to a compressed problem not close enough to the original problem.
@@ -119,7 +119,7 @@ from sklearn.cluster import FeatureAgglomeration
 # Collecting features' connectivity
 connectivity = mne.source_estimate.spatial_src_adjacency(forward["src"])
 
-n_clusters = 1000
+n_clusters = 750
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 
