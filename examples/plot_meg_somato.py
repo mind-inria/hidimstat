@@ -22,7 +22,7 @@ import numpy as np
 from mne.datasets import somato
 
 cond = "somato"
-data_path = somato.data_path()
+data_path = somato.data_path(path="./mne_data", verbose=True)
 subject = "01"
 subjects_dir = data_path / "derivatives/freesurfer/subjects"
 raw_fname = (
