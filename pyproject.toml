@@ -59,6 +59,7 @@ doc = [
     "sphinx-prompt          >= 1.8.0,   < 2",
     "tqdm                   >= 4.1.0,   < 5",
     "mne                    >= 1.6.0",
+    "pooch                  >= 1.5      < 1.8",
     "sphinx-copybutton",
 ]
 example = ["matplotlib >= 3.1.0,   < 4", "seaborn    >= 0.9,     < 1"]
