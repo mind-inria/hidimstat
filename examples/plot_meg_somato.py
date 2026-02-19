@@ -188,6 +188,7 @@ for view in ["lateral", "medial"]:
     screenshots.append(brain.screenshot())
     brain.close()
 
+# sphinx_gallery_thumbnail_number = 2
 # Plot the static screenshot using Matplotlib
 fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 for ax, screenshot in zip(axes, screenshots, strict=True):
