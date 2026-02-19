@@ -122,6 +122,7 @@ connectivity = mne.source_estimate.spatial_src_adjacency(forward["src"])
 n_clusters = 1000
 ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
+
 # %%
 #############################################################################
 # Running clustered inference
