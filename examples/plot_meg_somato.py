@@ -159,43 +159,56 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 # coefficient in the multitask Lasso model.
 
 import matplotlib.pyplot as plt
+from nilearn import datasets, plotting
 
-# Extract active vertices from the left and right hemispheres
-vertices = [forward["src"][0]["vertno"], forward["src"][1]["vertno"]]
-
-stc = mne.SourceEstimate(
+stc_pvals = mne.SourceEstimate(
     data=log_pvalues[:, np.newaxis],
-    vertices=vertices,
+    vertices=[forward["src"][0]["vertno"], forward["src"][1]["vertno"]],
     tmin=0.0,
     tstep=1.0,
-    subject=subject,
+    subject=f"{subject}",
 )
 
-screenshots = []
-for view in ["lateral", "medial"]:
-    brain = stc.plot(
-        subject=subject,
-        subjects_dir=subjects_dir,
-        hemi="rh",
-        views=[view],
-        colormap="RdBu_r",
-        transparent=True,
-        time_label="-log10(p-value) Map",
-        background="white",
-        colorbar=view == "medial",
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
+morph = mne.compute_source_morph(
+    src=forward["src"],
+    subject_from=f"{subject}",
+    subject_to="fsaverage",
+    subjects_dir=subjects_dir,
+    spacing=5,
+)
+stc_fsaverage = morph.apply(stc_pvals)
+
+start_id = stc_fsaverage.data.shape[0] // 2
+rh_stat_map = stc_fsaverage.data[start_id:, 0]
+
+fsaverage = datasets.fetch_surf_fsaverage("fsaverage5")
+
+
+fig, axes = plt.subplots(
+    1,
+    2,
+    subplot_kw={"projection": "3d"},
+    figsize=(8, 4),
+    gridspec_kw={"hspace": -0.1},
+)
+
+for ax, view in zip(axes, ["lateral", "medial"], strict=True):
+    plotting.plot_surf_stat_map(
+        surf_mesh=fsaverage.infl_right,
+        stat_map=rh_stat_map,
+        bg_map=fsaverage.sulc_right,
+        hemi="right",
+        view=view,
+        colorbar=False,
+        cmap="RdBu_r",
+        threshold=-np.log10(fwer_target),
+        vmax=10,
+        axes=ax,
+        title=f"rh-{view} view",
     )
-    # Capture the image and close the 3D renderer
-    screenshots.append(brain.screenshot())
-    brain.close()
 
-# sphinx_gallery_thumbnail_number = 2
-# Plot the static screenshot using Matplotlib
-fig, axes = plt.subplots(1, 2, figsize=(12, 6))
-for ax, screenshot in zip(axes, screenshots, strict=True):
-    ax.imshow(screenshot)
-    ax.axis("off")
-plt.show()
-
+plotting.show()
 
 # %%
 # References
