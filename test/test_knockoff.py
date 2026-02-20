@@ -19,11 +19,11 @@ from .conftest import SKLEARN_LT_1_6, check_estimator
 
 
 def expected_failed_checks(estimator):
-    if isinstance(estimator, ModelXKnockoff):
+    if isinstance(estimator, (ModelXKnockoff, GaussianKnockoffs)):
         return {"check_fit2d_1sample": "TODO"}
 
 
-ESTIMATORS_TO_CHECK = [ModelXKnockoff()]
+ESTIMATORS_TO_CHECK = [ModelXKnockoff(), GaussianKnockoffs()]
 
 if SKLEARN_LT_1_6:
 
