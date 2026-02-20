@@ -104,7 +104,6 @@ y = np.dot(whitener, evoked.data)
 
 
 # %%
-##############################################################################
 # Spatially constrained clustering
 # --------------------------------
 # We then extract the spatial adjacency matrix that is then used in the
@@ -124,7 +123,6 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 
 # %%
-#############################################################################
 # Running clustered inference
 # ---------------------------
 # We can now run the clustered inference using the desparsified multitask Lasso
@@ -151,7 +149,6 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 
 
 # %%
-##############################################################################
 # Visualize the p-value map on the brain surface
 # ----------------------------------------------
 # We then visualize the identified cortical sources on the brain surface. We
@@ -171,6 +168,7 @@ stc_pvals = mne.SourceEstimate(
     subject=f"{subject}",
 )
 
+# TODO: tmp fix: unlinking fsaverage directory to avoid error
 fs_dir = Path(subjects_dir) / "fsaverage"
 if fs_dir.is_symlink():
     fs_dir.unlink()
@@ -195,10 +193,11 @@ fig, axes = plt.subplots(
     1,
     2,
     subplot_kw={"projection": "3d"},
-    figsize=(8, 4),
+    figsize=(8, 5),
     gridspec_kw={"hspace": -0.1},
 )
 
+# sphinx_gallery_thumbnail_number = 2
 for ax, view in zip(axes, ["lateral", "medial"], strict=True):
     plotting.plot_surf_stat_map(
         surf_mesh=fsaverage.infl_right,
@@ -216,6 +215,10 @@ for ax, view in zip(axes, ["lateral", "medial"], strict=True):
 
 ax._colorbars[0].set_ylabel("-log10(p-value)")
 plotting.show()
+
+# %%
+# Most of the identified sources are located in the somatosensory cortex,
+# which is expected for this somatosensory task.
 
 # %%
 # References
