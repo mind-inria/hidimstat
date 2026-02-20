@@ -211,10 +211,6 @@ class ModelXKnockoff(BaseVariableImportance):
         return self
 
     def _check_fit(self):
-        if self.estimators_ is None:
-            raise ValueError(
-                "The Model-X Knockoff requires to be fitted before computing importance"
-            )
         check_is_fitted(self)
 
     def importance(self, X=None, y=None):
