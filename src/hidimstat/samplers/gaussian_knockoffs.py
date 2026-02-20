@@ -40,7 +40,11 @@ class GaussianKnockoffs(BaseEstimator):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
-    def fit(self, X, y=None):
+    def fit(
+        self,
+        X,
+        y=None,  # noqa: ARG002
+    ):
         """
         Fit the Gaussian synthetic variable generator.
         This method estimates the parameters needed to generate Gaussian synthetic variables
