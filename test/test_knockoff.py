@@ -323,12 +323,10 @@ class TestModelXKnockoffExceptions:
         ):
             model_x_knockoff.importance(X, y)
 
-    def test_invalid_n_samplings(self, data_generator):  # noqa: ARG002
+    def test_invalid_n_samplings(self, data_generator):
         """Test when invalid number of permutations is provided"""
-        with pytest.raises(
-            AssertionError, match="n_samplings must be positive"
-        ):
-            ModelXKnockoff(n_repeats=-1)
+        with pytest.raises(AssertionError, match="n_repeats must be positive"):
+            ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
 
 
 ############################## test preconfigure #######################

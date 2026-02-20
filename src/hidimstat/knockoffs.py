@@ -215,6 +215,7 @@ class ModelXKnockoff(BaseVariableImportance):
             raise ValueError(
                 "The Model-X Knockoff requires to be fitted before computing importance"
             )
+        check_is_fitted(self)
 
     def importance(self, X=None, y=None):
         """
@@ -244,7 +245,6 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
-        check_is_fitted(self)
         if X is not None:
             warnings.warn("X won't be used", stacklevel=2)
         if y is not None:

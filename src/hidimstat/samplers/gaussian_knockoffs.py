@@ -114,13 +114,13 @@ class GaussianKnockoffs(BaseEstimator):
             If any of the required attributes are missing, indicating the model
             hasn't been fit before generating synthetic variables.
         """
-        check_is_fitted(self)
         if not hasattr(self, "mu_tilde_") or not hasattr(
             self, "sigma_tilde_decompose_"
         ):
             raise ValueError(
                 "The GaussianGenerator requires to be fit before sampling"
             )
+        check_is_fitted(self)
 
     def sample(
         self,
