@@ -4,7 +4,10 @@ from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVR
-from sklearn.utils.estimator_checks import parametrize_with_checks
+from sklearn.utils.estimator_checks import (
+    NotFittedError,
+    parametrize_with_checks,
+)
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
@@ -317,10 +320,7 @@ class TestModelXKnockoffExceptions:
             random_state=0,
         )
 
-        with pytest.raises(
-            ValueError,
-            match="The Model-X Knockoff requires to be fitted before computing importance",
-        ):
+        with pytest.raises(NotFittedError):
             model_x_knockoff.importance(X, y)
 
     def test_invalid_n_samplings(self, data_generator):
