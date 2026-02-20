@@ -21,14 +21,8 @@ from .conftest import SKLEARN_LT_1_6, check_estimator
 def expected_failed_checks(estimator):
     if isinstance(estimator, ModelXKnockoff):
         return {
-            "check_parameters_default_constructible": "TODO: change default value for estimator",
             "check_fit_check_is_fitted": "TODO: ",
-            "check_n_features_in_after_fitting": "TODO: add `n_features_in_` attribute",
-            "check_estimators_overwrite_params": "TODO: add a fitted attribute ko_generator_",
-            "check_n_features_in": "TODO",
             "check_fit2d_1sample": "TODO",
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
         }
 
 

@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+from sklearn import clone
 from sklearn.covariance import LedoitWolf
 
 from hidimstat._utils.utils import check_random_state
@@ -33,9 +34,7 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(
-        self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14
-    ):
+    def __init__(self, cov_estimator=None, tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
@@ -65,12 +64,17 @@ class GaussianKnockoffs:
         3. Computes parameters for synthetic variable generation
         """
         _, n_features = X.shape
+        if self.cov_estimator is None:
+            self.cov_estimator_ = LedoitWolf(assume_centered=True)
+        else:
+            self.cov_estimator_ = clone(self.cov_estimator)
 
         # estimation of X distribution
         # original implementation:
         # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
         mu = X.mean(axis=0)
-        sigma = self.cov_estimator.fit(X).covariance_
+        sigma = self.cov_estimator_.fit(X).covariance_
+        self.n_features_in_ = self.cov_estimator_.n_features_in_
 
         diag_s = np.diag(_s_equi(sigma, tol=self.tol))
 
