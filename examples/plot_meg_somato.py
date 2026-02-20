@@ -158,8 +158,6 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 # plot the -log10(p-value) map to which we assign the sign of the estimated
 # coefficient in the multitask Lasso model.
 
-import contextlib
-
 import matplotlib.pyplot as plt
 from nilearn import datasets, plotting
 
@@ -171,8 +169,7 @@ stc_pvals = mne.SourceEstimate(
     subject=f"{subject}",
 )
 
-with contextlib.suppress(FileExistsError):
-    mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
 
 morph = mne.compute_source_morph(
     src=forward["src"],
