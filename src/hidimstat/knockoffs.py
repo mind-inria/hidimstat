@@ -6,6 +6,7 @@ from sklearn.base import clone
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state, seed_estimator
@@ -243,6 +244,7 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
+        check_is_fitted(self)
         if X is not None:
             warnings.warn("X won't be used", stacklevel=2)
         if y is not None:
