@@ -204,7 +204,7 @@ for ax, view in zip(axes, ["lateral", "medial"], strict=True):
         bg_map=fsaverage.sulc_right,
         hemi="right",
         view=view,
-        colorbar=False,
+        colorbar=True,
         cmap="RdBu_r",
         threshold=-np.log10(fwer_target),
         vmax=10,
@@ -212,6 +212,7 @@ for ax, view in zip(axes, ["lateral", "medial"], strict=True):
         title=f"rh-{view} view",
     )
 
+ax._colorbars[0].set_ylabel("-log10(p-value)")
 plotting.show()
 
 # %%
