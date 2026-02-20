@@ -1,12 +1,15 @@
 import warnings
 
 import numpy as np
+from sklearn import clone
+from sklearn.base import BaseEstimator
 from sklearn.covariance import LedoitWolf
+from sklearn.utils.validation import check_array, check_is_fitted
 
 from hidimstat._utils.utils import check_random_state
 
 
-class GaussianKnockoffs:
+class GaussianKnockoffs(BaseEstimator):
     r"""
     Generator for second-order Gaussian variables using the equi-correlated method.
     Creates synthetic variables that preserve the covariance structure of the original
@@ -33,13 +36,15 @@ class GaussianKnockoffs:
     .. footbibliography::
     """
 
-    def __init__(
-        self, cov_estimator=LedoitWolf(assume_centered=True), tol=1e-14
-    ):
+    def __init__(self, cov_estimator=None, tol=1e-14):
         self.cov_estimator = cov_estimator
         self.tol = tol
 
-    def fit(self, X):
+    def fit(
+        self,
+        X,
+        y=None,  # noqa: ARG002
+    ):
         """
         Fit the Gaussian synthetic variable generator.
         This method estimates the parameters needed to generate Gaussian synthetic variables
@@ -51,6 +56,9 @@ class GaussianKnockoffs:
         X : array-like of shape (n_samples, n_features)
             The input samples used to estimate the parameters for synthetic variable generation.
             The data is assumed to follow a Gaussian distribution.
+        y : Ignored
+            This parameter is not used, but is included for compatibility with
+            scikit-learn's API.
 
         Returns
         -------
@@ -64,13 +72,19 @@ class GaussianKnockoffs:
         2. Estimates mean and covariance of input data
         3. Computes parameters for synthetic variable generation
         """
+        X = check_array(X)
         _, n_features = X.shape
+        if self.cov_estimator is None:
+            self.cov_estimator_ = LedoitWolf(assume_centered=True)
+        else:
+            self.cov_estimator_ = clone(self.cov_estimator)
 
         # estimation of X distribution
         # original implementation:
         # https://github.com/msesia/knockoff-filter/blob/master/R/knockoff/R/create_second_order.R
         mu = X.mean(axis=0)
-        sigma = self.cov_estimator.fit(X).covariance_
+        sigma = self.cov_estimator_.fit(X).covariance_
+        self.n_features_in_ = self.cov_estimator_.n_features_in_
 
         diag_s = np.diag(_s_equi(sigma, tol=self.tol))
 
@@ -110,6 +124,7 @@ class GaussianKnockoffs:
             raise ValueError(
                 "The GaussianGenerator requires to be fit before sampling"
             )
+        check_is_fitted(self)
 
     def sample(
         self,

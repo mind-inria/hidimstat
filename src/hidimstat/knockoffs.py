@@ -6,7 +6,7 @@ from sklearn.base import clone
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_memory
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state, seed_estimator
@@ -105,8 +105,6 @@ class ModelXKnockoff(BaseVariableImportance):
         Random seed forwarded to the knockoff generator sampling.
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
-    memory : str, joblib.Memory or None, default=None
-        Caching backend for expensive operations.
     n_jobs : int, default=1
         Number of parallel jobs (automatically capped to n_repeats).
 
@@ -136,26 +134,17 @@ class ModelXKnockoff(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(
-            max_iter=200000,
-            n_jobs=1,
-            verbose=0,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            random_state=1,
-            tol=1e-6,
-        ),
-        ko_generator=GaussianKnockoffs(),
+        estimator=None,
+        ko_generator=None,
         n_repeats=1,
         centered=True,
         preconfigure_lasso_path=True,
         random_state=None,
         joblib_verbose=0,
-        memory=None,
         n_jobs=1,
     ):
         super().__init__()
         self.ko_generator = ko_generator
-        assert n_repeats > 0, "n_samplings must be positive"
         self.n_repeats = n_repeats
         self.centered = centered
         # parameter for statistical test base on linear model
@@ -163,17 +152,9 @@ class ModelXKnockoff(BaseVariableImportance):
         self.preconfigure_lasso_path = preconfigure_lasso_path
 
         self.random_state = random_state
-        self.memory = check_memory(memory)
         self.joblib_verbose = joblib_verbose
         # unnecessary to have n_jobs > number of bootstraps
-        self.n_jobs = min(n_repeats, n_jobs)
-
-        self.importances_ = None
-        self.threshold_fdr_ = None
-        self.aggregated_eval_ = None
-        self.aggregated_pval_ = None
-        self.estimators_ = None
-        self.n_features_ = None
+        self.n_jobs = n_jobs
 
     def fit(self, X, y):
         """
@@ -192,17 +173,32 @@ class ModelXKnockoff(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
+        assert self.n_repeats > 0, "n_repeats must be positive"
+        self.n_jobs = min(self.n_jobs, self.n_repeats)
+
         rng = check_random_state(self.random_state)
         X_ = StandardScaler().fit_transform(X) if self.centered else X
 
-        self.ko_generator.fit(X_)
-        X_tildes = self.ko_generator.sample(
+        if self.ko_generator is None:
+            self.ko_generator_ = GaussianKnockoffs()
+        else:
+            self.ko_generator_ = clone(self.ko_generator)
+        self.ko_generator_ = self.ko_generator_.fit(X_)
+        self.n_features_in_ = self.ko_generator_.n_features_in_
+        X_tildes = self.ko_generator_.sample(
             n_repeats=self.n_repeats, random_state=self.random_state
         )
 
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=200000, cv=KFold(n_splits=5, shuffle=True), tol=1e-6
+            )
+        else:
+            self.estimator_ = clone(self.estimator)
+        self.estimator_ = seed_estimator(self.estimator_, self.random_state)
         self.estimators_ = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
-                self.estimator,
+                self.estimator_,
                 X_,
                 X_tildes[i],
                 y,
@@ -215,10 +211,7 @@ class ModelXKnockoff(BaseVariableImportance):
         return self
 
     def _check_fit(self):
-        if self.estimators_ is None:
-            raise ValueError(
-                "The Model-X Knockoff requires to be fitted before computing importance"
-            )
+        check_is_fitted(self)
 
     def importance(self, X=None, y=None):
         """
@@ -587,7 +580,6 @@ def model_x_knockoff_importance(
     random_state=None,
     preconfigure_lasso_path=True,
     joblib_verbose=0,
-    memory=None,
     n_jobs=1,
     fdr=0.1,
     fdr_control="bhq",
@@ -604,7 +596,6 @@ def model_x_knockoff_importance(
         preconfigure_lasso_path=preconfigure_lasso_path,
         random_state=random_state,
         joblib_verbose=joblib_verbose,
-        memory=memory,
         n_jobs=n_jobs,
     )
     methods.fit_importance(X, y)
