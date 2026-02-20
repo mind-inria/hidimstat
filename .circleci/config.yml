@@ -72,6 +72,7 @@ jobs:
           paths:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
+            - /home/circleci/mne_data
 
   get-tests-reports:
     docker:
