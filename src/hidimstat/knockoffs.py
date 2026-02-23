@@ -174,7 +174,7 @@ class ModelXKnockoff(BaseVariableImportance):
             Returns the instance itself.
         """
         assert self.n_repeats > 0, "n_repeats must be positive"
-        self.n_jobs = min(self.n_jobs, self.n_repeats)
+        n_jobs = min(self.n_jobs, self.n_repeats)
 
         rng = check_random_state(self.random_state)
         X_ = StandardScaler().fit_transform(X) if self.centered else X
@@ -196,7 +196,7 @@ class ModelXKnockoff(BaseVariableImportance):
         else:
             self.estimator_ = clone(self.estimator)
         self.estimator_ = seed_estimator(self.estimator_, self.random_state)
-        self.estimators_ = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
+        self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
                 self.estimator_,
                 X_,
@@ -209,9 +209,6 @@ class ModelXKnockoff(BaseVariableImportance):
         )
         self.n_features_ = X.shape[1]
         return self
-
-    def _check_fit(self):
-        check_is_fitted(self)
 
     def importance(self, X=None, y=None):
         """
@@ -245,7 +242,7 @@ class ModelXKnockoff(BaseVariableImportance):
             warnings.warn("X won't be used", stacklevel=2)
         if y is not None:
             warnings.warn("y won't be used", stacklevel=2)
-        self._check_fit()
+        check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
             self.estimators_, self.n_features_
