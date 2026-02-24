@@ -142,7 +142,7 @@ cludl = CluDL(
     random_state=0,
 )
 
-cludl.fit_importance(G, y)
+cludl.fit_importance(gain, y)
 selected = cludl.fwer_selection(fwer_target, two_tailed_test=True)
 # multiplying the -log10(p-value) map by the sign of the estimated coefficients
 log_pvalues = -np.log10(cludl.pvalues_) * selected
