@@ -78,7 +78,7 @@ noise_cov = mne.compute_covariance(epochs, rank="info", tmax=0.0)
 # number of 64 samples.
 pca = True
 # Preprocessing MEG data
-forward, G, gain_info, whitener, _, _ = _prepare_gain(
+forward, gain, gain_info, whitener, _, _ = _prepare_gain(
     forward,
     evoked.info,
     noise_cov,
