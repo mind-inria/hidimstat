@@ -3,7 +3,7 @@ from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import mean_squared_error
-from sklearn.utils.validation import check_X_y
+from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -117,7 +117,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         assert self.n_permutations > 0, "n_permutations must be positive"
         _check_vim_predict_method(self.method)
-        check_X_y(X, y)
+        check_array(X)
 
         # variable set in importance
         self.loss_reference_ = None
