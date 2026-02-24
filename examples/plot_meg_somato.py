@@ -20,7 +20,7 @@ recovery from spatio-temporal data.
     it uses an L1/L2 mixed-norm regularization, which for a coefficient matrix
     :math:`W` of shape (n_features, n_tasks) is defined as:
 
-    ..math::
+    .. math::
         ||W||_{21} = \sum_{j=1}^p \sqrt{\sum_{t=1}^T W_{j,t}^2}
 
 """
