@@ -1,7 +1,9 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import mean_squared_error
+from sklearn.utils.validation import check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -115,6 +117,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         assert self.n_permutations > 0, "n_permutations must be positive"
         _check_vim_predict_method(self.method)
+        check_X_y(X, y)
 
         # variable set in importance
         self.loss_reference_ = None
@@ -373,6 +376,50 @@ class BasePerturbationCV(BaseVariableImportance):
         """
         raise NotImplementedError
 
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimators_")
+
+    def _initial_fit(self, estimators, cv, X, y):
+        if isinstance(estimators, list):
+            if len(estimators) != cv.get_n_splits():
+                raise ValueError(
+                    "If estimators is a list, its length must be equal to the number of folds."
+                )
+            else:
+                try:
+                    for est in estimators:
+                        check_is_fitted(est)
+                    fitted_estimators = estimators
+                except NotFittedError as e:
+                    print(
+                        "One of the provided estimators is not fitted. All "
+                        "estimators will be re-fitted."
+                    )
+                    fitted_estimators = Parallel(n_jobs=self.n_jobs)(
+                        delayed(
+                            lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr)
+                        )(
+                            estimators[fold_idx],
+                            X[train_idx],
+                            y[train_idx],
+                        )
+                        for fold_idx, (train_idx, _) in enumerate(
+                            self.cv.split(X, y)
+                        )
+                    )
+        else:
+            fitted_estimators = Parallel(n_jobs=self.n_jobs)(
+                delayed(lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr))(
+                    self.estimators, X[train_idx], y[train_idx]
+                )
+                for train_idx, _ in tqdm(
+                    self.cv.split(X, y),
+                    total=self.cv.get_n_splits(),
+                    desc="Fitting estimators for each fold",
+                )
+            )
+        return fitted_estimators
+
     def fit(self, X, y):
         """
         Fit the importance estimators on each fold of the cross-validation.
@@ -385,37 +432,16 @@ class BasePerturbationCV(BaseVariableImportance):
         if self.cv is None:
             raise ValueError("'cv' must be valid cross-validation generator.")
 
+        check_X_y(X, y)
+
         self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
 
         self.importances_ = None
         self.pvalues_ = None
-
-        self.estimators_ = None
-
         self.importance_estimators_ = None
 
-        if isinstance(self.estimators, list):
-            if len(self.estimators) != self.cv.get_n_splits():
-                raise ValueError(
-                    "If estimators is a list, its length must be equal to the number "
-                    "of folds."
-                )
-            else:
-                for est in self.estimators:
-                    check_is_fitted(est)
-            self.estimators_ = self.estimators
+        self.estimators_ = self._initial_fit(self.estimators, self.cv, X, y)
 
-        if self.estimators_ is None:
-            self.estimators_ = Parallel(n_jobs=self.n_jobs)(
-                delayed(lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr))(
-                    self.estimators, X[train_idx], y[train_idx]
-                )
-                for train_idx, _ in tqdm(
-                    self.cv.split(X, y),
-                    total=self.cv.get_n_splits(),
-                    desc="Fitting estimators for each fold",
-                )
-            )
         self.importance_estimators_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._fit_single_split)(
                 estimator, X[train_idx], y[train_idx]
@@ -426,6 +452,7 @@ class BasePerturbationCV(BaseVariableImportance):
                 desc="Fitting importance estimators for each fold",
             )
         )
+        self.n_features_in_ = self.estimators_[0].n_features_in_
         return self
 
     def _importance_single_split(self, importance_estimator, X_test, y_test):
