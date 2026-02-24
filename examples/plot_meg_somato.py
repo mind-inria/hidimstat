@@ -12,16 +12,16 @@ recovery from spatio-temporal data.
 
 .. admonition:: MultiTaskLasso:
 
-The `MultiTaskLasso <https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso>`_
-is a linear model that estimates sparse coefficients for multiple correlated
-tasks simultaneously. Here, the tasks correspond to the different time points.
-Instead of fitting a separate Lasso model for each time point, it fits a single
-model that enforces joint feature selection across all time points. To do so,
-it uses an L1/L2 mixed-norm regularization, which for a coefficient matrix
-:math:`W` of shape (n_features, n_tasks) is defined as:
+    The `MultiTaskLasso <https://scikit-learn.org/stable/modules/linear_model.html#multi-task-lasso>`_
+    is a linear model that estimates sparse coefficients for multiple correlated
+    tasks simultaneously. Here, the tasks correspond to the different time points.
+    Instead of fitting a separate Lasso model for each time point, it fits a single
+    model that enforces joint feature selection across all time points. To do so,
+    it uses an L1/L2 mixed-norm regularization, which for a coefficient matrix
+    :math:`W` of shape (n_features, n_tasks) is defined as:
 
-..math::
-    ||W||_{21} = \sum_{j=1}^p \sqrt{\sum_{t=1}^T W_{j,t}^2}
+    ..math::
+        ||W||_{21} = \sum_{j=1}^p \sqrt{\sum_{t=1}^T W_{j,t}^2}
 
 """
 
