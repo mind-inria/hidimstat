@@ -49,7 +49,7 @@ class PFI(BasePerturbation):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
@@ -190,8 +190,8 @@ class PFICV(BasePerturbationCV):
 
     def __init__(
         self,
-        estimators,
-        cv,
+        estimators=None,
+        cv=None,
         statistical_test="nb-ttest",
         method="predict",
         loss=mean_squared_error,

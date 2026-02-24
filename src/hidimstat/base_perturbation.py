@@ -380,7 +380,12 @@ class BasePerturbationCV(BaseVariableImportance):
         return hasattr(self, "estimators_")
 
     def _initial_fit(self, estimators, cv, X, y):
-        if isinstance(estimators, list):
+        if estimators is None:
+            raise ValueError(
+                "'estimator' must be a valid sklearn compartible estimator or "
+                "a list of fitted sklearn estimators (one per fold)."
+            )
+        elif isinstance(estimators, list):
             if len(estimators) != cv.get_n_splits():
                 raise ValueError(
                     "If estimators is a list, its length must be equal to the number of folds."
