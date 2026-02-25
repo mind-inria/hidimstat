@@ -3,6 +3,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
+from sklearn.utils.validation import check_array
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_statistical_test
@@ -67,8 +68,6 @@ class LOCO(BasePerturbation):
             features_groups=features_groups,
             n_jobs=n_jobs,
         )
-        # internal variable
-        self._list_estimators = None
 
     def fit(self, X, y):
         """
@@ -86,6 +85,7 @@ class LOCO(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        check_array(X, ensure_min_features=2)
         super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [
@@ -335,6 +335,7 @@ class LOCOCV(BasePerturbationCV):
 
     def _fit_single_split(self, estimator, X_train, y_train):
         """Fit a LOCO instance on a single train/test split."""
+        check_array(X_train, ensure_min_features=2)
         loco = LOCO(
             estimator=estimator,
             method=self.method,

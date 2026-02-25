@@ -12,6 +12,7 @@ from sklearn.linear_model import (
     LogisticRegressionCV,
 )
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_is_fitted, check_X_y
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
@@ -130,13 +131,13 @@ class D0CRT(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False),
-        model_distillation_x=LassoCV(n_alphas=10),
+        lasso_screening=None,
+        model_distillation_x=None,
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -148,7 +149,6 @@ class D0CRT(BaseVariableImportance):
         random_state=None,
     ):
         self.estimator = estimator
-        _check_vim_predict_method(method)
         self.estimated_coef = estimated_coef
         self.estimated_intercept = estimated_intercept
         self.method = method
@@ -165,13 +165,29 @@ class D0CRT(BaseVariableImportance):
         self.reuse_screening_model = reuse_screening_model
         self.random_state = random_state
 
+    def _check_estimators(self):
+        if self.estimator is None:
+            raise ValueError(
+                "'estimator' must be a valid sklearn compartible estimator or "
+                "a list of fitted sklearn estimators (one per fold)."
+            )
         self.is_logistic_ = self._check_logistic()
-        self.coefficient_ = None
-        self.intercept_ = None
-        self.selection_set_ = None
-        self.model_x_ = None
-        self.model_y_ = None
-        self.lasso_weights_ = None
+
+        if self.lasso_screening is None:
+            if self.is_logistic_:
+                self.lasso_screening_ = LogisticRegressionCV(
+                    penalty="l1", solver="liblinear"
+                )
+            else:
+                self.lasso_screening_ = LassoCV(
+                    n_alphas=10, tol=1e-6, fit_intercept=False
+                )
+        else:
+            self.lasso_screening_ = clone(self.lasso_screening)
+        if self.model_distillation_x is None:
+            self.model_distillation_x_ = LassoCV(n_alphas=10)
+        else:
+            self.model_distillation_x_ = clone(self.model_distillation_x)
 
     def fit(self, X, y):
         """
@@ -211,8 +227,22 @@ class D0CRT(BaseVariableImportance):
         ----------
         .. footbibliography::
         """
+        self._check_estimators()
+        check_X_y(X, y, ensure_min_features=2)
+        if self.is_logistic_ and len(np.unique(y)) != 2:
+            raise ValueError(
+                "For logistic regression, y must be binary. Found "
+                f"{len(np.unique(y))} unique classes."
+            )
+        _check_vim_predict_method(self.method)
+
         rng = check_random_state(self.random_state)
-        self.estimator = seed_estimator(self.estimator, random_state=rng)
+        self.estimator_ = seed_estimator(
+            clone(self.estimator), random_state=rng
+        )
+        self.n_features_in_ = X.shape[1]
+        self.lasso_weights_ = None
+        self.intercept_ = None
 
         X_ = StandardScaler().fit_transform(X) if self.centered else X
         y_ = y  # avoid modifying the original y
@@ -229,7 +259,7 @@ class D0CRT(BaseVariableImportance):
                 self.selection_set_, lasso_model_ = run_lasso_screening(
                     X_,
                     y_,
-                    lasso_model=self.lasso_screening,
+                    lasso_model=self.lasso_screening_,
                     screening_threshold=self.screening_threshold,
                     random_state=rng,
                 )
@@ -241,11 +271,11 @@ class D0CRT(BaseVariableImportance):
         if self.refit or (
             (self.screening_threshold is None) and self.estimated_coef is None
         ):
-            self.estimator.fit(X_[:, self.selection_set_], y_)
+            self.estimator_.fit(X_[:, self.selection_set_], y_)
         elif (self.screening_threshold is not None) and (
             self.estimated_coef is None
         ):
-            self.estimator = lasso_model_
+            self.estimator_ = lasso_model_
 
         if self.estimated_coef is not None:
             self.coefficient_ = self.estimated_coef
@@ -263,13 +293,13 @@ class D0CRT(BaseVariableImportance):
             # optimization to reduce the number of elements different to zeros
             self.coefficient_[~self.selection_set_] = 0
         # If the model is linear, store the coefficients
-        elif hasattr(self.estimator, "coef_"):
+        elif hasattr(self.estimator_, "coef_"):
             self.coefficient_ = np.zeros(X.shape[1])
             self.coefficient_[self.selection_set_] = (
-                self.estimator.coef_.flatten()
+                self.estimator_.coef_.flatten()
             )
-            self.estimator.coef_ = self.coefficient_
-            self.intercept_ = self.estimator.intercept_
+            self.estimator_.coef_ = self.coefficient_
+            self.intercept_ = self.estimator_.intercept_
         else:
             self.coefficient_ = None
         # Save sample weights that will be used for fitting the X-distillation (equation
@@ -287,10 +317,10 @@ class D0CRT(BaseVariableImportance):
                 idx=idx,
                 X=X_,
                 y=y_,
-                estimator=self.estimator,
+                estimator=self.estimator_,
                 sigma_X=self.sigma_X is None,
                 fit_y=self.fit_y,
-                model_distillation_x=self.model_distillation_x,
+                model_distillation_x=self.model_distillation_x_,
                 lasso_weights=self.lasso_weights_,
                 random_state=rng,
             )
@@ -305,31 +335,12 @@ class D0CRT(BaseVariableImportance):
 
         return self
 
-    def _check_fit(self):
-        """
-        Check if the model has been fit before performing analysis.
-
-        This private method verifies that all necessary attributes have been set
-        during the fitting process.
-        These attributes include:
-        - model_x_
-        - model_y_
-        - selection_set_
-
-        Raises
-        ------
-        ValueError
-            If any of the required attributes are missing, indicating the model
-            hasn't been fit.
-        """
-        if (
-            self.model_x_ is None
-            or self.model_y_ is None
-            or self.selection_set_ is None
-        ):
-            raise ValueError(
-                "The D0CRT requires to be fit before any analysis"
-            )
+    def __sklearn_is_fitted__(self):
+        return (
+            hasattr(self, "model_y_")
+            and hasattr(self, "model_x_")
+            and hasattr(self, "selection_set_")
+        )
 
     def importance(
         self,
@@ -369,7 +380,7 @@ class D0CRT(BaseVariableImportance):
         3. Calculates test statistic from correlation of residuals
         4. Computes p-value assuming standard normal distribution
         """
-        self._check_fit()
+        check_is_fitted(self)
 
         y_ = y  # avoid modifying the original y
 
