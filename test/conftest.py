@@ -34,6 +34,7 @@ def rng():
 
 
 def fitted_linear_regression():
+    """Return a fitted linear regression model."""
     X = _rng().integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])

@@ -289,6 +289,7 @@ from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
 
 
 def fitted_ridged_cv():
+    """Return a fitted RidgeCV model."""
     X, y, _, _ = multivariate_simulation(
         n_samples=500,
         n_features=50,
@@ -297,6 +298,7 @@ def fitted_ridged_cv():
 
 
 def list_fitted_ridge_cv():
+    """Return a list of fitted RidgeCV models for each fold."""
     X, y, _, _ = multivariate_simulation(
         n_samples=500,
         n_features=50,

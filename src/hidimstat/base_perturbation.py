@@ -380,6 +380,28 @@ class BasePerturbationCV(BaseVariableImportance):
         return hasattr(self, "estimators_")
 
     def _initial_fit(self, estimators, cv, X, y):
+        """Initial fit of the sklearn estimators on each fold.
+        If the estimators are already fitted, they are used as is. Otherwise,
+        they are cloned and fitted on each fold.
+
+        Parameters
+        ----------
+        estimators: list of sklearn estimators or single sklearn estimator
+            Can be a list of fitted sklearn estimators (one per fold) or a
+            single sklearn estimator that will then be cloned and fitted on
+            each fold.
+        cv: cross-validation generator
+            A cross-validation generator object (e.g., KFold, StratifiedKFold).
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        fitted_estimators: list of sklearn estimators
+            List of fitted estimators for each fold.
+        """
         if estimators is None:
             raise ValueError(
                 "'estimator' must be a valid sklearn compartible estimator or "
