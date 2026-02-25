@@ -104,7 +104,10 @@ forward, gain, gain_info, whitener, _, _ = _prepare_gain(
     rank=None,
 )
 
+
+# %%
 # Selecting relevant time window: focusing on early signal
+
 t_min, t_max = 0.01, 0.05
 t_step = 1.0 / 300
 # Croping evoked according to relevant time window
@@ -113,7 +116,6 @@ evoked.crop(tmin=t_min, tmax=t_max)
 # Reducing the frequency to 100Hz to make inference faster
 step = int(t_step * evoked.info["sfreq"])
 evoked.decimate(step)
-
 y = np.dot(whitener, evoked.data)
 
 
@@ -163,6 +165,14 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 
 
 # %%
+# We here used CluDL, which relies on a single clustering. Alternatively,
+# :class:`~hidimstat.EnCluDL` can be used, which relies on aggregating the
+# results over multiple clusterings obtained by running the clustering
+# algorithm on bootstrapped samples of the data. This can lead to more stable
+# results at the cost of a higher computational time.
+
+
+# %%
 # Visualize the p-value map on the brain surface
 # ----------------------------------------------
 # We then visualize the identified cortical sources on the brain surface. We
@@ -200,8 +210,10 @@ stc_fsaverage = morph.apply(stc_pvals)
 start_id = stc_fsaverage.data.shape[0] // 2
 rh_stat_map = stc_fsaverage.data[start_id:, 0]
 
-fsaverage = datasets.fetch_surf_fsaverage("fsaverage5")
 
+# %%
+
+fsaverage = datasets.fetch_surf_fsaverage("fsaverage5")
 
 fig, axes = plt.subplots(
     1,
