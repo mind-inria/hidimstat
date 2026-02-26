@@ -108,24 +108,6 @@ class GaussianKnockoffs(BaseEstimator):
 
         return self
 
-    def _check_fit(self):
-        """
-        Check if the model has been fit before sampling knockoffs.
-
-        Raises
-        ------
-        ValueError
-            If any of the required attributes are missing, indicating the model
-            hasn't been fit before generating synthetic variables.
-        """
-        if not hasattr(self, "mu_tilde_") or not hasattr(
-            self, "sigma_tilde_decompose_"
-        ):
-            raise ValueError(
-                "The GaussianGenerator requires to be fit before sampling"
-            )
-        check_is_fitted(self)
-
     def sample(
         self,
         n_repeats: int = 1,
@@ -148,7 +130,7 @@ class GaussianKnockoffs(BaseEstimator):
         X_tilde : 3D ndarray (n_repeats, n_samples, n_features)
             The synthetic variables.
         """
-        self._check_fit()
+        check_is_fitted(self)
         rng = check_random_state(random_state)
         n_samples, n_features = self.mu_tilde_.shape
 

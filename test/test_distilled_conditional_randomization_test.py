@@ -10,67 +10,11 @@ from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
-from sklearn.utils.estimator_checks import parametrize_with_checks
+from sklearn.utils.estimator_checks import NotFittedError
 
 from hidimstat import D0CRT, d0crt_importance
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
-
-from .conftest import SKLEARN_LT_1_6, check_estimator
-
-ESTIMATORS_TO_CHECK = [
-    D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
-]
-
-
-def expected_failed_checks(estimator):
-    if isinstance(estimator, D0CRT):
-        return {
-            "check_no_attributes_set_in_init": "TODO",
-            "check_n_features_in_after_fitting": "TODO",
-            "check_fit2d_1feature": "TODO",
-            "check_fit_check_is_fitted": "TODO",
-            "check_estimators_overwrite_params": "TODO",
-            "check_n_features_in": "TODO",
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_parameters_default_constructible": "TODO",
-        }
-
-
-if SKLEARN_LT_1_6:
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
 
 
 @pytest.fixture(scope="module")
@@ -406,9 +350,7 @@ def test_exception_not_fitted():
         screening_threshold=None,
         scaled_statistics=True,
     )
-    with pytest.raises(
-        ValueError, match="The D0CRT requires to be fit before any analysis"
-    ):
+    with pytest.raises(NotFittedError):
         _, _ = d0crt.importance(X, y)
 
 
@@ -606,12 +548,7 @@ def test_dcrt_logit(generate_binary_classif_dataset):
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=LogisticRegressionCV(
-            penalty="l1",
-            solver="liblinear",
-            max_iter=1000,
-            random_state=0,
-        ),
+        lasso_screening=None,
         screening_threshold=50,
         random_state=0,
     )
@@ -627,11 +564,12 @@ def test_dcrt_logit(generate_binary_classif_dataset):
     assert tp / np.sum(beta != 0) >= 0.2
 
 
-def test_dcrt_logit_errors():
+def test_dcrt_logit_errors(generate_binary_classif_dataset):
     """
     Test that passing inconsistent models to estimator and lasso_screening raises a
     ValueError.
     """
+    X, y, _ = generate_binary_classif_dataset
     with pytest.raises(
         ValueError,
         match="For logistic regression, both the estimator and the lasso_screening "
@@ -647,7 +585,7 @@ def test_dcrt_logit_errors():
             lasso_screening=LassoCV(n_jobs=1),
             screening_threshold=50,
             random_state=0,
-        )
+        ).fit(X, y)
     with pytest.raises(
         ValueError,
         match=r"For logistic regression, lasso_screening\.penalty must be 'l1'",
@@ -667,7 +605,35 @@ def test_dcrt_logit_errors():
             ),
             screening_threshold=50,
             random_state=0,
-        )
+        ).fit(X, y)
+    with pytest.raises(
+        ValueError,
+        match=r"'estimator' must be a valid sklearn compartible estimator or a "
+        r"list of fitted sklearn estimators, one per fold.",
+    ):
+        D0CRT(
+            estimator=None,
+            lasso_screening=None,
+            screening_threshold=50,
+            random_state=0,
+        ).fit(X, y)
+
+    with pytest.raises(
+        ValueError,
+        match=r"For logistic regression, y must be binary. Found 3 unique classes.",
+    ):
+        y[0] = 2
+        D0CRT(
+            estimator=LogisticRegressionCV(
+                penalty="l1",
+                solver="liblinear",
+                max_iter=1000,
+                random_state=0,
+            ),
+            lasso_screening=None,
+            screening_threshold=50,
+            random_state=0,
+        ).fit(X, y)
 
 
 def test_dcrt_logit_refit(generate_binary_classif_dataset):
