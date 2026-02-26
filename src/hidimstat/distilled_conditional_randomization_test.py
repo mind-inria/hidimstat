@@ -166,13 +166,21 @@ class D0CRT(BaseVariableImportance):
         self.random_state = random_state
 
     def _check_estimators(self):
+        """
+        If the estimator is a logistic regression, check that the screening model is
+        a l1-penalized logistic regression or None (no screening).
+        """
         if self.estimator is None:
             raise ValueError(
-                "'estimator' must be a valid sklearn compartible estimator or "
-                "a list of fitted sklearn estimators (one per fold)."
+                r"'estimator' must be a valid sklearn compartible estimator or "
+                r"a list of fitted sklearn estimators, one per fold."
             )
-        self.is_logistic_ = self._check_logistic()
 
+        self.is_logistic_ = isinstance(
+            self.estimator, (LogisticRegression, LogisticRegressionCV)
+        ) or isinstance(
+            self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+        )
         if self.lasso_screening is None:
             if self.is_logistic_:
                 self.lasso_screening_ = LogisticRegressionCV(
@@ -184,6 +192,34 @@ class D0CRT(BaseVariableImportance):
                 )
         else:
             self.lasso_screening_ = clone(self.lasso_screening)
+
+        if self.is_logistic_ and (
+            (
+                self.screening_threshold is not None
+                and not isinstance(
+                    self.lasso_screening_,
+                    (LogisticRegression, LogisticRegressionCV),
+                )
+                and self.lasso_screening_ is not None
+            )
+            or (
+                not isinstance(
+                    self.estimator, (LogisticRegression, LogisticRegressionCV)
+                )
+            )
+        ):
+            raise ValueError(
+                "For logistic regression, both the estimator and the lasso_screening "
+                "must be LogisticRegression or LogisticRegressionCV"
+            )
+        if self.is_logistic_ and (
+            self.screening_threshold is not None
+            and not self.lasso_screening_.penalty == "l1"
+        ):
+            raise ValueError(
+                "For logistic regression, lasso_screening.penalty must be 'l1'"
+            )
+
         if self.model_distillation_x is None:
             self.model_distillation_x_ = LassoCV(n_alphas=10)
         else:
@@ -579,43 +615,6 @@ class D0CRT(BaseVariableImportance):
             warnings.warn("cv won't be used", stacklevel=2)
         self.fit(X, y)
         return self.importance(X, y)
-
-    def _check_logistic(self):
-        """
-        If the estimator is a logistic regression, check that the screening model is
-        a l1-penalized logistic regression or None (no screening).
-        """
-        is_logistic = isinstance(
-            self.estimator, (LogisticRegression, LogisticRegressionCV)
-        ) or isinstance(
-            self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
-        )
-        if is_logistic and (
-            (
-                self.screening_threshold is not None
-                and not isinstance(
-                    self.lasso_screening,
-                    (LogisticRegression, LogisticRegressionCV),
-                )
-            )
-            or (
-                not isinstance(
-                    self.estimator, (LogisticRegression, LogisticRegressionCV)
-                )
-            )
-        ):
-            raise ValueError(
-                "For logistic regression, both the estimator and the lasso_screening "
-                "must be LogisticRegression or LogisticRegressionCV"
-            )
-        if is_logistic and (
-            self.screening_threshold is not None
-            and not self.lasso_screening.penalty == "l1"
-        ):
-            raise ValueError(
-                "For logistic regression, lasso_screening.penalty must be 'l1'"
-            )
-        return is_logistic
 
 
 def _joblib_fit(

@@ -548,12 +548,7 @@ def test_dcrt_logit(generate_binary_classif_dataset):
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=LogisticRegressionCV(
-            penalty="l1",
-            solver="liblinear",
-            max_iter=1000,
-            random_state=0,
-        ),
+        lasso_screening=None,
         screening_threshold=50,
         random_state=0,
     )
@@ -608,6 +603,34 @@ def test_dcrt_logit_errors(generate_binary_classif_dataset):
                 max_iter=1000,
                 random_state=0,
             ),
+            screening_threshold=50,
+            random_state=0,
+        ).fit(X, y)
+    with pytest.raises(
+        ValueError,
+        match=r"'estimator' must be a valid sklearn compartible estimator or a "
+        r"list of fitted sklearn estimators, one per fold.",
+    ):
+        D0CRT(
+            estimator=None,
+            lasso_screening=None,
+            screening_threshold=50,
+            random_state=0,
+        ).fit(X, y)
+
+    with pytest.raises(
+        ValueError,
+        match=r"For logistic regression, y must be binary. Found 3 unique classes.",
+    ):
+        y[0] = 2
+        D0CRT(
+            estimator=LogisticRegressionCV(
+                penalty="l1",
+                solver="liblinear",
+                max_iter=1000,
+                random_state=0,
+            ),
+            lasso_screening=None,
             screening_threshold=50,
             random_state=0,
         ).fit(X, y)
