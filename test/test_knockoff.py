@@ -4,7 +4,10 @@ from sklearn.covariance import GraphicalLassoCV, LedoitWolf
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVR
-from sklearn.utils.estimator_checks import parametrize_with_checks
+from sklearn.utils.estimator_checks import (
+    NotFittedError,
+    parametrize_with_checks,
+)
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
@@ -19,20 +22,11 @@ from .conftest import SKLEARN_LT_1_6, check_estimator
 
 
 def expected_failed_checks(estimator):
-    if isinstance(estimator, ModelXKnockoff):
-        return {
-            "check_parameters_default_constructible": "TODO: change default value for estimator",
-            "check_fit_check_is_fitted": "TODO: ",
-            "check_n_features_in_after_fitting": "TODO: add `n_features_in_` attribute",
-            "check_estimators_overwrite_params": "TODO: add a fitted attribute ko_generator_",
-            "check_n_features_in": "TODO",
-            "check_fit2d_1sample": "TODO",
-            "check_do_not_raise_errors_in_init_or_set_params": "TODO",
-            "check_no_attributes_set_in_init": "TODO",
-        }
+    if isinstance(estimator, (ModelXKnockoff, GaussianKnockoffs)):
+        return {"check_fit2d_1sample": "TODO"}
 
 
-ESTIMATORS_TO_CHECK = [ModelXKnockoff()]
+ESTIMATORS_TO_CHECK = [ModelXKnockoff(), GaussianKnockoffs()]
 
 if SKLEARN_LT_1_6:
 
@@ -326,18 +320,13 @@ class TestModelXKnockoffExceptions:
             random_state=0,
         )
 
-        with pytest.raises(
-            ValueError,
-            match="The Model-X Knockoff requires to be fitted before computing importance",
-        ):
+        with pytest.raises(NotFittedError):
             model_x_knockoff.importance(X, y)
 
-    def test_invalid_n_samplings(self, data_generator):  # noqa: ARG002
+    def test_invalid_n_samplings(self, data_generator):
         """Test when invalid number of permutations is provided"""
-        with pytest.raises(
-            AssertionError, match="n_samplings must be positive"
-        ):
-            ModelXKnockoff(n_repeats=-1)
+        with pytest.raises(AssertionError, match="n_repeats must be positive"):
+            ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
 
 
 ############################## test preconfigure #######################
