@@ -52,7 +52,7 @@ class LOCO(BasePerturbation):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         statistical_test="ttest",
