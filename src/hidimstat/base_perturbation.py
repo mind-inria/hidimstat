@@ -6,10 +6,15 @@ from sklearn.metrics import mean_squared_error
 from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
-from hidimstat._utils.utils import (_check_vim_predict_method,
-                                    check_random_state, check_statistical_test)
-from hidimstat.base_variable_importance import (BaseVariableImportance,
-                                                GroupVariableImportanceMixin)
+from hidimstat._utils.utils import (
+    _check_vim_predict_method,
+    check_random_state,
+    check_statistical_test,
+)
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
 
 class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
