@@ -88,22 +88,25 @@ class LOCO(BasePerturbation):
         check_array(X, ensure_min_features=2)
         super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
-        self._list_estimators = [
+        self.list_estimators_ = [
             clone(self.estimator) for _ in range(self.n_features_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators
-        self._list_estimators = Parallel(n_jobs=self.n_jobs)(
+        self.list_estimators_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
                 self.features_groups_.keys(),
-                self._list_estimators,
+                self.list_estimators_,
                 strict=False,
             )
         )
         return self
+
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "list_estimators_")
 
     def importance(self, X, y):
         """
@@ -144,7 +147,7 @@ class LOCO(BasePerturbation):
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
         """
-        self._check_fit()
+        check_is_fitted(self)
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
@@ -203,23 +206,10 @@ class LOCO(BasePerturbation):
         )
 
         y_pred_loco = getattr(
-            self._list_estimators[features_group_id], self.method
+            self.list_estimators_[features_group_id], self.method
         )(X_minus_j)
 
         return [y_pred_loco]
-
-    def _check_fit(self):
-        """Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        super()._check_fit()
-        check_is_fitted(self.estimator)
-        if self._list_estimators is None:
-            raise ValueError(
-                "The estimators require to be fit before to use them"
-            )
-        for m in self._list_estimators:
-            check_is_fitted(m)
 
 
 def loco_importance(

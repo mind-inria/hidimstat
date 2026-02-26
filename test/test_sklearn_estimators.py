@@ -1,16 +1,11 @@
 import numpy as np
 import pytest
 from sklearn.base import clone
-from sklearn.linear_model import (
-    LassoCV,
-    LinearRegression,
-    LogisticRegression,
-    RidgeCV,
-)
+from sklearn.linear_model import LassoCV, LinearRegression, RidgeCV
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from hidimstat import CFI, CFICV, D0CRT, LOCO, LOCOCV, PFI, PFICV
+from hidimstat import D0CRT, LOCO, LOCOCV, PFI, PFICV
 from hidimstat._utils.scenario import multivariate_simulation
 
 from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
@@ -50,38 +45,38 @@ def expected_failed_checks(estimator):
 
 
 ESTIMATORS_TO_CHECK = [
-    # PFI(
-    #     estimator=fitted_linear_regression(),
-    # ),
-    # PFI(
-    #     estimator=LinearRegression(),
-    # ),
-    # PFICV(
-    #     estimators=RidgeCV(),
-    #     cv=KFold(n_splits=2),
-    # ),
-    # PFICV(
-    #     estimators=fitted_ridged_cv(),
-    #     cv=KFold(n_splits=2),
-    # ),
-    # PFICV(
-    #     estimators=list_fitted_ridge_cv(),
-    #     cv=KFold(n_splits=2, shuffle=True, random_state=0),
-    # ),
-    # LOCO(
-    #     estimator=LinearRegression(),
-    # ),
-    # LOCO(
-    #     estimator=fitted_linear_regression(),
-    # ),
-    # LOCOCV(
-    #     estimators=RidgeCV(),
-    #     cv=KFold(n_splits=2),
-    # ),
-    # LOCOCV(
-    #     estimators=fitted_ridged_cv(),
-    #     cv=KFold(n_splits=2),
-    # ),
+    PFI(
+        estimator=fitted_linear_regression(),
+    ),
+    PFI(
+        estimator=LinearRegression(),
+    ),
+    PFICV(
+        estimators=RidgeCV(),
+        cv=KFold(n_splits=2),
+    ),
+    PFICV(
+        estimators=fitted_ridged_cv(),
+        cv=KFold(n_splits=2),
+    ),
+    PFICV(
+        estimators=list_fitted_ridge_cv(),
+        cv=KFold(n_splits=2, shuffle=True, random_state=0),
+    ),
+    LOCO(
+        estimator=LinearRegression(),
+    ),
+    LOCO(
+        estimator=fitted_linear_regression(),
+    ),
+    LOCOCV(
+        estimators=RidgeCV(),
+        cv=KFold(n_splits=2),
+    ),
+    LOCOCV(
+        estimators=fitted_ridged_cv(),
+        cv=KFold(n_splits=2),
+    ),
     D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None),
 ]
 
