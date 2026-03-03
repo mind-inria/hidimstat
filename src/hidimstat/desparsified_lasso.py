@@ -35,11 +35,13 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Parameters
     ----------
-    estimator : LassoCV or MultiTaskLassoCV instance, default=LassoCV()
+    estimator : LassoCV or MultiTaskLassoCV instance, default=None
         Initial model for selecting relevant features. Must implement fit and predict.
         For single task use LassoCV, for multi-task use MultiTaskLassoCV.
-    model_x : Lasso or MultiTaskLasso instance, default=Lasso()
+        Set to LassoCV() if None is passed.
+    model_x : Lasso or MultiTaskLasso instance, default=None
         Base model for nodewise regressions.
+        Set to Lasso() if None is passed.
     centered : bool, default=True
         Whether to center X and y before fitting.
     dof_ajdustement : bool, default=False
@@ -102,13 +104,11 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(
-            max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
-        ),
+        estimator=None,
         centered=True,
         dof_ajdustement=False,
         # parameters for model_x
-        model_x=Lasso(),
+        model_x=None,
         preconfigure_model_x_path=True,
         alpha_max_fraction=0.01,
         random_state=None,
@@ -130,23 +130,10 @@ class DesparsifiedLasso(BaseVariableImportance):
         verbose=0,
     ):
         super().__init__()
-        if issubclass(LassoCV, estimator.__class__):
-            self.n_task_ = 1
-        elif issubclass(MultiTaskLassoCV, estimator.__class__):
-            self.n_task_ = -1
-        else:
-            raise AssertionError(
-                "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
-            )
         self.estimator = estimator
         self.centered = centered
         self.dof_ajdustement = dof_ajdustement
         # model x
-        assert (
-            issubclass(Lasso, model_x.__class__)
-            or issubclass(MultiTaskLasso, model_x.__class__)
-            or issubclass(LassoCV, model_x.__class__)
-        ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
         self.model_x = model_x
         self.preconfigure_model_x_path = preconfigure_model_x_path
         self.alpha_max_fraction = alpha_max_fraction
@@ -162,20 +149,11 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.distribution = distribution
         self.epsilon_pvalue = epsilon_pvalue
         self.covariance = covariance
-        assert test in {"chi2", "F"}, f"Unknown test '{test}'"
         self.test = test
         # parameters for optimization
         self.n_jobs = n_jobs
         self.memory = memory
         self.verbose = verbose
-
-        self.n_samples_ = None
-        self.clf_ = None
-        self.sigma_hat_ = None
-        self.precision_diagonal_ = None
-        self.confidence_bound_min_ = None
-        self.confidence_bound_max_ = None
-        self.pvalues_corr_ = None
 
     def fit(self, X, y):
         """
@@ -210,9 +188,34 @@ class DesparsifiedLasso(BaseVariableImportance):
         4. Computes nodewise Lasso regressions in parallel
         5. Calculates debiased coefficients and precision matrix
         """
-        memory = check_memory(self.memory)
+        estimator = self.estimator
+        if self.estimator is None:
+            estimator = LassoCV(
+                max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+            )
+        if issubclass(LassoCV, estimator.__class__):
+            self.n_task_ = 1
+        elif issubclass(MultiTaskLassoCV, estimator.__class__):
+            self.n_task_ = -1
+        else:
+            raise AssertionError(
+                "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
+            )
+
+        model_x = self.model_x
+        if self.model_x is None:
+            model_x = Lasso()
+        assert (
+            issubclass(Lasso, model_x.__class__)
+            or issubclass(MultiTaskLasso, model_x.__class__)
+            or issubclass(LassoCV, model_x.__class__)
+        ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
+
+        assert self.test in {"chi2", "F"}, f"Unknown test '{self.test}'"
+
+        check_memory(self.memory)
         rng = check_random_state(self.random_state)
-        self.estimator = seed_estimator(self.estimator, rng)
+        estimator = seed_estimator(estimator, rng)
 
         if self.n_task_ == -1:
             self.n_task_ = y.shape[1]
@@ -224,29 +227,13 @@ class DesparsifiedLasso(BaseVariableImportance):
         else:
             X_ = X
             y_ = y
-        self.n_samples_, n_features = X_.shape
-        try:
-            check_is_fitted(self.estimator)
-        except NotFittedError:
-            # check if max_iter is large enough
-            if hasattr(self.estimator.cv, "n_splits") and (
-                self.estimator.max_iter // self.estimator.cv.n_splits
-                <= n_features
-            ):
-                self.estimator.set_params(
-                    max_iter=n_features * self.estimator.cv.n_splits
-                )
-                warnings.warn(
-                    f"'max_iter' has been increased to {self.estimator.max_iter}",
-                    stacklevel=2,
-                )
-            # use the cross-validation for define the best alpha of Lasso
-            self.estimator.set_params(n_jobs=self.n_jobs)
-            self.estimator.fit(X_, y_)
+
+        estimator = self._initial_fit(estimator, X_, y_)
+
         # Lasso regression and noise standard deviation estimation
         self.sigma_hat_ = reid(
-            self.estimator.coef_,  # estimated support of the variable importance
-            self.estimator.predict(X_) - y_,  # compute the residual,
+            estimator.coef_,  # estimated support of the variable importance
+            estimator.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
             # for group
             multioutput=self.n_task_ > 1,
@@ -255,7 +242,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             stationary=self.stationary,
         )
 
-        list_model_x = [clone(self.model_x) for _ in range(n_features)]
+        list_model_x = [clone(model_x) for _ in range(self.n_features_in_)]
         # define the alphas for the Nodewise Lasso
         if self.preconfigure_model_x_path is None:
             list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
@@ -278,7 +265,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 gram=gram,  # gram matrix is passed to the job to avoid memory issue
                 return_clf=self.save_model_x,
             )
-            for i, rng_spwan in enumerate(rng.spawn(n_features))
+            for i, rng_spwan in enumerate(rng.spawn(self.n_features_in_))
         )
         # Unpacking the results
         results = np.asarray(results, dtype=object)
@@ -288,10 +275,8 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         # Computing the degrees of freedom adjustment
         if self.dof_ajdustement:
-            coefficient_max = np.max(np.abs(self.estimator.coef_))
-            support = np.sum(
-                np.abs(self.estimator.coef_) > 0.01 * coefficient_max
-            )
+            coefficient_max = np.max(np.abs(estimator.coef_))
+            support = np.sum(np.abs(estimator.coef_) > 0.01 * coefficient_max)
             support = min(support, self.n_samples_ - 1)
             dof_factor = self.n_samples_ / (self.n_samples_ - support)
         else:
@@ -306,36 +291,52 @@ class DesparsifiedLasso(BaseVariableImportance):
         p_nodiagonal = p - np.diag(np.diag(p))
         p_nodiagonal = dof_factor * p_nodiagonal + (
             dof_factor - 1
-        ) * np.identity(n_features)
-        self.importances_ = beta_bias.T - p_nodiagonal.dot(
-            self.estimator.coef_.T
-        )
+        ) * np.identity(self.n_features_in_)
+        self.importances_ = beta_bias.T - p_nodiagonal.dot(estimator.coef_.T)
         # confidence intervals
         self.precision_diagonal_ = precision_diagonal * dof_factor**2
 
+        self.estimator_ = estimator
+        self.model_x_ = model_x
+
         return self
 
-    def _check_fit(self):
-        """
-        Check if the model has been fit properly.
+    def __sklearn_is_fitted__(self):
+        return (
+            hasattr(self, "clf_")
+            and hasattr(self, "importances_")
+            and hasattr(self, "precision_diagonal_")
+            and hasattr(self, "sigma_hat_")
+        )
 
-        This method verifies that the model has been fitted by checking
-        essential attributes (sigma_hat_ and lasso_cv).
+    def _initial_fit(self, estimator, X_, y_):
+        """Run initial fit of a sklearn estimator.
 
-        Raises
-        ------
-        ValueError
-            If model hasn't been fit or required attributes are missing.
+        Use during fit if an unfitted estimator was passed at instantiation.
         """
-        if (
-            self.clf_ is None
-            or self.importances_ is None
-            or self.precision_diagonal_ is None
-            or self.sigma_hat_ is None
-        ):
-            raise ValueError(
-                "The Desparsified Lasso requires to be fit before any analysis"
-            )
+        self.n_samples_, n_features = X_.shape
+
+        try:
+            check_is_fitted(estimator)
+        except NotFittedError:
+            # check if max_iter is large enough
+            if hasattr(estimator.cv, "n_splits") and (
+                estimator.max_iter // estimator.cv.n_splits <= n_features
+            ):
+                estimator.set_params(
+                    max_iter=n_features * estimator.cv.n_splits
+                )
+                warnings.warn(
+                    f"'max_iter' has been increased to {estimator.max_iter}",
+                    stacklevel=2,
+                )
+            # use the cross-validation for define the best alpha of Lasso
+            estimator.set_params(n_jobs=self.n_jobs)
+            estimator.fit(X_, y_)
+
+        self.n_features_in_ = estimator.n_features_in_
+
+        return estimator
 
     def importance(self, X=None, y=None):
         """
@@ -375,7 +376,9 @@ class DesparsifiedLasso(BaseVariableImportance):
             warnings.warn("X won't be used.", stacklevel=2)
         if y is not None:
             warnings.warn("y won't be used.", stacklevel=2)
-        self._check_fit()
+
+        check_is_fitted(self)
+
         beta_hat = self.importances_
 
         if self.n_task_ == 1:
