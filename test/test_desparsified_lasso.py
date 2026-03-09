@@ -249,7 +249,9 @@ def test_desparsified_group_lasso():
         with pytest.raises(ValueError):
             desparsified_lasso.importance()
 
-        with pytest.raises(AssertionError, match="Unknown test 'r2'"):
+        with pytest.raises(
+            ValueError, match="'test' should be on of: 'chi2', 'F'"
+        ):
             DesparsifiedLasso(
                 estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
             ).fit(X, y)
@@ -299,13 +301,15 @@ def test_exception():
 
     desparsified_lasso = DesparsifiedLasso(estimator=RandomForestClassifier())
     with pytest.raises(
-        AssertionError,
+        ValueError,
         match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
     ):
         desparsified_lasso.fit(X, y)
 
     desparsified_lasso = DesparsifiedLasso(test="r2")
-    with pytest.raises(AssertionError, match="Unknown test 'r2'"):
+    with pytest.raises(
+        ValueError, match="'test' should be on of: 'chi2', 'F'"
+    ):
         desparsified_lasso.fit(X, y)
 
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv)

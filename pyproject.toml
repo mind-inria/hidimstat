@@ -84,8 +84,6 @@ test = [
     "seaborn        >= 0.12,     < 1",
 ]
 
-dev = ["hidimstat[example,test,doc,style]"]
-
 
 [project.urls]
 Repository = "https://github.com/mind-inria/hidimstat"

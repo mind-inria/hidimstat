@@ -198,7 +198,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         elif issubclass(MultiTaskLassoCV, estimator.__class__):
             self.n_task_ = -1
         else:
-            raise AssertionError(
+            raise ValueError(
                 "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
             )
 
@@ -211,7 +211,10 @@ class DesparsifiedLasso(BaseVariableImportance):
             or issubclass(LassoCV, model_x.__class__)
         ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
 
-        assert self.test in {"chi2", "F"}, f"Unknown test '{self.test}'"
+        if self.test not in {"chi2", "F"}:
+            raise ValueError(
+                f"'test' should be on of: 'chi2', 'F'. Got: '{self.test}'"
+            )
 
         check_memory(self.memory)
         rng = check_random_state(self.random_state)
