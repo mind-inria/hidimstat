@@ -389,7 +389,10 @@ class BaseVariableImportance(BaseEstimator):
             threshold_pvalue = fwer / n_tests
             selected = (self.pvalues_ < threshold_pvalue).astype(int)
             if two_tailed_test:
-                sign_beta = np.sign(self.importances_)
+                if self.importances_.ndim > 1:
+                    sign_beta = np.sign(self.importances_.sum(axis=1))
+                else:
+                    sign_beta = np.sign(self.importances_)
                 selected = selected * sign_beta
             return selected
 
