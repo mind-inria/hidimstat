@@ -26,7 +26,8 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
 
 
-def fitted_ridged_cv():
+def fitted_ridged_cv() -> RidgeCV:
+    """Return a fitted RidgeCV model."""
     X, y, _, _ = multivariate_simulation(
         n_samples=500,
         n_features=50,
@@ -34,7 +35,8 @@ def fitted_ridged_cv():
     return RidgeCV(alphas=np.logspace(-3, 3, 13)).fit(X, y)
 
 
-def list_fitted_ridge_cv():
+def list_fitted_ridge_cv() -> list[RidgeCV]:
+    """Return a fitted RidgeCV model."""
     X, y, _, _ = multivariate_simulation(
         n_samples=500,
         n_features=50,
