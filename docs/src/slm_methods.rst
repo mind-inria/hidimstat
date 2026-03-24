@@ -386,5 +386,3 @@ Examples
 References
 ----------
 .. footbibliography::
-
-
