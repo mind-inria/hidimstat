@@ -130,11 +130,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
 
-    def _check_fit(self):
-        """Check if the instance has been fitted."""
-        check_is_fitted(self)
-        GroupVariableImportanceMixin._check_fit(self)
-
     def _check_compatibility(self, X):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
@@ -208,7 +203,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
         """
-        self._check_fit()
+        check_is_fitted(self)
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
