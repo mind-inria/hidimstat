@@ -2,10 +2,16 @@ import inspect
 import os
 import shutil
 import sys
+import warnings
 
 import matplotlib
 
 from hidimstat import __version__
+
+# TODO: Remove this filter when the minimum sklearn version is bumped to >= 1.7.
+warnings.filterwarnings(
+    "ignore", category=FutureWarning, module=r"sklearn\..*"
+)
 
 
 def linkcode_resolve(domain, info):
