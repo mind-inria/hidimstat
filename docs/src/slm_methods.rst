@@ -365,7 +365,7 @@ automatically::
     >>> rng = np.random.default_rng(0)
     >>> X = rng.standard_normal((200, 20))
     >>> beta = np.zeros(20)
-    >>> beta[:5] = 1.0
+    >>> beta[:2] = 10.0
     >>> y = rng.binomial(1, 1 / (1 + np.exp(-X @ beta)))
 
     >>> dcrt = D0CRT(
