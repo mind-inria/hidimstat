@@ -34,6 +34,14 @@ recovery from spatio-temporal data.
 import mne
 import numpy as np
 from mne.datasets import somato
+from mne.datasets.utils import MNE_DATASETS
+
+# MNE <= 1.11.0 ships a somato dataset archive (version=7) that is no longer supported.
+# TODO: remove once mne >= 1.12 is used.
+# Fix presented in https://github.com/mne-tools/mne-python/pull/13630
+if MNE_DATASETS["somato"]["url"].endswith("version=7"):
+    MNE_DATASETS["somato"]["hash"] = "md5:9a191907b326b9402341ee7a0d1240d8"
+    MNE_DATASETS["somato"]["url"] = "https://osf.io/download/tp4sg?version=8"
 
 cond = "somato"
 data_path = somato.data_path(verbose=True)
