@@ -14,9 +14,7 @@ def _reset_warning_filters(_gallery_conf, _fname):
 
     TODO: remove when minimum sklearn is bumped to >= 1.7.
     """
-    warnings.filterwarnings(
-        "ignore", category=FutureWarning, module=r"sklearn\..*"
-    )
+    warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 # Passing a function to reset the warning makes the config unpickable
