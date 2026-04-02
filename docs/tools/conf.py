@@ -19,6 +19,10 @@ def _reset_warning_filters(_gallery_conf, _fname):
     )
 
 
+# Passing a function to reset the warning makes the config unpickable
+suppress_warnings = ["config.cache"]
+
+
 def linkcode_resolve(domain, info):
     """Determine the URL corresponding lines of code in the GitHub repository."""
     if domain != "py":
