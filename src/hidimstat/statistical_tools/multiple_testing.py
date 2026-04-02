@@ -19,7 +19,6 @@ def fdp_power(selected, ground_truth):
     power : float
         Statistical power (number of true discoveries / number of non-null variables)
     """
-
     # Make sure arrays are binary
     selected_binary = selected != 0
     ground_truth_binary = ground_truth != 0
@@ -69,7 +68,7 @@ def fdr_threshold(pvals, fdr=0.1, method="bhq", reshaping_function=None):
     elif method == "ebh":
         threshold = _ebh_threshold(pvals, fdr=fdr)
     else:
-        raise ValueError("{} is not support FDR control method".format(method))
+        raise ValueError(f"{method} is not support FDR control method")
     return threshold
 
 
@@ -142,10 +141,7 @@ def _ebh_threshold(evals, fdr=0.1):
     for k, e_k in enumerate(evals_sorted, start=1):
         if k * e_k >= n_features / fdr:
             k_star = k
-    if k_star <= n_features:
-        threshold = evals_sorted[k_star - 1]
-    else:
-        threshold = np.inf
+    threshold = evals_sorted[k_star - 1] if k_star <= n_features else np.inf
     return threshold
 
 

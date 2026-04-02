@@ -1,13 +1,49 @@
+import inspect
 import os
 import shutil
 import sys
 
-sys.path.insert(0, os.path.abspath("."))
-
 import matplotlib
-from utils import linkcode_resolve
 
 from hidimstat import __version__
+
+
+def linkcode_resolve(domain, info):
+    """Determine the URL corresponding lines of code in the GitHub repository."""
+    if domain != "py":
+        return None
+    if not info["module"]:
+        return None
+
+    try:
+        module_name = info["module"]
+        fullname = info["fullname"]
+        submod = sys.modules.get(module_name)
+        if submod is None:
+            return None
+
+        obj = submod
+        for part in fullname.split("."):
+            try:
+                obj = getattr(obj, part)
+            except AttributeError:
+                return None
+
+        fn = inspect.getsourcefile(obj)
+        source, lineno = inspect.getsourcelines(obj)
+        fn = os.path.relpath(fn, start=os.path.dirname(__file__))
+
+        # Adjust if project inside src folder
+        if fn.startswith("../../src"):
+            fn = fn[len("../../src/") :]
+
+        return f"https://github.com/mind-inria/hidimstat/blob/main/src/{fn}#L{lineno}-L{lineno + len(source) - 1}"
+    except Exception:
+        return None
+
+
+sys.path.insert(0, os.path.abspath("."))
+
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -158,7 +194,7 @@ sphinx_gallery_conf = {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
         # We don't specify the other modules as we use the intershpinx ext.
-        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation  # noqa
+        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
 }
 
@@ -171,7 +207,7 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
 }
 
@@ -182,4 +218,10 @@ linkcheck_ignore = [
     r"./generated/gallery/examples/.*",
     r"../generated/gallery/examples/.*",
     r"https://github.com/*",
+]
+
+nitpick_ignore = [
+    # Found here
+    # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+    ("py:class", "type"),
 ]

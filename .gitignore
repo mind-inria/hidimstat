@@ -11,7 +11,7 @@ __pycache__
 *.egg-info
 .coverage*
 
-# documentation 
+# documentation
 docs/_build/
 docs/src/generated/
 docs/src/sg_execution_times.rst
@@ -27,4 +27,3 @@ src/hidimstat/_version.py
 
 .DS_Store
 coverage.xml
-

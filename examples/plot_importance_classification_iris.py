@@ -52,7 +52,7 @@ spurious_feat = X[:, 2] + X[:, 3]
 spurious_feat += rng.normal(size=X.shape[0], scale=np.std(spurious_feat) / 2)
 X = np.hstack([X, spurious_feat.reshape(-1, 1)])
 
-dataset.feature_names = dataset.feature_names + ["spurious_feat"]
+dataset.feature_names = [*dataset.feature_names, "spurious_feat"]
 
 
 # %%
@@ -88,7 +88,8 @@ def run_one_fold(
         vim = CFI(
             estimator=model_c,
             imputation_model_continuous=RidgeCV(
-                alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
+                alphas=np.logspace(-3, 3, 10),
+                cv=KFold(shuffle=True, random_state=1),
             ),
             n_permutations=50,
             random_state=2,
@@ -201,7 +202,7 @@ df_pval = compute_pval(df, threshold=threshold)
 # ----------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
-    for method, ax in zip(["CFI", "PFI"], axes):
+    for method, ax in zip(["CFI", "PFI"], axes, strict=False):
         df_method = df_importance[df_importance["vim"] == method]
         legend = ax == axes[0]
         sns.stripplot(
@@ -253,7 +254,7 @@ def plot_results(df_importance, df_pval):
     )
     fig.legend(
         handles=handles,
-        labels=labels + [f"pval < {threshold}"],
+        labels=[*labels, f"pval < {threshold}"],
         loc="center",
         bbox_to_anchor=(0.6, 0.82),
         ncol=3,

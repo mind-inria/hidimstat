@@ -24,7 +24,9 @@ data = load_breast_cancer()
 X = data.data
 y = data.target
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=0
+)
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -79,13 +81,13 @@ repeats_noise = 5  # Number of synthetic noisy sets to add
 
 noises_train = [X_train]
 noises_test = [X_test]
-feature_names_noise = [x for x in feature_names]
+feature_names_noise = list(feature_names)
 for k in range(repeats_noise):
     X_train_c = X_train.copy()
     X_test_c = X_test.copy()
     noises_train.append(X_train_c + 2 * rng.standard_normal((n_train, p)))
     noises_test.append(X_test_c + 2 * rng.standard_normal((n_test, p)))
-    feature_names_noise += [f"spurious #{k*p+i}" for i in range(p)]
+    feature_names_noise += [f"spurious #{k * p + i}" for i in range(p)]
 
 noisy_train = np.concatenate(noises_train, axis=1)
 noisy_test = np.concatenate(noises_test, axis=1)
@@ -108,14 +110,13 @@ lasso_noisy = LogisticRegressionCV(
 lasso_noisy.fit(noisy_train, y_train)
 y_pred_noisy = lasso_noisy.predict(noisy_test)
 print(
-    (
-        "Accuracy of Lasso on test set with noise: "
-        f"{lasso_noisy.score(noisy_test, y_test):.3f}"
-    )
+    "Accuracy of Lasso on test set with noise: "
+    f"{lasso_noisy.score(noisy_test, y_test):.3f}"
 )
 
 selected_mask = [
-    "selected" if np.abs(x) > 1e-6 else "not selected" for x in lasso_noisy.coef_[0]
+    "selected" if np.abs(x) > 1e-6 else "not selected"
+    for x in lasso_noisy.coef_[0]
 ]
 df_lasso_noisy = pd.DataFrame(
     {
@@ -212,7 +213,10 @@ sns.scatterplot(
     palette={"selected": "tab:red", "not selected": "tab:gray"},
 )
 ax.axvline(
-    x=model_x_knockoff.threshold_fdr_, color="k", linestyle="--", label="Threshold"
+    x=model_x_knockoff.threshold_fdr_,
+    color="k",
+    linestyle="--",
+    label="Threshold",
 )
 ax.legend()
 ax.set_xlabel("KO statistic (LCD)")

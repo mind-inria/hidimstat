@@ -11,6 +11,8 @@ from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import KFold
+from sklearn.utils._testing import ignore_warnings
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
@@ -20,7 +22,54 @@ from hidimstat.desparsified_lasso import (
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
+from .conftest import SKLEARN_LT_1_6, check_estimator
 
+ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
+
+
+def expected_failed_checks(estimator):
+    if isinstance(estimator, DesparsifiedLasso):
+        return {"check_fit2d_1feature": "TODO"}
+
+
+if SKLEARN_LT_1_6:
+
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+    @pytest.mark.xfail(reason="invalid checks should fail")
+    @pytest.mark.parametrize(
+        "estimator, check, name",
+        check_estimator(
+            estimators=ESTIMATORS_TO_CHECK,
+            valid=False,
+            return_expected_failed_checks=expected_failed_checks,
+        ),
+    )
+    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
+        """Check compliance with sklearn estimators."""
+        check(estimator)
+
+else:
+
+    @ignore_warnings(category=UserWarning)
+    @parametrize_with_checks(
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
+    def test_check_estimator_sklearn(estimator, check):
+        check(estimator)
+
+
+@ignore_warnings(category=UserWarning)
 def test_desparsified_lasso():
     """
     Test desparsified lasso on a simple simulation with no structure and
@@ -32,7 +81,6 @@ def test_desparsified_lasso():
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-
     n_samples, n_features = 500, 50
     support_size = 5
     signal_noise_ratio = 32
@@ -47,7 +95,7 @@ def test_desparsified_lasso():
     fdp_dof_list = []
     powr_dof_list = []
     for seed in range(10):
-        X, y, beta, noise = multivariate_simulation(
+        X, y, beta, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
             support_size=support_size,
@@ -71,7 +119,9 @@ def test_desparsified_lasso():
         # Check p-values for important and non-important features
         important = beta != 0
         # Run two sided test for coverage
-        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fdr_selection(
+            fdr=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fdp_list.append(fdp)
         powr_list.append(power)
@@ -88,7 +138,9 @@ def test_desparsified_lasso():
         )
 
         # Check p-values for important and non-important features
-        selected = desparsified_lasso.fdr_selection(fdr=alpha, two_tailed_test=True)
+        selected = desparsified_lasso.fdr_selection(
+            fdr=alpha, two_tailed_test=True
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         assert correct_interval >= int(0.7 * n_features)
         fdp_dof_list.append(fdp)
@@ -100,13 +152,13 @@ def test_desparsified_lasso():
     assert np.mean(powr_dof_list) >= 0.8 - test_tol
 
 
+@ignore_warnings(category=UserWarning)
 def test_desparsified_group_lasso():
     """
     Testing the procedure on a simulation with no structure and a support of size 2.
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-
     n_samples = 500
     n_features = 50
     n_target = 10
@@ -122,7 +174,9 @@ def test_desparsified_group_lasso():
     fd_ftest_list = []
     power_ftest_list = []
     for seed in range(10):
-        corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+        corr = toeplitz(
+            np.geomspace(1, rho_serial ** (n_target - 1), n_target)
+        )
         multi_task_lasso_cv = MultiTaskLassoCV(
             eps=1e-2,
             fit_intercept=False,
@@ -157,7 +211,9 @@ def test_desparsified_group_lasso():
         important = beta[:, 0] != 0
 
         assert_almost_equal(importances, beta, decimal=1)
-        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fwer_selection(
+            fwer=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_list.append(fdp > 0)
         power_list.append(power)
@@ -172,7 +228,9 @@ def test_desparsified_group_lasso():
         importances = desparsified_lasso.importance()
 
         assert_almost_equal(importances, beta, decimal=1)
-        selected = desparsified_lasso.fwer_selection(fwer=alpha, two_tailed_test=False)
+        selected = desparsified_lasso.fwer_selection(
+            fwer=alpha, two_tailed_test=False
+        )
         fdp, power = fdp_power(selected=selected, ground_truth=important)
         fd_ftest_list.append(fdp > 0)
         power_ftest_list.append(power)
@@ -191,7 +249,9 @@ def test_desparsified_group_lasso():
         with pytest.raises(ValueError):
             desparsified_lasso.importance()
 
-        with pytest.raises(AssertionError, match="Unknown test 'r2'"):
+        with pytest.raises(
+            ValueError, match="'test' should be on of: 'chi2', 'F'"
+        ):
             DesparsifiedLasso(
                 estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
             ).fit(X, y)
@@ -202,6 +262,7 @@ def test_desparsified_group_lasso():
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
+@ignore_warnings(category=UserWarning)
 def test_exception():
     """Test exception of Desparsified Lasso"""
     n_samples = 50
@@ -210,7 +271,7 @@ def test_exception():
     support_size = 2
     signal_noise_ratio = 50
     rho_serial = 0.9
-    corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
+
     multi_task_lasso_cv = MultiTaskLassoCV(
         eps=1e-2,
         fit_intercept=False,
@@ -221,7 +282,7 @@ def test_exception():
         n_jobs=1,
     )
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -231,36 +292,50 @@ def test_exception():
         seed=10,
     )
 
+    desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
     with pytest.raises(
         AssertionError,
         match="model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso",
     ):
-        DesparsifiedLasso(model_x=RandomForestClassifier())
+        desparsified_lasso.fit(X, y)
+
+    desparsified_lasso = DesparsifiedLasso(estimator=RandomForestClassifier())
     with pytest.raises(
-        AssertionError, match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
+        ValueError,
+        match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
     ):
-        DesparsifiedLasso(estimator=RandomForestClassifier())
-    with pytest.raises(AssertionError, match="Unknown test 'r2'"):
-        DesparsifiedLasso(test="r2")
+        desparsified_lasso.fit(X, y)
+
+    desparsified_lasso = DesparsifiedLasso(test="r2")
+    with pytest.raises(
+        ValueError, match="'test' should be on of: 'chi2', 'F'"
+    ):
+        desparsified_lasso.fit(X, y)
+
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv)
     with pytest.raises(
         ValueError,
-        match="The Desparsified Lasso requires to be fit before any analysis",
+        match="This DesparsifiedLasso instance is not fitted yet",
     ):
         desparsified_lasso.importance()
 
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
+        X, y
+    )
+    desparsified_lasso.test = "r2"
     with pytest.raises(ValueError, match="Unknown test 'r2'"):
-        desparsified_lasso.test = "r2"
         desparsified_lasso.importance()
 
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(X, y)
+    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
+        X, y
+    )
     with pytest.warns(Warning, match="X won't be used."):
         desparsified_lasso.importance(X=X)
     with pytest.warns(Warning, match="y won't be used."):
         desparsified_lasso.importance(y=y)
 
 
+@ignore_warnings(category=UserWarning)
 def test_function_not_center():
     """Test function when the data don't need to be centered"""
     n_samples, n_features = 52, 50
@@ -268,7 +343,7 @@ def test_function_not_center():
     signal_noise_ratio = 50
     rho = 0.0
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -277,16 +352,14 @@ def test_function_not_center():
         shuffle=False,
         seed=10,
     )
-    selection, importances, pvalues = desparsified_lasso_importance(
-        X, y, centered=False
-    )
+    desparsified_lasso_importance(X, y, centered=False)
 
 
 def test_reid():
     """Estimating noise standard deviation in two scenarios.
     First scenario: no structure and a support of size 2.
-    Second scenario: no structure and an empty support."""
-
+    Second scenario: no structure and an empty support.
+    """
     n_samples, n_features = 100, 20
     signal_noise_ratio = 2.0
 
@@ -294,7 +367,7 @@ def test_reid():
     # ##########
     support_size = 2
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -315,7 +388,7 @@ def test_reid():
     # ###########
     support_size = 0
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         support_size=support_size,
@@ -334,19 +407,18 @@ def test_reid():
 def test_group_reid():
     """Estimating (temporal) noise covariance matrix in two scenarios.
     First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support."""
-
+    Second scenario: no data structure and an empty support.
+    """
     n_samples = 100
     n_features = 20
     n_target = 50
     signal_noise_ratio = 3.0
     rho_serial = 0.9
-    random_state = np.random.default_rng(1)
 
     # First expe
     # ##########
     support_size = 2
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -394,8 +466,8 @@ def test_group_reid():
 def test_group_reid_2():
     """Estimating (temporal) noise covariance matrix in two scenarios.
     First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support."""
-
+    Second scenario: no data structure and an empty support.
+    """
     n_samples = 100
     n_features = 20
     n_target = 50
@@ -405,7 +477,7 @@ def test_group_reid_2():
     # Second expe
     # ###########
     support_size = 0
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -415,7 +487,9 @@ def test_group_reid_2():
         rho_serial=rho_serial,
         seed=4,
     )
-    corr = toeplitz(rho_serial ** np.arange(0, n_target))  # covariance matrix of time
+    corr = toeplitz(
+        rho_serial ** np.arange(0, n_target)
+    )  # covariance matrix of time
     cov = 1.0 * corr
 
     lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
@@ -429,13 +503,15 @@ def test_group_reid_2():
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, stationary=False)
+    cov_hat = reid(
+        lasso_cv.coef_, residual, multioutput=True, stationary=False
+    )
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) > 0.3
 
 
 def test_reid_exception():
-    "Test for testing the exceptions on the arguments of reid function"
+    """Test for testing the exceptions on the arguments of reid function"""
     n_samples, n_features = 100, 20
     n_target = 50
     signal_noise_ratio = 1.0
@@ -445,7 +521,7 @@ def test_reid_exception():
     # ##########
     support_size = 2
 
-    X, y, beta, noise = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
         n_targets=n_target,
@@ -458,10 +534,13 @@ def test_reid_exception():
     ):
         _, _ = reid(X, y, method="test", multioutput=True)
     with pytest.raises(
-        ValueError, match="The AR method is not compatible with the non-stationary"
+        ValueError,
+        match="The AR method is not compatible with the non-stationary",
     ):
         _, _ = reid(X, y, method="AR", stationary=False, multioutput=True)
-    with pytest.raises(ValueError, match="The requested AR order is to high with"):
+    with pytest.raises(
+        ValueError, match="The requested AR order is to high with"
+    ):
         _, _ = reid(X, y, method="AR", order=1e4, multioutput=True)
 
 
@@ -472,7 +551,7 @@ def dl_y1d_test_data():
     as the estimator with shuffling in the cross-validation to introduce randomness in
     the training process.
     """
-    X, y, beta, _ = multivariate_simulation(
+    X, y, _, _ = multivariate_simulation(
         n_samples=100,
         n_features=20,
         # n_targets=1,
@@ -488,6 +567,7 @@ def dl_y1d_test_data():
     return X, y, dl
 
 
+@ignore_warnings(category=UserWarning)
 def test_dl_repeatibility(dl_y1d_test_data):
     """
     Test that multiple calls of .importance() when DL is seeded provide deterministic
@@ -503,6 +583,7 @@ def test_dl_repeatibility(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repeat)
 
 
+@ignore_warnings(category=UserWarning)
 def test_dl_randomness_with_none(dl_y1d_test_data):
     """
     Test that multiple calls of .importance() when DL has random_state=None
@@ -529,6 +610,7 @@ def test_dl_randomness_with_none(dl_y1d_test_data):
     assert not np.array_equal(importance, importance_repro)
 
 
+@ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     """
     Test that multiple calls of .importance() when DL has random_state=0
@@ -550,6 +632,7 @@ def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repro)
 
 
+@ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     """
     Test that:

@@ -1,7 +1,9 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import mean_squared_error
+from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -23,7 +25,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     Parameters
     ----------
     estimator : sklearn-compatible estimator
-        The fitted estimator used for predictions.
+        The estimator that will be used for predictions.
+        It will be automatically fitted if it has not already been.
     method : str, default="predict"
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
@@ -44,7 +47,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     Attributes
     ----------
-    features_groups : dict
+    estimator_ : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    features_groups_ : dict
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
         Importance scores for each feature group.
@@ -63,7 +68,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
@@ -73,20 +78,17 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
     ):
         super().__init__()
-        GroupVariableImportanceMixin.__init__(self, features_groups=features_groups)
-        check_is_fitted(estimator)
-        assert n_permutations > 0, "n_permutations must be positive"
+        GroupVariableImportanceMixin.__init__(
+            self, features_groups=features_groups
+        )
         self.estimator = estimator
         self.loss = loss
-        _check_vim_predict_method(method)
+
         self.method = method
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
-        # variable set in importance
-        self.loss_reference_ = None
-        self.loss_ = None
         # internal variables
         self._n_groups = None
         self._groups_ids = None
@@ -113,11 +115,24 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         --------
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
+        assert self.n_permutations > 0, "n_permutations must be positive"
+        _check_vim_predict_method(self.method)
+        check_array(X)
+
+        # variable set in importance
+        self.loss_reference_ = None
+        self.loss_ = None
+
+        self.estimator_ = self._initial_fit(self.estimator, X, y)
+
+        self.n_features_in_ = self.estimator_.n_features_in_
+
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
+        check_is_fitted(self)
         GroupVariableImportanceMixin._check_fit(self)
 
     def _check_compatibility(self, X):
@@ -197,15 +212,13 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
-        y_pred = getattr(self.estimator, self.method)(X)
+        y_pred = getattr(self.estimator_, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self._predict(X)
-        self.loss_ = dict()
+        self.loss_ = {}
         for j, y_pred_j in enumerate(y_pred):
-            list_loss = []
-            for y_pred_perm in y_pred_j:
-                list_loss.append(self.loss(y, y_pred_perm))
+            list_loss = [self.loss(y, y_pred_perm) for y_pred_perm in y_pred_j]
             self.loss_[j] = np.array(list_loss)
 
         test_result = np.array(
@@ -216,9 +229,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = statistical_test(test_result).pvalue
-        assert (
-            self.pvalues_.shape[0] == y_pred.shape[0]
-        ), "The statistical test doesn't provide the correct dimension."
+        assert self.pvalues_.shape[0] == y_pred.shape[0], (
+            "The statistical test doesn't provide the correct dimension."
+        )
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -251,9 +264,15 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         Checks if the loss has been computed.
         """
+        check_is_fitted(self)
         super()._check_importance()
-        if (self.loss_reference_ is None) or (self.loss_ is None):
-            raise ValueError("The importance method has not yet been called.")
+        if (
+            getattr(self, "loss_reference_", None) is None
+            or getattr(self, "loss_", None) is None
+        ):
+            raise ValueError(
+                "The importance method need to be called before calling this method."
+            )
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, random_state=None
@@ -272,17 +291,21 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The random state to use for sampling.
         """
         features_group_ids = self._features_groups_ids[features_group_id]
-        non_features_group_ids = np.delete(np.arange(X.shape[1]), features_group_ids)
+        non_features_group_ids = np.delete(
+            np.arange(X.shape[1]), features_group_ids
+        )
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        X_perm[:, :, non_features_group_ids] = np.delete(X, features_group_ids, axis=1)
+        X_perm[:, :, non_features_group_ids] = np.delete(
+            X, features_group_ids, axis=1
+        )
         X_perm[:, :, features_group_ids] = self._permutation(
             X, features_group_id=features_group_id, random_state=random_state
         )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
-        y_pred_perm = getattr(self.estimator, self.method)(X_perm_batch)
+        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
 
         # In case of classification, the output is a 2D array. Reshape accordingly
         if y_pred_perm.ndim == 1:
@@ -337,8 +360,8 @@ class BasePerturbationCV(BaseVariableImportance):
 
     def __init__(
         self,
-        estimators,
-        cv,
+        estimators=None,
+        cv=None,
         statistical_test="nb-ttest",
         n_jobs: int = 1,
     ):
@@ -347,34 +370,72 @@ class BasePerturbationCV(BaseVariableImportance):
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
 
-        self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
-        self.importances_ = None
-        self.pvalues_ = None
-        self.estimators_ = None
-        if isinstance(self.estimators, list):
-            if len(self.estimators) != self.cv.get_n_splits():
-                raise ValueError(
-                    "If estimators is a list, its length must be equal to the number "
-                    "of folds."
-                )
-            else:
-                for est in self.estimators:
-                    check_is_fitted(est)
-            self.estimators_ = self.estimators
-        self.importance_estimators_ = None
-
     def _fit_single_split(self, estimator, X_train, y_train):
         """
         Fit the estimator on the training data for a single split.
         """
         raise NotImplementedError
 
-    def fit(self, X, y):
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimators_")
+
+    def _initial_fit(self, estimators, cv, X, y):
+        """Initial fit of the sklearn estimators on each fold.
+        If the estimators are already fitted, they are used as is. Otherwise,
+        they are cloned and fitted on each fold.
+
+        Parameters
+        ----------
+        estimators: list of sklearn estimators or single sklearn estimator
+            Can be a list of fitted sklearn estimators (one per fold) or a
+            single sklearn estimator that will then be cloned and fitted on
+            each fold.
+        cv: cross-validation generator
+            A cross-validation generator object (e.g., KFold, StratifiedKFold).
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        y: array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        fitted_estimators: list of sklearn estimators
+            List of fitted estimators for each fold.
         """
-        Fit the importance estimators on each fold of the cross-validation.
-        """
-        if self.estimators_ is None:
-            self.estimators_ = Parallel(n_jobs=self.n_jobs)(
+        if estimators is None:
+            raise ValueError(
+                "'estimator' must be a valid sklearn compartible estimator or "
+                "a list of fitted sklearn estimators (one per fold)."
+            )
+        elif isinstance(estimators, list):
+            if len(estimators) != cv.get_n_splits():
+                raise ValueError(
+                    "If estimators is a list, its length must be equal to the number of folds."
+                )
+            else:
+                try:
+                    for est in estimators:
+                        check_is_fitted(est)
+                    fitted_estimators = estimators
+                except NotFittedError as e:
+                    print(
+                        "One of the provided estimators is not fitted. All "
+                        "estimators will be re-fitted."
+                    )
+                    fitted_estimators = Parallel(n_jobs=self.n_jobs)(
+                        delayed(
+                            lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr)
+                        )(
+                            estimators[fold_idx],
+                            X[train_idx],
+                            y[train_idx],
+                        )
+                        for fold_idx, (train_idx, _) in enumerate(
+                            self.cv.split(X, y)
+                        )
+                    )
+        else:
+            fitted_estimators = Parallel(n_jobs=self.n_jobs)(
                 delayed(lambda est, X_tr, y_tr: clone(est).fit(X_tr, y_tr))(
                     self.estimators, X[train_idx], y[train_idx]
                 )
@@ -384,14 +445,41 @@ class BasePerturbationCV(BaseVariableImportance):
                     desc="Fitting estimators for each fold",
                 )
             )
+        return fitted_estimators
+
+    def fit(self, X, y):
+        """
+        Fit the importance estimators on each fold of the cross-validation.
+        """
+        if self.estimators is None:
+            raise ValueError(
+                "'estimator' must be a valid sklearn compartible estimator."
+            )
+
+        if self.cv is None:
+            raise ValueError("'cv' must be valid cross-validation generator.")
+
+        check_X_y(X, y)
+
+        self.test_train_frac_ = 1 / (self.cv.get_n_splits() - 1)
+
+        self.importances_ = None
+        self.pvalues_ = None
+        self.importance_estimators_ = None
+
+        self.estimators_ = self._initial_fit(self.estimators, self.cv, X, y)
+
         self.importance_estimators_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._fit_single_split)(estimator, X[train_idx], y[train_idx])
+            delayed(self._fit_single_split)(
+                estimator, X[train_idx], y[train_idx]
+            )
             for (train_idx, _), estimator in tqdm(
-                zip(self.cv.split(X, y), self.estimators_),
+                zip(self.cv.split(X, y), self.estimators_, strict=False),
                 total=self.cv.get_n_splits(),
                 desc="Fitting importance estimators for each fold",
             )
         )
+        self.n_features_in_ = self.estimators_[0].n_features_in_
         return self
 
     def _importance_single_split(self, importance_estimator, X_test, y_test):
@@ -426,7 +514,11 @@ class BasePerturbationCV(BaseVariableImportance):
                 importance_estimator, X[test_idx], y[test_idx]
             )
             for (_, test_idx), importance_estimator in tqdm(
-                zip(self.cv.split(X, y), self.importance_estimators_),
+                zip(
+                    self.cv.split(X, y),
+                    self.importance_estimators_,
+                    strict=False,
+                ),
                 total=self.cv.get_n_splits(),
                 desc="Computing importance scores over folds",
             )

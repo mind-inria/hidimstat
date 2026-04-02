@@ -1,5 +1,9 @@
 import numpy as np
-from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_equal
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_equal,
+)
 
 from hidimstat.statistical_tools.aggregation import (
     _adaptive_quantile_aggregation,
@@ -18,13 +22,16 @@ def test_quantile_aggregation():
     p_values = np.tile(col, (nb_features, 1)).T / 100
 
     assert_array_almost_equal(
-        0.1 * quantile_aggregation(p_values, 0.1), [col[-1] / 100 * 0.1] * nb_features
+        0.1 * quantile_aggregation(p_values, 0.1),
+        [col[-1] / 100 * 0.1] * nb_features,
     )
     assert_array_almost_equal(
-        0.3 * quantile_aggregation(p_values, 0.3), [col[-1] / 100 * 0.3] * nb_features
+        0.3 * quantile_aggregation(p_values, 0.3),
+        [col[-1] / 100 * 0.3] * nb_features,
     )
     assert_array_almost_equal(
-        0.5 * quantile_aggregation(p_values, 0.5), [col[-1] / 100 * 0.5] * nb_features
+        0.5 * quantile_aggregation(p_values, 0.5),
+        [col[-1] / 100 * 0.5] * nb_features,
     )
 
     # with adaptation
@@ -49,8 +56,8 @@ def test_quantile_aggregation():
 
 def test_fixed_aggregate_quantiles():
     """Aggregated p-values is twice the median p-value. All p-values should
-    be close to 0.04 and decreasing with respect to feature position."""
-
+    be close to 0.04 and decreasing with respect to feature position.
+    """
     n_iter, n_features = 20, 5
     list_pval = 1.0 / (np.arange(n_iter * n_features) + 1)
     list_pval = list_pval.reshape((n_iter, n_features))
@@ -67,8 +74,8 @@ def test_fixed_aggregate_quantiles():
 
 def test_adaptive_quantiles():
     """Aggregated p-values from adaptive quantiles formula. All p-values should
-    be close to 0.04 and decreasing with respect to feature position."""
-
+    be close to 0.04 and decreasing with respect to feature position.
+    """
     n_iter, n_features = 20, 5
     list_pval = 1.0 / (np.arange(n_iter * n_features) + 1)
     list_pval = list_pval.reshape((n_iter, n_features))

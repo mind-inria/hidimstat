@@ -32,7 +32,7 @@ To also generate the example gallery you can use:
 
     make html
 
-This will run all the examples, which takes a while. You can also run only 
+This will run all the examples, which takes a while. You can also run only
 a few examples based on their file names.
 Here is a way to run all examples with filenames containing "dcrt":
 
@@ -49,10 +49,10 @@ Debugging the documentation
 ---------------------------
 
 1. Docstring of functions:
-    For any errors or warnings in the doctring, the best way to fix it 
+    For any errors or warnings in the doctring, the best way to fix it
     is to copy the doctring in a file and use the command `rst2html`.
     This command is provided by sphinx.
 2. Example error with sphinx gallery:
-    If there is an error which appears when the documentation is generated and not 
-    when the example is run alone, In this case, you should use the file 
+    If there is an error which appears when the documentation is generated and not
+    when the example is run alone, In this case, you should use the file
     `documentation/debbugger_script/run_debug_example.py`

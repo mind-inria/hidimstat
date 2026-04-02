@@ -43,7 +43,7 @@ redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
 X_spurious += rng.normal(0, scale=np.std(X_spurious) * 0.5, size=X.shape[0])
 X = np.hstack([X, X_spurious[:, np.newaxis]])
-feature_names = dataset.feature_names + ["Spurious"]
+feature_names = [*dataset.feature_names, "Spurious"]
 print(f"The dataset contains {X.shape[0]} samples and {X.shape[1]} features.")
 
 # Compute the correlation matrix
@@ -113,7 +113,9 @@ for train_index, test_index in kf.split(X):
     y_pred = model_c.predict(X_test)
     scores.append(r2_score(y_test, y_pred))
 
-print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
+print(
+    f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}"
+)
 
 # %%
 # Measure the importance of variables using the PFI method
@@ -155,7 +157,9 @@ pval_pfi = ttest_1samp(
 pval_threshold = 0.05
 # Create a horizontal boxplot of permutation importances
 fig, ax = plt.subplots()
-sns.barplot(permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5)
+sns.barplot(
+    permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5
+)
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
 for i, pval in enumerate(pval_pfi):

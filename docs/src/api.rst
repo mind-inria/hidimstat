@@ -24,7 +24,7 @@ Feature Importance Classes
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: class.rst
-   
+
    LOCO
    LOCOCV
    CFI
@@ -43,7 +43,7 @@ Feature Importance functions
 .. autosummary::
    :toctree: ./generated/api/class/
    :template: function.rst
-   
+
    cfi_importance
    d0crt_importance
    desparsified_lasso_importance

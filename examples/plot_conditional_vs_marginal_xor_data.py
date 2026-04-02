@@ -115,7 +115,7 @@ for i in range(X.shape[1]):
 # %%
 # Compute the conditional importance using the CFI class.
 importances = []
-for i, (train_index, test_index) in enumerate(cv.split(X)):
+for _, (train_index, test_index) in enumerate(cv.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = Y[train_index], Y[test_index]
 

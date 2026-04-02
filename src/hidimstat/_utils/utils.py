@@ -32,8 +32,8 @@ def _check_vim_predict_method(method):
         return method
     else:
         raise ValueError(
-            "The method {} is not a valid method "
-            "for variable importance measure prediction".format(method)
+            f"The method {method} is not a valid method "
+            "for variable importance measure prediction"
         )
 
 
@@ -56,7 +56,9 @@ def get_fitted_attributes(cls):
     all_attributes = dir(cls)
 
     # Filter out attributes that start with an underscore
-    filtered_attributes = [attr for attr in all_attributes if not attr.startswith("_")]
+    filtered_attributes = [
+        attr for attr in all_attributes if not attr.startswith("_")
+    ]
 
     # Filter out attributes that do not end with a single underscore
     result = [
@@ -107,7 +109,7 @@ def check_random_state(seed):
             "https://numpy.org/doc/stable/reference/random/generator.html for details."
         )
     raise ValueError(
-        "%r cannot be used to seed a numpy.random.Generator instance" % seed
+        f"{seed!r} cannot be used to seed a numpy.random.Generator instance"
     )
 
 
@@ -132,12 +134,12 @@ def seed_estimator(estimator, random_state=None):
     rng = check_random_state(random_state)
     # Set the random_state of the main estimator
     if hasattr(estimator, "random_state"):
-        setattr(estimator, "random_state", RandomState(rng.bit_generator))
+        estimator.random_state = RandomState(rng.bit_generator)
 
     if hasattr(estimator, "__dict__"):
-        for _, value in estimator.__dict__.items():
+        for value in estimator.__dict__.values():
             if hasattr(value, "random_state"):
-                setattr(value, "random_state", RandomState(rng.bit_generator))
+                value.random_state = RandomState(rng.bit_generator)
 
     return estimator
 
@@ -170,7 +172,9 @@ def check_statistical_test(statistical_test, test_frac=None):
     """
     if isinstance(statistical_test, str):
         if statistical_test == "ttest":
-            return partial(ttest_1samp, popmean=0, alternative="greater", axis=1)
+            return partial(
+                ttest_1samp, popmean=0, alternative="greater", axis=1
+            )
         elif statistical_test == "wilcoxon":
             return partial(wilcoxon, alternative="greater", axis=1)
         elif statistical_test == "nb-ttest":

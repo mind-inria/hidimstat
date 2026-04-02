@@ -56,7 +56,7 @@ for i in range(n_spurious):
     X_spurious_normalized = StandardScaler().fit_transform(X_spurious)
     X_spurious_list.append(X_spurious_normalized)
     feature_names.append(f"spurious_{i}")
-X = np.hstack([X] + X_spurious_list)
+X = np.hstack([X, *X_spurious_list])
 
 
 # %%
@@ -126,7 +126,7 @@ df_plot = pd.DataFrame(
         "confidence_max": dl.confidence_bound_max_,
     }
 )
-df_plot.sort_values(by="importance", key=np.abs, ascending=False, inplace=True)
+df_plot = df_plot.sort_values(by="importance", key=np.abs, ascending=False)
 
 
 # %%

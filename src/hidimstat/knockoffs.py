@@ -6,7 +6,7 @@ from sklearn.base import clone
 from sklearn.linear_model import LassoCV
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_memory
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_random_state, seed_estimator
@@ -59,7 +59,9 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
     - The generated alpha grid is deterministic given X, X_tilde and y.
     """
     if type(estimator).__name__ != "LassoCV":
-        raise TypeError("You should not use this function to configure the estimator")
+        raise TypeError(
+            "You should not use this function to configure the estimator"
+        )
 
     n_features = X.shape[1]
     X_ko = np.column_stack([X, X_tilde])
@@ -103,8 +105,6 @@ class ModelXKnockoff(BaseVariableImportance):
         Random seed forwarded to the knockoff generator sampling.
     joblib_verbose : int, default=0
         Verbosity level for parallel jobs.
-    memory : str, joblib.Memory or None, default=None
-        Caching backend for expensive operations.
     n_jobs : int, default=1
         Number of parallel jobs (automatically capped to n_repeats).
 
@@ -134,44 +134,27 @@ class ModelXKnockoff(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator=LassoCV(
-            max_iter=200000,
-            n_jobs=1,
-            verbose=0,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            random_state=1,
-            tol=1e-6,
-        ),
-        ko_generator=GaussianKnockoffs(),
+        estimator=None,
+        ko_generator=None,
         n_repeats=1,
         centered=True,
         preconfigure_lasso_path=True,
         random_state=None,
         joblib_verbose=0,
-        memory=None,
         n_jobs=1,
     ):
         super().__init__()
-        self.generator = ko_generator
-        assert n_repeats > 0, "n_samplings must be positive"
+        self.ko_generator = ko_generator
         self.n_repeats = n_repeats
         self.centered = centered
         # parameter for statistical test base on linear model
         self.estimator = estimator
         self.preconfigure_lasso_path = preconfigure_lasso_path
 
-        self.randoms_state = random_state
-        self.memory = check_memory(memory)
+        self.random_state = random_state
         self.joblib_verbose = joblib_verbose
         # unnecessary to have n_jobs > number of bootstraps
-        self.n_jobs = min(n_repeats, n_jobs)
-
-        self.importances_ = None
-        self.threshold_fdr_ = None
-        self.aggregated_eval_ = None
-        self.aggregated_pval_ = None
-        self.estimators_ = None
-        self.n_features_ = None
+        self.n_jobs = n_jobs
 
     def fit(self, X, y):
         """
@@ -190,20 +173,32 @@ class ModelXKnockoff(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
-        rng = check_random_state(self.randoms_state)
-        if self.centered:
-            X_ = StandardScaler().fit_transform(X)
-        else:
-            X_ = X
+        assert self.n_repeats > 0, "n_repeats must be positive"
+        n_jobs = min(self.n_jobs, self.n_repeats)
 
-        self.generator.fit(X_)
-        X_tildes = self.generator.sample(
-            n_repeats=self.n_repeats, random_state=self.randoms_state
+        rng = check_random_state(self.random_state)
+        X_ = StandardScaler().fit_transform(X) if self.centered else X
+
+        if self.ko_generator is None:
+            self.ko_generator_ = GaussianKnockoffs()
+        else:
+            self.ko_generator_ = clone(self.ko_generator)
+        self.ko_generator_ = self.ko_generator_.fit(X_)
+        self.n_features_in_ = self.ko_generator_.n_features_in_
+        X_tildes = self.ko_generator_.sample(
+            n_repeats=self.n_repeats, random_state=self.random_state
         )
 
-        self.estimators_ = Parallel(self.n_jobs, verbose=self.joblib_verbose)(
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=200000, cv=KFold(n_splits=5, shuffle=True), tol=1e-6
+            )
+        else:
+            self.estimator_ = clone(self.estimator)
+        self.estimator_ = seed_estimator(self.estimator_, self.random_state)
+        self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
-                self.estimator,
+                self.estimator_,
                 X_,
                 X_tildes[i],
                 y,
@@ -214,12 +209,6 @@ class ModelXKnockoff(BaseVariableImportance):
         )
         self.n_features_ = X.shape[1]
         return self
-
-    def _check_fit(self):
-        if self.estimators_ is None:
-            raise ValueError(
-                "The Model-X Knockoff requires to be fitted before computing importance"
-            )
 
     def importance(self, X=None, y=None):
         """
@@ -250,10 +239,10 @@ class ModelXKnockoff(BaseVariableImportance):
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         if X is not None:
-            warnings.warn("X won't be used")
+            warnings.warn("X won't be used", stacklevel=2)
         if y is not None:
-            warnings.warn("y won't be used")
-        self._check_fit()
+            warnings.warn("y won't be used", stacklevel=2)
+        check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
             self.estimators_, self.n_features_
@@ -348,15 +337,19 @@ class ModelXKnockoff(BaseVariableImportance):
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
-        assert (
-            self.importances_ is not None
-        ), "this method doesn't support selection base on FDR"
+        assert self.importances_ is not None, (
+            "this method doesn't support selection base on FDR"
+        )
 
         if self.importances_.shape[0] == 1:
-            self.threshold_fdr_ = self.knockoff_threshold(self.importances_, fdr=fdr)
+            self.threshold_fdr_ = self.knockoff_threshold(
+                self.importances_, fdr=fdr
+            )
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
-            assert fdr_control != "ebh", "for p-values, the fdr control can't be 'ebh'"
+            assert fdr_control != "ebh", (
+                "for p-values, the fdr control can't be 'ebh'"
+            )
             pvalues = np.array(
                 [
                     self._empirical_knockoff_pval(test_score)
@@ -374,11 +367,15 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
-            assert fdr_control == "ebh", "for e-value, the fdr control need to be 'ebh'"
+            assert fdr_control == "ebh", (
+                "for e-value, the fdr control need to be 'ebh'"
+            )
             evalues = []
             for test_score in self.importances_:
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
-                evalues.append(self._empirical_knockoff_eval(test_score, ko_threshold))
+                evalues.append(
+                    self._empirical_knockoff_eval(test_score, ko_threshold)
+                )
             self.aggregated_eval_ = np.mean(evalues, axis=0)
             self.threshold_fdr_ = fdr_threshold(
                 self.aggregated_eval_,
@@ -399,9 +396,13 @@ class ModelXKnockoff(BaseVariableImportance):
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
-            if hasattr(estimator_, "alphas") and (estimator_.alphas is not None):
+            if hasattr(estimator_, "alphas") and (
+                estimator_.alphas is not None
+            ):
                 n_alphas = len(estimator_.alphas)
-            elif hasattr(estimator_, "n_alphas") and (estimator_.n_alphas is not None):
+            elif hasattr(estimator_, "n_alphas") and (
+                estimator_.n_alphas is not None
+            ):
                 n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
@@ -450,10 +451,14 @@ class ModelXKnockoff(BaseVariableImportance):
             elif hasattr(estimator, "best_estimator_") and hasattr(
                 estimator.best_estimator_, "coef_"
             ):
-                coef = np.ravel(estimator.best_estimator_.coef_)  # for CV object
+                coef = np.ravel(
+                    estimator.best_estimator_.coef_
+                )  # for CV object
             else:
                 raise TypeError("estimator should be linear")
-            statistic_tmp = np.abs(coef[:n_features]) - np.abs(coef[n_features:])
+            statistic_tmp = np.abs(coef[:n_features]) - np.abs(
+                coef[n_features:]
+            )
             test_statistic_list.append(statistic_tmp)
 
         test_statistic = np.array(test_statistic_list)
@@ -522,7 +527,8 @@ class ModelXKnockoff(BaseVariableImportance):
                 pvals.append(1)
             else:
                 pvals.append(
-                    (offset + np.sum(test_score_inv >= test_score[i])) / n_features
+                    (offset + np.sum(test_score_inv >= test_score[i]))
+                    / n_features
                 )
 
         return np.array(pvals)
@@ -565,13 +571,12 @@ def model_x_knockoff_importance(
     X,
     y,
     estimator=LassoCV(max_iter=200000),
-    generator=GaussianKnockoffs(),
+    ko_generator=GaussianKnockoffs(),
     n_repeats=1,
     centered=True,
     random_state=None,
     preconfigure_lasso_path=True,
     joblib_verbose=0,
-    memory=None,
     n_jobs=1,
     fdr=0.1,
     fdr_control="bhq",
@@ -581,14 +586,13 @@ def model_x_knockoff_importance(
     gamma=0.5,
 ):
     methods = ModelXKnockoff(
-        ko_generator=generator,
+        ko_generator=ko_generator,
         n_repeats=n_repeats,
         centered=centered,
         estimator=estimator,
         preconfigure_lasso_path=preconfigure_lasso_path,
         random_state=random_state,
         joblib_verbose=joblib_verbose,
-        memory=memory,
         n_jobs=n_jobs,
     )
     methods.fit_importance(X, y)

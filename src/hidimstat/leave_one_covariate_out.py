@@ -1,16 +1,12 @@
-from functools import partial
-
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from scipy.stats import wilcoxon
 from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
-from hidimstat.base_variable_importance import GroupVariableImportanceMixin
 
 
 class LOCO(BasePerturbation):
@@ -102,7 +98,9 @@ class LOCO(BasePerturbation):
                 estimator, X, y, key_features_groups
             )
             for key_features_groups, estimator in zip(
-                self.features_groups.keys(), self._list_estimators
+                self.features_groups_.keys(),
+                self._list_estimators,
+                strict=False,
             )
         )
         return self
@@ -155,13 +153,15 @@ class LOCO(BasePerturbation):
 
         y_pred = self._predict(X)
         test_result = []
-        self.loss_ = dict()
+        self.loss_ = {}
         for j, y_pred_j in enumerate(y_pred):
             self.loss_[j] = np.array([self.loss(y, y_pred_j[0])])
             if np.all(np.equal(y.shape, y_pred_j[0].shape)):
                 test_result.append(y - y_pred_j[0])
             else:
-                test_result.append(y - np.unique(y)[np.argmax(y_pred_j[0], axis=-1)])
+                test_result.append(
+                    y - np.unique(y)[np.argmax(y_pred_j[0], axis=-1)]
+                )
 
         self.importances_ = np.mean(
             [
@@ -171,17 +171,23 @@ class LOCO(BasePerturbation):
             axis=1,
         )
         self.pvalues_ = statistical_test(np.array(test_result)).pvalue
-        assert (
-            self.pvalues_.shape[0] == y_pred.shape[0]
-        ), "The statistical test doesn't provide the correct dimension."
+        assert self.pvalues_.shape[0] == y_pred.shape[0], (
+            "The statistical test doesn't provide the correct dimension."
+        )
         return self.importances_
 
-    def _joblib_fit_one_features_group(self, estimator, X, y, key_features_group):
+    def _joblib_fit_one_features_group(
+        self, estimator, X, y, key_features_group
+    ):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(columns=self.features_groups[key_features_group])
+            X_minus_j = X.drop(
+                columns=self.features_groups_[key_features_group]
+            )
         else:
-            X_minus_j = np.delete(X, self.features_groups[key_features_group], axis=1)
+            X_minus_j = np.delete(
+                X, self.features_groups_[key_features_group], axis=1
+            )
         estimator.fit(X_minus_j, y)
         return estimator
 
@@ -189,22 +195,29 @@ class LOCO(BasePerturbation):
         self, X, features_group_id, random_state=None
     ):
         """Predict the target feature after removing a group of covariates.
-        Used in parallel."""
-        X_minus_j = np.delete(X, self._features_groups_ids[features_group_id], axis=1)
-
-        y_pred_loco = getattr(self._list_estimators[features_group_id], self.method)(
-            X_minus_j
+        Used in parallel.
+        """
+        del random_state  # not used (only there for API compatibility)
+        X_minus_j = np.delete(
+            X, self._features_groups_ids[features_group_id], axis=1
         )
+
+        y_pred_loco = getattr(
+            self._list_estimators[features_group_id], self.method
+        )(X_minus_j)
 
         return [y_pred_loco]
 
     def _check_fit(self):
         """Check that an estimator has been fitted after removing each group of
-        covariates."""
+        covariates.
+        """
         super()._check_fit()
         check_is_fitted(self.estimator)
         if self._list_estimators is None:
-            raise ValueError("The estimators require to be fit before to use them")
+            raise ValueError(
+                "The estimators require to be fit before to use them"
+            )
         for m in self._list_estimators:
             check_is_fitted(m)
 
@@ -257,7 +270,7 @@ loco_importance.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_features,)
         Feature importance scores/test statistics.
     pvalues : ndarray of shape (n_features,)
-        None because there is no p-value for this method 
+        None because there is no p-value for this method
     """,
 )
 

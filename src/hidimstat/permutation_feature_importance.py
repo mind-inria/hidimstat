@@ -1,7 +1,4 @@
-from functools import partial
-
 import numpy as np
-from scipy.stats import wilcoxon
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -52,13 +49,13 @@ class PFI(BasePerturbation):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
         statistical_test="ttest",
         features_groups=None,
-        random_state: int = None,
+        random_state: int | None = None,
         n_jobs: int = 1,
     ):
         super().__init__(
@@ -99,7 +96,7 @@ def pfi_importance(
     percentile=None,
     threshold_min=None,
     threshold_max=None,
-    random_state: int = None,
+    random_state: int | None = None,
     n_jobs: int = 1,
 ):
     methods = PFI(
@@ -193,8 +190,8 @@ class PFICV(BasePerturbationCV):
 
     def __init__(
         self,
-        estimators,
-        cv,
+        estimators=None,
+        cv=None,
         statistical_test="nb-ttest",
         method="predict",
         loss=mean_squared_error,

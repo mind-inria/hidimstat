@@ -1,4 +1,4 @@
-.. ## for plotting and for examples 
+.. ## for plotting and for examples
     #TODO Need to be updated if it's necessary
 .. |MatplotlibMinVersion| replace:: 3.9.0
 .. |SeabornMinVersion| replace:: 0.9.0
@@ -22,8 +22,8 @@ For testing, we recommend you install the test dependencies with pip:
 .. code-block:: sh
 
    pip install hidimstat[test]
-  
-This will install ``pytest`` and the following extensions: 
+
+This will install ``pytest`` and the following extensions:
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
 ``pytest-timeout``, ``pytest-durations``
 
@@ -36,17 +36,18 @@ After this installation, you can launch the test suite:
 Style guide
 """""""""""
 
-The code is formatted `black <https://black.readthedocs.io/en/stable/>`_
-and `isort <https://pycqa.github.io/isort/>`_.
+The code is formatted and linted with with `ruff <https://github.com/astral-sh/ruff>`_.
+
+Spelling is checked using `codespell <https://github.com/codespell-project/codespell>`_.
 
 To apply the required dependencies and style your code:
 
 .. code-block:: sh
 
     pip install -e '.[style]'
-    isort .
+    ruff format .
+    ruff check --fix .
     codespell --toml pyproject.toml
-    black .
 
 Examples
 """"""""

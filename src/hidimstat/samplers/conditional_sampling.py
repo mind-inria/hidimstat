@@ -113,7 +113,9 @@ class ConditionalSampler:
                 y = y.ravel()
             self.multioutput_ = False
         if self.model is None:
-            raise AttributeError(f"No model was provided for {self.data_type} data")
+            raise AttributeError(
+                f"No model was provided for {self.data_type} data"
+            )
         self.model.fit(X, y)
 
     def sample(

@@ -5,7 +5,7 @@ User guide
 ==========
 
 
-TODO: define the target audience of the user guide. 
+TODO: define the target audience of the user guide.
 
 Table of contents
 =================

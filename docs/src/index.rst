@@ -48,7 +48,7 @@ Documentation & Examples
 ------------------------
 
 Documentation about the main HiDimStat functions is available
-:ref:`here <api_documentation>` 
+:ref:`here <api_documentation>`
 and examples are available
 :ref:`there <general_examples>`.
 
@@ -111,7 +111,7 @@ Other useful references
 
 .. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml?branch=main
-  
+
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
    :target: https://circleci.com/gh/mind-inria/hidimstat
 
@@ -126,7 +126,7 @@ References
 ----------
 .. bibliography:: ../tools/references.bib
 
-  
+
 .. toctree::
   :hidden:
   :maxdepth: 1

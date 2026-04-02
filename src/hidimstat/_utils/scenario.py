@@ -7,8 +7,8 @@ def _generate_2D_weight(shape, roi_size):
     """
     Create a 2D weight map with four ROIs (Regions of Interest) in the corners.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     shape : tuple of int (n_x, n_z)
         Shape of the 2D data array for which to generate weights.
         n_x : int
@@ -34,11 +34,11 @@ def _generate_2D_weight(shape, roi_size):
 
         Create a 2D weight map with four ROIs
     """
-    assert roi_size <= np.min(
-        shape
-    ), f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
+    assert roi_size <= np.min(shape), (
+        f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
+    )
 
-    w = np.zeros(shape + (5,))
+    w = np.zeros((*shape, 5))
     w[0:roi_size, 0:roi_size, 0] = 1.0
     w[-roi_size:, -roi_size:, 1] = 1.0
     w[0:roi_size, -roi_size:, 2] = 1.0
@@ -77,11 +77,11 @@ def _generate_3D_weight(shape, roi_size):
             - Channel 3: Back-left-bottom ROI weights (1.0)
             - Channel 4: Center ROI weights (1.0)
     """
-    assert roi_size <= np.min(
-        shape
-    ), f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
+    assert roi_size <= np.min(shape), (
+        f"roi_size should be lower than the dimension {np.argmin(shape)} of the array"
+    )
 
-    w = np.zeros(shape + (5,))
+    w = np.zeros((*shape, 5))
     w[0:roi_size, 0:roi_size, 0:roi_size, 0] = -1.0
     w[-roi_size:, -roi_size:, 0:roi_size, 1] = 1.0
     w[0:roi_size, -roi_size:, -roi_size:, 2] = -1.0
@@ -132,17 +132,13 @@ def multivariate_simulation_spatial(
         Parameter vector (flattened weight map).
     noise : ndarray of shape (n_samples,)
         Additive white Gaussian noise vector.
-    X_ : ndarray of shape (n_samples,) + shape
-        Reshaped design matrix matching input dimensions.
-    w : ndarray of shape shape + (5,)
-        Weight map with 5 channels for different ROIs.
     """
     assert n_samples > 0, "n_samples must be strictly positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
 
     # Generate the variables from normal distribution
-    X_ = rng.standard_normal((n_samples,) + shape)
+    X_ = rng.standard_normal((n_samples, *shape))
     ## Create local correlation
     X = []
     for i in np.arange(n_samples):
@@ -156,7 +152,9 @@ def multivariate_simulation_spatial(
     elif len(shape) == 3:
         w = _generate_3D_weight(shape, roi_size)
     else:
-        raise ValueError(f"Shape {shape} not supported, only 2D and 3D are supported")
+        raise ValueError(
+            f"Shape {shape} not supported, only 2D and 3D are supported"
+        )
     beta = w.sum(-1).ravel()
     prod_temp = np.dot(X, beta)
 
@@ -232,21 +230,20 @@ def multivariate_simulation(
         Target vector/matrix, generated as y = X @ beta + noise.
     beta_true : ndarray of shape (n_features,) or (n_features, n_target)
         True coefficient vector/matrix with support_size non-zero elements.
-    non_zero : ndarray
-        Indices of non-zero coefficients in beta_true.
-    noise_factor : float
-        Applied noise magnitude scaling factor.
-    eps : ndarray of shape (n_samples,) or (n_samples, n_target)
-        Noise vector/matrix with optional temporal correlation.
+    noise : ndarray of shape (n_samples,) or (n_samples, n_target)
+        Additive noise vector/matrix with optional serial correlation
+        controlled by rho_serial.
     """
     assert n_samples > 0, "n_samples must be positive"
     assert n_features > 0, "n_features must be positive"
     assert n_targets is None or n_targets > 0.0, "n_target must be positive"
-    assert support_size <= n_features, "support_size cannot be larger than n_features"
+    assert support_size <= n_features, (
+        "support_size cannot be larger than n_features"
+    )
     assert rho >= -1.0 and rho <= 1.0, "rho must be between -1 and 1"
-    assert (
-        rho_serial >= -1.0 and rho_serial <= 1.0
-    ), "rho_serial must be between -1 and 1"
+    assert rho_serial >= -1.0 and rho_serial <= 1.0, (
+        "rho_serial must be between -1 and 1"
+    )
     assert signal_noise_ratio >= 0.0, "signal_noise_ratio must be positive"
     # Setup seed generator
     rng = np.random.default_rng(seed)
