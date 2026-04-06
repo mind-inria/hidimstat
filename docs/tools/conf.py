@@ -2,10 +2,23 @@ import inspect
 import os
 import shutil
 import sys
+import warnings
 
 import matplotlib
 
 from hidimstat import __version__
+
+
+def _reset_warning_filters(_gallery_conf, _fname):
+    """Suppress sklearn FutureWarnings before each gallery example.
+
+    TODO: remove when minimum sklearn is bumped to >= 1.7.
+    """
+    warnings.filterwarnings("ignore", category=FutureWarning)
+
+
+# Passing a function to reset the warning makes the config unpickable
+suppress_warnings = ["config.cache"]
 
 
 def linkcode_resolve(domain, info):
@@ -190,6 +203,7 @@ sphinx_gallery_conf = {
     "backreferences_dir": "./generated/gallery/backreference/",
     "parallel": False,
     "show_memory": True,  # can't show memory if it's in parallel
+    "reset_modules": ("matplotlib", "seaborn", _reset_warning_filters),
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
