@@ -737,3 +737,34 @@ def test_regression_intercept(d0crt_test_data):
         np.argsort(d0crt_intercept.importances_),
         np.argsort(d0crt_no_intercept.importances_),
     )
+
+
+def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
+    """
+    Test the that the signs of the importances provided by the dcrt-logit are consistent
+    with the regression version.
+    """
+    X, y, beta = generate_binary_classif_dataset
+    dcrt = D0CRT(
+        estimator=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        lasso_screening=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        screening_threshold=50,
+        random_state=0,
+    )
+    dcrt.fit(X, y)
+    dcrt.importance(X, y)
+    assert np.all(dcrt.importances_[np.where(beta == 1)] >= 0)
+    # Negative effects (multiply y to increase signal)
+    dcrt.fit(X, -10 * y)
+    dcrt.importance(X, -10 * y)
+    assert np.all(dcrt.importances_[np.where(beta == 1)] <= 0)

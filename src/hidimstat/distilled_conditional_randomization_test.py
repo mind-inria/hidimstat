@@ -528,9 +528,11 @@ class D0CRT(BaseVariableImportance):
                 for i in range(X_residual.shape[0])
             ]
         )
+        # changed sign compared with `nguyen2022conditional` (eq 11) so that positive
+        # effects correspond to positive importance scores as in the regression case.
         test_statistic_selected_variables = np.array(
             [
-                -np.dot(y_residual[i], X_residual[i])
+                np.dot(y_residual[i], X_residual[i])
                 / np.sqrt(n_samples * fisher_minus_idx[i])
                 for i in range(X_residual.shape[0])
             ]
