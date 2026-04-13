@@ -54,6 +54,8 @@
 
 ## Contributors
 
+* Ángel Reyero Lobo
 * Bertrand Thirion
 * Joseph Paillard
+* Lionel Kusch
 * Rémi Gau
