@@ -34,14 +34,13 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
 ]
-requires-python = ">=3.10, < 4"
+requires-python = ">=3.10"
 dependencies = [
-    "joblib       >= 1.2.0, < 2",
-    "numpy        >= 1.25,  < 3",
-    "pandas       >= 2.2,   < 3",
-    "scikit-learn >= 1.5,   < 1.9",
-    "scipy        >= 1.9.2, < 2",
-    "tqdm         >= 4.1.0, < 5",
+    "joblib       >= 1.4",
+    "pandas       >= 2.2",
+    "scikit-learn >= 1.6",
+    "scipy        >= 1.13",
+    "tqdm         >= 4.66.3",
 ]
 
 [project.optional-dependencies]
