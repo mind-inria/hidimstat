@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import LassoCV, LinearRegression
 
-from hidimstat import CluDL, DesparsifiedLasso
+from hidimstat import CFI, CluDL, DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
@@ -527,3 +528,25 @@ def test_clustered_fwer_selection(rng):
         fwer=0.5, n_tests=n_features, two_tailed_test=True
     )
     assert selection.shape[0] == n_features
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, 5, 0.5, 0, 1.0, 64.0, 0.5)],
+)
+def test_feature_groups_order_preserved(data_generator):
+    """Regression test to check that the order of the feature groups is
+    preserved in the output of .importance()
+    """
+    X, y, important_features, non_important_features = data_generator
+    X_df = pd.DataFrame(X)
+    model = LinearRegression()
+    model.fit(X_df, y)
+    groups = {
+        "non_important": non_important_features,
+        "important": important_features,
+    }
+
+    cfi = CFI(estimator=model, features_groups=groups, random_state=0)
+    importance = cfi.fit_importance(X_df, y)
+    assert importance[0] < importance[1]
