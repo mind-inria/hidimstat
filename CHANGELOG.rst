@@ -51,6 +51,7 @@
 * Update pooch version constraint (PR #614)
 * Bump GitHub Actions dependencies (PR #565, #612)
 * Bump codecov-action (PR #619, #623)
+* Add missing entries to the changelog (PR #630)
 
 ## Contributors
 
