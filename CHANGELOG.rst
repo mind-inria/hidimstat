@@ -19,6 +19,7 @@ Bug fixes
 ---------
 
 * Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
+* Fix the unexpected change in the order of feature groups when a dataframe is used as input (PR #632)
 
 Maintenance
 -----------
