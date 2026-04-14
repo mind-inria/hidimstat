@@ -9,14 +9,14 @@
 * Doc: add Distilled Conditional Randomization Test (D0CRT) section in the user-guide (PR #621)
 * Doc: add example with MEG somato data (PR #607)
 * Doc: add Permutation Feature Importance section in user-guide (PR #553)
-* Doc: add Desparsified Lasso and Knockoffs section in user-guide (PR #558)
-* Doc: add Desparsified Lasso example on the diabetes dataset (PR #564)
+* Doc: add Desparsified Lasso (DL) and Knockoffs section in user-guide (PR #558)
+* Doc: add DL example on the diabetes dataset (PR #564)
 
 ## Changes
 
 ## Bug fixes
 
-* Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
+* Fixed a bug in CLuster DL (CLuDL) / Ensemble CLuDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
 * Fix sign in D0CRT-logit (PR #627)
 * Test: relax flaky test for conditional sampling (PR #602)
 * Fix sklearn compatibility of ``BasePerturbation`` (PR #576)
@@ -26,7 +26,7 @@
 ## Maintenance
 
 * Update pandas intersphinx mapping (PR #615)
-* scikit-learn compatibility: run check_estimator on PFI and PFICV (PR #610)
+* scikit-learn compatibility: run check_estimator on Permutation Feature Importance (PFI) and PFICV (PR #610)
 * scikit-learn compatibility: run check_estimator on ModelXKnockoff (PR #608)
 * scikit-learn compatibility: improve ``BasePerturbationCV`` (PR #581)
 * scikit-learn compatibility: run check_estimator on DesparsifiedLasso (PR #590)
