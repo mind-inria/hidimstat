@@ -536,7 +536,8 @@ def test_clustered_fwer_selection(rng):
 )
 def test_feature_groups_order_preserved(data_generator):
     """Regression test to check that the order of the feature groups is
-    preserved in the output of .importance()
+    preserved in the output of .importance() even when the keys are not in
+    the order that would be returned by sorted(groups.keys()).
     """
     X, y, important_features, non_important_features = data_generator
     X_df = pd.DataFrame(X)
