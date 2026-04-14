@@ -24,6 +24,8 @@ Bug fixes
 Maintenance
 -----------
 
+* Update dependencies following SPEC 0 (PR #527)
+
 Contributors
 ------------
 
