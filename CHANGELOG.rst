@@ -24,7 +24,8 @@
 * Fix DL user-guide image not showing (PR #566)
 
 ## Maintenance
-
+* Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
+* Fix the unexpected change in the order of feature groups when a dataframe is used as input (PR #632)
 * Update pandas intersphinx mapping (PR #615)
 * scikit-learn compatibility: run check_estimator on Permutation Feature Importance (PFI) and PFICV (PR #610)
 * scikit-learn compatibility: run check_estimator on ModelXKnockoff (PR #608)
