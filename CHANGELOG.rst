@@ -6,11 +6,11 @@
 
 * documentation: added high dimension section (PR #425)
 * API: ``BasePerturbation`` can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (PR #571)
-* Doc: add D0CRT section in the user-guide (PR #621)
+* Doc: add Distilled Conditional Randomization Test (D0CRT) section in the user-guide (PR #621)
 * Doc: add example with MEG somato data (PR #607)
-* Doc: add PFI section in user-guide (PR #553)
+* Doc: add Permutation Feature Importance section in user-guide (PR #553)
 * Doc: add Desparsified Lasso and Knockoffs section in user-guide (PR #558)
-* Doc: add DL example on the diabetes dataset (PR #564)
+* Doc: add Desparsified Lasso example on the diabetes dataset (PR #564)
 
 ## Changes
 
