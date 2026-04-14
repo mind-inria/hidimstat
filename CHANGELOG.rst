@@ -9,7 +9,7 @@
 * Doc: add D0CRT section in the user-guide (PR #621)
 * Doc: add example with MEG somato data (PR #607)
 * Doc: add PFI section in user-guide (PR #553)
-* Doc: add DL and Knockoffs section in user-guide (PR #558)
+* Doc: add Desparsified Lasso and Knockoffs section in user-guide (PR #558)
 * Doc: add DL example on the diabetes dataset (PR #564)
 
 ## Changes
