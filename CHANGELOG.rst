@@ -52,6 +52,7 @@
 * Bump GitHub Actions dependencies (PR #565, #612)
 * Bump codecov-action (PR #619, #623)
 * Add missing entries to the changelog (PR #630)
+* Update dependencies following SPEC 0 (PR #527)
 
 ## Contributors
 
