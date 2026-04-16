@@ -4,19 +4,10 @@
 What's new
 ============
 
-=====================
-Latest modification
-=====================
+See the latest revision: :ref:`lastest_version`.
 
 .. _changelog:
 .. include:: CHANGELOG.rst
-
-See the latest revision: :ref:`lastest_version`.
-
-
-=========================
-History of modification
-=========================
 
 .. _v0.3.1:
 .. _lastest_version:

@@ -2,13 +2,15 @@
 Version 0.3.1
 ==============
 
-## Highlights
+Highlights
+----------
 
 * **Expanded user guide** with new sections on Desparsified Lasso, Knockoffs, Permutation Feature Importance, D0CRT, and high-dimensional inference
 * **Improved scikit-learn compatibility** for some estimators (DesparsifiedLasso, ModelXKnockoff, PFI, BasePerturbation)
 * **Updated dependencies** following SPEC 0
 
-## New features
+New features
+------------
 
 * documentation: added high dimension section (PR #425)
 * API: ``BasePerturbation`` can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (PR #571)
@@ -18,9 +20,8 @@ Version 0.3.1
 * Doc: add Desparsified Lasso (DL) and Knockoffs section in user-guide (PR #558)
 * Doc: add DL example on the diabetes dataset (PR #564)
 
-## Changes
-
-## Bug fixes
+Bug fixes
+---------
 
 * Fixed a bug in CLuster DL (CLuDL) / Ensemble CLuDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
 * Fix sign in D0CRT-logit (PR #627)
@@ -29,7 +30,9 @@ Version 0.3.1
 * Fix README pip installation instructions (PR #579)
 * Fix DL user-guide image not showing (PR #566)
 
-## Maintenance
+Maintenance
+-----------
+
 * Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
 * Fix the unexpected change in the order of feature groups when a dataframe is used as input (PR #632)
 * Update pandas intersphinx mapping (PR #615)
@@ -61,7 +64,8 @@ Version 0.3.1
 * Add missing entries to the changelog (PR #630)
 * Update dependencies following SPEC 0 (PR #527)
 
-## Contributors
+Contributors
+------------
 
 * Ángel Reyero Lobo
 * Bertrand Thirion

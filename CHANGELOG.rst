@@ -1,17 +1,25 @@
-# under devellopement (0.3.2.dev0)
+================================
+under devellopement (0.3.2.dev0)
+================================
 
-## HIGHLIGHTS
+HIGHLIGHTS
+----------
 
-## New features
+New features
+------------
 
-## Changes
+Changes
+-------
 
-## Bug fixes
+Bug fixes
+---------
 
 * Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (PR #637)
 
-## Maintenance
+Maintenance
+-----------
 
-## Contributors
+Contributors
+------------
 
 * Joseph Paillard
