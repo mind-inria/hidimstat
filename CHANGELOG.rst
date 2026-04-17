@@ -1,6 +1,6 @@
-===================================
-Version 0.4.0 (under devellopement)
-===================================
+================================
+under devellopement (0.3.2.dev0)
+================================
 
 HIGHLIGHTS
 ----------
@@ -8,17 +8,13 @@ HIGHLIGHTS
 New features
 ------------
 
-* documentation: added high dimension section (PR #425)
-* API: ``BasePerturbation`` can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (PR #571)
-
 Changes
 -------
-
 
 Bug fixes
 ---------
 
-* Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
+* Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (PR #637)
 
 Maintenance
 -----------
@@ -26,6 +22,4 @@ Maintenance
 Contributors
 ------------
 
-* Bertrand Thirion
 * Joseph Paillard
-* Rémi Gau
