@@ -285,9 +285,9 @@ def test_model_x_knockoff_null():
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp_power(selected, beta)
     print(len(np.where(beta)[0]))
-    assert (selected == False).all()
+    assert (not selected).all()
 
-    
+
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
