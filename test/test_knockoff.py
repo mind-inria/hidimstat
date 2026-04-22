@@ -267,6 +267,27 @@ def test_knockoff_function_not_centered():
     assert pvalues.shape == (5, p)
 
 
+def test_model_x_knockoff_null():
+    """Test knockoff with a crossvalidation estimator"""
+    seed = 42
+    fdr = 0.05
+    n = 200
+    p = 50
+    X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
+    model_x_knockoff = ModelXKnockoff(
+        n_repeats=1,
+        estimator=GridSearchCV(
+            Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
+        ),
+        preconfigure_lasso_path=None,
+    ).fit(X, y)
+    model_x_knockoff.importance()
+    selected = model_x_knockoff.fdr_selection(fdr=fdr)
+    fdp_power(selected, beta)
+    print(len(np.where(beta)[0]))
+    assert not selected.any()
+
+
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
