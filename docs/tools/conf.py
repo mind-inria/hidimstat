@@ -1,6 +1,8 @@
 import inspect
 import os
+import re
 import shutil
+import subprocess
 import sys
 
 import matplotlib
@@ -57,6 +59,22 @@ project = "HiDimStat"
 copyright = "2025, The hidimstat developers"
 author = "The hidimstat developers"
 release = __version__
+# Version for the documentation switcher dropdown. We extract the nearest git
+# tag (e.g. "0.3.1") rather than using setuptools_scm which appends commit
+# info (e.g. "0.3.2.dev2+g..."). If HEAD is past the tag, append ".dev".
+_git_describe = subprocess.run(
+    ["git", "describe", "--tags"],
+    capture_output=True,
+    text=True,
+).stdout.strip()
+_tag_match = re.match(r"v?(\d+\.\d+\.\d+)(.*)", _git_describe)
+if _tag_match:
+    _version_match = _tag_match.group(1)
+    if _tag_match.group(2):  # commits after tag
+        _version_match += ".dev"
+else:
+    _version_match = release
+
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
 # -- Copy files for docs --------------------------------------------------
@@ -137,7 +155,7 @@ html_theme_options = {
         "json_url": (
             "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"
         ),
-        "version_match": release,
+        "version_match": _version_match,
     },
 }
 
