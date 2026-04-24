@@ -1,27 +1,21 @@
+.. _changelog:
+
 ================================
-under devellopement (0.3.2.dev0)
+under development (0.3.2.dev0)
 ================================
 
-HIGHLIGHTS
-----------
+..
+    Changelog entry format:
 
-New features
-------------
+    - :bdg-<color>:`Category` Description (:gh:`PR_NUMBER` by `Author`_).
 
-Changes
--------
+    Categories:
+      :bdg-success:`Feature`     new functionality
+      :bdg-danger:`Fix`          bug fixes
+      :bdg-primary:`Doc`         documentation, examples
+      :bdg-warning:`API`         API changes, deprecations
+      :bdg-secondary:`Maint`     CI, testing, maintenance, dependencies
 
-Bug fixes
----------
+- :bdg-secondary:`Maint` Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (:gh:`637` by `Joseph Paillard`_).
 
-* Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (PR #637)
-* Fix bug in the KO methods: threshold_mesh was computed but not assigned to the variable (PR #643)
-
-Maintenance
------------
-
-Contributors
-------------
-
-* Bertrand Thirion
-* Joseph Paillard
+- :bdg-danger:`Fix` Fix bug in the KO methods: ``threshold_mesh`` was computed but not assigned to the variable (:gh:`643` by `Bertrand Thirion`_).

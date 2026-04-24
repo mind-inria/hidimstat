@@ -1,0 +1,31 @@
+# https://citation-file-format.github.io/
+# https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md
+cff-version: 1.2.0
+
+title: hidimstat
+
+
+abstract: |
+  Hidimstat is a Python library providing statistical methods for measuring
+  variable importance in high-dimensional prediction problems.
+
+message: If you use this software, please cite it as below.
+
+license: BSD-3-Clause
+
+type: software
+
+# The authors list is also used to generate contributor links in the
+# changelog. Each author's "given-names family-names" is resolved to
+# their "website" URL when referenced as `Name`_ in RST files.
+
+authors:
+  - given-names: Bertrand
+    family-names: Thirion
+    website: https://github.com/bthirion
+    affiliation: Inria, France
+
+  - given-names: Joseph
+    family-names: Paillard
+    website: https://github.com/jpaillard
+    affiliation: Inria, France

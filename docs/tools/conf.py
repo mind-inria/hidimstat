@@ -4,8 +4,10 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import matplotlib
+import yaml
 
 from hidimstat import __version__
 
@@ -96,15 +98,32 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
+    "sphinx_design",
     "sphinx_gallery.gen_gallery",
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
     "sphinx_copybutton",
 ]
+
+# --changelog PR references --------------------------------------------------
+extlinks = {
+    "gh": (f"{git_root_url}/pull/%s", "#%s"),
+}
+# -- contributor link targets (from CITATION.cff) ----------------------------
+_citation_path = Path(__file__).parent / ".." / ".." / "CITATION.cff"
+if _citation_path.exists():
+    with open(_citation_path) as _f:
+        _citation = yaml.safe_load(_f)
+    rst_epilog = "\n".join(
+        f".. _{author['given-names']} {author['family-names']}: {author['website']}"
+        for author in _citation.get("authors", [])
+        if "website" in author
+    )
 
 # Specify how to identify the prompt when copying a code snippet
 copybutton_prompt_text = r">>> |\.\.\. "
