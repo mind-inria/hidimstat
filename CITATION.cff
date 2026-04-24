@@ -11,6 +11,8 @@ abstract: |
 
 message: If you use this software, please cite it as below.
 
+repository-code: https://github.com/mind-inria/hidimstat
+
 license: BSD-3-Clause
 
 type: software
