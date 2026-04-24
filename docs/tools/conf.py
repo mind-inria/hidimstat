@@ -112,7 +112,7 @@ extensions = [
 
 # --changelog PR references --------------------------------------------------
 extlinks = {
-    "gh": (f"{git_root_url}/pull/%s", "#%s"),
+    "gh": (f"{git_root_url}/issues/%s", "#%s"),
 }
 # -- contributor link targets (from CITATION.cff) ----------------------------
 _citation_path = Path(__file__).parent / ".." / ".." / "CITATION.cff"
