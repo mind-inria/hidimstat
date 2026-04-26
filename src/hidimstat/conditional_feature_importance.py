@@ -95,7 +95,6 @@ class CFI(BasePerturbation):
         ), "Categorial imputation model invalid"
 
         self.feature_types = feature_types
-        self._list_imputation_models = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
@@ -130,7 +129,7 @@ class CFI(BasePerturbation):
                     "feature_types support only the string 'auto', 'continuous', 'categorical'"
                 )
 
-        self._list_imputation_models = [
+        self.list_imputation_models_ = [
             ConditionalSampler(
                 data_type=self.feature_types[features_group_id],
                 model_regression=(
@@ -150,13 +149,13 @@ class CFI(BasePerturbation):
 
         # Parallelize the fitting of the covariate estimators
         X_ = np.asarray(X)
-        self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
+        self.list_imputation_models_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
                 imputation_model, X_, features_groups_ids
             )
             for features_groups_ids, imputation_model in zip(
                 self._features_groups_ids,
-                self._list_imputation_models,
+                self.list_imputation_models_,
                 strict=False,
             )
         )
@@ -200,25 +199,8 @@ class CFI(BasePerturbation):
         estimator.fit(X_minus_j, X_j)
         return estimator
 
-    def _check_fit(self):
-        """
-        Check if base class and imputation models have been fitted.
-
-        Raises
-        ------
-        ValueError
-            If the class has not been fitted (i.e., if n_features_groups_
-            or _features_groups_ids attributes are missing).
-            If the class has not been fitted or imputation models are not fitted.
-
-        """
-        super()._check_fit()
-        if len(self._list_imputation_models) == 0:
-            raise ValueError(
-                "The imputation models require to be fitted before being used."
-            )
-        for m in self._list_imputation_models:
-            check_is_fitted(m.model)
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "list_imputation_models_")
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
@@ -228,7 +210,7 @@ class CFI(BasePerturbation):
         X_minus_j = np.delete(
             X, self._features_groups_ids[features_group_id], axis=1
         )
-        return self._list_imputation_models[features_group_id].sample(
+        return self.list_imputation_models_[features_group_id].sample(
             X_minus_j,
             X_j,
             n_samples=self.n_permutations,

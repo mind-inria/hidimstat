@@ -336,7 +336,7 @@ class TestCFIClass:
 
         # Test fit with auto var_type
         cfi.fit(X)
-        assert len(cfi._list_imputation_models) == X.shape[1]
+        assert len(cfi.list_imputation_models_) == X.shape[1]
         assert cfi.n_features_groups_ == X.shape[1]
 
     def test_fit_group(self, data_generator):
@@ -353,7 +353,7 @@ class TestCFIClass:
         )
         cfi.fit(X)
 
-        assert len(cfi._list_imputation_models) == 2
+        assert len(cfi.list_imputation_models_) == 2
         assert cfi.n_features_groups_ == 2
 
     def test_categorical(
@@ -435,10 +435,7 @@ class TestCFIExceptions:
         )
         BasePerturbation.fit(cfi, X, y)
 
-        with pytest.raises(
-            ValueError,
-            match="The imputation models require to be fitted before being used",
-        ):
+        with pytest.raises(NotFittedError):
             cfi.importance(X, y)
 
     def test_invalid_type(self, data_generator):
