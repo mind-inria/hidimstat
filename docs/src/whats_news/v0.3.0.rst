@@ -15,11 +15,11 @@ Highlights
 Changes
 -------
 
-- :bdg-warning:`API` LOC0, CFI, CPI #372
-- :bdg-warning:`API` Desparsified Lasso: #381
-- :bdg-warning:`API` CluDL, EnCluDL #533 and #388
-- :bdg-warning:`API`  ModelXKnockoffs #367
-- :bdg-warning:`API` d0CRT #220
+- :bdg-warning:`API` LOC0, CFI, CPI (:gh:`372`)
+- :bdg-warning:`API` Desparsified Lasso: (:gh:`381`)
+- :bdg-warning:`API` CluDL, EnCluDL (:gh:`533` and :gh:`388`)
+- :bdg-warning:`API`  ModelXKnockoffs (:gh:`367`)
+- :bdg-warning:`API` d0CRT (:gh:`220`)
 
 
 Contributors:
