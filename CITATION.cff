@@ -22,12 +22,62 @@ type: software
 # their "website" URL when referenced as `Name`_ in RST files.
 
 authors:
+  - given-names: Ahmad
+    family-names: Chamma
+    website: https://github.com/achamma723
+    affiliation: Inria, France
+
+  - given-names: Alexandre
+    family-names: Blain
+    website: https://github.com/alexblnn
+    affiliation: Inria, France
+
+  - given-names: Ángel
+    family-names: Reyero Lobo
+    website: https://github.com/AngelReyero
+    affiliation: Inria, France
+
+  - given-names: Antoine
+    family-names: Baker
+    website: https://github.com/antoinebaker
+    affiliation: Probabl, France
+
   - given-names: Bertrand
     family-names: Thirion
     website: https://github.com/bthirion
     affiliation: Inria, France
 
+  - given-names: Binh
+    family-names: Nguyen
+    website: https://github.com/tbng
+    affiliation: VinUniversity, Vietnam
+
+  - given-names: Guillaume
+    family-names: Lemaitre
+    website: https://github.com/glemaitre
+    affiliation: Probabl, France
+
+  - given-names: Himanshu
+    family-names: Aggarwal
+    website: https://github.com/man-shu
+    affiliation: Inria, France
+
+  - given-names: Jérôme
+    family-names: Dockès
+    website: https://github.com/jeromedockes
+    affiliation: Probabl, France
+
   - given-names: Joseph
     family-names: Paillard
     website: https://github.com/jpaillard
+    affiliation: Inria, France
+
+  - given-names: Lionel
+    family-names: Kusch
+    website: https://github.com/lionelkusch
+    affiliation: Inria, France
+
+  - given-names: Rémi
+    family-names: Gau
+    website: https://github.com/Remi-Gau
     affiliation: Inria, France
