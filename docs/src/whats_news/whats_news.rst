@@ -6,6 +6,14 @@ What's new
 
 See the latest revision: :ref:`lastest_version`.
 
+Each entry is tagged with one of the following categories:
+
+- :bdg-success:`Feature` — new functionality
+- :bdg-danger:`Fix` — bug fixes
+- :bdg-primary:`Doc` — documentation, examples
+- :bdg-warning:`API` — API changes, deprecations
+- :bdg-secondary:`Maint` — CI, testing, maintenance, dependencies
+
 .. _changelog:
 .. include:: CHANGELOG.rst
 
