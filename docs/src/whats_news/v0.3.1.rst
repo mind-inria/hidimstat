@@ -9,66 +9,59 @@ Highlights
 * **Improved scikit-learn compatibility** for some estimators (DesparsifiedLasso, ModelXKnockoff, PFI, BasePerturbation)
 * **Updated dependencies** following SPEC 0
 
-New features
-------------
 
-* documentation: added high dimension section (PR #425)
-* API: ``BasePerturbation`` can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (PR #571)
-* Doc: add Distilled Conditional Randomization Test (D0CRT) section in the user-guide (PR #621)
-* Doc: add example with MEG somato data (PR #607)
-* Doc: add Permutation Feature Importance section in user-guide (PR #553)
-* Doc: add Desparsified Lasso (DL) and Knockoffs section in user-guide (PR #558)
-* Doc: add DL example on the diabetes dataset (PR #564)
+Changes
+-------
 
-Bug fixes
----------
+- :bdg-success:`Feature` — can now be initialized with unfitted estimators. When this the case, the estimator will first be fitted before variable importance is estimated. (:gh:`571`)
+- :bdg-primary:`Doc` — add Distilled Conditional Randomization Test (D0CRT) section in the user-guide (:gh:`621`)
+- :bdg-primary:`Doc` — add example with MEG somato data (:gh:`607`)
+- :bdg-primary:`Doc` — add Permutation Feature Importance section in user-guide (:gh:`553`)
+- :bdg-primary:`Doc` — add Desparsified Lasso (DL) and Knockoffs section in user-guide (:gh:`558`)
+- :bdg-primary:`Doc` — add DL example on the diabetes dataset (:gh:`564`)
+- :bdg-danger:`Fix` — Fixed a bug in CLuster DL (CLuDL) / Ensemble CLuDL: cloning the internal estimators to avoid them carrying unwanted history. (:gh:`425`)
+- :bdg-danger:`Fix` — Fix sign in D0CRT-logit (:gh:`627`)
+- :bdg-danger:`Fix` — Test: relax flaky test for conditional sampling (:gh:`602`)
+- :bdg-danger:`Fix` — Fix sklearn compatibility of ``BasePerturbation`` (:gh:`576`)
+- :bdg-danger:`Fix` — Fix README pip installation instructions (:gh:`579`)
+- :bdg-danger:`Fix` — Fix DL user-guide image not showing (:gh:`566`)
+- :bdg-secondary:`Maint` — Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (:gh:`425`)
+- :bdg-secondary:`Maint` — Fix the unexpected change in the order of feature groups when a dataframe is used as input (:gh:`632`)
+- :bdg-secondary:`Maint` — Update pandas intersphinx mapping (:gh:`615`)
+- :bdg-secondary:`Maint` — scikit-learn compatibility: run check_estimator on Permutation Feature Importance (PFI) and PFICV (:gh:`610`)
+- :bdg-secondary:`Maint` — scikit-learn compatibility: run check_estimator on ModelXKnockoff (:gh:`608`)
+- :bdg-secondary:`Maint` — scikit-learn compatibility: improve ``BasePerturbationCV`` (:gh:`581`)
+- :bdg-secondary:`Maint` — scikit-learn compatibility: run check_estimator on DesparsifiedLasso (:gh:`590`)
+- :bdg-secondary:`Maint` — CI: update python version (:gh:`606`)
+- :bdg-secondary:`Maint` — Fix inconsistent attribute names in ModelXKnockoff (:gh:`600`)
+- :bdg-secondary:`Maint` — update pre-commit hooks (:gh:`597`)
+- :bdg-secondary:`Maint` — silence or solve unused arguments errors (:gh:`596`)
+- :bdg-secondary:`Maint` — Fix docstring in scenario.py (:gh:`594`)
+- :bdg-secondary:`Maint` — Test: set random generator as a test fixture (:gh:`593`)
+- :bdg-secondary:`Maint` — Fix pandas and perf errors (:gh:`592`)
+- :bdg-secondary:`Maint` — Fix ruff bugbear issues (:gh:`591`)
+- :bdg-secondary:`Maint` — Fix simplify ruff errors (:gh:`589`)
+- :bdg-secondary:`Maint` — Fix ruff linting errors (:gh:`582`)
+- :bdg-secondary:`Maint` — Adopt and apply ruff linter (:gh:`573`)
+- :bdg-secondary:`Maint` — Doc: silence some warnings (:gh:`588`)
+- :bdg-secondary:`Maint` — Doc: fix CI bug (:gh:`586`)
+- :bdg-secondary:`Maint` — Doc: fix notation inconsistencies (:gh:`552`)
+- :bdg-secondary:`Maint` — Run tests on oldest and most recent supported Python (:gh:`577`)
+- :bdg-secondary:`Maint` — Fix test timeout in minimal version tests (:gh:`569`)
+- :bdg-secondary:`Maint` — Skip unnecessary Ubuntu install in CI (:gh:`580`)
+- :bdg-secondary:`Maint` — Fix documentation release CI (:gh:`556`, :gh:`559`)
+- :bdg-secondary:`Maint` — Update pooch version constraint (:gh:`614`)
+- :bdg-secondary:`Maint` — Bump GitHub Actions dependencies (:gh:`565`, :gh:`612`)
+- :bdg-secondary:`Maint` — Bump codecov-action (:gh:`619`, :gh:`623`)
+- :bdg-secondary:`Maint` — Add missing entries to the changelog (:gh:`630`)
+- :bdg-secondary:`Maint` — Update dependencies following SPEC 0 (:gh:`527`)
 
-* Fixed a bug in CLuster DL (CLuDL) / Ensemble CLuDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
-* Fix sign in D0CRT-logit (PR #627)
-* Test: relax flaky test for conditional sampling (PR #602)
-* Fix sklearn compatibility of ``BasePerturbation`` (PR #576)
-* Fix README pip installation instructions (PR #579)
-* Fix DL user-guide image not showing (PR #566)
 
-Maintenance
------------
+Contributors:
+-------------
 
-* Fixed a bug in CLuDL/EncluDL: cloning the internal estimators to avoid them carrying unwanted history. (PR #425)
-* Fix the unexpected change in the order of feature groups when a dataframe is used as input (PR #632)
-* Update pandas intersphinx mapping (PR #615)
-* scikit-learn compatibility: run check_estimator on Permutation Feature Importance (PFI) and PFICV (PR #610)
-* scikit-learn compatibility: run check_estimator on ModelXKnockoff (PR #608)
-* scikit-learn compatibility: improve ``BasePerturbationCV`` (PR #581)
-* scikit-learn compatibility: run check_estimator on DesparsifiedLasso (PR #590)
-* CI: update python version (PR #606)
-* Fix inconsistent attribute names in ModelXKnockoff (PR #600)
-* update pre-commit hooks (PR #597)
-* silence or solve unused arguments errors (PR #596)
-* Fix docstring in scenario.py (PR #594)
-* Test: set random generator as a test fixture (PR #593)
-* Fix pandas and perf errors (PR #592)
-* Fix ruff bugbear issues (PR #591)
-* Fix simplify ruff errors (PR #589)
-* Fix ruff linting errors (PR #582)
-* Adopt and apply ruff linter (PR #573)
-* Doc: silence some warnings (PR #588)
-* Doc: fix CI bug (PR #586)
-* Doc: fix notation inconsistencies (PR #552)
-* Run tests on oldest and most recent supported Python (PR #577)
-* Fix test timeout in minimal version tests (PR #569)
-* Skip unnecessary Ubuntu install in CI (PR #580)
-* Fix documentation release CI (PR #556, #559)
-* Update pooch version constraint (PR #614)
-* Bump GitHub Actions dependencies (PR #565, #612)
-* Bump codecov-action (PR #619, #623)
-* Add missing entries to the changelog (PR #630)
-* Update dependencies following SPEC 0 (PR #527)
-
-Contributors
-------------
-
-* Ángel Reyero Lobo
-* Bertrand Thirion
-* Joseph Paillard
-* Lionel Kusch
-* Rémi Gau
+ - `Bertrand Thirion`_
+ - `Joseph Paillard`_
+ - `Lionel Kusch`_
+ - `Rémi Gau`_
+ - `Ángel Reyero Lobo`_
