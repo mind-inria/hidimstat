@@ -508,8 +508,6 @@ class GroupVariableImportanceMixin:
     -------
     fit(X, y=None)
         Identifies feature groups and validates input data structure.
-    _check_fit()
-        Verifies if the instance has been fitted.
     _check_compatibility(X)
         Validates compatibility between input data and fitted groups.
     """
@@ -570,18 +568,6 @@ class GroupVariableImportanceMixin:
             getattr(self, "n_features_groups_", None) is not None
             or getattr(self, "_features_groups_ids", None) is not None
         )
-
-    def _check_fit(self):
-        """
-        Check if the instance has been fitted.
-
-        Raises
-        ------
-        ValueError
-            If the class has not been fitted (i.e., if n_features_groups_
-            or _features_groups_ids attributes are missing).
-        """
-        check_is_fitted(self)
 
     def _check_compatibility(self, X):
         """
