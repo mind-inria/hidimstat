@@ -59,3 +59,12 @@ test patterns help to ensure consistent behavior:
 * ``test_<method>_randomness_with_none``
 * ``test_<method>_reproducibility_with_integer``
 * ``test_<method>_reproducibility_with_rng``
+
+Writing Conventions
+-------------------
+
+Naming
+~~~~~~
+Files should follow the `snake case <https://en.wikipedia.org/wiki/Snake_case>` convention,
+and classes should follow the `upper camel case <https://en.wikipedia.org/wiki/Camel_case>`
+convention. Names should not contain acronyms and should instead include the full version.
