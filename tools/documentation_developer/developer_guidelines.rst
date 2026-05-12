@@ -59,3 +59,16 @@ test patterns help to ensure consistent behavior:
 * ``test_<method>_randomness_with_none``
 * ``test_<method>_reproducibility_with_integer``
 * ``test_<method>_reproducibility_with_rng``
+
+Writing Conventions
+-------------------
+
+Citations
+~~~~~~~~~
+When introducing citations in code documentation, please use the following format:
+
+.. code-block:: py
+
+  footcite:t: `nameofthecitation`
+
+Make sure that the citation name is included in the bibliography.
