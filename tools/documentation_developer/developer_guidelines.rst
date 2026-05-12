@@ -67,8 +67,6 @@ Citations
 ~~~~~~~~~
 When introducing citations in code documentation, please use the following format:
 
-.. code-block:: py
-
-  footcite:t: \`nameofthecitation\`
+``footcite:t: \`nameofthecitation\` ``
 
 Make sure that the citation name is included in the bibliography.
