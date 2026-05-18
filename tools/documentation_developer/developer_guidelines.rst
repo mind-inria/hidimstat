@@ -71,4 +71,4 @@ When introducing citations in code documentation, please use the following forma
 
   # :footcite:t: \`nameofthecitation\`
 
-Make sure that the citation name is included in the bibliography.
+Make sure that the citation name is included in the bibliography and that it is listed in alphabetical order.
