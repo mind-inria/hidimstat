@@ -32,7 +32,6 @@ from tqdm import tqdm
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.distilled_conditional_randomization_test import _joblib_distill
-from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 # %%
 # Patched distill function
@@ -112,14 +111,14 @@ def make_friedman_correlated(n_samples, n_features, rho, snr, seed=0):
 # ---------------
 
 configs = [
-    {"rho": 0.5, "snr": 1},
-    {"rho": 0.5, "snr": 2},
-    {"rho": 0.8, "snr": 1},
-    {"rho": 0.8, "snr": 2},
+    {"rho": 0.4, "snr": 1},
+    {"rho": 0.4, "snr": 2},
+    {"rho": 0.6, "snr": 1},
+    {"rho": 0.6, "snr": 2},
 ]
 
-n_samples = 200
-n_features = 50
+n_samples = 400
+n_features = 20
 support_size = 5
 n_repeats = 10
 alpha = 0.1
@@ -188,13 +187,24 @@ for cfg in configs:
 
                 pvals = dcrt.pvalues_
                 selected = pvals <= alpha
-                fdp, power = fdp_power(selected, ground_truth)
+                null_mask = ~ground_truth
+                support_mask = ground_truth
+                type1_rate = (
+                    (pvals[null_mask] < alpha).mean()
+                    if null_mask.any()
+                    else 0.0
+                )
+                power = (
+                    (pvals[support_mask] < alpha).mean()
+                    if support_mask.any()
+                    else 0.0
+                )
 
                 results.append(
                     {
                         "scenario": scenario_name,
                         "method": method_name,
-                        "fdp": fdp,
+                        "type1_rate": type1_rate,
                         "power": power,
                         "rho": cfg["rho"],
                         "snr": cfg["snr"],
@@ -228,14 +238,14 @@ axes[0].set_title("power")
 sns.pointplot(
     data=df_plot,
     x="scenario",
-    y="fdp",
+    y="type1_rate",
     hue="method",
     ax=axes[1],
     capsize=0.1,
     ls="",
     dodge=0.3,
 )
-axes[1].axhline(alpha, color="red", ls="--", label=f"FDR = {alpha}")
+axes[1].axhline(alpha, color="red", ls="--", label=f"alpha={alpha}")
 axes[1].legend()
 
 sns.despine()
