@@ -32,10 +32,7 @@ from tqdm import tqdm
 from hidimstat import D0CRT
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.distilled_conditional_randomization_test import _joblib_distill
-from hidimstat.statistical_tools.multiple_testing import (
-    fdp_power,
-    fdr_threshold,
-)
+from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 # %%
 # Patched distill function
@@ -125,7 +122,7 @@ n_samples = 200
 n_features = 50
 support_size = 5
 n_repeats = 10
-fdr_target = 0.1
+alpha = 0.1
 
 results = []
 
@@ -190,8 +187,7 @@ for cfg in configs:
                     dcrt.importance(X, y)
 
                 pvals = dcrt.pvalues_
-                threshold = fdr_threshold(pvals, fdr=fdr_target, method="bhq")
-                selected = pvals <= threshold
+                selected = pvals <= alpha
                 fdp, power = fdp_power(selected, ground_truth)
 
                 results.append(
@@ -239,7 +235,7 @@ sns.pointplot(
     ls="",
     dodge=0.3,
 )
-axes[1].axhline(fdr_target, color="red", ls="--", label=f"FDR = {fdr_target}")
+axes[1].axhline(alpha, color="red", ls="--", label=f"FDR = {alpha}")
 axes[1].legend()
 
 sns.despine()
