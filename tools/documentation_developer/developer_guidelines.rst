@@ -54,7 +54,7 @@ and should not contain acronyms similarly to classes.
 Classes
 ~~~~~~~
 While we do not provide any template for the classes, we try to follow the conventions on
-`developping scikit-learn estimators <https://scikit-learn.org/stable/developers/develop.html>`_.
+`developing scikit-learn estimators <https://scikit-learn.org/stable/developers/develop.html>`_.
 We recommend that you follow the general style of the ``BaseVariableImportance`` class when
 implementing other classes. The main addition from scikit-learn's :py:class:`sklearn.base.BaseEstimator` is the
 addition of importance and selection methods that allow the selection of variables based on
