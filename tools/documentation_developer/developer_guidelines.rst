@@ -65,8 +65,8 @@ Writing Conventions
 
 Naming
 ~~~~~~
-Files should follow the `snake case <https://en.wikipedia.org/wiki/Snake_case>` convention,
-and classes should follow the `upper camel case <https://en.wikipedia.org/wiki/Camel_case>`
+Files should follow the `snake case <https://en.wikipedia.org/wiki/Snake_case>`_ convention,
+and classes should follow the `upper camel case <https://en.wikipedia.org/wiki/Camel_case>`_
 convention. Names should not contain acronyms and should instead include the full version,
 except for really long names, such as Distilled Conditional Randomization Test
 abbreviated as D0CRT, or names that are standard in the scientific community, such as
