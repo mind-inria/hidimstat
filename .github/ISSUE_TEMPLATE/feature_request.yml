@@ -1,0 +1,25 @@
+name: Feature Request
+description: Suggest an idea for SciPy
+title: "[ENH] <Please write a comprehensive title after the '[ENH] ' prefix>"
+labels: [enhancement]
+
+body:
+  - type: textarea
+    attributes:
+      label: Please describe the feature that you would like to see improved or added.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Describe the solution you would like to see implemented.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Describe alternatives you have considered.
+  - type: textarea
+    attributes:
+      label: Additional context (e.g. screenshots, GIFs)
+  - type: markdown
+    attributes:
+      value: Thank you for contributing !
