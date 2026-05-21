@@ -5,7 +5,7 @@ labels: [documentation]
 
 body:
   - type: textarea
-    attributes: 
+    attributes:
       label: "Issue with current documentation:"
       description: >
         Please check the development version of the documentation at
