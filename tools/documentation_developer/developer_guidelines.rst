@@ -9,6 +9,67 @@ This section provides guidelines for developers contributing to the hidimstat pr
    :depth: 2
    :local:
 
+Repository folder architecture
+------------------------------
+
+Here is the general organization of the repository`s folders:
+
+    =============== ===========
+    **Folder name** **What the folder contains**
+    --------------- -----------
+    .circleci       The configuration file for the :ref:`Continuous Integration <developer_documentation_CI>` tool CircleCI.
+    .github         All configuration files for `Github Actions <https://github.com/mind-inria/hidimstat/actions>`_.
+    docs            All files about the API, User guide, the examples gallery, glossary and notations.
+    examples        Python files that run for the examples gallery.
+    src/hidimstat   The Python files of the HiDimStat library.
+    test            The Python files that run tests on the library.
+    tools           The developer documentation files.
+    =============== ===========
+
+We give more details about the organization of the src/hidimstat folder:
+
+    ================= ===========
+    **Folder name**   **What the folder contains**
+    ----------------- -----------
+    base              Base variable importance (VI) and perturbation classes, all derived VI and perturbation methods as classes, as well as inference classes.
+    samplers          Sampling classes.
+    statistical_tools Statistical tools for tests, compute p-values, aggregation methods.
+    visualization     Visualization methods to produce graphs.
+    _utils            Private folder that contains utility functions and classes for internal usage only.
+    ================= ===========
+
+Writing Conventions
+-------------------
+
+Naming
+~~~~~~
+Files should follow the `snake case <https://en.wikipedia.org/wiki/Snake_case>`_ convention,
+and classes should follow the `upper camel case <https://en.wikipedia.org/wiki/Camel_case>`_
+convention. Names should not contain acronyms and should instead include the full version,
+except for really long names, such as Distilled Conditional Randomization Test
+abbreviated as D0CRT, or names that are standard in the scientific community, such as
+LOCO which stands for Leave One Covariate Out. Functions should be written in snake case,
+and should not contain acronyms similarly to classes.
+
+Classes
+~~~~~~~
+While we do not provide any template for the classes, we try to follow the conventions on
+`developing scikit-learn estimators <https://scikit-learn.org/stable/developers/develop.html>`_.
+We recommend that you follow the general style of the ``BaseVariableImportance`` class when
+implementing other classes. The main addition from scikit-learn's :py:class:`sklearn.base.BaseEstimator` is the
+addition of importance and selection methods that allow the selection of variables based on
+different criteria.
+
+
+Citations
+~~~~~~~~~
+When introducing citations in code documentation, please use the following format:
+
+.. code-block::
+
+  # :footcite:t: \`nameofthecitation\`
+
+Make sure that the citation name is included in the bibliography and that it is listed in alphabetical order.
 
 Reproducibility and Randomness
 ------------------------------
