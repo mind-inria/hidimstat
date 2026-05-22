@@ -120,3 +120,26 @@ test patterns help to ensure consistent behavior:
 * ``test_<method>_randomness_with_none``
 * ``test_<method>_reproducibility_with_integer``
 * ``test_<method>_reproducibility_with_rng``
+
+Writing Conventions
+-------------------
+
+Naming
+~~~~~~
+Files should follow the `snake case <https://en.wikipedia.org/wiki/Snake_case>`_ convention,
+and classes should follow the `upper camel case <https://en.wikipedia.org/wiki/Camel_case>`_
+convention. Names should not contain acronyms and should instead include the full version,
+except for really long names, such as Distilled Conditional Randomization Test
+abbreviated as D0CRT, or names that are standard in the scientific community, such as
+LOCO which stands for Leave One Covariate Out. Functions should be written in snake case,
+and should not contain acronyms similarly to classes.
+
+Citations
+~~~~~~~~~
+When introducing citations in code documentation, please use the following format:
+
+.. code-block::
+
+  # :footcite:t: \`nameofthecitation\`
+
+Make sure that the citation name is included in the bibliography and that it is listed in alphabetical order.
