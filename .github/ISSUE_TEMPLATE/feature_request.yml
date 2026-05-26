@@ -1,0 +1,38 @@
+name: Feature Request
+description: Suggest an idea for SciPy
+title: "[ENH] <Please write a comprehensive title after the '[ENH] ' prefix>"
+labels: [enhancement]
+
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to suggest a new feature.
+  - type: markdown
+    attributes:
+        value: Before continuing, please check existing issues to avoid duplicates.
+  - type: checkboxes
+    attributes:
+        label: Please confirm that you have searched existing issues in the repository.
+        description: You can do this by searching https://github.com/mind-inria/hidimstat/issues and making sure your suggestion is not related to another existing issue.
+        options:
+            - label: 'Yes'
+              required: true
+  - type: textarea
+    attributes:
+      label: Please describe the feature that you would like to see improved or added.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Describe the solution you would like to see implemented.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Describe alternatives you have considered.
+  - type: textarea
+    attributes:
+      label: Additional context (e.g. screenshots, GIFs)
+  - type: markdown
+    attributes:
+      value: Thank you for contributing !
