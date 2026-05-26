@@ -10,6 +10,13 @@ body:
   - type: markdown
     attributes:
         value: Before continuing, please check existing issues to avoid duplicates.
+  - type: checkboxes
+    attributes:
+        label: Please confirm that you have searched existing issues in the repository.
+        description: You can do this by searching https://github.com/mind-inria/hidimstat/issues and making sure the bug is not related to another existing issue.
+        options:
+            - label: 'Yes'
+              required: true
   - type: textarea
     attributes:
       label: Describe your issue.

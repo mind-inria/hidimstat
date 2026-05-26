@@ -18,3 +18,4 @@ under development (0.3.2.dev0)
 - :bdg-danger:`Fix` Fix bug in the KO methods: ``threshold_mesh`` was computed but not assigned to the variable (:gh:`643` by `Bertrand Thirion`_ amd `Joseph Paillard`_).
 - :bdg-secondary:`Maint` add badges and functional links to the changelog (:gh:`644` by `Joseph Paillard`_).
 - :bdg-primary:`Doc` add naming conventions for classes, files, and functions, as well as citation conventions (:gh:`647` and :gh:`648` by `Marc Hulcelle`_)
+- :bdg-secondary:`Maint` add issue templates for bug reports, documentation needs, and feature requests. (:gh:`633` by `Marc Hulcelle`_)
