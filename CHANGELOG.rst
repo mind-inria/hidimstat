@@ -20,3 +20,4 @@ under development (0.3.2.dev0)
 - :bdg-primary:`Doc` add documentation on how to contribute with issues, pull-requests, explanation of the CI process, and dev guidelines on class templates and folder architecture. (:gh:`653` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` add naming conventions for classes, files, and functions, as well as citation conventions (:gh:`647` and :gh:`648` by `Marc Hulcelle`_).
 - :bdg-danger:`Fix` Fix typo in issue template (:gh:`659` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` Added an AGENTS.md file for AI agents, and AI disclosures to contribution guidelines (:gh:`655` by `Marc Hulcelle`).
