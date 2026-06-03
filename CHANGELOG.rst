@@ -17,4 +17,7 @@ under development (0.3.2.dev0)
 - :bdg-secondary:`Maint` Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (:gh:`637` by `Joseph Paillard`_).
 - :bdg-danger:`Fix` Fix bug in the KO methods: ``threshold_mesh`` was computed but not assigned to the variable (:gh:`643` by `Bertrand Thirion`_ amd `Joseph Paillard`_).
 - :bdg-secondary:`Maint` add badges and functional links to the changelog (:gh:`644` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` add documentation on how to contribute with issues, pull-requests, explanation of the CI process, and dev guidelines on class templates and folder architecture. (:gh:`653` by `Marc Hulcelle`_).
+- :bdg-primary:`Doc` add naming conventions for classes, files, and functions, as well as citation conventions (:gh:`647` and :gh:`648` by `Marc Hulcelle`_).
+- :bdg-danger:`Fix` Fix typo in issue template (:gh:`659` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint`: remove extra term in variance of X-residual (DOCRT). See  [Reid et al., A Study of Error Variance Estimation in Lasso Regression 2016](https://arxiv.org/pdf/1311.5274) for reference. (:gh:`649` by `Joseph Paillard`_).
