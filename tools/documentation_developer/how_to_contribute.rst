@@ -42,15 +42,6 @@ Integration<developer_documentation_CI>` processes have passed.
 
 Pull-requests' titles should follow the same naming convention as issues.
 
-AI-assisted tools
------------------
-
-While we understand the benefits of using AI-assisted tools to write code, we kindly ask you to
-double check the code, and be prepared to explain it upon request during review. If the submitted code
-was written with the assistance of AI, we also request that you state it in your PR, and certify that
-you have read and understood it. We also kindly ask you to refrain from using AI tools to generate
-comments on issues or PRs.
-
 Other
 -----
 
