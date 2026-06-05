@@ -33,13 +33,6 @@ body:
   - type: textarea
     attributes:
       label: Additional context (e.g. screenshots, GIFs)
-  - type: checkboxes
-    attributes:
-        label: Please confirm that you have searched existing issues in the repo.
-        description: You can do this by searching https://github.com/mind-inria/hidimstat/issues and making sure the bug is not related to another existing issue.
-        options:
-            - label: 'Yes'
-              required: true
   - type: markdown
     attributes:
       value: Thank you for contributing !
