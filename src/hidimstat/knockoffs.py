@@ -187,13 +187,15 @@ class ModelXKnockoff(BaseVariableImportance):
         )
 
         if self.estimator is None:
-            self.estimator = LassoCV(
+            self.estimator_ = LassoCV(
                 max_iter=200000, cv=KFold(n_splits=5, shuffle=True), tol=1e-6
             )
+        else:
+            self.estimator_ = clone(self.estimator)
         self.estimator = seed_estimator(self.estimator, self.random_state)
         self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
-                self.estimator,
+                self.estimator_,
                 X_,
                 X_tildes[i],
                 y,
