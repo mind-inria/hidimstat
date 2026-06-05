@@ -5,7 +5,7 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import check_statistical_test
+from hidimstat._utils.utils import _generate_mask, check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -185,9 +185,14 @@ class LOCO(BasePerturbation):
                 columns=self.features_groups_[key_features_group]
             )
         else:
-            X_minus_j = np.delete(
-                X, self.features_groups_[key_features_group], axis=1
-            )
+            X_minus_j = X[
+                :,
+                _generate_mask(
+                    X.shape[1],
+                    self.features_groups_[key_features_group],
+                    select_indices=False,
+                ),
+            ]
         estimator.fit(X_minus_j, y)
         return estimator
 
@@ -198,9 +203,14 @@ class LOCO(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        X_minus_j = np.delete(
-            X, self._features_groups_ids[features_group_id], axis=1
-        )
+        X_minus_j = X[
+            :,
+            _generate_mask(
+                X.shape[1],
+                self._features_groups_ids[features_group_id],
+                select_indices=False,
+            ),
+        ]
 
         y_pred_loco = getattr(
             self._list_estimators[features_group_id], self.method
