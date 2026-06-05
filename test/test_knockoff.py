@@ -359,7 +359,7 @@ def test_preconfigure_LassoCV(rng):
     ):
         set_alpha_max_lasso_path(
             estimator=RidgeCV(),
-            X=rng.random((10, 10)),
+            X_ko=rng.random((10, 20)),
+            n_features=10,
             y=rng.random(10),
-            X_tilde=rng.random((10, 10)),
         )

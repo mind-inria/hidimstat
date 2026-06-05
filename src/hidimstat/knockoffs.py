@@ -33,8 +33,8 @@ def set_alpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
     estimator : sklearn.linear_model.LassoCV
         LassoCV instance to configure. This function modifies estimator.alphas
         in-place and returns the same estimator.
-    X_ko : array-like, shape (n_samples, n_features)
-        Concatenation of original and knockoff feature matrix.
+    X_ko : array-like, shape (n_samples, 2*n_features)
+        Column concatenation of original and knockoff feature matrices.
     n_features : int
         Number of features for matrix X_ko.
     y : array-like, shape (n_samples,)
