@@ -23,3 +23,4 @@ under development (0.3.2.dev0)
 - :bdg-primary:`Doc` Added an AGENTS.md file for AI agents, and AI disclosures to contribution guidelines (:gh:`655` by `Marc Hulcelle`).
 - :bdg-secondary:`Maint` added a maintenance-related issue template (:gh:`666` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` temporary fix for the CI upper-bounding scikit-learn to 1.9.0 (:gh:`669` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint` remove pinned poosh dependency (problem with somato dataset solved) (:gh:`670` by `Joseph Paillard`_).
