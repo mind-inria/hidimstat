@@ -16,7 +16,7 @@ from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
-def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
+def set_alpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
     """
     Configure a LassoCV estimator's regularization path for concatenated features.
 
@@ -33,10 +33,10 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
     estimator : sklearn.linear_model.LassoCV
         LassoCV instance to configure. This function modifies estimator.alphas
         in-place and returns the same estimator.
-    X : array-like, shape (n_samples, n_features)
-        Original feature matrix.
-    X_tilde : array-like, shape (n_samples, n_features)
-        Knockoff/auxiliary feature matrix (must have same n_features as X).
+    X_ko : array-like, shape (n_samples, n_features)
+        Concatenation of original and knockoff feature matrix.
+    n_features : int
+        Number of features for matrix X_ko.
     y : array-like, shape (n_samples,)
         Target vector.
     n_alphas : int, default=20
@@ -62,9 +62,6 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
         raise TypeError(
             "You should not use this function to configure the estimator"
         )
-
-    n_features = X.shape[1]
-    X_ko = np.column_stack([X, X_tilde])
     alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
     alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
     estimator.alphas = alphas
@@ -195,7 +192,7 @@ class ModelXKnockoff(BaseVariableImportance):
             )
         else:
             self.estimator_ = clone(self.estimator)
-        self.estimator_ = seed_estimator(self.estimator_, self.random_state)
+        self.estimator = seed_estimator(self.estimator, self.random_state)
         self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
                 self.estimator_,
@@ -393,6 +390,9 @@ class ModelXKnockoff(BaseVariableImportance):
         """
         Single fit of the estimator on the concatenated design matrix [X, X_tilde].
         """
+        n_features = X.shape[1]
+        X_ko = np.column_stack([X, X_tilde])
+
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
@@ -407,12 +407,11 @@ class ModelXKnockoff(BaseVariableImportance):
             else:
                 n_alphas = 10
             estimator_ = set_alpha_max_lasso_path(
-                estimator_, X, X_tilde, y, n_alphas=n_alphas
+                estimator_, X_ko, n_features, y, n_alphas=n_alphas
             )
 
-        X_ = np.column_stack([X, X_tilde])
         estimator_ = seed_estimator(estimator_, random_state)
-        estimator_.fit(X_, y)
+        estimator_.fit(X_ko, y)
         return estimator_
 
     @staticmethod
