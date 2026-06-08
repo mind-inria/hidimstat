@@ -80,9 +80,8 @@ HiDimStat requires:
 
 - Python (>= |PythonMinVersion|)
 - joblib (>= |JoblibMinVersion|)
-- NumPy (>= |NumPyMinVersion|)
 - Pandas (>= |PandasMinVersion|)
-- Scikit-learn (>= |SklearnMinVersion|)
+- Scikit-learn (>= |SklearnMinVersion|, < 1.9)
 - SciPy (>= |SciPyMinVersion|)
 
 HiDimStat's plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
