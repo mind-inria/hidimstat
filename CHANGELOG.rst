@@ -24,3 +24,4 @@ under development (0.3.2.dev0)
 - :bdg-secondary:`Maint` added a maintenance-related issue template (:gh:`666` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` temporary fix for the CI upper-bounding scikit-learn to 1.9.0 (:gh:`669` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint` remove pinned poosh dependency (problem with somato dataset solved) (:gh:`670` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint`: remove extra term in variance of X-residual (DOCRT). See  [Reid et al., A Study of Error Variance Estimation in Lasso Regression 2016](https://arxiv.org/pdf/1311.5274) for reference. (:gh:`649` by `Joseph Paillard`_).
