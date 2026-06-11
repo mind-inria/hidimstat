@@ -28,7 +28,7 @@ sage = SAGE(
     random_state=0,
     n_jobs=8,
 )
-sage.fit(X_test, y_test)
+sage.fit(X_train)
 sage.importance(X_test, y_test)
 ax = sage.plot_importance()
 
@@ -62,7 +62,7 @@ sage = SAGE(
     random_state=0,
     n_jobs=8,
 )
-sage.fit()
+sage.fit(X_train)
 subsample_size = 1024
 rng = np.random.default_rng(0)
 subsample_ids = rng.choice(len(X_test), size=subsample_size, replace=False)
