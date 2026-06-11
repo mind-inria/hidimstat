@@ -1,3 +1,7 @@
+"""
+SAGE example
+============
+"""
 # %%
 # Regression SAGE example on the diabetes dataset
 # -----------------------------------------------
