@@ -1,4 +1,7 @@
 # %%
+# Regression SAGE example on the diabetes dataset
+# -----------------------------------------------
+
 import numpy as np
 from sklearn.datasets import load_diabetes
 from sklearn.linear_model import RidgeCV
@@ -25,7 +28,10 @@ sage.fit(X_test, y_test)
 sage.importance(X_test, y_test)
 ax = sage.plot_importance()
 
+
 # %%
+# Reproducing the example from the sage-values library
+# ----------------------------------------------------
 
 from sklearn.datasets import fetch_openml
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -52,10 +58,40 @@ sage = SAGE(
     random_state=0,
     n_jobs=8,
 )
-sage.fit(X_test, y_test)
+sage.fit()
 subsample_size = 1024
 rng = np.random.default_rng(0)
 subsample_ids = rng.choice(len(X_test), size=subsample_size, replace=False)
 sage.importance(X_test[subsample_ids], y_test[subsample_ids])
 sage.plot_importance(feature_names=df.drop(columns=["count"]).columns.tolist())
+
+
+# %%
+# Classification SAGE example
+# ---------------------------
+
+from sklearn.datasets import load_breast_cancer
+from sklearn.metrics import balanced_accuracy_score, log_loss
+from sklearn.neural_network import MLPClassifier
+
+X, y = load_breast_cancer(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+model = MLPClassifier(random_state=0, hidden_layer_sizes=(256, 256))
+print("Train set shape:", X_train.shape)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print("Balanced accuracy score:", balanced_accuracy_score(y_test, y_pred))
+
+sage = SAGE(
+    model,
+    n_subsets=64,
+    n_permutations=10,
+    random_state=0,
+    n_jobs=8,
+    method="predict_proba",
+    loss=log_loss,
+)
+sage.fit(X_train)
+sage.importance(X_test, y_test)
+ax = sage.plot_importance()
 # %%

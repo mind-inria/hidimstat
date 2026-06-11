@@ -132,10 +132,9 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         self.estimator_ = self._initial_fit(self.estimator, X, y)
         GroupVariableImportanceMixin.fit(self, X, y)
-        self._value_cache = {}
         return self
 
     def importance(self, X, y):
