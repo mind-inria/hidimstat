@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.samplers.gaussian_knockoffs import GaussianKnockoffs, _s_equi
@@ -23,10 +24,7 @@ def test_gaussian_error():
     """Test function error"""
     seed = 42
     generator = GaussianKnockoffs()
-    with pytest.raises(
-        ValueError,
-        match="The GaussianGenerator requires to be fit before sampling",
-    ):
+    with pytest.raises(NotFittedError):
         generator.sample(random_state=seed * 2)
 
 
