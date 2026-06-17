@@ -144,8 +144,14 @@ class LOCI(BasePerturbation):
         if self.method == "predict":
             y_baseline = np.full_like(y, np.mean(y), dtype=float)
         elif self.method in ["predict_proba", "decision_function"]:
-            values, counts = np.unique(y, return_counts=True)
-            y_baseline = np.full_like(y, values[np.argmax(counts)], dtype=int)
+            if y.ndim == 1:
+                values, counts = np.unique(y, return_counts=True)
+                y_baseline = np.full_like(
+                    y, values[np.argmax(counts)], dtype=int
+                )
+            else:
+                # For multilabel classification, we take the marginal probability.
+                y_baseline = np.tile(y.mean(axis=0), (len(y), 1))
         else:
             raise ValueError("Estimator must be a classifier or regressor.")
         self.loss_reference_ = self.loss(y, y_baseline)
