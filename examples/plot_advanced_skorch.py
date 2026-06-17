@@ -143,7 +143,7 @@ from sklearn.feature_extraction import image
 from hidimstat import CFI
 
 shape = (28, 28)
-n_clusters = 100
+n_clusters = 50
 target_fwer = 0.1
 
 X_cluster = resample(
@@ -190,8 +190,6 @@ selected_0_1 = cfi.fwer_selection(
 # Finally, we visualize the significant pixels identified by CFI for each of the
 # classification tasks.
 
-from operator import itemgetter
-
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
@@ -207,8 +205,16 @@ for i, (title, selected) in enumerate(
 ):
     pixel_selection = np.zeros((len(clustering.labels_),), dtype=int)
     # selected contains the selected cluster groups, so we convert this back to pixel selection.
-    keep_pixels = np.concatenate(itemgetter(*selected)(features_groups))
-    pixel_selection[keep_pixels] = 1
+    for sign in (-1, 1):
+        pixels = [
+            pixels
+            for pixels, sel in zip(
+                features_groups.values(), selected, strict=False
+            )
+            if sel == sign
+        ]
+        if pixels:
+            pixel_selection[np.concatenate(pixels)] = sign
     mask_pfi = pixel_selection.reshape(shape)
 
     cmap = ListedColormap(["tab:red", "white", "tab:blue"])
