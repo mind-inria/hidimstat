@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -14,8 +14,8 @@ class LOCI(BasePerturbation):
     Leave-One-Covariate-In (LOCO) algorithm
 
     The model is re-fitted for each single feature/group of features. The importance is
-    then computed as the difference between the loss of the full model and the loss
-    of the model on the single feature/group.
+    then computed as the difference between the loss of an empty model (mean for regression,
+    and majority vote for classification) and the loss of the model on the single feature/group.
 
     Parameters
     ----------
@@ -141,8 +141,14 @@ class LOCI(BasePerturbation):
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
-        y_pred = getattr(self.estimator, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
+        if self.method == "predict":
+            y_baseline = np.full_like(y, np.mean(y), dtype=float)
+        elif self.method in ["predict_proba", "decision_function"]:
+            values, counts = np.unique(y, return_counts=True)
+            y_baseline = np.full_like(y, values[np.argmax(counts)], dtype=int)
+        else:
+            raise ValueError("Estimator must be a classifier or regressor.")
+        self.loss_reference_ = self.loss(y, y_baseline)
 
         y_pred = self._predict(X)
         test_result = []
@@ -158,7 +164,7 @@ class LOCI(BasePerturbation):
 
         self.importances_ = np.mean(
             [
-                self.loss_[j] - self.loss_reference_
+                self.loss_reference_ - self.loss_[j]
                 for j in range(self.n_features_groups_)
             ],
             axis=1,
@@ -173,7 +179,7 @@ class LOCI(BasePerturbation):
         self, estimator, X, y, key_features_group
     ):
         """
-        Fit the estimator after removing a group of covariates.
+        Fit the estimator on a group of covariates.
         Used in parallel.
         """
         if isinstance(X, pd.DataFrame):
@@ -194,7 +200,8 @@ class LOCI(BasePerturbation):
         if isinstance(X, pd.DataFrame):
             X_j = X[self.features_groups_[features_group_id]]
         else:
-            X_j = X[:, self.features_groups_[features_group_id]]
+            # Since we don't have access to column names, we use the member _features_groups_ids
+            X_j = X[:, self._features_groups_ids[features_group_id]]
 
         y_pred_loci = getattr(
             self._list_estimators[features_group_id], self.method

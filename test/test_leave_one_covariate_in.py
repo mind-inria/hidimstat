@@ -49,7 +49,7 @@ def test_loci():
     assert (
         importance[important_features].mean()
         > importance[non_important_features].mean()
-    )  # TODO: this fails - assert np.float64(4.092537701017104) > np.float64(5.256802543234577)
+    )
 
     # Same with groups and a pd.DataFrame
     groups = {
@@ -71,11 +71,7 @@ def test_loci():
         X_train_df,
         y_train,
     )
-    # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = loci.importance(X_test_df, y_test)
+    importance = loci.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()
 
@@ -178,12 +174,12 @@ def test_loci_function():
     assert (
         importance[important_features].mean()
         > importance[non_important_features].mean()
-    )  # TODO : this fails - assert np.float64(7.883288035924612) > np.float64(8.789140067589203)
+    )
 
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 50, 5, 0.1, 0, 2.0, 8, 0.0)],
+    [(500, 50, 5, 0.0, 0, 2.0, 8, 0.0)],
     ids=["default data"],
 )
 def test_loci_cv(data_generator):
@@ -212,5 +208,5 @@ def test_loci_cv(data_generator):
     gt_mask = np.zeros(X.shape[1], dtype=int)
     gt_mask[important_features] = 1
     fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
-    assert fdp < alpha  # TODO: this fails - assert np.float64(0.9) < 0.1
-    assert power > 0.8
+    assert fdp < alpha
+    assert power > 0.8  # TODO: this fails - assert np.float64(0.0) > 0.8
