@@ -4,7 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
-from ._compute_accumulated_local_effects import compute_ale_1d, compute_ale_2d
+from ._compute_accumulated_local_effects import (
+    compute_ale_1d_continuous,
+    compute_ale_1d_discrete,
+    compute_ale_2d,
+)
 
 
 class ALE:
@@ -45,7 +49,7 @@ class ALE:
         self.feature_names = feature_names
 
 
-    def plot(self, X, features, grid_resolution=50, is_categorical=False, cmap="viridis", **kwargs):
+    def plot(self, X, features, feature_type="auto", grid_resolution=50, cmap="viridis", **kwargs):
         """Compute and display the ALE plot for one or two features.
 
         Parameters
@@ -54,11 +58,13 @@ class ALE:
             Dataset used to build the quantile grid and to gather local effects.
         features : int or list of int
             Feature index (1D ALE) or pair of feature indices (2D ALE).
+        feature_type : string among 'auto', 'discrete', 'continuous', or 'categorical'
+            Specify the type of values the feature has for 1D ALE. Set by default to auto aand in this case :
+            - non-numeric feature : categorical
+            - numeric feature : discrete if the feature has less than 10 unique values or the number of unique values
+            is less than 0.1% of the samples, and continuous otherwise
         grid_resolution : int, default=50
             Number of bins per feature axis.
-        is_categorical : bool or list of two bools, default=False
-            Placeholder for future categorical support.  Must be ``False``
-            (or ``[False, False]`` for 2D).
         cmap : str, default="viridis"
             Matplotlib colormap used for the 2D contour plot.
         **kwargs
@@ -72,12 +78,30 @@ class ALE:
         axes : ndarray of Axes
             The matplotlib ``Axes`` objects that make up the figure.
         """
-        X = np.asarray(X, dtype=float)
+        X = np.asarray(X)
 
         if isinstance(features, int):
             feature_ids = [features]
-            is_cat_arg = bool(is_categorical)
-            plotting_func = self._plot_1d
+            if feature_type == "auto":
+                if X[:, features].dtype.kind in "iuf":
+                    len_unique_values = len(np.unique(X[:, features]))
+                    if len_unique_values <= 10 or len_unique_values / len(X) <= 0.001 :
+                        feature_type = "discrete"
+                        plotting_func = self._plot_1d_discrete
+                    else :
+                        feature_type = "continuous"
+                        plotting_func = self._plot_1d_continuous
+                else:
+                    feature_type = "categorical"
+                    raise ValueError("Categorical not yet implemented.")
+            elif feature_type == "continuous":
+                plotting_func = self._plot_1d_continuous
+            elif feature_type == "discrete":
+                plotting_func = self._plot_1d_discrete
+            elif feature_type == "categorical":
+                raise ValueError("Categorical not yet implemented.")
+            else:
+                raise ValueError("feature_type should be a string among 'auto', 'discrete', 'continuous', or 'categorical'")
         elif isinstance(features, list):
             if len(features) > 2:
                 raise ValueError("Only 1D (single int) and 2D (list of two ints) ALE plots are supported.")
@@ -93,35 +117,66 @@ class ALE:
 
         # Compute
         if isinstance(features, int):
-            result = compute_ale_1d(self.estimator, X, feature_idx=features, grid_resolution=grid_resolution)
+            if feature_type == "continuous":
+                result = compute_ale_1d_continuous(self.estimator, X, feature_idx=features, grid_resolution=grid_resolution)
+            elif feature_type == "discrete":
+                result = compute_ale_1d_discrete(self.estimator, X, feature_idx=features)
+            elif feature_type == "categorical":
+                raise ValueError("Categorical not yet implemented.")
+            else:
+                raise ValueError("feature_type should be a string among 'auto', 'discrete', 'continuous', or 'categorical'")
         else:
             result = compute_ale_2d(self.estimator, X, feature_indices=features, grid_resolution=grid_resolution)
 
         return plotting_func(result, X, feature_ids, feature_names, cmap=cmap, **kwargs)
 
     @staticmethod
-    def _plot_1d(result, X, feature_ids, feature_names, cmap=None, **kwargs):
+    def _plot_1d_continuous(result, X, feature_ids, feature_names, cmap=None, **kwargs):
         """Render a 1D ALE plot with a marginal density strip."""
-        del cmap  # only present for API symmetry with _plot_2d
+        del cmap  # only there for API compatibility
 
         feature_values = X[:, feature_ids[0]]
 
-        _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1])
+        _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1], sharex=True)
 
         # Top strip: marginal distribution of the feature
         ax_top = axes[0]
         sns.kdeplot(feature_values, ax=ax_top, fill=True, legend=False)
-        sns.rugplot(feature_values, ax=ax_top, height=0.25, legend=False)
         sns.despine(ax=ax_top, left=True)
-        ax_top.spines["left"].set_visible(False)
-        ax_top.spines["bottom"].set_visible(True)
-        ax_top.xaxis.set_ticks([])
+        ax_top.tick_params(axis='x', which='both', bottom=False, top=False)
         ax_top.yaxis.set_visible(False)
 
         # Main panel: ALE curve
         ax_main = axes[1]
-        sns.lineplot(x=result["quantiles"], y=result["uncentered_ale"], ax=ax_main, **kwargs)
-        ax_main.axhline(result["uncentered_mean"], color="grey", linewidth=0.8, linestyle="--")
+        sns.lineplot(x=result["quantiles"], y=result["ale"], ax=ax_main, **kwargs)
+        ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
+        ax_main.set_xlabel(feature_names[0])
+        ax_main.set_ylabel("ALE")
+        sns.despine(ax=ax_main)
+        plt.tight_layout()
+        return axes
+
+    @staticmethod
+    def _plot_1d_discrete(result, X, feature_ids, feature_names, cmap=None, **kwargs):
+        """Render a 1D ALE plot with a marginal density strip."""
+        del cmap  # only there for API compatibility
+
+        feature_values = X[:, feature_ids[0]]
+
+        _, axes = plt.subplots(2, 1, figsize=(6, 4), height_ratios=[0.2, 1], sharex=True)
+
+        # Top strip: marginal distribution of the feature
+        ax_top = axes[0]
+        sns.histplot(feature_values, ax=ax_top, discrete=True, fill=True, legend=False)
+        sns.despine(ax=ax_top, left=True)
+        ax_top.tick_params(axis='x', which='both', bottom=False, top=False)
+        ax_top.yaxis.set_visible(False)
+
+        # Main panel: ALE curve
+        ax_main = axes[1]
+        sns.lineplot(x=result["unique_values"], y=result["ale"], ax=ax_main, marker='o', **kwargs)
+        ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
+        ax_main.xaxis.set_ticks(result["unique_values"])
         ax_main.set_xlabel(feature_names[0])
         ax_main.set_ylabel("ALE")
         sns.despine(ax=ax_main)
@@ -137,17 +192,20 @@ class ALE:
         xx, yy = np.meshgrid(result["quantiles_i"], result["quantiles_j"], indexing="ij")
         zz = result["ale"]
 
-        _, axes = plt.subplots(
+        fig, axes = plt.subplots(
             2, 2, figsize=(8, 6), height_ratios=[0.2, 1], width_ratios=[1, 0.2]
         )
 
-        # Main panel: filled contour
+        # Main panel: filled contour (gradient de couleur)
         ax_main = axes[1, 0]
-        contour = ax_main.contour(xx, yy, zz, cmap=cmap, **kwargs)
-        ax_main.set_xlabel(feature_names[0])
-        ax_main.set_ylabel(feature_names[1])
-        ax_main.clabel(contour, inline=True, fontsize=10)
-        sns.despine(ax=ax_main)
+        extent = [result["quantiles_j"].min(), result["quantiles_j"].max(),
+                  result["quantiles_i"].min(), result["quantiles_i"].max()]
+
+        contour = ax_main.imshow(zz.T, origin="lower", extent=extent, cmap=cmap, aspect="auto")
+
+        # Inverser les labels pour refléter la transposition
+        ax_main.set_xlabel(feature_names[1])
+        ax_main.set_ylabel(feature_names[0])
 
         # Top strip: marginal of feature 0
         ax_top = axes[0, 0]
@@ -168,6 +226,11 @@ class ALE:
         ax_right.yaxis.set_ticks([])
         ax_right.xaxis.set_visible(False)
 
-        axes[0, 1].remove()
+        # Barre de couleur (remplace la suppression de l'axe supérieur droit)
+        cax = axes[0, 1]
+        cax.axis("off") # Masque la bordure du graphe vide
+        cbar = fig.colorbar(contour, ax=cax, fraction=1.0, aspect=10)
+        cbar.set_label("ALE", rotation=270, labelpad=15)
+
         plt.tight_layout()
         return axes
