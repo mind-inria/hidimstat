@@ -157,10 +157,10 @@ The details of the method and the underlying guarantees are described in
 .. topic:: **Other examples**
 
     See the following example for an application to the analysis of fMRI data:
-    :ref:`sphx_glr_generated_gallery_examples_plot_fmri_data_example.py`
+    :ref:`sphx_glr_generated_gallery_examples_real_life_examples_plot_advanced_2_fmri_data.py`
 
     See this example for an illustration on MNIST digit classification:
-    :ref:`sphx_glr_generated_gallery_examples_plot_digits.py`
+    :ref:`sphx_glr_generated_gallery_examples_real_life_examples_plot_advanced_1_digits.py`
 
 
 References
