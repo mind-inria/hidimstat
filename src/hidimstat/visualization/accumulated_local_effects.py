@@ -86,7 +86,7 @@ class ALE:
         features : int or list of int
             Feature index (1D ALE) or pair of feature indices (2D ALE).
         feature_type : string among 'auto', 'discrete', 'continuous', or 'categorical'
-            Specify the type of values the feature has for 1D ALE. Set by default to auto aand in this case :
+            Specify the type of values the feature has for 1D ALE. Set by default to auto and in this case :
             - non-numeric feature : categorical
             - numeric feature : discrete if the feature has less than 10 unique values or the number of unique values
             is less than 0.1% of the samples, and continuous otherwise
