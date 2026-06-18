@@ -135,6 +135,7 @@ models = [
         tol=1e-3,
         max_iter=1000,
         cv=KFold(shuffle=True, random_state=4),
+        l1_ratios=(0,),
     ),
     GridSearchCV(
         SVC(kernel="rbf"),

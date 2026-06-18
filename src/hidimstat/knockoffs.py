@@ -99,8 +99,8 @@ class ModelXKnockoff(BaseVariableImportance):
     preconfigure_lasso_path : bool, default=True
         An optional function is called to configure the LassoCV estimator's regularization path.
         The maximum alpha is computed as `alpha_max = max(X_ko.T @ y) / (2 * n_features)`
-        and an alpha grid of length n_alphas is created between
-        alpha_max * exp(-n_alphas) and alpha_max.
+        and an alpha grid of length alphas is created between
+        alpha_max * exp(-alphas) and alpha_max.
     random_state : int or None, default=None
         Random seed forwarded to the knockoff generator sampling.
     joblib_verbose : int, default=0
@@ -399,11 +399,10 @@ class ModelXKnockoff(BaseVariableImportance):
             if hasattr(estimator_, "alphas") and (
                 estimator_.alphas is not None
             ):
-                n_alphas = len(estimator_.alphas)
-            elif hasattr(estimator_, "n_alphas") and (
-                estimator_.n_alphas is not None
-            ):
-                n_alphas = estimator_.n_alphas
+                if isinstance(estimator_.alphas, int):
+                    n_alphas = estimator_.alphas
+                elif isinstance(estimator_.alphas, (list, np.ndarray)):
+                    n_alphas = len(estimator_.alphas)
             else:
                 n_alphas = 10
             estimator_ = set_alpha_max_lasso_path(

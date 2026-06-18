@@ -48,7 +48,10 @@ import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=0
+    Cs=np.logspace(-3, 3, 10),
+    l1_ratios=(1,),
+    solver="liblinear",
+    random_state=0,
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -102,7 +105,7 @@ import pandas as pd
 
 lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
-    penalty="l1",
+    l1_ratios=(1,),
     solver="liblinear",
     random_state=0,
     n_jobs=4,
@@ -156,7 +159,7 @@ model_x_knockoff = ModelXKnockoff(
     ),
     estimator=LogisticRegressionCV(
         solver="liblinear",
-        penalty="l1",
+        l1_ratios=(1,),
         Cs=np.logspace(-3, 3, 10),
         random_state=0,
         tol=1e-3,
