@@ -23,6 +23,7 @@ def _check_estimator_predict(estimator):
     feature_names = getattr(estimator, "feature_names_in_", None)
 
     if hasattr(estimator, "predict_proba"):
+
         def predict_fn(X):
             if feature_names is not None:
                 X = pd.DataFrame(X, columns=feature_names)
@@ -31,20 +32,25 @@ def _check_estimator_predict(estimator):
             if proba.ndim == 2 and proba.shape[1] == 2:
                 return proba[:, 1]
             return proba
+
         return predict_fn
 
     if hasattr(estimator, "decision_function"):
+
         def predict_fn(X):
             if feature_names is not None:
                 X = pd.DataFrame(X, columns=feature_names)
             return estimator.decision_function(X).ravel()
+
         return predict_fn
 
     if hasattr(estimator, "predict"):
+
         def predict_fn(X):
             if feature_names is not None:
                 X = pd.DataFrame(X, columns=feature_names)
             return estimator.predict(X).ravel()
+
         return predict_fn
 
     raise ValueError(
@@ -77,7 +83,7 @@ def _build_quantile_grid(x, grid_resolution):
         return uniques
 
     probs = np.linspace(0.0, 1.0, grid_resolution + 1)
-    return np.unique(np.percentile(x, probs * 100, method='inverted_cdf'))
+    return np.unique(np.percentile(x, probs * 100, method="inverted_cdf"))
 
 
 def _bin_indices(x, quantiles):
@@ -129,7 +135,7 @@ def compute_ale_1d_continuous(estimator, X, feature_idx, grid_resolution=50):
     result : dict with the following keys:
 
         ``"ale"`` : ndarray of shape (n_quantiles,)
-            Centered ALE values evaluated at each bin edge.
+            ALE values evaluated at each bin edge.
         ``"quantiles"`` : ndarray of shape (n_quantiles,)
             Bin edges (quantiles of the feature distribution).
     """
@@ -141,7 +147,9 @@ def compute_ale_1d_continuous(estimator, X, feature_idx, grid_resolution=50):
     n_bins = len(quantiles) - 1
 
     if n_bins < 1:
-        raise ValueError(f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data.")
+        raise ValueError(
+            f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
+        )
 
     bin_idx = _bin_indices(x, quantiles)
 
@@ -151,8 +159,9 @@ def compute_ale_1d_continuous(estimator, X, feature_idx, grid_resolution=50):
     X_low[:, feature_idx] = quantiles[bin_idx]
     X_high[:, feature_idx] = quantiles[bin_idx + 1]
 
-    local_effects = predict_fn(X_high) - predict_fn(X_low)  # shape (n_samples,)
-
+    local_effects = predict_fn(X_high) - predict_fn(
+        X_low
+    )  # shape (n_samples,)
 
     # Average local effects within each bin
     bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
@@ -168,7 +177,6 @@ def compute_ale_1d_continuous(estimator, X, feature_idx, grid_resolution=50):
     # Center: subtract the sample-weighted mean
     ale_centers = (ale[1:] + ale[:-1]) / 2
     ale -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
-
 
     return {
         "ale": ale,
@@ -212,7 +220,9 @@ def compute_ale_1d_discrete(estimator, X, feature_idx):
     n_values = len(unique_values)
 
     if n_values < 1:
-        raise ValueError(f"Feature {feature_idx} has fewer than 2 unique values. Check your data.")
+        raise ValueError(
+            f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
+        )
 
     value_idx = np.digitize(x, unique_values) - 1
 
@@ -225,15 +235,20 @@ def compute_ale_1d_discrete(estimator, X, feature_idx):
     X_high[mask_high, feature_idx] = unique_values[value_idx[mask_high] + 1]
 
     local_effects_low = predict_fn(X[mask_low]) - predict_fn(X_low[mask_low])
-    local_effects_high = predict_fn(X_high[mask_high]) - predict_fn(X[mask_high])
-
+    local_effects_high = predict_fn(X_high[mask_high]) - predict_fn(
+        X[mask_high]
+    )
 
     # Average local effects within each bin
-    combined_idx = np.concatenate([value_idx[mask_low], value_idx[mask_high] + 1])
+    combined_idx = np.concatenate(
+        [value_idx[mask_low], value_idx[mask_high] + 1]
+    )
     combined_effects = np.concatenate([local_effects_low, local_effects_high])
 
     value_counts = np.bincount(combined_idx, minlength=n_values).astype(float)
-    value_sums = np.bincount(combined_idx, weights=combined_effects, minlength=n_values)
+    value_sums = np.bincount(
+        combined_idx, weights=combined_effects, minlength=n_values
+    )
 
     mean_effects = np.zeros(n_values, dtype=float)
     non_zero = value_counts > 0
@@ -246,14 +261,17 @@ def compute_ale_1d_discrete(estimator, X, feature_idx):
     ale_centers = (ale[1:] + ale[:-1]) / 2
     ale -= np.sum(ale_centers * value_counts[1:]) / value_counts.sum()
 
-
-    return {
-        "ale": ale,
-        "unique_values": unique_values
-    }
+    return {"ale": ale, "unique_values": unique_values}
 
 
-def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categorical=(False, False), impute_empty_bins=False):
+def compute_ale_2d(
+    estimator,
+    X,
+    feature_indices,
+    grid_resolution=20,
+    is_categorical=(False, False),
+    impute_empty_bins=False,
+):
     """Compute the 2D Accumulated Local Effect for a pair of continuous features.
 
     The 2D ALE isolates the *interaction* effect between two features by
@@ -284,18 +302,22 @@ def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categor
     result : dict with the following keys:
 
         ``"ale"`` : ndarray of shape (n_quantiles_i, n_quantiles_j)
-            Centred 2D ALE surface evaluated at each 2D bin corners.
+            2D ALE values evaluated at each 2D bin corner.
         ``"quantiles_i"`` : ndarray of shape (n_quantiles_i,)
             Bin edges for the first feature.
         ``"quantiles_j"`` : ndarray of shape (n_quantiles_j,)
             Bin edges for the second feature.
     """
     if any(is_categorical):
-        raise NotImplementedError("Categorical features are not yet supported. Set is_categorical=(False, False).")
+        raise NotImplementedError(
+            "Categorical features are not yet supported. Set is_categorical=(False, False)."
+        )
 
     feature_indices = list(feature_indices)
     if len(feature_indices) != 2:
-        raise ValueError("feature_indices must contain exactly two feature indices.")
+        raise ValueError(
+            "feature_indices must contain exactly two feature indices."
+        )
 
     X = np.asarray(X)
     predict_fn = _check_estimator_predict(estimator)
@@ -310,9 +332,13 @@ def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categor
     n_bins_j = len(quantiles_j) - 1
 
     if n_bins_i < 1:
-        raise ValueError(f"Feature {idx_i} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data.")
+        raise ValueError(
+            f"Feature {idx_i} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
+        )
     if n_bins_j < 1:
-        raise ValueError(f"Feature {idx_j} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data.")
+        raise ValueError(
+            f"Feature {idx_j} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
+        )
 
     bin_idx_i = _bin_indices(x_i, quantiles_i)
     bin_idx_j = _bin_indices(x_j, quantiles_j)
@@ -335,54 +361,32 @@ def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categor
     X_hh[:, idx_j] = quantiles_j[bin_idx_j + 1]
 
     # Second-order local effects
-    local_effects = (predict_fn(X_hh) - predict_fn(X_hl)) - (predict_fn(X_lh) - predict_fn(X_ll))  # shape (n_samples,)
+    local_effects = (predict_fn(X_hh) - predict_fn(X_hl)) - (
+        predict_fn(X_lh) - predict_fn(X_ll)
+    )  # shape (n_samples,)
 
     # Average local effects within each 2D bin
     flat_bin_idx = bin_idx_i * n_bins_j + bin_idx_j
     n_flat_bins = n_bins_i * n_bins_j
 
-    bin_counts_flat = np.bincount(flat_bin_idx, minlength=n_flat_bins).astype(float)
-    bin_sums_flat = np.bincount(flat_bin_idx, weights=local_effects, minlength=n_flat_bins)
+    bin_counts_flat = np.bincount(flat_bin_idx, minlength=n_flat_bins).astype(
+        float
+    )
+    bin_sums_flat = np.bincount(
+        flat_bin_idx, weights=local_effects, minlength=n_flat_bins
+    )
 
     mean_effects_flat = np.zeros(n_flat_bins, dtype=float)
     non_zero = bin_counts_flat > 0
-    mean_effects_flat[non_zero] = bin_sums_flat[non_zero] / bin_counts_flat[non_zero]
+    mean_effects_flat[non_zero] = (
+        bin_sums_flat[non_zero] / bin_counts_flat[non_zero]
+    )
 
     bin_counts = bin_counts_flat.reshape(n_bins_i, n_bins_j)
     mean_effects = mean_effects_flat.reshape(n_bins_i, n_bins_j)
 
-    print(mean_effects)
     if impute_empty_bins:
-        empty_mask  = (bin_counts == 0)   # (n_bins_i, n_bins_j)
-        filled_mask = ~empty_mask
-
-        if empty_mask.any() and filled_mask.any():
-            range_i = quantiles_i[-1] - quantiles_i[0]
-            range_j = quantiles_j[-1] - quantiles_j[0]
-
-            # Upper corner of each bin, normalised — shape (n_bins_i, n_bins_j)
-            # bin k along axis i has upper edge quantiles_i[k+1], i.e. index k+1
-            # using the same (lower+upper)/(2*range) formula as PyALE but at corners:
-            # PyALE uses centres (bins[k-1]+bins[k])/(2*range) where k is 1-indexed.
-            # Here bin index goes 0..n_bins-1, upper edge = quantiles[k+1],
-            # lower edge = quantiles[k], so centre = (quantiles[k]+quantiles[k+1])/(2*range).
-            gi, gj = np.meshgrid(
-                (quantiles_i[:-1] + quantiles_i[1:]) / (2 * range_i),
-                (quantiles_j[:-1] + quantiles_j[1:]) / (2 * range_j),
-                indexing="ij",
-            )  # both shape (n_bins_i, n_bins_j)
-
-            coords_filled = np.column_stack([gi[filled_mask], gj[filled_mask]])
-            coords_empty  = np.column_stack([gi[empty_mask],  gj[empty_mask]])
-
-            nbrs = NearestNeighbors(n_neighbors=1, algorithm="kd_tree").fit(coords_filled)
-            _, indices = nbrs.kneighbors(coords_empty)
-
-            # indices[:,0] indexes into coords_filled, i.e. into mean_effects[filled_mask]
-            filled_values = mean_effects[filled_mask]
-            mean_effects = mean_effects.copy()
-            mean_effects[empty_mask] = filled_values[indices[:, 0]]
-            print(mean_effects[empty_mask])
+        raise ValueError("Not yet implemented.")
 
     # Double cumulative sum : uncentred 2D ALE at bin corners
     ale_inner = np.cumsum(np.cumsum(mean_effects, axis=0), axis=1)
@@ -390,7 +394,6 @@ def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categor
     ale[1:, 1:] = ale_inner
 
     # Remove main effects
-
     bin_counts_i = bin_counts.sum(axis=1)
     bin_counts_j = bin_counts.sum(axis=0)
 
@@ -400,30 +403,37 @@ def compute_ale_2d(estimator, X, feature_indices, grid_resolution=20, is_categor
     main_effects_i = np.zeros(n_bins_i + 1)
     non_zero_i = bin_counts_i > 0
     main_effects_i_increments = np.zeros(n_bins_i)
-    main_effects_i_increments[non_zero_i] = np.sum(delta_i[non_zero_i, :] * bin_counts[non_zero_i, :], axis=1) / bin_counts_i[non_zero_i]
+    main_effects_i_increments[non_zero_i] = (
+        np.sum(delta_i[non_zero_i, :] * bin_counts[non_zero_i, :], axis=1)
+        / bin_counts_i[non_zero_i]
+    )
     main_effects_i[1:] = np.cumsum(main_effects_i_increments)
 
     main_effects_j = np.zeros(n_bins_j + 1)
     non_zero_j = bin_counts_j > 0
     main_effects_j_increments = np.zeros(n_bins_j)
-    main_effects_j_increments[non_zero_j] = np.sum(delta_j[:, non_zero_j] * bin_counts[:, non_zero_j], axis=0) / bin_counts_j[non_zero_j]
+    main_effects_j_increments[non_zero_j] = (
+        np.sum(delta_j[:, non_zero_j] * bin_counts[:, non_zero_j], axis=0)
+        / bin_counts_j[non_zero_j]
+    )
     main_effects_j[1:] = np.cumsum(main_effects_j_increments)
 
     ale -= main_effects_i[:, np.newaxis]
     ale -= main_effects_j[np.newaxis, :]
 
-
     # Centre: subtract the sample-weighted mean
     ale_centers = (
-        ale[:-1, :-1] # ll
-        + ale[1:, 1:] # hh
-        + ale[:-1, 1:] # hl
-        + ale[1:, :-1] # lh
-    ) / 4.0  # average of the four corner values
+        (
+            ale[:-1, :-1]  # ll
+            + ale[1:, 1:]  # hh
+            + ale[:-1, 1:]  # hl
+            + ale[1:, :-1]  # lh
+        )
+        / 4.0
+    )  # average of the four corner values
 
     # Centre: subtract the sample-weighted mean (only over occupied bins)
     ale -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
-
 
     return {
         "ale": ale,
