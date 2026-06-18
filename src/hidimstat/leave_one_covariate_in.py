@@ -16,6 +16,7 @@ class LOCI(BasePerturbation):
     The model is re-fitted for each single feature/group of features. The importance is
     then computed as the difference between the loss of an empty model (mean for regression,
     and majority vote for classification) and the loss of the model on the single feature/group.
+    For more details, see :footcite:t:`ewald_2024`.
 
     Parameters
     ----------
