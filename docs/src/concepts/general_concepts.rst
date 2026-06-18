@@ -93,8 +93,7 @@ arise with marginal methods, which may assign importance to variables just
 because they are correlated with truly important ones. By focusing on unique
 contributions, conditional methods help preserve parsimony, yielding a smaller
 and more meaningful subset of important features. However, in certain cases, the
-distinction between marginal and conditional methods can be more subtle. See
-:ref:`sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py`
+distinction between marginal and conditional methods can be more subtle.
 
 
 High-dimension and correlation
