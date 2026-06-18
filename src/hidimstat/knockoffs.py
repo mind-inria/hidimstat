@@ -396,8 +396,10 @@ class ModelXKnockoff(BaseVariableImportance):
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
+            # TODO: remove isinstance(estimator_.alphas, str) when Sklearn minimum version is 1.9
             if hasattr(estimator_, "alphas") and (
                 estimator_.alphas is not None
+                and not isinstance(estimator_.alphas, str)
             ):
                 if isinstance(estimator_.alphas, int):
                     n_alphas = estimator_.alphas
