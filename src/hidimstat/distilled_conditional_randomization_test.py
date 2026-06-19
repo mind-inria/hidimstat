@@ -1,5 +1,4 @@
 import warnings
-from inspect import signature
 
 import numpy as np
 from joblib import Parallel, delayed
