@@ -288,6 +288,35 @@ def test_model_x_knockoff_null():
     assert not selected.any()
 
 
+def test_lasso_estimator_alphas():
+    """Test configuration of alphas when estimator is LassoCV depending on SKLEARN version."""
+    n = 200
+    p = 50
+    signal_noise_ratio = 32
+    n_repeats = 5
+    seed = 42
+    n_alphas = 10
+    X, y, _, _ = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
+    )
+    if SKLEARN_LT_1_6:
+        estimator = LassoCV(n_alphas=n_alphas)
+    else:
+        estimator = LassoCV(alphas=list(range(n_alphas)))
+
+    model_x_knockoff = ModelXKnockoff(
+        estimator=estimator,
+        n_repeats=n_repeats,
+        random_state=seed,
+        n_jobs=5,
+    ).fit(X, y)
+
+    assert all(
+        len(estimator.alphas) == n_alphas
+        for estimator in model_x_knockoff.estimators_
+    )
+
+
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
