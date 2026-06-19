@@ -140,7 +140,7 @@ net.n_features_in_ = 28 * 28
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 
-from hidimstat import CFI
+from hidimstat import PFI
 
 shape = (28, 28)
 n_clusters = 50
@@ -165,22 +165,22 @@ features_groups = dict(zip(unique_ids, positions, strict=False))
 # features_groups = {idx: [cluster_label] for idx, cluster_label in enumerate(clustering.labels_)}
 
 # Careful when using Skorch, having n_jobs > 1 might create joblib and pickle issues.
-cfi = CFI(
+pfi = PFI(
     estimator=model,
     features_groups=features_groups,
-    n_permutations=10,
+    n_permutations=20,
     random_state=0,
 )
 # PyTorch expects float input, and long type target.
 model.fit(X_4_7, y=y_4_7.astype(np.int64))
-cfi.fit_importance(X_4_7, y_4_7)
-selected_4_7 = cfi.fwer_selection(
+pfi.fit_importance(X_4_7, y_4_7)
+selected_4_7 = pfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
 model.fit(X_0_1, y=y_0_1.astype(np.int64))
-cfi.fit_importance(X_0_1, y_0_1)
-selected_0_1 = cfi.fwer_selection(
+pfi.fit_importance(X_0_1, y_0_1)
+selected_0_1 = pfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
