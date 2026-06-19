@@ -399,12 +399,20 @@ class ModelXKnockoff(BaseVariableImportance):
             # TODO: remove isinstance(estimator_.alphas, str) when Sklearn minimum version is 1.9
             if hasattr(estimator_, "alphas") and (
                 estimator_.alphas is not None
-                and not isinstance(estimator_.alphas, str)
+                and not isinstance(
+                    estimator_.alphas, str
+                )  # to avoid alphas="warn"
             ):
                 if isinstance(estimator_.alphas, int):
                     n_alphas = estimator_.alphas
                 elif isinstance(estimator_.alphas, (list, np.ndarray)):
                     n_alphas = len(estimator_.alphas)
+            elif hasattr(estimator_, "n_alphas") and (
+                estimator_.n_alphas
+                is not None  # to avoid n_alphas="deprecated"
+                and not isinstance(estimator_.n_alphas, str)
+            ):
+                n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
             estimator_ = set_alpha_max_lasso_path(

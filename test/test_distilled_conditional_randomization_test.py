@@ -38,6 +38,7 @@ def expected_failed_checks(estimator):
 
 
 if SKLEARN_LT_1_6:
+    alphas_attr = "n_alphas"
 
     @pytest.mark.parametrize(
         "estimator, check, name",
@@ -64,6 +65,7 @@ if SKLEARN_LT_1_6:
         check(estimator)
 
 else:
+    alphas_attr = "alphas"
 
     @parametrize_with_checks(
         estimators=ESTIMATORS_TO_CHECK,
@@ -89,8 +91,9 @@ def d0crt_test_data():
     dcrt_default_parameters = {
         "estimator": LassoCV(cv=KFold(shuffle=True)),
         "screening_threshold": None,
-        "model_distillation_x": LassoCV(alphas=10, cv=KFold(shuffle=True)),
+        "model_distillation_x": LassoCV(cv=KFold(shuffle=True)),
     }
+    setattr(dcrt_default_parameters["model_distillation_x"], alphas_attr, 10)
     return X, y, beta, dcrt_default_parameters
 
 
@@ -550,8 +553,10 @@ def test_d0crt_linear():
         shuffle=False,
     )
     important_ids = np.where(coef != 0)[0]
+    lasso_estimator = LassoCV(n_jobs=1)
+    setattr(lasso_estimator, alphas_attr, 10)
     d0crt = D0CRT(
-        estimator=LassoCV(n_jobs=1, alphas=10),
+        estimator=lasso_estimator,
         screening_threshold=90,
     )
     importances = d0crt.fit_importance(X, y)

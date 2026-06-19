@@ -1,4 +1,5 @@
 import warnings
+from inspect import signature
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -15,11 +16,26 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
+    LASSO_ALPHAS_ATTR,
     _check_vim_predict_method,
     check_random_state,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
+
+
+def _default_lasso_screening():
+    default_lasso_screening_ = LassoCV(
+        tol=1e-6, fit_intercept=False, random_state=0
+    )
+    setattr(default_lasso_screening_, LASSO_ALPHAS_ATTR, 10)
+    return default_lasso_screening_
+
+
+def _default_model_distillation_x():
+    default_model_distillation_x_ = LassoCV(n_jobs=1, random_state=0)
+    setattr(default_model_distillation_x_, LASSO_ALPHAS_ATTR, 10)
+    return default_model_distillation_x_
 
 
 class D0CRT(BaseVariableImportance):
@@ -135,8 +151,8 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=LassoCV(alphas=10, tol=1e-6, fit_intercept=False),
-        model_distillation_x=LassoCV(alphas=10),
+        lasso_screening=None,
+        model_distillation_x=None,
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -153,8 +169,16 @@ class D0CRT(BaseVariableImportance):
         self.estimated_intercept = estimated_intercept
         self.method = method
         self.sigma_X = sigma_X
-        self.lasso_screening = lasso_screening
-        self.model_distillation_x = model_distillation_x
+        self.lasso_screening = (
+            _default_lasso_screening()
+            if lasso_screening is None
+            else lasso_screening
+        )
+        self.model_distillation_x = (
+            _default_model_distillation_x()
+            if model_distillation_x is None
+            else model_distillation_x
+        )
         self.refit = refit
         self.screening_threshold = screening_threshold
         self.centered = centered
@@ -841,17 +865,8 @@ def d0crt_importance(
     method="predict",
     estimated_coef=None,
     sigma_X=None,
-    lasso_screening=LassoCV(
-        alphas=10,
-        tol=1e-6,
-        fit_intercept=False,
-        random_state=0,
-    ),
-    model_distillation_x=LassoCV(
-        n_jobs=1,
-        alphas=10,
-        random_state=0,
-    ),
+    lasso_screening=None,
+    model_distillation_x=None,
     refit=False,
     screening_threshold=10,
     centered=True,
