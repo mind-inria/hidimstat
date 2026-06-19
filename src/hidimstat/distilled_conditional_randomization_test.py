@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
-    LASSO_ALPHAS_ATTR,
+    SKLEARN_LT_1_6,
     _check_vim_predict_method,
     check_random_state,
     seed_estimator,
@@ -24,17 +24,21 @@ from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 def _default_lasso_screening():
-    default_lasso_screening_ = LassoCV(
-        tol=1e-6, fit_intercept=False, random_state=0
-    )
-    setattr(default_lasso_screening_, LASSO_ALPHAS_ATTR, 10)
-    return default_lasso_screening_
+    if SKLEARN_LT_1_6:
+        return LassoCV(
+            n_alphas=10, tol=1e-6, fit_intercept=False, random_state=0
+        )
+    else:
+        return LassoCV(
+            alphas=10, tol=1e-6, fit_intercept=False, random_state=0
+        )
 
 
 def _default_model_distillation_x():
-    default_model_distillation_x_ = LassoCV(n_jobs=1, random_state=0)
-    setattr(default_model_distillation_x_, LASSO_ALPHAS_ATTR, 10)
-    return default_model_distillation_x_
+    if SKLEARN_LT_1_6:
+        return LassoCV(n_alphas=10, n_jobs=1, random_state=0)
+    else:
+        return LassoCV(alphas=10, n_jobs=1, random_state=0)
 
 
 class D0CRT(BaseVariableImportance):
