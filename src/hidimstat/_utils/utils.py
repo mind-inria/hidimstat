@@ -9,7 +9,7 @@ from sklearn import __version__ as sklearn_version
 
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
-SKLEARN_LT_1_6 = parse(sklearn_version).minor < 6
+SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
 LASSO_ALPHAS_ATTR = "n_alphas" if SKLEARN_LT_1_6 else "alphas"
 
 
