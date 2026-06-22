@@ -737,3 +737,106 @@ def test_regression_intercept(d0crt_test_data):
         np.argsort(d0crt_intercept.importances_),
         np.argsort(d0crt_no_intercept.importances_),
     )
+
+
+def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
+    """
+    Test the that the signs of the importances provided by the dcrt-logit are consistent
+    with the regression version.
+    """
+    X, y, beta = generate_binary_classif_dataset
+    dcrt = D0CRT(
+        estimator=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        lasso_screening=LogisticRegressionCV(
+            penalty="l1",
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        screening_threshold=50,
+        random_state=0,
+    )
+    dcrt.fit(X, y)
+    dcrt.importance(X, y)
+    assert np.all(dcrt.importances_[np.where(beta == 1)] >= 0)
+    # Negative effects (multiply y to increase signal)
+    dcrt.fit(X, -10 * y)
+    dcrt.importance(X, -10 * y)
+    assert np.all(dcrt.importances_[np.where(beta == 1)] <= 0)
+
+
+def test_d0crt_no_regression_variance_fix():
+    """Non-regression test for PR#649: removing the extra alpha * ||coef||_1
+    term from sigma2 should not degrade power or FDR control compared to the
+    old implementation.
+    """
+    from unittest.mock import patch
+
+    from hidimstat.distilled_conditional_randomization_test import (
+        _joblib_distill,
+    )
+    from hidimstat.statistical_tools.multiple_testing import (
+        fdp_power,
+        fdr_threshold,
+    )
+
+    def _joblib_distill_old_variance(*args, **kwargs):
+        """Re-introduce the old alpha * ||coef||_1 bias in sigma2."""
+        X_residual, sigma2, y_residual = _joblib_distill(*args, **kwargs)
+        sigma_X = kwargs.get("sigma_X")
+        if sigma_X is None:
+            model_x = kwargs.get("model_x", args[5] if len(args) > 5 else None)
+            alpha = (
+                model_x.alpha_ if hasattr(model_x, "alpha_") else model_x.alpha
+            )
+            sigma2 = sigma2 + alpha * np.linalg.norm(model_x.coef_, ord=1)
+        return X_residual, sigma2, y_residual
+
+    fdr_target = 0.1
+    tolerance = 0.05
+
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=200,
+        n_features=20,
+        support_size=5,
+        rho=0.5,
+        signal_noise_ratio=2,
+        seed=0,
+    )
+    ground_truth = beta != 0
+
+    # Current implementation (no alpha term)
+    dcrt = D0CRT(
+        estimator=LassoCV(random_state=0),
+        screening_threshold=None,
+        random_state=0,
+    )
+    dcrt.fit_importance(X, y)
+    thr = fdr_threshold(dcrt.pvalues_, fdr=fdr_target)
+    fdp_current, power_current = fdp_power(dcrt.pvalues_ <= thr, ground_truth)
+
+    dcrt_old = D0CRT(
+        estimator=LassoCV(random_state=0),
+        screening_threshold=None,
+        random_state=0,
+    )
+    # Old implementation (with alpha term) using test patching
+    with patch(
+        "hidimstat.distilled_conditional_randomization_test._joblib_distill",
+        _joblib_distill_old_variance,
+    ):
+        dcrt_old.fit_importance(X, y)
+    thr = fdr_threshold(dcrt_old.pvalues_, fdr=fdr_target)
+    _, power_old = fdp_power(dcrt_old.pvalues_ <= thr, ground_truth)
+
+    # Current version should have at least as much power as the old one
+    assert power_current >= power_old, (
+        f"Power regression: current {power_current:.3f} < old {power_old:.3f}"
+    )
+    # FDR should remain controlled
+    assert fdp_current <= fdr_target + tolerance

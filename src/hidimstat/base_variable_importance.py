@@ -151,7 +151,7 @@ class BaseVariableImportance(BaseEstimator):
         self.importances_ = None
         self.pvalues_ = None
 
-        if self.estimator is None:
+        if estimator is None:
             raise ValueError(
                 "'estimator' must be a valid sklearn compartible estimator."
             )
@@ -541,14 +541,14 @@ class GroupVariableImportanceMixin:
                 j: [j] for j in range(self.n_features_groups_)
             }
             self._features_groups_ids = np.array(
-                sorted(self.features_groups_.values()), dtype=int
+                list(self.features_groups_.values()), dtype=int
             )
         elif isinstance(self.features_groups, dict):
             self.features_groups_ = self.features_groups
             self.n_features_groups_ = len(self.features_groups_)
             if isinstance(X, pd.DataFrame):
                 self._features_groups_ids = []
-                for features_group_key in sorted(self.features_groups_.keys()):
+                for features_group_key in self.features_groups_:
                     self._features_groups_ids.append(
                         [
                             i

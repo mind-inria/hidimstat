@@ -488,9 +488,8 @@ class ModelXKnockoff(BaseVariableImportance):
         offset = 1  # Offset equals 1 is the knockoff+ procedure.
 
         threshold_mesh = np.sort(np.abs(test_score[test_score != 0]))
-        np.concatenate(
-            [[0], threshold_mesh, [np.inf]]
-        )  # if there is no solution, the threshold is inf
+        threshold_mesh = np.concatenate([[0], threshold_mesh, [np.inf]])
+        # if there is no solution, the threshold is inf
         # find the right value of t for getting a good fdr
         # Equation 1.8 of barber2015controlling and 3.10 in Candès 2018
         threshold = 0.0

@@ -528,9 +528,11 @@ class D0CRT(BaseVariableImportance):
                 for i in range(X_residual.shape[0])
             ]
         )
+        # changed sign compared with `nguyen2022conditional` (eq 11) so that positive
+        # effects correspond to positive importance scores as in the regression case.
         test_statistic_selected_variables = np.array(
             [
-                -np.dot(y_residual[i], X_residual[i])
+                np.dot(y_residual[i], X_residual[i])
                 / np.sqrt(n_samples * fisher_minus_idx[i])
                 for i in range(X_residual.shape[0])
             ]
@@ -751,16 +753,9 @@ def _joblib_distill(
     # Distill X with least square loss
     if sigma_X is None:
         n_samples = X.shape[0]
-        alpha = model_x.alpha_ if hasattr(model_x, "alpha_") else model_x.alpha
         # get the residuals
         X_residual = X[:, idx] - model_x.predict(X_minus_idx)
-        # compute the variance of the residuals
-        # In the original paper and implementation, the term:
-        #  alpha * np.linalg.norm(clf.coef_, ord=1)
-        # is not present and has been added without any reference actually
-        sigma2 = np.linalg.norm(
-            X_residual
-        ) ** 2 / n_samples + alpha * np.linalg.norm(model_x.coef_, ord=1)
+        sigma2 = np.linalg.norm(X_residual) ** 2 / n_samples
     else:
         # Distill X with sigma_X
         sigma_temp = np.delete(np.copy(sigma_X), idx, 0)

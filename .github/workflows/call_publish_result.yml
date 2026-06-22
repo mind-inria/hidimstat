@@ -99,7 +99,7 @@ jobs:
       PYTHON: '3.14'
     steps:
     # initialize the reposititory
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     # get coverage only for 1 job
     - name: Get data
@@ -117,7 +117,7 @@ jobs:
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
       if: ${{ env.FILE_SIZE > 1 }}
-      uses: codecov/codecov-action@v5.5.2
+      uses: codecov/codecov-action@v7.0.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
