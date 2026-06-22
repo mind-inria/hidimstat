@@ -1,4 +1,4 @@
-.. ## for plotting and for examples 
+.. ## for plotting and for examples
     #TODO Need to be updated if it's necessary
 .. |MatplotlibMinVersion| replace:: 3.9.0
 .. |SeabornMinVersion| replace:: 0.9.0
@@ -33,6 +33,22 @@ After this installation, you can launch the test suite:
 
    pytest test
 
+Style guide
+"""""""""""
+
+The code is formatted and linted with with `ruff <https://github.com/astral-sh/ruff>`_.
+
+Spelling is checked using `codespell <https://github.com/codespell-project/codespell>`_.
+
+To apply the required dependencies and style your code:
+
+.. code-block:: sh
+
+    pip install -e '.[style]'
+    ruff format .
+    ruff check --fix .
+    codespell --toml pyproject.toml
+
 Examples
 """"""""
 
@@ -46,7 +62,7 @@ For running the examples, it's necessary to install Matplotlib >= |MatplotlibMin
 |SeabornMinVersion|.
 
 | After this installation, you can run any example in the `examples <https://github.com/mind-inria/hidimstat/tree/main/examples>`_ folder.
-| Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/auto_examples/index.html>`_.
+| Or you can download some of them from the `documentation <https://hidimstat.github.io/dev/generated/gallery/examples/index.html>`_.
 
 Documentation
 """""""""""""

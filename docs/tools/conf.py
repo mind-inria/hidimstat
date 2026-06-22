@@ -1,13 +1,53 @@
+import inspect
 import os
-import sys
+import re
 import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import matplotlib
+import yaml
+
+from hidimstat import __version__
+
+
+def linkcode_resolve(domain, info):
+    """Determine the URL corresponding lines of code in the GitHub repository."""
+    if domain != "py":
+        return None
+    if not info["module"]:
+        return None
+
+    try:
+        module_name = info["module"]
+        fullname = info["fullname"]
+        submod = sys.modules.get(module_name)
+        if submod is None:
+            return None
+
+        obj = submod
+        for part in fullname.split("."):
+            try:
+                obj = getattr(obj, part)
+            except AttributeError:
+                return None
+
+        fn = inspect.getsourcefile(obj)
+        source, lineno = inspect.getsourcelines(obj)
+        fn = os.path.relpath(fn, start=os.path.dirname(__file__))
+
+        # Adjust if project inside src folder
+        if fn.startswith("../../src"):
+            fn = fn[len("../../src/") :]
+
+        return f"https://github.com/mind-inria/hidimstat/blob/main/src/{fn}#L{lineno}-L{lineno + len(source) - 1}"
+    except Exception:
+        return None
+
 
 sys.path.insert(0, os.path.abspath("."))
 
-import matplotlib
-from utils import linkcode_resolve
-
-from hidimstat import __version__
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -21,6 +61,22 @@ project = "HiDimStat"
 copyright = "2025, The hidimstat developers"
 author = "The hidimstat developers"
 release = __version__
+# Version for the documentation switcher dropdown. We extract the nearest git
+# tag (e.g. "0.3.1") rather than using setuptools_scm which appends commit
+# info (e.g. "0.3.2.dev2+g..."). If HEAD is past the tag, append ".dev".
+_git_describe = subprocess.run(
+    ["git", "describe", "--tags"],
+    capture_output=True,
+    text=True,
+).stdout.strip()
+_tag_match = re.match(r"v?(\d+\.\d+\.\d+)(.*)", _git_describe)
+if _tag_match:
+    _version_match = _tag_match.group(1)
+    if _tag_match.group(2):  # commits after tag
+        _version_match += ".dev"
+else:
+    _version_match = release
+
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
 # -- Copy files for docs --------------------------------------------------
@@ -28,6 +84,8 @@ git_root_url = "https://github.com/mind-inria/hidimstat"
 # We avoid duplicating the information, but we do not use symlinks to be
 # able to build the docs on Windows
 shutil.copyfile("../../CONTRIBUTING.rst", "../src/dev/CONTRIBUTING.rst")
+shutil.copyfile("../../CONTRIBUTOR.rst", "../src/dev/CONTRIBUTORS.rst")
+shutil.copyfile("../../CHANGELOG.rst", "../src/whats_news/CHANGELOG.rst")
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -40,14 +98,37 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
+    "sphinx_design",
     "sphinx_gallery.gen_gallery",
     "sphinx_prompt",
     "numpydoc",
     "sphinx.ext.linkcode",  # use the function linkcode_resolve for the definition of the link
+    "sphinx_copybutton",
 ]
+
+# --changelog PR references --------------------------------------------------
+extlinks = {
+    "gh": (f"{git_root_url}/issues/%s", "#%s"),
+}
+# -- contributor link targets (from CITATION.cff) ----------------------------
+_citation_path = Path(__file__).parent / ".." / ".." / "CITATION.cff"
+if _citation_path.exists():
+    with open(_citation_path) as _f:
+        _citation = yaml.safe_load(_f)
+    rst_epilog = "\n".join(
+        f".. _{author['given-names']} {author['family-names']}: {author['website']}"
+        for author in _citation.get("authors", [])
+        if "website" in author
+    )
+
+# Specify how to identify the prompt when copying a code snippet
+copybutton_prompt_text = r">>> |\.\.\. "
+copybutton_prompt_is_regexp = True
+copybutton_exclude = "style"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["../tools/_templates"]
@@ -87,12 +168,22 @@ html_theme_options = {
     ],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "header_links_before_dropdown": 4,
+    "pygments_light_style": "sas",
+    "pygments_dark_style": "monokai",
+    "switcher": {
+        "json_url": (
+            "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"
+        ),
+        "version_match": _version_match,
+    },
 }
+
 html_title = "HiDimStat"
 html_context = {
     "display_github": True,  # Integrate GitHub
     "github_repo": "hidimstat",
 }
+
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -134,13 +225,13 @@ sphinx_gallery_conf = {
     "image_scrapers": ("matplotlib",),
     "doc_module": "hidimstat",
     "backreferences_dir": "./generated/gallery/backreference/",
-    "parallel": True,
-    "show_memory": False,  # can't show memory if it's in parallel
+    "parallel": False,
+    "show_memory": True,  # can't show memory if it's in parallel
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
         # We don't specify the other modules as we use the intershpinx ext.
-        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation  # noqa
+        # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
 }
 
@@ -153,6 +244,22 @@ intersphinx_mapping = {
     "matplotlib": ("https://matplotlib.org/stable/", None),
     "sklearn": ("https://scikit-learn.org/stable", None),
     "joblib": ("https://joblib.readthedocs.io/en/latest", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
     "seaborn": ("https://seaborn.pydata.org/", None),
 }
+
+
+linkcheck_ignore = [
+    # A lot of link DOI "fail" - false positives: easier to ignore them
+    r"https://doi.org/.*",
+    r"./generated/gallery/examples/.*",
+    r"../generated/gallery/examples/.*",
+    r"https://github.com/*",
+]
+
+nitpick_ignore = [
+    # Found here
+    # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
+    ("py:class", "type"),
+    ("py:class", "callable"),
+]

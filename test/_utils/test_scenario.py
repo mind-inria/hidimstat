@@ -7,10 +7,11 @@ import pytest
 from numpy.testing import assert_almost_equal, assert_equal, assert_raises
 
 from hidimstat._utils.scenario import (
-    multivariate_simulation,
-    multivariate_simulation_spatial,
     _generate_2D_weight,
     _generate_3D_weight,
+    empirical_snr,
+    multivariate_simulation,
+    multivariate_simulation_spatial,
 )
 
 
@@ -30,7 +31,13 @@ from hidimstat._utils.scenario import (
     ],
 )
 def test_multivariate_simulation_2D(
-    n_samples, shape, roi_size, signal_noise_ratio, smooth_X, rho_expected, seed
+    n_samples,
+    shape,
+    roi_size,
+    signal_noise_ratio,
+    smooth_X,
+    rho_expected,
+    seed,
 ):
     """Test concerns a simulation with a 2D
     if the data has expected shape,
@@ -61,7 +68,9 @@ def test_multivariate_simulation_2D(
             signal_noise_ratio,
         )
     else:
-        assert_almost_equal(signal_noise_ratio_hat, signal_noise_ratio, decimal=1)
+        assert_almost_equal(
+            signal_noise_ratio_hat, signal_noise_ratio, decimal=1
+        )
     assert_almost_equal(rho_hat, rho_expected, decimal=2)
     if signal_noise_ratio == 0:
         assert_equal(y, noise)
@@ -112,13 +121,13 @@ def test_multivariate_simulation_3D():
 def test_multivariate_simulation_edge_cases_2D():
     """Test minimum valid shape and roi_size"""
     shape = (2, 2)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 1
     seed = 42
     n_samples = 6
     w = _generate_2D_weight(shape=shape, roi_size=roi_size)
     assert_equal(w.shape, shape_weight)
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -127,13 +136,13 @@ def test_multivariate_simulation_edge_cases_2D():
 def test_multivariate_simulation_edge_cases_3D():
     """Test 3D minimum case"""
     shape = (2, 2, 2)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 1
     seed = 42
     n_samples = 6
     w = _generate_3D_weight(shape=shape, roi_size=roi_size)
     assert_equal(w.shape, shape_weight)
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -142,7 +151,7 @@ def test_multivariate_simulation_edge_cases_3D():
 def test_multivariate_simulation_edge_cases_roi_full():
     """Test roi_size equal to shape dimension"""
     shape = (4, 4)
-    shape_weight = shape + (5,)
+    shape_weight = (*shape, 5)
     roi_size = 4
     seed = 42
     n_samples = 10
@@ -153,7 +162,7 @@ def test_multivariate_simulation_edge_cases_roi_full():
         assert np.all(w[:, :, i].sum() == 16)  # Full coverage of corners
     # only the background is empty
     assert np.all(w[:, :, 4].sum() == 0)  # Full coverage of corners
-    X, y, beta, noise = multivariate_simulation_spatial(
+    X, _, _, _ = multivariate_simulation_spatial(
         n_samples=n_samples, shape=shape, roi_size=roi_size, seed=seed
     )
     assert_equal(X.shape, (n_samples, np.prod(shape)))
@@ -173,13 +182,14 @@ def test_multivariate_simulation_invalid():
         multivariate_simulation_spatial(shape=(4, 4), roi_size=5)
 
     # Invalid n_samples
-    with pytest.raises(AssertionError, match="n_samples must be strictly positive"):
+    with pytest.raises(
+        AssertionError, match="n_samples must be strictly positive"
+    ):
         multivariate_simulation_spatial(n_samples=0)
 
 
 def test_multivariate_simulation_reproducibility():
     """Test reproducibility with same seed"""
-
     params = {"n_samples": 10, "shape": (6, 6), "roi_size": 2, "seed": 42}
 
     X1, y1, beta1, noise1 = multivariate_simulation_spatial(**params)
@@ -193,7 +203,6 @@ def test_multivariate_simulation_reproducibility():
 
 def test_multivariate_simulation_weights_2D():
     """Test weight map generation and properties"""
-
     # 2D weights
     shape = (6, 6)
     roi_size = 2
@@ -260,7 +269,6 @@ def test_multivariate_simulation_all(
     shuffle,
 ):
     """Test multivariate autoregressive simulation with various configurations"""
-
     # Create simulation
     params = {
         "n_samples": n_samples,
@@ -287,10 +295,14 @@ def test_multivariate_simulation_all(
     assert beta.shape[0] == n_features
 
     # Common assertions
-    signal_noise_ratio_estimated = np.linalg.norm(y - noise) / np.linalg.norm(noise)
+    signal_noise_ratio_estimated = np.linalg.norm(y - noise) / np.linalg.norm(
+        noise
+    )
     rho_hat = np.corrcoef(X[:, 19], X[:, 20])[0, 1]
 
-    assert_almost_equal(signal_noise_ratio_estimated, signal_noise_ratio, decimal=0)
+    assert_almost_equal(
+        signal_noise_ratio_estimated, signal_noise_ratio, decimal=0
+    )
     if n_targets is None:
         sigma_hat = np.std(noise)
         assert_almost_equal(sigma_hat, signal_noise_ratio, decimal=0)
@@ -318,7 +330,7 @@ def test_multivariate_simulation_all(
 
 def test_multivariate_simulation_zero_support():
     """Test autoregressive simulation with zero support size."""
-    X, y, beta, noise = multivariate_simulation(
+    _, _, beta, _ = multivariate_simulation(
         n_samples=50, n_features=100, support_size=0, seed=42
     )
     assert_equal(np.count_nonzero(beta), 0)
@@ -326,7 +338,7 @@ def test_multivariate_simulation_zero_support():
 
 def test_multivariate_simulation_zero_signal_noise_ratio():
     """Test autoregressive simulation with zero SNR."""
-    X, y, beta, noise = multivariate_simulation(
+    _, y, _, noise = multivariate_simulation(
         n_samples=50, n_features=100, signal_noise_ratio=0.0, seed=42
     )
     assert_equal(y, noise)
@@ -335,7 +347,7 @@ def test_multivariate_simulation_zero_signal_noise_ratio():
 
 def test_multivariate_simulation_minimal():
     """Test autoregressive simulation with minimal dimensions."""
-    X, y, beta, noise = multivariate_simulation(
+    X, y, beta, _ = multivariate_simulation(
         n_samples=2, n_features=2, n_targets=2, support_size=1, seed=42
     )
     assert_equal(X.shape, (2, 2))
@@ -349,7 +361,9 @@ def test_multivariate_simulation_ar_support_size():
     with pytest.raises(
         AssertionError, match="support_size cannot be larger than n_features"
     ):
-        multivariate_simulation(n_samples=10, n_features=5, support_size=10, seed=42)
+        multivariate_simulation(
+            n_samples=10, n_features=5, support_size=10, seed=42
+        )
 
 
 def test_multivariate_simulation_ar_rho():
@@ -360,7 +374,9 @@ def test_multivariate_simulation_ar_rho():
 
 def test_multivariate_simulation_ar_rho_noise():
     """Test rho_serial validation."""
-    with pytest.raises(AssertionError, match="rho_serial must be between -1 and 1"):
+    with pytest.raises(
+        AssertionError, match="rho_serial must be between -1 and 1"
+    ):
         multivariate_simulation(
             n_samples=10, n_features=20, n_targets=5, rho_serial=1.2, seed=42
         )
@@ -368,7 +384,9 @@ def test_multivariate_simulation_ar_rho_noise():
 
 def test_multivariate_simulation_ar_snr():
     """Test signal noise ratio (signal_noise_ratio) validation."""
-    with pytest.raises(AssertionError, match="signal_noise_ratio must be positive"):
+    with pytest.raises(
+        AssertionError, match="signal_noise_ratio must be positive"
+    ):
         multivariate_simulation(
             n_samples=10, n_features=20, signal_noise_ratio=-1.0, seed=42
         )
@@ -389,4 +407,54 @@ def test_multivariate_simulation_ar_n_features():
 def test_multivariate_simulation_ar_n_target():
     """Test n_target validation."""
     with pytest.raises(AssertionError, match="n_target must be positive"):
-        multivariate_simulation(n_samples=10, n_features=20, n_targets=0, seed=42)
+        multivariate_simulation(
+            n_samples=10, n_features=20, n_targets=0, seed=42
+        )
+
+
+def test_empirical_snr():
+    """Computing empirical signal to noise ratio in presence of high level of
+    noise from the target `y`, the data `X` and the true parameter vector `beta`
+    in a simple scenario with a 1D data structure.
+    """
+    n_samples, n_features = 100, 20
+    support_size = 10
+    signal_noise_ratio_expected = 0.5
+
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        support_size=support_size,
+        signal_noise_ratio=signal_noise_ratio_expected,
+        seed=0,
+    )
+
+    signal_noise_ratio = empirical_snr(X, y, beta)
+
+    assert_almost_equal(
+        signal_noise_ratio, signal_noise_ratio_expected, decimal=2
+    )
+
+
+def test_empirical_snr_2():
+    """Computing empirical signal to noise ratio from the target `y`,
+    the data `X` and the true parameter vector `beta` in a simple
+    scenario with a 1D data structure.
+    """
+    n_samples, n_features = 100, 20
+    support_size = 10
+    signal_noise_ratio_expected = 10.0
+
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        support_size=support_size,
+        signal_noise_ratio=signal_noise_ratio_expected,
+        seed=0,
+    )
+
+    signal_noise_ratio = empirical_snr(X, y, beta)
+
+    assert_almost_equal(
+        signal_noise_ratio, signal_noise_ratio_expected, decimal=0
+    )

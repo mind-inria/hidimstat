@@ -93,7 +93,7 @@ def _aggregate_docstring(list_docstring, returns_docstring):
         and the Returns section from the last docstring. The result is properly reindented.
     """
     list_line = []
-    for index, docstring in enumerate(list_docstring):
+    for _index, docstring in enumerate(list_docstring):
         if docstring is not None:
             list_line.append(_parse_docstring(docstring=docstring))
 

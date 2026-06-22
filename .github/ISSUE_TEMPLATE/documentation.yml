@@ -1,0 +1,38 @@
+name: Documentation
+description: Report an issue or improvement related to the HiDimStat documentation.
+title: "[DOC] <Please write a comprehensive title after the '[DOC] ' prefix>"
+labels: [documentation]
+
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to report an issue with the documentation.
+  - type: markdown
+    attributes:
+        value: Before continuing, please check existing issues to avoid duplicates.
+  - type: checkboxes
+    attributes:
+        label: Please confirm that you have searched existing issues in the repository.
+        description: You can do this by searching https://github.com/mind-inria/hidimstat/issues and making sure your issue is not related to another existing one.
+        options:
+            - label: 'Yes'
+              required: true
+  - type: textarea
+    attributes:
+      label: "Issue with current documentation:"
+      description: >
+        Please check the development version of the documentation at
+        https://hidimstat.github.io/dev/ to see if this issue has already been
+        addressed. If not, please link to the development version (as seen in the dropdown menu at the top-right side through the link above).
+  - type: textarea
+    attributes:
+      label: "Idea or request for content:"
+      description: >
+        Please describe as clearly as possible a suggested fix, better phrasing or
+        topics you think are missing from the current documentation.
+  - type: textarea
+    attributes:
+      label: Additional context (e.g. screenshots, GIFs)
+  - type: markdown
+    attributes:
+      value: Thank you for contributing !

@@ -2,7 +2,7 @@
 
 # Set the environment variable
 if [ $(echo $CIRCLE_BRANCH | cut -d'/' -f 1) == 'pull' ]
-then 
+then
 CIRCLE_PR_NUMBER=$(echo $CIRCLE_BRANCH | cut -d'/' -f 2)
 fi
 

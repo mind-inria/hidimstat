@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
+def quantile_aggregation(pvals, gamma=0.5, adaptive=False):
     """
     Implements the quantile aggregation method for p-values.
 
@@ -15,7 +15,7 @@ def quantile_aggregation(pvals, gamma=0.05, adaptive=False):
     pvals : ndarray of shape (n_sampling*2, n_test)
         Matrix of p-values to aggregate. Each row represents a sampling instance
         and each column a hypothesis test.
-    gamma : float, default=0.05
+    gamma : float, default=0.5
         Quantile level for aggregation. Must be in range (0,1].
     adaptive : bool, default=False
         If True, uses adaptive quantile aggregation which optimizes over multiple gamma values.
@@ -97,14 +97,16 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     """
     assert gamma_min > 0 and gamma_min <= 1, "gamma min should between 0 and 1"
 
-    n_iter, n_features = pvals.shape
+    n_iter, _ = pvals.shape
 
     n_min = int(np.floor(gamma_min * n_iter))
     ordered_pval = np.sort(pvals, axis=0)[n_min:]
     # calculation of the pvalue / quantile (=j/m)
     # see equation 2.2 of `meinshausen2009p`
     P = (
-        np.min(ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0)
+        np.min(
+            ordered_pval / np.arange(n_min, n_iter, 1).reshape(-1, 1), axis=0
+        )
         * n_iter
     )
     # see equation 2.3 of `meinshausen2009p`

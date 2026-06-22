@@ -2,10 +2,11 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -j auto -W --keep-going -n 
+N_JOB         = auto
+SPHINXOPTS    = -j ${N_JOB} --fail-on-warning --keep-going --nitpicky --verbose
 # -j/--jobs:		    N processes in parallel (auto=number of CPUs)
 # -W/--fail-on-warning: Turn warnings into errors.
-# --keep-going:         Runs sphinx-build to completion and exits  
+# --keep-going:         Runs sphinx-build to completion and exits
 #			    		with exit status 1 if errors are encountered.
 # -n/--nitpicky:	    This generates warnings for all missing references.
 SPHINXBUILD   = sphinx-build
@@ -61,6 +62,9 @@ clean:
 	rm -rfv $(BUILDDIR)/*
 	rm -rfv $(SOURCEDIR)/generated/*
 	rm -rfv $(SOURCEDIR)/sg_execution_times.rst
+	rm -rfv $(SOURCEDIR)/whats_news/CHANGELOG.rst
+	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTING.rst
+	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTORS.rst
 
 html-noplot:
 	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
@@ -131,7 +135,7 @@ changes:
 
 .PHONY: linkcheck
 linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
+	$(SPHINXBUILD) -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 		  "or in $(BUILDDIR)/linkcheck/output.txt."

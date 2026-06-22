@@ -5,7 +5,7 @@ set -x
 # exit immediately if a command exits with a non-zero status.
 set -e
 
-# create an virtual environement and install dependece with uv
+# create an virtual environment and install dependence with uv
 python -m venv .venv
 source .venv/bin/activate
 pip install uv
