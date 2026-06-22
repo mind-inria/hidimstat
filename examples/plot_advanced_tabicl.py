@@ -12,11 +12,13 @@ from tabicl import TabICLClassifier
 
 from hidimstat import D0CRT
 
+# TODO: TabICL doesn't work with D0CRT because of seeding issues.
+
 dataset = fetch_openml("adult", version=2, as_frame=True)
 X, y, feat_names = dataset.data, dataset.target, dataset.feature_names
 y = (y == ">50K").astype(int)
 
-max_samples = 10000
+max_samples = 1000
 X, y = resample(
     X,
     y,
@@ -92,7 +94,7 @@ tabicl.fit(X_train, y_train)
 skorch_model.fit(X_train, y_train)
 skorch_pred = skorch_model.predict(X_test)"""
 d0crt_lasso = D0CRT(
-    estimator=LassoCV(random_state=0, n_jobs=1),
+    estimator=tabicl,
     screening_threshold=None,
     random_state=0,
 )
