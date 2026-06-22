@@ -4,9 +4,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
-from .conftest import SKLEARN_LT_1_6, _rng, check_estimator
+from .conftest import _rng, check_estimator
 
 
 def _fitted_linear_regression():

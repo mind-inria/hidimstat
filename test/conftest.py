@@ -8,8 +8,7 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
-
-SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 
 try:
     import matplotlib

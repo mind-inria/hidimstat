@@ -15,8 +15,9 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat import D0CRT, d0crt_importance
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat._utils.utils import SKLEARN_LT_1_6, make_sklearn_estimator
 
-from .conftest import SKLEARN_LT_1_6, check_estimator
+from .conftest import check_estimator
 
 ESTIMATORS_TO_CHECK = [
     D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
@@ -605,13 +606,15 @@ def test_dcrt_logit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=LogisticRegressionCV(
+        estimator=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=LogisticRegressionCV(
+        lasso_screening=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
@@ -643,7 +646,8 @@ def test_dcrt_logit_errors():
         "must be LogisticRegression or LogisticRegressionCV",
     ):
         D0CRT(
-            estimator=LogisticRegressionCV(
+            estimator=make_sklearn_estimator(
+                LogisticRegressionCV,
                 l1_ratios=(1,),
                 solver="liblinear",
                 max_iter=1000,
@@ -658,13 +662,15 @@ def test_dcrt_logit_errors():
         match=r"For logistic regression, lasso_screening\.penalty must be 'l1'",
     ):
         D0CRT(
-            estimator=LogisticRegressionCV(
+            estimator=make_sklearn_estimator(
+                LogisticRegressionCV,
                 l1_ratios=(1,),
                 solver="liblinear",
                 max_iter=1000,
                 random_state=0,
             ),
-            lasso_screening=LogisticRegressionCV(
+            lasso_screening=make_sklearn_estimator(
+                LogisticRegressionCV,
                 l1_ratios=(0,),
                 solver="liblinear",
                 max_iter=1000,
@@ -682,13 +688,15 @@ def test_dcrt_logit_refit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=LogisticRegressionCV(
+        estimator=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=LogisticRegressionCV(
+        lasso_screening=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
@@ -751,13 +759,15 @@ def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=LogisticRegressionCV(
+        estimator=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=LogisticRegressionCV(
+        lasso_screening=make_sklearn_estimator(
+            LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,

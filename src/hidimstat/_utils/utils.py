@@ -10,6 +10,29 @@ from sklearn import __version__ as sklearn_version
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
+SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
+
+
+def make_sklearn_estimator(estimator_cls, **kwargs):
+    kwargs = kwargs.copy()
+
+    if estimator_cls.__name__ == "LassoCV":
+        if SKLEARN_LT_1_6 and "alphas" in kwargs:
+            kwargs["n_alphas"] = kwargs.pop("alphas")
+        elif not SKLEARN_LT_1_6 and "n_alphas" in kwargs:
+            kwargs["alphas"] = kwargs.pop("n_alphas")
+    elif estimator_cls.__name__ == "LogisticRegressionCV":
+        if SKLEARN_LT_1_9 and "penalty" in kwargs:
+            penalty = kwargs.pop("penalty")
+            if penalty == "l1":
+                kwargs["l1_ratios"] = (1,)
+            elif penalty == "l2":
+                kwargs["l1_ratios"] = (0,)
+        elif not SKLEARN_LT_1_9 and "l1_ratios" in kwargs:
+            if kwargs["l1_ratios"] == (1,):
+                kwargs["penalty"] = "l1"
+
+    return estimator_cls(**kwargs)
 
 
 def _check_vim_predict_method(method):

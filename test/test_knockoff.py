@@ -10,6 +10,7 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
@@ -18,7 +19,7 @@ from hidimstat.knockoffs import (
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-from .conftest import SKLEARN_LT_1_6, check_estimator
+from .conftest import check_estimator
 
 
 def expected_failed_checks(estimator):

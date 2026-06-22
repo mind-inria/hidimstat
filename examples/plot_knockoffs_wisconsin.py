@@ -49,6 +49,7 @@ from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
+    penalty="l1",
     l1_ratios=(1,),
     solver="liblinear",
     random_state=0,
@@ -105,6 +106,7 @@ import pandas as pd
 
 lasso_noisy = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
+    penalty="l1",
     l1_ratios=(1,),
     solver="liblinear",
     random_state=0,
@@ -159,6 +161,7 @@ model_x_knockoff = ModelXKnockoff(
     ),
     estimator=LogisticRegressionCV(
         solver="liblinear",
+        penalty="l1",
         l1_ratios=(1,),
         Cs=np.logspace(-3, 3, 10),
         random_state=0,
