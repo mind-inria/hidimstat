@@ -26,3 +26,4 @@ under development (0.3.2.dev0)
 - :bdg-secondary:`Maint` remove pinned poosh dependency (problem with somato dataset solved) (:gh:`670` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint`: remove extra term in variance of X-residual (DOCRT). See  [Reid et al., A Study of Error Variance Estimation in Lasso Regression 2016](https://arxiv.org/pdf/1311.5274) for reference. (:gh:`649` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint`: Fix conditional sampling test by verifying that sampler produces diverse samples. (:gh:`692` by `Joseph Paillard`_).
+- :bdg-primary:`Doc`: Modify the commit tag allowing to build the documentation in draft PR (:gh:`695` by `Joseph Paillard`_).
