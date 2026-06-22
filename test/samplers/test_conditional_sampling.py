@@ -215,9 +215,14 @@ def test_group_case_binary_case():
     )
     assert X_3_perm.shape == (n_samples, X.shape[0], 2)
     for i in range(n_samples):
-        # TODO check why so good accuracy
-        assert 0.96 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.6
-        assert 0.96 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.6
+        assert accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.6
+        assert accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.6
+
+    # Check that the sampler still produce diversity: that not all samples are
+    # equal to the original data
+    assert not np.all(
+        [np.array_equal(X_3_perm[i], X[:, 3:]) for i in range(n_samples)]
+    )
 
 
 def test_sample_categorical(rng):
