@@ -4,10 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.exceptions import NotFittedError
+from sklearn.datasets import make_classification
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
 from hidimstat import LOCI, LOCICV, loci_importance
 from hidimstat._utils.scenario import multivariate_simulation
@@ -96,6 +97,46 @@ def test_loci():
         y_train_clf,
     )
     importance_clf = loci_clf.importance(X_test, y_test_clf)
+
+    assert importance_clf.shape == (2,)
+    assert importance_clf[0].mean() > importance_clf[1].mean()
+
+
+def test_multiclass_loci():
+    """Test LOCI in a multiclass classification setup."""
+    important_features = 4
+    n_features = 20
+
+    X, y = make_classification(
+        n_samples=1000,
+        n_features=n_features,
+        n_informative=important_features,
+        n_classes=3,
+        random_state=42,
+        shuffle=False,
+    )
+    groups = {
+        "important": list(range(important_features)),
+        "unimportant": list(range(important_features, n_features)),
+    }
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    logistic_model = LogisticRegression(random_state=0)
+    logistic_model.fit(X_train, y_train)
+
+    loci_clf = LOCI(
+        estimator=logistic_model,
+        method="predict_proba",
+        features_groups=groups,
+        loss=log_loss,
+        n_jobs=1,
+    )
+    loci_clf.fit(
+        X_train,
+        y_train,
+    )
+    importance_clf = loci_clf.importance(X_test, y_test)
 
     assert importance_clf.shape == (2,)
     assert importance_clf[0].mean() > importance_clf[1].mean()

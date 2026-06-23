@@ -142,15 +142,19 @@ class LOCI(BasePerturbation):
         statistical_test = check_statistical_test(self.statistical_test)
 
         if self.method in ["predict_proba", "decision_function"]:
-            if y.ndim == 1:
+            values, counts = np.unique(y, return_counts=True)
+            # Binary classification
+            if len(values) == 2:
                 values, counts = np.unique(y, return_counts=True)
                 y_baseline = np.full_like(
                     y, values[np.argmax(counts)], dtype=int
                 )
+            # For multiclass classification, we take the marginal probability.
             else:
-                # For multilabel classification, we take the marginal probability.
-                y_baseline = np.tile(y.mean(axis=0), (len(y), 1))
-        if self.method == "predict":
+                y_baseline = np.full(
+                    (y.shape[0], len(values)), counts / y.shape[0]
+                )
+        elif self.method == "predict":
             y_baseline = np.full_like(y, np.mean(y), dtype=float)
         self.loss_reference_ = self.loss(y, y_baseline)
 
