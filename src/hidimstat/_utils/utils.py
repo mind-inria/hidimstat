@@ -29,8 +29,11 @@ def make_sklearn_estimator(estimator_cls, **kwargs):
             elif penalty == "l2":
                 kwargs["l1_ratios"] = (0,)
         elif not SKLEARN_LT_1_9 and "l1_ratios" in kwargs:
-            if kwargs["l1_ratios"] == (1,):
+            l1_ratio = kwargs.pop("l1_ratios")
+            if l1_ratio == (1,):
                 kwargs["penalty"] = "l1"
+            if l1_ratio == (0,):
+                kwargs["penalty"] = "l2"
 
     return estimator_cls(**kwargs)
 

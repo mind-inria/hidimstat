@@ -1,11 +1,13 @@
 import numpy as np
 import pytest
 from scipy.stats import ttest_1samp, wilcoxon
+from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
 from hidimstat._utils.utils import (
     check_random_state,
     check_statistical_test,
     get_fitted_attributes,
+    make_sklearn_estimator,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -87,3 +89,42 @@ def test_check_test_statistic_warning():
         ValueError, match="Unsupported value for 'statistical_test'"
     ):
         check_statistical_test([])
+
+
+def test_make_sklearn_estimator(monkeypatch):
+
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
+
+    for penalty, expected in zip(["l1", "l2"], [(1,), (0,)], strict=False):
+        est = make_sklearn_estimator(
+            LogisticRegressionCV,
+            penalty=penalty,
+        )
+
+        assert est.l1_ratios == expected
+
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", False)
+
+    for l1_ratio, expected in zip([(1,), (0,)], ["l1", "l2"], strict=False):
+        est = make_sklearn_estimator(
+            LogisticRegressionCV,
+            l1_ratios=l1_ratio,
+        )
+
+        assert est.penalty == expected
+
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_6", True)
+    target = 10
+    est = make_sklearn_estimator(
+        LassoCV,
+        alphas=target,
+    )
+    assert est.n_alphas == target
+
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_6", False)
+    target = 10
+    est = make_sklearn_estimator(
+        LassoCV,
+        n_alphas=target,
+    )
+    assert est.alphas == target
