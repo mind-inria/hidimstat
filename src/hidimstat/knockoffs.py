@@ -192,7 +192,7 @@ class ModelXKnockoff(BaseVariableImportance):
             )
         else:
             self.estimator_ = clone(self.estimator)
-        self.estimator = seed_estimator(self.estimator, self.random_state)
+        self.estimator_ = seed_estimator(self.estimator_, self.random_state)
         self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
                 self.estimator_,
