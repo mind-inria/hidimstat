@@ -130,7 +130,7 @@ The behavior is illustrated here::
 .. topic:: **Full example**
 
     See the following example for a full file running the analysis:
-    :ref:`sphx_glr_generated_gallery_examples_plot_2D_simulation_example.py`
+    :ref:`sphx_glr_generated_gallery_examples_intermediate_examples_plot_intermediate_1_dl_encludl.py`
 
 What type of Control does this Ensemble of CLustered inference come with ?
 --------------------------------------------------------------------------

@@ -117,9 +117,9 @@ high-dimensional settings since its default implementation leverages sparse regr
 with the Lasso.
 
 
-.. figure:: ./generated/gallery/examples/images/sphx_glr_plot_knockoffs_wisconsin_001.png
-    :target: ./generated/gallery/examples/plot_knockoffs_wisconsin.html
-    :align: center
+    # .. figure:: ./generated/gallery/examples/images/sphx_glr_plot_knockoffs_wisconsin_001.png
+    #    :target: ./generated/gallery/examples/plot_knockoffs_wisconsin.html
+    #    :align: center
 
 
 Regression example
@@ -319,9 +319,7 @@ null hypothesis, :math:`T_j \sim \mathcal{N}(0, 1)` asymptotically.
     When the estimator is a logistic regression, :class:`hidimstat.D0CRT` automatically
     switches to the dCRT-logit approach from :footcite:t:`nguyen2022conditional`, which
     adapts the distillation and test statistic to the logistic loss. The null distribution
-    remains standard normal. See the
-    :ref:`dCRT-logit example <sphx_glr_generated_gallery_examples_plot_dcrt_logit.py>`
-    for an illustration.
+    remains standard normal.
 
 
 Inference
