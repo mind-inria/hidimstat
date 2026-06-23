@@ -11,9 +11,9 @@ from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 class LOCI(BasePerturbation):
     """
-    Leave-One-Covariate-In (LOCO) algorithm
+    Leave-One-Covariate-In (LOCI) algorithm
 
-    The model is re-fitted for each single feature/group of features. The importance is
+    The model is re-fitted on each single feature/group of features. The importance is
     then computed as the difference between the loss of an empty model (mean for regression,
     and majority vote for classification) and the loss of the model on the single feature/group.
     For more details, see :footcite:t:`ewald_2024`.
@@ -57,7 +57,6 @@ class LOCI(BasePerturbation):
             estimator=estimator,
             method=method,
             loss=loss,
-            n_permutations=1,
             statistical_test=statistical_test,
             features_groups=features_groups,
             n_jobs=n_jobs,
@@ -133,10 +132,10 @@ class LOCI(BasePerturbation):
 
         Notes
         -----
-        The importance score for each group is calculated as the mean increase in loss
-        when that group is perturbed, compared to the reference loss.
-        A higher importance score indicates that perturbing that group leads to
-        worse model performance, suggesting those features are more important.
+        The importance score for each group is calculated as the mean decrease in loss
+        when that feature group is included, compared to the null model.
+        A higher importance score indicates that including that feature group leads to
+        better model performance, suggesting those features are more important.
         """
         self._check_fit()
         self._check_compatibility(X)
@@ -276,7 +275,7 @@ loci_importance.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_features,)
         Feature importance scores/test statistics.
     pvalues : ndarray of shape (n_features,)
-        None because there is no p-value for this method
+        P-values computed for the marginal importance.
     """,
 )
 
