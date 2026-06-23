@@ -37,6 +37,15 @@ def _check_vim_predict_method(method):
         )
 
 
+def _generate_group_mask(array_size, indexes, selected=True):
+    """
+    Generates a mask to select indexes or its opposite.
+    """
+    mask = np.full(array_size, not selected, dtype=bool)
+    mask[indexes] = selected
+    return mask
+
+
 def get_fitted_attributes(cls):
     """
     Get all attributes from a class that end with a single underscore
