@@ -180,21 +180,21 @@ for i, support in enumerate(coef):
             color="tab:olive",
             alpha=0.3,
             zorder=-1,
-            label="True Support" if i == 1 else None,
+            label="True Support" if i == 8 else None,
         )
 
 ax1.legend(loc="upper right")
 plt.xlabel("Feature index")
 plt.ylabel("Std / |mean|")
-plt.title("Relative std across knockoff runs")
+plt.title("Relative std of importance across knockoff runs")
 plt.show()
 
 # %%
 # We can see that feature importance vary across several iterations, and that
-# correlates (feature index > 100) are have the strongest variability. This is
-# due to the fact that the method measures information gain for a feature compared
-# to their knockoff counterpart, which makes this method sensitive to correlated
-# features.
+# correlates (feature index > 100) exhibit an important variability, compared to
+# the true support features. This is due to the fact that the method measures
+# information gain for a feature compared to their knockoff counterpart, which
+# makes this method sensitive to correlated features.
 
 # %%
 # Fixing the lottery
