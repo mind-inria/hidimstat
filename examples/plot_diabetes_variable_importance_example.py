@@ -1,40 +1,6 @@
 """
-
-Variable Importance estimates the influence of a given input variable to the
-prediction made by a model. To assess variable importance in a prediction
-problem, :footcite:t:`breimanRandomForests2001` introduced the permutation
-approach where the values are shuffled for one variable/column at a time. This
-permutation breaks the relationship between the variable of interest and the
-outcome. Following, the loss score is checked before and after this
-substitution for any significant drop in the performance which reflects the
-significance of this variable to predict the outcome. This ease-to-use solution
-is demonstrated, in the work by
-:footcite:t:`stroblConditionalVariableImportance2008`, to be affected by the
-degree of correlation between the variables, thus biased towards truly
-non-significant variables highly correlated with the significant ones and
-creating fake significant variables. They introduced a solution for the Random
-Forest estimator based on conditional sampling by performing sub-groups
-permutation when bisecting the space using the conditioning variables of the
-buiding process. However, this solution is exclusive to the Random Forest and
-is costly with high-dimensional settings.
-:footcite:t:`Chamma_NeurIPS2023` introduced a new model-agnostic solution to
-bypass the limitations of the permutation approach under the use of the
-conditional schemes. The variable of interest does contain two types of
-information: 1) the relationship with the remaining variables and 2) the
-relationship with the outcome. The standard permutation, while breaking the
-relationship with the outcome, is also destroying the dependency with the
-remaining variables. Therefore, instead of directly permuting the variable of
-interest, the variable of interest is predicted by the remaining
-variables and the residuals of this prediction are permuted before
-reconstructing the new version of the variable. This solution preserves the
-dependency with the remaining variables.
-
-In this example, we compare both the standard permutation and its conditional
-variant approaches for variable importance on the diabetes dataset for the
-single-level case. The aim is to see if integrating the new
-statistically-controlled solution has an impact on the results.
-
 Feature Importance on diabetes dataset using cross-validation
+=============================================================
 
 In this example, we show how to compute variable importance using Permutation Feature
 Importance (PFI), Leave-One-Covariate-Out (LOCO), and Conditional Feature Importance
