@@ -20,7 +20,7 @@ from sklearn.utils.validation import check_memory
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import (
-    _generate_mask,
+    _generate_group_mask,
     check_random_state,
     seed_estimator,
 )
@@ -516,14 +516,14 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
-    mask = _generate_mask(X.shape[1], id_column, select_indices=False)
+    mask = _generate_group_mask(X.shape[1], id_column, selected=False)
     X_minus_i = X[:, mask]
     X_i = X[:, id_column]
 
     clf.set_params(
         precompute=gram[
-            :, _generate_mask(gram.shape[0], id_column, select_indices=False)
-        ][_generate_mask(gram.shape[1], id_column, select_indices=False)]
+            :, _generate_group_mask(gram.shape[0], id_column, selected=False)
+        ][_generate_group_mask(gram.shape[1], id_column, selected=False)]
     )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)

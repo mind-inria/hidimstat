@@ -37,7 +37,7 @@ def _check_vim_predict_method(method):
         )
 
 
-def _generate_mask_group_mask(array_size, indexes, selected=True):
+def _generate_group_mask(array_size, indexes, selected=True):
     """
     Generates a mask to select indexes or its opposite.
     """

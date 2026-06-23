@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _generate_mask
+from hidimstat._utils.utils import _generate_group_mask
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -197,8 +197,8 @@ class CFI(BasePerturbation):
         is parallelized.
         """
         X_j = X[:, features_groups_ids]
-        mask = _generate_mask(
-            X.shape[1], features_groups_ids, select_indices=False
+        mask = _generate_group_mask(
+            X.shape[1], features_groups_ids, selected=False
         )
         X_minus_j = X[:, mask]
         estimator.fit(X_minus_j, X_j)
@@ -229,10 +229,10 @@ class CFI(BasePerturbation):
         residuals.
         """
         X_j = X[:, self._features_groups_ids[features_group_id]]
-        mask = _generate_mask(
+        mask = _generate_group_mask(
             X.shape[1],
             self._features_groups_ids[features_group_id],
-            select_indices=False,
+            selected=False,
         )
         X_minus_j = X[:, mask]
         return self._list_imputation_models[features_group_id].sample(
