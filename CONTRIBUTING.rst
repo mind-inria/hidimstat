@@ -22,8 +22,8 @@ For testing, we recommend you install the test dependencies with pip:
 .. code-block:: sh
 
    pip install -e '.[test]'
-  
-This will install ``pytest`` and the following extensions: 
+
+This will install ``pytest`` and the following extensions:
 ``pytest-cov``, ``pytest-randomly``, ``pytest-xdist``, ``pytest-html``,
 ``pytest-timeout``, ``pytest-durations``
 
