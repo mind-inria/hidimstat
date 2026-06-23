@@ -2,14 +2,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-from hidimstat.visualization._compute_accumulated_local_effects import (
+from sklearn.linear_model import LinearRegression
+
+from hidimstat.visualization import ALE
+from hidimstat.visualization.accumulated_local_effects import (
     compute_ale_1d_continuous,
     compute_ale_1d_discrete,
     compute_ale_2d,
 )
-from sklearn.linear_model import LinearRegression
-
-from hidimstat.visualization import ALE
 
 matplotlib.use("Agg")
 
