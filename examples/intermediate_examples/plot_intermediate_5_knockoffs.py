@@ -158,7 +158,7 @@ for seed in range(50):
     all_importances.append(mx_ko.importances_[0])
 
 # %%
-# Let's have a look at the importance variability.
+# We now plot the importance relative variability.
 
 importance_mean = np.array(all_importances).mean(axis=0)
 importance_std = np.array(all_importances).std(axis=0)
