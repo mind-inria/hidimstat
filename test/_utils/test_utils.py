@@ -4,6 +4,7 @@ from scipy.stats import ttest_1samp, wilcoxon
 from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
 from hidimstat._utils.utils import (
+    SKLEARN_LT_1_6,
     check_random_state,
     check_statistical_test,
     get_fitted_attributes,
@@ -113,18 +114,16 @@ def test_make_sklearn_estimator(monkeypatch):
 
         assert est.penalty == expected
 
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_6", True)
     target = 10
-    est = make_sklearn_estimator(
-        LassoCV,
-        alphas=target,
-    )
-    assert est.n_alphas == target
-
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_6", False)
-    target = 10
-    est = make_sklearn_estimator(
-        LassoCV,
-        n_alphas=target,
-    )
-    assert est.alphas == target
+    if SKLEARN_LT_1_6:
+        est = make_sklearn_estimator(
+            LassoCV,
+            alphas=target,
+        )
+        assert est.n_alphas == target
+    else:
+        est = make_sklearn_estimator(
+            LassoCV,
+            n_alphas=target,
+        )
+        assert est.alphas == target
