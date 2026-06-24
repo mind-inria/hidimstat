@@ -29,7 +29,7 @@ X, y, beta = make_regression(
     n_informative=5,
     random_state=0,
     coef=True,
-    noise=10.0,
+    noise=4.0,
 )
 
 # We convert the coefficients of the data-generating process into a binary array
@@ -56,6 +56,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import RidgeCV
+from sklearn.metrics import mean_squared_error
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
@@ -63,7 +64,6 @@ from hidimstat import LOCI
 
 models_list = [
     RidgeCV(),
-    RandomForestRegressor(n_estimators=150, random_state=0),
     MLPRegressor(
         hidden_layer_sizes=(8),
         random_state=0,
@@ -77,7 +77,7 @@ df_list = []
 for model in models_list:
     # Fit the full model
     model = model.fit(X_train, y_train)
-    loci = LOCI(model)
+    loci = LOCI(model, method="predict", loss=mean_squared_error)
     # For each feature, remove it from the dataset, refit the model, and compute LOCI
     # importance. This process is repeated for all features to assess their individual
     # contributions.
