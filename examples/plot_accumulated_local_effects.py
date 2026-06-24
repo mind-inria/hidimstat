@@ -63,15 +63,17 @@ print(f"R² score on the test set: {r2_test_score:.2f}")
 # ^^^^^^^^^^^^^^^^^^^^^
 # - **The Marginal Strip (Top):** Shows the distribution of the data. ALE values are
 #   reliable where data is dense, and should be taken with a grain of salt in sparse regions.
-# - **The Y-Axis (ALE Value):** The value represents the relative contribution of that
+# - **The left Y-Axis (ALE Value):** The value represents the relative contribution of that
 #   specific feature value compared to the mean prediction of the dataset. For instance,
 #   an ALE value of +0.5 means that when `MedInc` is at that level, the model predicts a
 #   house price 0.5 units ($50,000) higher than average, exclusively due to `MedInc`'s behavior.
+# - **The right Y-Axis (Mean model prediction):** The value corresponds to the centered value
+#   of the ALE shifted to the model mean.
 
 from hidimstat.visualization import ALE
 
 ale = ALE(model, feature_names=X.columns)
-_ = ale.plot(X_test, features=0, grid_resolution=50)
+_ = ale.plot(X_test, features=0, confidence_interval=True)
 plt.show()
 
 

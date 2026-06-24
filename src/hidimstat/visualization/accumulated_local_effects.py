@@ -700,7 +700,12 @@ class ALE:
         # Top strip: marginal distribution of the feature
         ax_top = axes[0]
         sns.kdeplot(
-            feature_values, ax=ax_top, fill=True, color="black", legend=False
+            feature_values,
+            ax=ax_top,
+            fill=True,
+            color="black",
+            alpha=0.25,
+            legend=False,
         )
         sns.despine(ax=ax_top, left=True)
         ax_top.tick_params(axis="x", which="both", bottom=False, top=False)
@@ -762,6 +767,7 @@ class ALE:
             discrete=True,
             fill=True,
             color="black",
+            alpha=0.25,
             legend=False,
         )
         sns.despine(ax=ax_top, left=True)
@@ -877,14 +883,23 @@ class ALE:
 
         # Top strip: marginal of feature 0
         ax_top = axes[0, 0]
-        sns.kdeplot(x, ax=ax_top, fill=True, color="black", legend=False)
+        sns.kdeplot(
+            x, ax=ax_top, fill=True, color="black", alpha=0.25, legend=False
+        )
         sns.despine(ax=ax_top, left=True)
         ax_top.xaxis.set_ticks([])
         ax_top.yaxis.set_visible(False)
 
         # Right strip: marginal of feature 1
         ax_right = axes[1, 2]
-        sns.kdeplot(y=y, ax=ax_right, fill=True, color="black", legend=False)
+        sns.kdeplot(
+            y=y,
+            ax=ax_right,
+            fill=True,
+            color="black",
+            alpha=0.25,
+            legend=False,
+        )
         sns.despine(ax=ax_right, bottom=True)
         ax_right.yaxis.set_ticks([])
         ax_right.xaxis.set_visible(False)
