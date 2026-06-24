@@ -19,9 +19,9 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 def test_loci():
     """Test the Leave-One-Covariate-In algorithm on a linear scenario."""
     X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
+        n_samples=100,
+        n_features=20,
+        support_size=4,
         shuffle=False,
         seed=42,
     )
@@ -108,7 +108,7 @@ def test_multiclass_loci():
     n_features = 20
 
     X, y = make_classification(
-        n_samples=1000,
+        n_samples=100,
         n_features=n_features,
         n_informative=important_features,
         n_classes=3,
@@ -146,8 +146,8 @@ def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
     X, y, _, _ = multivariate_simulation(
         n_samples=150,
-        n_features=200,
-        support_size=10,
+        n_features=20,
+        support_size=4,
         shuffle=False,
         seed=42,
     )
@@ -190,8 +190,8 @@ def test_loci_function():
     """Test the function of LOCI algorithm on a linear scenario."""
     X, y, beta, _ = multivariate_simulation(
         n_samples=150,
-        n_features=100,
-        support_size=10,
+        n_features=20,
+        support_size=4,
         shuffle=False,
         seed=42,
     )

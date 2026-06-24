@@ -62,6 +62,7 @@ class LOCI(BasePerturbation):
             n_jobs=n_jobs,
         )
         self._list_estimators = None
+        self._baseline_mean = None
 
     def fit(self, X, y):
         """
@@ -96,6 +97,17 @@ class LOCI(BasePerturbation):
                 strict=False,
             )
         )
+        if self.method in ["predict_proba", "decision_function"]:
+            values, counts = np.unique(y, return_counts=True)
+            # Binary classification
+            if len(values) == 2:
+                values, counts = np.unique(y, return_counts=True)
+                self._baseline_mean = values[np.argmax(counts)]
+            # For multiclass classification, we take the marginal probability.
+            else:
+                self._baseline_mean = counts / y.shape[0]
+        elif self.method == "predict":
+            self._baseline_mean = np.mean(y)
         return self
 
     def importance(self, X, y):
@@ -142,20 +154,17 @@ class LOCI(BasePerturbation):
         statistical_test = check_statistical_test(self.statistical_test)
 
         if self.method in ["predict_proba", "decision_function"]:
-            values, counts = np.unique(y, return_counts=True)
+            values, _ = np.unique(y, return_counts=True)
             # Binary classification
             if len(values) == 2:
-                values, counts = np.unique(y, return_counts=True)
-                y_baseline = np.full_like(
-                    y, values[np.argmax(counts)], dtype=int
-                )
-            # For multiclass classification, we take the marginal probability.
+                y_baseline = np.full_like(y, self._baseline_mean, dtype=int)
+            # Multiclass classification.
             else:
                 y_baseline = np.full(
-                    (y.shape[0], len(values)), counts / y.shape[0]
+                    (y.shape[0], len(values)), self._baseline_mean
                 )
         elif self.method == "predict":
-            y_baseline = np.full_like(y, np.mean(y), dtype=float)
+            y_baseline = np.full_like(y, self._baseline_mean, dtype=float)
         self.loss_reference_ = self.loss(y, y_baseline)
 
         y_pred = self._predict(X)
