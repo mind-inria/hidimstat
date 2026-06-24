@@ -275,7 +275,7 @@ def compute_ale_1d_discrete(
     unique_values = np.unique(x)
     n_values = len(unique_values)
 
-    if n_values < 1:
+    if n_values < 2:
         raise ValueError(
             f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
         )
