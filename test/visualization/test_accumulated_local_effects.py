@@ -343,6 +343,19 @@ class TestALE:
         ):
             ale._resolve_feature_type(X, 0, "invalid_type")
 
+    def test_ale_no_feature_names(self, data_generator):
+        """Test PDP plotting default feature names generation."""
+        X, y, _, _ = data_generator
+
+        model = LinearRegression()
+        model.fit(X, y)
+
+        ale = ALE(model)
+
+        axes = ale.plot(X, features=0)
+        assert axes is not None
+        plt.close("all")
+
     def test_ale_plot_smoke(self, data_generator):
         """ALE plot smoke test."""
         X, y, _, _ = data_generator
