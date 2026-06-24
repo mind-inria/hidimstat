@@ -290,7 +290,7 @@ def test_model_x_knockoff_null():
 
 
 def test_lasso_estimator_alphas():
-    """Test configuration of alphas when estimator is LassoCV depending on SKLEARN version."""
+    """Test configuration of alphas when estimator is LassoCV depending on Scikit-Learn version."""
     n = 200
     p = 50
     signal_noise_ratio = 32

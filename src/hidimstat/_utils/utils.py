@@ -13,7 +13,8 @@ SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
 
-def make_sklearn_estimator(estimator_cls, **kwargs):
+def _make_sklearn_estimator(estimator_cls, **kwargs):
+    """Internal method to handle deprecated arguments on various Scikit Learn versions during estimator instantiation."""
     kwargs = kwargs.copy()
 
     if estimator_cls.__name__ == "LassoCV":

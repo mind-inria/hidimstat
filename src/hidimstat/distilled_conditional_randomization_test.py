@@ -17,8 +17,8 @@ from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
     SKLEARN_LT_1_6,
     _check_vim_predict_method,
+    _make_sklearn_estimator,
     check_random_state,
-    make_sklearn_estimator,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -137,14 +137,14 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=make_sklearn_estimator(
+        lasso_screening=_make_sklearn_estimator(
             LassoCV,
             alphas=10,
             tol=1e-6,
             fit_intercept=False,
             random_state=0,
         ),
-        model_distillation_x=make_sklearn_estimator(
+        model_distillation_x=_make_sklearn_estimator(
             LassoCV,
             alphas=10,
             n_jobs=1,
@@ -854,14 +854,14 @@ def d0crt_importance(
     method="predict",
     estimated_coef=None,
     sigma_X=None,
-    lasso_screening=make_sklearn_estimator(
+    lasso_screening=_make_sklearn_estimator(
         LassoCV,
         alphas=10,
         tol=1e-6,
         fit_intercept=False,
         random_state=0,
     ),
-    model_distillation_x=make_sklearn_estimator(
+    model_distillation_x=_make_sklearn_estimator(
         LassoCV,
         alphas=10,
         n_jobs=1,
