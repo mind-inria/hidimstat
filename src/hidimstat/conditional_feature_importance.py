@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.utils import _generate_group_mask
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -195,8 +196,11 @@ class CFI(BasePerturbation):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized.
         """
-        X_j = X[:, features_groups_ids].copy()
-        X_minus_j = np.delete(X, features_groups_ids, axis=1)
+        X_j = X[:, features_groups_ids]
+        mask = _generate_group_mask(
+            X.shape[1], features_groups_ids, selected=False
+        )
+        X_minus_j = X[:, mask]
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -224,10 +228,13 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(
-            X, self._features_groups_ids[features_group_id], axis=1
+        X_j = X[:, self._features_groups_ids[features_group_id]]
+        mask = _generate_group_mask(
+            X.shape[1],
+            self._features_groups_ids[features_group_id],
+            selected=False,
         )
+        X_minus_j = X[:, mask]
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,
             X_j,
