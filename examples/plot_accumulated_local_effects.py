@@ -128,7 +128,7 @@ X_discrete = pd.DataFrame(
 y_discrete = (
     2.0 * (X_discrete["Feature_A"] ** 2)
     + X_discrete["Feature_B"]
-    + generator.normal(n_samples) * 0.5
+    + generator.normal(0, 0.5, n_samples)
 )
 
 X_discrete_train, X_discrete_test, y_discrete_train, y_discrete_test = (
