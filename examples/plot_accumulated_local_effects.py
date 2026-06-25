@@ -93,7 +93,9 @@ plt.show()
 # - Positive or negative areas indicate that the combined effect is stronger or
 #   weaker than what the individual 1D curves would imply.
 
-_ = ale.plot(X, features=[1, 0], grid_resolution=25, cmap="viridis")
+_ = ale.plot(
+    X, features=[1, 0], grid_resolution=25, percentiles=(0, 1), cmap="viridis"
+)
 plt.show()
 
 
