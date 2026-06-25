@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats
+from sklearn.utils.validation import check_is_fitted
 
 
 def _predict_fn(estimator, X):
@@ -24,6 +25,8 @@ def _predict_fn(estimator, X):
     pred : ndarray of shape (n_samples,)
         A 1D array containing the scalar-output predictions.
     """
+    check_is_fitted(estimator)
+
     feature_names = getattr(estimator, "feature_names_in_", None)
 
     if hasattr(estimator, "predict_proba"):
