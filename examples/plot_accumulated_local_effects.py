@@ -53,8 +53,8 @@ print(f"R² score on the test set: {r2_test_score:.2f}")
 
 
 # %%
-# Accumulated Local Effects for a Single Feature
-# ----------------------------------------------
+# Accumulated Local Effects for a Single Continuous Feature
+# ---------------------------------------------------------
 # Let's look at `MedInc` (Median Income). Mathematically, the 1D ALE calculates
 # the localized differences in predictions as the feature moves across small quantile
 # bins, accumulates them, and centers the final curve around zero.
@@ -94,8 +94,52 @@ plt.show()
 #   weaker than what the individual 1D curves would imply.
 
 _ = ale.plot(
-    X, features=[1, 0], grid_resolution=25, percentiles=(0, 1), cmap="viridis"
+    X_test,
+    features=[1, 0],
+    grid_resolution=25,
+    percentiles=(0, 1),
+    cmap="viridis",
 )
+plt.show()
+
+
+# %%
+# Accumulated Local Effects for a Single Discrete Feature
+# -------------------------------------------------------
+# Let's see how ALE handles discrete features. We will create a synthetic
+# dataset where one feature takes on distinct integer values.
+#
+# Unlike continuous features where local differences are evaluated over quantile
+# bins, for discrete features, the local effect is calculated by shifting the
+# feature to its neighboring values.
+
+import numpy as np
+
+generator = np.random.default_rng(92)
+n_samples = 1000
+
+discrete_feature = generator.integers(1, 6, size=n_samples)
+continuous_feature = generator.normal(n_samples)
+
+X_discrete = pd.DataFrame(
+    {"Feature_A": discrete_feature, "Feature_B": continuous_feature}
+)
+
+y_discrete = (
+    2.0 * (X_discrete["Feature_A"] ** 2)
+    + X_discrete["Feature_B"]
+    + generator.normal(n_samples) * 0.5
+)
+
+X_discrete_train, X_discrete_test, y_discrete_train, y_discrete_test = (
+    train_test_split(X_discrete, y_discrete, test_size=0.3, random_state=92)
+)
+
+model_discrete = RandomForestRegressor(random_state=92)
+model_discrete.fit(X_discrete_train, y_discrete_train)
+
+ale_discrete = ALE(model_discrete, feature_names=X_discrete.columns)
+_ = ale_discrete.plot(X_discrete_test, features=0, feature_type="discrete")
 plt.show()
 
 
