@@ -2,6 +2,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 
 from hidimstat.visualization import ALE
@@ -20,37 +22,51 @@ matplotlib.use("Agg")
 def test_predict_fn():
     """Test all branches of _predict_fn."""
 
-    class DummyPredict:
+    class BaseDummy(BaseEstimator):
+        def __init__(self):
+            super().__init__()
+            self.fitted_ = True
+
+        def fit(self, X, y=None):
+            del X, y
+            return self
+
+    class DummyPredict(BaseDummy):
         def predict(self, X):
             del X
             return np.array([1.0, 2.0])
 
-    class DummyPredictProbaBinary:
+    class DummyPredictProbaBinary(BaseDummy):
         def predict_proba(self, X):
             del X
             return np.array([[0.1, 0.9], [0.2, 0.8]])
 
-    class DummyPredictProbaMulti:
+    class DummyPredictProbaMulti(BaseDummy):
         def predict_proba(self, X):
             del X
             return np.array([[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]])
 
-    class DummyDecisionFunction:
+    class DummyDecisionFunction(BaseDummy):
         def decision_function(self, X):
             del X
             return np.array([0.5, -0.5])
 
-    class DummyNoPredict:
+    class DummyNoPredict(BaseDummy):
         pass
 
-    class DummyWithFeatureNames:
+    class DummyWithFeatureNames(BaseDummy):
         def __init__(self):
+            super().__init__()
             self.feature_names_in_ = ["A", "B"]
 
         def predict(self, X):
             return np.array([0] * len(X))
 
     X_dummy = np.array([[1, 2], [3, 4]])
+    model = LinearRegression()
+
+    with pytest.raises(NotFittedError):
+        _predict_fn(model, X_dummy)
 
     np.testing.assert_array_equal(
         _predict_fn(DummyPredict(), X_dummy), [1.0, 2.0]
