@@ -30,6 +30,11 @@ def test_predict_fn():
             del X
             return np.array([[0.1, 0.9], [0.2, 0.8]])
 
+    class DummyPredictProbaMulti:
+        def predict_proba(self, X):
+            del X
+            return np.array([[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]])
+
     class DummyDecisionFunction:
         def decision_function(self, X):
             del X
@@ -53,6 +58,10 @@ def test_predict_fn():
     np.testing.assert_array_equal(
         _predict_fn(DummyPredictProbaBinary(), X_dummy), [0.9, 0.8]
     )
+    with pytest.raises(
+        ValueError, match="Multiclass models are not supported"
+    ):
+        _predict_fn(DummyPredictProbaMulti(), X_dummy)
     np.testing.assert_array_equal(
         _predict_fn(DummyDecisionFunction(), X_dummy), [0.5, -0.5]
     )
@@ -73,16 +82,42 @@ def test_build_quantile_grid():
     assert len(grid_auto) > 1
 
     with pytest.raises(
-        ValueError, match="'grid_resolution' must be strictly greater than 0"
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        _build_quantile_grid(x, 0, percentiles=[0.05, 0.95])
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        _build_quantile_grid(x, 0, percentiles=(0.05, 0.25, 0.5, 0.75, 0.95))
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        _build_quantile_grid(x, 0, percentiles=(-1, 0.5))
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        _build_quantile_grid(x, 0, percentiles=(0.5, -1))
+
+    with pytest.raises(
+        ValueError,
+        match="'grid_resolution' must be an int strictly greater than 0",
+    ):
+        _build_quantile_grid(x, "a")
+    with pytest.raises(
+        ValueError,
+        match="'grid_resolution' must be an int strictly greater than 0",
     ):
         _build_quantile_grid(x, 0)
     with pytest.raises(
-        ValueError, match="'grid_resolution' must be strictly greater than 0"
+        ValueError,
+        match="'grid_resolution' must be an int strictly greater than 0",
     ):
         _build_quantile_grid(x, -5)
 
     x_few = np.array([1, 1, 2, 2, 3])
-    grid_few = _build_quantile_grid(x_few, 10)
+    grid_few = _build_quantile_grid(
+        x_few, grid_resolution=10, percentiles=(0, 1)
+    )
     np.testing.assert_array_equal(grid_few, [1, 2, 3])
 
 
@@ -180,6 +215,10 @@ class TestALE:
             [0, 1, 2], size=X.shape[0]
         )
 
+        # To avoid having a single unique value
+        X_discrete[0, 0] = 0
+        X_discrete[1, 0] = 1
+
         model = LinearRegression()
         model.fit(X_discrete, y)
 
@@ -224,8 +263,45 @@ class TestALE:
         X_const = X.copy()
         X_const[:, 0] = 7
 
+        X_discrete = X.copy()
+        X_discrete[:, 0] = np.random.default_rng(92).choice(
+            [0, 1, 2], size=X.shape[0]
+        )
+
+        # To avoid having a single unique value
+        X_discrete[0, 0] = 0
+        X_discrete[1, 0] = 1
+
         with pytest.raises(ValueError, match="has fewer than 2 unique values"):
             compute_ale_1d_discrete(model, X_const, feature_idx=0)
+
+        with pytest.raises(
+            ValueError, match="'percentiles' must be a tuple of 2 floats"
+        ):
+            compute_ale_1d_discrete(
+                model, X_discrete, feature_idx=0, percentiles=[0.05, 0.95]
+            )
+        with pytest.raises(
+            ValueError, match="'percentiles' must be a tuple of 2 floats"
+        ):
+            compute_ale_1d_discrete(
+                model,
+                X_discrete,
+                feature_idx=0,
+                percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),
+            )
+        with pytest.raises(
+            ValueError, match="'percentiles' must be a tuple of 2 floats"
+        ):
+            compute_ale_1d_discrete(
+                model, X_discrete, feature_idx=0, percentiles=(-1, 0.5)
+            )
+        with pytest.raises(
+            ValueError, match="'percentiles' must be a tuple of 2 floats"
+        ):
+            compute_ale_1d_discrete(
+                model, X_discrete, feature_idx=0, percentiles=(0.5, -1)
+            )
 
     def test_compute_ale_2d(self, data_generator):
         """Test the 2D ALE calculation"""
@@ -264,14 +340,6 @@ class TestALE:
         model.fit(X, y)
 
         with pytest.raises(
-            NotImplementedError,
-            match="Categorical features are not yet supported",
-        ):
-            compute_ale_2d(
-                model, X, feature_indices=[0, 1], is_categorical=(True, False)
-            )
-
-        with pytest.raises(
             ValueError, match="must contain exactly two feature indices"
         ):
             compute_ale_2d(model, X, feature_indices=[0])
@@ -302,6 +370,10 @@ class TestALE:
         X_discrete[:, 0] = np.random.default_rng(92).choice(
             [0, 1, 2], size=X.shape[0]
         )
+
+        # To avoid having a single unique value
+        X_discrete[0, 0] = 0
+        X_discrete[1, 0] = 1
 
         X_str = np.array([["a"], ["b"], ["c"]], dtype=object)
 
@@ -365,6 +437,10 @@ class TestALE:
             [0, 1, 2], size=X.shape[0]
         )
 
+        # To avoid having a single unique value
+        X_discrete[0, 0] = 0
+        X_discrete[1, 0] = 1
+
         model = LinearRegression()
         model.fit(X_discrete, y)
 
@@ -397,6 +473,6 @@ class TestALE:
         ):
             ale.plot(X_discrete, features="invalid_feature_format")
         with pytest.raises(
-            ValueError, match="Categorical not yet implemented"
+            ValueError, match="not supported for categorical features"
         ):
             ale.plot(X_discrete, features=0, feature_type="categorical")
