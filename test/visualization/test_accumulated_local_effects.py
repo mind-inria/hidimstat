@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 from sklearn.base import BaseEstimator
+from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 
@@ -50,6 +51,13 @@ def ale_test_data():
     model_discrete = LinearRegression()
     model_discrete.fit(X_discrete, y)
 
+    # Categorical
+    X_categorical = X_continuous.astype(object).copy()
+    X_categorical[:, 0] = "A"
+
+    model_categorical = HistGradientBoostingRegressor(categorical_features=[0])
+    model_categorical.fit(X_categorical, y)
+
     return {
         "continuous": {
             "X": X_continuous,
@@ -61,6 +69,11 @@ def ale_test_data():
             "X": X_discrete,
             "y": y,
             "model": model_discrete,
+        },
+        "categorical": {
+            "X": X_categorical,
+            "y": y,
+            "model": model_categorical,
         },
     }
 
@@ -417,11 +430,13 @@ def test_ale_plot_smoke(ale_test_data):
     """ALE plot smoke test."""
     data_continuous = ale_test_data["continuous"]
     data_discrete = ale_test_data["discrete"]
+    data_categorical = ale_test_data["categorical"]
 
     feature_names = [f"feat_{i}" for i in range(data_continuous["X"].shape[1])]
 
     ale_continuous = ALE(data_continuous["model"], feature_names=feature_names)
     ale_discrete = ALE(data_discrete["model"])
+    ale_categorical = ALE(data_categorical["model"])
 
     ax_1d_continuous = ale_continuous.plot(
         data_continuous["X"],
@@ -461,7 +476,7 @@ def test_ale_plot_smoke(ale_test_data):
         ValueError, match="not supported for non numeric categorical features"
     ):
         ale_continuous.plot(
-            data_continuous["X"],
-            features=data_continuous["important_features"][0],
+            data_categorical["X"],
+            features=0,
             feature_type="categorical",
         )
