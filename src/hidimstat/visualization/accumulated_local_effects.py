@@ -7,6 +7,8 @@ import seaborn as sns
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
+from hidimstat.samplers.conditional_sampling import _check_data_type
+
 
 def _predict_fn(estimator, X):
     """Return a scalar-output prediction callable for *estimator*.
@@ -155,7 +157,7 @@ def compute_ale_1d_continuous(
     X,
     feature_idx,
     grid_resolution="auto",
-    confidence_interval=False,
+    confidence_interval=True,
     confidence_level=0.95,
     percentiles=(0.05, 0.95),
 ):
@@ -187,7 +189,7 @@ def compute_ale_1d_continuous(
           if the data contains many duplicate values or fewer unique points
           than requested.
 
-    confidence_interval : bool, default=False
+    confidence_interval : bool, default=True
         Whether to compute the confidence intervals of the ALE curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
@@ -277,7 +279,7 @@ def compute_ale_1d_discrete(
     estimator,
     X,
     feature_idx,
-    confidence_interval=False,
+    confidence_interval=True,
     confidence_level=0.95,
     percentiles=(0.05, 0.95),
 ):
@@ -298,7 +300,7 @@ def compute_ale_1d_discrete(
         to gather local samples in each bin.
     feature_idx : int
         Column index of the feature of interest.
-    confidence_interval : bool, default=False
+    confidence_interval : bool, default=True
         Whether to compute the confidence intervals of the ALE curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
@@ -661,33 +663,13 @@ class ALE:
         self.estimator = estimator
         self.feature_names = feature_names
 
-    def _resolve_feature_type(self, X, feature, feature_type):
-        """Recognize the feature type to use when feature_type="auto" in plot()"""
-        if feature_type == "auto":
-            if X[:, feature].dtype.kind in "iuf":
-                len_unique_values = len(np.unique(X[:, feature]))
-                if (
-                    len_unique_values <= 10
-                    or len_unique_values / len(X) <= 0.001
-                ):
-                    return "discrete"
-                return "continuous"
-            return "categorical"
-
-        if feature_type in ["continuous", "discrete", "categorical"]:
-            return feature_type
-
-        raise ValueError(
-            "feature_type should be a string among 'auto', 'discrete', 'continuous', or 'categorical'"
-        )
-
     def plot(
         self,
         X,
         features,
         feature_type="auto",
         grid_resolution="auto",
-        confidence_interval=False,
+        confidence_interval=True,
         confidence_level=0.95,
         percentiles=(0.05, 0.95),
         cmap="viridis",
@@ -701,12 +683,13 @@ class ALE:
             Dataset used to build the quantile grid and to gather local effects.
         features : int or list of int
             Feature index (1D ALE) or pair of feature indices (2D ALE).
-        feature_type : string among "auto", "discrete", "continuous", or "categorical"
-            Specify the type of values the feature has for 1D ALE. Set by default to auto and in this case :
+        feature_type : string among "auto", "continuous", or "categorical"
+            Specify the type of values the feature has for 1D ALE. Set by
+            default to auto and in this case :
 
             - non-numeric feature : categorical
-            - numeric feature : discrete if the feature has less than 10 unique values or the number of unique values
-              is less than 0.1% of the samples, and continuous otherwise
+            - numeric feature : categorical if the feature has less than 10 unique
+              values, and continuous otherwise
         grid_resolution : int or "auto", default="auto"
             Number of bins per feature axis. Set by default to "auto".
 
@@ -716,7 +699,7 @@ class ALE:
               strictly less than `grid_resolution` (or the auto-calculated value)
               if the data contains many duplicate values or fewer unique points
               than requested.
-        confidence_interval : bool, default=False
+        confidence_interval : bool, default=True
             Whether to compute and display confidence intervals around the 1D ALE curve.
         confidence_level : float, default=0.95
             The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
@@ -739,10 +722,12 @@ class ALE:
         X = np.asarray(X)
         mean_prediction = _predict_fn(self.estimator, X).mean()
 
-        if isinstance(features, int):
+        if isinstance(features, (int, np.integer)):
             feature_ids = [features]
-            feature_type = self._resolve_feature_type(
-                X, features, feature_type
+            feature_type = _check_data_type(
+                data_type=feature_type,
+                y=X[:, features],
+                categorical_max_cardinality=10,
             )
             if feature_type == "continuous":
                 plotting_func = self._plot_1d_continuous
@@ -755,7 +740,11 @@ class ALE:
                     confidence_level=confidence_level,
                     percentiles=percentiles,
                 )
-            elif feature_type == "discrete":
+            elif (
+                feature_type == "categorical"
+                and len(np.unique(X[:, features])) <= 10
+                and X[:, features].dtype.kind in "iuf"
+            ):
                 plotting_func = self._plot_1d_discrete
                 result = compute_ale_1d_discrete(
                     self.estimator,
@@ -767,12 +756,14 @@ class ALE:
                 )
             else:
                 raise ValueError(
-                    "ALE (Accumulated Local Effects) is not supported for categorical features "
+                    "ALE (Accumulated Local Effects) is not supported for non numeric categorical features "
                     "because it requires a natural ordering to compute local differences. "
                     "Creating an artificial ordering would mislead the interpretation. "
                     "Please use alternative methods like M-plots or Partial Dependence Plots (PDP) instead."
                 )
-        elif isinstance(features, list):
+        elif isinstance(features, list) and all(
+            isinstance(f, (int, np.integer)) for f in features
+        ):
             if len(features) > 2:
                 raise ValueError(
                     "Only 1D (single int) and 2D (list of two ints) ALE plots are supported."
