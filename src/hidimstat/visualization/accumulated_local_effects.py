@@ -720,7 +720,6 @@ class ALE:
             The matplotlib `Axes` objects that make up the figure.
         """
         X = np.asarray(X)
-        mean_prediction = _predict_fn(self.estimator, X).mean()
 
         if isinstance(features, (int, np.integer)):
             feature_ids = [features]
@@ -742,7 +741,6 @@ class ALE:
                 )
             elif (
                 feature_type == "categorical"
-                and len(np.unique(X[:, features])) <= 10
                 and X[:, features].dtype.kind in "iuf"
             ):
                 plotting_func = self._plot_1d_discrete
@@ -784,6 +782,8 @@ class ALE:
             feature_names = [self.feature_names[idx] for idx in feature_ids]
         else:
             feature_names = [f"X{idx}" for idx in feature_ids]
+
+        mean_prediction = _predict_fn(self.estimator, X).mean()
 
         return plotting_func(
             result,
