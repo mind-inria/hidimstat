@@ -73,7 +73,7 @@ print(f"R² score on the test set: {r2_test_score:.2f}")
 from hidimstat.visualization import ALE
 
 ale = ALE(model, feature_names=X.columns)
-_ = ale.plot(X_test, features=0, confidence_interval=True)
+_ = ale.plot(X_test, features=0)
 plt.show()
 
 
@@ -110,8 +110,8 @@ plt.show()
 # dataset where one feature takes on distinct integer values.
 #
 # Unlike continuous features where local differences are evaluated over quantile
-# bins, for discrete features, the local effect is calculated by shifting the
-# feature to its neighboring values.
+# bins, for discrete features, the local effect is calculated over the bins defined
+# by the unique values of the feature of interest.
 
 import numpy as np
 
@@ -125,21 +125,21 @@ X_discrete = pd.DataFrame(
     {"Feature_A": discrete_feature, "Feature_B": continuous_feature}
 )
 
-y_discrete = (
+y = (
     2.0 * (X_discrete["Feature_A"] ** 2)
     + X_discrete["Feature_B"]
     + generator.normal(0, 0.5, n_samples)
 )
 
-X_discrete_train, X_discrete_test, y_discrete_train, y_discrete_test = (
-    train_test_split(X_discrete, y_discrete, test_size=0.3, random_state=92)
+X_discrete_train, X_discrete_test, y_train, y_test = train_test_split(
+    X_discrete, y, test_size=0.3, random_state=92
 )
 
 model_discrete = RandomForestRegressor(random_state=92)
-model_discrete.fit(X_discrete_train, y_discrete_train)
+model_discrete.fit(X_discrete_train, y_train)
 
 ale_discrete = ALE(model_discrete, feature_names=X_discrete.columns)
-_ = ale_discrete.plot(X_discrete_test, features=0, feature_type="discrete")
+_ = ale_discrete.plot(X_discrete_test, features=0, feature_type="categorical")
 plt.show()
 
 
