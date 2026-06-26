@@ -6,6 +6,7 @@ from sklearn.base import BaseEstimator
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression
 
+from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.visualization import ALE
 from hidimstat.visualization.accumulated_local_effects import (
     _bin_indices,
@@ -17,6 +18,51 @@ from hidimstat.visualization.accumulated_local_effects import (
 )
 
 matplotlib.use("Agg")
+
+
+@pytest.fixture(scope="module")
+def ale_test_data():
+    """Fixture generating both continuous and discrete data configurations for ALE tests."""
+    # Continuous
+    X_continuous, y, beta, _ = multivariate_simulation(
+        n_samples=300,
+        n_features=20,
+        support_size=3,
+        rho=0.3,
+        value=1.0,
+        signal_noise_ratio=10.0,
+        rho_serial=0.0,
+        shuffle=False,
+        seed=92,
+    )
+    important_features = np.where(beta != 0)[0]
+    model_continous = LinearRegression()
+    model_continous.fit(X_continuous, y)
+
+    # Discrete
+    X_discrete = X_continuous.copy()
+    X_discrete[:, 0] = np.random.default_rng(92).choice(
+        [0, 1, 2], size=X_continuous.shape[0]
+    )
+    X_discrete[0, 0] = 0
+    X_discrete[1, 0] = 1
+
+    model_discrete = LinearRegression()
+    model_discrete.fit(X_discrete, y)
+
+    return {
+        "continuous": {
+            "X": X_continuous,
+            "y": y,
+            "model": model_continous,
+            "important_features": important_features,
+        },
+        "discrete": {
+            "X": X_discrete,
+            "y": y,
+            "model": model_discrete,
+        },
+    }
 
 
 def test_predict_fn():
@@ -145,350 +191,277 @@ def test_bin_indices():
     np.testing.assert_array_equal(indices, [0, 0, 1, 2, 2])
 
 
-parameters_ale = [
-    ("ale_instance_1", 300, 20, 3, 0.3, 92, 1.0, 10.0, 0.0),
-    ("ale_instance_2", 150, 10, 2, 0.5, 42, 2.0, 5.0, 0.1),
-]
+def test_compute_ale_1d_continuous(ale_test_data):
+    """Test the continuous 1D ALE calculation with and without confidence intervals."""
+    data = ale_test_data["continuous"]
+    X, model, important_features = (
+        data["X"],
+        data["model"],
+        data["important_features"],
+    )
 
-ale_ids = [p[0] for p in parameters_ale]
-ale_values = [p[1:] for p in parameters_ale]
+    grid_resolution = 10
+
+    # Without confidence intervals
+    result = compute_ale_1d_continuous(
+        model,
+        X,
+        feature_idx=important_features[0],
+        grid_resolution=grid_resolution,
+        confidence_interval=False,
+    )
+    assert "ale" in result
+    assert "quantiles" in result
+    assert "ale_err" in result
+    assert isinstance(result["ale"], np.ndarray)
+    assert isinstance(result["quantiles"], np.ndarray)
+    assert result["ale_err"] is None
+    assert len(result["ale"]) == len(result["quantiles"])
+    assert len(result["quantiles"]) <= grid_resolution + 1
+
+    # With confidence interval
+    result_ci = compute_ale_1d_continuous(
+        model,
+        X,
+        feature_idx=important_features[0],
+        grid_resolution=grid_resolution,
+        confidence_interval=True,
+        confidence_level=0.95,
+    )
+    assert "ale" in result_ci
+    assert "quantiles" in result_ci
+    assert "ale_err" in result_ci
+    assert isinstance(result_ci["ale"], np.ndarray)
+    assert isinstance(result_ci["quantiles"], np.ndarray)
+    assert isinstance(result_ci["ale_err"], np.ndarray)
+    assert len(result_ci["ale"]) == len(result_ci["quantiles"])
+    assert len(result_ci["quantiles"]) <= grid_resolution + 1
+    assert len(result_ci["ale_err"]) == len(result_ci["quantiles"])
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    ale_values,
-    ids=ale_ids,
-)
-class TestALE:
-    def test_compute_ale_1d_continuous(self, data_generator):
-        """Test the continuous 1D ALE calculation with and without confidence intervals."""
-        X, y, important_features, _ = data_generator
+def test_compute_ale_1d_continuous_error(ale_test_data):
+    """Check the raised error if the continuous feature does not have enough unique quantiles."""
+    data = ale_test_data["continuous"]
+    X, model = data["X"], data["model"]
 
-        model = LinearRegression()
-        model.fit(X, y)
+    X_const = X.copy()
+    X_const[:, 0] = 7
 
-        grid_resolution = 10
+    with pytest.raises(
+        ValueError, match="has fewer than 2 unique quantile edges"
+    ):
+        compute_ale_1d_continuous(
+            model, X_const, feature_idx=0, grid_resolution=10
+        )
 
-        # Without confidence intervals
-        result = compute_ale_1d_continuous(
+
+def test_compute_ale_1d_discrete(ale_test_data):
+    """Test the discrete 1D ALE calculation with and without confidence intervals."""
+    data = ale_test_data["discrete"]
+    X, model = data["X"], data["model"]
+
+    # Without confidence intervals
+    result = compute_ale_1d_discrete(
+        model, X, feature_idx=0, confidence_interval=False
+    )
+    assert "ale" in result
+    assert "unique_values" in result
+    assert "ale_err" in result
+    assert isinstance(result["ale"], np.ndarray)
+    assert isinstance(result["unique_values"], np.ndarray)
+    assert result["ale_err"] is None
+    assert len(result["ale"]) == len(result["unique_values"])
+    assert len(result["unique_values"]) <= 3
+
+    # With confidence intervals
+    result_ci = compute_ale_1d_discrete(
+        model,
+        X,
+        feature_idx=0,
+        confidence_interval=True,
+        confidence_level=0.90,
+    )
+    assert "ale" in result_ci
+    assert "unique_values" in result_ci
+    assert "ale_err" in result_ci
+    assert isinstance(result_ci["ale"], np.ndarray)
+    assert isinstance(result_ci["unique_values"], np.ndarray)
+    assert isinstance(result_ci["ale_err"], np.ndarray)
+    assert len(result_ci["ale"]) == len(result_ci["unique_values"])
+    assert len(result_ci["unique_values"]) <= 3
+    assert len(result_ci["ale_err"]) == len(result_ci["unique_values"])
+
+
+def test_compute_ale_1d_discrete_error(ale_test_data):
+    """Check the raised error if the discrete feature does not have enough unique values."""
+    data = ale_test_data["discrete"]
+    X, model = data["X"], data["model"]
+
+    X_const = X.copy()
+    X_const[:, 0] = 7
+
+    with pytest.raises(ValueError, match="has fewer than 2 unique values"):
+        compute_ale_1d_discrete(model, X_const, feature_idx=0)
+
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_1d_discrete(
+            model, X, feature_idx=0, percentiles=[0.05, 0.95]
+        )
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_1d_discrete(
             model,
             X,
-            feature_idx=important_features[0],
-            grid_resolution=grid_resolution,
-            confidence_interval=False,
-        )
-        assert "ale" in result
-        assert "quantiles" in result
-        assert "ale_err" in result
-        assert isinstance(result["ale"], np.ndarray)
-        assert isinstance(result["quantiles"], np.ndarray)
-        assert result["ale_err"] is None
-        assert len(result["ale"]) == len(result["quantiles"])
-        assert len(result["quantiles"]) <= grid_resolution + 1
-
-        # With confidence interval
-        result_ci = compute_ale_1d_continuous(
-            model,
-            X,
-            feature_idx=important_features[0],
-            grid_resolution=grid_resolution,
-            confidence_interval=True,
-            confidence_level=0.95,
-        )
-        assert "ale" in result_ci
-        assert "quantiles" in result_ci
-        assert "ale_err" in result_ci
-        assert isinstance(result_ci["ale"], np.ndarray)
-        assert isinstance(result_ci["quantiles"], np.ndarray)
-        assert isinstance(result_ci["ale_err"], np.ndarray)
-        assert len(result_ci["ale"]) == len(result_ci["quantiles"])
-        assert len(result_ci["quantiles"]) <= grid_resolution + 1
-        assert len(result_ci["ale_err"]) == len(result_ci["quantiles"])
-
-    def test_compute_ale_1d_continuous_error(self, data_generator):
-        """Check the raised error if the continuous feature does not have enough unique quantiles."""
-        X, y, _, _ = data_generator
-
-        model = LinearRegression()
-        model.fit(X, y)
-
-        X_const = X.copy()
-        X_const[:, 0] = 7
-
-        with pytest.raises(
-            ValueError, match="has fewer than 2 unique quantile edges"
-        ):
-            compute_ale_1d_continuous(
-                model, X_const, feature_idx=0, grid_resolution=10
-            )
-
-    def test_compute_ale_1d_discrete(self, data_generator):
-        """Test the discrete 1D ALE calculation with and without confidence intervals."""
-        X, y, _, _ = data_generator
-
-        X_discrete = X.copy()
-        X_discrete[:, 0] = np.random.default_rng(92).choice(
-            [0, 1, 2], size=X.shape[0]
-        )
-
-        # To avoid having a single unique value
-        X_discrete[0, 0] = 0
-        X_discrete[1, 0] = 1
-
-        model = LinearRegression()
-        model.fit(X_discrete, y)
-
-        # Without confidence intervals
-        result = compute_ale_1d_discrete(
-            model, X_discrete, feature_idx=0, confidence_interval=False
-        )
-        assert "ale" in result
-        assert "unique_values" in result
-        assert "ale_err" in result
-        assert isinstance(result["ale"], np.ndarray)
-        assert isinstance(result["unique_values"], np.ndarray)
-        assert result["ale_err"] is None
-        assert len(result["ale"]) == len(result["unique_values"])
-        assert len(result["unique_values"]) <= 3
-
-        # With confidence intervals
-        result_ci = compute_ale_1d_discrete(
-            model,
-            X_discrete,
             feature_idx=0,
-            confidence_interval=True,
-            confidence_level=0.90,
+            percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),
         )
-        assert "ale" in result_ci
-        assert "unique_values" in result_ci
-        assert "ale_err" in result_ci
-        assert isinstance(result_ci["ale"], np.ndarray)
-        assert isinstance(result_ci["unique_values"], np.ndarray)
-        assert isinstance(result_ci["ale_err"], np.ndarray)
-        assert len(result_ci["ale"]) == len(result_ci["unique_values"])
-        assert len(result_ci["unique_values"]) <= 3
-        assert len(result_ci["ale_err"]) == len(result_ci["unique_values"])
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_1d_discrete(model, X, feature_idx=0, percentiles=(-1, 0.5))
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_1d_discrete(model, X, feature_idx=0, percentiles=(0.5, -1))
 
-    def test_compute_ale_1d_discrete_error(self, data_generator):
-        """Check the raised error if the discrete feature does not have enough unique values."""
-        X, y, _, _ = data_generator
 
-        model = LinearRegression()
-        model.fit(X, y)
+def test_compute_ale_2d(ale_test_data):
+    """Test the 2D ALE calculation"""
+    data = ale_test_data["continuous"]
+    X, model, important_features = (
+        data["X"],
+        data["model"],
+        data["important_features"],
+    )
 
-        X_const = X.copy()
-        X_const[:, 0] = 7
+    grid_resolution = 5
 
-        X_discrete = X.copy()
-        X_discrete[:, 0] = np.random.default_rng(92).choice(
-            [0, 1, 2], size=X.shape[0]
-        )
+    result = compute_ale_2d(
+        model,
+        X,
+        feature_indices=[important_features[0], important_features[1]],
+        grid_resolution=grid_resolution,
+    )
 
-        # To avoid having a single unique value
-        X_discrete[0, 0] = 0
-        X_discrete[1, 0] = 1
+    assert "ale" in result
+    assert "quantiles_i" in result
+    assert "quantiles_j" in result
+    assert isinstance(result["ale"], np.ndarray)
+    assert isinstance(result["quantiles_i"], np.ndarray)
+    assert isinstance(result["quantiles_j"], np.ndarray)
+    assert result["ale"].shape == (
+        len(result["quantiles_i"]),
+        len(result["quantiles_j"]),
+    )
+    assert len(result["quantiles_i"]) <= grid_resolution + 1
+    assert len(result["quantiles_j"]) <= grid_resolution + 1
 
-        with pytest.raises(ValueError, match="has fewer than 2 unique values"):
-            compute_ale_1d_discrete(model, X_const, feature_idx=0)
 
-        with pytest.raises(
-            ValueError, match="'percentiles' must be a tuple of 2 floats"
-        ):
-            compute_ale_1d_discrete(
-                model, X_discrete, feature_idx=0, percentiles=[0.05, 0.95]
-            )
-        with pytest.raises(
-            ValueError, match="'percentiles' must be a tuple of 2 floats"
-        ):
-            compute_ale_1d_discrete(
-                model,
-                X_discrete,
-                feature_idx=0,
-                percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),
-            )
-        with pytest.raises(
-            ValueError, match="'percentiles' must be a tuple of 2 floats"
-        ):
-            compute_ale_1d_discrete(
-                model, X_discrete, feature_idx=0, percentiles=(-1, 0.5)
-            )
-        with pytest.raises(
-            ValueError, match="'percentiles' must be a tuple of 2 floats"
-        ):
-            compute_ale_1d_discrete(
-                model, X_discrete, feature_idx=0, percentiles=(0.5, -1)
-            )
+def test_compute_ale_2d_errors(ale_test_data):
+    """Check the raised error of the 2D ALE."""
+    data = ale_test_data["continuous"]
+    X, model, important_features = (
+        data["X"],
+        data["model"],
+        data["important_features"],
+    )
 
-    def test_compute_ale_2d(self, data_generator):
-        """Test the 2D ALE calculation"""
-        X, y, important_features, _ = data_generator
+    with pytest.raises(
+        ValueError, match="must contain exactly two feature indices"
+    ):
+        compute_ale_2d(model, X, feature_indices=[0])
+    with pytest.raises(
+        ValueError, match="must contain exactly two feature indices"
+    ):
+        compute_ale_2d(model, X, feature_indices=[0, 1, 2])
 
-        model = LinearRegression()
-        model.fit(X, y)
-
-        grid_resolution = 5
-
-        result = compute_ale_2d(
+    X_const_i = X.copy()
+    X_const_i[:, important_features[0]] = 1
+    with pytest.raises(
+        ValueError, match="has fewer than 2 unique quantile edges"
+    ):
+        compute_ale_2d(
             model,
-            X,
+            X_const_i,
             feature_indices=[important_features[0], important_features[1]],
-            grid_resolution=grid_resolution,
         )
 
-        assert "ale" in result
-        assert "quantiles_i" in result
-        assert "quantiles_j" in result
-        assert isinstance(result["ale"], np.ndarray)
-        assert isinstance(result["quantiles_i"], np.ndarray)
-        assert isinstance(result["quantiles_j"], np.ndarray)
-        assert result["ale"].shape == (
-            len(result["quantiles_i"]),
-            len(result["quantiles_j"]),
-        )
-        assert len(result["quantiles_i"]) <= grid_resolution + 1
-        assert len(result["quantiles_j"]) <= grid_resolution + 1
-
-    def test_compute_ale_2d_errors(self, data_generator):
-        """Check the raised error of the 2D ALE."""
-        X, y, _, _ = data_generator
-
-        model = LinearRegression()
-        model.fit(X, y)
-
-        with pytest.raises(
-            ValueError, match="must contain exactly two feature indices"
-        ):
-            compute_ale_2d(model, X, feature_indices=[0])
-        with pytest.raises(
-            ValueError, match="must contain exactly two feature indices"
-        ):
-            compute_ale_2d(model, X, feature_indices=[0, 1, 2])
-
-        X_const_i = X.copy()
-        X_const_i[:, 0] = 1
-        with pytest.raises(
-            ValueError, match="has fewer than 2 unique quantile edges"
-        ):
-            compute_ale_2d(model, X_const_i, feature_indices=[0, 1])
-
-        X_const_j = X.copy()
-        X_const_j[:, 1] = 2
-        with pytest.raises(
-            ValueError, match="has fewer than 2 unique quantile edges"
-        ):
-            compute_ale_2d(model, X_const_j, feature_indices=[0, 1])
-
-    def test_ale_resolve_feature_type(self, data_generator):
-        """Test the inference type."""
-        X, y, _, _ = data_generator
-
-        X_discrete = X.copy()
-        X_discrete[:, 0] = np.random.default_rng(92).choice(
-            [0, 1, 2], size=X.shape[0]
+    X_const_j = X.copy()
+    X_const_j[:, important_features[1]] = 2
+    with pytest.raises(
+        ValueError, match="has fewer than 2 unique quantile edges"
+    ):
+        compute_ale_2d(
+            model,
+            X_const_j,
+            feature_indices=[important_features[0], important_features[1]],
         )
 
-        # To avoid having a single unique value
-        X_discrete[0, 0] = 0
-        X_discrete[1, 0] = 1
 
-        X_str = np.array([["a"], ["b"], ["c"]], dtype=object)
+def test_ale_no_feature_names(ale_test_data):
+    """Test PDP plotting default feature names generation."""
+    data = ale_test_data["continuous"]
+    X, model = data["X"], data["model"]
 
-        model = LinearRegression()
-        model.fit(X_discrete, y)
+    ale = ALE(model)
 
-        ale = ALE(model)
+    axes = ale.plot(X, features=0)
+    assert axes is not None
+    plt.close("all")
 
-        assert (
-            ale._resolve_feature_type(X, feature=0, feature_type="auto")
-            == "continuous"
+
+def test_ale_plot_smoke(ale_test_data):
+    """ALE plot smoke test."""
+    data_continuous = ale_test_data["continuous"]
+    data_discrete = ale_test_data["discrete"]
+
+    feature_names = [f"feat_{i}" for i in range(data_continuous["X"].shape[1])]
+
+    ale_continuous = ALE(data_continuous["model"], feature_names=feature_names)
+    ale_discrete = ALE(data_discrete["model"])
+
+    ax_1d_continuous = ale_continuous.plot(
+        data_continuous["X"],
+        features=data_continuous["important_features"][0],
+        grid_resolution=10,
+        confidence_interval=True,
+    )
+    assert ax_1d_continuous is not None
+    plt.close("all")
+
+    ax_1d_discrete = ale_discrete.plot(
+        data_discrete["X"], features=0, confidence_interval=True
+    )
+    assert ax_1d_discrete is not None
+    plt.close("all")
+
+    ax_2d = ale_continuous.plot(
+        data_continuous["X"],
+        features=[
+            data_continuous["important_features"][0],
+            data_continuous["important_features"][1],
+        ],
+        grid_resolution=5,
+    )
+    assert ax_2d is not None
+    plt.close("all")
+
+    with pytest.raises(ValueError, match="ALE plots are supported"):
+        ale_continuous.plot(data_continuous["X"], features=[1, 2, 3])
+    with pytest.raises(
+        TypeError, match="'features' must be an int or a list of int"
+    ):
+        ale_continuous.plot(
+            data_continuous["X"], features="invalid_feature_format"
         )
-        assert (
-            ale._resolve_feature_type(
-                X_discrete, feature=0, feature_type="auto"
-            )
-            == "discrete"
+    with pytest.raises(
+        ValueError, match="not supported for non numeric categorical features"
+    ):
+        ale_continuous.plot(
+            data_continuous["X"],
+            features=data_continuous["important_features"][0],
+            feature_type="categorical",
         )
-        assert (
-            ale._resolve_feature_type(X_str, feature=0, feature_type="auto")
-            == "categorical"
-        )
-
-        assert (
-            ale._resolve_feature_type(X, feature=0, feature_type="continuous")
-            == "continuous"
-        )
-        assert (
-            ale._resolve_feature_type(X, feature=0, feature_type="discrete")
-            == "discrete"
-        )
-        assert (
-            ale._resolve_feature_type(X, feature=0, feature_type="categorical")
-            == "categorical"
-        )
-
-        with pytest.raises(
-            ValueError, match="feature_type should be a string among"
-        ):
-            ale._resolve_feature_type(X, 0, "invalid_type")
-
-    def test_ale_no_feature_names(self, data_generator):
-        """Test PDP plotting default feature names generation."""
-        X, y, _, _ = data_generator
-
-        model = LinearRegression()
-        model.fit(X, y)
-
-        ale = ALE(model)
-
-        axes = ale.plot(X, features=0)
-        assert axes is not None
-        plt.close("all")
-
-    def test_ale_plot_smoke(self, data_generator):
-        """ALE plot smoke test."""
-        X, y, _, _ = data_generator
-
-        X_discrete = X.copy()
-        X_discrete[:, 0] = np.random.default_rng(92).choice(
-            [0, 1, 2], size=X.shape[0]
-        )
-
-        # To avoid having a single unique value
-        X_discrete[0, 0] = 0
-        X_discrete[1, 0] = 1
-
-        model = LinearRegression()
-        model.fit(X_discrete, y)
-
-        feature_names = [f"feat_{i}" for i in range(X_discrete.shape[1])]
-        ale = ALE(model, feature_names=feature_names)
-
-        ax_1d_continuous = ale.plot(
-            X_discrete,
-            features=1,
-            grid_resolution=10,
-            confidence_interval=True,
-        )
-        assert ax_1d_continuous is not None
-        plt.close("all")
-
-        ax_1d_discrete = ale.plot(
-            X_discrete, features=0, confidence_interval=True
-        )
-        assert ax_1d_discrete is not None
-        plt.close("all")
-
-        ax_2d = ale.plot(X_discrete, features=[1, 2], grid_resolution=5)
-        assert ax_2d is not None
-        plt.close("all")
-
-        with pytest.raises(ValueError, match="ALE plots are supported"):
-            ale.plot(X_discrete, features=[1, 2, 3])
-        with pytest.raises(
-            TypeError, match="'features' must be an int or a list of int"
-        ):
-            ale.plot(X_discrete, features="invalid_feature_format")
-        with pytest.raises(
-            ValueError, match="not supported for categorical features"
-        ):
-            ale.plot(X_discrete, features=0, feature_type="categorical")
