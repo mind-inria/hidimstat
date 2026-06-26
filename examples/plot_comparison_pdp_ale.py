@@ -32,7 +32,7 @@ prediction changes when a feature is varied locally, given the values of other f
 #
 #   y = X_1^2 + \varepsilon
 #
-# **The Goal:** Because :math`y` has absolutely connection to :math:`X_2`, an ideal
+# **The Goal:** Because :math:`y` has no direct connection to :math:`X_2`, an ideal
 # interpretation method must return a completely **flat line at zero** for :math:`X_2`.
 
 import matplotlib.pyplot as plt
@@ -92,7 +92,9 @@ _ = pdp.plot(X_test, features=1)
 
 # 2. ALE Plot
 ale = ALE(model, feature_names=X.columns)
-_ = ale.plot(X_test, features=1, grid_resolution=100)
+_ = ale.plot(
+    X_test, features=1, grid_resolution=100, confidence_interval=False
+)
 
 plt.show()
 
