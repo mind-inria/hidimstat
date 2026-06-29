@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
@@ -157,9 +158,11 @@ def compute_ale_1d_continuous(
     X,
     feature_idx,
     grid_resolution="auto",
+    percentiles=(0.05, 0.95),
     confidence_interval=True,
     confidence_level=0.95,
-    percentiles=(0.05, 0.95),
+    n_bootstraps=20,
+    n_jobs=-1,
 ):
     """Compute the 1D Accumulated Local Effect for a single continuous feature.
 
@@ -189,13 +192,17 @@ def compute_ale_1d_continuous(
           if the data contains many duplicate values or fewer unique points
           than requested.
 
+    percentiles : tuple of float, default=(0.05, 0.95)
+        The lower and upper percentile used to create the extreme values for the grid.
+        Must be in [0, 1].
     confidence_interval : bool, default=True
         Whether to compute the confidence intervals of the ALE curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-    percentiles : tuple of float, default=(0.05, 0.95)
-        The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
+    n_bootstraps : int, default=20
+        Number of bootstrap samples to generate if `confidence_interval` is True.
+    n_jobs : int, default=-1
+        Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
 
     Returns
     -------
@@ -210,8 +217,8 @@ def compute_ale_1d_continuous(
             Returns `None` if `confidence_interval` is False.
     """
     X = np.asarray(X)
-
     x = X[:, feature_idx]
+
     quantiles = _build_quantile_grid(
         x, grid_resolution=grid_resolution, percentiles=percentiles
     )
@@ -222,51 +229,63 @@ def compute_ale_1d_continuous(
             f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
         )
 
-    bin_idx = _bin_indices(x, quantiles)
+    def _compute_ale_curve(X_sample):
+        """Internal closure to compute the ALE curve."""
+        x_sample = X_sample[:, feature_idx]
+        bin_idx = _bin_indices(x_sample, quantiles)
 
-    # For each sample, evaluate the model at the lower and upper edge of its bin
-    X_low = X.copy()
-    X_high = X.copy()
-    X_low[:, feature_idx] = quantiles[bin_idx]
-    X_high[:, feature_idx] = quantiles[bin_idx + 1]
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low = X_sample.copy()
+        X_high = X_sample.copy()
+        X_low[:, feature_idx] = quantiles[bin_idx]
+        X_high[:, feature_idx] = quantiles[bin_idx + 1]
 
-    local_effects = _predict_fn(estimator, X_high) - _predict_fn(
-        estimator, X_low
-    )  # shape (n_samples,)
+        local_effects = _predict_fn(estimator, X_high) - _predict_fn(
+            estimator, X_low
+        )  # shape (n_samples,)
 
-    # Average local effects within each bin
-    bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-    bin_sums = np.bincount(bin_idx, weights=local_effects, minlength=n_bins)
+        # Average local effects within each bin
+        bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
+        bin_sums = np.bincount(
+            bin_idx, weights=local_effects, minlength=n_bins
+        )
 
-    mean_effects = np.zeros(n_bins, dtype=float)
-    non_zero = bin_counts > 0
-    mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+        mean_effects = np.zeros(n_bins, dtype=float)
+        non_zero = bin_counts > 0
+        mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
 
-    # Cumulative sum: uncentered ALE evaluated for each bin edge
-    ale = np.array([0, *np.cumsum(mean_effects)])
+        # Cumulative sum: uncentered ALE evaluated for each bin edge
+        ale_curve = np.array([0, *np.cumsum(mean_effects)])
 
-    # Center: subtract the sample-weighted mean
-    ale_centers = (ale[1:] + ale[:-1]) / 2
-    ale -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
+        # Center: subtract the sample-weighted mean
+        ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
+        ale_curve -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
+
+        return ale_curve
+
+    # Base calculation
+    ale = _compute_ale_curve(X)
+    ale_err = None
 
     # Confidence interval
-    ale_err = None
     if confidence_interval:
-        sample_means = mean_effects[bin_idx]
-        squared_deviations = (local_effects - sample_means) ** 2
-        sum_squared_deviations = np.bincount(
-            bin_idx, weights=squared_deviations, minlength=n_bins
-        )
+        if n_bootstraps < 1:
+            raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
-        var_of_mean = np.zeros(n_bins, dtype=float)
-        valid_bins = bin_counts > 1
-        var_of_mean[valid_bins] = sum_squared_deviations[valid_bins] / (
-            bin_counts[valid_bins] * (bin_counts[valid_bins] - 1)
-        )
+        def _bootstrap():
+            bootstrap_indices = np.random.default_rng().choice(
+                len(X), size=len(X), replace=True
+            )
+            return _compute_ale_curve(X[bootstrap_indices])
 
-        var_of_mean = np.array([0, *var_of_mean])
+        bootstrap_curves = Parallel(n_jobs=n_jobs)(
+            delayed(_bootstrap)() for _ in range(n_bootstraps)
+        )
+        bootstrap_curves = np.array(bootstrap_curves)
+
+        ale = np.mean(bootstrap_curves, axis=0)
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        ale_err = z_score * np.sqrt(var_of_mean)
+        ale_err = z_score * np.std(bootstrap_curves, axis=0)
 
     return {
         "ale": ale,
@@ -279,9 +298,11 @@ def compute_ale_1d_discrete(
     estimator,
     X,
     feature_idx,
+    percentiles=(0.05, 0.95),
     confidence_interval=True,
     confidence_level=0.95,
-    percentiles=(0.05, 0.95),
+    n_bootstraps=20,
+    n_jobs=-1,
 ):
     """Compute the 1D Accumulated Local Effect for a single discrete feature.
 
@@ -300,13 +321,17 @@ def compute_ale_1d_discrete(
         to gather local samples in each bin.
     feature_idx : int
         Column index of the feature of interest.
+    percentiles : tuple of float, default=(0.05, 0.95)
+        The lower and upper percentile used to create the extreme values for the grid.
+        Must be in [0, 1].
     confidence_interval : bool, default=True
         Whether to compute the confidence intervals of the ALE curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-    percentiles : tuple of float, default=(0.05, 0.95)
-        The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
+    n_bootstraps : int, default=20
+        Number of bootstrap samples to generate if `confidence_interval` is True.
+    n_jobs : int, default=-1
+        Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
 
     Returns
     -------
@@ -348,64 +373,87 @@ def compute_ale_1d_discrete(
             f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
         )
 
-    value_idx = np.digitize(x_filtered, unique_values) - 1
+    def _compute_ale_curve(X_sample):
+        """Internal closure to compute the ALE curve."""
+        x_sample = X_sample[:, feature_idx]
+        value_idx = np.digitize(x_sample, unique_values) - 1
 
-    # For each sample, evaluate the model at the lower and upper edge of its bin
-    X_low = X_filtered.copy()
-    X_high = X_filtered.copy()
-    mask_low = x_filtered != unique_values[0]
-    mask_high = x_filtered != unique_values[-1]
-    X_low[mask_low, feature_idx] = unique_values[value_idx[mask_low] - 1]
-    X_high[mask_high, feature_idx] = unique_values[value_idx[mask_high] + 1]
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low = X_sample.copy()
+        X_high = X_sample.copy()
+        mask_low = x_sample != unique_values[0]
+        mask_high = x_sample != unique_values[-1]
+        X_low[mask_low, feature_idx] = unique_values[value_idx[mask_low] - 1]
+        X_high[mask_high, feature_idx] = unique_values[
+            value_idx[mask_high] + 1
+        ]
 
-    local_effects_low = _predict_fn(
-        estimator, X_filtered[mask_low]
-    ) - _predict_fn(estimator, X_low[mask_low])
-    local_effects_high = _predict_fn(
-        estimator, X_high[mask_high]
-    ) - _predict_fn(estimator, X_filtered[mask_high])
+        local_effects_low = _predict_fn(
+            estimator, X_sample[mask_low]
+        ) - _predict_fn(estimator, X_low[mask_low])
+        local_effects_high = _predict_fn(
+            estimator, X_high[mask_high]
+        ) - _predict_fn(estimator, X_sample[mask_high])
 
-    # Average local effects within each bin
-    combined_idx = np.concatenate(
-        [value_idx[mask_low], value_idx[mask_high] + 1]
-    )
-    combined_effects = np.concatenate([local_effects_low, local_effects_high])
+        # Average local effects within each bin
+        combined_idx = np.concatenate(
+            [value_idx[mask_low], value_idx[mask_high] + 1]
+        )
+        combined_effects = np.concatenate(
+            [local_effects_low, local_effects_high]
+        )
 
-    value_counts = np.bincount(combined_idx, minlength=n_values).astype(float)
-    value_sums = np.bincount(
-        combined_idx, weights=combined_effects, minlength=n_values
-    )
+        value_counts = np.bincount(combined_idx, minlength=n_values).astype(
+            float
+        )
+        value_sums = np.bincount(
+            combined_idx, weights=combined_effects, minlength=n_values
+        )
 
-    mean_effects = np.zeros(n_values, dtype=float)
-    non_zero = value_counts > 0
-    mean_effects[non_zero] = value_sums[non_zero] / value_counts[non_zero]
+        mean_effects = np.zeros(n_values, dtype=float)
+        non_zero = value_counts > 0
+        mean_effects[non_zero] = value_sums[non_zero] / value_counts[non_zero]
 
-    # Cumulative sum: uncentered ALE evaluated for each bin edge
-    ale = np.cumsum(mean_effects)
+        # Cumulative sum: uncentered ALE evaluated for each bin edge
+        ale_curve = np.cumsum(mean_effects)
 
-    # Center: subtract the sample-weighted mean
-    ale_centers = (ale[1:] + ale[:-1]) / 2
-    ale -= np.sum(ale_centers * value_counts[1:]) / value_counts.sum()
+        # Center: subtract the sample-weighted mean
+        ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
+        ale_curve -= (
+            np.sum(ale_centers * value_counts[1:]) / value_counts.sum()
+        )
+
+        return ale_curve
+
+    # Base calculation
+    ale = _compute_ale_curve(X)
+    ale_err = None
 
     # Confidence interval
-    ale_err = None
     if confidence_interval:
-        sample_means = mean_effects[combined_idx]
-        squared_deviations = (combined_effects - sample_means) ** 2
-        sum_squared_deviations = np.bincount(
-            combined_idx, weights=squared_deviations, minlength=n_values
-        )
+        if n_bootstraps < 1:
+            raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
-        var_of_mean = np.zeros(n_values, dtype=float)
-        valid_values = value_counts > 1
-        var_of_mean[valid_values] = sum_squared_deviations[valid_values] / (
-            value_counts[valid_values] * (value_counts[valid_values] - 1)
-        )
+        def _bootstrap():
+            bootstrap_indices = np.random.default_rng().choice(
+                len(X_filtered), size=len(X_filtered), replace=True
+            )
+            return _compute_ale_curve(X_filtered[bootstrap_indices])
 
+        bootstrap_curves = Parallel(n_jobs=n_jobs)(
+            delayed(_bootstrap)() for _ in range(n_bootstraps)
+        )
+        bootstrap_curves = np.array(bootstrap_curves)
+
+        ale = np.mean(bootstrap_curves, axis=0)
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        ale_err = z_score * np.sqrt(var_of_mean)
+        ale_err = z_score * np.std(bootstrap_curves, axis=0)
 
-    return {"ale": ale, "unique_values": unique_values, "ale_err": ale_err}
+    return {
+        "ale": ale,
+        "unique_values": unique_values,
+        "ale_err": ale_err,
+    }
 
 
 def compute_ale_2d(
@@ -669,9 +717,11 @@ class ALE:
         features,
         feature_type="auto",
         grid_resolution="auto",
+        percentiles=(0.05, 0.95),
         confidence_interval=True,
         confidence_level=0.95,
-        percentiles=(0.05, 0.95),
+        n_bootstraps=20,
+        n_jobs=-1,
         cmap="viridis",
         **kwargs,
     ):
@@ -690,6 +740,7 @@ class ALE:
             - non-numeric feature : categorical
             - numeric feature : categorical if the feature has less than 10 unique
               values, and continuous otherwise
+
         grid_resolution : int or "auto", default="auto"
             Number of bins per feature axis. Set by default to "auto".
 
@@ -699,13 +750,18 @@ class ALE:
               strictly less than `grid_resolution` (or the auto-calculated value)
               if the data contains many duplicate values or fewer unique points
               than requested.
+
+        percentiles : tuple of float, default=(0.05, 0.95)
+            The lower and upper percentile used to create the extreme values for the grid.
+            Must be in [0, 1].
         confidence_interval : bool, default=True
             Whether to compute and display confidence intervals around the 1D ALE curve.
         confidence_level : float, default=0.95
             The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-        percentiles : tuple of float, default=(0.05, 0.95)
-            The lower and upper percentile used to create the extreme values for the grid.
-            Must be in [0, 1].
+        n_bootstraps : int, default=20
+            Number of bootstrap samples to generate if `confidence_interval` is True.
+        n_jobs : int, default=-1
+            Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
         cmap : str, default="viridis"
             Matplotlib colormap used for the 2D mesh plot.
         **kwargs
@@ -735,9 +791,11 @@ class ALE:
                     X,
                     feature_idx=features,
                     grid_resolution=grid_resolution,
+                    percentiles=percentiles,
                     confidence_interval=confidence_interval,
                     confidence_level=confidence_level,
-                    percentiles=percentiles,
+                    n_bootstraps=n_bootstraps,
+                    n_jobs=n_jobs,
                 )
             elif (
                 feature_type == "categorical"
@@ -748,9 +806,11 @@ class ALE:
                     self.estimator,
                     X,
                     feature_idx=features,
+                    percentiles=percentiles,
                     confidence_interval=confidence_interval,
                     confidence_level=confidence_level,
-                    percentiles=percentiles,
+                    n_bootstraps=n_bootstraps,
+                    n_jobs=n_jobs,
                 )
             else:
                 raise ValueError(
