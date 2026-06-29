@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from joblib import parallel_backend
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.exceptions import NotFittedError
@@ -205,11 +206,26 @@ def test_compute_ale_1d_continuous(ale_test_data):
     assert len(grid_values_ci) <= grid_resolution + 1
     assert len(ale_err_ci) == len(grid_values_ci)
 
+    # To test _bootstrap()
+    with parallel_backend("threading"):
+        result_bootstrap = compute_ale_1d(
+            model,
+            X,
+            feature_idx=important_features[0],
+            feature_type="continuous",
+            confidence_interval=True,
+            n_bootstraps=2,
+        )
+
 
 def test_compute_ale_1d_continuous_error(ale_test_data):
     """Check the raised error if the continuous feature does not have enough unique quantiles."""
     data = ale_test_data["continuous"]
-    X, model = data["X"], data["model"]
+    X, model, important_features = (
+        data["X"],
+        data["model"],
+        data["important_features"],
+    )
 
     X_const = X.copy()
     X_const[:, 0] = 7
@@ -234,6 +250,15 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
             feature_idx=0,
             feature_type="invalid_feature_type",
             grid_resolution=10,
+        )
+    with pytest.raises(ValueError, match="must be strictly greater than"):
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=important_features[0],
+            feature_type="continuous",
+            confidence_interval=True,
+            n_bootstraps=0,
         )
 
 
@@ -268,6 +293,12 @@ def test_compute_ale_1d_discrete(ale_test_data):
     assert isinstance(ale_err_ci, np.ndarray)
     assert len(ale_err_ci) == len(grid_values_ci)
 
+    # To test _bootstrap()
+    with parallel_backend("threading"):
+        result_bootstrap = compute_ale_1d(
+            model, X, feature_idx=0, feature_type="categorical", confidence_interval=True, n_bootstraps=2
+        )
+
 
 def test_compute_ale_1d_discrete_error(ale_test_data):
     """Check the raised error if the discrete feature does not have enough unique values."""
@@ -278,8 +309,10 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     X_const[:, 0] = 7
 
     with pytest.raises(ValueError, match="has fewer than 2 unique values"):
+        compute_ale_1d(model, X_const, feature_idx=0, feature_type="categorical")
+    with pytest.raises(ValueError, match="must be strictly greater than"):
         compute_ale_1d(
-            model, X_const, feature_idx=0, feature_type="categorical"
+            model, X, feature_idx=0, feature_type="categorical", confidence_interval=True, n_bootstraps=0
         )
 
     with pytest.raises(
