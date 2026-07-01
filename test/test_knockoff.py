@@ -10,6 +10,7 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
@@ -18,7 +19,7 @@ from hidimstat.knockoffs import (
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-from .conftest import SKLEARN_LT_1_6, check_estimator
+from .conftest import check_estimator
 
 
 def expected_failed_checks(estimator):
@@ -286,6 +287,35 @@ def test_model_x_knockoff_null():
     fdp_power(selected, beta)
     print(len(np.where(beta)[0]))
     assert not selected.any()
+
+
+def test_lasso_estimator_alphas():
+    """Test configuration of alphas when estimator is LassoCV depending on Scikit-Learn version."""
+    n = 200
+    p = 50
+    signal_noise_ratio = 32
+    n_repeats = 5
+    seed = 42
+    n_alphas = 10
+    X, y, _, _ = multivariate_simulation(
+        n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
+    )
+    if SKLEARN_LT_1_6:
+        estimator = LassoCV(n_alphas=n_alphas)
+    else:
+        estimator = LassoCV(alphas=list(range(n_alphas)))
+
+    model_x_knockoff = ModelXKnockoff(
+        estimator=estimator,
+        n_repeats=n_repeats,
+        random_state=seed,
+        n_jobs=5,
+    ).fit(X, y)
+
+    assert all(
+        len(estimator.alphas) == n_alphas
+        for estimator in model_x_knockoff.estimators_
+    )
 
 
 ##############################################################################
