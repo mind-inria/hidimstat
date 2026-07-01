@@ -577,7 +577,7 @@ class D0CRT(BaseVariableImportance):
 
         Notes
         -----
-        Also sets the `importances_` and `pvalues_` attributes on the instance.
+        Also sets the ``importances_`` and ``pvalues_`` attributes on the instance.
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
