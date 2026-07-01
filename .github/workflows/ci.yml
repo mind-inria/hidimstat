@@ -36,6 +36,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.ref }}
           # require to get the previous commit for getting their messages
           # in a PR the last commit is the commit merge with main
+          allow-unsafe-pr-checkout: true
 
       - name: Get commit message
         id: get_commit_message

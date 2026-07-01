@@ -100,6 +100,8 @@ jobs:
     steps:
     # initialize the reposititory
     - uses: actions/checkout@v7
+      with:
+        allow-unsafe-pr-checkout: true
 
     # get coverage only for 1 job
     - name: Get data
