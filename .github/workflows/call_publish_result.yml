@@ -14,6 +14,7 @@ permissions: {}
 
 jobs:
   merge_and_upload_test_data:
+    if: github.repository == 'mind-inria/hidimstat'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -92,6 +93,7 @@ jobs:
           fi
 
   upload_coverage_data:
+    if: github.repository == 'mind-inria/hidimstat'
     runs-on: ubuntu-latest
     # name for files
     env:
