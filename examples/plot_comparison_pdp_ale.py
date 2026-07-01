@@ -9,14 +9,14 @@ The Problem with PDP
 ^^^^^^^^^^^^^^^^^^^^
 PDPs work by marginalizing over the distribution of the features. If
 features :math:`X_1` and :math:`X_2` are highly correlated, the PDP will calculate
-predictions for points that are physically impossible (e.g. a 100 :math:`\\mathrm{m}^2`
+predictions for points that are impossible (e.g. a 100 :math:`\\mathrm{m}^2`
 apartment with 10 bedrooms). This leads to extrapolation bias.
 
 The ALE Solution
 ^^^^^^^^^^^^^^^^
 ALE plots, proposed by :footcite:t:`apley2020accumulatedlocaleffects`, calculate the
 model's behavior based on conditional distributions. They only look at how the
-prediction changes when a feature is varied locally, given the values of other features.
+prediction changes when a feature varies locally, given the values of other features.
 """
 
 # %%
