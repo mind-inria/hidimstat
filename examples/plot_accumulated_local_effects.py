@@ -89,15 +89,15 @@ plt.show()
 # the effect from the correlation between the two variables.
 #
 # - A value of 0 means the two features act completely independently (their
-#   combined effect is just the sum of their individual 1D parts).
+#   combined effect is just the sum of their individual parts).
 # - Positive or negative areas indicate that the combined effect is stronger or
-#   weaker than what the individual 1D curves would imply.
+#   weaker than what the individual curves would imply.
 
 _ = ale.plot(
     X_test,
     features=[1, 0],
     grid_resolution=25,
-    percentiles=(0, 1),
+    percentiles=(0, 100),
     cmap="viridis",
 )
 plt.show()
@@ -106,30 +106,22 @@ plt.show()
 # %%
 # Accumulated Local Effects for a Single Discrete Feature
 # -------------------------------------------------------
-# Let's see how ALE handles discrete features. We will create a synthetic
-# dataset where one feature takes on distinct integer values.
+# Let's see how ALE handles discrete features. We will use the Tips dataset.
 #
-# Unlike continuous features where local differences are evaluated over quantile
-# bins, for discrete features, the local effect is calculated over the bins defined
-# by the unique values of the feature of interest.
+# Let :math:`x_0, x_1, ..., x_n` be the unique values of the feature of interest.
+# For each bin :math:`[x_k, x_{k+1}]`, the local effect is estimated as the average
+# difference in model output when the feature moves from the lower to the
+# upper bin edge (i.e., :math:`x_k` and :math:`x_{k+1}`) across all samples that fall within
+# that bin. The cumulative sum of these average effects gives the (uncentered)
+# ALE curve, which is then centered so its weighted mean is zero.
 
-import numpy as np
+import seaborn as sns
 
-generator = np.random.default_rng(92)
-n_samples = 1000
+data = sns.load_dataset("tips")
+X_discrete = data.drop(columns=["tip"])
+y = data["tip"]
 
-discrete_feature = generator.integers(1, 6, size=n_samples)
-continuous_feature = generator.normal(n_samples)
-
-X_discrete = pd.DataFrame(
-    {"Feature_A": discrete_feature, "Feature_B": continuous_feature}
-)
-
-y = (
-    2.0 * (X_discrete["Feature_A"] ** 2)
-    + X_discrete["Feature_B"]
-    + generator.normal(0, 0.5, n_samples)
-)
+X_discrete = pd.get_dummies(X_discrete, drop_first=True).astype(float)
 
 X_discrete_train, X_discrete_test, y_train, y_test = train_test_split(
     X_discrete, y, test_size=0.3, random_state=92
@@ -139,7 +131,12 @@ model_discrete = RandomForestRegressor(random_state=92)
 model_discrete.fit(X_discrete_train, y_train)
 
 ale_discrete = ALE(model_discrete, feature_names=X_discrete.columns)
-_ = ale_discrete.plot(X_discrete_test, features=0, feature_type="categorical")
+_ = ale_discrete.plot(
+    X_discrete_test,
+    features=X_discrete_test.columns.get_loc("size"),
+    feature_type="categorical",
+    percentiles=(0, 100),
+)
 plt.show()
 
 
