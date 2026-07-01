@@ -23,7 +23,7 @@ from torch import nn
 
 
 class MNISTCNN(nn.Module):
-    def __init__(self, num_classes=10):
+    def __init__(self, num_classes=2):
         super().__init__()
 
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
@@ -66,7 +66,7 @@ mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
 
 # Downsample to speed up the example
-n_samples = 5000
+n_samples = 1000
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
 X_4_7, y_4_7 = resample(
@@ -139,11 +139,12 @@ net.n_features_in_ = 28 * 28
 
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
+from sklearn.metrics import log_loss
 
 from hidimstat import PFI
 
 shape = (28, 28)
-n_clusters = 50
+n_clusters = 100
 target_fwer = 0.1
 
 X_cluster = resample(
@@ -170,14 +171,22 @@ pfi = PFI(
     features_groups=features_groups,
     n_permutations=20,
     random_state=0,
+    method="predict_proba",
+    loss=log_loss,
 )
 # PyTorch expects float input, and long type target.
-model.fit(X_4_7, y=y_4_7.astype(np.int64))
-pfi.fit_importance(X_4_7, y_4_7)
+# Since it's a binary classification, we convert the classes into 4->0 and 7->1 for Skorch.
+y_target = y_4_7.astype(np.int64).copy()
+y_target[y_target == 4] = 0
+y_target[y_target == 7] = 1
+
+model.fit(X_4_7, y=y_target)
+pfi.fit_importance(X_4_7, y_target)
 selected_4_7 = pfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
+# No need to convert here since it's already 0 and 1.
 model.fit(X_0_1, y=y_0_1.astype(np.int64))
 pfi.fit_importance(X_0_1, y_0_1)
 selected_0_1 = pfi.fwer_selection(
