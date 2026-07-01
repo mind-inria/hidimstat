@@ -52,6 +52,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # neural network, and SVR for a support vector machine, with RBF kernel. We then fit
 # each model on the training data, compute the LOCI feature importance on the test
 # data, and store the results in a DataFrame for comparison.
+# Beware on the choice of hyperparameters of certain models to avoid over-fitting.
 
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
@@ -71,6 +72,9 @@ models_list = [
         learning_rate_init=0.1,
     ),
     SVR(kernel="linear"),
+    RandomForestRegressor(
+        n_estimators=50, max_depth=3, min_samples_leaf=10, random_state=0
+    ),
 ]
 
 df_list = []
@@ -78,9 +82,9 @@ for model in models_list:
     # Fit the full model
     model = model.fit(X_train, y_train)
     loci = LOCI(model, method="predict", loss=mean_squared_error)
-    # For each feature, remove it from the dataset, refit the model, and compute LOCI
-    # importance. This process is repeated for all features to assess their individual
-    # contributions.
+    # Refit the model on a single feature / group of feature, and compute LOCI
+    # importance. This process is repeated for all features / groups of features to assess
+    # their individual contributions.
     loci.fit(X_train, y_train)
     importances = loci.importance(X_test, y_test)
     df_list.append(
@@ -142,6 +146,15 @@ plt.show()
 # varies across models. It can be observed that models with a greater predictive
 # performance (higher R2 score) tend to assign higher importance scores to the true
 # support features.
+
+# %%
+# Conclusion
+# ----------
+# LOCI is a simple and easily-interpretable method that can be used
+# in parallel to LOCO to obtain a different interpretation of variable importance.
+# Please keep in mind that models are fit on single features, which can lead to
+# overfitting depending on the hyperparameters. One way to counteract this is to
+# use LOCICV which can reduce noise for high-variance or unregularized models.
 
 # %%
 # References
