@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
     _check_vim_predict_method,
+    _generate_group_mask,
     check_random_state,
     seed_estimator,
 )
@@ -666,7 +667,8 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
-    X_minus_idx = np.delete(np.copy(X), idx, 1)
+    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    X_minus_idx = X[:, mask]
 
     # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
     # in :footcite:t:`nguyen2022conditional` equation (10).
@@ -748,7 +750,8 @@ def _joblib_distill(
     ----------
     .. footbibliography::
     """
-    X_minus_idx = np.delete(np.copy(X), idx, 1)
+    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    X_minus_idx = X[:, mask]
 
     # Distill X with least square loss
     if sigma_X is None:
@@ -758,13 +761,21 @@ def _joblib_distill(
         sigma2 = np.linalg.norm(X_residual) ** 2 / n_samples
     else:
         # Distill X with sigma_X
-        sigma_temp = np.delete(np.copy(sigma_X), idx, 0)
+        sigma_temp = sigma_X[
+            _generate_group_mask(sigma_X.shape[0], idx, selected=False)
+        ]
         b = sigma_temp[:, idx]
-        A = np.delete(np.copy(sigma_temp), idx, 1)
+        A = sigma_temp[
+            :, _generate_group_mask(sigma_temp.shape[1], idx, selected=False)
+        ]
         coefs_X = np.linalg.solve(A, b)
         X_residual = X[:, idx] - np.dot(X_minus_idx, coefs_X)
         sigma2 = sigma_X[idx, idx] - np.dot(
-            np.delete(np.copy(sigma_X[idx, :]), idx), coefs_X
+            sigma_X[
+                idx,
+                _generate_group_mask(sigma_X.shape[1], idx, selected=False),
+            ],
+            coefs_X,
         )
 
     # Distill Y - calculate residual
