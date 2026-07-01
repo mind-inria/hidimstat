@@ -20,7 +20,9 @@ def _predict_fn(estimator, X):
     Parameters
     ----------
     estimator : fitted sklearn-compatible estimator
+        The estimator used to compute the predictions. Must be already fitted.
     X : array-like of shape (n_samples, n_features)
+        The input data for which to compute predictions.
 
     Returns
     -------
@@ -43,6 +45,7 @@ def _predict_fn(estimator, X):
         )
 
     if feature_names is not None:
+        # If X is a DataFrame it just returns X
         X = pd.DataFrame(X, columns=feature_names)
 
     pred = getattr(estimator, prediction_function)(X)
@@ -63,7 +66,7 @@ def _predict_fn(estimator, X):
     return pred.ravel()
 
 
-def _build_quantile_grid(x, grid_resolution, percentiles=(0.05, 0.95)):
+def _build_quantile_grid(x, grid_resolution, percentiles=(5, 95)):
     """Build a 1D quantile grid for a single continuous feature.
 
     Parameters
@@ -80,9 +83,9 @@ def _build_quantile_grid(x, grid_resolution, percentiles=(0.05, 0.95)):
           if the data contains many duplicate values or fewer unique points
           than requested.
 
-    percentiles : tuple of float, default=(0.05, 0.95)
+    percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
+        Must be in [0, 100].
 
 
     Returns
@@ -93,15 +96,15 @@ def _build_quantile_grid(x, grid_resolution, percentiles=(0.05, 0.95)):
     if (
         not isinstance(percentiles, tuple)
         or len(percentiles) != 2
-        or not (0.0 <= percentiles[0] <= percentiles[1] <= 1.0)
+        or not (0 <= percentiles[0] <= percentiles[1] <= 100)
     ):
         raise ValueError(
             "'percentiles' must be a tuple of 2 floats "
-            "in [0, 1] in increasing order"
+            "in [0, 100] in increasing order"
         )
 
-    low_bnd = np.percentile(x, percentiles[0] * 100)
-    high_bnd = np.percentile(x, percentiles[1] * 100)
+    low_bnd = np.percentile(x, percentiles[0])
+    high_bnd = np.percentile(x, percentiles[1])
 
     valid_mask = (x >= low_bnd) & (x <= high_bnd)
     x_filtered = x[valid_mask]
@@ -140,7 +143,9 @@ def _bin_indices(x, quantiles):
     Parameters
     ----------
     x : ndarray of shape (n_samples,)
+        The 1D array containing the features values of the samples to bin.
     quantiles : ndarray of shape (n_quantiles,)
+        The 1D array of ordered bin edges.
 
     Returns
     -------
@@ -152,23 +157,24 @@ def _bin_indices(x, quantiles):
     return np.clip(idx, 0, len(quantiles) - 2)
 
 
-def compute_ale_1d_continuous(
+def compute_ale_1d(
     estimator,
     X,
     feature_idx,
+    feature_type,
     grid_resolution="auto",
     confidence_interval=True,
     confidence_level=0.95,
-    percentiles=(0.05, 0.95),
+    percentiles=(5, 95),
 ):
-    """Compute the 1D Accumulated Local Effect for a single continuous feature.
+    """Compute the 1D Accumulated Local Effect for a single numerical feature.
 
-    For each bin defined by the quantile grid of `X[:, feature_idx]`,
-    the local effect is estimated as the average difference in model output
-    when the feature moves from the lower to the upper bin edge across all
-    samples that fall within that bin. The cumulative sum of these average
-    effects gives the (uncentered) ALE curve, which is then centered so its
-    weighted mean is zero.
+    For each bin (defined by the quantile grid or the unique values of of
+    `X[:, feature_idx]`), the local effect is estimated as the average
+    difference in model output when the feature moves from the lower to the
+    upper bin edge across all samples that fall within that bin. The cumulative
+    sum of these average effects gives the (uncentered) ALE curve, which is
+    then centered so its weighted mean is zero.
 
     Parameters
     ----------
@@ -179,8 +185,10 @@ def compute_ale_1d_continuous(
         to gather local samples in each bin.
     feature_idx : int
         Column index of the feature of interest.
+    feature_type : string among "continuous", or "categorical"
+        Type of the numeric feature.
     grid_resolution : int or "auto", default="auto"
-        Number of bins used to build the quantile grid. Set by default to "auto".
+        Number of bins used to build the quantile grid with continuous features.
 
         - If "auto", the number of bins is determined automatically
           to minimize the histogram error.
@@ -193,9 +201,9 @@ def compute_ale_1d_continuous(
         Whether to compute the confidence intervals of the ALE curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-    percentiles : tuple of float, default=(0.05, 0.95)
+    percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
+        Must be in [0, 100].
 
     Returns
     -------
@@ -203,59 +211,129 @@ def compute_ale_1d_continuous(
 
         `"ale"` : ndarray of shape (n_quantiles,)
             ALE values evaluated at each bin edge.
-        `"quantiles"` : ndarray of shape (n_quantiles,)
-            Bin edges (quantiles of the feature distribution).
+        `"grid_values"` : ndarray of shape (n_quantiles,)
+            Bin edges (the quantiles of the feature distribution if the feature is continuous
+            and the unique values of the feature otherwise).
         `"ale_err"` : ndarray of shape (n_quantiles,) or None
             The margin of error for each quantile boundary at the specified confidence level.
             Returns `None` if `confidence_interval` is False.
     """
     X = np.asarray(X)
-
     x = X[:, feature_idx]
-    quantiles = _build_quantile_grid(
-        x, grid_resolution=grid_resolution, percentiles=percentiles
-    )
-    n_bins = len(quantiles) - 1
 
-    if n_bins < 1:
+    if feature_type == "continuous":
+        # Grid defined by quantiles
+        grid_values = _build_quantile_grid(
+            x, grid_resolution=grid_resolution, percentiles=percentiles
+        )
+        n_bins = len(grid_values) - 1
+
+        if n_bins < 1:
+            raise ValueError(
+                f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
+            )
+
+        bin_idx = _bin_indices(x, grid_values)
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low = X.copy()
+        X_high = X.copy()
+        X_low[:, feature_idx] = grid_values[bin_idx]
+        X_high[:, feature_idx] = grid_values[bin_idx + 1]
+
+        local_effects = _predict_fn(estimator, X_high) - _predict_fn(
+            estimator, X_low
+        )  # shape (n_samples,)
+
+        combined_idx = bin_idx
+        combined_effects = local_effects
+        min_weight_bin = 0
+
+    elif feature_type == "categorical":
+        if (
+            not isinstance(percentiles, tuple)
+            or len(percentiles) != 2
+            or not (0 <= percentiles[0] <= percentiles[1] <= 100)
+        ):
+            raise ValueError(
+                "'percentiles' must be a tuple of 2 floats "
+                "in [0, 1] in increasing order"
+            )
+
+        # Grid defined by unique values
+        low_bnd = np.percentile(x, percentiles[0])
+        high_bnd = np.percentile(x, percentiles[1])
+
+        valid_mask = (x >= low_bnd) & (x <= high_bnd)
+        X_filtered = X[valid_mask]
+        x_filtered = x[valid_mask]
+
+        grid_values = np.unique(x_filtered)
+        n_bins = len(grid_values)
+
+        if n_bins < 2:
+            raise ValueError(
+                f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
+            )
+
+        value_idx = np.digitize(x_filtered, grid_values) - 1
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low = X_filtered.copy()
+        X_high = X_filtered.copy()
+        mask_low = x_filtered != grid_values[0]
+        mask_high = x_filtered != grid_values[-1]
+        X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
+        X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
+
+        local_effects_low = _predict_fn(
+            estimator, X_filtered[mask_low]
+        ) - _predict_fn(estimator, X_low[mask_low])
+        local_effects_high = _predict_fn(
+            estimator, X_high[mask_high]
+        ) - _predict_fn(estimator, X_filtered[mask_high])
+
+        # Average local effects within each bin
+        combined_idx = np.concatenate(
+            [value_idx[mask_low], value_idx[mask_high] + 1]
+        )
+        combined_effects = np.concatenate(
+            [local_effects_low, local_effects_high]
+        )
+        min_weight_bin = 1
+
+    else:
         raise ValueError(
-            f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
+            "'feature_type' must be a string among 'continuous' and 'categorical'."
         )
 
-    bin_idx = _bin_indices(x, quantiles)
-
-    # For each sample, evaluate the model at the lower and upper edge of its bin
-    X_low = X.copy()
-    X_high = X.copy()
-    X_low[:, feature_idx] = quantiles[bin_idx]
-    X_high[:, feature_idx] = quantiles[bin_idx + 1]
-
-    local_effects = _predict_fn(estimator, X_high) - _predict_fn(
-        estimator, X_low
-    )  # shape (n_samples,)
-
     # Average local effects within each bin
-    bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-    bin_sums = np.bincount(bin_idx, weights=local_effects, minlength=n_bins)
+    bin_counts = np.bincount(combined_idx, minlength=n_bins).astype(float)
+    bin_sums = np.bincount(
+        combined_idx, weights=combined_effects, minlength=n_bins
+    )
 
     mean_effects = np.zeros(n_bins, dtype=float)
     non_zero = bin_counts > 0
     mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
 
     # Cumulative sum: uncentered ALE evaluated for each bin edge
-    ale = np.array([0, *np.cumsum(mean_effects)])
+    if feature_type == "continuous":
+        ale = np.array([0, *np.cumsum(mean_effects)])
+    else:
+        ale = np.cumsum(mean_effects)
 
     # Center: subtract the sample-weighted mean
     ale_centers = (ale[1:] + ale[:-1]) / 2
-    ale -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
+    ale -= np.sum(ale_centers * bin_counts[min_weight_bin:]) / bin_counts.sum()
 
     # Confidence interval
     ale_err = None
     if confidence_interval:
-        sample_means = mean_effects[bin_idx]
-        squared_deviations = (local_effects - sample_means) ** 2
+        sample_means = mean_effects[combined_idx]
+        squared_deviations = (combined_effects - sample_means) ** 2
         sum_squared_deviations = np.bincount(
-            bin_idx, weights=squared_deviations, minlength=n_bins
+            combined_idx, weights=squared_deviations, minlength=n_bins
         )
 
         var_of_mean = np.zeros(n_bins, dtype=float)
@@ -264,148 +342,16 @@ def compute_ale_1d_continuous(
             bin_counts[valid_bins] * (bin_counts[valid_bins] - 1)
         )
 
-        var_of_mean = np.array([0, *var_of_mean])
+        if feature_type == "continuous":
+            var_of_mean = np.array([0, *var_of_mean])
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
         ale_err = z_score * np.sqrt(var_of_mean)
 
     return {
         "ale": ale,
-        "quantiles": quantiles,
+        "grid_values": grid_values,
         "ale_err": ale_err,
     }
-
-
-def compute_ale_1d_discrete(
-    estimator,
-    X,
-    feature_idx,
-    confidence_interval=True,
-    confidence_level=0.95,
-    percentiles=(0.05, 0.95),
-):
-    """Compute the 1D Accumulated Local Effect for a single discrete feature.
-
-    For each value of the feature, the local effect is estimated as the average
-    difference in model output when the feature moves from the lower to the upper
-    neighbour values across all samples that have that value. The cumulative sum
-    of these average effects gives the (uncentered) ALE curve, which is then
-    centered so its weighted mean is zero.
-
-    Parameters
-    ----------
-    estimator : fitted sklearn-compatible estimator
-        Must expose `predict`, `predict_proba`, or `decision_function`.
-    X : array-like of shape (n_samples, n_features)
-        Training (or evaluation) dataset used to define the quantile grid and
-        to gather local samples in each bin.
-    feature_idx : int
-        Column index of the feature of interest.
-    confidence_interval : bool, default=True
-        Whether to compute the confidence intervals of the ALE curve.
-    confidence_level : float, default=0.95
-        The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-    percentiles : tuple of float, default=(0.05, 0.95)
-        The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
-
-    Returns
-    -------
-    result : dict with the following keys:
-
-        `"ale"` : ndarray of shape (n_quantiles,)
-            ALE values evaluated at each value of the feature.
-        `"unique_values"` : ndarray of shape (n_values,)
-            Unique values of the feature of interest.
-        `"ale_err"` : ndarray of shape (n_values,) or None
-            The margin of error for each discrete value at the specified confidence level.
-            Returns `None` if `confidence_interval` is False.
-    """
-    if (
-        not isinstance(percentiles, tuple)
-        or len(percentiles) != 2
-        or not (0.0 <= percentiles[0] <= percentiles[1] <= 1.0)
-    ):
-        raise ValueError(
-            "'percentiles' must be a tuple of 2 floats "
-            "in [0, 1] in increasing order"
-        )
-
-    X = np.asarray(X)
-    x = X[:, feature_idx]
-
-    low_bnd = np.percentile(x, percentiles[0] * 100)
-    high_bnd = np.percentile(x, percentiles[1] * 100)
-
-    valid_mask = (x >= low_bnd) & (x <= high_bnd)
-    X_filtered = X[valid_mask]
-    x_filtered = x[valid_mask]
-
-    unique_values = np.unique(x_filtered)
-    n_values = len(unique_values)
-
-    if n_values < 2:
-        raise ValueError(
-            f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
-        )
-
-    value_idx = np.digitize(x_filtered, unique_values) - 1
-
-    # For each sample, evaluate the model at the lower and upper edge of its bin
-    X_low = X_filtered.copy()
-    X_high = X_filtered.copy()
-    mask_low = x_filtered != unique_values[0]
-    mask_high = x_filtered != unique_values[-1]
-    X_low[mask_low, feature_idx] = unique_values[value_idx[mask_low] - 1]
-    X_high[mask_high, feature_idx] = unique_values[value_idx[mask_high] + 1]
-
-    local_effects_low = _predict_fn(
-        estimator, X_filtered[mask_low]
-    ) - _predict_fn(estimator, X_low[mask_low])
-    local_effects_high = _predict_fn(
-        estimator, X_high[mask_high]
-    ) - _predict_fn(estimator, X_filtered[mask_high])
-
-    # Average local effects within each bin
-    combined_idx = np.concatenate(
-        [value_idx[mask_low], value_idx[mask_high] + 1]
-    )
-    combined_effects = np.concatenate([local_effects_low, local_effects_high])
-
-    value_counts = np.bincount(combined_idx, minlength=n_values).astype(float)
-    value_sums = np.bincount(
-        combined_idx, weights=combined_effects, minlength=n_values
-    )
-
-    mean_effects = np.zeros(n_values, dtype=float)
-    non_zero = value_counts > 0
-    mean_effects[non_zero] = value_sums[non_zero] / value_counts[non_zero]
-
-    # Cumulative sum: uncentered ALE evaluated for each bin edge
-    ale = np.cumsum(mean_effects)
-
-    # Center: subtract the sample-weighted mean
-    ale_centers = (ale[1:] + ale[:-1]) / 2
-    ale -= np.sum(ale_centers * value_counts[1:]) / value_counts.sum()
-
-    # Confidence interval
-    ale_err = None
-    if confidence_interval:
-        sample_means = mean_effects[combined_idx]
-        squared_deviations = (combined_effects - sample_means) ** 2
-        sum_squared_deviations = np.bincount(
-            combined_idx, weights=squared_deviations, minlength=n_values
-        )
-
-        var_of_mean = np.zeros(n_values, dtype=float)
-        valid_values = value_counts > 1
-        var_of_mean[valid_values] = sum_squared_deviations[valid_values] / (
-            value_counts[valid_values] * (value_counts[valid_values] - 1)
-        )
-
-        z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        ale_err = z_score * np.sqrt(var_of_mean)
-
-    return {"ale": ale, "unique_values": unique_values, "ale_err": ale_err}
 
 
 def compute_ale_2d(
@@ -413,7 +359,7 @@ def compute_ale_2d(
     X,
     feature_indices,
     grid_resolution="auto",
-    percentiles=(0.05, 0.95),
+    percentiles=(5, 95),
 ):
     """Compute the 2D Accumulated Local Effect for a pair of continuous features.
 
@@ -430,19 +376,21 @@ def compute_ale_2d(
         to gather local samples in each bin.
     feature_indices : tuple or list of two ints
         Column indices `[i, j]` of the two features of interest.
-    grid_resolution : int or "auto", default="auto"
-        Number of bins per feature axis. Set by default to "auto".
+    grid_resolution : int, tuple of int, or "auto", default="auto"
+        Number of bins per feature axis. If a tuple, specifies the number of bins
+        separately per feature axis.
 
         - If "auto", the number of bins is determined automatically
-          to minimize the histogram error per feature axis.
+          to minimize the histogram error per feature axis and scaled down to
+          maintain data density.
         - Note that the final number of bins in the quantile grids may be
           strictly less than `grid_resolution` (or the auto-calculated value)
           if the data contains many duplicate values or fewer unique points
           than requested.
 
-    percentiles : tuple of float, default=(0.05, 0.95)
+    percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 1].
+        Must be in [0, 100].
 
 
     Returns
@@ -463,15 +411,54 @@ def compute_ale_2d(
         )
 
     X = np.asarray(X)
-
     idx_i, idx_j = feature_indices
     x_i, x_j = X[:, idx_i], X[:, idx_j]
 
+    if grid_resolution == "auto":
+        low_i, high_i = (
+            np.percentile(x_i, percentiles[0]),
+            np.percentile(x_i, percentiles[1]),
+        )
+        low_j, high_j = (
+            np.percentile(x_j, percentiles[0]),
+            np.percentile(x_j, percentiles[1]),
+        )
+        res_i_raw = (
+            np.histogram_bin_edges(
+                x_i[(x_i >= low_i) & (x_i <= high_i)], bins="auto"
+            ).size
+            - 1
+        )
+        res_j_raw = (
+            np.histogram_bin_edges(
+                x_j[(x_j >= low_j) & (x_j <= high_j)], bins="auto"
+            ).size
+            - 1
+        )
+        res_i = int(np.floor(np.sqrt(res_i_raw)))
+        res_j = int(np.floor(np.sqrt(res_j_raw)))
+    elif isinstance(grid_resolution, tuple):
+        if len(grid_resolution) != 2 or not all(
+            isinstance(r, (int, np.integer)) and r > 0 for r in grid_resolution
+        ):
+            raise ValueError(
+                "If 'grid_resolution' is a tuple, it must contain exactly 2 strictly positive integers."
+            )
+        res_i, res_j = grid_resolution
+    elif (
+        isinstance(grid_resolution, (int, np.integer)) and grid_resolution > 0
+    ):
+        res_i = res_j = grid_resolution
+    else:
+        raise ValueError(
+            "'grid_resolution' must be 'auto', an int strictly greater than 0, or a tuple of 2 int strictly greater than 0."
+        )
+
     quantiles_i = _build_quantile_grid(
-        x_i, grid_resolution=grid_resolution, percentiles=percentiles
+        x_i, grid_resolution=res_i, percentiles=percentiles
     )
     quantiles_j = _build_quantile_grid(
-        x_j, grid_resolution=grid_resolution, percentiles=percentiles
+        x_j, grid_resolution=res_j, percentiles=percentiles
     )
 
     n_bins_i = len(quantiles_i) - 1
@@ -671,7 +658,7 @@ class ALE:
         grid_resolution="auto",
         confidence_interval=True,
         confidence_level=0.95,
-        percentiles=(0.05, 0.95),
+        percentiles=(5, 95),
         cmap="viridis",
         **kwargs,
     ):
@@ -690,11 +677,13 @@ class ALE:
             - non-numeric feature : categorical
             - numeric feature : categorical if the feature has less than 10 unique
               values, and continuous otherwise
-        grid_resolution : int or "auto", default="auto"
-            Number of bins per feature axis. Set by default to "auto".
+        grid_resolution : int, tuple of int, or "auto", default="auto"
+            Number of bins per feature axis. If a tuple, specifies the number of bins
+            separately per feature axis for 2D ALE.
 
             - If "auto", the number of bins is determined automatically
-              to minimize the histogram error per feature axis.
+              to minimize the histogram error per feature axis, and scaled down to
+              maintain data density in the 2D ALE case.
             - Note that the final number of bins in the quantile grids may be
               strictly less than `grid_resolution` (or the auto-calculated value)
               if the data contains many duplicate values or fewer unique points
@@ -703,9 +692,9 @@ class ALE:
             Whether to compute and display confidence intervals around the 1D ALE curve.
         confidence_level : float, default=0.95
             The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-        percentiles : tuple of float, default=(0.05, 0.95)
+        percentiles : tuple of float, default=(5, 95)
             The lower and upper percentile used to create the extreme values for the grid.
-            Must be in [0, 1].
+            Must be in [0, 100].
         cmap : str, default="viridis"
             Matplotlib colormap used for the 2D mesh plot.
         **kwargs
@@ -728,36 +717,27 @@ class ALE:
                 y=X[:, features],
                 categorical_max_cardinality=10,
             )
-            if feature_type == "continuous":
-                plotting_func = self._plot_1d_continuous
-                result = compute_ale_1d_continuous(
-                    self.estimator,
-                    X,
-                    feature_idx=features,
-                    grid_resolution=grid_resolution,
-                    confidence_interval=confidence_interval,
-                    confidence_level=confidence_level,
-                    percentiles=percentiles,
-                )
-            elif (
+            if (
                 feature_type == "categorical"
-                and X[:, features].dtype.kind in "iuf"
+                and X[:, features].dtype.kind not in "iuf"
             ):
-                plotting_func = self._plot_1d_discrete
-                result = compute_ale_1d_discrete(
-                    self.estimator,
-                    X,
-                    feature_idx=features,
-                    confidence_interval=confidence_interval,
-                    confidence_level=confidence_level,
-                    percentiles=percentiles,
-                )
-            else:
                 raise ValueError(
                     "ALE (Accumulated Local Effects) is not supported for non numeric categorical features "
                     "because it requires a natural ordering to compute local differences. "
                     "Creating an artificial ordering would mislead the interpretation. "
                     "Please use alternative methods like M-plots or Partial Dependence Plots (PDP) instead."
+                )
+            else:
+                plotting_func = self._plot_1d
+                result = compute_ale_1d(
+                    self.estimator,
+                    X,
+                    feature_idx=features,
+                    feature_type=feature_type,
+                    grid_resolution=grid_resolution,
+                    confidence_interval=confidence_interval,
+                    confidence_level=confidence_level,
+                    percentiles=percentiles,
                 )
         elif isinstance(features, list) and all(
             isinstance(f, (int, np.integer)) for f in features
@@ -789,6 +769,7 @@ class ALE:
             result,
             X,
             feature_ids=feature_ids,
+            feature_type=feature_type,
             feature_names=feature_names,
             mean_prediction=mean_prediction,
             cmap=cmap,
@@ -796,21 +777,27 @@ class ALE:
         )
 
     @staticmethod
-    def _plot_1d_continuous(
+    def _plot_1d(
         result,
         X,
         feature_ids,
+        feature_type,
         feature_names,
         mean_prediction,
         cmap=None,
         **kwargs,
     ):
-        """Render a 1D continuous ALE plot with a marginal density strip."""
+        """Render a 1D ALE plot with a marginal density strip."""
         del cmap  # only there for API compatibility
 
         feature_values = X[:, feature_ids[0]]
-        low, high = result["quantiles"].min(), result["quantiles"].max()
+        low, high = result["grid_values"].min(), result["grid_values"].max()
         margin = (high - low) * 0.05
+
+        if feature_type == "categorical":
+            feature_values = feature_values[
+                (feature_values >= low) & (feature_values <= high)
+            ]
 
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1], sharex=True)
 
@@ -830,95 +817,30 @@ class ALE:
 
         # Main panel: ALE curve
         ax_main = axes[1]
-        sns.lineplot(
-            x=result["quantiles"], y=result["ale"], ax=ax_main, **kwargs
-        )
-        if result["ale_err"] is not None:
-            ax_main.fill_between(
-                result["quantiles"],
-                result["ale"] - result["ale_err"],
-                result["ale"] + result["ale_err"],
-                color="b",
-                alpha=0.15,
-                label="Confidence Interval",
+        if feature_type == "continuous":
+            sns.lineplot(
+                x=result["grid_values"], y=result["ale"], ax=ax_main, **kwargs
             )
-        ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
-        ax_main.set_xlim(low - margin, high + margin)
-        ax_main.set_xlabel(feature_names[0])
-        ax_main.set_ylabel("ALE (Centered)")
-
-        ax_right = ax_main.twinx()
-        ymin, ymax = ax_main.get_ylim()
-        ax_right.set_ylim(ymin + mean_prediction, ymax + mean_prediction)
-        ax_right.set_ylabel(
-            "Mean modele prediction", rotation=270, labelpad=15
-        )
-
-        sns.despine(ax=ax_main, right=False)
-        plt.tight_layout()
-        return axes
-
-    @staticmethod
-    def _plot_1d_discrete(
-        result,
-        X,
-        feature_ids,
-        feature_names,
-        mean_prediction,
-        cmap=None,
-        **kwargs,
-    ):
-        """Render a 1D discrete ALE plot with a marginal density histogram."""
-        del cmap  # only there for API compatibility
-
-        feature_values = X[:, feature_ids[0]]
-        low, high = (
-            result["unique_values"].min(),
-            result["unique_values"].max(),
-        )
-        feature_values_filtered = feature_values[
-            (feature_values >= low) & (feature_values <= high)
-        ]
-
-        _, axes = plt.subplots(
-            2, 1, figsize=(8, 4), height_ratios=[0.2, 1], sharex=True
-        )
-
-        # Top strip: marginal distribution of the feature
-        ax_top = axes[0]
-        sns.histplot(
-            feature_values_filtered,
-            ax=ax_top,
-            discrete=True,
-            fill=True,
-            color="black",
-            alpha=0.25,
-            legend=False,
-        )
-        sns.despine(ax=ax_top, left=True)
-        ax_top.tick_params(axis="x", which="both", bottom=False, top=False)
-        ax_top.yaxis.set_visible(False)
-
-        # Main panel: ALE curve
-        ax_main = axes[1]
-        sns.lineplot(
-            x=result["unique_values"],
-            y=result["ale"],
-            ax=ax_main,
-            marker="o",
-            **kwargs,
-        )
+            ax_main.set_xlim(low - margin, high + margin)
+        else:
+            sns.lineplot(
+                x=result["grid_values"],
+                y=result["ale"],
+                ax=ax_main,
+                marker="o",
+                **kwargs,
+            )
+            ax_main.xaxis.set_ticks(result["grid_values"])
+            ax_main.set_xlim(low - 0.6, high + 0.6)
         if result["ale_err"] is not None:
             ax_main.fill_between(
-                result["unique_values"],
+                result["grid_values"],
                 result["ale"] - result["ale_err"],
                 result["ale"] + result["ale_err"],
                 color="b",
                 alpha=0.15,
             )
         ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
-        ax_main.xaxis.set_ticks(result["unique_values"])
-        ax_main.set_xlim(low - 0.6, high + 0.6)
         ax_main.set_xlabel(feature_names[0])
         ax_main.set_ylabel("ALE (Centered)")
 
@@ -938,12 +860,15 @@ class ALE:
         result,
         X,
         feature_ids,
+        feature_type,
         feature_names,
         mean_prediction,
         cmap="viridis",
         **kwargs,
     ):
         """Render a 2D ALE plot with marginal density strips on each axis."""
+        del feature_type  # only there for API compatibility
+
         x = X[:, feature_ids[0]]
         y = X[:, feature_ids[1]]
 

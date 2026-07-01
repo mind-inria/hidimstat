@@ -13,8 +13,7 @@ from hidimstat.visualization.accumulated_local_effects import (
     _bin_indices,
     _build_quantile_grid,
     _predict_fn,
-    compute_ale_1d_continuous,
-    compute_ale_1d_discrete,
+    compute_ale_1d,
     compute_ale_2d,
 )
 
@@ -159,19 +158,19 @@ def test_build_quantile_grid():
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        _build_quantile_grid(x, 0, percentiles=[0.05, 0.95])
+        _build_quantile_grid(x, 0, percentiles=[5, 95])
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        _build_quantile_grid(x, 0, percentiles=(0.05, 0.25, 0.5, 0.75, 0.95))
+        _build_quantile_grid(x, 0, percentiles=(5, 25, 50, 75, 95))
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        _build_quantile_grid(x, 0, percentiles=(-1, 0.5))
+        _build_quantile_grid(x, 0, percentiles=(-100, 50))
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        _build_quantile_grid(x, 0, percentiles=(0.5, -1))
+        _build_quantile_grid(x, 0, percentiles=(50, -100))
 
     with pytest.raises(
         ValueError,
@@ -191,7 +190,7 @@ def test_build_quantile_grid():
 
     x_few = np.array([1, 1, 2, 2, 3])
     grid_few = _build_quantile_grid(
-        x_few, grid_resolution=10, percentiles=(0, 1)
+        x_few, grid_resolution=10, percentiles=(0, 100)
     )
     np.testing.assert_array_equal(grid_few, [1, 2, 3])
 
@@ -205,7 +204,7 @@ def test_bin_indices():
 
 
 def test_compute_ale_1d_continuous(ale_test_data):
-    """Test the continuous 1D ALE calculation with and without confidence intervals."""
+    """Test the 1D ALE calculation with and without confidence intervals."""
     data = ale_test_data["continuous"]
     X, model, important_features = (
         data["X"],
@@ -216,40 +215,42 @@ def test_compute_ale_1d_continuous(ale_test_data):
     grid_resolution = 10
 
     # Without confidence intervals
-    result = compute_ale_1d_continuous(
+    result = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
+        feature_type="continuous",
         grid_resolution=grid_resolution,
         confidence_interval=False,
     )
     assert "ale" in result
-    assert "quantiles" in result
+    assert "grid_values" in result
     assert "ale_err" in result
     assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["quantiles"], np.ndarray)
+    assert isinstance(result["grid_values"], np.ndarray)
     assert result["ale_err"] is None
-    assert len(result["ale"]) == len(result["quantiles"])
-    assert len(result["quantiles"]) <= grid_resolution + 1
+    assert len(result["ale"]) == len(result["grid_values"])
+    assert len(result["grid_values"]) <= grid_resolution + 1
 
     # With confidence interval
-    result_ci = compute_ale_1d_continuous(
+    result_ci = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
+        feature_type="continuous",
         grid_resolution=grid_resolution,
         confidence_interval=True,
         confidence_level=0.95,
     )
     assert "ale" in result_ci
-    assert "quantiles" in result_ci
+    assert "grid_values" in result_ci
     assert "ale_err" in result_ci
     assert isinstance(result_ci["ale"], np.ndarray)
-    assert isinstance(result_ci["quantiles"], np.ndarray)
+    assert isinstance(result_ci["grid_values"], np.ndarray)
     assert isinstance(result_ci["ale_err"], np.ndarray)
-    assert len(result_ci["ale"]) == len(result_ci["quantiles"])
-    assert len(result_ci["quantiles"]) <= grid_resolution + 1
-    assert len(result_ci["ale_err"]) == len(result_ci["quantiles"])
+    assert len(result_ci["ale"]) == len(result_ci["grid_values"])
+    assert len(result_ci["grid_values"]) <= grid_resolution + 1
+    assert len(result_ci["ale_err"]) == len(result_ci["grid_values"])
 
 
 def test_compute_ale_1d_continuous_error(ale_test_data):
@@ -263,8 +264,20 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
     with pytest.raises(
         ValueError, match="has fewer than 2 unique quantile edges"
     ):
-        compute_ale_1d_continuous(
-            model, X_const, feature_idx=0, grid_resolution=10
+        compute_ale_1d(
+            model,
+            X_const,
+            feature_idx=0,
+            feature_type="continuous",
+            grid_resolution=10,
+        )
+    with pytest.raises(ValueError, match="must be a string among"):
+        compute_ale_1d(
+            model,
+            X_const,
+            feature_idx=0,
+            feature_type="invalid_feature_type",
+            grid_resolution=10,
         )
 
 
@@ -274,35 +287,40 @@ def test_compute_ale_1d_discrete(ale_test_data):
     X, model = data["X"], data["model"]
 
     # Without confidence intervals
-    result = compute_ale_1d_discrete(
-        model, X, feature_idx=0, confidence_interval=False
-    )
-    assert "ale" in result
-    assert "unique_values" in result
-    assert "ale_err" in result
-    assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["unique_values"], np.ndarray)
-    assert result["ale_err"] is None
-    assert len(result["ale"]) == len(result["unique_values"])
-    assert len(result["unique_values"]) <= 3
-
-    # With confidence intervals
-    result_ci = compute_ale_1d_discrete(
+    result = compute_ale_1d(
         model,
         X,
         feature_idx=0,
+        feature_type="categorical",
+        confidence_interval=False,
+    )
+    assert "ale" in result
+    assert "grid_values" in result
+    assert "ale_err" in result
+    assert isinstance(result["ale"], np.ndarray)
+    assert isinstance(result["grid_values"], np.ndarray)
+    assert result["ale_err"] is None
+    assert len(result["ale"]) == len(result["grid_values"])
+    assert len(result["grid_values"]) <= 3
+
+    # With confidence intervals
+    result_ci = compute_ale_1d(
+        model,
+        X,
+        feature_idx=0,
+        feature_type="categorical",
         confidence_interval=True,
         confidence_level=0.90,
     )
     assert "ale" in result_ci
-    assert "unique_values" in result_ci
+    assert "grid_values" in result_ci
     assert "ale_err" in result_ci
     assert isinstance(result_ci["ale"], np.ndarray)
-    assert isinstance(result_ci["unique_values"], np.ndarray)
+    assert isinstance(result_ci["grid_values"], np.ndarray)
     assert isinstance(result_ci["ale_err"], np.ndarray)
-    assert len(result_ci["ale"]) == len(result_ci["unique_values"])
-    assert len(result_ci["unique_values"]) <= 3
-    assert len(result_ci["ale_err"]) == len(result_ci["unique_values"])
+    assert len(result_ci["ale"]) == len(result_ci["grid_values"])
+    assert len(result_ci["grid_values"]) <= 3
+    assert len(result_ci["ale_err"]) == len(result_ci["grid_values"])
 
 
 def test_compute_ale_1d_discrete_error(ale_test_data):
@@ -314,31 +332,50 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     X_const[:, 0] = 7
 
     with pytest.raises(ValueError, match="has fewer than 2 unique values"):
-        compute_ale_1d_discrete(model, X_const, feature_idx=0)
+        compute_ale_1d(
+            model, X_const, feature_idx=0, feature_type="categorical"
+        )
 
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d_discrete(
-            model, X, feature_idx=0, percentiles=[0.05, 0.95]
-        )
-    with pytest.raises(
-        ValueError, match="'percentiles' must be a tuple of 2 floats"
-    ):
-        compute_ale_1d_discrete(
+        compute_ale_1d(
             model,
             X,
             feature_idx=0,
-            percentiles=(0.05, 0.25, 0.5, 0.75, 0.95),
+            feature_type="categorical",
+            percentiles=[5, 95],
         )
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d_discrete(model, X, feature_idx=0, percentiles=(-1, 0.5))
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            percentiles=(5, 25, 50, 75, 95),
+        )
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d_discrete(model, X, feature_idx=0, percentiles=(0.5, -1))
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            percentiles=(-100, 50),
+        )
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            percentiles=(50, -100),
+        )
 
 
 def test_compute_ale_2d(ale_test_data):
@@ -350,6 +387,7 @@ def test_compute_ale_2d(ale_test_data):
         data["important_features"],
     )
 
+    # Grid resolution is an int
     grid_resolution = 5
 
     result = compute_ale_2d(
@@ -372,6 +410,29 @@ def test_compute_ale_2d(ale_test_data):
     assert len(result["quantiles_i"]) <= grid_resolution + 1
     assert len(result["quantiles_j"]) <= grid_resolution + 1
 
+    # Grid resolution is a tuple
+    grid_resolution = (4, 6)
+
+    result = compute_ale_2d(
+        model,
+        X,
+        feature_indices=[important_features[0], important_features[1]],
+        grid_resolution=grid_resolution,
+    )
+
+    assert "ale" in result
+    assert "quantiles_i" in result
+    assert "quantiles_j" in result
+    assert isinstance(result["ale"], np.ndarray)
+    assert isinstance(result["quantiles_i"], np.ndarray)
+    assert isinstance(result["quantiles_j"], np.ndarray)
+    assert result["ale"].shape == (
+        len(result["quantiles_i"]),
+        len(result["quantiles_j"]),
+    )
+    assert len(result["quantiles_i"]) <= grid_resolution[0] + 1
+    assert len(result["quantiles_j"]) <= grid_resolution[1] + 1
+
 
 def test_compute_ale_2d_errors(ale_test_data):
     """Check the raised error of the 2D ALE."""
@@ -390,6 +451,23 @@ def test_compute_ale_2d_errors(ale_test_data):
         ValueError, match="must contain exactly two feature indices"
     ):
         compute_ale_2d(model, X, feature_indices=[0, 1, 2])
+
+    with pytest.raises(
+        ValueError, match="must contain exactly 2 strictly positive integers"
+    ):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], grid_resolution=(5, -1)
+        )
+    with pytest.raises(
+        ValueError, match="must contain exactly 2 strictly positive integers"
+    ):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], grid_resolution=(5, 5, 5)
+        )
+    with pytest.raises(ValueError, match="'grid_resolution' must be 'auto'"):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], grid_resolution="invalid_str"
+        )
 
     X_const_i = X.copy()
     X_const_i[:, important_features[0]] = 1
