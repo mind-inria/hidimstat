@@ -89,13 +89,18 @@ from hidimstat.visualization import ALE, PDP
 
 # 1. Partial Dependence Plot (PDP)
 pdp = PDP(model, feature_names=X.columns)
-_ = pdp.plot(X_test, features=1)
+pdp_axes = pdp.plot(X_test, features=1)
 
 # 2. ALE Plot
 ale = ALE(model, feature_names=X.columns)
-_ = ale.plot(
+ale_axes = ale.plot(
     X_test, features=1, grid_resolution=100, confidence_interval=False
 )
+
+mean_pred = model.predict(X_test).mean()
+pdp_ymin, pdp_ymax = pdp_axes[1].get_ylim()
+ale_axes[1].set_ylim(pdp_ymin - mean_pred, pdp_ymax - mean_pred)
+ale_axes[1].figure.axes[2].set_ylim(pdp_ymin, pdp_ymax)
 
 plt.show()
 
