@@ -801,28 +801,37 @@ class ALE:
 
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1], sharex=True)
 
-        # Top strip: marginal distribution of the feature
+        # Axes
         ax_top = axes[0]
-        sns.kdeplot(
-            feature_values,
-            ax=ax_top,
-            fill=True,
-            color="black",
-            alpha=0.25,
-            legend=False,
-        )
-        sns.despine(ax=ax_top, left=True)
-        ax_top.tick_params(axis="x", which="both", bottom=False, top=False)
-        ax_top.yaxis.set_visible(False)
-
-        # Main panel: ALE curve
         ax_main = axes[1]
+
         if feature_type == "continuous":
+            # Top strip: marginal distribution of the feature
+            sns.kdeplot(
+                feature_values,
+                ax=ax_top,
+                fill=True,
+                color="black",
+                alpha=0.25,
+                legend=False,
+            )
+            # Main panel: ALE curve
             sns.lineplot(
                 x=result["grid_values"], y=result["ale"], ax=ax_main, **kwargs
             )
             ax_main.set_xlim(low - margin, high + margin)
         else:
+            # Top strip: marginal distribution
+            sns.histplot(
+                feature_values,
+                ax=ax_top,
+                discrete=True,
+                fill=True,
+                color="black",
+                alpha=0.25,
+                legend=False,
+            )
+            # Main panel: ALE curve
             sns.lineplot(
                 x=result["grid_values"],
                 y=result["ale"],
@@ -832,6 +841,7 @@ class ALE:
             )
             ax_main.xaxis.set_ticks(result["grid_values"])
             ax_main.set_xlim(low - 0.6, high + 0.6)
+
         if result["ale_err"] is not None:
             ax_main.fill_between(
                 result["grid_values"],
@@ -840,6 +850,11 @@ class ALE:
                 color="b",
                 alpha=0.15,
             )
+
+        sns.despine(ax=ax_top, left=True)
+        ax_top.tick_params(axis="x", which="both", bottom=False, top=False)
+        ax_top.yaxis.set_visible(False)
+
         ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
         ax_main.set_xlabel(feature_names[0])
         ax_main.set_ylabel("ALE (Centered)")
