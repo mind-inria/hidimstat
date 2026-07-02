@@ -220,7 +220,7 @@ mx_ko = ModelXKnockoff(
 # %%
 # Takeaways
 # ---------
-# Model-X Knockoffs is a good method for variable selection as it provides
+# Model-X Knockoffs is a good method for variable selection since it provides
 # rigorous false discovery rate (FDR) control, which leads to a conservative
 # features selection, and works with any prediction model.
 # Unlike CRT-style methods that often test variables individually, knockoffs
