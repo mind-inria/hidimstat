@@ -1,113 +1,60 @@
-import numpy as np
+"""
+Tabular Foundation Model TabICL
+================================
+
+In this example, we demonstrate how to use a tabular foundation model such as
+TabICL [:footcite:t:`qu2025tabicl`] with a straightforward example on the California
+Housing regression dataset.
+"""
+
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.datasets import fetch_openml
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LassoCV
+from sklearn.datasets import fetch_california_housing
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
-from tabicl import TabICLClassifier
+from tabicl import TabICLRegressor
 
-from hidimstat import D0CRT
+from hidimstat import CFI
 
-# TODO: TabICL doesn't work with D0CRT because of seeding issues.
+# %%
+# Loading data and TabICL
+# -----------------------
+# We start by loading data from the California Housing dataset and fitting the
+# TabICL model. If this is the first use, the model will be downloaded and cached
+# for future use. The main advantage is that the model does not require
+# hyperparameter tuning as a pre-trained transformer model. We recommend switching
+# to GPU through the adequate class parameter for datasets that go over 10k
+# samples depending on the number of features due to computation time increase.
 
-dataset = fetch_openml("adult", version=2, as_frame=True)
+dataset = fetch_california_housing()
 X, y, feat_names = dataset.data, dataset.target, dataset.feature_names
-y = (y == ">50K").astype(int)
-
-max_samples = 1000
 X, y = resample(
-    X,
-    y,
-    n_samples=max_samples,
-    replace=False,
-    random_state=0,
-    stratify=y,
+    X, y, replace=False, n_samples=1000, stratify=y, random_state=0
 )
-
-num_cols = X.select_dtypes(include=np.number).columns
-cat_cols = X.select_dtypes(exclude=np.number).columns
-
-preprocess = ColumnTransformer(
-    transformers=[
-        (
-            "num",
-            Pipeline(
-                [
-                    ("imputer", SimpleImputer(strategy="median")),
-                    ("scaler", StandardScaler()),
-                ]
-            ),
-            num_cols,
-        ),
-        (
-            "cat",
-            Pipeline(
-                [
-                    ("imputer", SimpleImputer(strategy="most_frequent")),
-                    ("onehot", OneHotEncoder(handle_unknown="ignore")),
-                ]
-            ),
-            cat_cols,
-        ),
-    ],
-)
-
-
-X_proc = preprocess.fit_transform(X).toarray()
-feat_names_proc = preprocess.get_feature_names_out()
-
-"""rng = np.random.default_rng(0)
-
-n, p = X_proc.shape
-n_dup = 10
-
-synthetic = []
-
-for i in range(n_dup):
-    base_idx = rng.integers(0, p, size=20)
-
-    block = (
-        0.95 * X_proc[:, base_idx]
-        + 0.05 * rng.standard_normal((n, 20))
-    )
-
-    synthetic.append(block)
-
-X_aug = np.hstack([X_proc] + synthetic)"""
 X_train, X_test, y_train, y_test = train_test_split(
-    X_proc, y, test_size=0.5, random_state=0
-)
-tabicl = TabICLClassifier(device="cpu")
-
-tabicl.fit(X_train, y_train)
-"""skorch_model = MLPClassifier(
-    hidden_layer_sizes=(128, 64),
-    activation="relu",
-    max_iter=50,
-    random_state=0,
+    X, y, test_size=0.2, random_state=0
 )
 
-skorch_model.fit(X_train, y_train)
-skorch_pred = skorch_model.predict(X_test)"""
-d0crt_lasso = D0CRT(
-    estimator=tabicl,
-    screening_threshold=None,
-    random_state=0,
-)
-d0crt_lasso.fit(
-    X_train,
-    y_train,
-)
-importances = d0crt_lasso.importance(X_test, y_test)
-selection = d0crt_lasso.fdr_selection(fdr=0.2)
+model = make_pipeline(StandardScaler(), TabICLRegressor(device="cpu"))
+model.fit(X_train, y_train)
+
+# %%
+# For the moment, TabICL can only be used with PFI or CFI. TabICL only works with
+# integer seeding, which is currently not supported by D0CRT.
+#
+# TabICL interfaces with HiDimStat the same way as any other Scikit-learn estimator,
+# which lets us compute feature importance as easily as follows:
+
+cfi = CFI(estimator=model, method="predict", loss=mean_squared_error)
+cfi.fit(X_train, y_train)
+importances = cfi.importance(X_test, y_test)
+selection = cfi.fdr_selection(fdr=0.1)
 
 df = pd.DataFrame(
     {
-        "feature": feat_names_proc,
+        "feature": feat_names,
         "importance": importances,
         "selected": selection,
     }
@@ -117,7 +64,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 ax = sns.barplot(
-    data=df.head(20),
+    data=df,
     y="feature",
     x="importance",
     hue="selected",
@@ -125,7 +72,11 @@ ax = sns.barplot(
     orient="h",
 )
 sns.despine()
-ax.set_yticklabels(
-    " ".join(x.get_text().split("__")[1:]) for x in ax.get_yticklabels()
-)
 plt.show()
+
+# %%
+# As you can see from the timer under, even with 1000 samples and 9 features,
+# running TabICL on the CPU is slow. We recommend to use it on larger datasets,
+# be it in terms of samples and/or features and to run it on GPU for faster
+# inferences. Due to technical limitations, this is something we cannot showcase
+# here.
