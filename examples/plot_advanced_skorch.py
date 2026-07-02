@@ -66,7 +66,7 @@ mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
 
 # Downsample to speed up the example
-n_samples = 1000
+n_samples = 500
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
 X_4_7, y_4_7 = resample(
@@ -115,7 +115,7 @@ from skorch import NeuralNetClassifier
 
 net = NeuralNetClassifier(
     MNISTCNN,
-    max_epochs=10,
+    max_epochs=5,
     lr=1e-3,
     batch_size=64,
     optimizer=torch.optim.Adam,
@@ -140,11 +140,12 @@ net.n_features_in_ = 28 * 28
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.metrics import log_loss
+from sklearn.model_selection import train_test_split
 
 from hidimstat import PFI
 
 shape = (28, 28)
-n_clusters = 100
+n_clusters = 50
 target_fwer = 0.1
 
 X_cluster = resample(
@@ -169,7 +170,7 @@ features_groups = dict(zip(unique_ids, positions, strict=False))
 pfi = PFI(
     estimator=model,
     features_groups=features_groups,
-    n_permutations=20,
+    n_permutations=50,
     random_state=0,
     method="predict_proba",
     loss=log_loss,
@@ -180,15 +181,25 @@ y_target = y_4_7.astype(np.int64).copy()
 y_target[y_target == 4] = 0
 y_target[y_target == 7] = 1
 
-model.fit(X_4_7, y=y_target)
-pfi.fit_importance(X_4_7, y_target)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_4_7, y_target, test_size=0.3, random_state=0, stratify=y_target
+)
+model.fit(X_train, y=y_train)
+pfi.fit_importance(X_test, y_test)
 selected_4_7 = pfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
 # No need to convert here since it's already 0 and 1.
-model.fit(X_0_1, y=y_0_1.astype(np.int64))
-pfi.fit_importance(X_0_1, y_0_1)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_0_1,
+    y_0_1.astype(np.int64),
+    test_size=0.3,
+    random_state=0,
+    stratify=y_0_1,
+)
+model.fit(X_train, y=y_train)
+pfi.fit_importance(X_test, y_test)
 selected_0_1 = pfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
