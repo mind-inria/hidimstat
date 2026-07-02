@@ -211,7 +211,7 @@ mx_ko = ModelXKnockoff(
     estimator=LassoCV(
         max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
     ),
-    random_state=42,
+    random_state=0,
     preconfigure_lasso_path=False,
     n_repeats=15,
     n_jobs=5,
