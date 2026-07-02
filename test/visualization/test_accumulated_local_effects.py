@@ -296,7 +296,12 @@ def test_compute_ale_1d_discrete(ale_test_data):
     # To test _bootstrap()
     with parallel_backend("threading"):
         result_bootstrap = compute_ale_1d(
-            model, X, feature_idx=0, feature_type="categorical", confidence_interval=True, n_bootstraps=2
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            confidence_interval=True,
+            n_bootstraps=2,
         )
 
 
@@ -309,10 +314,17 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     X_const[:, 0] = 7
 
     with pytest.raises(ValueError, match="has fewer than 2 unique values"):
-        compute_ale_1d(model, X_const, feature_idx=0, feature_type="categorical")
+        compute_ale_1d(
+            model, X_const, feature_idx=0, feature_type="categorical"
+        )
     with pytest.raises(ValueError, match="must be strictly greater than"):
         compute_ale_1d(
-            model, X, feature_idx=0, feature_type="categorical", confidence_interval=True, n_bootstraps=0
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            confidence_interval=True,
+            n_bootstraps=0,
         )
 
     with pytest.raises(

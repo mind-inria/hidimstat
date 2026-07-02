@@ -78,7 +78,7 @@ def compute_ale_1d(
     confidence_interval=True,
     confidence_level=0.95,
     n_bootstraps=20,
-    n_jobs=-1
+    n_jobs=-1,
 ):
     """Compute the 1D Accumulated Local Effect for a single numerical feature.
 
@@ -217,7 +217,9 @@ def compute_ale_1d(
             mask_low = x_sample != grid_values[0]
             mask_high = x_sample != grid_values[-1]
             X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
-            X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
+            X_high[mask_high, feature_idx] = grid_values[
+                value_idx[mask_high] + 1
+            ]
 
             local_effects_low = _predict_fn(
                 estimator, X_sample[mask_low], method
@@ -253,7 +255,10 @@ def compute_ale_1d(
 
         # Center: subtract the sample-weighted mean
         ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
-        ale_curve -= np.sum(ale_centers * bin_counts[min_weight_bin:]) / bin_counts.sum()
+        ale_curve -= (
+            np.sum(ale_centers * bin_counts[min_weight_bin:])
+            / bin_counts.sum()
+        )
 
         return ale_curve
 
