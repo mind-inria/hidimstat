@@ -131,7 +131,7 @@ net.n_features_in_ = 28 * 28
 # %%
 # Running HiDimStat feature importance computation
 # ------------------------------------------------
-# We cluster pixels through a feature agglomeration, and define its connectivity
+# We cluster pixels through feature agglomeration, and define its connectivity
 # to inform spatial relations and assess feature importance at the group level.
 # This is done with a Conditional Feature Importance (CFI). For each binary
 # classification (0 vs 1, 4 vs 7), we fit the model and evaluate feature
