@@ -15,8 +15,10 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
+    SKLEARN_LT_1_6,
     _check_vim_predict_method,
     _generate_group_mask,
+    _make_sklearn_estimator,
     check_random_state,
     seed_estimator,
 )
@@ -51,9 +53,9 @@ class D0CRT(BaseVariableImportance):
         Pre-computed intercept. If None, intercept is estimated via Lasso.
     sigma_X : array-like of shape (n_features, n_features) or None, default=None
         Covariance matrix of X. If None, Lasso is used for X distillation.
-    lasso_screening : sklearn estimator, default=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False)
+    lasso_screening : sklearn estimator, default=LassoCV(alphas=10, tol=1e-6, fit_intercept=False)
         Estimator for variable screening (typically LassoCV or Lasso).
-    model_distillation_x : sklearn estimator, default=LassoCV(n_alphas=10)
+    model_distillation_x : sklearn estimator, default=LassoCV(alphas=10)
         Estimator for X distillation (typically LassoCV or Lasso).
     refit : bool, default=False
         Whether to refit the model on selected features after screening.
@@ -136,8 +138,19 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=LassoCV(n_alphas=10, tol=1e-6, fit_intercept=False),
-        model_distillation_x=LassoCV(n_alphas=10),
+        lasso_screening=_make_sklearn_estimator(
+            LassoCV,
+            alphas=10,
+            tol=1e-6,
+            fit_intercept=False,
+            random_state=0,
+        ),
+        model_distillation_x=_make_sklearn_estimator(
+            LassoCV,
+            alphas=10,
+            n_jobs=1,
+            random_state=0,
+        ),
         refit=False,
         screening_threshold=10,
         centered=True,
@@ -602,7 +615,9 @@ class D0CRT(BaseVariableImportance):
             )
         if is_logistic and (
             self.screening_threshold is not None
-            and not self.lasso_screening.penalty == "l1"
+            and not all(
+                l1_ratio == 1 for l1_ratio in self.lasso_screening.l1_ratios
+            )
         ):
             raise ValueError(
                 "For logistic regression, lasso_screening.penalty must be 'l1'"
@@ -850,15 +865,17 @@ def d0crt_importance(
     method="predict",
     estimated_coef=None,
     sigma_X=None,
-    lasso_screening=LassoCV(
-        n_alphas=10,
+    lasso_screening=_make_sklearn_estimator(
+        LassoCV,
+        alphas=10,
         tol=1e-6,
         fit_intercept=False,
         random_state=0,
     ),
-    model_distillation_x=LassoCV(
+    model_distillation_x=_make_sklearn_estimator(
+        LassoCV,
+        alphas=10,
         n_jobs=1,
-        n_alphas=10,
         random_state=0,
     ),
     refit=False,
