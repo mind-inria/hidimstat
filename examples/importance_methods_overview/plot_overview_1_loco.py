@@ -2,7 +2,7 @@
 Leave-One-Covariate-Out (LOCO) feature importance
 =================================================
 
-This example gives a few insights on the LOCO feature importance [:footcite:t:`Williamson_General_2023`],
+This example illustrates the LOCO feature importance [:footcite:t:`Williamson_General_2023`],
 and compares it across different predictive models on the same regression dataset.
 LOCO is model-agnostic and can be applied to any predictive model.
 Here, we use a linear model, a random forest, a neural network, and a support vector machine.
@@ -132,7 +132,7 @@ plt.show()
 # %%
 # Takeaways
 # ---------
-# LOCO is a rather intuitive method to assess feature importance, by assessing the contribution
+# LOCO is a rather intuitive feature importance analysis method, that assesses the contribution
 # of single feature through difference in loss between a full model and a retrained model without that feature.
 # Here are a few things to pay attention to when using this method:
 #

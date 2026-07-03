@@ -154,7 +154,7 @@ plt.show()
 #
 # There are a few downsides that should be noted. dCRT does a lot of resampling,
 # statistic distribution computation, and X-distillation needs to be executed for each
-# feature, which can be computationally intensive and long as the number of feature grows.
+# feature, which can be computationally intensive and long as the number of features grows.
 # The power heavily depends on the conditional model, which can become very conservative.
 # If the conditional distribution is poorly estimated, p-values can become large and true
 # signals are missed, which can become a practical bottleneck.

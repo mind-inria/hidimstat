@@ -11,10 +11,9 @@ and detail how this method answers the previous issues.
 # %%
 # Marginal Feature Importance with PFI
 # ------------------------------------
-# In the previous example, we studied the LOCO method. The high computational cost makes this method
-# hard to use in a high-dimension context. PFI proposes another way of computing a mean decrease in accuracy,
-# without refitting the model. The idea is to measure the importance of feature :math:`j`
-# by operating a permutation :math:`\pi` across all samples for this feature. It is thus defined as:
+# PFI proposes a way of computing a mean decrease in accuracy, without refitting the model.
+# The idea is to measure the importance of feature :math:`j` by operating a permutation
+# :math:`\pi` across all samples for this feature. It is thus defined as:
 #
 # .. math::
 #
@@ -22,8 +21,7 @@ and detail how this method answers the previous issues.
 #
 # Intuitively, the bigger the decrease in loss, the more important the feature is for the model, by only
 # operating on the marginal distribution of the feature of interest. This method
-# has the benefit of being model-agnostic. PFI should be used on data not used for model training
-# to avoid overly optimistic results, as it can falsely detect irrelevant features if the model overfits.
+# has the benefit of being model-agnostic.
 # Let's have a closer look at how it works with an example.
 
 # %%
@@ -55,7 +53,9 @@ X, _, y, _ = train_test_split(
 redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
 X_spurious += rng.normal(0, scale=np.std(X_spurious) * 0.5, size=X.shape[0])
+
 X = np.hstack([X, X_spurious[:, np.newaxis]])
+
 feature_names = [*dataset.feature_names, "Spurious"]
 print(f"The dataset contains {X.shape[0]} samples and {X.shape[1]} features.")
 
@@ -369,4 +369,6 @@ plt.show()
 # While PFI is straightforward, it has a few limitations that should be remembered. It can generate
 # unrealistic data samples as it does not take into account a feature's conditional distribution.
 # PFI is also sensitive to correlated features, and might not properly select important ones in that case.
+# PFI should be used on data that was not used for model training to avoid overly optimistic results, as
+# it can falsely detect irrelevant features if the model overfits.
 # CFI on the other hand is designed to take into account the conditional distribution of a feature over others.
