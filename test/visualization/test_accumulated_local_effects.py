@@ -215,7 +215,7 @@ def test_compute_ale_1d_continuous(ale_test_data):
     grid_resolution = 10
 
     # Without confidence intervals
-    result = compute_ale_1d(
+    ale, grid_values, ale_err = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
@@ -223,17 +223,14 @@ def test_compute_ale_1d_continuous(ale_test_data):
         grid_resolution=grid_resolution,
         confidence_interval=False,
     )
-    assert "ale" in result
-    assert "grid_values" in result
-    assert "ale_err" in result
-    assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["grid_values"], np.ndarray)
-    assert result["ale_err"] is None
-    assert len(result["ale"]) == len(result["grid_values"])
-    assert len(result["grid_values"]) <= grid_resolution + 1
+    assert isinstance(ale, np.ndarray)
+    assert isinstance(grid_values, np.ndarray)
+    assert ale_err is None
+    assert len(ale) == len(grid_values)
+    assert len(grid_values) <= grid_resolution + 1
 
     # With confidence interval
-    result_ci = compute_ale_1d(
+    ale_ci, grid_values_ci, ale_err_ci = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
@@ -242,15 +239,12 @@ def test_compute_ale_1d_continuous(ale_test_data):
         confidence_interval=True,
         confidence_level=0.95,
     )
-    assert "ale" in result_ci
-    assert "grid_values" in result_ci
-    assert "ale_err" in result_ci
-    assert isinstance(result_ci["ale"], np.ndarray)
-    assert isinstance(result_ci["grid_values"], np.ndarray)
-    assert isinstance(result_ci["ale_err"], np.ndarray)
-    assert len(result_ci["ale"]) == len(result_ci["grid_values"])
-    assert len(result_ci["grid_values"]) <= grid_resolution + 1
-    assert len(result_ci["ale_err"]) == len(result_ci["grid_values"])
+    assert isinstance(ale_ci, np.ndarray)
+    assert isinstance(grid_values_ci, np.ndarray)
+    assert isinstance(ale_err_ci, np.ndarray)
+    assert len(ale_ci) == len(grid_values_ci)
+    assert len(grid_values_ci) <= grid_resolution + 1
+    assert len(ale_err_ci) == len(grid_values_ci)
 
 
 def test_compute_ale_1d_continuous_error(ale_test_data):
@@ -287,24 +281,21 @@ def test_compute_ale_1d_discrete(ale_test_data):
     X, model = data["X"], data["model"]
 
     # Without confidence intervals
-    result = compute_ale_1d(
+    ale, grid_values, ale_err = compute_ale_1d(
         model,
         X,
         feature_idx=0,
         feature_type="categorical",
         confidence_interval=False,
     )
-    assert "ale" in result
-    assert "grid_values" in result
-    assert "ale_err" in result
-    assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["grid_values"], np.ndarray)
-    assert result["ale_err"] is None
-    assert len(result["ale"]) == len(result["grid_values"])
-    assert len(result["grid_values"]) <= 3
+    assert isinstance(ale, np.ndarray)
+    assert isinstance(grid_values, np.ndarray)
+    assert ale_err is None
+    assert len(ale) == len(grid_values)
+    assert len(grid_values) <= 3
 
     # With confidence intervals
-    result_ci = compute_ale_1d(
+    ale_ci, grid_values_ci, ale_err_ci = compute_ale_1d(
         model,
         X,
         feature_idx=0,
@@ -312,15 +303,12 @@ def test_compute_ale_1d_discrete(ale_test_data):
         confidence_interval=True,
         confidence_level=0.90,
     )
-    assert "ale" in result_ci
-    assert "grid_values" in result_ci
-    assert "ale_err" in result_ci
-    assert isinstance(result_ci["ale"], np.ndarray)
-    assert isinstance(result_ci["grid_values"], np.ndarray)
-    assert isinstance(result_ci["ale_err"], np.ndarray)
-    assert len(result_ci["ale"]) == len(result_ci["grid_values"])
-    assert len(result_ci["grid_values"]) <= 3
-    assert len(result_ci["ale_err"]) == len(result_ci["grid_values"])
+    assert isinstance(ale_ci, np.ndarray)
+    assert isinstance(grid_values_ci, np.ndarray)
+    assert isinstance(ale_err_ci, np.ndarray)
+    assert len(ale_ci) == len(grid_values_ci)
+    assert len(grid_values_ci) <= 3
+    assert len(ale_err_ci) == len(grid_values_ci)
 
 
 def test_compute_ale_1d_discrete_error(ale_test_data):
@@ -390,48 +378,40 @@ def test_compute_ale_2d(ale_test_data):
     # Grid resolution is an int
     grid_resolution = 5
 
-    result = compute_ale_2d(
+    ale, quantiles_i, quantiles_j = compute_ale_2d(
         model,
         X,
         feature_indices=[important_features[0], important_features[1]],
         grid_resolution=grid_resolution,
     )
-
-    assert "ale" in result
-    assert "quantiles_i" in result
-    assert "quantiles_j" in result
-    assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["quantiles_i"], np.ndarray)
-    assert isinstance(result["quantiles_j"], np.ndarray)
-    assert result["ale"].shape == (
-        len(result["quantiles_i"]),
-        len(result["quantiles_j"]),
+    assert isinstance(ale, np.ndarray)
+    assert isinstance(quantiles_i, np.ndarray)
+    assert isinstance(quantiles_j, np.ndarray)
+    assert ale.shape == (
+        len(quantiles_i),
+        len(quantiles_j),
     )
-    assert len(result["quantiles_i"]) <= grid_resolution + 1
-    assert len(result["quantiles_j"]) <= grid_resolution + 1
+    assert len(quantiles_i) <= grid_resolution + 1
+    assert len(quantiles_j) <= grid_resolution + 1
 
     # Grid resolution is a tuple
     grid_resolution = (4, 6)
 
-    result = compute_ale_2d(
+    ale, quantiles_i, quantiles_j = compute_ale_2d(
         model,
         X,
         feature_indices=[important_features[0], important_features[1]],
         grid_resolution=grid_resolution,
     )
-
-    assert "ale" in result
-    assert "quantiles_i" in result
-    assert "quantiles_j" in result
-    assert isinstance(result["ale"], np.ndarray)
-    assert isinstance(result["quantiles_i"], np.ndarray)
-    assert isinstance(result["quantiles_j"], np.ndarray)
-    assert result["ale"].shape == (
-        len(result["quantiles_i"]),
-        len(result["quantiles_j"]),
+    assert isinstance(ale, np.ndarray)
+    assert isinstance(quantiles_i, np.ndarray)
+    assert isinstance(quantiles_j, np.ndarray)
+    assert ale.shape == (
+        len(quantiles_i),
+        len(quantiles_j),
     )
-    assert len(result["quantiles_i"]) <= grid_resolution[0] + 1
-    assert len(result["quantiles_j"]) <= grid_resolution[1] + 1
+    assert len(quantiles_i) <= grid_resolution[0] + 1
+    assert len(quantiles_j) <= grid_resolution[1] + 1
 
 
 def test_compute_ale_2d_errors(ale_test_data):

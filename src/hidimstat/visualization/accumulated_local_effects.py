@@ -207,16 +207,14 @@ def compute_ale_1d(
 
     Returns
     -------
-    result : dict with the following keys:
-
-        `"ale"` : ndarray of shape (n_quantiles,)
-            ALE values evaluated at each bin edge.
-        `"grid_values"` : ndarray of shape (n_quantiles,)
-            Bin edges (the quantiles of the feature distribution if the feature is continuous
-            and the unique values of the feature otherwise).
-        `"ale_err"` : ndarray of shape (n_quantiles,) or None
-            The margin of error for each quantile boundary at the specified confidence level.
-            Returns `None` if `confidence_interval` is False.
+    ale : ndarray of shape (n_quantiles,)
+        ALE values evaluated at each bin edge.
+    grid_values : ndarray of shape (n_quantiles,)
+        Bin edges (the quantiles of the feature distribution if the feature is continuous
+        and the unique values of the feature otherwise).
+    ale_err : ndarray of shape (n_quantiles,) or None
+        The margin of error for each quantile boundary at the specified confidence level.
+        Returns `None` if `confidence_interval` is False.
     """
     X = np.asarray(X)
     x = X[:, feature_idx]
@@ -347,11 +345,7 @@ def compute_ale_1d(
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
         ale_err = z_score * np.sqrt(var_of_mean)
 
-    return {
-        "ale": ale,
-        "grid_values": grid_values,
-        "ale_err": ale_err,
-    }
+    return ale, grid_values, ale_err
 
 
 def compute_ale_2d(
@@ -395,14 +389,12 @@ def compute_ale_2d(
 
     Returns
     -------
-    result : dict with the following keys:
-
-        `"ale"` : ndarray of shape (n_quantiles_i, n_quantiles_j)
-            2D ALE values evaluated at each 2D bin corner.
-        `"quantiles_i"` : ndarray of shape (n_quantiles_i,)
-            Bin edges for the first feature.
-        `"quantiles_j"` : ndarray of shape (n_quantiles_j,)
-            Bin edges for the second feature.
+    ale : ndarray of shape (n_quantiles_i, n_quantiles_j)
+        2D ALE values evaluated at each 2D bin corner.
+    quantiles_i : ndarray of shape (n_quantiles_i,)
+        Bin edges for the first feature.
+    quantiles_j : ndarray of shape (n_quantiles_j,)
+        Bin edges for the second feature.
     """
     feature_indices = list(feature_indices)
     if len(feature_indices) != 2:
@@ -569,11 +561,7 @@ def compute_ale_2d(
     # Centre: subtract the sample-weighted mean (only over occupied bins)
     ale -= np.sum(ale_centers * bin_counts) / bin_counts.sum()
 
-    return {
-        "ale": ale,
-        "quantiles_i": quantiles_i,
-        "quantiles_j": quantiles_j,
-    }
+    return ale, quantiles_i, quantiles_j
 
 
 class ALE:
@@ -739,7 +727,7 @@ class ALE:
                 )
             else:
                 plotting_func = self._plot_1d
-                result = compute_ale_1d(
+                ale, grid_values, ale_err = compute_ale_1d(
                     self.estimator,
                     X,
                     feature_idx=features,
@@ -749,6 +737,7 @@ class ALE:
                     confidence_level=confidence_level,
                     percentiles=percentiles,
                 )
+                result = {"ale": ale, "grid_values": grid_values, "ale_err": ale_err}
         elif isinstance(features, list) and all(
             isinstance(f, (int, np.integer)) for f in features
         ):
@@ -758,13 +747,14 @@ class ALE:
                 )
             feature_ids = copy(features)
             plotting_func = self._plot_2d
-            result = compute_ale_2d(
+            ale, quantiles_i, quantiles_j = compute_ale_2d(
                 self.estimator,
                 X,
                 feature_indices=features,
                 grid_resolution=grid_resolution,
                 percentiles=percentiles,
             )
+            result = {"ale": ale, "quantiles_i": quantiles_i, "quantiles_j": quantiles_j}
         else:
             raise TypeError("'features' must be an int or a list of int.")
 
