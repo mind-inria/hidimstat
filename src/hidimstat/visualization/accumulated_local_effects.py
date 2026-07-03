@@ -737,7 +737,11 @@ class ALE:
                     confidence_level=confidence_level,
                     percentiles=percentiles,
                 )
-                result = {"ale": ale, "grid_values": grid_values, "ale_err": ale_err}
+                result = {
+                    "ale": ale,
+                    "grid_values": grid_values,
+                    "ale_err": ale_err,
+                }
         elif isinstance(features, list) and all(
             isinstance(f, (int, np.integer)) for f in features
         ):
@@ -754,7 +758,11 @@ class ALE:
                 grid_resolution=grid_resolution,
                 percentiles=percentiles,
             )
-            result = {"ale": ale, "quantiles_i": quantiles_i, "quantiles_j": quantiles_j}
+            result = {
+                "ale": ale,
+                "quantiles_i": quantiles_i,
+                "quantiles_j": quantiles_j,
+            }
         else:
             raise TypeError("'features' must be an int or a list of int.")
 
