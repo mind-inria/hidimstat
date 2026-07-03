@@ -13,25 +13,17 @@ full model) on the shuffled data.
 
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.datasets import load_wine
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import log_loss
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-
-from hidimstat import CFI
-
-# Define the seeds for the reproducibility of the example
-rng = np.random.default_rng(0)
-
 # %%
 # Load the iris dataset and add a spurious feature
 # ------------------------------------------------
 # We start by loading the iris dataset as is, and splitting for training and testing.
+
+import numpy as np
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+
+# Define the seeds for the reproducibility of the example
+rng = np.random.default_rng(0)
 
 dataset = load_wine()
 X, y = dataset.data, dataset.target
@@ -49,6 +41,15 @@ X_train, X_test, y_train, y_test = train_test_split(
 # We use a Multi-Layer Perceptron with one hidden layer of size 100.
 # We fit the estimator, compute the feature importance, and use the
 # built-in importance plot function.
+
+import matplotlib.pyplot as plt
+from sklearn.linear_model import RidgeCV
+from sklearn.metrics import log_loss
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
+from hidimstat import CFI
 
 model = make_pipeline(
     StandardScaler(),

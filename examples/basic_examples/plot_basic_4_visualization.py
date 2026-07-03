@@ -18,7 +18,6 @@ We'll use the circles dataset from sklearn to illustrate the basic usage.
 # We start by loading the wine dataset, training a Multi-Layer Perceptron
 # classifier (MLP), and checking its accuracy on the test split.
 
-import matplotlib.pyplot as plt
 from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
@@ -75,6 +74,8 @@ _ = pdp.plot(X_test, features=0)
 # The marginal distribution for each eature is also represented along the axes
 # to help identify regions where the estimated dependence might be unreliable due to
 # a low density of training data.
+
+import matplotlib.pyplot as plt
 
 axes = pdp.plot(X_test, features=[0, 9], cmap="RdBu_r")
 plt.show()
