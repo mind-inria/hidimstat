@@ -1,249 +1,220 @@
 """
-Variable Importance Measures Comparison
-=======================================
-We have presented the coefficients of a linear model, Permutation Feature Importance (PFI),
-Conditional Feature Importance (CFI), and Leave-One-Covariate-Out (LOCO). How can we relate
-all of these quantities? We focus on a linear setting, where a linear model is sufficient
-to understand the underlying data-generating process, and explore how we can compare different
-methods.
+Comparing Feature Importance Across Methods
+===========================================
+We illustrate here that methods implemented in the library such as LOCO, Conditional
+Feature Importance (CFI), dCRT and Model-X Knockoffs answer different questions,
+live on different scales, and should generally be compared by rank or selection
+rather than by raw magnitude.
 """
 
 # %%
 # Can we compare methods ?
 # ------------------------
-# One question that we may ask ourselves is the possibility of comparing different variable
+# One normal question that we may ask ourselves is the possibility of comparing different variable
 # importance measures. Indeed, they each answer different questions, and seem to focus on
-# different quantity measures.
-# However, we can theoretically show that CFI is equal to twice LOCO. Therefore, we can rescale CFI
-# by dividing it by 2 to match the LOCO scale. We proceed similarly for PFI, even though
-# the underlying estimand is not necessarily the same. Is it measuring the same quantity
-# in this setting?
+# different quantity measures. We explore this by explaining the values returned by each method,
+# and looking at the importance ranking that each method produces.
+#
 # We start by defining two functions to generate linear data with an autoregressive structure
 # with Toeplitz covariance matrix.
 
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
-seed = 0
-rng = np.random.default_rng(seed)
+rng = np.random.default_rng(0)
 
+n_samples = 200
+n_features = 10
+rho = 0.85
 
-def random_covariance(p, strength=0.5):
-    # random matrix
-    A = rng.normal(size=(p, p))
+# Toeplitz-like covariance with a couple of strong pairwise correlations
+cov = np.eye(n_features)
+cov[2, 3] = cov[3, 2] = rho
+cov[4, 0] = cov[0, 4] = rho
 
-    # make it symmetric PSD-like
-    Sigma = A @ A.T
+X = rng.multivariate_normal(mean=np.zeros(n_features), cov=cov, size=n_samples)
 
-    # normalize to correlation matrix
-    D = np.sqrt(np.diag(Sigma))
-    Sigma = Sigma / np.outer(D, D)
+beta = np.zeros(n_features)
+beta[0] = 2.0  # causal variable is correlated with noisy feature 4
+beta[2] = 1.5  # causal variable is correlated with feature 3
+beta[3] = 1.5  # causal variable is correlated with feature 2
+beta[7] = 1.0  # causal variable and independent
 
-    # shrink toward identity (controls correlation strength)
-    Sigma = strength * Sigma + (1 - strength) * np.eye(p)
+noise = rng.normal(scale=1.0, size=n_samples)
+y = X @ beta + noise
 
-    return Sigma
-
-
-def linear_data(n, p, correlation=0.25, sparsity=0.5):
-    """
-    Function to simulate linear data with an autoregressive structure with Toeplitz
-    covariance matrix
-    """
-    # Number of non-null
-    k = int(sparsity * p)
-
-    # Generate the variables from a multivariate normal distribution
-    mu = np.zeros(p)
-    Sigma = np.array(
-        [[(correlation) ** abs(i - j) for i in range(p)] for j in range(p)]
-    )
-    # covariance matrix of X
-    Sigma = random_covariance(p, strength=correlation)
-    X = rng.multivariate_normal(mu, Sigma, size=(n))
-    # Generate the response from a linear model
-    non_zero = rng.choice(p, k, replace=False)
-    beta_true = np.zeros(p)
-    beta_true[non_zero] = 1.0
-    eps = rng.standard_normal(size=n)
-    y = np.dot(X, beta_true) + eps
-
-    return X, y, beta_true
-
-
-X, y, beta = linear_data(1000, 10, correlation=0, sparsity=0.5)
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.2,
-    random_state=seed,
-    shuffle=True,
+feature_names = [f"X{i}" for i in range(n_features)]
+true_support = beta != 0
+print(
+    "True causal features:",
+    [f for f, s in zip(feature_names, true_support, strict=False) if s],
 )
 
 # %%
-# We now create the objects for the three different variable importance measures.
+# We now fit a RandomForestRegressor on the dataset.
 
-import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
+
+model = RandomForestRegressor(n_estimators=300, random_state=0, n_jobs=-1)
+model.fit(X_train, y_train)
+print("R^2 score:", r2_score(y_test, model.predict(X_test)))
+
+# %%
+# Creating the feature importance methods
+# ---------------------------------------
+# CFI measures the drop in predictive performance loss when we break the dependence between :math:`X_j`
+# and :math:`Y` conditional on the rest, without refitting. The value thus exists in the space of the
+# loss function.
+
+from hidimstat import CFI
+
+cfi = CFI(
+    estimator=model,
+    n_permutations=50,
+    n_jobs=5,
+    random_state=0,
+)
+cfi.fit(X_train, y_train)
+cfi_importance = cfi.importance(X_test, y_test)
+
+cfi_importance = pd.Series(cfi_importance, index=feature_names, name="CFI")
+print(cfi_importance.sort_values(ascending=False))
+
+# %%
+# LOCO refits the model without :math:`X_j` and measures the resulting increase in test loss .
+# The values also exists in the space of the loss function, but reflects the model's loss when it
+# doesn't have access to :math:`X_j` at all.
+
+from hidimstat import LOCO
+
+loco = LOCO(
+    estimator=model,
+)
+loco.fit(X_train, y_train)
+loco_importance = loco.importance(X_test, y_test)
+
+loco_importance = pd.Series(loco_importance, index=feature_names, name="LOCO")
+print(loco_importance.sort_values(ascending=False))
+
+# %%
+# dCRT returns a p-value for the null :math:`X_j \perp Y \mid X_{-j}`. This is a significance measure.
+# A smaller p-value means stronger evidence against conditional independence, it does not mean
+# a larger effect. Two features can have very different p-values purely due to power differences
+# (e.g., variance of :math:`X_j`​, strength of the distillation model) even if their true conditional
+# effect sizes are similar.
+
+from hidimstat import D0CRT
+
+dcrt = D0CRT(
+    estimator=model,
+    screening_threshold=None,
+    random_state=42,
+)
+dcrt.fit(X_train, y_train)
+dcrt_importance = dcrt.importance(X_test, y_test)
+
+dcrt_importance = pd.Series(dcrt_importance, index=feature_names, name="dCRT")
+print(dcrt_importance.sort_values(ascending=False))
+
+# %%
+# Model-X Knockoffs produces a per-feature statistic used to construct a data-dependent
+# threshold for FDR-controlled selection. The magnitude of values is not a calibrated effect size,
+# it depends on the specific chosen statistic and the knockoff construction.
+# It's designed for selection, not to compare within-method feature importance values.
+
+from sklearn.covariance import LedoitWolf
 from sklearn.linear_model import LassoCV
 
-from hidimstat import CFI, D0CRT, LOCO, PFI, ModelXKnockoff
+from hidimstat import ModelXKnockoff
+from hidimstat.samplers import GaussianKnockoffs
 
+mx_ko = ModelXKnockoff(
+    ko_generator=GaussianKnockoffs(
+        cov_estimator=LedoitWolf(assume_centered=True), tol=1e-15
+    ),
+    estimator=LassoCV(
+        max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+    ),
+    random_state=0,
+    preconfigure_lasso_path=False,
+    n_repeats=15,
+    n_jobs=5,
+)
 
-def compute_importance(X_train, X_test, y_train, y_test):
-    model = LassoCV()
-    df_list = []
+mx_ko.fit(X_train, y_train)
+ko_importance = mx_ko.importance(X_test, y_test)
 
-    model = model.fit(X_train, y_train)
-    df_list.append(
-        pd.DataFrame(
-            {
-                "VIM": "Coefficient",
-                "feature": list(range(X.shape[1])),
-                "importance": model.coef_**2,
-                "model": model.__class__.__name__,
-            }
-        )
-    )
-
-    pfi = PFI(model)
-    pfi.fit(X_train, y_train)
-    importances = 0.5 * pfi.importance(X_test, y_test)
-    df_list.append(
-        pd.DataFrame(
-            {
-                "VIM": "PFI",
-                "feature": list(range(X.shape[1])),
-                "importance": importances,
-                "model": model.__class__.__name__,
-            }
-        )
-    )
-
-    loco = LOCO(model)
-    loco.fit(X_train, y_train)
-    importances = loco.importance(X_test, y_test)
-    df_list.append(
-        pd.DataFrame(
-            {
-                "VIM": "LOCO",
-                "feature": list(range(X.shape[1])),
-                "importance": importances,
-                "model": model.__class__.__name__,
-            }
-        )
-    )
-    cfi = CFI(model)
-    cfi.fit(X_train, y_train)
-    importances = 0.5 * cfi.importance(X_test, y_test)
-    df_list.append(
-        pd.DataFrame(
-            {
-                "VIM": "CFI",
-                "feature": list(range(X.shape[1])),
-                "importance": importances,
-                "model": model.__class__.__name__,
-            }
-        )
-    )
-    return pd.concat(df_list)
-
-
-df_plot = compute_importance(X_train, X_test, y_train, y_test)
+ko_importance = pd.Series(ko_importance[0], index=feature_names, name="MXKO")
+print(ko_importance.sort_values(ascending=False))
 
 # %%
-# Now that we have computed importances with 3 methods, we plot and visually compare them :
+# Why you can't just stack these numbers together
+# -----------------------------------------------
+#
+# Let's look at the raw values side by side. The point of this plot isn't the
+# specific numbers — it's that the y-axes have no common meaning and comparison ground:
+# p-values shrink toward 0, knockoff statistics can be positive or negative, and CPI and
+# LOCO live in units of held-out loss.
 
 import matplotlib.pyplot as plt
+
+results = {}
+results["CFI"] = cfi_importance
+results["LOCO"] = loco_importance
+results["dCRT"] = dcrt_importance
+results["MXKO"] = ko_importance
+
+results_df = pd.DataFrame(results)
+results_df.insert(0, "True causal", true_support)
+results_df
+
+fig, axes = plt.subplots(2, 2, figsize=(8, 6), sharex=False)
+
+colors = ["#2d2ae1" if t else "#c91d1d" for t in true_support]
+for ax, (name, vals) in zip(axes.flatten(), results.items(), strict=False):
+    ax.bar(feature_names, vals.values, color=colors)
+    ax.set_title(name)
+    ax.tick_params(axis="x", rotation=45)
+
+fig.suptitle("Raw values are not on a common scale.")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# %%
+# Comparing ranks
+# ---------------
+# Even though the raw numbers aren't on the same scale, do methods agree on which features
+# matter most ? Spearman rank correlation is a fair way to compare across methods (using
+# `-log10(p)` for dCRT so that "more significant" maps to "larger", matching the direction
+# of the other scores).
+
 import seaborn as sns
 
-ax = sns.barplot(
-    data=df_plot,
-    y="feature",
-    x="importance",
-    hue="VIM",
-    palette="muted",
-    orient="h",
-)
-sns.despine()
+rank_frame = results.copy()
+rank_frame["dCRT"] = -np.log10(results["dCRT"].clip(lower=1e-300))
+rank_frame = pd.DataFrame(rank_frame)
 
-for i, support in enumerate(beta):
-    if support != 0:
-        ax.axhspan(
-            i - 0.45,
-            i + 0.45,
-            color="tab:olive",
-            alpha=0.3,
-            zorder=-1,
-            label="True Support" if i == 1 else None,
-        )
-ax.legend()
+corr = rank_frame.corr(method="spearman")
+
+ax = plt.axes()
+sns.heatmap(corr, annot=True, vmin=-1, vmax=1, ax=ax, cmap="vlag")
+ax.set_title("Spearman rank correlation of important features")
+plt.tight_layout()
 plt.show()
 
 # %%
-# We observe that all these Variable Importance Measures are very close and appear to target the
-# same underlying quantity. Is this always the case? Why, in this setting, does Permutation
-# Feature Importance (PFI) coincide with Conditional Feature Importance (CFI)?
-
-# %%
-# Increasing the Correlation
-# --------------------------
-# What happens if we increase the correlation between features? How does this affect Conditional
-# Feature Importance (CFI), and how does it change the estimated coefficients?
-
-X, y, beta = linear_data(10000, 10, correlation=0.6, sparsity=0.5)
-df_plot = compute_importance(
-    *train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=seed,
-        shuffle=True,
-    )
-)
-
-ax = sns.barplot(
-    data=df_plot,
-    y="feature",
-    x="importance",
-    hue="VIM",
-    palette="muted",
-    orient="h",
-)
-sns.despine()
-
-for i, support in enumerate(beta):
-    if support != 0:
-        ax.axhspan(
-            i - 0.45,
-            i + 0.45,
-            color="tab:olive",
-            alpha=0.3,
-            zorder=-1,
-            label="True Support" if i == 1 else None,
-        )
-ax.legend()
-plt.show()
-
-# %%
-# We see here that CFI and LOCO are still in the same magnitude, but PFI values
-# are higher than them. It is to be anticipated since features are now correlated
-# and CFI properly takes into account this kind of feature property, while PFI
-# overestimates these values.
-
-# %%
-# Comparison with other methods
-# -----------------------------
-# We compared LOCO, PFI, and CFI importance measures with previous examples,
-# and showed the limits of comparing these methods depending on the correlations
-# between variables.
-# We can ask ourselves whether it makes sense to compare, for instance, CFI
-# and Model-X Knockoffs (MXKO) ? While both methods assesses the conditional
-# contribution of a variable, and thus often agree on the strongest predictors,
-# they answer very different questions. Comparing their numerical importance
-# values is not meaningful since they are defined on different scales and have
-# different statistical interpretations. In this light, a reasonable comparison
-# approach is to identify the variables selected by MXKO, and examine the overlap
-# with the CFI variables ranking, and discuss disagreements. Since CFI doesn't select
-# variables with False Discovery Rate (FDR) control, we implemented such method
-# in the library to overcome this, and provide further statistical guarantees for
-# feature selection, and provide a better ground to compare methods.
+# Takeaways
+# ---------
+# Here are the two takeaways on how we can combine the analysis of different feature importance
+# methods:
+# - Raw magnitudes were never meant to be compared across methods that we presented here.
+# It is important to keep in mind that they target different quantities and answer very
+# different questions.
+# - Rankings and selection decisions should be the basis for comparison.
