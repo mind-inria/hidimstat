@@ -7,17 +7,6 @@ TabICL [:footcite:t:`qu2025tabicl`] with a straightforward example on the Califo
 Housing regression dataset.
 """
 
-import pandas as pd
-from sklearn.datasets import fetch_california_housing
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import resample
-from tabicl import TabICLRegressor
-
-from hidimstat import CFI
-
 # %%
 # Loading data and TabICL
 # -----------------------
@@ -27,6 +16,13 @@ from hidimstat import CFI
 # hyperparameter tuning as a pre-trained transformer model. We recommend switching
 # to GPU through the adequate class parameter for datasets that go over 10k
 # samples depending on the number of features due to computation time increase.
+
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
+from tabicl import TabICLRegressor
 
 dataset = fetch_california_housing()
 X, y, feat_names = dataset.data, dataset.target, dataset.feature_names
@@ -39,6 +35,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 model = make_pipeline(StandardScaler(), TabICLRegressor(device="cpu"))
 model.fit(X_train, y_train)
+print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 
 # %%
 # For the moment, TabICL can only be used with PFI or CFI. TabICL only works with
@@ -47,10 +44,19 @@ model.fit(X_train, y_train)
 # TabICL interfaces with HiDimStat the same way as any other Scikit-learn estimator,
 # which lets us compute feature importance as easily as follows:
 
+import pandas as pd
+from sklearn.metrics import mean_squared_error
+
+from hidimstat import CFI
+
 cfi = CFI(estimator=model, method="predict", loss=mean_squared_error)
 cfi.fit(X_train, y_train)
 importances = cfi.importance(X_test, y_test)
 selection = cfi.fdr_selection(fdr=0.1)
+
+# %%
+# Let's wrap the results in a Pandas dataframe and plot the importance
+# and the selected variables.
 
 df = pd.DataFrame(
     {
@@ -78,5 +84,4 @@ plt.show()
 # As you can see from the timer under, even with 1000 samples and 9 features,
 # running TabICL on the CPU is slow. We recommend to use it on larger datasets,
 # be it in terms of samples and/or features and to run it on GPU for faster
-# inferences. Due to technical limitations, this is something we cannot showcase
-# here.
+# inferences.
