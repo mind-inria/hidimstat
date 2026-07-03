@@ -469,6 +469,29 @@ def test_compute_ale_2d_errors(ale_test_data):
             model, X, feature_indices=[0, 1], grid_resolution="invalid_str"
         )
 
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_2d(model, X, feature_indices=[0, 1], percentiles=[5, 95])
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], percentiles=(5, 25, 50, 75, 95)
+        )
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], percentiles=(-100, 50)
+        )
+    with pytest.raises(
+        ValueError, match="'percentiles' must be a tuple of 2 floats"
+    ):
+        compute_ale_2d(
+            model, X, feature_indices=[0, 1], percentiles=(50, -100)
+        )
+
     X_const_i = X.copy()
     X_const_i[:, important_features[0]] = 1
     with pytest.raises(

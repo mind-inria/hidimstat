@@ -410,6 +410,16 @@ def compute_ale_2d(
             "feature_indices must contain exactly two feature indices."
         )
 
+    if (
+        not isinstance(percentiles, tuple)
+        or len(percentiles) != 2
+        or not (0 <= percentiles[0] <= percentiles[1] <= 100)
+    ):
+        raise ValueError(
+            "'percentiles' must be a tuple of 2 floats "
+            "in [0, 1] in increasing order"
+        )
+
     X = np.asarray(X)
     idx_i, idx_j = feature_indices
     x_i, x_j = X[:, idx_i], X[:, idx_j]

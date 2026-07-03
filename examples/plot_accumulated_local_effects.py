@@ -86,12 +86,15 @@ plt.show()
 # How to Read the Plot:
 # ^^^^^^^^^^^^^^^^^^^^^
 # Because main effects are completely removed, the values on this plot show only
-# the effect from the correlation between the two variables.
+# the effect from the interaction between the two variables.
 #
 # - A value of 0 means the two features act completely independently (their
 #   combined effect is just the sum of their individual parts).
 # - Positive or negative areas indicate that the combined effect is stronger or
 #   weaker than what the individual curves would imply.
+# - The level sets display the iso-proportions of the 2D density of the data,
+#   meaning for instance that 30% of the probability mass lie outside of the contour
+#   drawn for 0.3.
 
 _ = ale.plot(
     X_test,
