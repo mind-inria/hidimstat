@@ -69,7 +69,7 @@ print("R^2 score:", r2_score(y_test, model.predict(X_test)))
 # Creating the feature importance methods
 # ---------------------------------------
 # CFI measures the drop in predictive performance loss when we break the dependence between $X_j$
-# and $Y$ conditional on the rest, without refitting. The value thus exists in the space of the
+# and $Y$ conditionally to the rest, without refitting. The value thus exists in the space of the
 # loss function.
 
 from hidimstat import CFI
