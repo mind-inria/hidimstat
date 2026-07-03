@@ -120,14 +120,11 @@ class LOCI(BasePerturbation):
             The input samples to compute importance scores for.
         y : array-like of shape (n_samples,)
 
+        Returns
+        -------
         importances_ : ndarray of shape (n_groups,)
             The importance scores for each group of covariates.
             A higher score indicates greater importance of that group.
-
-        Returns
-        -------
-        importances_ : ndarray of shape (n_features,)
-            Importance scores for each feature.
 
         Attributes
         ----------
