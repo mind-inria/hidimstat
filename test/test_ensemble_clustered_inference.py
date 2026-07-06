@@ -126,10 +126,14 @@ def test_cludl_independence():
     c1 = CluDL(clustering=ward)
     c1.fit_importance(X_init, y)
     s1 = c1.fwer_selection(alpha, n_tests=n_clusters)
-    c2 = CluDL(clustering=ward, cluster_bootstrap_size=0.5)
-    c2.fit_importance(X_init, y)
-    s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
-    assert np.sum(s2) > np.sum(s1 / 2)
+    s2_iterations = np.zeros((0, len(s1)))
+    nb_iterations = 5
+    for _ in range(nb_iterations):
+        c2 = CluDL(clustering=ward, cluster_bootstrap_size=0.5)
+        c2.fit_importance(X_init, y)
+        s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
+        s2_iterations = np.vstack((s2_iterations, s2))
+    assert np.sum(s2_iterations) / nb_iterations > np.sum(s1) / 2
 
 
 def test_encludl_spatial():
