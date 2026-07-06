@@ -1,11 +1,9 @@
 """
-Marginal VS Conditional Feature Importance
+Permutation Feature Importance (PFI)
 ==================================================================================
 
-In this example, we explore the difference between marginal and conditional feature
-importance, by explaining how Permutation Feature Importance (PFI) works, and illustrating
-its pitfalls on the California housing dataset. We then present Conditional Feature Importance (CFI),
-and detail how this method answers the previous issues.
+In this example, we explain how Permutation Feature Importance (PFI) works, and illustrate
+its pitfalls on the California housing dataset.
 """
 
 # %%
@@ -13,20 +11,14 @@ and detail how this method answers the previous issues.
 # ------------------------------------
 # PFI proposes a way of computing a mean decrease in accuracy, without refitting the model.
 # The idea is to measure the importance of feature :math:`j` by operating a permutation
-# :math:`\pi` across all samples for this feature. It is thus defined as:
-#
-# .. math::
-#
-#   PFI(j)=\frac(1)(n_test)\sum_{i=1}^{n_test}\left[l\left(\hat{f}\left(x_i^{\pi\left(j\right)}\right),y_i\right)-l\left(\hat{f}\left(x_i\right),y_i\right)\right]
-#
-# Intuitively, the bigger the decrease in loss, the more important the feature is for the model, by only
-# operating on the marginal distribution of the feature of interest. This method
-# has the benefit of being model-agnostic.
-# Let's have a closer look at how it works with an example.
+# :math:`\pi` across all samples for this feature. Intuitively, the bigger the decrease in
+# loss, the more important the feature is for the model, by only operating on the marginal
+# distribution of the feature of interest. This method has the benefit of being
+# model-agnostic. Let's have a closer look at how it works with an example.
 
 # %%
-# Load the California housing dataset and add a spurious feature
-# --------------------------------------------------------------
+# Loading the California housing dataset
+# --------------------------------------
 # The California housing dataset is a regression dataset with 8 features. We add a
 # spurious feature that is a linear combination of 3 features plus some noise.
 # The spurious feature does not provide any additional information about the target.
@@ -82,8 +74,8 @@ plt.tight_layout()
 plt.show()
 
 # %%
-# Fit a predictive model
-# ----------------------
+# Fitting a predictive model
+# --------------------------
 # We fit a neural network model to the California housing dataset. PFI is a
 # model-agnostic method, we therefore illustrate its behavior when using a neural
 # network model.
@@ -130,7 +122,7 @@ print(
 
 # %%
 # Measuring feature importance with PFI
-# --------------------------------------------------------
+# -------------------------------------
 # We use the `PermutationFeatureImportance` class to compute the PFI in a cross-validation
 # way. We then derive a p-value from importance scores using a one-sample t-test.
 
@@ -202,30 +194,12 @@ plt.show()
 # the original latitude and longitude values with the permuted values. Indeed,
 # permuting the longitude values leads to generating combinations of latitude and
 # longitude that fall outside of the borders of California and therefore are by
-# definition not in the training data. One idea to mitigate this is to generate
-# samples for feature :math:`x_j` based on its conditional distribution of the remaining
-# features :math:`x_{-j}`. This produces reasonable values of longitude, as shown by
-# the graph below:
+# definition not in the training data, as shown by the graph below:
 
 from matplotlib.lines import Line2D
 from sklearn.linear_model import RidgeCV
 
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
-
-X_train, X_test = train_test_split(
-    X,
-    test_size=0.3,
-    random_state=0,
-)
-
-conditional_sampler = ConditionalSampler(
-    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
-)
-
-conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
-X_test_sample = conditional_sampler.sample(
-    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=0
-).ravel()
 
 fig, ax = plt.subplots()
 
@@ -235,13 +209,6 @@ sns.histplot(
     color="tab:blue",
     ax=ax,
     alpha=0.9,
-)
-sns.scatterplot(
-    x=X_test[:, 6],
-    y=X_test_sample,
-    ax=ax,
-    alpha=0.2,
-    c="tab:green",
 )
 sns.scatterplot(
     x=X_test[:, 6],
@@ -270,15 +237,6 @@ legend_elements = [
         markersize=10,
         label="Permutation",
     ),
-    Line2D(
-        [0],
-        [0],
-        marker="o",
-        color="w",
-        markerfacecolor="tab:green",
-        markersize=10,
-        label="Conditional Permutation",
-    ),
 ]
 ax.legend(handles=legend_elements, loc="upper right")
 ax.set_ylim(X[:, 7].min() - 0.1, X[:, 7].max() + 0.1)
@@ -290,85 +248,16 @@ plt.show()
 
 # %%
 # PFI is likely to generate samples that are unrealistic and outside of the training
-# data, leading to extrapolation bias. In contrast, CFI generates samples that respect
-# the conditional distribution of the feature of interest.
+# data, leading to extrapolation bias.
 
-# %%
-# A valid alternative: Conditional Feature Importance
-# -----------------------------------------------------
-# The `ConditionalFeatureImportance` class computes permutations of the feature of
-# interest while conditioning on the other features. When permuting the :math:`j`-th feature,
-# the new sample :math:`\tilde{x}_i^j` is drawn from the conditional distribution :math:`\mathbb(P)\left(X^j|X^{-j}\right)`.
-# This method is valid for testing conditional importance, by design, and measures the
-# loss increase due to losing the information that is unique to that feature.
-# As shown below, it does not identify the spurious feature as important.
-
-import pandas as pd
-
-from hidimstat import CFI
-
-conditional_importances = []
-for i, (train_index, test_index) in enumerate(kf.split(X)):
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
-
-    model_c = fitted_estimators[i]
-
-    # Compute conditional feature importance
-    cfi = CFI(
-        model_c,
-        imputation_model_continuous=RidgeCV(
-            alphas=np.logspace(-3, 3, 5),
-            cv=KFold(n_splits=3),
-        ),
-        random_state=0,
-        n_jobs=5,
-    )
-    cfi.fit(X_test, y_test)
-
-    conditional_importances.append(cfi.importance(X_test, y_test))
-
-cfi_pval = ttest_1samp(
-    conditional_importances, 0.0, axis=0, alternative="greater"
-).pvalue
-
-df_pval = pd.DataFrame(
-    {
-        "pval": np.concatenate([pval_pfi, cfi_pval]),
-        "method": ["PFI"] * len(pval_pfi) + ["CFI"] * len(cfi_pval),
-        "variable": feature_names * 2,
-        "log_pval": -np.concatenate([np.log10(pval_pfi), np.log10(cfi_pval)]),
-    }
-)
-
-fig, ax = plt.subplots()
-sns.barplot(
-    data=df_pval,
-    x="log_pval",
-    y="variable",
-    hue="method",
-    palette="muted",
-    ax=ax,
-)
-ax.axvline(x=-np.log10(pval_threshold), color="red", linestyle="--")
-ax.set_xlabel("-$\\log_{10}(pval)$")
-plt.tight_layout()
-plt.show()
-
-
-# %%
-# Contrary to PFI, CFI does not identify the spurious feature as important. However,
-# interpretation is a bit harder than PFI, as feature dependencies and correlations
-# should be taken into account.
 
 # %%
 # Takeaways
 # ---------
-# To sum things up, PFI and CFI are model-agnostic feature importance methods
-# that measure a loss decrease when doing value permutation across samples for a single feature.
+# To sum things up, PFI is a model-agnostic feature importance method
+# that measures a loss decrease when doing value permutation across samples for a single feature.
 # While PFI is straightforward, it has a few limitations that should be remembered. It can generate
 # unrealistic data samples as it does not take into account a feature's conditional distribution.
 # PFI is also sensitive to correlated features, and might not properly select important ones in that case.
 # PFI should be used on data that was not used for model training to avoid overly optimistic results, as
 # it can falsely detect irrelevant features if the model overfits.
-# CFI on the other hand is designed to take into account the conditional distribution of a feature over others.
