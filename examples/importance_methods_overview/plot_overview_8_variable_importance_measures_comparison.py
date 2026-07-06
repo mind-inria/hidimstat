@@ -68,8 +68,8 @@ print("R^2 score:", r2_score(y_test, model.predict(X_test)))
 # %%
 # Creating the feature importance methods
 # ---------------------------------------
-# CFI measures the drop in predictive performance loss when we break the dependence between $X_j$
-# and $Y$ conditionally to the rest, without refitting. The value thus exists in the space of the
+# CFI measures the drop in predictive performance loss when we break the dependence between :math:`X_j`
+# and :math:`Y` conditionally to the rest, without refitting. The value thus exists in the space of the
 # loss function.
 
 from hidimstat import CFI
@@ -87,9 +87,9 @@ cfi_importance = pd.Series(cfi_importance, index=feature_names, name="CFI")
 print(cfi_importance.sort_values(ascending=False))
 
 # %%
-# LOCO refits the model without $X_j$ and measures the resulting increase in test loss .
+# LOCO refits the model without :math:`X_j` and measures the resulting increase in test loss .
 # The values also exists in the space of the loss function, but reflects the model's loss when it
-# doesn't have access to $X_j$ at all.
+# doesn't have access to :math:`X_j` at all.
 
 from hidimstat import LOCO
 
@@ -103,11 +103,10 @@ loco_importance = pd.Series(loco_importance, index=feature_names, name="LOCO")
 print(loco_importance.sort_values(ascending=False))
 
 # %%
-# dCRT returns a p-value for the null $X_j\perpY\midX_{-j}$. This is a significance measure.
+# dCRT returns a p-value for the null :math:`X_j \perp Y \mid X_{-j}`. This is a significance measure.
 # A smaller p-value means stronger evidence against conditional independence, it does not mean
 # a larger effect. Two features can have very different p-values purely due to power differences
-# (e.g., variance of $X_j$​, strength of the distillation model) even if their true conditional
-# effect sizes are similar.
+# even if their true conditional effect sizes are similar.
 
 from hidimstat import D0CRT
 
@@ -125,7 +124,7 @@ print(dcrt_importance.sort_values(ascending=False))
 # %%
 # Model-X Knockoffs produces a per-feature statistic used to construct a data-dependent
 # threshold for FDR-controlled selection. The magnitude of values is not a calibrated effect size,
-# it depends on the specific chosen statistic and the knockoff construction.
+# it depends on the specifically chosen statistic and the knockoff construction.
 # It's designed for selection, not to compare within-method feature importance values.
 
 from sklearn.covariance import LedoitWolf
@@ -154,8 +153,8 @@ ko_importance = pd.Series(ko_importance[0], index=feature_names, name="MXKO")
 print(ko_importance.sort_values(ascending=False))
 
 # %%
-# Why you can't just stack these numbers together
-# -----------------------------------------------
+# Why you can't just compare raw importance values
+# ------------------------------------------------
 #
 # Let's look at the raw values side by side. The point of this plot isn't the
 # specific numbers, it's that the y-axes have no common meaning and comparison ground:
@@ -192,7 +191,7 @@ plt.show()
 # ---------------
 # Even though the raw numbers aren't on the same scale, do methods agree on which features
 # matter most ? Spearman rank correlation is a fair way to compare across methods (using
-# $-log10(p)$ for dCRT so that "more significant" maps to "larger", matching the direction
+# :math:`-log10(p)` for dCRT so that "more significant" maps to "larger", matching the direction
 # of the other scores).
 
 import seaborn as sns
