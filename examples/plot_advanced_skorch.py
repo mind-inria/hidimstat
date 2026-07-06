@@ -52,8 +52,7 @@ class MNISTCNN(nn.Module):
 # %%
 # Loading data
 # ------------
-# Since Skorch interfaces PyTorch in a Scikit-learn fashion,
-# we don't need to create torch datasets, and we simply prepare
+# Since Skorch interfaces PyTorch in a Scikit-learn fashion, we don't need to create torch datasets, and we simply prepare
 # data as we would usually do for sklearn models.
 
 import matplotlib.pyplot as plt
