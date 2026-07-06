@@ -166,6 +166,9 @@ unique_ids, start_idx = np.unique(sorted_ids, return_index=True)
 positions = np.split(order, start_idx[1:])
 features_groups = dict(zip(unique_ids, positions, strict=False))
 
+# %%
+# We now instantiate the CFI and fit it on the two tasks.
+
 # Careful when using Skorch, having n_jobs > 1 might create joblib and pickle issues.
 cfi = CFI(
     estimator=model,
