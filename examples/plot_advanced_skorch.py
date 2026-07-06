@@ -5,19 +5,18 @@ HiDimStat was designed with the goal of being easily compatible with Sklearn.
 PyTorch models might not be used directly with HiDimStat for that reason.
 However, with the help of a third party library `Skorch <https://skorch.readthedocs.io/en/stable/>`,
 PyTorch can be interfaced with HiDimStat, and provide all of its functionalities.
-In this example, we show how to define a Convolutional Neural Network (CNN) in Skorch,
+In this example, we define a Convolutional Neural Network (CNN) in Skorch,
 and perform pixel-wise feature importance in a binary classification setup,
 through the MNIST digits dataset, between digits 4 vs 7 and 0 vs 1.
 """
 
 # %%
-# Deefining a PyTorch model
+# Defining a PyTorch model
 # -------------------------
 # We start by defining a basic Convolutional Neural Network (CNN)
 # composed of 2 series of (Convolution, Activation, Pooling) layers,
 # followed by 2 fully-connected layers.
 
-import torch
 import torch.nn.functional as F
 from torch import nn
 
@@ -42,7 +41,7 @@ class MNISTCNN(nn.Module):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
 
-        x = torch.flatten(x, 1)
+        x = x.flatten(1)
 
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
@@ -66,7 +65,7 @@ mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
 
 # Downsample to speed up the example
-n_samples = 500
+n_samples = 2000
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
 X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
 X_4_7, y_4_7 = resample(
@@ -109,16 +108,18 @@ axes[1, 2].set_title("Digits 4 vs 7", fontweight="bold", y=1.0)
 # We now create the Skorch model, and build a pipeline with a StandardScaler.
 # Skorch allows the model to be run either on a cuda device or on cpu.
 
+import torch.cuda
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from skorch import NeuralNetClassifier
+from torch.optim import Adam
 
 net = NeuralNetClassifier(
     MNISTCNN,
     max_epochs=5,
     lr=1e-3,
     batch_size=64,
-    optimizer=torch.optim.Adam,
+    optimizer=Adam,
     criterion=nn.CrossEntropyLoss,
     iterator_train__shuffle=True,
     device="cuda" if torch.cuda.is_available() else "cpu",
@@ -131,8 +132,8 @@ net.n_features_in_ = 28 * 28
 # %%
 # Running HiDimStat feature importance computation
 # ------------------------------------------------
-# We cluster pixels through feature agglomeration, and define its connectivity
-# to inform spatial relations and assess feature importance at the group level.
+# We cluster pixels through feature agglomeration, while leveraging their grid structure
+# and assess feature importance at the group level.
 # This is done with a Conditional Feature Importance (CFI). For each binary
 # classification (0 vs 1, 4 vs 7), we fit the model and evaluate feature
 # importance.
@@ -142,7 +143,7 @@ from sklearn.feature_extraction import image
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
-from hidimstat import PFI
+from hidimstat import CFI
 
 shape = (28, 28)
 n_clusters = 50
@@ -164,16 +165,15 @@ sorted_ids = clustering.labels_[order]
 unique_ids, start_idx = np.unique(sorted_ids, return_index=True)
 positions = np.split(order, start_idx[1:])
 features_groups = dict(zip(unique_ids, positions, strict=False))
-# features_groups = {idx: [cluster_label] for idx, cluster_label in enumerate(clustering.labels_)}
 
 # Careful when using Skorch, having n_jobs > 1 might create joblib and pickle issues.
-pfi = PFI(
+cfi = CFI(
     estimator=model,
     features_groups=features_groups,
-    n_permutations=50,
-    random_state=0,
+    n_permutations=20,
     method="predict_proba",
     loss=log_loss,
+    random_state=0,
 )
 # PyTorch expects float input, and long type target.
 # Since it's a binary classification, we convert the classes into 4->0 and 7->1 for Skorch.
@@ -185,8 +185,8 @@ X_train, X_test, y_train, y_test = train_test_split(
     X_4_7, y_target, test_size=0.3, random_state=0, stratify=y_target
 )
 model.fit(X_train, y=y_train)
-pfi.fit_importance(X_test, y_test)
-selected_4_7 = pfi.fwer_selection(
+cfi.fit_importance(X_test, y_test)
+selected_4_7 = cfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
@@ -199,8 +199,8 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y_0_1,
 )
 model.fit(X_train, y=y_train)
-pfi.fit_importance(X_test, y_test)
-selected_0_1 = pfi.fwer_selection(
+cfi.fit_importance(X_test, y_test)
+selected_0_1 = cfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
