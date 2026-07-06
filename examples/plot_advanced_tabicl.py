@@ -51,7 +51,7 @@ from hidimstat import CFI
 
 cfi = CFI(estimator=model, method="predict", loss=mean_squared_error)
 cfi.fit(X_train, y_train)
-importances = cfi.importance(X_test, y_test)
+importance = cfi.importance(X_test, y_test)
 selection = cfi.fdr_selection(fdr=0.1)
 
 # %%
@@ -61,7 +61,7 @@ selection = cfi.fdr_selection(fdr=0.1)
 df = pd.DataFrame(
     {
         "feature": feat_names,
-        "importance": importances,
+        "importance": importance,
         "selected": selection,
     }
 ).sort_values("importance", ascending=False)
