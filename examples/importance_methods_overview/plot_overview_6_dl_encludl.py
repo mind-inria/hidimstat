@@ -1,8 +1,8 @@
 """
-Desparsified Lasso and Ensemble Clustered Inference
+Ensemble Clustered Inference
 ===================================================
 We present and illustrate the limitations of the Desparsified
-Lasso (DL) method through a simulated 2D example where the number of features is higher than
+Lasso (:class:`hidimstat.DesparsifiedLasso`) method through a simulated 2D example where the number of features is higher than
 the number of samples. We then present two methods that leverage the data's
 spatial structure to build clusters and perform the inference at the cluster level,
 with clustered DL (:class:`hidimstat.CluDL`) and with Ensembled CluDL (:class:`hidimstat.EnCluDL`).
@@ -59,18 +59,12 @@ plt.tight_layout()
 # %%
 # Feature importance with Desparsified Lasso
 # ------------------------------------------
-# Desparsified Lasso, also known as debiased Lasso, is a method that aims at estimating
-# the regression coefficients. To do so, it uses coefficients obtained
-# from a Lasso regression and corrects the bias induced by the L1-penalty. This method is
+# Desparsified Lasso estimates the regression coefficients by obtaining them
+# from a Lasso regression and correcting the bias induced by the L1-penalty. This method is
 # particularly useful in high-dimensional settings where the number of features exceeds the number of samples.
 # The feature importance thus corresponds to the estimated coefficients :math:`\hat{\beta}`.
-# We perform inference using the Desparsified Lasso method, treating the data as
-# a standard high-dimensional regression problem without considering its spatial
-# structure. The aim of the inference step is to recover the support while controlling
-# the Family-Wise Error Rate (FWER) at a targeted level of 0.1. To achieve this, we use
-# the Bonferroni correction, applying a factor equal to the number of features. For more
-# details about the Desparsified Lasso method, see :footcite:t:`javanmard2014confidence`,
-# :footcite:t:`zhang2014confidence` and :footcite:t:`van2014asymptotically`.
+# We perform inference using the Desparsified Lasso method, without considering its spatial
+# structure.
 
 import numpy as np
 from sklearn.linear_model import LassoCV
@@ -202,14 +196,12 @@ visualize_selection(selected_ecdl)
 # %%
 # Takeaways
 # ---------
-# Desparsified Lasso is a fast feature importance method, that gives an easy
-# interpretation of its coefficients as feature importance. However, it assumes
-# a linear relationship, which might not capture well real data structure.
-# To mitigate this, a solution is to perform clustering on the data, and regroup features,
+# To mitigate the linear relationship assumption from the Desparsified Lasso,
+# a solution is to perform clustering on the data, and regroup features,
 # by applying the ``CluDL`` method.
 # We can further reduce the instability of clustering method, by repeating the
 # clustering process on different bootstrap of the samples, as executed by
-# `EnCluDL`.
+# ``EnCluDL``.
 #
 # In practise, the choice of the number of clusters depends on several parameters, such as
 # the structure of the data (a higher correlation between neighboring features
