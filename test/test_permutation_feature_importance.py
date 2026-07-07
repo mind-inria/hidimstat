@@ -285,7 +285,9 @@ from sklearn.base import clone
 from sklearn.linear_model import RidgeCV
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
+from hidimstat._utils.utils import SKLEARN_LT_1_6
+
+from .conftest import check_estimator, fitted_linear_regression
 
 
 def fitted_ridged_cv():
