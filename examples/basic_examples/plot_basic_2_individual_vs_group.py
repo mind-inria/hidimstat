@@ -3,12 +3,12 @@ Measuring Individual and Group Variable Importance for Classification
 ======================================================================
 
 In this example, we show on the Iris dataset how to measure variable importance for
-classification tasks. This time, we use the Permutation Feature Importance (PFI) method
+classification tasks. This time, we use Conditional Feature Importance (CFI) method
 with a Support Vector Classifier (SVC). We start by measuring the importance of
 individual variables and then show how to measure the importance of groups of variables.
 
-To briefly summarize, PFI (Permutation Feature Importance) shuffles the values of
-a feature and measures the increase in the loss when predicting (using om the same
+To briefly summarize, CFI generates new samples for a feature while preserving the conditional
+distribution over all other features and measures the increase in the loss when predicting (using the same
 full model) on the shuffled data.
 
 """
