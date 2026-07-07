@@ -404,6 +404,11 @@ class EnCluDL(BaseVariableImportance):
 
         return self
 
+    @staticmethod
+    def _joblib_compute_one_cluster_importance(cludl: CluDL):
+        cludl.importance()
+        return cludl
+
     def importance(self, X=None, y=None):
         """
         Compute feature importance by aggregating results from multiple
@@ -418,12 +423,17 @@ class EnCluDL(BaseVariableImportance):
         """
         del y
         del X
-        for i in tqdm(
-            range(self.n_bootstraps),
-            desc="Computing importances",
-            total=self.n_bootstraps,
-        ):
-            self.clustering_desparsified_lassos_[i].importance()
+
+        self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_compute_one_cluster_importance)(
+                self.clustering_desparsified_lassos_[i]
+            )
+            for i in tqdm(
+                range(self.n_bootstraps),
+                desc="Fitting clustered inferences",
+                total=self.n_bootstraps,
+            )
+        )
 
         self.importances_ = np.mean(
             [
