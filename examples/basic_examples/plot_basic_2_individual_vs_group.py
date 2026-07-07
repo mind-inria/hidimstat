@@ -118,3 +118,10 @@ ax = cfi.plot_importance(ax=ax)
 ax.set_xlabel("Feature Importance")
 plt.tight_layout()
 plt.show()
+
+# %%
+# Important
+# ---------
+# Feature group analysis is available only for perturbation based method, such as:
+# Permutation Feature Importance (PFI), Conditional Feature Importance (CFI),
+# Leave-one-covariate-in and out (LOCI and LOCO).
