@@ -1,10 +1,21 @@
 """
-SAGE example
-============
+Shapley Additive Global Importance (SAGE) example
+=================================================
+
+In this example, we demonstrate how to use measure feature importance using
+SAGE :footcite:t:`Covert2020 on the diabetes dataset. For this example, we use
+the marginal version of SAGE, which limits the computational cost. To further
+reduce the computational cost, Shapley values are estimated using a Monte Carlo
+approximation. Only a subset of all possible feature coalitions is sampled.
+This is controlled by the `n_subsets` parameter. Finally, the expectation over
+the marginal distribution is also approximated using `n_permutations`.
 """
+
 # %%
-# Regression SAGE example on the diabetes dataset
-# -----------------------------------------------
+# Ridge regression example on the diabetes dataset
+# ------------------------------------------------
+# We start by loading the diabetes dataset and fitting a ridge regression
+# model. We then compute the SAGE values for each feature and plot the results.
 
 import numpy as np
 from sklearn.datasets import load_diabetes
@@ -14,7 +25,9 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import SAGE
 
-X, y = load_diabetes(return_X_y=True)
+dataset = load_diabetes()
+X, y = dataset.data, dataset.target
+feature_names = dataset.feature_names
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 model = RidgeCV()
 model.fit(X_train, y_train)
@@ -30,12 +43,16 @@ sage = SAGE(
 )
 sage.fit(X_train)
 sage.importance(X_test, y_test)
-ax = sage.plot_importance()
+ax = sage.plot_importance(feature_names=feature_names)
 
 
 # %%
-# Reproducing the example from the sage-values library
-# ----------------------------------------------------
+# LightGBM example on the bike sharing dataset
+# --------------------------------------------
+# We then demonstrate how to use SAGE on a larger dataset, the bike sharing
+# dataset. We fit a LightGBM model and compute the SAGE values for each
+# feature. To make the computation tractable, we subsample the test set to
+# 1024 samples.
 
 from sklearn.datasets import fetch_openml
 from sklearn.ensemble import HistGradientBoostingRegressor
@@ -68,34 +85,3 @@ rng = np.random.default_rng(0)
 subsample_ids = rng.choice(len(X_test), size=subsample_size, replace=False)
 sage.importance(X_test[subsample_ids], y_test[subsample_ids])
 sage.plot_importance(feature_names=df.drop(columns=["count"]).columns.tolist())
-
-
-# %%
-# Classification SAGE example
-# ---------------------------
-
-from sklearn.datasets import load_breast_cancer
-from sklearn.metrics import balanced_accuracy_score, log_loss
-from sklearn.neural_network import MLPClassifier
-
-X, y = load_breast_cancer(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-model = MLPClassifier(random_state=0, hidden_layer_sizes=(256, 256))
-print("Train set shape:", X_train.shape)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-print("Balanced accuracy score:", balanced_accuracy_score(y_test, y_pred))
-
-sage = SAGE(
-    model,
-    n_subsets=64,
-    n_permutations=10,
-    random_state=0,
-    n_jobs=8,
-    method="predict_proba",
-    loss=log_loss,
-)
-sage.fit(X_train)
-sage.importance(X_test, y_test)
-ax = sage.plot_importance()
-# %%
