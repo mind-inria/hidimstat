@@ -405,7 +405,7 @@ class EnCluDL(BaseVariableImportance):
         return self
 
     @staticmethod
-    def _joblib_compute_one_cluster_importance(cludl: CluDL):
+    def _joblib_compute_one_bootstrap_importance(cludl: CluDL):
         cludl.importance()
         return cludl
 
@@ -425,7 +425,7 @@ class EnCluDL(BaseVariableImportance):
         del X
 
         self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_compute_one_cluster_importance)(
+            delayed(self._joblib_compute_one_bootstrap_importance)(
                 self.clustering_desparsified_lassos_[i]
             )
             for i in tqdm(
