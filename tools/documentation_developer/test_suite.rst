@@ -87,10 +87,10 @@ source python file. It ensures that each estimator or family of estimators has i
 module named after the corresponding source module. This keeps tests discoverable and
 lets a contributor working on one method run just ``pytest test_<method>.py``.
 
-Three recurring layers of testing
+Test organization logic
 -----------------------------------
 
-Across almost every file, tests fall into three categories:
+For feature importance methods, tests fall into three categories:
 
 - Statistical correctness on simulated data:
    Tests generate synthetic data with a known support (important vs.
