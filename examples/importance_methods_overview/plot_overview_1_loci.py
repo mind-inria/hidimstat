@@ -2,7 +2,7 @@
 Leave-One-Covariate-In (LOCI) feature importance with different regression models
 ==================================================================================
 
-This example demonstrates how to compare LOCI feature importance [:footcite:t:`Williamson_General_2023`] across different
+This example demonstrates how to compare LOCI feature importance [:footcite:t:`reyerolobo2025principledapproachcomparingvariable`] across different
 predictive models on the same regression dataset. LOCI is model-agnostic and can be
 applied to any predictive model. Here, we use a linear model, a random forest, a neural
 network, and a support vector machine. We compare the models based on their predictive
