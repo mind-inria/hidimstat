@@ -110,27 +110,25 @@ class CluVI(BaseVariableImportance):
         self.clustering_ = self.clustering.fit(X[self.clustering_samples_, :])
         X_reduced = self.clustering_.transform(X)
 
-        # Desparsified lasso inference
         if hasattr(self.vi_estimator, "random_state"):
             self.vi_estimator.random_state = self.random_state
         self.vi_estimator_ = self.vi_estimator.fit(X_reduced, y)
         return self
 
-    def importance(self, X=None, y=None):
+    def importance(self, X, y):
         """
         Compute feature importance using desparsified lasso. Then map the importance
         scores from cluster level back to feature level.
 
         Parameters
         ----------
-        X :
-            Not used, present for API consistency by convention.
-        y :
-            Not used, present for API consistency by convention.
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
         """
-        del y
-        del X
-        self.vi_estimator_.importance()
+        X_reduced = self.clustering_.transform(X)
+        self.vi_estimator_.importance(X_reduced, y)
 
         self.pvalues_ = self.clustering_.inverse_transform(
             self.vi_estimator_.pvalues_
@@ -410,33 +408,31 @@ class EnCluVI(BaseVariableImportance):
 
         Parameters
         ----------
-        X :
-            Not used, present for API consistency by convention.
-        y :
-            Not used, present for API consistency by convention.
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
 
         Returns
         -------
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
             Estimated importance values at feature level.
         """
-        del y
-        del X
         for i in tqdm(
             range(self.n_bootstraps),
             desc="Computing importances",
             total=self.n_bootstraps,
         ):
-            self.clustering_vi_estimators_[i].importance()
+            self.clustering_vi_estimators_[i].importance(X, y)
 
         self.importances_ = np.mean(
-            [clu_dl.importances_ for clu_dl in self.clustering_vi_estimators_],
+            [clu_vi.importances_ for clu_vi in self.clustering_vi_estimators_],
             axis=0,
         )
 
         self.pvalues_ = quantile_aggregation(
             np.array(
-                [clu_dl.pvalues_ for clu_dl in self.clustering_vi_estimators_]
+                [clu_vi.pvalues_ for clu_vi in self.clustering_vi_estimators_]
             ),
             gamma=self.gamma,
             adaptive=self.adaptive_aggregation,
