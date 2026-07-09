@@ -178,7 +178,7 @@ Defined in the testing configuration file
    ``@pytest.mark.parametrize`` to build ``(estimator, check, name)``
    tuples for valid or intentionally-invalid checks.
 
-Local, file-specific fixtures
+Local file-specific fixtures
 --------------------------------
 
 Several test files define their own narrower fixtures on top of the
