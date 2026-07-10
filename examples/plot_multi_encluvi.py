@@ -129,7 +129,7 @@ plt.show()
 # EnCluVI
 # -------
 # Now we encapsulate each variable importance method with ensemble clustered
-# inference, and plot the importance as bar plots.
+# inference, and plot the variable importance as bar plots.
 
 import time
 
