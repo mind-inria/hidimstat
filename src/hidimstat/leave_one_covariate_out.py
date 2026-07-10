@@ -148,7 +148,7 @@ class LOCO(BasePerturbation):
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
-        y_pred = getattr(self.estimator, self.method)(X)
+        y_pred = getattr(self.estimator_, self.method)(X)
         self.loss_reference_ = self.loss(y, y_pred)
 
         y_pred = self._predict(X)
@@ -223,7 +223,7 @@ class LOCO(BasePerturbation):
         covariates.
         """
         super()._check_fit()
-        check_is_fitted(self.estimator)
+        check_is_fitted(self.estimator_)
         if self._list_estimators is None:
             raise ValueError(
                 "The estimators require to be fit before to use them"

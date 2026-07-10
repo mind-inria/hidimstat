@@ -228,7 +228,7 @@ class LOCI(BasePerturbation):
         covariates.
         """
         super()._check_fit()
-        check_is_fitted(self.estimator)
+        check_is_fitted(self.estimator_)
         if self._list_estimators is None:
             raise ValueError(
                 "The estimators require to be fit before to use them"

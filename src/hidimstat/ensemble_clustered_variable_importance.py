@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import clone
+from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
@@ -56,14 +56,14 @@ class CluVI(BaseVariableImportance):
     def __init__(
         self,
         clustering,
-        vi_estimator=BaseVariableImportance(),
+        vi_estimator,
         cluster_bootstrap_size=1.0,
         bootstrap_groups=None,
         random_state=None,
         memory=None,
     ):
         assert issubclass(vi_estimator.__class__, BaseVariableImportance), (
-            "vi_estimator need to be a subclass of BaseVariableImportance"
+            "estimator need to be a subclass of BaseVariableImportance"
         )
         assert issubclass(clustering.__class__, FeatureAgglomeration), (
             "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
@@ -112,6 +112,10 @@ class CluVI(BaseVariableImportance):
 
         if hasattr(self.vi_estimator, "random_state"):
             self.vi_estimator.random_state = self.random_state
+
+        if self.vi_estimator.estimator is not None:
+            self.vi_estimator.estimator.fit(X_reduced, y)
+
         self.vi_estimator_ = self.vi_estimator.fit(X_reduced, y)
         return self
 
@@ -260,6 +264,19 @@ class CluVI(BaseVariableImportance):
             train_index = np.arange(n_samples)[np.isin(groups, train_index)]
         return train_index
 
+    def _check_fit(self):
+        """
+        Check that an estimator has been fitted after removing each group of
+        covariates.
+        """
+        super()._check_fit()
+
+        if self.vi_estimator_ is None:
+            raise ValueError(
+                "The estimator requires to be fit before to use them"
+            )
+        check_is_fitted(self.vi_estimator_)
+
 
 class EnCluVI(BaseVariableImportance):
     """
@@ -303,7 +320,7 @@ class EnCluVI(BaseVariableImportance):
 
     Attributes
     ----------
-    clustering_vi_estimators_ : list of hidimstat.BaseVariableImportance
+    clustering_estimators_ : list of hidimstat.BaseVariableImportance
         List of fitted CluVI estimators from each bootstrap.
     importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
         Estimated coefficients at feature level.
@@ -360,8 +377,7 @@ class EnCluVI(BaseVariableImportance):
             random_state=random_state,
             memory=memory,
         )
-        clu_vi.fit(X, y)
-        return clu_vi
+        return clu_vi.fit(X, y)
 
     def fit(self, X, y):
         """
@@ -381,10 +397,10 @@ class EnCluVI(BaseVariableImportance):
         """
         rng = check_random_state(self.random_state)
 
-        self.clustering_vi_estimators_ = Parallel(n_jobs=self.n_jobs)(
+        self.clustering_estimators_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one)(
-                vi_estimator=clone(self.vi_estimator),
-                clustering=clone(self.clustering),
+                vi_estimator=self.vi_estimator,
+                clustering=self.clustering,
                 cluster_bootstrap_size=self.cluster_bootstrap_size,
                 bootstrap_groups=self.bootstrap_groups,
                 X=X,
@@ -401,7 +417,12 @@ class EnCluVI(BaseVariableImportance):
 
         return self
 
-    def importance(self, X=None, y=None):
+    @staticmethod
+    def _joblib_compute_importance(vi_estimator, X, y):
+        vi_estimator.importance(X, y)
+        return vi_estimator
+
+    def importance(self, X, y):
         """
         Compute feature importance by aggregating results from multiple
         clustered inferences.
@@ -418,21 +439,27 @@ class EnCluVI(BaseVariableImportance):
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
             Estimated importance values at feature level.
         """
-        for i in tqdm(
-            range(self.n_bootstraps),
-            desc="Computing importances",
-            total=self.n_bootstraps,
-        ):
-            self.clustering_vi_estimators_[i].importance(X, y)
+        self.clustering_estimators_ = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_compute_importance)(
+                vi_estimator=self.clustering_estimators_[i],
+                X=X,
+                y=y,
+            )
+            for i in tqdm(
+                range(self.n_bootstraps),
+                desc="Fitting clustered inferences",
+                total=self.n_bootstraps,
+            )
+        )
 
         self.importances_ = np.mean(
-            [clu_vi.importances_ for clu_vi in self.clustering_vi_estimators_],
+            [clu_vi.importances_ for clu_vi in self.clustering_estimators_],
             axis=0,
         )
 
         self.pvalues_ = quantile_aggregation(
             np.array(
-                [clu_vi.pvalues_ for clu_vi in self.clustering_vi_estimators_]
+                [clu_vi.pvalues_ for clu_vi in self.clustering_estimators_]
             ),
             gamma=self.gamma,
             adaptive=self.adaptive_aggregation,
@@ -476,3 +503,16 @@ class EnCluVI(BaseVariableImportance):
             reshaping_function=reshaping_function,
             two_tailed_test=two_tailed_test,
         )
+
+    def _check_fit(self):
+        """
+        Check that an estimator has been fitted after removing each group of
+        covariates.
+        """
+        super()._check_fit()
+        if self.clustering_estimators_ is None:
+            raise ValueError(
+                "The estimators require to be fit before to use them"
+            )
+        for m in self.clustering_estimators_:
+            check_is_fitted(m)
