@@ -161,14 +161,14 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )
-            for S in subsets:
-                S_key = tuple(S)
+            for sub in subsets:
+                S_key = tuple(sub)
                 self.subset_value_map_[S_key] = None
-                S_j = np.sort(np.union1d(S, group_ids))
+                S_j = np.sort(np.union1d(sub, group_ids))
                 S_j_key = tuple(S_j)
                 self.subset_value_map_[S_j_key] = None
                 self.sum_terms_[j].append((S_key, S_j_key))
-                self.subset_map_[S_key] = S
+                self.subset_map_[S_key] = sub
                 self.subset_map_[S_j_key] = S_j
 
         # 2. Compute SAGE values for all unique subsets
