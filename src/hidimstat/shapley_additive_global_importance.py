@@ -91,7 +91,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         The loss function to use for computing the SAGE values.
     imputation : str, default="marginal"
         The imputation strategy to use for sampling the complement of the
-        subset.
+        subset. Currently, only "marginal" is implemented.
     n_subsets : int, default=100
         The number of subsets to sample for estimating the SAGE values, for
         each feature.
@@ -134,6 +134,11 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         self.n_jobs = n_jobs
 
     def fit(self, X, y=None):
+        if self.imputation != "marginal":
+            raise NotImplementedError(
+                "Only marginal imputation is currently implemented for SAGE "
+                "values."
+            )
         self.estimator_ = self._initial_fit(self.estimator, X, y)
         GroupVariableImportanceMixin.fit(self, X, y)
         return self
