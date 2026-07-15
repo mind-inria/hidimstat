@@ -33,13 +33,18 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=0
 )
 
-model = make_pipeline(StandardScaler(), TabICLRegressor(device="cpu"))
+model = make_pipeline(
+    StandardScaler(), TabICLRegressor(device="cpu", kv_cache="repr")
+)
 model.fit(X_train, y_train)
 print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 
 # %%
-# For the moment, TabICL can only be used with PFI or CFI. TabICL only works with
+# For the moment, TabICL can only be used with LOCI, LOCO, PFI, or CFI. TabICL only works with
 # integer seeding, which is currently not supported by D0CRT.
+# We use the "kv_cache" parameter for TabICL to cache column embedding key-value projections and row
+# interaction outputs (representations) so that predictions are much faster since it computes the
+# attention operations.
 #
 # TabICL interfaces with HiDimStat the same way as any other Scikit-learn estimator,
 # which lets us compute feature importance as easily as follows:
@@ -47,12 +52,12 @@ print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from hidimstat import CFI
+from hidimstat import LOCO
 
-cfi = CFI(estimator=model, method="predict", loss=mean_squared_error)
-cfi.fit(X_train, y_train)
-importance = cfi.importance(X_test, y_test)
-selection = cfi.fdr_selection(fdr=0.1)
+loco = LOCO(estimator=model, method="predict", loss=mean_squared_error)
+loco.fit(X_train, y_train)
+importance = loco.importance(X_test, y_test)
+selection = loco.fdr_selection(fdr=0.1)
 
 # %%
 # Let's wrap the results in a Pandas dataframe and plot the importance
@@ -67,17 +72,8 @@ df = pd.DataFrame(
 ).sort_values("importance", ascending=False)
 
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-ax = sns.barplot(
-    data=df,
-    y="feature",
-    x="importance",
-    hue="selected",
-    palette="muted",
-    orient="h",
-)
-sns.despine()
+loco.plot_importance()
 plt.show()
 
 # %%
