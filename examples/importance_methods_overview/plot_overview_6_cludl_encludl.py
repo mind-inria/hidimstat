@@ -203,7 +203,7 @@ visualize_selection(selected_ecdl)
 # clustering process on different bootstrap of the samples, as executed by
 # ``EnCluDL``.
 #
-# In practise, the choice of the number of clusters depends on several parameters, such as
+# In practice, the choice of the number of clusters depends on several parameters, such as
 # the structure of the data (a higher correlation between neighboring features
 # enable a greater dimension reduction, i.e. a smaller number of clusters),
 # the number of samples (small datasets require more dimension reduction) and

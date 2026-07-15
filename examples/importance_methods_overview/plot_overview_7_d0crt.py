@@ -24,7 +24,7 @@ Distilled Conditional Randomization Test (dCRT)
 # which is the normalized correlation between the two residuals. From there, p-values
 # can be computed.
 #
-# In HiDimStat's implementation, the X-distillation is set to use a linear model. The
+# In Hidimstat's implementation, the X-distillation is set to use a linear model. The
 # Y-distillation process can be whichever supervised learner the user wants.
 # In this example, we will compare the performance of several estimators in this context.
 

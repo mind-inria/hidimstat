@@ -10,7 +10,7 @@ showcase it on the California housing dataset.
 # Conditional Feature Importance
 # ------------------------------
 # CFI proposes a way of computing a mean decrease in accuracy, without refitting the model.
-# This time, contrary to Permutation Feature Importance (PFI), samples are not blindly permuted,
+# Unlike Permutation Feature Importance (PFI), samples are not blindly permuted,
 # but rather we generate samples for feature :math:`x_j` based on its conditional distribution
 # of the remaining features :math:`x_{-j}`. Intuitively, he bigger the decrease in loss, the
 # more important the feature is for the model. This method has the benefit of being
@@ -302,4 +302,4 @@ plt.show()
 # It handles correlated features better than PFI, and successfully reduces bias from spurious features
 # and spurious correlations.
 # However, CFI can become computationaly intensive since the sample generation mechanism is based on the
-# conditioning of all other features which can face difficulties when the number of features scales.
+# conditioning of all other features, leading to higher costs when the number of features increases.

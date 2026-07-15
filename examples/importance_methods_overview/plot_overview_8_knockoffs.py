@@ -200,7 +200,7 @@ plt.show()
 # Fixing the lottery
 # ------------------
 # Because gambling is not a healthy hobby, to overcome the variability and randomness,
-# we generate multiple sets of knockoffs and use aggregation techniques to provide
+# we can generate multiple sets of knockoffs and use aggregation techniques to provide
 # a more robust variable importance estimation by adding the argument `n_repeats`,
 # such as follows:
 
@@ -216,6 +216,40 @@ mx_ko = ModelXKnockoff(
     n_repeats=15,
     n_jobs=5,
 )
+
+importances = mx_ko.fit_importance(noisy_data, y_)
+importance_mean = np.array(importances).mean(axis=0)
+importance_std = np.array(importances).std(axis=0)
+
+_, ax1 = plt.subplots(figsize=(10, 4))
+ax1.bar(
+    np.arange(len(importance_mean)),
+    importance_std / (np.abs(importance_mean) + 1e-8),
+    capsize=2,
+    alpha=0.8,
+    label="Mean importance",
+)
+
+for i, support in enumerate(coef):
+    if support != 0:
+        ax1.axvspan(
+            i - 0.45,
+            i + 0.45,
+            color="tab:olive",
+            alpha=0.3,
+            zorder=-1,
+            label="True Support" if i == 8 else None,
+        )
+
+ax1.legend(loc="upper right")
+plt.xlabel("Feature index")
+plt.ylabel("Std / |mean|")
+plt.title("Relative std of importance across knockoff runs")
+plt.show()
+
+# %%
+# The repetition greatly reduced the statistics variability, and thus contributes
+# to providing a more stable feature selection set.
 
 # %%
 # Takeaways

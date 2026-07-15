@@ -11,8 +11,8 @@ with clustered DL (:class:`hidimstat.CluDL`) and with Ensembled CluDL (:class:`h
 # %%
 # Feature importance with Desparsified Lasso
 # ------------------------------------------
-# Desparsified Lasso estimates the regression coefficients by obtaining them
-# from a Lasso regression and correcting the bias induced by the L1-penalty. This method is
+# Desparsified Lasso estimates the regression coefficients obtained
+# from a Lasso regression, after correcting the bias induced by the L1-penalty. This method is
 # particularly useful in high-dimensional settings where the number of features exceeds the number of samples.
 # The feature importance thus corresponds to the estimated coefficients :math:`\hat{\beta}`.
 # The aim of the inference step is to recover the support while controlling

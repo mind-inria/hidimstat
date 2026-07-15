@@ -139,8 +139,8 @@ plt.show()
 # - LOCO indicates how the model performance reacts to removing features individually, so beware
 #   of the interpretation and make sure not to extrapolate.
 #
-# - LOCO importance of strongly correlated features is always low, since LOCO importance is to
-#   be interpreted by the information provided by the other features.
+# - LOCO importance of strongly correlated features is always low, since LOCO importance only
+#   shows the additional information brought by the tested variable, given the others.
 #
 # - LOCO is computational expensive, make sure to use it in scenarios where model refitting is not too long.
 #

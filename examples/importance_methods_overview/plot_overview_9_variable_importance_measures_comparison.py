@@ -10,7 +10,7 @@ rather than by raw magnitude.
 # %%
 # Can we compare methods ?
 # ------------------------
-# One normal question that we may ask ourselves is the possibility of comparing different variable
+# Since the best method may depend on the context, it is important to compare different variable
 # importance measures. Indeed, they each answer different questions, and seem to focus on
 # different quantity measures. We explore this by explaining the values returned by each method,
 # and looking at the importance ranking that each method produces.
@@ -23,6 +23,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 rng = np.random.default_rng(0)
+n_jobs = 1
 
 n_samples = 200
 n_features = 10
@@ -47,7 +48,7 @@ y = X @ beta + noise
 feature_names = [f"X{i}" for i in range(n_features)]
 true_support = beta != 0
 print(
-    "True causal features:",
+    "True relevant features:",
     [f for f, s in zip(feature_names, true_support, strict=False) if s],
 )
 
@@ -61,7 +62,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.3, random_state=0
 )
 
-model = RandomForestRegressor(n_estimators=300, random_state=0, n_jobs=-1)
+model = RandomForestRegressor(n_estimators=300, random_state=0, n_jobs=n_jobs)
 model.fit(X_train, y_train)
 print("R^2 score:", r2_score(y_test, model.predict(X_test)))
 
@@ -77,7 +78,7 @@ from hidimstat import CFI
 cfi = CFI(
     estimator=model,
     n_permutations=50,
-    n_jobs=5,
+    n_jobs=n_jobs,
     random_state=0,
 )
 cfi.fit(X_train, y_train)
@@ -95,6 +96,7 @@ from hidimstat import LOCO
 
 loco = LOCO(
     estimator=model,
+    n_jobs=n_jobs,
 )
 loco.fit(X_train, y_train)
 loco_importance = loco.importance(X_test, y_test)
@@ -114,6 +116,7 @@ dcrt = D0CRT(
     estimator=model,
     screening_threshold=None,
     random_state=42,
+    n_jobs=n_jobs,
 )
 dcrt.fit(X_train, y_train)
 dcrt_importance = dcrt.importance(X_test, y_test)
@@ -143,7 +146,7 @@ mx_ko = ModelXKnockoff(
     random_state=0,
     preconfigure_lasso_path=False,
     n_repeats=15,
-    n_jobs=5,
+    n_jobs=n_jobs,
 )
 
 mx_ko.fit(X_train, y_train)
@@ -170,7 +173,7 @@ results["dCRT"] = dcrt_importance
 results["MXKO"] = ko_importance
 
 results_df = pd.DataFrame(results)
-results_df.insert(0, "True causal", true_support)
+results_df.insert(0, "True support", true_support)
 results_df
 
 fig, axes = plt.subplots(2, 2, figsize=(8, 6), sharex=False)
@@ -190,17 +193,11 @@ plt.show()
 # Comparing ranks
 # ---------------
 # Even though the raw numbers aren't on the same scale, do methods agree on which features
-# matter most ? Spearman rank correlation is a fair way to compare across methods (using
-# :math:`-log10(p)` for dCRT so that "more significant" maps to "larger", matching the direction
-# of the other scores).
+# matter most ? Spearman rank correlation is a fair way to compare across methods.
 
 import seaborn as sns
 
-rank_frame = results.copy()
-rank_frame["dCRT"] = -np.log10(results["dCRT"].clip(lower=1e-300))
-rank_frame = pd.DataFrame(rank_frame)
-
-corr = rank_frame.corr(method="spearman")
+corr = pd.DataFrame(results).corr(method="spearman")
 
 ax = plt.axes()
 sns.heatmap(corr, annot=True, vmin=-1, vmax=1, ax=ax, cmap="vlag")
