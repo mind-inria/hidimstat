@@ -183,7 +183,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         -------
         importances_ : ndarray of shape (n_groups,)
             The importance scores for each feature group.
-            A higher score indicates greater importance of that group.
+            A larger score indicates greater importance of that group.
 
         Notes
         -----
