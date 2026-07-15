@@ -110,17 +110,6 @@ parameter. It accepts three types of input:
   numbers are generated from a non-deterministic source, resulting in different outcomes
   on each run and each call.
 
-
-Testing
-~~~~~~~
-All methods that involve randomness must include a dedicated test suite. The following
-test patterns help to ensure consistent behavior:
-
-* ``test_<method>_repeatability``
-* ``test_<method>_randomness_with_none``
-* ``test_<method>_reproducibility_with_integer``
-* ``test_<method>_reproducibility_with_rng``
-
 Writing Conventions
 -------------------
 

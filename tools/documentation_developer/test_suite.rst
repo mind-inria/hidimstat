@@ -1,8 +1,8 @@
 .. _test_suite:
 
-===================================
+==============
 The Test Suite
-===================================
+==============
 
 .. contents:: On this page
    :local:
@@ -31,7 +31,7 @@ is executed without any error. The code coverage metric should then appear after
 and documentation generation process directly on the PR discussion on `GitHub <https://github.com/mind-inria/hidimstat/pulls>`_.
 
 How the Suite Is Organized
-============================
+==========================
 
 File Inventory
 --------------
@@ -88,7 +88,7 @@ module named after the corresponding source module. This keeps tests discoverabl
 lets a contributor working on one method run just ``pytest test_<method>.py``.
 
 Test organization logic
------------------------------------
+-----------------------
 
 For feature importance methods, tests fall into three categories:
 
@@ -120,7 +120,7 @@ For feature importance methods, tests fall into three categories:
    so they behave like any other scikit-learn estimator.
 
 Reproducibility testing
--------------------------
+-----------------------
 
 Modules that can be seeded run the same four-way check on ``random_state`` handling:
 
@@ -134,8 +134,16 @@ Modules that can be seeded run the same four-way check on ``random_state`` handl
 
 This is important for any Monte Carlo–style method where reproducibility guarantees matter.
 
+All methods that involve randomness must include a dedicated test suite. The following
+test patterns help to ensure consistent behavior:
+
+- ``test_<method>_repeatability``
+- ``test_<method>_randomness_with_none``
+- ``test_<method>_reproducibility_with_integer``
+- ``test_<method>_reproducibility_with_rng``
+
 Important fixtures and utilities
-=================================
+================================
 
 Defined in the testing configuration file
 -----------------------------------------
@@ -179,7 +187,7 @@ Defined in the testing configuration file
    tuples for valid or intentionally-invalid checks.
 
 Local file-specific fixtures
---------------------------------
+----------------------------
 
 Several test files define their own narrower fixtures on top of the
 shared ones, generally to avoid refitting an expensive model in every
@@ -194,7 +202,7 @@ If you ever need a non-fixture utility function, please make sure that you check
 ``_utils``, ``samplers``, and ``statistical_tools`` modules before reimplementing a method.
 
 Summary
-=========
+=======
 
 The suite is thought to ensure having reusable testing
 recipes,  applied consistently to every inference method in the library.
