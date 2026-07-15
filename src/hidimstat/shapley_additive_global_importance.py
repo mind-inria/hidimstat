@@ -42,7 +42,7 @@ def _sage_value_function(
     complement = np.setdiff1d(np.arange(n_features), subset)
     X_sampled = np.tile(
         X, (n_permutations, 1, 1)
-    )  # (n_perm, n_samples, n_feat)
+    )  # (n_permutations, n_samples, n_features)
     for perm_idx in range(n_permutations):
         for col in complement:
             X_sampled[perm_idx, :, col] = rng.permutation(X[:, col])
