@@ -16,9 +16,8 @@ the marginal distribution is also approximated using `n_permutations`.
 # LightGBM example on the bike sharing dataset
 # --------------------------------------------
 # We demonstrate how to use SAGE on the bike sharing
-# dataset. We fit a LightGBM model and compute the SAGE values for each
-# feature. To make the computation tractable, we subsample the test set to
-# 1024 samples.
+# dataset. We fit a LightGBM model and compute its prediction $R^2$ score on a
+# held-out test set.
 
 import numpy as np
 from sklearn.datasets import fetch_openml
@@ -26,8 +25,6 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
-
-from hidimstat import SAGE
 
 bike_sharing = fetch_openml("Bike_Sharing_Demand", version=2, as_frame=True)
 df = bike_sharing.frame
@@ -41,6 +38,17 @@ model = HistGradientBoostingRegressor(random_state=0, max_depth=5)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 print("R2 score:", r2_score(y_test, y_pred))
+
+
+# %%
+# SAGE feature importance
+# -----------------------
+# We compute the SAGE feature importance for the fitted model. To keep the
+# computational cost tractable, we use a subset of the test set to compute the
+# SAGE values. Finally, the SAGE values are plotted using the `plot_importance`
+# function.
+
+from hidimstat import SAGE
 
 sage = SAGE(
     model,
