@@ -96,6 +96,8 @@ ax.set_yticklabels(df.drop(columns=["count"]).columns.tolist())
 cbar = ax.figure.colorbar(
     ax.imshow(corr_mat, cmap="coolwarm", vmin=-1, vmax=1), label="correlation"
 )
+plt.tight_layout()
+plt.show()
 
 # %%
 # References
