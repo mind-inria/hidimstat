@@ -76,31 +76,16 @@ X_4_7, y_4_7 = resample(
     stratify=y_4_7,
 )
 
-mask_0_1 = (y_mnist == "0") | (y_mnist == "1")
-X_0_1, y_0_1 = X_mnist[mask_0_1], y_mnist[mask_0_1].astype(int)
-X_0_1, y_0_1 = resample(
-    X_0_1,
-    y_0_1,
-    n_samples=n_samples,
-    replace=False,
-    random_state=0,
-    stratify=y_0_1,
-)
-
 # Plot digits 0 against 1, and 4 against 7, to visually compare a few of them.
 _, axes = plt.subplots(
-    2, 5, figsize=(6, 4), subplot_kw={"xticks": [], "yticks": []}
+    1, 5, figsize=(4, 2), subplot_kw={"xticks": [], "yticks": []}
 )
 for i in range(5):
-    # Plot 0 vs 1
-    label = 1 if i % 2 == 0 else 0
-    axes[0, i].imshow(X_0_1[y_0_1 == label][i].reshape(28, 28), cmap="gray")
     # Plot 4 vs 7
     label = 7 if i % 2 == 0 else 4
-    axes[1, i].imshow(X_4_7[y_4_7 == label][i].reshape(28, 28), cmap="gray")
+    axes[i].imshow(X_4_7[y_4_7 == label][i].reshape(28, 28), cmap="gray")
 
-axes[0, 2].set_title("Digits 0 vs 1", fontweight="bold", y=1.0)
-axes[1, 2].set_title("Digits 4 vs 7", fontweight="bold", y=1.0)
+axes[2].set_title("Digits 4 vs 7", fontweight="bold", y=1.0)
 
 
 # %%
@@ -115,7 +100,7 @@ from torch.optim import Adam
 
 net = NeuralNetClassifier(
     MNISTCNN,
-    max_epochs=5,
+    max_epochs=20,
     lr=1e-3,
     batch_size=64,
     optimizer=Adam,
@@ -186,23 +171,10 @@ y_target[y_target == 7] = 1
 X_train, X_test, y_train, y_test = train_test_split(
     X_4_7, y_target, test_size=0.3, random_state=0, stratify=y_target
 )
-model.fit(X_train, y=y_train)
-cfi.fit_importance(X_test, y_test)
+model.fit(X_train, y_train)
+print(f"Model accuracy on the test set: {model.score(X_test, y_test):.2f}")
+importances_4_7 = cfi.fit_importance(X_test, y_test)
 selected_4_7 = cfi.fwer_selection(
-    fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
-)
-
-# No need to convert here since it's already 0 and 1.
-X_train, X_test, y_train, y_test = train_test_split(
-    X_0_1,
-    y_0_1.astype(np.int64),
-    test_size=0.3,
-    random_state=0,
-    stratify=y_0_1,
-)
-model.fit(X_train, y=y_train)
-cfi.fit_importance(X_test, y_test)
-selected_0_1 = cfi.fwer_selection(
     fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
 )
 
@@ -212,36 +184,23 @@ selected_0_1 = cfi.fwer_selection(
 # Finally, we visualize the significant pixels identified by CFI for each of the
 # classification tasks.
 
-import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-_, axes = plt.subplots(
+_, ax = plt.subplots(
     1, 2, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []}
 )
 
-for i, (title, selected) in enumerate(
-    [
-        ("4 vs 7", selected_4_7),
-        ("0 vs 1", selected_0_1),
-    ]
-):
-    pixel_selection = np.zeros((len(clustering.labels_),), dtype=int)
-    # selected contains the selected cluster groups, so we convert this back to pixel selection.
-    for sign in (-1, 1):
-        pixels = [
-            pixels
-            for pixels, sel in zip(
-                features_groups.values(), selected, strict=False
-            )
-            if sel == sign
-        ]
-        if pixels:
-            pixel_selection[np.concatenate(pixels)] = sign
-    mask_pfi = pixel_selection.reshape(shape)
+pixel_selection = clustering.inverse_transform(selected_4_7)
+mask_cfi = pixel_selection.reshape(shape)
+importance_cfi_img = clustering.inverse_transform(importances_4_7).reshape(
+    shape
+)
 
-    cmap = ListedColormap(["tab:red", "white", "tab:blue"])
-    axes[i].imshow(mask_pfi, cmap=cmap, vmin=-1, vmax=1)
-    axes[i].set_title(title, fontweight="bold", y=1.0)
+cmap = ListedColormap(["tab:red", "white", "tab:blue"])
+ax[0].imshow(mask_cfi, cmap=cmap, vmin=-1, vmax=1)
+ax[0].set_title("4 vs 7 selection", fontweight="bold", y=1.0)
+ax[1].imshow(importance_cfi_img)
+ax[1].set_title("4 vs 7 importance", fontweight="bold", y=1.0)
 
 plt.tight_layout()
 plt.show()
