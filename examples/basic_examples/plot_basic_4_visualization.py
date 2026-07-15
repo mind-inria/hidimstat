@@ -2,8 +2,6 @@
 Visualization with HiDimStat
 ============================
 
-In previous examples, we used the `plot_importance` function to display bar plots
-and visualize which variables were considered important for different methods.
 This example demonstrates how to create Partial Dependency Plots (PDPs). This
 visualization method allows us to examine a model's dependence on a single feature or
 a pair of features. The underlying implementation is built upon
@@ -73,7 +71,8 @@ _ = pdp.plot(X_test, features=0)
 # Here, the partial dependence is encoded by contour lines (level lines) across the 2D plot.
 # The marginal distribution for each eature is also represented along the axes
 # to help identify regions where the estimated dependence might be unreliable due to
-# a low density of training data.
+# a low density of training data. Contour lines represent the surface of the effect
+# for feature interactions.
 
 import matplotlib.pyplot as plt
 

@@ -33,7 +33,7 @@ X, y, beta = make_regression(
 
 # We convert the coefficients of the data-generating process into a binary array
 # indicating the true support set of features.
-beta = beta != 0
+support = beta != 0
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -103,10 +103,10 @@ ax.set_xlabel("Feature Importance")
 # Since the figure displays importance measures in a descending order,
 # we need to sort betas accordingly:
 
-sorted_beta = beta[np.argsort(importances)[::-1]]
+sorted_support = support[np.argsort(importances)[::-1]]
 
-for i, support in enumerate(sorted_beta):
-    if support != 0:
+for i, supp in enumerate(sorted_support):
+    if supp != 0:
         ax.axhspan(
             i - 0.45,
             i + 0.45,
@@ -135,7 +135,6 @@ important_features = X[:, selection]
 # This is the basic pipeline for feature importance assessment and feature selection.
 # We demonstrated the general workflow using CFI, but other implemented methods can be used
 # in a similar manner.
-
 
 # %%
 # References

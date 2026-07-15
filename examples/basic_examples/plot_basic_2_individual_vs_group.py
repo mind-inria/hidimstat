@@ -74,9 +74,9 @@ _, ax = plt.subplots(figsize=(6, 3))
 ax = cfi.plot_importance(ax=ax)
 ax.set_xlabel("Feature Importance")
 ax.set_yticklabels(feature_names[np.argsort(importance)[::-1]])
-# ax.text(0, 0, f"Selected features: {feature_names[selection]}")
 plt.tight_layout()
 plt.show()
+print(f"Selected features are: {feature_names[selection]}.")
 
 
 # %%
@@ -99,6 +99,7 @@ features_groups = {
     "phenols": [5, 6, 7, 8],
     "color": [9, 10],
 }
+feature_group_names = np.array(list(features_groups.keys()))
 
 
 cfi = CFI(
@@ -112,6 +113,8 @@ cfi = CFI(
 )
 
 importance = cfi.fit_importance(X_test, y_test)
+selection = cfi.pvalue_selection(threshold_max=0.05)
+print(f"Selected feature groups are: {feature_group_names[selection]}.")
 
 _, ax = plt.subplots(figsize=(6, 3))
 ax = cfi.plot_importance(ax=ax)
