@@ -141,6 +141,11 @@ class CluDL(BaseVariableImportance):
             Not used, present for API consistency by convention.
         y :
             Not used, present for API consistency by convention.
+
+        Returns
+        -------
+        importances_ : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+            Estimated coefficients at cluster level.
         """
         del y
         del X
@@ -170,8 +175,8 @@ class CluDL(BaseVariableImportance):
 
         Returns
         -------
-        self : CluDL
-            Fitted estimator with computed importances.
+        importances_ : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+            Estimated coefficients at cluster level.
         """
         self.fit(X, y)
         self.importance(X, y)
@@ -430,6 +435,11 @@ class EnCluDL(BaseVariableImportance):
 
         return self
 
+    @staticmethod
+    def _joblib_compute_one_bootstrap_importance(cludl: CluDL):
+        cludl.importance()
+        return cludl
+
     def importance(self, X=None, y=None):
         """
         Compute feature importance by aggregating results from multiple
@@ -441,15 +451,25 @@ class EnCluDL(BaseVariableImportance):
             Not used, present for API consistency by convention.
         y :
             Not used, present for API consistency by convention.
+
+        Returns
+        -------
+        importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
+            Estimated coefficients at the feature level.
         """
         del y
         del X
-        for i in tqdm(
-            range(self.n_bootstraps),
-            desc="Computing importances",
-            total=self.n_bootstraps,
-        ):
-            self.clustering_desparsified_lassos_[i].importance()
+
+        self.clustering_desparsified_lassos_ = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_compute_one_bootstrap_importance)(
+                self.clustering_desparsified_lassos_[i]
+            )
+            for i in tqdm(
+                range(self.n_bootstraps),
+                desc="Fitting clustered inferences",
+                total=self.n_bootstraps,
+            )
+        )
 
         self.importances_ = np.mean(
             [
@@ -486,7 +506,7 @@ class EnCluDL(BaseVariableImportance):
         Returns
         -------
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
-            Estimated coefficients at feature level.
+            Estimated coefficients at the feature level.
         """
         self.fit(X, y)
         self.importance(X, y)
