@@ -115,14 +115,11 @@ class LOCO(BasePerturbation):
             The input samples to compute importance scores for.
         y : array-like of shape (n_samples,)
 
+        Returns
+        -------
         importances_ : ndarray of shape (n_groups,)
             The importance scores for each group of covariates.
             A higher score indicates greater importance of that group.
-
-        Returns
-        -------
-        importances_ : ndarray of shape (n_features,)
-            Importance scores for each feature.
 
         Attributes
         ----------
@@ -275,12 +272,12 @@ loco_importance.__doc__ = _aggregate_docstring(
     """
     Returns
     -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics.
-    pvalues : ndarray of shape (n_features,)
-        None because there is no p-value for this method
+    selection : ndarray of shape (n_groups,)
+        Boolean array indicating selected feature groups (True = selected).
+    importances : ndarray of shape (n_groups,)
+        Feature group importance scores/test statistics.
+    pvalues : ndarray of shape (n_groups,)
+        None because there is no p-value for this method.
     """,
 )
 
