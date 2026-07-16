@@ -3,7 +3,7 @@ Using PyTorch with HiDimStat
 ============================
 HiDimStat was designed with the goal of being easily compatible with Sklearn.
 PyTorch models might not be used directly with HiDimStat for that reason.
-However, with the help of a third party library `Skorch <https://skorch.readthedocs.io/en/stable/>`,
+However, with the help of a third party library `Skorch <https://skorch.readthedocs.io/en/stable/>`_,
 PyTorch can be interfaced with HiDimStat, and provide all of its functionalities.
 In this example, we define a Convolutional Neural Network (CNN) in Skorch,
 and perform pixel-wise feature importance in a binary classification setup,
@@ -120,7 +120,8 @@ net.n_features_in_ = 28 * 28
 # and assess feature importance at the group level.
 # This is done with a Conditional Feature Importance (CFI). For each binary
 # classification (0 vs 1, 4 vs 7), we fit the model and evaluate feature
-# importance.
+# importance. We also plot the clusters formed by the FeatureAgglomeration
+# to visualize the "superpixels" formed this way.
 
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
@@ -141,6 +142,12 @@ clustering = FeatureAgglomeration(
     n_clusters=n_clusters, connectivity=connectivity
 )
 clustering.fit(X_cluster)
+
+_, ax = plt.subplots(1, 1, figsize=(2, 2))
+ax.imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
+ax.axis("off")
+ax.set_title("Clustering labels")
+_ = plt.tight_layout()
 
 # CFI expects features_groups to be a dictionary where the keys are the group names
 # and the values are the list of column names corresponding to each features group.
@@ -187,7 +194,7 @@ selected_4_7 = cfi.fwer_selection(
 from matplotlib.colors import ListedColormap
 
 _, ax = plt.subplots(
-    1, 2, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []}
+    1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []}
 )
 
 pixel_selection = clustering.inverse_transform(selected_4_7)
@@ -201,6 +208,9 @@ ax[0].imshow(mask_cfi, cmap=cmap, vmin=-1, vmax=1)
 ax[0].set_title("4 vs 7 selection", fontweight="bold", y=1.0)
 ax[1].imshow(importance_cfi_img)
 ax[1].set_title("4 vs 7 importance", fontweight="bold", y=1.0)
+ax[2].imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
+ax[2].axis("off")
+ax[2].set_title("Clustering labels")
 
 plt.tight_layout()
 plt.show()
