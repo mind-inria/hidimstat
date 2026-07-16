@@ -50,6 +50,7 @@ def _sage_value_function(
     for perm_idx in range(n_permutations):
         for col in complement:
             X_sampled[perm_idx, :, col] = rng.permutation(X[:, col])
+
     X_sampled_batch = X_sampled.reshape(-1, n_features)
     y_pred = getattr(estimator, method)(X_sampled_batch)
     # In case of classification, the output is a 2D array. Reshape accordingly
