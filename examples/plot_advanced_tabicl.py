@@ -3,8 +3,8 @@ Tabular Foundation Model TabICL
 ================================
 
 In this example, we demonstrate how to use a tabular foundation model such as
-TabICL [:footcite:t:`qu2025tabicl`] with a straightforward example on the California
-Housing regression dataset.
+TabICL [:footcite:t:`qu2025tabicl`, :footcite:t:`qu2026tabiclv2`] with a
+straightforward example on the California Housing regression dataset.
 """
 
 # %%
@@ -19,8 +19,6 @@ Housing regression dataset.
 
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 from tabicl import TabICLRegressor
 
@@ -33,15 +31,14 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=0
 )
 
-model = make_pipeline(
-    StandardScaler(), TabICLRegressor(device="cpu", kv_cache="repr")
-)
+model = TabICLRegressor(device="cpu", kv_cache="repr")
 model.fit(X_train, y_train)
 print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 
 # %%
 # For the moment, TabICL can only be used with LOCI, LOCO, PFI, or CFI. TabICL only works with
 # integer seeding, which is currently not supported by D0CRT.
+#
 # We use the "kv_cache" parameter for TabICL to cache column embedding key-value projections and row
 # interaction outputs (representations) so that predictions are much faster since it computes the
 # attention operations.
@@ -52,12 +49,12 @@ print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from hidimstat import LOCO
+from hidimstat import CFI
 
-loco = LOCO(estimator=model, method="predict", loss=mean_squared_error)
-loco.fit(X_train, y_train)
-importance = loco.importance(X_test, y_test)
-selection = loco.fdr_selection(fdr=0.1)
+cfi = CFI(estimator=model, method="predict", loss=mean_squared_error)
+cfi.fit(X_train, y_train)
+importance = cfi.importance(X_test, y_test)
+selection = cfi.fdr_selection(fdr=0.1)
 
 # %%
 # Let's wrap the results in a Pandas dataframe and plot the importance
@@ -73,7 +70,9 @@ df = pd.DataFrame(
 
 import matplotlib.pyplot as plt
 
-loco.plot_importance()
+_, ax = plt.subplots()
+cfi.plot_importance(ax=ax)
+ax.set_yticklabels(df["feature"].values)
 plt.show()
 
 # %%
