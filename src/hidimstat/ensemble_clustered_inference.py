@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
@@ -52,6 +54,11 @@ class CluDL(BaseVariableImportance):
     n_features_ : int
         Number of features in the original data.
 
+    Notes
+    -----
+    .. deprecated:: 0.5.0
+       Use :class:`hidimstat.ClusterImportance` instead.
+
     """
 
     def __init__(
@@ -79,6 +86,13 @@ class CluDL(BaseVariableImportance):
         self.desparsified_lasso_ = None
         self.clustering_ = None
         self.clustering_samples_ = None
+
+        warnings.warn(
+            "CluDL is deprecated and will be removed in version 0.5.0."
+            "Please use class ClusterImportance instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     def fit(self, X, y):
         """
@@ -313,6 +327,11 @@ class EnCluDL(BaseVariableImportance):
     pvalues_ : ndarray, shape (n_features,)
         P-values for each feature.
 
+    Notes
+    -----
+    .. deprecated:: 0.5.0
+       Use :class:`hidimstat.EnsembleImportance` instead.
+
     .. footbibliography::
     """
 
@@ -343,6 +362,13 @@ class EnCluDL(BaseVariableImportance):
         self.adaptive_aggregation = adaptive_aggregation
 
         self.desparsified_lassos_ = None
+
+        warnings.warn(
+            "EnCluDL is deprecated and will be removed in version 0.5.0."
+            "Please use class EnsembleImportance instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     @staticmethod
     def _joblib_fit_one(

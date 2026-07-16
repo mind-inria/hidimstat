@@ -1,0 +1,277 @@
+import numpy as np
+from sklearn.base import check_is_fitted, clone
+from sklearn.cluster import FeatureAgglomeration
+from sklearn.utils import resample
+from sklearn.utils.validation import check_memory
+
+from hidimstat._utils.utils import check_random_state
+from hidimstat.base_variable_importance import BaseVariableImportance
+
+
+class ClusterImportance(BaseVariableImportance):
+    """
+    Clustered inference with any variable importance method.
+
+    This algorithm computes a single clustered inference on groups of features
+    using an arbitrary variable importance measure for statistical inference.
+
+    Parameters
+    ----------
+    vim: hidimstat.BaseVariableImportance
+        An instance of any variable importance method that derives from hidimstat's BaseVariableImportance.
+    clustering: sklearn.cluster.FeatureAgglomeration
+        An instance of a clustering method that operates on features.
+    cluster_frac: float, optional (default=1.0)
+        Fraction of samples used for computing the clustering.
+        When cluster_frac=1.0, all samples are used.
+    bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
+        Sample group labels for stratified subsampling.
+    random_state: int, optional (default=None)
+        Random seed for reproducible subsampling.
+    memory : joblib.Memory or str, optional (default=None)
+        Used to cache the output of the clustering and inference computation.
+        By default, no caching is done. If provided, it should be the path
+        to the caching directory or a joblib.Memory object.
+
+    Attributes
+    ----------
+    vim_ : hidimstat.BaseVariableImportance
+        Fitted variable importance method that will be clustered.
+    clustering_ : sklearn.cluster.FeatureAgglomeration
+        Fitted clustering object.
+    clustering_samples_ : ndarray, (n_samples*cluster_frac,)
+        Indices of samples used for clustering.
+    importances_ : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+        Estimated coefficients at cluster level.
+    pvalues_ : ndarray, shape (n_clusters,)
+        P-values for each cluster.
+    n_features_ : int
+        Number of features in the original data.
+
+    """
+
+    def __init__(
+        self,
+        vim,
+        clustering,
+        cluster_frac=1.0,
+        bootstrap_groups=None,
+        random_state=None,
+        memory=None,
+    ):
+        assert issubclass(vim.__class__, BaseVariableImportance), (
+            "estimator need to be a subclass of BaseVariableImportance"
+        )
+        assert issubclass(clustering.__class__, FeatureAgglomeration), (
+            "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
+        )
+        self.vim = vim
+        self.clustering = clustering
+        self.cluster_frac = cluster_frac
+        self.bootstrap_groups = bootstrap_groups
+        self.random_state = random_state
+        self.memory = memory
+
+        self.vim_ = None
+        self.clustering_ = None
+        self.clustering_samples_ = None
+
+    def fit(self, X, y):
+        """
+        Fit the clustering and variable importance method on the data.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        self : CluVI
+            Fitted estimator.
+        """
+        memory = check_memory(memory=self.memory)
+        rng = check_random_state(self.random_state)
+
+        self.n_features_in_ = X.shape[1]
+
+        # Clustering
+        self.clustering_samples_ = self._subsampling(
+            n_samples=X.shape[0],
+            train_size=self.cluster_frac,
+            groups=self.bootstrap_groups,
+            random_state=rng,
+        )
+        self.clustering_ = self.clustering.fit(X[self.clustering_samples_, :])
+        X_reduced = self.clustering_.transform(X)
+
+        if hasattr(self.vim, "random_state"):
+            self.vim.random_state = self.random_state
+
+        self.vim_ = clone(self.vim)
+        self.vim_.estimator.fit(X_reduced, y)
+        self.vim_ = self.vim_.fit(X_reduced, y)
+        return self
+
+    def importance(self, X, y):
+        """
+        Compute feature importance from the underlying variable importance method.
+        Then map the importance scores from cluster level back to feature level.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+        """
+        X_reduced = self.clustering_.transform(X)
+        self.vim_.importance(X_reduced, y)
+
+        self.pvalues_ = self.clustering_.inverse_transform(self.vim_.pvalues_)
+
+        self.importances_ = self._ungroup_importance(
+            self.vim_.importances_,
+            n_features=self.n_features_in_,
+            ward=self.clustering_,
+        )
+        return self.importances_
+
+    def fit_importance(self, X, y):
+        """
+        Fit the model and compute feature importance.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_samples, n_features)
+            Input data matrix.
+        y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
+            Target variable(s).
+
+        Returns
+        -------
+        importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
+            Estimated importance values at feature level.
+        """
+        self.fit(X, y)
+        self.importance(X, y)
+        return self.importances_
+
+    def fdr_selection(
+        self,
+        fdr,
+        fdr_control="bhq",
+        reshaping_function=None,
+        two_tailed_test=True,
+    ):
+        """
+        Overrides the signature to set two_tailed_test=True by default.
+        """
+        return super().fdr_selection(
+            fdr=fdr,
+            fdr_control=fdr_control,
+            reshaping_function=reshaping_function,
+            two_tailed_test=two_tailed_test,
+        )
+
+    @staticmethod
+    def _ungroup_importance(importance, n_features, ward):
+        """
+        Ungroup cluster-level beta coefficients to individual feature-level
+        coefficients.
+
+        Parameters
+        ----------
+        importance : ndarray, shape (n_clusters,) or (n_clusters, n_tasks)
+            Importance values at cluster level
+        n_features : int
+            Number of features in original space
+        ward : sklearn.cluster.FeatureAgglomeration
+            Fitted clustering object
+
+        Returns
+        -------
+        importance_degrouped : ndarray, shape (n_features,) or (n_features, n_tasks)
+            Rescaled importance values for individual features, weighted by
+            inverse cluster size
+
+        Notes
+        -----
+        Each coefficient is scaled by 1/cluster_size to maintain proper magnitude
+        when distributing cluster effects to individual features.
+        Handles both univariate (1D) and multivariate (2D) beta coefficients.
+        """
+        labels = ward.labels_
+        # compute the size of each cluster
+        clusters_size = np.zeros(labels.size)
+        for label in range(labels.max() + 1):
+            clusters_size[labels == label] = np.sum(labels == label)
+        # degroup beta_hat
+        if len(importance.shape) == 1:
+            # weighting the weight of beta with the size of the cluster
+            importance_degrouped = (
+                ward.inverse_transform(importance) / clusters_size
+            )
+        elif len(importance.shape) == 2:
+            n_tasks = importance.shape[1]
+            importance_degrouped = np.zeros((n_features, n_tasks))
+            for i in range(n_tasks):
+                importance_degrouped[:, i] = (
+                    ward.inverse_transform(importance[:, i]) / clusters_size
+                )
+        return importance_degrouped
+
+    @staticmethod
+    def _subsampling(n_samples, train_size, groups=None, random_state=None):
+        """
+        Random subsampling for statistical inference.
+
+        Parameters
+        ----------
+        n_samples : int
+            Total number of samples in the dataset.
+        train_size : float
+            Fraction of samples to include in the training set (between 0 and 1).
+        groups : ndarray, shape (n_samples,), optional (default=None)
+            Group labels for samples.
+            If not None, a subset of groups is selected.
+        random_state : int, optional (default=0)
+            Random seed for reproducibility.
+
+        Returns
+        -------
+        train_index : ndarray
+            Indices of selected samples for training.
+        """
+        index_row = (
+            np.arange(n_samples) if groups is None else np.unique(groups)
+        )
+        if train_size == 1:
+            return index_row
+        else:
+            train_index = resample(
+                index_row,
+                n_samples=int(len(index_row) * train_size),
+                replace=False,
+                random_state=np.random.RandomState(random_state.bit_generator),
+            )
+            if groups is not None:
+                train_index = np.arange(n_samples)[
+                    np.isin(groups, train_index)
+                ]
+            return train_index
+
+    def _check_fit(self):
+        """
+        Check that an estimator has been fitted after removing each group of
+        covariates.
+        """
+        super()._check_fit()
+
+        if self.vim_ is None:
+            raise ValueError(
+                "The estimator requires to be fit before to use them"
+            )
+        check_is_fitted(self.vim_)

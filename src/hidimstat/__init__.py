@@ -1,3 +1,4 @@
+from .cluster_importance import ClusterImportance
 from .conditional_feature_importance import CFI, CFICV, cfi_importance
 from .desparsified_lasso import (
     DesparsifiedLasso,
@@ -5,7 +6,7 @@ from .desparsified_lasso import (
 )
 from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
 from .ensemble_clustered_inference import CluDL, EnCluDL
-from .ensemble_clustered_variable_importance import CluVI, EnCluVI
+from .ensemble_importance import EnsembleImportance
 from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
 from .leave_one_covariate_in import LOCI, LOCICV, loci_importance
 from .leave_one_covariate_out import LOCO, LOCOCV, loco_importance
@@ -28,10 +29,10 @@ __all__ = [
     "PFICV",
     "CluDL",
     "CluVI",
-    "DesparsifiedLasso",
+    "ClusterImportanceDesparsifiedLasso",
     "EnCluDL",
     "EnCluVI",
-    "ModelXKnockoff",
+    "EnsembleImportanceModelXKnockoff",
     "cfi_importance",
     "d0crt_importance",
     "desparsified_lasso_importance",
