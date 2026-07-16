@@ -16,7 +16,7 @@ the marginal distribution is also approximated using `n_permutations`.
 # LightGBM example on the bike sharing dataset
 # --------------------------------------------
 # We demonstrate how to use SAGE on the bike sharing
-# dataset. We fit a HistGradientBoostingRegressor model and compute its $R^2$ score on a
+# dataset. We fit a LightGBM model and compute its :math:`R^2` score on a
 # held-out test set.
 
 import numpy as np
