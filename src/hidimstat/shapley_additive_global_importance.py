@@ -1,5 +1,9 @@
 """
-Sage values
+Implementation of Shapley Additive Global Importance (SAGE) values for feature
+importance. It measures importance by a weighted average of value functions
+over all possible subsets of features (approximated via Monte Carlo sampling).
+The value function is defined as the loss increase when the features of
+interest is removed from the subset.
 """
 
 import numpy as np
