@@ -21,7 +21,7 @@ def compute_mplot_1d_continuous(
     X,
     feature_idx,
     grid_resolution="auto",
-    percentiles=(0.05, 0.95),
+    percentiles=(5, 95),
     confidence_interval=True,
     confidence_level=0.95,
 ):
@@ -76,7 +76,7 @@ def compute_mplot_1d_categorical(
     estimator,
     X,
     feature_idx,
-    percentiles=(0.05, 0.95),
+    percentiles=(5, 95),
     confidence_interval=True,
     confidence_level=0.95,
 ):
@@ -93,8 +93,8 @@ def compute_mplot_1d_categorical(
     x = X[:, feature_idx]
 
     if X[:, feature_idx].dtype.kind in "iuf":
-        low_bnd = np.percentile(x, percentiles[0] * 100)
-        high_bnd = np.percentiles(x, percentiles[1] * 100)
+        low_bnd = np.percentile(x, percentiles[0])
+        high_bnd = np.percentiles(x, percentiles[1])
 
         valid_mask = (x >= low_bnd) and (x <= high_bnd)
         X_filtered = X[valid_mask]
@@ -153,7 +153,7 @@ def compute_mplot_2d(
     X,
     feature_indices,
     grid_resolution="auto",
-    percentiles=(0.05, 0.95),
+    percentiles=(5, 95),
 ):
     feature_indices = list(feature_indices)
     if len(feature_indices) != 2:
@@ -226,7 +226,7 @@ class MPlot:
         features,
         feature_type="auto",
         grid_resolution="auto",
-        percentiles=(0.05, 0.95),
+        percentiles=(5, 95),
         confidence_interval=True,
         confidence_level=0.95,
         cmap="viridis",
