@@ -20,13 +20,14 @@ under development (0.3.2.dev0)
 - :bdg-primary:`Doc` add documentation on how to contribute with issues, pull-requests, explanation of the CI process, and dev guidelines on class templates and folder architecture. (:gh:`653` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` add naming conventions for classes, files, and functions, as well as citation conventions (:gh:`647` and :gh:`648` by `Marc Hulcelle`_).
 - :bdg-danger:`Fix` Fix typo in issue template (:gh:`659` by `Joseph Paillard`_).
-- :bdg-primary:`Doc` Added an AGENTS.md file for AI agents, and AI disclosures to contribution guidelines (:gh:`655` by `Marc Hulcelle`).
+- :bdg-primary:`Doc` Added an AGENTS.md file for AI agents, and AI disclosures to contribution guidelines (:gh:`655` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` added a maintenance-related issue template (:gh:`666` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` temporary fix for the CI upper-bounding scikit-learn to 1.9.0 (:gh:`669` by `Joseph Paillard`_).
 - :bdg-danger:`Fix` Fixed unnecessary copy operations of X when only a slice view is needed (:gh:`646` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` remove pinned poosh dependency (problem with somato dataset solved) (:gh:`670` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint` remove extra term in variance of X-residual (DOCRT). See  [Reid et al., A Study of Error Variance Estimation in Lasso Regression 2016](https://arxiv.org/pdf/1311.5274) for reference. (:gh:`649` by `Joseph Paillard`_).
-- :bdg-success:`Feature` add leave-one-covariate-in (LOCI) method (:gh:`679` by `Marc Hulcelle`).
-- :bdg-danger:`Fix` fixed deprecated n_alphas with sklearn LassoCV, as well as deprecated penalty for LogisticRegressionCV (:gh:`690` by `Marc Hulcelle`)
+- :bdg-success:`Feature` add leave-one-covariate-in (LOCI) method (:gh:`679` by `Marc Hulcelle`_).
+- :bdg-danger:`Fix` fixed deprecated n_alphas with sklearn LassoCV, as well as deprecated penalty for LogisticRegressionCV (:gh:`690` by `Marc Hulcelle`_)
 - :bdg-secondary:`Maint`: Fix conditional sampling test by verifying that sampler produces diverse samples. (:gh:`692` by `Joseph Paillard`_).
 - :bdg-success:`Feature`: Implement marginal SAGE (:gh:`674` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` reworked example gallery, and introduced a "real life cases" section (:gh:`683` by `Marc Hulcelle`_).
