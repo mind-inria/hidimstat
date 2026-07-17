@@ -1,11 +1,11 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
-from sklearn.utils import resample
+from sklearn.base import clone
 from tqdm import tqdm
 
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.samplers.utils import _subsampling
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
@@ -84,6 +84,7 @@ class EnsembleImportance(BaseVariableImportance):
         self.adaptive_aggregation = adaptive_aggregation
 
         self.vim_ = None
+        self.ensemble_vims_ = None
 
     @staticmethod
     def _joblib_fit_one(
@@ -94,7 +95,7 @@ class EnsembleImportance(BaseVariableImportance):
         y,
         random_state,
     ):
-        ensemble_samples = EnsembleImportance._subsampling(
+        ensemble_samples = _subsampling(
             n_samples=X.shape[0],
             train_size=bootstrap_frac,
             groups=bootstrap_groups,
@@ -121,13 +122,6 @@ class EnsembleImportance(BaseVariableImportance):
             Fitted estimator.
         """
         rng = check_random_state(self.random_state)
-
-        self.ensemble_samples = self._subsampling(
-            n_samples=X.shape[0],
-            train_size=self.bootstrap_frac,
-            groups=self.bootstrap_groups,
-            random_state=rng,
-        )
 
         self.ensemble_vims_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one)(
@@ -169,6 +163,8 @@ class EnsembleImportance(BaseVariableImportance):
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
             Estimated importance values at feature level.
         """
+        self._check_fit()
+
         self.ensemble_vims_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_compute_importance)(
                 vim=self.ensemble_vims_[i],
@@ -236,50 +232,7 @@ class EnsembleImportance(BaseVariableImportance):
         """
         Check that the ensemble has been fitted.
         """
-        super()._check_fit()
         if self.ensemble_vims_ is None:
             raise ValueError(
                 "The estimators need to be fit before using them."
             )
-        for vim in self.ensemble_vims_:
-            check_is_fitted(vim)
-
-    @staticmethod
-    def _subsampling(n_samples, train_size, groups=None, random_state=None):
-        """
-        Random subsampling for statistical inference.
-
-        Parameters
-        ----------
-        n_samples : int
-            Total number of samples in the dataset.
-        train_size : float
-            Fraction of samples to include in the training set (between 0 and 1).
-        groups : ndarray, shape (n_samples,), optional (default=None)
-            Group labels for samples.
-            If not None, a subset of groups is selected.
-        random_state : int, optional (default=0)
-            Random seed for reproducibility.
-
-        Returns
-        -------
-        train_index : ndarray
-            Indices of selected samples for training.
-        """
-        index_row = (
-            np.arange(n_samples) if groups is None else np.unique(groups)
-        )
-        if train_size == 1:
-            return index_row
-        else:
-            train_index = resample(
-                index_row,
-                n_samples=int(len(index_row) * train_size),
-                replace=False,
-                random_state=np.random.RandomState(random_state.bit_generator),
-            )
-            if groups is not None:
-                train_index = np.arange(n_samples)[
-                    np.isin(groups, train_index)
-                ]
-            return train_index

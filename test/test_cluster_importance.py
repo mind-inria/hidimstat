@@ -3,6 +3,7 @@ Test the clustered_inference module
 """
 
 import numpy as np
+import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -44,6 +45,40 @@ def spatially_relaxed_fdp_power(
     fdp = len(false_positive) / len(selected_ids)
     power = len(true_positive) / len(beta_ids)
     return fdp, power
+
+
+def test_cluster_importance_check_fit():
+
+    n_samples, n_features, n_target = 200, 100, 3
+    support_size = 10
+    signal_noise_ratio = 50.0
+    rho_serial = 0.9
+    rho_data = 0.5
+    seed = 42
+
+    X, y, _, _ = multivariate_simulation(
+        n_samples=n_samples,
+        n_features=n_features,
+        n_targets=n_target,
+        support_size=support_size,
+        signal_noise_ratio=signal_noise_ratio,
+        rho_serial=rho_serial,
+        rho=rho_data,
+        shuffle=False,
+        continuous_support=True,
+        seed=seed,
+    )
+
+    cludl = ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV()),
+        clustering=FeatureAgglomeration(),
+        random_state=seed,
+    )
+
+    with pytest.raises(
+        ValueError, match="The estimator needs to be fit before using them"
+    ):
+        cludl.importance(X, y)
 
 
 def test_cluvi_spatial():
