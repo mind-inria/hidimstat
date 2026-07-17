@@ -2,12 +2,28 @@
 Leave-One-Covariate-In (LOCI) feature importance with different regression models
 ==================================================================================
 
-This example demonstrates how to compare LOCI feature importance [:footcite:t:`Williamson_General_2023`] across different
+This example demonstrates how to compare LOCI feature importance [:footcite:t:`reyerolobo2025principledapproachcomparingvariable`] across different
 predictive models on the same regression dataset. LOCI is model-agnostic and can be
 applied to any predictive model. Here, we use a linear model, a random forest, a neural
 network, and a support vector machine. We compare the models based on their predictive
 performance (R2 score) and the LOCI feature importance they yield.
 """
+
+# %%
+# How LOCI works
+# ---------------
+# As the name tells, the LOCI method measures the importance of a feature by evaluating a model that has been
+# refit with only that feature (or groups of features). The exact measure is the difference in loss $\mathcal{L}$ between
+# an empty model :math:`f(\emptyset)` and the model retrained with only feature :math:`j`, :math:`f(X_j)`, computed on test data:
+#
+# .. math::
+#
+#    LOCI(j) := \mathcal{L}(f(\emptyset), Y) - \mathcal{L}(f(X_j), Y)
+#
+# We can define :math:`\mathcal{L}(f(\emptyset), Y)` as the MSE when using the mean of $Y$ as a prediction for regression and the log-loss
+# when predicting the class frequencies for classification.
+# LOCO is model-agnostic, meaning that it can be applied to any type of model. However, the model has to be refit for each feature
+# to assess its importance which makes this method very computational intensive.
 
 # %%
 # Loading and preparing the data
