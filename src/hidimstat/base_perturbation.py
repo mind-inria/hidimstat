@@ -179,27 +179,11 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The input samples to compute importance scores for.
         y : array-like of shape (n_samples,)
 
-        importances_ : ndarray of shape (n_groups,)
-            The importance scores for each group of covariates.
-            A higher score indicates greater importance of that group.
-
         Returns
         -------
-        importances_ : ndarray of shape (n_features,)
-            Importance scores for each feature.
-
-        Attributes
-        ----------
-        loss_reference_ : float
-            The loss of the model with the original (non-perturbed) data.
-        loss_ : dict
-            Dictionary with indices as keys and arrays of perturbed losses as values.
-            Contains the loss values for each permutation of each group.
         importances_ : ndarray of shape (n_groups,)
-            The calculated importance scores for each group.
-        pvalues_ : ndarray of shape (n_groups,)
-            P-values from one-sample t-test testing if importance scores are
-            significantly greater than 0.
+            The importance scores for each feature group.
+            A larger score indicates greater importance of that group.
 
         Notes
         -----
@@ -207,6 +191,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         when that group is perturbed, compared to the reference loss.
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
+        When no group has been specified, the importance is computed for each single
+        feature.
         """
         self._check_fit()
         self._check_compatibility(X)
@@ -347,7 +333,7 @@ class BasePerturbationCV(BaseVariableImportance):
     ----------
     importance_estimators_ : list of BasePerturbation instances
         List of BasePerturbation instances for each fold.
-    importances_ : ndarray of shape (n_groups, n_splits)
+    importances_ : ndarray of shape (n_groups, n_folds)
         Importance scores for each fold and each group of covariates.
     pvalues_ : ndarray of shape (n_groups,)
         P-values for importance scores computed across folds.
@@ -502,7 +488,7 @@ class BasePerturbationCV(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features, n_groups)
+        importances_ : ndarray of shape (n_groups, n_folds)
             The importance scores for each group of features.
         """
         statistical_test = check_statistical_test(
