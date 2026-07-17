@@ -298,11 +298,11 @@ cfi_importance.__doc__ = _aggregate_docstring(
     """
     Returns
     -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics.
-    pvalues : ndarray of shape (n_features,)
+    selection : ndarray of shape (n_groups,)
+        Boolean array indicating selected feature groups (True = selected)
+    importances : ndarray of shape (n_groups,)
+        Feature group importance scores/test statistics.
+    pvalues : ndarray of shape (n_groups,)
         P-values for importance scores.
     """,
 )

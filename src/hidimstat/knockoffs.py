@@ -108,7 +108,7 @@ class ModelXKnockoff(BaseVariableImportance):
     Attributes
     ----------
     importances_ : ndarray, shape (n_repeats, n_features)
-        Test statistics for each repeat.
+        Knockoff statistics :math:`W_j` for each original feature across repetitions.
     pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
     threshold_fdr_ : float
@@ -225,9 +225,8 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,)
-            Feature importance scores for each feature.
-            Higher absolute values indicate higher importance.
+        importances_ : ndarray of shape (n_repeats, n_features)
+            Knockoff statistics :math:`W_j` for each original feature across repetitions.
 
         Notes
         -----
@@ -269,9 +268,8 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,)
-            Feature importance scores (p-values) for each feature.
-            Lower values indicate higher importance. Values range from 0 to 1.
+        importances_ : ndarray of shape (n_repeats, n_features)
+            Knockoff statistics :math:`W_j` for each original feature across repetitions.
 
         Notes
         -----
@@ -325,7 +323,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        numpy.ndarray
+        selected: numpy.ndarray of shape (n_features,)
             Boolean array indicating selected features (True for selected, False for not selected)
 
         Raises
@@ -449,7 +447,7 @@ class ModelXKnockoff(BaseVariableImportance):
         Returns
         -------
         test_statistic : ndarray, shape (n_repeats, n_features)
-            Knockoff statistics :math:`W_j` for each original feature across repeats. The number
+            Knockoff statistics :math:`W_j` for each original feature across repetitions. The number
             of repeats corresponds to the length of the estimators list.
         """
         test_statistic_list = []
@@ -515,12 +513,12 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Parameters
         ----------
-        test_score : 1D ndarray, shape (n_features, )
+        test_score : 1D ndarray, shape (n_features,)
             Vector of test statistics.
 
         Returns
         -------
-        pvals : 1D ndarray, shape (n_features, )
+        pvals : 1D ndarray, shape (n_features,)
             Vector of empirical p-values.
         """
         pvals = []
@@ -547,7 +545,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Parameters
         ----------
-        test_score : 1D ndarray, shape (n_features, )
+        test_score : 1D ndarray, shape (n_features,)
             Vector of test statistics.
 
         ko_threshold : float
@@ -555,7 +553,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        evals : 1D ndarray, shape (n_features, )
+        evals : 1D ndarray, shape (n_features,)
             Vector of empirical e-values.
         """
         evals = []

@@ -90,12 +90,12 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Attributes
     ----------
-    importances_ : ndarray of shape (n_features)
-        Debiased coefficient estimates.
-    pvalues_ : ndarray of shape (n_features)
-        Two-sided p-values.
-    pvalues_corr_ : ndarray of shape (n_features)
-        Multiple testing corrected p-values.
+    importances_ : ndarray of shape (n_features,)
+        Debiased coefficient estimates for each feature.
+    pvalues_ : ndarray of shape (n_features,)
+        Two-sided p-values for each feature.
+    pvalues_corr_ : ndarray of shape (n_features,)
+        Multiple testing corrected p-values for each feature.
     sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
     precision_diagonal_ : ndarray of shape (n_features)
@@ -317,7 +317,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         )
 
     def _initial_fit(self, estimator, X_, y_):
-        """Run initial fit of a sklearn estimator.
+        """
+        Run initial fit of a sklearn estimator.
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
@@ -365,7 +366,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Returns
         -------
         importances_ : ndarray of shape (n_features,) or (n_features, n_task)
-            Desparsified lasso coefficient estimates.
+            Desparsified lasso coefficient estimates for each feature.
 
         Notes
         -----
@@ -472,6 +473,14 @@ class DesparsifiedLasso(BaseVariableImportance):
     ):
         """
         Overrides the signature to set two_tailed_test=True by default.
+
+        Returns
+        -------
+        selected : ndarray of int of shape (n_features,)
+            Integer array indicating the selected features.
+            1 indicates selected features with positive effects,
+            -1 indicates selected features with negative effects,
+            0 indicates non-selected features.
         """
         return super().fdr_selection(
             fdr=fdr,
