@@ -2,7 +2,7 @@
 
 Continuous Integration (CI)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-After creating your PR, CI tools will run proceed to run all the tests on all
+After creating your PR, CI tools will proceed to run all the tests on all
 configurations supported by hidimstat.
 
 - **Github Actions**:
@@ -24,27 +24,31 @@ actions are taken.
 
 There is a dependence on the different parts of the CI. You need to pass the
 static analysis by the linter (Black) before that the example is running.
-The documentation is built only if the tests are succeeding.
+The documentation is built only if the tests succeeded.
 
 Note that, by default, the documentation is built with all the examples are modified.
 
 For more details, the GitHub Action creates an event on the CircleCI pipeline, which
- trigger the building of the documentation and the deployment of the documentation.
+triggers the documentation build and the deployment of the documentation.
 
 CI is testing all possible configurations supported by hidimstat, so tests may fail
-with configurations different from what you are developing with. See with the
-maintainers to identify the cause of this failure.
+with configurations different from your development setup. See with the
+maintainers to identify the cause of any possible failure.
 
-Modification Continuous Integration (CI)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Test results are posted on a CircleCI workspace that is accessible by clicking on the
+associated Github actions at the bottom of a pull-request's page.
 
-Actually, only the workflow on the main branch is used for running the CI. This is
+
+Modifying Continuous Integration (CI)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Currently, only the workflow on the main branch is used for running the CI. This is
 done for security reasons.
-In consequence, for testing a modification of the actual workflow or a new workflow,
-it requires creating a pull request, which is modified .github/workflow/ci_test.yml for
-allowing the running of this modification. You need to add the label `testCI`
-to automatically trigger the test of the CI. You can also trigger the workflow
-using with the `HTTP POST request <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch>`_.
+In consequence, to test a modification of the actual workflow or a new workflow,
+contributors should create a pull request which contains modifications on .github/workflow/ci_test.yml.
+You need to add the label `testCI` to automatically trigger the test of the CI.
+You can also trigger the workflow using with the
+`HTTP POST request <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch>`_.
 
 Once this modification is merged into main, it should be important to clean ci_test.yml
 for having an empty workflow.

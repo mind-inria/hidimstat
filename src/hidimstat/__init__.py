@@ -6,8 +6,10 @@ from .desparsified_lasso import (
 from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
 from .ensemble_clustered_inference import CluDL, EnCluDL
 from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
+from .leave_one_covariate_in import LOCI, LOCICV, loci_importance
 from .leave_one_covariate_out import LOCO, LOCOCV, loco_importance
 from .permutation_feature_importance import PFI, PFICV, pfi_importance
+from .shapley_additive_global_importance import SAGE
 
 try:
     from ._version import __version__
@@ -18,10 +20,13 @@ __all__ = [
     "CFI",
     "CFICV",
     "D0CRT",
+    "LOCI",
+    "LOCICV",
     "LOCO",
     "LOCOCV",
     "PFI",
     "PFICV",
+    "SAGE",
     "CluDL",
     "DesparsifiedLasso",
     "EnCluDL",
@@ -29,6 +34,7 @@ __all__ = [
     "cfi_importance",
     "d0crt_importance",
     "desparsified_lasso_importance",
+    "loci_importance",
     "loco_importance",
     "model_x_knockoff_importance",
     "pfi_importance",

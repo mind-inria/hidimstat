@@ -2,46 +2,37 @@
 Version 0.3.0
 ==============
 
-HIGHLIGHTS
+.. warning::
+    Major change in the API, that settles for using ``.fit()``, ``.importance()``, ``.fdr_selection()`` and ``.fwer_selection()``
+
+Highlights
 ----------
 
 - New API
 - New User Guide
 - More examples
 
-
-New features
-------------
-
-
 Changes
 -------
 
-New API for variable importance methods with `.fit()`, `.importance()`, `fdr_selection()`, `fwer_selection()`
-- LOC0, CFI, CPI #372
-- Desparsified Lasso: #381
--  CluDL, EnCluDL #533 and #388
-- ModelXKnockoffs #367
-- d0CRT #220
-
-Bug fixes
----------
+- :bdg-warning:`API` LOC0, CFI, CPI (:gh:`372`)
+- :bdg-warning:`API` Desparsified Lasso: (:gh:`381`)
+- :bdg-warning:`API` CluDL, EnCluDL (:gh:`533` and :gh:`388`)
+- :bdg-warning:`API`  ModelXKnockoffs (:gh:`367`)
+- :bdg-warning:`API` d0CRT (:gh:`220`)
 
 
-Maintenance
------------
+Contributors:
+-------------
 
-Contributors
-------------
-
-- https://github.com/bthirion
-- https://github.com/AngelReyero
-- https://github.com/jpaillard
-- https://github.com/lionelkusch
-- https://github.com/tbng
-- https://github.com/Remi-Gau
-- https://github.com/jeromedockes
-- https://github.com/glemaitre
-- https://github.com/antoinebaker
-- https://github.com/man-shu
-- https://github.com/alexblnn
+ - `Alexandre Blain`_
+ - `Antoine Baker`_
+ - `Bertrand Thirion`_
+ - `Binh Nguyen`_
+ - `Guillaume Lemaitre`_
+ - `Himanshu Aggarwal`_
+ - `Joseph Paillard`_
+ - `Jérôme Dockès`_
+ - `Lionel Kusch`_
+ - `Rémi Gau`_
+ - `Ángel Reyero Lobo`_

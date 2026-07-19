@@ -1,22 +1,22 @@
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _generate_group_mask, check_statistical_test
+from hidimstat._utils.utils import check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
-class LOCO(BasePerturbation):
+class LOCI(BasePerturbation):
     """
-    Leave-One-Covariate-Out (LOCO) algorithm
+    Leave-One-Covariate-In (LOCI) algorithm
 
-    This method is presented in :footcite:t:`lei2018distribution` and :footcite:t:`verdinelli2024feature`.
-    The model is re-fitted for each feature/group of features. The importance is
-    then computed as the difference between the loss of the full model and the loss
-    of the model without the feature/group.
+    The model is re-fitted on each single feature/group of features. The importance is
+    then computed as the difference between the loss of an empty model (mean for regression,
+    and majority vote for classification) and the loss of the model on the single feature/group.
+    For more details, see :footcite:t:`ewald_2024`.
 
     Parameters
     ----------
@@ -39,11 +39,6 @@ class LOCO(BasePerturbation):
         The number of jobs to run in parallel. Parallelization is done over the
         variables or groups of variables.
 
-    Notes
-    -----
-    :footcite:t:`Williamson_General_2023` also presented a LOCO method with an
-    additional data splitting strategy.
-
     References
     ----------
     .. footbibliography::
@@ -62,17 +57,16 @@ class LOCO(BasePerturbation):
             estimator=estimator,
             method=method,
             loss=loss,
-            n_permutations=1,
             statistical_test=statistical_test,
             features_groups=features_groups,
             n_jobs=n_jobs,
         )
-        # internal variable
         self._list_estimators = None
+        self._baseline_mean = None
 
     def fit(self, X, y):
         """
-        Fit a model after removing each covariate/group of covariates.
+        Fit a model for a single covariate/group of covariates.
 
         Parameters
         ----------
@@ -103,6 +97,17 @@ class LOCO(BasePerturbation):
                 strict=False,
             )
         )
+        if self.method in ["predict_proba", "decision_function"]:
+            values, counts = np.unique(y, return_counts=True)
+            # Binary classification
+            if len(values) == 2:
+                values, counts = np.unique(y, return_counts=True)
+                self._baseline_mean = values[np.argmax(counts)]
+            # For multiclass classification, we take the marginal probability.
+            else:
+                self._baseline_mean = counts / y.shape[0]
+        elif self.method == "predict":
+            self._baseline_mean = np.mean(y)
         return self
 
     def importance(self, X, y):
@@ -136,17 +141,28 @@ class LOCO(BasePerturbation):
 
         Notes
         -----
-        The importance score for each group is calculated as the mean increase in loss
-        when that group is perturbed, compared to the reference loss.
-        A higher importance score indicates that perturbing that group leads to
-        worse model performance, suggesting those features are more important.
+        The importance score for each group is calculated as the mean decrease in loss
+        when that feature group is included, compared to the null model.
+        A higher importance score indicates that including that feature group leads to
+        better model performance, suggesting those features are more important.
         """
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
 
-        y_pred = getattr(self.estimator, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
+        if self.method in ["predict_proba", "decision_function"]:
+            values, _ = np.unique(y, return_counts=True)
+            # Binary classification
+            if len(values) == 2:
+                y_baseline = np.full_like(y, self._baseline_mean, dtype=int)
+            # Multiclass classification.
+            else:
+                y_baseline = np.full(
+                    (y.shape[0], len(values)), self._baseline_mean
+                )
+        elif self.method == "predict":
+            y_baseline = np.full_like(y, self._baseline_mean, dtype=float)
+        self.loss_reference_ = self.loss(y, y_baseline)
 
         y_pred = self._predict(X)
         test_result = []
@@ -162,7 +178,7 @@ class LOCO(BasePerturbation):
 
         self.importances_ = np.mean(
             [
-                self.loss_[j] - self.loss_reference_
+                self.loss_reference_ - self.loss_[j]
                 for j in range(self.n_features_groups_)
             ],
             axis=1,
@@ -176,44 +192,36 @@ class LOCO(BasePerturbation):
     def _joblib_fit_one_features_group(
         self, estimator, X, y, key_features_group
     ):
-        """Fit the estimator after removing a group of covariates. Used in parallel."""
+        """
+        Fit the estimator on a group of covariates.
+        Used in parallel.
+        """
         if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(
-                columns=self.features_groups_[key_features_group]
-            )
+            X_j = X[self.features_groups_[key_features_group]]
         else:
-            X_minus_j = X[
-                :,
-                _generate_group_mask(
-                    X.shape[1],
-                    self.features_groups_[key_features_group],
-                    selected=False,
-                ),
-            ]
-        estimator.fit(X_minus_j, y)
+            X_j = X[:, self.features_groups_[key_features_group]]
+        estimator.fit(X_j, y)
         return estimator
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, random_state=None
     ):
-        """Predict the target feature after removing a group of covariates.
+        """
+        Predict the target feature for a single group of covariates.
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        X_minus_j = X[
-            :,
-            _generate_group_mask(
-                X.shape[1],
-                self._features_groups_ids[features_group_id],
-                selected=False,
-            ),
-        ]
+        if isinstance(X, pd.DataFrame):
+            X_j = X[self.features_groups_[features_group_id]]
+        else:
+            # Since we don't have access to column names, we use the member _features_groups_ids
+            X_j = X[:, self._features_groups_ids[features_group_id]]
 
-        y_pred_loco = getattr(
+        y_pred_loci = getattr(
             self._list_estimators[features_group_id], self.method
-        )(X_minus_j)
+        )(X_j)
 
-        return [y_pred_loco]
+        return [y_pred_loci]
 
     def _check_fit(self):
         """Check that an estimator has been fitted after removing each group of
@@ -229,7 +237,7 @@ class LOCO(BasePerturbation):
             check_is_fitted(m)
 
 
-def loco_importance(
+def loci_importance(
     estimator,
     X,
     y,
@@ -243,7 +251,7 @@ def loco_importance(
     threshold_max=None,
     n_jobs: int = 1,
 ):
-    method = LOCO(
+    method = LOCI(
         estimator=estimator,
         method=method,
         loss=loss,
@@ -262,12 +270,12 @@ def loco_importance(
 
 
 # use the docstring of the class for the function
-loco_importance.__doc__ = _aggregate_docstring(
+loci_importance.__doc__ = _aggregate_docstring(
     [
-        LOCO.__doc__,
-        LOCO.__init__.__doc__,
-        LOCO.fit_importance.__doc__,
-        LOCO.importance_selection.__doc__,
+        LOCI.__doc__,
+        LOCI.__init__.__doc__,
+        LOCI.fit_importance.__doc__,
+        LOCI.importance_selection.__doc__,
     ],
     """
     Returns
@@ -277,14 +285,14 @@ loco_importance.__doc__ = _aggregate_docstring(
     importances : ndarray of shape (n_groups,)
         Feature group importance scores/test statistics.
     pvalues : ndarray of shape (n_groups,)
-        None because there is no p-value for this method.
+        P-values computed for the marginal importance.
     """,
 )
 
 
-class LOCOCV(BasePerturbationCV):
+class LOCICV(BasePerturbationCV):
     """
-    Leave-One-Covariate-Out (LOCO) algorithm with Cross-Validation.
+    Leave-One-Covariate-IN (LOCI) algorithm with Cross-Validation.
 
     Parameters
     ----------
@@ -294,7 +302,7 @@ class LOCOCV(BasePerturbationCV):
     cv: cross-validation generator
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
-        Statistical test function for computing p-values from importance scores.
+        Statistical test function to compute p-values from importance scores.
     method : str, default="predict"
         The method to use for the prediction. This determines the predictions passed
         to the loss function. Supported methods are "predict", "predict_proba" or
@@ -311,8 +319,8 @@ class LOCOCV(BasePerturbationCV):
 
     Attributes
     ----------
-    importance_estimators_ : list of LOCO instances
-        The LOCO instances fitted on each fold.
+    importance_estimators_ : list of LOCI instances
+        The LOCI instances fitted on each fold.
     importances_ : ndarray of shape (n_groups, n_folds)
         The calculated importance scores for each feature group and each fold.
         Higher values indicate greater importance.
@@ -341,13 +349,13 @@ class LOCOCV(BasePerturbationCV):
         self.features_groups = features_groups
 
     def _fit_single_split(self, estimator, X_train, y_train):
-        """Fit a LOCO instance on a single train/test split."""
-        loco = LOCO(
+        """Fit a LOCI instance on a single train/test split."""
+        loci = LOCI(
             estimator=estimator,
             method=self.method,
             loss=self.loss,
             features_groups=self.features_groups,
             n_jobs=1,  # no parallelization inside the fold
         )
-        loco.fit(X_train, y_train)
-        return loco
+        loci.fit(X_train, y_train)
+        return loci

@@ -78,6 +78,7 @@ for seed, (X, y, beta_true) in enumerate(
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(
             penalty="l1",
+            l1_ratios=(1,),
             solver="liblinear",
             random_state=seed,
         ),

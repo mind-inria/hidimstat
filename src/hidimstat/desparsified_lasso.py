@@ -19,7 +19,11 @@ from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
-from hidimstat._utils.utils import check_random_state, seed_estimator
+from hidimstat._utils.utils import (
+    _generate_group_mask,
+    check_random_state,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_cb
 
@@ -86,12 +90,12 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Attributes
     ----------
-    importances_ : ndarray of shape (n_features)
-        Debiased coefficient estimates.
-    pvalues_ : ndarray of shape (n_features)
-        Two-sided p-values.
-    pvalues_corr_ : ndarray of shape (n_features)
-        Multiple testing corrected p-values.
+    importances_ : ndarray of shape (n_features,)
+        Debiased coefficient estimates for each feature.
+    pvalues_ : ndarray of shape (n_features,)
+        Two-sided p-values for each feature.
+    pvalues_corr_ : ndarray of shape (n_features,)
+        Multiple testing corrected p-values for each feature.
     sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
     precision_diagonal_ : ndarray of shape (n_features)
@@ -313,7 +317,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         )
 
     def _initial_fit(self, estimator, X_, y_):
-        """Run initial fit of a sklearn estimator.
+        """
+        Run initial fit of a sklearn estimator.
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
@@ -361,7 +366,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Returns
         -------
         importances_ : ndarray of shape (n_features,) or (n_features, n_task)
-            Desparsified lasso coefficient estimates.
+            Desparsified lasso coefficient estimates for each feature.
 
         Notes
         -----
@@ -468,6 +473,14 @@ class DesparsifiedLasso(BaseVariableImportance):
     ):
         """
         Overrides the signature to set two_tailed_test=True by default.
+
+        Returns
+        -------
+        selected : ndarray of int of shape (n_features,)
+            Integer array indicating the selected features.
+            1 indicates selected features with positive effects,
+            -1 indicates selected features with negative effects,
+            0 indicates non-selected features.
         """
         return super().fdr_selection(
             fdr=fdr,
@@ -512,13 +525,14 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
-    X_minus_i = np.delete(X, id_column, axis=1)
-    X_i = np.copy(X[:, id_column])
+    mask = _generate_group_mask(X.shape[1], id_column, selected=False)
+    X_minus_i = X[:, mask]
+    X_i = X[:, id_column]
 
     clf.set_params(
-        precompute=np.delete(
-            np.delete(gram, id_column, axis=0), id_column, axis=1
-        )
+        precompute=gram[
+            :, _generate_group_mask(gram.shape[0], id_column, selected=False)
+        ][_generate_group_mask(gram.shape[1], id_column, selected=False)]
     )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
