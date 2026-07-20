@@ -9,12 +9,6 @@ from hidimstat.visualization import PDP
 matplotlib.use("Agg")
 
 
-parameters_pdp = [("pdp", 200, 20, 3, 0.3, 92, 1.0, 10.0, 0.0)]
-
-pdp_ids = [p[0] for p in parameters_pdp]
-pdp_values = [p[1:] for p in parameters_pdp]
-
-
 @pytest.fixture(scope="module")
 def pdp_test_data():
     """Fixture to generate test data and a fitted LinearRegression model for PDP tests."""

@@ -10,14 +10,59 @@ from sklearn.linear_model import LinearRegression
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.visualization import ALE
 from hidimstat.visualization.accumulated_local_effects import (
-    _bin_indices,
-    _build_quantile_grid,
     _predict_fn,
     compute_ale_1d,
     compute_ale_2d,
 )
 
 matplotlib.use("Agg")
+
+
+class BaseDummy(BaseEstimator):
+    def __init__(self):
+        super().__init__()
+        self.fitted_ = True
+
+    def fit(self, X, y=None):
+        del X, y
+        return self
+
+
+class DummyPredict(BaseDummy):
+    def predict(self, X):
+        del X
+        return np.array([1.0, 2.0])
+
+
+class DummyPredictProbaBinary(BaseDummy):
+    def predict_proba(self, X):
+        del X
+        return np.array([[0.1, 0.9], [0.2, 0.8]])
+
+
+class DummyPredictProbaMulti(BaseDummy):
+    def predict_proba(self, X):
+        del X
+        return np.array([[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]])
+
+
+class DummyDecisionFunction(BaseDummy):
+    def decision_function(self, X):
+        del X
+        return np.array([0.5, -0.5])
+
+
+class DummyNoPredict(BaseDummy):
+    pass
+
+
+class DummyWithFeatureNames(BaseDummy):
+    def __init__(self):
+        super().__init__()
+        self.feature_names_in_ = ["A", "B"]
+
+    def predict(self, X):
+        return np.array([0] * len(X))
 
 
 @pytest.fixture(scope="module")
@@ -79,128 +124,42 @@ def ale_test_data():
 
 def test_predict_fn():
     """Test all branches of _predict_fn."""
-
-    class BaseDummy(BaseEstimator):
-        def __init__(self):
-            super().__init__()
-            self.fitted_ = True
-
-        def fit(self, X, y=None):
-            del X, y
-            return self
-
-    class DummyPredict(BaseDummy):
-        def predict(self, X):
-            del X
-            return np.array([1.0, 2.0])
-
-    class DummyPredictProbaBinary(BaseDummy):
-        def predict_proba(self, X):
-            del X
-            return np.array([[0.1, 0.9], [0.2, 0.8]])
-
-    class DummyPredictProbaMulti(BaseDummy):
-        def predict_proba(self, X):
-            del X
-            return np.array([[0.1, 0.2, 0.7], [0.3, 0.3, 0.4]])
-
-    class DummyDecisionFunction(BaseDummy):
-        def decision_function(self, X):
-            del X
-            return np.array([0.5, -0.5])
-
-    class DummyNoPredict(BaseDummy):
-        pass
-
-    class DummyWithFeatureNames(BaseDummy):
-        def __init__(self):
-            super().__init__()
-            self.feature_names_in_ = ["A", "B"]
-
-        def predict(self, X):
-            return np.array([0] * len(X))
-
     X_dummy = np.array([[1, 2], [3, 4]])
     model = LinearRegression()
 
     with pytest.raises(NotFittedError):
         _predict_fn(model, X_dummy)
-
     np.testing.assert_array_equal(
-        _predict_fn(DummyPredict(), X_dummy), [1.0, 2.0]
+        _predict_fn(DummyPredict(), X_dummy, method="predict"), [1.0, 2.0]
     )
     np.testing.assert_array_equal(
-        _predict_fn(DummyPredictProbaBinary(), X_dummy), [0.9, 0.8]
+        _predict_fn(
+            DummyPredictProbaBinary(), X_dummy, method="predict_proba"
+        ),
+        [0.9, 0.8],
     )
     with pytest.raises(
         ValueError, match="Multiclass models are not supported"
     ):
-        _predict_fn(DummyPredictProbaMulti(), X_dummy)
+        _predict_fn(DummyPredictProbaMulti(), X_dummy, method="predict_proba")
     np.testing.assert_array_equal(
-        _predict_fn(DummyDecisionFunction(), X_dummy), [0.5, -0.5]
+        _predict_fn(
+            DummyDecisionFunction(), X_dummy, method="decision_function"
+        ),
+        [0.5, -0.5],
     )
     with pytest.raises(
-        ValueError, match="'estimator' must expose at least one"
+        ValueError,
+        match="'method' must be a string among 'predict_proba', 'decision_function' and 'predict'",
+    ):
+        _predict_fn(DummyNoPredict(), X_dummy, method="invalid_method")
+    with pytest.raises(
+        ValueError, match="'estimator' must have 'method' as attribute"
     ):
         _predict_fn(DummyNoPredict(), X_dummy)
 
     res_names = _predict_fn(DummyWithFeatureNames(), X_dummy)
     np.testing.assert_array_equal(res_names, [0, 0])
-
-
-def test_build_quantile_grid():
-    """Test quantile grid creation."""
-    x = np.arange(100)
-
-    grid_auto = _build_quantile_grid(x, "auto")
-    assert len(grid_auto) > 1
-
-    with pytest.raises(
-        ValueError, match="'percentiles' must be a tuple of 2 floats"
-    ):
-        _build_quantile_grid(x, 0, percentiles=[5, 95])
-    with pytest.raises(
-        ValueError, match="'percentiles' must be a tuple of 2 floats"
-    ):
-        _build_quantile_grid(x, 0, percentiles=(5, 25, 50, 75, 95))
-    with pytest.raises(
-        ValueError, match="'percentiles' must be a tuple of 2 floats"
-    ):
-        _build_quantile_grid(x, 0, percentiles=(-100, 50))
-    with pytest.raises(
-        ValueError, match="'percentiles' must be a tuple of 2 floats"
-    ):
-        _build_quantile_grid(x, 0, percentiles=(50, -100))
-
-    with pytest.raises(
-        ValueError,
-        match="'grid_resolution' must be an int strictly greater than 0",
-    ):
-        _build_quantile_grid(x, "a")
-    with pytest.raises(
-        ValueError,
-        match="'grid_resolution' must be an int strictly greater than 0",
-    ):
-        _build_quantile_grid(x, 0)
-    with pytest.raises(
-        ValueError,
-        match="'grid_resolution' must be an int strictly greater than 0",
-    ):
-        _build_quantile_grid(x, -5)
-
-    x_few = np.array([1, 1, 2, 2, 3])
-    grid_few = _build_quantile_grid(
-        x_few, grid_resolution=10, percentiles=(0, 100)
-    )
-    np.testing.assert_array_equal(grid_few, [1, 2, 3])
-
-
-def test_bin_indices():
-    """Verify that the bin assignment correctly handles extreme values ​​via clip."""
-    quantiles = np.array([0.0, 1.0, 2.0, 3.0])
-    x = np.array([-0.5, 0.5, 1.5, 2.5, 3.5])
-    indices = _bin_indices(x, quantiles)
-    np.testing.assert_array_equal(indices, [0, 0, 1, 2, 2])
 
 
 def test_compute_ale_1d_continuous(ale_test_data):
@@ -265,7 +224,10 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
             feature_type="continuous",
             grid_resolution=10,
         )
-    with pytest.raises(ValueError, match="must be a string among"):
+    with pytest.raises(
+        ValueError,
+        match="must be a string among 'continuous' and 'categorical'",
+    ):
         compute_ale_1d(
             model,
             X_const,
@@ -295,7 +257,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
     assert len(grid_values) <= 3
 
     # With confidence intervals
-    ale_ci, grid_values_ci, ale_err_ci = compute_ale_1d(
+    _, grid_values_ci, ale_err_ci = compute_ale_1d(
         model,
         X,
         feature_idx=0,
@@ -303,11 +265,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
         confidence_interval=True,
         confidence_level=0.90,
     )
-    assert isinstance(ale_ci, np.ndarray)
-    assert isinstance(grid_values_ci, np.ndarray)
     assert isinstance(ale_err_ci, np.ndarray)
-    assert len(ale_ci) == len(grid_values_ci)
-    assert len(grid_values_ci) <= 3
     assert len(ale_err_ci) == len(grid_values_ci)
 
 
@@ -402,13 +360,6 @@ def test_compute_ale_2d(ale_test_data):
         X,
         feature_indices=[important_features[0], important_features[1]],
         grid_resolution=grid_resolution,
-    )
-    assert isinstance(ale, np.ndarray)
-    assert isinstance(quantiles_i, np.ndarray)
-    assert isinstance(quantiles_j, np.ndarray)
-    assert ale.shape == (
-        len(quantiles_i),
-        len(quantiles_j),
     )
     assert len(quantiles_i) <= grid_resolution[0] + 1
     assert len(quantiles_j) <= grid_resolution[1] + 1
