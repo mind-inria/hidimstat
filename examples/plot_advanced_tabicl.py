@@ -24,9 +24,7 @@ from tabicl import TabICLRegressor
 
 dataset = fetch_california_housing()
 X, y, feat_names = dataset.data, dataset.target, dataset.feature_names
-X, y = resample(
-    X, y, replace=False, n_samples=1000, stratify=y, random_state=0
-)
+X, y = resample(X, y, replace=False, n_samples=500, stratify=y, random_state=0)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=0
 )
@@ -56,7 +54,6 @@ cfi = CFI(
     method="predict",
     n_permutations=5,
     loss=mean_squared_error,
-    n_jobs=-1,
 )
 cfi.fit(X_train, y_train)
 importance = cfi.importance(X_test, y_test)
