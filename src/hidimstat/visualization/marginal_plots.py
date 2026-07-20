@@ -7,13 +7,10 @@ import seaborn as sns
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
+from hidimstat._utils.grid import _bin_indices, _build_quantile_grid_1d
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
-from .accumulated_local_effects import (
-    _bin_indices,
-    _build_quantile_grid,
-    _predict_fn,
-)
+from .accumulated_local_effects import _predict_fn
 
 
 def compute_mplot_1d_continuous(
@@ -28,7 +25,7 @@ def compute_mplot_1d_continuous(
     X = np.asarray(X)
     x = X[:, feature_idx]
 
-    quantiles = _build_quantile_grid(
+    quantiles = _build_quantile_grid_1d(
         x, grid_resolution=grid_resolution, percentiles=percentiles
     )
     n_bins = len(quantiles) - 1
@@ -165,10 +162,10 @@ def compute_mplot_2d(
     idx_i, idx_j = feature_indices
     x_i, x_j = X[:, idx_i], X[:, idx_j]
 
-    quantiles_i = _build_quantile_grid(
+    quantiles_i = _build_quantile_grid_1d(
         x_i, grid_resolution=grid_resolution, percentiles=percentiles
     )
-    quantiles_j = _build_quantile_grid(
+    quantiles_j = _build_quantile_grid_1d(
         x_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
 
