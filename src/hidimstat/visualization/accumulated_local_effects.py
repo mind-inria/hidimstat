@@ -199,9 +199,9 @@ def compute_ale_1d(
             X_low[:, feature_idx] = grid_values[bin_idx]
             X_high[:, feature_idx] = grid_values[bin_idx + 1]
 
-            local_effects = _predict_fn(estimator, X_high, method) - _predict_fn(
-                estimator, X_low, method
-            )  # shape (n_samples,)
+            local_effects = _predict_fn(
+                estimator, X_high, method
+            ) - _predict_fn(estimator, X_low, method)  # shape (n_samples,)
 
             combined_idx = bin_idx
             combined_effects = local_effects
