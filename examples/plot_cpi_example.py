@@ -1,5 +1,5 @@
 """
-Visulization with CPI
+Visualization with CPI
 =====================
 
 Some tests with the California Housing dataset
