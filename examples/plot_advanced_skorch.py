@@ -64,9 +64,12 @@ mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
 
 # Downsample to speed up the example
-n_samples = 2000
+n_samples = 500
 mask_4_7 = (y_mnist == "4") | (y_mnist == "7")
-X_4_7, y_4_7 = X_mnist[mask_4_7], y_mnist[mask_4_7].astype(int)
+X_4_7, y_4_7 = (
+    X_mnist[mask_4_7].astype(np.float32),
+    y_mnist[mask_4_7].astype(int),
+)
 X_4_7, y_4_7 = resample(
     X_4_7,
     y_4_7,
@@ -108,7 +111,7 @@ net = NeuralNetClassifier(
     iterator_train__shuffle=True,
     device="cuda" if torch.cuda.is_available() else "cpu",
 )
-model = make_pipeline(StandardScaler(), net)
+
 # Current hotfix of API compatibility issue (Skorch doesn't automatically set this during fitting).
 # This needs to be set, otherwise HiDimStat throws an error.
 net.n_features_in_ = 28 * 28
@@ -123,8 +126,10 @@ net.n_features_in_ = 28 * 28
 # importance. We also plot the clusters formed by the FeatureAgglomeration
 # to visualize the "superpixels" formed this way.
 
+from joblib import parallel_config
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
@@ -161,29 +166,34 @@ features_groups = dict(zip(unique_ids, positions, strict=False))
 # We now instantiate the CFI and fit it on the two tasks.
 
 # Careful when using Skorch, having n_jobs > 1 might create joblib and pickle issues.
-cfi = CFI(
-    estimator=model,
-    features_groups=features_groups,
-    n_permutations=20,
-    method="predict_proba",
-    loss=log_loss,
-    random_state=0,
-)
-# PyTorch expects float input, and long type target.
-# Since it's a binary classification, we convert the classes into 4->0 and 7->1 for Skorch.
-y_target = y_4_7.astype(np.int64).copy()
-y_target[y_target == 4] = 0
-y_target[y_target == 7] = 1
+# To avoid this, we can do the following:
+with parallel_config(backend="threading"):
+    cfi = CFI(
+        estimator=net,
+        features_groups=features_groups,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=5,
+        method="predict_proba",
+        loss=log_loss,
+        random_state=0,
+        n_jobs=-1,
+    )
+    # PyTorch expects float input, and long type target.
+    # Since it's a binary classification, we convert the classes into 4->0 and 7->1 for Skorch.
+    y_target = y_4_7.astype(np.int64).copy()
+    y_target[y_target == 4] = 0
+    y_target[y_target == 7] = 1
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X_4_7, y_target, test_size=0.3, random_state=0, stratify=y_target
-)
-model.fit(X_train, y_train)
-print(f"Model accuracy on the test set: {model.score(X_test, y_test):.2f}")
-importances_4_7 = cfi.fit_importance(X_test, y_test)
-selected_4_7 = cfi.fwer_selection(
-    fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
-)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_4_7, y_target, test_size=0.3, random_state=0, stratify=y_target
+    )
+    net.fit(X_train, y_train)
+    print(f"Model accuracy on the test set: {net.score(X_test, y_test):.2f}")
+    cfi.fit(X_train, y_train)
+    importances_4_7 = cfi.importance(X_test, y_test)
+    selected_4_7 = cfi.fwer_selection(
+        fwer=target_fwer, n_tests=n_clusters, two_tailed_test=True
+    )
 
 # %%
 # Visualizing the results
