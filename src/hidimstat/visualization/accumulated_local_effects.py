@@ -7,10 +7,15 @@ import seaborn as sns
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
+from hidimstat._utils.grid import (
+    _bin_indices,
+    _build_quantile_grid_1d,
+    _build_quantile_grid_2d,
+)
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
 
-def _predict_fn(estimator, X):
+def _predict_fn(estimator, X, method="predict"):
     """Return a scalar-output prediction callable for *estimator*.
 
     For classifiers we use `predict_proba` (returns the probability of the
@@ -23,6 +28,9 @@ def _predict_fn(estimator, X):
         The estimator used to compute the predictions. Must be already fitted.
     X : array-like of shape (n_samples, n_features)
         The input data for which to compute predictions.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
 
     Returns
     -------
@@ -33,22 +41,18 @@ def _predict_fn(estimator, X):
 
     feature_names = getattr(estimator, "feature_names_in_", None)
 
-    if hasattr(estimator, "predict_proba"):
-        prediction_function = "predict_proba"
-    elif hasattr(estimator, "decision_function"):
-        prediction_function = "decision_function"
-    elif hasattr(estimator, "predict"):
-        prediction_function = "predict"
-    else:
+    if method not in ["predict_proba", "decision_function", "predict"]:
         raise ValueError(
-            "'estimator' must expose at least one of predict_proba, decision_function, or predict."
+            "'method' must be a string among 'predict_proba', 'decision_function' and 'predict'"
         )
+    if not hasattr(estimator, method):
+        raise ValueError("'estimator' must have 'method' as attribute.")
 
     if feature_names is not None:
         # If X is a DataFrame it just returns X
         X = pd.DataFrame(X, columns=feature_names)
 
-    pred = getattr(estimator, prediction_function)(X)
+    pred = getattr(estimator, method)(X)
 
     if (hasattr(estimator, "classes_") and len(estimator.classes_) > 2) or (
         pred.ndim == 2 and pred.shape[1] > 2
@@ -56,105 +60,10 @@ def _predict_fn(estimator, X):
         raise ValueError("Multiclass models are not supported.")
 
     # Binary: keep only the positive-class column
-    if (
-        prediction_function == "predict_proba"
-        and pred.ndim == 2
-        and pred.shape[1] == 2
-    ):
+    if method == "predict_proba" and pred.ndim == 2 and pred.shape[1] == 2:
         return pred[:, 1]
 
     return pred.ravel()
-
-
-def _build_quantile_grid(x, grid_resolution, percentiles=(5, 95)):
-    """Build a 1D quantile grid for a single continuous feature.
-
-    Parameters
-    ----------
-    x : ndarray of shape (n_samples,)
-        Values for one feature.
-    grid_resolution : int or "auto", default="auto"
-        Number of bins in the grid. Set by default to "auto".
-
-        - If "auto", the number of bins is determined automatically
-          to minimize the histogram error.
-        - Note that the final number of bins in the returned grid may be
-          strictly less than `grid_resolution` (or the auto-calculated value)
-          if the data contains many duplicate values or fewer unique points
-          than requested.
-
-    percentiles : tuple of float, default=(5, 95)
-        The lower and upper percentile used to create the extreme values for the grid.
-        Must be in [0, 100].
-
-
-    Returns
-    -------
-    quantiles : ndarray of shape (n_quantiles,)
-        Unique, sorted quantile bins edges.
-    """
-    if (
-        not isinstance(percentiles, tuple)
-        or len(percentiles) != 2
-        or not (0 <= percentiles[0] <= percentiles[1] <= 100)
-    ):
-        raise ValueError(
-            "'percentiles' must be a tuple of 2 floats "
-            "in [0, 100] in increasing order"
-        )
-
-    low_bnd = np.percentile(x, percentiles[0])
-    high_bnd = np.percentile(x, percentiles[1])
-
-    valid_mask = (x >= low_bnd) & (x <= high_bnd)
-    x_filtered = x[valid_mask]
-
-    if grid_resolution == "auto":
-        grid_resolution = (
-            np.histogram_bin_edges(x_filtered, bins="auto").size - 1
-        )
-
-    if (
-        not isinstance(grid_resolution, (int, np.integer))
-        or grid_resolution <= 0
-    ):
-        raise ValueError(
-            "'grid_resolution' must be an int strictly greater than 0 or 'auto'."
-        )
-
-    # Use unique values when there are fewer than grid_resolution unique points
-    uniques = np.unique(x_filtered)
-    if uniques.shape[0] <= grid_resolution:
-        return uniques
-
-    probs = np.linspace(0.0, 1.0, grid_resolution + 1)
-    return np.unique(
-        np.percentile(x_filtered, probs * 100, method="inverted_cdf")
-    )
-
-
-def _bin_indices(x, quantiles):
-    """Assign each sample to a bin defined by *quantiles*.
-
-    Samples are placed in bin `k` when `quantiles[k] <= x < quantiles[k+1]`.
-    The last bin is closed on the right. Indices are clipped so that every
-    sample falls within `[0, len(quantiles) - 2]`.
-
-    Parameters
-    ----------
-    x : ndarray of shape (n_samples,)
-        The 1D array containing the features values of the samples to bin.
-    quantiles : ndarray of shape (n_quantiles,)
-        The 1D array of ordered bin edges.
-
-    Returns
-    -------
-    indices : ndarray of shape (n_samples,), dtype int
-    """
-    # digitize returns 0 for x < quantiles[0] and len(quantiles) for x > quantiles[-1]
-    idx = np.digitize(x, quantiles) - 1
-    # samples equal to the last edge fall in the last bin
-    return np.clip(idx, 0, len(quantiles) - 2)
 
 
 def compute_ale_1d(
@@ -162,6 +71,7 @@ def compute_ale_1d(
     X,
     feature_idx,
     feature_type,
+    method="predict",
     grid_resolution="auto",
     confidence_interval=True,
     confidence_level=0.95,
@@ -187,6 +97,9 @@ def compute_ale_1d(
         Column index of the feature of interest.
     feature_type : string among "continuous", or "categorical"
         Type of the numeric feature.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
     grid_resolution : int or "auto", default="auto"
         Number of bins used to build the quantile grid with continuous features.
 
@@ -221,7 +134,7 @@ def compute_ale_1d(
 
     if feature_type == "continuous":
         # Grid defined by quantiles
-        grid_values = _build_quantile_grid(
+        grid_values = _build_quantile_grid_1d(
             x, grid_resolution=grid_resolution, percentiles=percentiles
         )
         n_bins = len(grid_values) - 1
@@ -239,8 +152,8 @@ def compute_ale_1d(
         X_low[:, feature_idx] = grid_values[bin_idx]
         X_high[:, feature_idx] = grid_values[bin_idx + 1]
 
-        local_effects = _predict_fn(estimator, X_high) - _predict_fn(
-            estimator, X_low
+        local_effects = _predict_fn(estimator, X_high, method) - _predict_fn(
+            estimator, X_low, method
         )  # shape (n_samples,)
 
         combined_idx = bin_idx
@@ -255,7 +168,7 @@ def compute_ale_1d(
         ):
             raise ValueError(
                 "'percentiles' must be a tuple of 2 floats "
-                "in [0, 1] in increasing order"
+                "in [0, 100] in increasing order"
             )
 
         # Grid defined by unique values
@@ -285,11 +198,11 @@ def compute_ale_1d(
         X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
 
         local_effects_low = _predict_fn(
-            estimator, X_filtered[mask_low]
-        ) - _predict_fn(estimator, X_low[mask_low])
+            estimator, X_filtered[mask_low], method
+        ) - _predict_fn(estimator, X_low[mask_low], method)
         local_effects_high = _predict_fn(
-            estimator, X_high[mask_high]
-        ) - _predict_fn(estimator, X_filtered[mask_high])
+            estimator, X_high[mask_high], method
+        ) - _predict_fn(estimator, X_filtered[mask_high], method)
 
         # Average local effects within each bin
         combined_idx = np.concatenate(
@@ -352,6 +265,7 @@ def compute_ale_2d(
     estimator,
     X,
     feature_indices,
+    method="predict",
     grid_resolution="auto",
     percentiles=(5, 95),
 ):
@@ -370,6 +284,9 @@ def compute_ale_2d(
         to gather local samples in each bin.
     feature_indices : tuple or list of two ints
         Column indices `[i, j]` of the two features of interest.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
     grid_resolution : int, tuple of int, or "auto", default="auto"
         Number of bins per feature axis. If a tuple, specifies the number of bins
         separately per feature axis.
@@ -402,65 +319,12 @@ def compute_ale_2d(
             "feature_indices must contain exactly two feature indices."
         )
 
-    if (
-        not isinstance(percentiles, tuple)
-        or len(percentiles) != 2
-        or not (0 <= percentiles[0] <= percentiles[1] <= 100)
-    ):
-        raise ValueError(
-            "'percentiles' must be a tuple of 2 floats "
-            "in [0, 1] in increasing order"
-        )
-
     X = np.asarray(X)
     idx_i, idx_j = feature_indices
     x_i, x_j = X[:, idx_i], X[:, idx_j]
 
-    if grid_resolution == "auto":
-        low_i, high_i = (
-            np.percentile(x_i, percentiles[0]),
-            np.percentile(x_i, percentiles[1]),
-        )
-        low_j, high_j = (
-            np.percentile(x_j, percentiles[0]),
-            np.percentile(x_j, percentiles[1]),
-        )
-        res_i_raw = (
-            np.histogram_bin_edges(
-                x_i[(x_i >= low_i) & (x_i <= high_i)], bins="auto"
-            ).size
-            - 1
-        )
-        res_j_raw = (
-            np.histogram_bin_edges(
-                x_j[(x_j >= low_j) & (x_j <= high_j)], bins="auto"
-            ).size
-            - 1
-        )
-        res_i = int(np.floor(np.sqrt(res_i_raw)))
-        res_j = int(np.floor(np.sqrt(res_j_raw)))
-    elif isinstance(grid_resolution, tuple):
-        if len(grid_resolution) != 2 or not all(
-            isinstance(r, (int, np.integer)) and r > 0 for r in grid_resolution
-        ):
-            raise ValueError(
-                "If 'grid_resolution' is a tuple, it must contain exactly 2 strictly positive integers."
-            )
-        res_i, res_j = grid_resolution
-    elif (
-        isinstance(grid_resolution, (int, np.integer)) and grid_resolution > 0
-    ):
-        res_i = res_j = grid_resolution
-    else:
-        raise ValueError(
-            "'grid_resolution' must be 'auto', an int strictly greater than 0, or a tuple of 2 int strictly greater than 0."
-        )
-
-    quantiles_i = _build_quantile_grid(
-        x_i, grid_resolution=res_i, percentiles=percentiles
-    )
-    quantiles_j = _build_quantile_grid(
-        x_j, grid_resolution=res_j, percentiles=percentiles
+    quantiles_i, quantiles_j = _build_quantile_grid_2d(
+        x_i, x_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
 
     n_bins_i = len(quantiles_i) - 1
@@ -487,7 +351,9 @@ def compute_ale_2d(
         for offset_j in range(2):
             X_copy[:, idx_i] = quantiles_i[bin_idx_i + offset_i]
             X_copy[:, idx_j] = quantiles_j[bin_idx_j + offset_j]
-            predictions[(offset_i, offset_j)] = _predict_fn(estimator, X_copy)
+            predictions[(offset_i, offset_j)] = _predict_fn(
+                estimator, X_copy, method
+            )
 
     # Second-order local effects
     local_effects = (predictions[(1, 1)] - predictions[(1, 0)]) - (
@@ -653,6 +519,7 @@ class ALE:
         X,
         features,
         feature_type="auto",
+        method="predict",
         grid_resolution="auto",
         confidence_interval=True,
         confidence_level=0.95,
@@ -675,6 +542,9 @@ class ALE:
             - non-numeric feature : categorical
             - numeric feature : categorical if the feature has less than 10 unique
               values, and continuous otherwise
+        method : str, default="predict"
+            The method to use for the prediction. Supported methods are "predict",
+            "predict_proba" or "decision_function".
         grid_resolution : int, tuple of int, or "auto", default="auto"
             Number of bins per feature axis. If a tuple, specifies the number of bins
             separately per feature axis for 2D ALE.
@@ -771,7 +641,7 @@ class ALE:
         else:
             feature_names = [f"X{idx}" for idx in feature_ids]
 
-        mean_prediction = _predict_fn(self.estimator, X).mean()
+        mean_prediction = _predict_fn(self.estimator, X, method).mean()
 
         return plotting_func(
             result,
@@ -949,7 +819,7 @@ class ALE:
             fontsize=9,
             colors="black",
             fmt=lambda x_val: (
-                f"{level_lines[list(cs.levels).index(x_val)]:.1f}"
+                f"{1 - level_lines[list(cs.levels).index(x_val)]:.1f}"
             ),
         )
 
