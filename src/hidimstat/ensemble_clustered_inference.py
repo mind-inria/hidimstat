@@ -4,7 +4,6 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
