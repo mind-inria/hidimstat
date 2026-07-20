@@ -7,13 +7,10 @@ from scipy import stats
 from sklearn.base import clone
 from sklearn.ensemble import HistGradientBoostingRegressor
 
+from hidimstat._utils.grid import _bin_indices, _build_quantile_grid_1d
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
-from .accumulated_local_effects import (
-    _bin_indices,
-    _build_quantile_grid,
-    _predict_fn,
-)
+from .accumulated_local_effects import _predict_fn
 
 
 def compute_cpi_plot_1d_continuous(
@@ -24,6 +21,7 @@ def compute_cpi_plot_1d_continuous(
     confidence_interval=True,
     confidence_level=0.95,
     percentiles=(5, 95),
+    version=0,
 ):
     """Compute the 1D CPI-plot for a single continuous feature using binning.
 
@@ -67,7 +65,7 @@ def compute_cpi_plot_1d_continuous(
     x_j = X[:, feature_idx]
 
     # Grid defined by quantiles
-    quantiles = _build_quantile_grid(
+    quantiles = _build_quantile_grid_1d(
         x_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
     n_bins = len(quantiles) - 1
@@ -95,32 +93,33 @@ def compute_cpi_plot_1d_continuous(
     predictions_perturbed = _predict_fn(estimator, X_perturbed)
     individual_deltas = predictions_real - predictions_perturbed
 
-    """
-    # ------------ TEST ---------------
-    N = len(X)
-    bin_idx_eta = _bin_indices(eta_predictions, quantiles)
+    if version == 0:
+        # Average within each bin
+        bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
+        bin_sums = np.bincount(
+            bin_idx, weights=individual_deltas, minlength=n_bins
+        )
 
-    diff_mask = bin_idx != bin_idx_eta
-    M = np.zeros((np.sum(diff_mask), n_bins), dtype=float)
-    row_indices = np.arange(len(M))
+        cpi_plot = np.zeros(n_bins, dtype=float)
+        non_zero = bin_counts > 0
+        cpi_plot[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+        cpi_plot -= np.sum(cpi_plot * bin_counts) / bin_counts.sum()
 
-    M[row_indices, bin_idx[diff_mask]] = 1.0
-    M[row_indices, bin_idx_eta[diff_mask]] = -1.0
+    elif version == 1:
+        # ------------ TEST ---------------
+        N = len(X)
+        bin_idx_eta = _bin_indices(eta_predictions, quantiles)
 
-    cpi_plot, _, _, _ = np.linalg.lstsq(M, individual_deltas[diff_mask])
-    bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-    cpi_plot -= np.sum(cpi_plot * bin_counts) / bin_counts.sum()
-    """
+        diff_mask = bin_idx != bin_idx_eta
+        M = np.zeros((np.sum(diff_mask), n_bins), dtype=float)
+        row_indices = np.arange(len(M))
 
-    # Average within each bin
-    bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-    bin_sums = np.bincount(
-        bin_idx, weights=individual_deltas, minlength=n_bins
-    )
+        M[row_indices, bin_idx[diff_mask]] = 1.0
+        M[row_indices, bin_idx_eta[diff_mask]] = -1.0
 
-    cpi_plot = np.zeros(n_bins, dtype=float)
-    non_zero = bin_counts > 0
-    cpi_plot[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+        cpi_plot, _, _, _ = np.linalg.lstsq(M, individual_deltas[diff_mask])
+        bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
+        cpi_plot -= np.sum(cpi_plot * bin_counts) / bin_counts.sum()
 
     # Compute confidence interval
     cpi_err = None
@@ -288,6 +287,7 @@ class CPIPlot:
         confidence_interval=True,
         confidence_level=0.95,
         percentiles=(5, 95),
+        version=0,
         **kwargs,
     ):
         """Compute and display the CPI plot for a single feature.
@@ -346,6 +346,7 @@ class CPIPlot:
                 confidence_interval=confidence_interval,
                 confidence_level=confidence_level,
                 percentiles=percentiles,
+                version=version,
             )
             result = {
                 "cpi_plot": cpi_plot,
