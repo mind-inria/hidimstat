@@ -24,15 +24,15 @@ def _subsampling(n_samples, train_size, groups=None, random_state=None):
         Indices of selected samples for training.
     """
     index_row = np.arange(n_samples) if groups is None else np.unique(groups)
+    replacement = False
     if train_size == 1:
-        return index_row
-    else:
-        train_index = resample(
-            index_row,
-            n_samples=int(len(index_row) * train_size),
-            replace=False,
-            random_state=np.random.RandomState(random_state.bit_generator),
-        )
-        if groups is not None:
-            train_index = np.arange(n_samples)[np.isin(groups, train_index)]
-        return train_index
+        replacement = True
+    train_index = resample(
+        index_row,
+        n_samples=int(len(index_row) * train_size),
+        replace=replacement,
+        random_state=np.random.RandomState(random_state.bit_generator),
+    )
+    if groups is not None:
+        train_index = np.arange(n_samples)[np.isin(groups, train_index)]
+    return train_index

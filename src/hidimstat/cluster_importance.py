@@ -5,7 +5,6 @@ from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.samplers.utils import _subsampling
 
 
 class ClusterImportance(BaseVariableImportance):
@@ -74,7 +73,6 @@ class ClusterImportance(BaseVariableImportance):
 
         self.vim_ = None
         self.clustering_ = None
-        self.clustering_samples_ = None
 
     def fit(self, X, y):
         """
@@ -96,15 +94,7 @@ class ClusterImportance(BaseVariableImportance):
         rng = check_random_state(self.random_state)
 
         self.n_features_in_ = X.shape[1]
-
-        # Clustering
-        self.clustering_samples_ = _subsampling(
-            n_samples=X.shape[0],
-            train_size=self.cluster_frac,
-            groups=self.bootstrap_groups,
-            random_state=rng,
-        )
-        self.clustering_ = self.clustering.fit(X[self.clustering_samples_, :])
+        self.clustering_ = self.clustering.fit(X)
         X_reduced = self.clustering_.transform(X)
 
         if hasattr(self.vim, "random_state"):

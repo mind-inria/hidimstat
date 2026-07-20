@@ -32,10 +32,6 @@ class EnsembleImportance(BaseVariableImportance):
         Number of parallel jobs.
     random_state: int, optional (default=None)
         Random seed for reproducible subsampling.
-    memory : joblib.Memory or str, optional (default=None)
-        Used to cache the output of the clustering and inference computation.
-        By default, no caching is done. If provided, it should be the path
-        to the caching directory or a joblib.Memory object.
     ensembling_method : str, optional (default='quantiles')
         Method used for ensembling. Currently, the two available methods
         are 'quantiles' and 'median'.
@@ -67,7 +63,6 @@ class EnsembleImportance(BaseVariableImportance):
         bootstrap_groups=None,
         n_jobs=1,
         random_state=None,
-        memory=None,
         ensembling_method="quantiles",
         gamma=0.5,
         adaptive_aggregation=False,
@@ -78,7 +73,6 @@ class EnsembleImportance(BaseVariableImportance):
         self.bootstrap_groups = bootstrap_groups
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.memory = memory
         self.ensembling_method = ensembling_method
         self.gamma = gamma
         self.adaptive_aggregation = adaptive_aggregation
