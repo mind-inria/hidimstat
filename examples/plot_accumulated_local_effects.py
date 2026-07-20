@@ -7,8 +7,9 @@ as defined by :footcite:t:`apley2020accumulatedlocaleffects`, to interpret
 machine learning models within the `hidimstat` library.
 
 ALE plots allow you to examine a model's dependence on a single feature or a pair of
-features. Unlike Partial Dependence Plots (PDPs), ALE avoids extrapolation bias when
-features are correlated by averaging localized differences in predictions within conditional intervals.
+features. Unlike Partial Dependence Plots (PDPs), ALE avoids extrapolation bias,
+which occurs when the model is used to predict from out-of-distribution samples,
+by averaging localized differences in predictions within conditional intervals.
 """
 
 # %%
@@ -93,7 +94,7 @@ plt.show()
 # - Positive or negative areas indicate that the combined effect is stronger or
 #   weaker than what the individual curves would imply.
 # - The level sets display the iso-proportions of the 2D density of the data,
-#   meaning for instance that 30% of the probability mass lie outside of the contour
+#   meaning for instance that 30% of the probability mass lie inside of the contour
 #   drawn for 0.3.
 
 _ = ale.plot(

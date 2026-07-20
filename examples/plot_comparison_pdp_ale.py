@@ -108,12 +108,13 @@ plt.show()
 # %%
 # Conclusion
 # ^^^^^^^^^^
-# - The PDP shows a prominent U-shaped parabola for :math:`X_2`. An analyst looking at
-#   this plot would falsely conclude that increasing or decreasing :math:`X_2` directly
-#   increases the target variable. This is a severe error.
-# - ALE correctly shows a mostly flat line (near zero), indicating that :math:`X_2` has
-#   no direct local impact on the prediction. Thus, ALE correctly blocks the shadow effect
-#   of :math:`X_1` and isolates the true non-impact of :math:`X_2`.
+# - The PDP shows a prominent U-shaped parabola for :math:`X_2` because of extrapolation.
+#   An analyst looking at this plot could falsely conclude that increasing or decreasing
+#   :math:`X_2` directly increases the target variable. This is an error since it is actually
+#   the result of out-of-distribution artifacts.
+# - ALE shows a mostly flat line (near zero), isolating the unique contribution of :math:`X_2` by
+#   blocking the shadow effect of :math:`X_1`. This isolates the direct non-impact, which is
+#   ideal for understanding pure mechanisms, though it leaves out indirect operational levers.
 
 # %%
 # References
