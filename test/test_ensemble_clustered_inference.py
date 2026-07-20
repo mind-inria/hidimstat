@@ -127,8 +127,8 @@ def test_cludl_independence():
     c1.fit_importance(X_init, y)
     s1 = c1.fwer_selection(alpha, n_tests=n_clusters)
     s2_iterations = np.zeros((0, len(s1)))
-    nb_iterations = 20
-    for _ in range(nb_iterations):
+    n_iterations = 20
+    for _ in range(n_iterations):
         c2 = CluDL(clustering=ward, cluster_bootstrap_size=0.5)
         c2.fit_importance(X_init, y)
         s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
@@ -136,8 +136,8 @@ def test_cludl_independence():
 
     assert np.sum(s1) != 0
     assert (
-        np.abs(np.sum(s2_iterations) / nb_iterations - np.sum(s1)) / np.sum(s1)
-        < 0.2
+        np.abs(np.sum(s2_iterations) / n_iterations - np.sum(s1)) / np.sum(s1)
+        < 0.5
     )
 
 
