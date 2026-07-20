@@ -57,7 +57,7 @@ class CluDL(BaseVariableImportance):
     Notes
     -----
     .. deprecated:: 0.5.0
-       Use :class:`hidimstat.ClusterImportance` instead.
+       Use :class:`hidimstat.ClusterImportance` instead with  vim=:class:`hidimstat.DesparsifiedLasso`.
 
     """
 
