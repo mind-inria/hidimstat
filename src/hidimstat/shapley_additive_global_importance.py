@@ -83,8 +83,8 @@ def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
 
 class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
     """
-    Shaple Additive Global Importance (SAGE) values for feature importance,
-    from :footcite:t:`Covert2020`.
+    Shapley Additive Global Importance (SAGE) values for feature importance.
+    Read more on SAGE here :footcite:t:`Covert2020`.
 
     Parameters
     ----------
