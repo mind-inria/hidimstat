@@ -320,7 +320,7 @@ null hypothesis, :math:`T_j \sim \mathcal{N}(0, 1)` asymptotically.
     switches to the dCRT-logit approach from :footcite:t:`nguyen2022conditional`, which
     adapts the distillation and test statistic to the logistic loss. The null distribution
     remains standard normal. See the
-    :ref:`dCRT-logit example <sphx_glr_generated_gallery_examples_plot_dcrt_logit.py>`
+    :ref:`dCRT-logit example <sphx_glr_generated_gallery_examples_real_life_examples_plot_advanced_4_dcrt_logit.py>`
     for an illustration.
 
 
