@@ -59,6 +59,7 @@ Visualization
    :template: class.rst
 
    ~visualization.PDP
+   ~visualization.ALE
 
 
 Samplers
