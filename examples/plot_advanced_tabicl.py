@@ -77,10 +77,9 @@ import matplotlib.pyplot as plt
 _, ax = plt.subplots()
 cfi.plot_importance(ax=ax)
 ax.set_yticklabels(df["feature"].values)
+plt.tight_layout()
 plt.show()
 
 # %%
 # As you can see from the timer under, even with 1000 samples and 9 features,
-# running TabICL on the CPU is slow. We recommend to use it on larger datasets,
-# be it in terms of samples and/or features and to run it on GPU for faster
-# inferences.
+# running TabICL on the CPU is slow. Using a GPU allows for an important speedup.
