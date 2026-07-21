@@ -169,10 +169,19 @@ def test_cluvi_independence():
     )
     c1.fit_importance(X_init, y)
     s1 = c1.fwer_selection(alpha, n_tests=n_clusters)
-    c2 = ClusterImportance(vim=vim, clustering=ward, cluster_frac=0.5)
-    c2.fit_importance(X_init, y)
-    s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
-    assert np.sum(s2) > np.sum(s1 / 2)
+    s2_iterations = np.zeros((0, len(s1)))
+    n_iterations = 20
+    for _ in range(n_iterations):
+        c2 = ClusterImportance(vim=vim, clustering=ward, cluster_frac=0.5)
+        c2.fit_importance(X_init, y)
+        s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
+        s2_iterations = np.vstack((s2_iterations, s2))
+
+    assert np.sum(s1) != 0
+    assert (
+        np.abs(np.sum(s2_iterations) / n_iterations - np.sum(s1)) / np.sum(s1)
+        < 0.5
+    )
 
 
 def test_cluvi_temporal():
