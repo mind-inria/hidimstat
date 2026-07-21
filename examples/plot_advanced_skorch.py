@@ -160,7 +160,7 @@ features_groups = dict(zip(unique_ids, positions, strict=False))
 # We now instantiate the CFI and fit it on the two tasks.
 
 # Careful when using Skorch, having n_jobs > 1 might create joblib and pickle issues.
-# To avoid this, we can do the following:
+# This can be avoided as follows:
 with parallel_config(backend="threading"):
     cfi = CFI(
         estimator=net,
