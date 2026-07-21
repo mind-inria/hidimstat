@@ -25,6 +25,8 @@ Feature Importance Classes
    :toctree: ./generated/api/class/
    :template: class.rst
 
+   LOCI
+   LOCICV
    LOCO
    LOCOCV
    CFI
@@ -35,6 +37,7 @@ Feature Importance Classes
    EnsembleImportance
    PFI
    PFICV
+   SAGE
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso
@@ -50,6 +53,7 @@ Feature Importance functions
    d0crt_importance
    desparsified_lasso_importance
    model_x_knockoff_importance
+   loci_importance
    loco_importance
    pfi_importance
 
@@ -61,6 +65,7 @@ Visualization
    :template: class.rst
 
    ~visualization.PDP
+   ~visualization.ALE
 
 
 Samplers
