@@ -148,12 +148,6 @@ clustering = FeatureAgglomeration(
 )
 clustering.fit(X_cluster)
 
-_, ax = plt.subplots(1, 1, figsize=(2, 2))
-ax.imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
-ax.axis("off")
-ax.set_title("Clustering labels")
-_ = plt.tight_layout()
-
 # CFI expects features_groups to be a dictionary where the keys are the group names
 # and the values are the list of column names corresponding to each features group.
 order = np.argsort(clustering.labels_)
