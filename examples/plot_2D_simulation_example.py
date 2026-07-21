@@ -149,7 +149,7 @@ clustering = FeatureAgglomeration(
 )
 
 dl_2 = DesparsifiedLasso(estimator=clone(estimator), n_jobs=n_jobs)
-clu_dl = ClusterImportance(vim=dl_2, clustering=clustering, random_state=0)
+clu_dl = ClusterImportance(vim=dl_2, clustering=clustering)
 clu_dl.fit_importance(X_init, y)
 
 selected_cdl = clu_dl.fwer_selection(fwer=fwer_target, n_tests=n_clusters)

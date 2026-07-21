@@ -7,6 +7,7 @@ import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import train_test_split
 
 from hidimstat import ClusterImportance, DesparsifiedLasso, EnsembleImportance
 from hidimstat._utils.scenario import (
@@ -47,6 +48,14 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
+def test_ensemble_parameter_check():
+    with pytest.raises(
+        AssertionError,
+        match="estimator needs to be a subclass of BaseVariableImportance",
+    ):
+        EnsembleImportance(vim=LassoCV())
+
+
 def test_ensemble_importance_check_fit():
 
     n_samples, n_features, n_target = 200, 100, 3
@@ -79,6 +88,42 @@ def test_ensemble_importance_check_fit():
         ValueError, match="The estimators need to be fit before using them"
     ):
         encludl.importance(X, y)
+
+
+def test_ensemble_importance():
+    """Test the EnsembleImportance algorithm on a linear scenario."""
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
+    important_features = np.where(beta != 0)[0]
+    non_important_features = np.where(beta == 0)[0]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+
+    endl = EnsembleImportance(
+        vim=dl,
+        n_repeats=5,
+        random_state=0,
+    )
+
+    endl.fit(
+        X_train,
+        y_train,
+    )
+    importance = endl.importance(X_test, y_test)
+
+    assert importance.shape == (X.shape[1],)
+    assert (
+        importance[important_features].mean()
+        > importance[non_important_features].mean()
+    )
 
 
 def test_encluvi_spatial():
@@ -125,7 +170,6 @@ def test_encluvi_spatial():
             vim=ClusterImportance(
                 vim=DesparsifiedLasso(estimator=estimator),
                 clustering=clustering,
-                random_state=seed,
             ),
             n_repeats=5,
             random_state=seed,
@@ -190,7 +234,6 @@ def test_encluvi_temporal():
                     estimator=MultiTaskLassoCV(max_iter=1000)
                 ),
                 clustering=ward,
-                random_state=seed,
             ),
             n_repeats=5,
             random_state=seed,
@@ -230,13 +273,139 @@ def test_encluvi_independence():
         vim=ClusterImportance(
             vim=DesparsifiedLasso(estimator=LassoCV()),
             clustering=ward,
-            random_state=1,
         ),
         bootstrap_frac=0.7,
         n_repeats=20,
         random_state=1,
-        n_jobs=1,
+        n_jobs=-1,
     )
     encluvi.fit_importance(X_init, y)
     selected_ecdl = encluvi.fwer_selection(alpha, n_tests=n_clusters)
     assert np.sum(selected_ecdl) > 10
+
+
+@pytest.fixture(scope="module")
+def ensemble_test_data():
+    """
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
+    """
+    X, y, _, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=5,
+        support_size=2,
+        rho=0,
+        value=1,
+        signal_noise_ratio=4,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    cfi_default_parameters = {
+        "vim": dl,
+        "n_repeats": 10,
+        "bootstrap_frac": 0.5,
+        "n_jobs": 1,
+    }
+    return X_train, y_train, X_test, y_test, cfi_default_parameters
+
+
+def test_ensemble_repeatibility(ensemble_test_data):
+    """
+    Test that multiple calls of .importance() when EnsembleImportance is not seeded
+    provides different results.
+    """
+    X_train, y_train, X_test, y_test, ensemble_default_parameters = (
+        ensemble_test_data
+    )
+    endl = EnsembleImportance(**ensemble_default_parameters)
+    endl.fit(X_train, y_train)
+    importance = endl.importance(X_test, y_test)
+    # repeat
+    endl.fit(X_train, y_train)
+    importance_repeat = endl.importance(X_test, y_test)
+    assert not np.array_equal(importance, importance_repeat)
+
+
+def test_ensemble_randomness_with_none(ensemble_test_data):
+    """
+    Test randomness of multiple calls of .importance() when
+    EnsembleImportance has random_state=None
+    """
+    X_train, y_train, X_test, y_test, ensemble_default_parameters = (
+        ensemble_test_data
+    )
+    endl = EnsembleImportance(random_state=None, **ensemble_default_parameters)
+    endl.fit(X_train, y_train)
+    importance = endl.importance(X_test, y_test)
+
+    # reproducibility
+    endl2 = EnsembleImportance(
+        random_state=None, **ensemble_default_parameters
+    )
+    endl2.fit(X_train, y_train)
+    importance_reproducibility = endl2.importance(X_test, y_test)
+
+    assert not np.array_equal(importance, importance_reproducibility)
+
+
+def test_ensemble_randomness_with_integer(ensemble_test_data):
+    """
+    Test reproducibility of multiple calls of .importance() when
+    EnsembleImportance has random_state=42
+    """
+    X_train, y_train, X_test, y_test, ensemble_default_parameters = (
+        ensemble_test_data
+    )
+    endl = EnsembleImportance(random_state=42, **ensemble_default_parameters)
+    endl.fit(X_train, y_train)
+    importance = endl.importance(X_test, y_test)
+
+    # refit
+    endl.fit(X_train, y_train)
+    importance_refit = endl.importance(X_test, y_test)
+    assert np.array_equal(importance, importance_refit)
+
+    # reproducibility
+    endl2 = EnsembleImportance(random_state=42, **ensemble_default_parameters)
+    endl2.fit(X_train, y_train)
+    importance_reproducibility = endl2.importance(X_test, y_test)
+    assert np.array_equal(importance, importance_reproducibility)
+
+
+def test_ensemble_randomness_with_rng(ensemble_test_data):
+    """
+    Test that:
+     1. Multiple calls of .importance() when EnsembleImportance has random_state=rng are random
+     2. refit with same rng provides same result
+    """
+    X_train, y_train, X_test, y_test, ensemble_default_parameters = (
+        ensemble_test_data
+    )
+    rng = np.random.default_rng(42)
+    endl = EnsembleImportance(random_state=rng, **ensemble_default_parameters)
+    endl.fit(X_train, y_train)
+    importance = endl.importance(X_test, y_test)
+
+    # refit
+    endl.fit(X_train, y_train)
+    importance_refit = endl.importance(X_test, y_test)
+    assert not np.array_equal(importance, importance_refit)
+
+    # refit repeatability
+    rng = np.random.default_rng(42)
+    endl.random_state = rng
+    endl.fit(X_train, y_train)
+    importance_refit2 = endl.importance(X_test, y_test)
+    assert np.array_equal(importance, importance_refit2)
+
+    # reproducibility
+    endl2 = EnsembleImportance(
+        random_state=np.random.default_rng(42), **ensemble_default_parameters
+    )
+    endl2.fit(X_train, y_train)
+    importance_reproducibility = endl2.importance(X_test, y_test)
+    assert np.array_equal(importance, importance_reproducibility)

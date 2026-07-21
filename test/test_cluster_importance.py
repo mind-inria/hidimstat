@@ -7,6 +7,7 @@ import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
+from sklearn.model_selection import train_test_split
 
 from hidimstat import ClusterImportance, DesparsifiedLasso
 from hidimstat._utils.scenario import (
@@ -47,6 +48,26 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
+def test_cluster_parameter_check():
+    with pytest.raises(
+        AssertionError,
+        match="estimator needs to be a subclass of BaseVariableImportance",
+    ):
+        ClusterImportance(
+            vim=LassoCV(),
+            clustering=FeatureAgglomeration(),
+        )
+
+    with pytest.raises(
+        AssertionError,
+        match=r"clustering needs to be an instance of sklearn\.cluster\.FeatureAgglomeration",
+    ):
+        ClusterImportance(
+            vim=DesparsifiedLasso(estimator=LassoCV()),
+            clustering=LassoCV(),
+        )
+
+
 def test_cluster_importance_check_fit():
 
     n_samples, n_features, n_target = 200, 100, 3
@@ -72,13 +93,51 @@ def test_cluster_importance_check_fit():
     cludl = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
         clustering=FeatureAgglomeration(),
-        random_state=seed,
     )
 
     with pytest.raises(
         ValueError, match="The estimator needs to be fit before using them"
     ):
         cludl.importance(X, y)
+
+
+def test_cluster_importance():
+    """Test the ClusterImportance algorithm on a linear scenario."""
+    X, y, beta, _ = multivariate_simulation(
+        n_samples=150,
+        n_features=200,
+        support_size=10,
+        shuffle=False,
+        seed=42,
+    )
+    important_features = np.where(beta != 0)[0]
+    non_important_features = np.where(beta == 0)[0]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+
+    importance_stack = np.zeros((0, X.shape[1]))
+    n_repeats = 10
+
+    for _ in range(n_repeats):
+        cludl = ClusterImportance(vim=dl, clustering=FeatureAgglomeration())
+
+        cludl.fit(
+            X_train,
+            y_train,
+        )
+        importance = cludl.importance(X_test, y_test)
+        assert importance.shape == (X.shape[1],)
+        importance_stack = np.vstack((importance_stack, importance))
+
+    importance = importance_stack.mean(axis=0)
+
+    assert (
+        importance[important_features].mean()
+        > importance[non_important_features].mean()
+    )
 
 
 def test_cluvi_spatial():
@@ -122,7 +181,6 @@ def test_cluvi_spatial():
         cluvi = ClusterImportance(
             vim=DesparsifiedLasso(estimator=estimator),
             clustering=clustering,
-            random_state=seed,
         )
         cluvi.fit_importance(X_init, y)
         fwer = 0.1
@@ -172,7 +230,7 @@ def test_cluvi_independence():
     s2_iterations = np.zeros((0, len(s1)))
     n_iterations = 20
     for _ in range(n_iterations):
-        c2 = ClusterImportance(vim=vim, clustering=ward, cluster_frac=0.5)
+        c2 = ClusterImportance(vim=vim, clustering=ward)
         c2.fit_importance(X_init, y)
         s2 = c2.fwer_selection(alpha, n_tests=n_clusters)
         s2_iterations = np.vstack((s2_iterations, s2))
@@ -225,7 +283,6 @@ def test_cluvi_temporal():
         cluvi = ClusterImportance(
             vim=DesparsifiedLasso(estimator=MultiTaskLassoCV(max_iter=1000)),
             clustering=ward,
-            random_state=seed,
         )
         cluvi.fit_importance(X, y)
 

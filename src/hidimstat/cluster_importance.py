@@ -20,17 +20,6 @@ class ClusterImportance(BaseVariableImportance):
         An instance of any variable importance method that derives from hidimstat's BaseVariableImportance.
     clustering: sklearn.cluster.FeatureAgglomeration
         An instance of a clustering method that operates on features.
-    cluster_frac: float, optional (default=1.0)
-        Fraction of samples used for computing the clustering.
-        When cluster_frac=1.0, all samples are used.
-    bootstrap_groups: ndarray, shape (n_samples,), optional (default=None)
-        Sample group labels for stratified subsampling.
-    random_state: int, optional (default=None)
-        Random seed for reproducible subsampling.
-    memory : joblib.Memory or str, optional (default=None)
-        Used to cache the output of the clustering and inference computation.
-        By default, no caching is done. If provided, it should be the path
-        to the caching directory or a joblib.Memory object.
 
     Attributes
     ----------
@@ -53,23 +42,15 @@ class ClusterImportance(BaseVariableImportance):
         self,
         vim,
         clustering,
-        cluster_frac=1.0,
-        bootstrap_groups=None,
-        random_state=None,
-        memory=None,
     ):
         assert issubclass(vim.__class__, BaseVariableImportance), (
-            "estimator need to be a subclass of BaseVariableImportance"
+            "estimator needs to be a subclass of BaseVariableImportance"
         )
         assert issubclass(clustering.__class__, FeatureAgglomeration), (
-            "clustering need to be an instance of sklearn.cluster.FeatureAgglomeration"
+            "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
         )
         self.vim = vim
         self.clustering = clustering
-        self.cluster_frac = cluster_frac
-        self.bootstrap_groups = bootstrap_groups
-        self.random_state = random_state
-        self.memory = memory
 
         self.vim_ = None
         self.clustering_ = None
@@ -90,15 +71,9 @@ class ClusterImportance(BaseVariableImportance):
         self : CluVI
             Fitted estimator.
         """
-        memory = check_memory(memory=self.memory)
-        rng = check_random_state(self.random_state)
-
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
         X_reduced = self.clustering_.transform(X)
-
-        if hasattr(self.vim, "random_state"):
-            self.vim.random_state = self.random_state
 
         self.vim_ = clone(self.vim)
         self.vim_.estimator.fit(X_reduced, y)
@@ -171,8 +146,8 @@ class ClusterImportance(BaseVariableImportance):
     @staticmethod
     def _ungroup_importance(importance, n_features, ward):
         """
-        Ungroup cluster-level beta coefficients to individual feature-level
-        coefficients.
+        Ungroup cluster-level importances to individual feature-level
+        importances.
 
         Parameters
         ----------
@@ -200,9 +175,9 @@ class ClusterImportance(BaseVariableImportance):
         clusters_size = np.zeros(labels.size)
         for label in range(labels.max() + 1):
             clusters_size[labels == label] = np.sum(labels == label)
-        # degroup beta_hat
+        # degroup importances
         if len(importance.shape) == 1:
-            # weighting the weight of beta with the size of the cluster
+            # weighting the weight of importance with the size of the cluster
             importance_degrouped = (
                 ward.inverse_transform(importance) / clusters_size
             )

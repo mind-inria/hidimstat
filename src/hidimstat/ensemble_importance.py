@@ -67,6 +67,10 @@ class EnsembleImportance(BaseVariableImportance):
         gamma=0.5,
         adaptive_aggregation=False,
     ):
+        assert issubclass(vim.__class__, BaseVariableImportance), (
+            "estimator needs to be a subclass of BaseVariableImportance"
+        )
+
         self.vim = vim
         self.n_repeats = n_repeats
         self.bootstrap_frac = bootstrap_frac
