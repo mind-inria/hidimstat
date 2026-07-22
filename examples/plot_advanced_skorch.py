@@ -197,7 +197,7 @@ with parallel_config(backend="threading"):
 
 from matplotlib.colors import ListedColormap
 
-_, ax = plt.subplots(
+fig, ax = plt.subplots(
     1, 3, figsize=(5, 2), subplot_kw={"xticks": [], "yticks": []}
 )
 
@@ -210,11 +210,15 @@ importance_cfi_img = clustering.inverse_transform(importances_4_7).reshape(
 cmap = ListedColormap(["tab:red", "white", "tab:blue"])
 ax[0].imshow(mask_cfi, cmap=cmap, vmin=-1, vmax=1)
 ax[0].set_title("4 vs 7 selection", fontweight="bold", y=1.0)
-ax[1].imshow(importance_cfi_img)
+
+im = ax[1].imshow(importance_cfi_img, cmap="bone")
 ax[1].set_title("4 vs 7 importance", fontweight="bold", y=1.0)
+cbar = fig.colorbar(im, ax=ax[1], fraction=0.044)
+cbar.set_label("Importance")
+
 ax[2].imshow(clustering.labels_.reshape(28, 28), cmap="Set2")
 ax[2].axis("off")
-ax[2].set_title("Clustering labels")
+ax[2].set_title("Clustering labels", fontweight="bold", y=1.0)
 
 plt.tight_layout()
 plt.show()
