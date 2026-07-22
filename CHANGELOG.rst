@@ -29,4 +29,5 @@ under development (0.3.2.dev0)
 - :bdg-success:`Feature` add leave-one-covariate-in (LOCI) method (:gh:`679` by `Marc Hulcelle`).
 - :bdg-danger:`Fix` fixed deprecated n_alphas with sklearn LassoCV, as well as deprecated penalty for LogisticRegressionCV (:gh:`690` by `Marc Hulcelle`)
 - :bdg-secondary:`Maint`: Fix conditional sampling test by verifying that sampler produces diverse samples. (:gh:`692` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` add documentation about test suite organization and general logic. (:gh:`712` by `Marc Hulcelle`_).
 - :bdg-success:`Feature`: Implement marginal SAGE (:gh:`674` by `Joseph Paillard`_).
