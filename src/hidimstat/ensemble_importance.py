@@ -32,15 +32,15 @@ class EnsembleImportance(BaseVariableImportance):
         Number of parallel jobs.
     random_state: int, optional (default=None)
         Random seed for reproducible subsampling.
-    ensembling_method : str, optional (default='quantiles')
+    aggregation : str, optional (default='quantiles')
         Method used for ensembling. Currently, the two available methods
         are 'quantiles' and 'median'.
     gamma : float, optional (default=0.2)
         Lowest gamma-quantile considered to compute the adaptive
         quantile aggregation formula. This parameter is used only if
-        `ensembling_method` is 'quantiles'.
+        `aggregation` is 'quantiles'.
     adaptive_aggregation : bool, optional (default=True)
-        Whether to use adaptive quantile aggregation when `ensembling_method`
+        Whether to use adaptive quantile aggregation when `aggregation`
         is 'quantiles'.
 
     Attributes
@@ -63,21 +63,17 @@ class EnsembleImportance(BaseVariableImportance):
         bootstrap_groups=None,
         n_jobs=1,
         random_state=None,
-        ensembling_method="quantiles",
+        aggregation="quantiles",
         gamma=0.5,
         adaptive_aggregation=False,
     ):
-        assert issubclass(vim.__class__, BaseVariableImportance), (
-            "estimator needs to be a subclass of BaseVariableImportance"
-        )
-
         self.vim = vim
         self.n_repeats = n_repeats
         self.bootstrap_frac = bootstrap_frac
         self.bootstrap_groups = bootstrap_groups
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.ensembling_method = ensembling_method
+        self.aggregation = aggregation
         self.gamma = gamma
         self.adaptive_aggregation = adaptive_aggregation
 
@@ -120,6 +116,13 @@ class EnsembleImportance(BaseVariableImportance):
             Fitted estimator.
         """
         rng = check_random_state(self.random_state)
+
+        assert issubclass(self.vim.__class__, BaseVariableImportance), (
+            "estimator needs to be a subclass of BaseVariableImportance"
+        )
+
+        if hasattr(self.vim, "random_state"):
+            self.vim.random_state = self.random_state
 
         self.ensemble_vims_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one)(

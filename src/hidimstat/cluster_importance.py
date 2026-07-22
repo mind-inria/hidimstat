@@ -1,3 +1,5 @@
+import inspect
+
 import numpy as np
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
@@ -43,12 +45,6 @@ class ClusterImportance(BaseVariableImportance):
         vim,
         clustering,
     ):
-        assert issubclass(vim.__class__, BaseVariableImportance), (
-            "estimator needs to be a subclass of BaseVariableImportance"
-        )
-        assert issubclass(clustering.__class__, FeatureAgglomeration), (
-            "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
-        )
         self.vim = vim
         self.clustering = clustering
 
@@ -71,6 +67,13 @@ class ClusterImportance(BaseVariableImportance):
         self : CluVI
             Fitted estimator.
         """
+        assert issubclass(self.vim.__class__, BaseVariableImportance), (
+            "estimator needs to be a subclass of BaseVariableImportance"
+        )
+        assert issubclass(self.clustering.__class__, FeatureAgglomeration), (
+            "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
+        )
+
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
         X_reduced = self.clustering_.transform(X)
@@ -126,22 +129,19 @@ class ClusterImportance(BaseVariableImportance):
         self.importance(X, y)
         return self.importances_
 
-    def fdr_selection(
-        self,
-        fdr,
-        fdr_control="bhq",
-        reshaping_function=None,
-        two_tailed_test=True,
-    ):
+    def fdr_selection(self, fdr):
         """
-        Overrides the signature to set two_tailed_test=True by default.
+        Overrides the default signature to use the default signature of the underlying vim.
         """
-        return super().fdr_selection(
-            fdr=fdr,
-            fdr_control=fdr_control,
-            reshaping_function=reshaping_function,
-            two_tailed_test=two_tailed_test,
-        )
+        vim_sig = inspect.signature(self.vim_.fdr_selection)
+        # get the default values of the fdr_selection method of the chosen vim.
+        vim_default_args = [
+            p.default
+            for p in vim_sig.parameters.values()
+            if p.default is not inspect.Parameter.empty
+        ]
+
+        return super().fdr_selection(fdr, *vim_default_args)
 
     @staticmethod
     def _ungroup_importance(importance, n_features, ward):

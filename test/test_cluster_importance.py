@@ -49,27 +49,34 @@ def spatially_relaxed_fdp_power(
 
 
 def test_cluster_parameter_check():
+    """
+    Test to verify parameter's class compliance.
+    """
+    clu_vi = ClusterImportance(
+        vim=LassoCV(),
+        clustering=FeatureAgglomeration(),
+    )
     with pytest.raises(
         AssertionError,
         match="estimator needs to be a subclass of BaseVariableImportance",
     ):
-        ClusterImportance(
-            vim=LassoCV(),
-            clustering=FeatureAgglomeration(),
-        )
+        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
 
+    clu_vi = ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV()),
+        clustering=LassoCV(),
+    )
     with pytest.raises(
         AssertionError,
         match=r"clustering needs to be an instance of sklearn\.cluster\.FeatureAgglomeration",
     ):
-        ClusterImportance(
-            vim=DesparsifiedLasso(estimator=LassoCV()),
-            clustering=LassoCV(),
-        )
+        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
 
 
 def test_cluster_importance_check_fit():
-
+    """
+    Check that a call to importance() fails if ClusterImportance is not fitted.
+    """
     n_samples, n_features, n_target = 200, 100, 3
     support_size = 10
     signal_noise_ratio = 50.0
@@ -287,7 +294,7 @@ def test_cluvi_temporal():
         cluvi.fit_importance(X, y)
 
         alpha = 0.05
-        selected = cluvi.fdr_selection(fdr=alpha, two_tailed_test=False)
+        selected = cluvi.fdr_selection(fdr=alpha)
         gt_mask = np.zeros(n_features, dtype=int)
         gt_mask[:extended_support] = 1
         fdp, power = fdp_power(

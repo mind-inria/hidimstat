@@ -49,15 +49,21 @@ def spatially_relaxed_fdp_power(
 
 
 def test_ensemble_parameter_check():
+    """
+    Test to verify parameter's class compliance.
+    """
+    en_vi = EnsembleImportance(vim=LassoCV())
     with pytest.raises(
         AssertionError,
         match="estimator needs to be a subclass of BaseVariableImportance",
     ):
-        EnsembleImportance(vim=LassoCV())
+        en_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
 
 
 def test_ensemble_importance_check_fit():
-
+    """
+    Check that a call to importance() fails if EnsembleImportance is not fitted.
+    """
     n_samples, n_features, n_target = 200, 100, 3
     support_size = 10
     signal_noise_ratio = 50.0
