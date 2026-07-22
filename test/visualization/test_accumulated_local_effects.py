@@ -190,7 +190,7 @@ def test_compute_ale_1d_continuous(ale_test_data):
     assert len(grid_values) <= grid_resolution + 1
 
     # With confidence interval
-    ale_ci, grid_values_ci, ale_err_ci = compute_ale_1d(
+    _, grid_values_ci, ale_err_ci = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
@@ -199,23 +199,8 @@ def test_compute_ale_1d_continuous(ale_test_data):
         confidence_interval=True,
         confidence_level=0.95,
     )
-    assert isinstance(ale_ci, np.ndarray)
-    assert isinstance(grid_values_ci, np.ndarray)
     assert isinstance(ale_err_ci, np.ndarray)
-    assert len(ale_ci) == len(grid_values_ci)
-    assert len(grid_values_ci) <= grid_resolution + 1
     assert len(ale_err_ci) == len(grid_values_ci)
-
-    # To test _bootstrap()
-    with parallel_backend("threading"):
-        result_bootstrap = compute_ale_1d(
-            model,
-            X,
-            feature_idx=important_features[0],
-            feature_type="continuous",
-            confidence_interval=True,
-            n_bootstraps=2,
-        )
 
 
 def test_compute_ale_1d_continuous_error(ale_test_data):

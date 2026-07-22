@@ -13,6 +13,7 @@ from hidimstat._utils.grid import (
     _build_quantile_grid_1d,
     _build_quantile_grid_2d,
 )
+from hidimstat._utils.utils import check_random_state
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
 
@@ -78,7 +79,8 @@ def compute_ale_1d(
     confidence_interval=True,
     confidence_level=0.95,
     n_bootstraps=20,
-    n_jobs=-1,
+    n_jobs=1,
+    random_state=None,
 ):
     """Compute the 1D Accumulated Local Effect for a single numerical feature.
 
@@ -122,8 +124,10 @@ def compute_ale_1d(
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
     n_bootstraps : int, default=20
         Number of bootstrap samples to generate if `confidence_interval` is True.
-    n_jobs : int, default=-1
+    n_jobs : int, default=1
         Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
+    random_state : int or None, default=None
+        Seed for reproducible bootstraps.
 
     Returns
     -------
@@ -137,12 +141,12 @@ def compute_ale_1d(
         Returns `None` if `confidence_interval` is False.
     """
     X = np.asarray(X)
-    x = X[:, feature_idx]
+    X_j = X[:, feature_idx]
 
     if feature_type == "continuous":
         # Grid defined by quantiles
         grid_values = _build_quantile_grid_1d(
-            x, grid_resolution=grid_resolution, percentiles=percentiles
+            X_j, grid_resolution=grid_resolution, percentiles=percentiles
         )
         n_bins = len(grid_values) - 1
 
@@ -165,14 +169,14 @@ def compute_ale_1d(
                 "in [0, 100] in increasing order"
             )
 
-        low_bnd = np.percentile(x, percentiles[0])
-        high_bnd = np.percentile(x, percentiles[1])
+        low_bnd = np.percentile(X_j, percentiles[0])
+        high_bnd = np.percentile(X_j, percentiles[1])
 
-        valid_mask = (x >= low_bnd) & (x <= high_bnd)
+        valid_mask = (X_j >= low_bnd) & (X_j <= high_bnd)
         X_filtered = X[valid_mask]
-        x_filtered = x[valid_mask]
+        X_j_filtered = X_j[valid_mask]
 
-        grid_values = np.unique(x_filtered)
+        grid_values = np.unique(X_j_filtered)
         n_bins = len(grid_values)
 
         if n_bins < 2:
@@ -190,8 +194,8 @@ def compute_ale_1d(
     def _compute_ale_curve(X_sample):
         """Internal closure to compute the ALE curve on a fixed grid."""
         if feature_type == "continuous":
-            x_sample = X_sample[:, feature_idx]
-            bin_idx = _bin_indices(x_sample, grid_values)
+            X_j_sample = X_sample[:, feature_idx]
+            bin_idx = _bin_indices(X_j_sample, grid_values)
 
             # For each sample, evaluate the model at the lower and upper edge of its bin
             X_low = X_sample.copy()
@@ -208,14 +212,14 @@ def compute_ale_1d(
             min_weight_bin = 0
 
         else:
-            x_sample = X_sample[:, feature_idx]
-            value_idx = np.digitize(x_sample, grid_values) - 1
+            X_j_sample = X_sample[:, feature_idx]
+            value_idx = np.digitize(X_j_sample, grid_values) - 1
 
             # For each sample, evaluate the model at the lower and upper edge of its bin
             X_low = X_sample.copy()
             X_high = X_sample.copy()
-            mask_low = x_sample != grid_values[0]
-            mask_high = x_sample != grid_values[-1]
+            mask_low = X_j_sample != grid_values[0]
+            mask_high = X_j_sample != grid_values[-1]
             X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
             X_high[mask_high, feature_idx] = grid_values[
                 value_idx[mask_high] + 1
@@ -271,14 +275,17 @@ def compute_ale_1d(
         if n_bootstraps < 1:
             raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
-        def _bootstrap():
-            bootstrap_indices = np.random.default_rng().choice(
-                len(X_bootstrap), size=len(X_bootstrap), replace=True
-            )
-            return _compute_ale_curve(X_bootstrap[bootstrap_indices])
+        rng = check_random_state(random_state)
 
         bootstrap_curves = Parallel(n_jobs=n_jobs)(
-            delayed(_bootstrap)() for _ in range(n_bootstraps)
+            delayed(_compute_ale_curve)(
+                X_bootstrap[
+                    rng.choice(
+                        len(X_bootstrap), size=len(X_bootstrap), replace=True
+                    )
+                ]
+            )
+            for _ in range(n_bootstraps)
         )
         bootstrap_curves = np.array(bootstrap_curves)
 
@@ -349,10 +356,10 @@ def compute_ale_2d(
 
     X = np.asarray(X)
     idx_i, idx_j = feature_indices
-    x_i, x_j = X[:, idx_i], X[:, idx_j]
+    X_i, X_j = X[:, idx_i], X[:, idx_j]
 
     quantiles_i, quantiles_j = _build_quantile_grid_2d(
-        x_i, x_j, grid_resolution=grid_resolution, percentiles=percentiles
+        X_i, X_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
 
     n_bins_i = len(quantiles_i) - 1
@@ -367,8 +374,8 @@ def compute_ale_2d(
             f"Feature {idx_j} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
         )
 
-    bin_idx_i = _bin_indices(x_i, quantiles_i)
-    bin_idx_j = _bin_indices(x_j, quantiles_j)
+    bin_idx_i = _bin_indices(X_i, quantiles_i)
+    bin_idx_j = _bin_indices(X_j, quantiles_j)
     bin_idx = [bin_idx_i, bin_idx_j]
 
     # Second-order finite differences: evaluate at the four corners of each 2D bin
@@ -553,7 +560,8 @@ class ALE:
         confidence_interval=True,
         confidence_level=0.95,
         n_bootstraps=20,
-        n_jobs=-1,
+        n_jobs=1,
+        random_state=None,
         cmap="viridis",
         **kwargs,
     ):
@@ -596,8 +604,10 @@ class ALE:
             The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
         n_bootstraps : int, default=20
             Number of bootstrap samples to generate if `confidence_interval` is True.
-        n_jobs : int, default=-1
+        n_jobs : int, default=1
             Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
+        random_state : int or None, default=None
+            Seed for reproducible bootstraps.
         cmap : str, default="viridis"
             Matplotlib colormap used for the 2D mesh plot.
         **kwargs
@@ -643,6 +653,7 @@ class ALE:
                     confidence_level=confidence_level,
                     n_bootstraps=n_bootstraps,
                     n_jobs=n_jobs,
+                    random_state=random_state,
                 )
                 result = {
                     "ale": ale,
