@@ -10,9 +10,9 @@ Introduced in :footcite:t:`Covert2020`, Shapley Additive Global Explanation
 proposed as a solution to the credit allocation scheme for cooperative games.
 As explained in the `Shapley value wikipedia page <https://en.wikipedia.org/wiki/Shapley_value>`_:
 
-    The Shapley value determines each player's contribution by considering how
+    "The Shapley value determines each player's contribution by considering how
     much the overall outcome changes when they join each possible combination of
-    other players, and then averaging those changes.
+    other players, and then averaging those changes."
 
 Shapley values have then been applied to machine learning models to measure the
 contribution of features. The definition above can be translated to the
@@ -29,15 +29,16 @@ features.
 Theoretical index
 ------------------
 
-In the context of machine learning, the notion of overall outcome is replaced
-by the value function :math:`v` which measures the loss reduction of a group of
-features :math:`S` with respect to the chance level. For a model :math:`f`, the
-value function is defined as:
+To quantify feature contributions in a predictive model, SAGE relies on a value
+function :math:`v` that measures the loss reduction achieved by a group of
+features :math:`S` compared to a baseline prediction (the chance level). For a
+model :math:`f`, the value function is defined as:
 
 .. math::
     v_f(S) = \mathbb{E}[\ell(\mathbb{E}[Y], Y)] - \mathbb{E}[\ell(f(X^S), Y)]
 
-Then, the SAGE value of a feature :math:`j` is defined as:
+Then, the SAGE value of a feature :math:`j` among :math:`d` features is defined
+as:
 
 .. math::
     \psi^j_{SAGE} = \frac{1}{d}\sum_{S\subseteq [d] \backslash \{j\}} \binom{d-1}{|S|}^{-1}\left[v_{f_\star}(S\cup \{j\}) - v_{f_\star}(S)\right]
@@ -68,8 +69,8 @@ satisfies the following properties:
     we now add noisy copies of the first feature :math:`X^j = X^1 + \epsilon_j`,
     correlated with the first feature by construction, each of these
     noisy copies will have a non-zero SAGE value, since they all improve the
-    prediction over the chance level (empty set) and the value function is
-    monotone (adding features cannot degrade the optimal model's performance). In addition, the efficiency property implies that the sum of
+    prediction over the chance level (empty set) as they share information with
+    the first feature. In addition, the efficiency property implies that the sum of
     the SAGE values of all features is equal to the total gain in performance,
     which does not change when adding noisy copies of the first feature. This
     has two implications:
