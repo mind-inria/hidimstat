@@ -5,7 +5,20 @@
 Shapley Additive Global Explanation (SAGE)
 ==========================================
 
-Introduced in :footcite:t:`Covert2020`
+Introduced in :footcite:t:`Covert2020`, Shapley Additive Global Explanation
+(SAGE) builds on top of Shapley values. In game theory, Shapley values have been
+proposed as a solution to the credit allocation scheme for cooperative games.
+As explained in the `Shapley value wikipedia page <https://en.wikipedia.org/wiki/Shapley_value>`_:
+
+    The Shapley value determines each player's contribution by considering how
+    much the overall outcome changes when they join each possible combination of
+    other players, and then averaging those changes.
+
+Shapley values have then been applied to machine learning models to measure the
+contribution of features. The definition above can be translated to the
+predictive modeling setting by replacing the notion of "outcome" by the model
+performance measured through a loss function, and the notion of "players" by
+features.
 
 
 .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_msage_001.png
