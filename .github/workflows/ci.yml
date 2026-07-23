@@ -2,11 +2,11 @@
 
 name: 'CI'
 on:
-  pull_request_target:
-    # Using 'pull_request_target' instead of 'pull_request':
-    # 1. Uses configuration from the main branch
-    # 2. Provides access to secrets from the main repository
-    # 3. Prevents using potentially malicious workflow from forked PRs
+  pull_request:
+    # Using 'pull_request' instead of 'pull_request_target' is better for malicious PR as it :
+    # 1. Gives only a read access
+    # 2. Forbids access to Github secrets
+    # 3. Runs in the context of the PR, and not on the base repository's target branch.
     branches: main
   # allows to push on branches
   push:
@@ -55,6 +55,27 @@ jobs:
         id: get_branch_name
         run: |
           echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
+      - name: Save PR metadata
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH_NAME_VAL: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          DOC_FLAG: ${{ contains(steps.get_commit_message.outputs.COMMIT_MSG, '[doc ') }}
+        run: |
+          mkdir -p pr-meta
+          echo "$BRANCH_NAME_VAL" > pr-meta/branch_name.txt
+          echo "$PR_NUMBER" > pr-meta/pr_number.txt
+          echo "$PR_DRAFT" > pr-meta/pr_draft.txt
+          echo "$DOC_FLAG" > pr-meta/doc_flag.txt
+
+      - name: Upload PR metadata
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-meta
+          path: pr-meta
+          if-no-files-found: error
 
 
   tests:
@@ -70,17 +91,3 @@ jobs:
     uses: ./.github/workflows/call_test_minimal.yml
     with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
-
-  tests_publish:
-    name: tests_publish
-    needs: [tests, get_information]
-    if: |
-      ${{ github.event.pull_request.draft == false
-          || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
-        }}
-    permissions:
-      pull-requests: write
-    secrets: inherit
-    uses: ./.github/workflows/call_publish_result.yml
-    with:
-      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}

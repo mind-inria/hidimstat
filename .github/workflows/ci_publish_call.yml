@@ -1,0 +1,60 @@
+name: 'CI Publish'
+on:
+  workflow_run:
+    workflows: ['CI', 'CI maintenance']
+    types: [completed]
+
+# disable all the permission for the workflow by default
+permissions: {}
+
+jobs:
+  gather_metadata:
+    name: Gather PR metadata
+    # Only proceed for PR-triggered runs of CI that succeeded.
+    # (ci.yml also runs on push, which has no pr-meta artifact to fetch.)
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read   # required to download artifacts from another run
+    outputs:
+      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME }}
+      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH }}
+    steps:
+      - name: Download PR metadata from the triggering run
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: pr-meta
+
+      - name: Read PR metadata
+        id: read_meta
+        run: |
+          BRANCH_NAME=$(cat pr-meta/branch_name.txt)
+          PR_DRAFT=$(cat pr-meta/pr_draft.txt)
+          DOC_FLAG=$(cat pr-meta/doc_flag.txt)
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
+            echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
+          else
+            echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
+          fi
+
+  tests_publish:
+    name: tests_publish
+    needs: [gather_metadata]
+    if: needs.gather_metadata.outputs.SHOULD_PUBLISH == 'true'
+    permissions:
+      pull-requests: write
+    secrets:
+      CIRCLE_CI_WRITE: ${{ secrets.CIRCLE_CI_WRITE }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    uses: ./.github/workflows/call_publish_result.yml
+    with:
+      BRANCH_NAME: ${{ needs.gather_metadata.outputs.BRANCH_NAME }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
