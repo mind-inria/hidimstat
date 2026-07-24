@@ -111,12 +111,12 @@ jobs:
       - checkout
       # Halt before the deploy key is ever loaded if this isn't a release branch
       - run:
-        name: "Skip deploy steps unless on a release branch"
-        command: |
-          if [[ ! "${CIRCLE_BRANCH}" =~ ^main$|^release_[0-9]+\.[0-9]+\.[0-9]$ ]]; then
-              echo "Branch ${CIRCLE_BRANCH} is not a release branch, skipping the rest of this job."
-              circleci-agent step halt
-            fi
+          name: "Skip deploy steps unless on a release branch"
+          command: |
+            if [[ ! "${CIRCLE_BRANCH}" =~ ^main$|^release_[0-9]+\.[0-9]+\.[0-9]$ ]]; then
+                echo "Branch ${CIRCLE_BRANCH} is not a release branch, skipping the rest of this job."
+                circleci-agent step halt
+              fi
       - add_ssh_keys:
           fingerprints:
             - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
