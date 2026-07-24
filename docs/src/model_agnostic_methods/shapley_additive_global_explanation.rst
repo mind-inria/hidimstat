@@ -63,7 +63,7 @@ satisfies the following properties:
 .. note:: **Relevance for machine learning**
 
     Initially rooted in game theory, it is not clear whether the properties
-    satisfied by SAGE values are relevant to quantify feature importance in
+    satisfied by SAGE values are desirable to quantify feature importance in
     machine learning. For instance, consider the simple case where
     :math:`Y = X^1`: a single feature is sufficient to predict the output. If
     we now add noisy copies of the first feature :math:`X^j = X^1 + \epsilon_j`,
