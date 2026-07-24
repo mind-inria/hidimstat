@@ -31,7 +31,8 @@ class EnsembleImportance(BaseVariableImportance):
     n_jobs : int or None, optional (default=1)
         Number of parallel jobs.
     random_state: int, optional (default=None)
-        Random seed for reproducible subsampling.
+        Random seed for reproducible subsampling. This will also set the `random_state`
+        parameter of the `vim` argument.
     aggregation : str, optional (default='quantiles')
         Method used for ensembling. Currently, the two available methods
         are 'quantiles' and 'median'.
