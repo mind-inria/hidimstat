@@ -15,7 +15,7 @@ from sklearn.datasets import fetch_california_housing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
-from hidimstat.visualization import ALE, PDP, CPIPlot
+from hidimstat.visualization import ALE, PDP, CPIPlot, LOCOPlot
 
 # %%
 
@@ -93,6 +93,13 @@ for feature in X.columns:
         X_test, X.columns.get_loc(feature), grid_resolution=50, version=0
     )
     add_metrics_box(ax_cpi[1], corr, r2_feat)
+    plt.show()
+
+    locoplot = LOCOPlot(model, feature_names=X.columns)
+    ax_loco = locoplot.plot(
+        X_test, y_test, X.columns.get_loc(feature), grid_resolution=50,
+    )
+    add_metrics_box(ax_loco[1], corr, r2_feat)
     plt.show()
 
 
