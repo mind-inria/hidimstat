@@ -13,17 +13,17 @@ from hidimstat.samplers.conditional_sampling import _check_data_type
 from .accumulated_local_effects import _predict_fn
 
 
-def compute_cpi_plot_1d_continuous(
+def compute_loco_plot_1d_continuous(
     estimator,
     X,
+    y,
     feature_idx,
     grid_resolution="auto",
     confidence_interval=True,
     confidence_level=0.95,
     percentiles=(5, 95),
-    version=0,
 ):
-    """Compute the 1D CPI-plot for a single continuous feature using binning.
+    """Compute the 1D LOCO-plot for a single continuous feature using binning.
 
     Parameters
     ----------
@@ -44,7 +44,7 @@ def compute_cpi_plot_1d_continuous(
           than requested.
 
     confidence_interval : bool, default=True
-        Whether to compute the confidence intervals of the CPI curve.
+        Whether to compute the confidence intervals of the LOCO curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
     percentiles : tuple of float, default=(5, 95)
@@ -53,11 +53,11 @@ def compute_cpi_plot_1d_continuous(
 
     Returns
     -------
-    cpi_plot : ndarray of shape (n_bins,)
-        CPI-plot values per bin.
+    loco_plot : ndarray of shape (n_bins,)
+        LOCO-plot values per bin.
     quantiles : ndarray of shape (n_quantiles,)
         Bin edges.
-    cpi_err : ndarray of shape (n_bins,) or None
+    loco_err : ndarray of shape (n_bins,) or None
         The margin of error for each bin at the specified confidence level.
         Returns `None` if `confidence_interval` is False.
     """
@@ -77,54 +77,32 @@ def compute_cpi_plot_1d_continuous(
 
     bin_idx = _bin_indices(x_j, quantiles)
 
-    # Estimator of X_j with X_{-j}
-    generator = HistGradientBoostingRegressor()
+    # Estimator of y with X_{-j}
+    estimator_minus_j = HistGradientBoostingRegressor()
 
     X_minus_j = np.delete(X, feature_idx, axis=1)
-    generator.fit(X_minus_j, x_j)
+    estimator_minus_j.fit(X_minus_j, y)
 
-    # Predict \eta_j(X_{-j}) and reconstruct perturbed dataset
-    eta_predictions = generator.predict(X_minus_j)
-    X_perturbed = X.copy()
-    X_perturbed[:, feature_idx] = eta_predictions
-
-    # Compute differences \Delta = \mu(X) - \mu(X_{-j}, \eta_j(X_{-j}))
+    # Compute differences \Delta = \mu(X) - \mu_{-j}(X_{-j})
     predictions_real = _predict_fn(estimator, X)
-    predictions_perturbed = _predict_fn(estimator, X_perturbed)
-    individual_deltas = predictions_real - predictions_perturbed
+    predictions_minus_j = _predict_fn(estimator_minus_j, X_minus_j)
+    individual_deltas = predictions_real - predictions_minus_j
 
-    if version == 0:
-        # Average within each bin
-        bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-        bin_sums = np.bincount(
-            bin_idx, weights=individual_deltas, minlength=n_bins
-        )
+    # Average within each bin
+    bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
+    bin_sums = np.bincount(
+        bin_idx, weights=individual_deltas, minlength=n_bins
+    )
 
-        cpi_plot = np.zeros(n_bins, dtype=float)
-        non_zero = bin_counts > 0
-        cpi_plot[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
-        cpi_plot -= np.sum(cpi_plot * bin_counts) / bin_counts.sum()
-
-    elif version == 1:
-        # ------------ TEST ---------------
-        N = len(X)
-        bin_idx_eta = _bin_indices(eta_predictions, quantiles)
-
-        diff_mask = bin_idx != bin_idx_eta
-        M = np.zeros((np.sum(diff_mask), n_bins), dtype=float)
-        row_indices = np.arange(len(M))
-
-        M[row_indices, bin_idx[diff_mask]] = 1.0
-        M[row_indices, bin_idx_eta[diff_mask]] = -1.0
-
-        cpi_plot, _, _, _ = np.linalg.lstsq(M, individual_deltas[diff_mask])
-        bin_counts = np.bincount(bin_idx, minlength=n_bins).astype(float)
-        cpi_plot -= np.sum(cpi_plot * bin_counts) / bin_counts.sum()
+    loco_plot = np.zeros(n_bins, dtype=float)
+    non_zero = bin_counts > 0
+    loco_plot[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+    loco_plot -= np.sum(loco_plot * bin_counts) / bin_counts.sum()
 
     # Compute confidence interval
-    cpi_err = None
+    loco_err = None
     if confidence_interval:
-        sample_means = cpi_plot[bin_idx]
+        sample_means = loco_plot[bin_idx]
         squared_deviations = (individual_deltas - sample_means) ** 2
         sum_sq_dev = np.bincount(
             bin_idx, weights=squared_deviations, minlength=n_bins
@@ -137,20 +115,21 @@ def compute_cpi_plot_1d_continuous(
         )
 
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        cpi_err = z_score * np.sqrt(var_of_mean)
+        loco_err = z_score * np.sqrt(var_of_mean)
 
-    return cpi_plot, quantiles, cpi_err
+    return loco_plot, quantiles, loco_err
 
 
-def compute_cpi_plot_1d_categorical(
+def compute_loco_plot_1d_categorical(
     estimator,
     X,
+    y,
     feature_idx,
     confidence_interval=True,
     confidence_level=0.95,
     percentiles=(5, 95),
 ):
-    """Compute the 1D CPI-plot for a single categorical feature per unique value.
+    """Compute the 1D LOCO-plot for a single categorical feature per unique value.
 
     Parameters
     ----------
@@ -161,7 +140,7 @@ def compute_cpi_plot_1d_categorical(
     feature_idx : int
         Column index of the feature of interest.
     confidence_interval : bool, default=True
-        Whether to compute the confidence intervals of the CPI curve.
+        Whether to compute the confidence intervals of the LOCO curve.
     confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
     percentiles : tuple of float, default=(5, 95)
@@ -172,9 +151,9 @@ def compute_cpi_plot_1d_categorical(
     -------
     dict
         A dictionary containing:
-        - "cpi_plot": ndarray of shape (n_values,) - CPI-plot values per unique value.
+        - "loco_plot": ndarray of shape (n_values,) - LOCO-plot values per unique value.
         - "unique_values": ndarray of shape (n_values,) - Distinct categories evaluated.
-        - "cpi_err": ndarray of shape (n_values,) or None - Margin of error per category.
+        - "loco_err": ndarray of shape (n_values,) or None - Margin of error per category.
     """
     if (
         not isinstance(percentiles, tuple)
@@ -211,20 +190,15 @@ def compute_cpi_plot_1d_categorical(
     value_idx = np.digitize(x_filtered, unique_values) - 1
 
     # Estimator of X_j with X_{-j}
-    generator = HistGradientBoostingRegressor()
+    estimator_minus_j = HistGradientBoostingRegressor()
 
     X_minus_j = np.delete(X_filtered, feature_idx, axis=1)
-    generator.fit(X_minus_j, x_filtered)
+    estimator_minus_j.fit(X_minus_j, y)
 
-    # Predict \eta_j(X_{-j}) and reconstruct perturbed dataset
-    eta_predictions = generator.predict(X_minus_j)
-    X_perturbed = X_filtered.copy()
-    X_perturbed[:, feature_idx] = eta_predictions
-
-    # Compute differences \Delta = \mu(X) - \mu(X_{-j}, \eta_j(X_{-j}))
+    # Compute differences \Delta = \mu(X) - \mu_{-j}(X_{-j})
     predictions_real = _predict_fn(estimator, X_filtered)
-    predictions_perturbed = _predict_fn(estimator, X_perturbed)
-    individual_deltas = predictions_real - predictions_perturbed
+    predictions_minus_j = _predict_fn(estimator_minus_j, X_minus_j)
+    individual_deltas = predictions_real - predictions_minus_j
 
     # Average within each bin
     value_counts = np.bincount(value_idx, minlength=n_values).astype(float)
@@ -232,14 +206,14 @@ def compute_cpi_plot_1d_categorical(
         value_idx, weights=individual_deltas, minlength=n_values
     )
 
-    cpi_plot = np.zeros(n_values, dtype=float)
+    loco_plot = np.zeros(n_values, dtype=float)
     non_zero = value_counts > 0
-    cpi_plot[non_zero] = value_sums[non_zero] / value_counts[non_zero]
+    loco_plot[non_zero] = value_sums[non_zero] / value_counts[non_zero]
 
     # Compute confidence interval
-    cpi_err = None
+    loco_err = None
     if confidence_interval:
-        sample_means = cpi_plot[value_idx]
+        sample_means = loco_plot[value_idx]
         squared_deviations = (individual_deltas - sample_means) ** 2
         sum_sq_dev = np.bincount(
             value_idx, weights=squared_deviations, minlength=n_values
@@ -252,17 +226,17 @@ def compute_cpi_plot_1d_categorical(
         )
 
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        cpi_err = z_score * np.sqrt(var_of_mean)
+        loco_err = z_score * np.sqrt(var_of_mean)
 
-    return cpi_plot, unique_values, cpi_err
+    return loco_plot, unique_values, loco_err
 
 
-class CPIPlot:
-    """Conditional Permutation Importance (CPI) visualization.
+class LOCOPlot:
+    """Leave One Covariate Out (LOCO) visualization.
 
-    CPI measures how the predictions of a model change on average when a
+    LOCO measures how the predictions of a model change on average when a
     feature's true value is compared against its conditionally predicted trend.
-    Unlike standard marginal plots (M-plots), CPI-plots isolate the unique marginal
+    Unlike standard marginal plots (M-plots), LOCO-plots isolate the unique marginal
     contribution of a feature by conditioning out the effect of its correlation with
     other features via an auxiliary generator :math:`\\eta_j(X_{-j})`.
 
@@ -281,16 +255,16 @@ class CPIPlot:
     def plot(
         self,
         X,
+        y,
         features,
         feature_type="auto",
         grid_resolution="auto",
         confidence_interval=True,
         confidence_level=0.95,
         percentiles=(5, 95),
-        version=0,
         **kwargs,
     ):
-        """Compute and display the CPI plot for a single feature.
+        """Compute and display the LOCO plot for a single feature.
 
         Parameters
         ----------
@@ -338,35 +312,38 @@ class CPIPlot:
 
         if feature_type == "continuous":
             plotting_func = self._plot_1d_continuous
-            cpi_plot, quantiles, cpi_err = compute_cpi_plot_1d_continuous(
+            loco_plot, quantiles, loco_err = compute_loco_plot_1d_continuous(
                 estimator=self.estimator,
                 X=X,
+                y=y,
                 feature_idx=features,
                 grid_resolution=grid_resolution,
                 confidence_interval=confidence_interval,
                 confidence_level=confidence_level,
                 percentiles=percentiles,
-                version=version,
             )
             result = {
-                "cpi_plot": cpi_plot,
+                "loco_plot": loco_plot,
                 "quantiles": quantiles,
-                "cpi_err": cpi_err,
+                "loco_err": loco_err,
             }
         else:
             plotting_func = self._plot_1d_categorical
-            cpi_plot, unique_values, cpi_err = compute_cpi_plot_1d_categorical(
-                estimator=self.estimator,
-                X=X,
-                feature_idx=features,
-                confidence_interval=confidence_interval,
-                confidence_level=confidence_level,
-                percentiles=percentiles,
+            loco_plot, unique_values, loco_err = (
+                compute_loco_plot_1d_categorical(
+                    estimator=self.estimator,
+                    X=X,
+                    y=y,
+                    feature_idx=features,
+                    confidence_interval=confidence_interval,
+                    confidence_level=confidence_level,
+                    percentiles=percentiles,
+                )
             )
             result = {
-                "cpi_plot": cpi_plot,
+                "loco_plot": loco_plot,
                 "unique_values": unique_values,
-                "cpi_err": cpi_err,
+                "loco_err": loco_err,
             }
 
         if self.feature_names is not None:
@@ -390,7 +367,7 @@ class CPIPlot:
         feature_names,
         **kwargs,
     ):
-        """Render a 1D continuous CPI-plot with a marginal density strip."""
+        """Render a 1D continuous LOCO-plot with a marginal density strip."""
         feature_values = X[:, feature_ids[0]]
         centers = (result["quantiles"][1:] + result["quantiles"][:-1]) / 2
         low, high = centers.min(), centers.max()
@@ -412,12 +389,12 @@ class CPIPlot:
         ax_top.yaxis.set_visible(False)
 
         ax_main = axes[1]
-        sns.lineplot(x=centers, y=result["cpi_plot"], ax=ax_main, **kwargs)
-        if result["cpi_err"] is not None:
+        sns.lineplot(x=centers, y=result["loco_plot"], ax=ax_main, **kwargs)
+        if result["loco_err"] is not None:
             ax_main.fill_between(
                 centers,
-                result["cpi_plot"] - result["cpi_err"],
-                result["cpi_plot"] + result["cpi_err"],
+                result["loco_plot"] - result["loco_err"],
+                result["loco_plot"] + result["loco_err"],
                 color="b",
                 alpha=0.15,
             )
@@ -425,7 +402,7 @@ class CPIPlot:
         ax_main.axhline(0, color="grey", linewidth=0.8, linestyle="--")
         ax_main.set_xlim(low - margin, high + margin)
         ax_main.set_xlabel(feature_names[0])
-        ax_main.set_ylabel("CPI plot")
+        ax_main.set_ylabel("LOCO plot")
 
         sns.despine(ax=ax_main)
         plt.tight_layout()
@@ -439,7 +416,7 @@ class CPIPlot:
         feature_names,
         **kwargs,
     ):
-        """Render a 1D categorical CPI-plot with a marginal density histogram."""
+        """Render a 1D categorical LOCO-plot with a marginal density histogram."""
         feature_values = X[:, feature_ids[0]]
         unique_values = result["unique_values"]
 
@@ -472,16 +449,16 @@ class CPIPlot:
         ax_main = axes[1]
         sns.lineplot(
             x=unique_values,
-            y=result["cpi_plot"],
+            y=result["loco_plot"],
             ax=ax_main,
             marker="o",
             **kwargs,
         )
-        if result["cpi_err"] is not None:
+        if result["loco_err"] is not None:
             ax_main.fill_between(
                 unique_values,
-                result["cpi_plot"] - result["cpi_err"],
-                result["cpi_plot"] + result["cpi_err"],
+                result["loco_plot"] - result["loco_err"],
+                result["loco_plot"] + result["loco_err"],
                 color="b",
                 alpha=0.15,
             )
@@ -491,7 +468,7 @@ class CPIPlot:
         if unique_values.dtype.kind in "iuf":
             ax_main.set_xlim(low - 0.6, high + 0.6)
         ax_main.set_xlabel(feature_names[0])
-        ax_main.set_ylabel("CPI plot")
+        ax_main.set_ylabel("LOCO plot")
 
         sns.despine(ax=ax_main)
         plt.tight_layout()

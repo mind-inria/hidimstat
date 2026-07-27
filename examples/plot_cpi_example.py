@@ -19,6 +19,7 @@ from hidimstat.visualization import ALE, PDP, CPIPlot
 
 # %%
 
+
 def add_metrics_box(ax, corr, r2_feat, loc="upper left"):
     text_str = f"Corr = {corr:.3f}\nR² = {r2_feat:.3f}"
 
@@ -44,6 +45,7 @@ def add_metrics_box(ax, corr, r2_feat, loc="upper left"):
         horizontalalignment=ha,
         bbox=bbox_props,
     )
+
 
 # %%
 # Test initial version
@@ -76,7 +78,6 @@ for feature in X.columns:
     corr = np.corrcoef(y_feat_test, y_feat_pred)[0, 1]
     r2_feat = variable.score(X_test_minus, y_feat_test)
 
-
     display = ALE(model, feature_names=X.columns)
     ax_ale = display.plot(
         X_test,
@@ -86,7 +87,6 @@ for feature in X.columns:
     )
     add_metrics_box(ax_ale[1], corr, r2_feat)
     plt.show()
-
 
     cpiplot = CPIPlot(model, feature_names=X.columns)
     ax_cpi = cpiplot.plot(
