@@ -193,13 +193,14 @@ def compute_ale_1d(
 
     def _compute_ale_curve(X_sample):
         """Internal closure to compute the ALE curve on a fixed grid."""
+        X_j_sample = X_sample[:, feature_idx]
+        X_low = X_sample.copy()
+        X_high = X_sample.copy()
+
         if feature_type == "continuous":
-            X_j_sample = X_sample[:, feature_idx]
             bin_idx = _bin_indices(X_j_sample, grid_values)
 
             # For each sample, evaluate the model at the lower and upper edge of its bin
-            X_low = X_sample.copy()
-            X_high = X_sample.copy()
             X_low[:, feature_idx] = grid_values[bin_idx]
             X_high[:, feature_idx] = grid_values[bin_idx + 1]
 
@@ -212,12 +213,9 @@ def compute_ale_1d(
             min_weight_bin = 0
 
         else:
-            X_j_sample = X_sample[:, feature_idx]
             value_idx = np.digitize(X_j_sample, grid_values) - 1
 
             # For each sample, evaluate the model at the lower and upper edge of its bin
-            X_low = X_sample.copy()
-            X_high = X_sample.copy()
             mask_low = X_j_sample != grid_values[0]
             mask_high = X_j_sample != grid_values[-1]
             X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
