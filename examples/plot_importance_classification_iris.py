@@ -52,7 +52,7 @@ spurious_feat = X[:, 2] + X[:, 3]
 spurious_feat += rng.normal(size=X.shape[0], scale=np.std(spurious_feat) / 2)
 X = np.hstack([X, spurious_feat.reshape(-1, 1)])
 
-dataset.feature_names = dataset.feature_names + ["spurious_feat"]
+dataset.feature_names = [*dataset.feature_names, "spurious_feat"]
 
 
 # %%
@@ -69,7 +69,7 @@ def run_one_fold(
     train_index,
     test_index,
     vim_name="CFI",
-    groups=None,
+    features_groups=None,
 ):
     model_c = clone(model)
     model_c.fit(X[train_index], y[train_index])
@@ -88,12 +88,14 @@ def run_one_fold(
         vim = CFI(
             estimator=model_c,
             imputation_model_continuous=RidgeCV(
-                alphas=np.logspace(-3, 3, 10), cv=KFold(shuffle=True, random_state=1)
+                alphas=np.logspace(-3, 3, 10),
+                cv=KFold(shuffle=True, random_state=1),
             ),
             n_permutations=50,
             random_state=2,
             method=method,
             loss=loss,
+            features_groups=features_groups,
         )
     elif vim_name == "PFI":
         vim = PFI(
@@ -102,14 +104,15 @@ def run_one_fold(
             random_state=3,
             method=method,
             loss=loss,
+            features_groups=features_groups,
         )
 
-    vim.fit(X[train_index], y[train_index], groups=groups)
-    importance = vim.importance(X[test_index], y[test_index])["importance"]
+    vim.fit(X[train_index], y[train_index])
+    importance = vim.importance(X[test_index], y[test_index])
 
     return pd.DataFrame(
         {
-            "feature": groups.keys(),
+            "feature": features_groups.keys(),
             "importance": importance,
             "vim": vim_name,
             "model": model_name,
@@ -132,6 +135,7 @@ models = [
         tol=1e-3,
         max_iter=1000,
         cv=KFold(shuffle=True, random_state=4),
+        l1_ratios=(0,),
     ),
     GridSearchCV(
         SVC(kernel="rbf"),
@@ -140,10 +144,16 @@ models = [
     ),
 ]
 cv = KFold(n_splits=5, shuffle=True, random_state=6)
-groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
+features_groups = {ft: [i] for i, ft in enumerate(dataset.feature_names)}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
-        X, y, model, train_index, test_index, vim_name=vim_name, groups=groups
+        X,
+        y,
+        model,
+        train_index,
+        test_index,
+        vim_name=vim_name,
+        features_groups=features_groups,
     )
     for train_index, test_index in cv.split(X)
     for model in models
@@ -193,7 +203,7 @@ df_pval = compute_pval(df, threshold=threshold)
 # ----------------------------
 def plot_results(df_importance, df_pval):
     fig, axes = plt.subplots(1, 2, figsize=(6, 3), sharey=True)
-    for method, ax in zip(["CFI", "PFI"], axes):
+    for method, ax in zip(["CFI", "PFI"], axes, strict=False):
         df_method = df_importance[df_importance["vim"] == method]
         legend = ax == axes[0]
         sns.stripplot(
@@ -245,7 +255,7 @@ def plot_results(df_importance, df_pval):
     )
     fig.legend(
         handles=handles,
-        labels=labels + [f"pval < {threshold}"],
+        labels=[*labels, f"pval < {threshold}"],
         loc="center",
         bbox_to_anchor=(0.6, 0.82),
         ncol=3,
@@ -279,16 +289,22 @@ plot_results(df, df_pval)
 # mitigate this issue, we can group correlated features together and measure the
 # importance of these feature groups. For instance, we can group 'sepal width' with
 # 'sepal length' and 'petal length' with 'petal width' and the spurious feature.
-groups = {"sepal features": [0, 1], "petal features": [2, 3, 4]}
+features_groups = {"sepal features": [0, 1], "petal features": [2, 3, 4]}
 out_list = Parallel(n_jobs=5)(
     delayed(run_one_fold)(
-        X, y, model, train_index, test_index, vim_name=vim_name, groups=groups
+        X,
+        y,
+        model,
+        train_index,
+        test_index,
+        vim_name=vim_name,
+        features_groups=features_groups,
     )
     for train_index, test_index in cv.split(X)
     for model in models
     for vim_name in ["CFI", "PFI"]
 )
 
-df_grouped = pd.concat(out_list)
-df_pval = compute_pval(df_grouped, threshold=threshold)
-plot_results(df_grouped, df_pval)
+df_features_grouped = pd.concat(out_list)
+df_pval = compute_pval(df_features_grouped, threshold=threshold)
+plot_results(df_features_grouped, df_pval)

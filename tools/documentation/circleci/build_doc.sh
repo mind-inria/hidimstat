@@ -81,7 +81,7 @@ get_build_type() {
             echo "$pattern"
             return
         fi
-        # case where there is no modified example 
+        # case where there is no modified example
         echo QUICK BUILD: no examples/ filename modified in $git_range:
         echo "$filenames"
         return
@@ -96,7 +96,7 @@ then
     exit 0
 fi
 # generate all the example if it's push on main or on a previous version
-if [[ "$CIRCLE_BRANCH" =~ ^main$|^[0-9]+\.[0-9]+\.X$ && -z "$CI_PULL_REQUEST" ]]
+if [[ "$CIRCLE_BRANCH" =~ ^main$|^release\_[0-9]+\.[0-9]+\.[0-9]$ && -z "$CI_PULL_REQUEST" ]]
 then
     make_args="html"
 elif [[ "$build_type" =~ ^QUICK ]]
@@ -114,7 +114,7 @@ else
 fi
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd docs && make $make_args 2>&1 | tee ~/output_sphinx.txt
+set -o pipefail && cd docs && make N_JOB=2 $make_args 2>&1 | tee ~/output_sphinx.txt
 cd -
 
 set +o pipefail
@@ -125,13 +125,13 @@ affected_doc_paths() {
     files=$(git diff --name-only origin/main...$CIRCLE_SHA1)
     # list of the modified documentation files
     echo "$files" | grep ^docs/src/.*\.rst | sed 's/^docs\/src\/\(.*\)\.rst$/\1.html/'
-    # list of the modified examples 
+    # list of the modified examples
     echo "$files" | grep ^examples/.*.py | sed 's/^\(.*\)\.py$/generated\/gallery\/\1.html/'
     # list of the modified source file
     project_files=$(echo "$files" | grep 'src/hidimstat/')
     if [ -n "$project_files" ]
     then
-        grep -hlR -f<(echo "$project_files" | sed 's/src\/hidimstat\//hidimstat\./') docs/_build/html/generated | cut -d/ -f4- 
+        grep -hlR -f<(echo "$project_files" | sed 's/src\/hidimstat\//hidimstat\./') docs/_build/html/generated | cut -d/ -f4-
     fi
 }
 

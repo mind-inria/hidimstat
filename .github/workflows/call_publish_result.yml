@@ -3,6 +3,11 @@ name: Publish Tests
 on:
   # Allows you to run this workflow from another workflow
   workflow_call:
+    inputs:
+      BRANCH_NAME:
+        description: 'The name of the branch'
+        required: true
+        type: string
 
 # disable all the permission for the workflow
 permissions: {}
@@ -15,13 +20,13 @@ jobs:
     env:
       TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
     steps:
-      # get reports from previous job 
+      # get reports from previous job
       - name: Get HTML reports
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: pytest-results-html-*-os-*
       - name: Get time reports
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: pytest-results-log-*-os-*
       # put all the reports in one folder and add an index
@@ -38,7 +43,7 @@ jobs:
           mv index.html reports
       - name: upload the reports
         id: upload_all
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pytest-results-all
           path: reports
@@ -51,9 +56,9 @@ jobs:
           PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
           #PULL_REQUEST_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           # get the branch of the PR
-          if [ $PULL_REQUEST_NUMBER == "null" ] 
-          then 
-            BRANCH=main
+          if [ $PULL_REQUEST_NUMBER == "null" ]
+          then
+            BRANCH=${{ inputs.BRANCH_NAME }}
           else
             BRANCH=pull/$PULL_REQUEST_NUMBER/head
           fi
@@ -74,7 +79,7 @@ jobs:
           # display result for debugging
           cat result_post.txt
           # if there is no "id" in result_post, this mean that there is an error
-          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token 
+          # this is not apply to fork repository because they doesn't have access to the CIRCLE_CI token
           # this is not apply also for dependabot
           if [[ $http_response == '201' \
                || ( ${{ ! github.event.pull_request.head.repo.fork }} \
@@ -91,14 +96,14 @@ jobs:
     # name for files
     env:
       OS: 'macos-latest'
-      PYTHON: '3.13'
+      PYTHON: '3.14'
     steps:
     # initialize the reposititory
-    - uses: actions/checkout@v5
-    
-    # get coverage only for 1 job 
+    - uses: actions/checkout@v7
+
+    # get coverage only for 1 job
     - name: Get data
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v8
       with:
         pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
         path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
@@ -112,7 +117,7 @@ jobs:
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
       if: ${{ env.FILE_SIZE > 1 }}
-      uses: codecov/codecov-action@v5.5.1
+      uses: codecov/codecov-action@v7.0.0
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true

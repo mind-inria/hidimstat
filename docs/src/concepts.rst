@@ -1,6 +1,14 @@
 .. _concepts:
 
 
-======================
-Definition of concepts
-======================
+=================
+General concepts
+=================
+
+.. toctree::
+   :maxdepth: 2
+
+   concepts/general_concepts
+   concepts/statistical_guarantees
+   concepts/glm_coefficient
+   concepts/total_sobol_index

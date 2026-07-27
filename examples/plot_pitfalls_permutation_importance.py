@@ -9,26 +9,11 @@ importance and does not provide statistical control over the risk of making fals
 discoveries, i.e., the risk of declaring a variable as important when it is not.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import seaborn as sns
-from matplotlib.lines import Line2D
-from scipy.stats import ttest_1samp
-from sklearn.base import clone
-from sklearn.compose import TransformedTargetRegressor
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import RidgeCV
-from sklearn.metrics import r2_score
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.neural_network import MLPRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-
-from hidimstat import CFI, PFI
-from hidimstat.conditional_sampling import ConditionalSampler
-
+# %%
 # Define the seeds for the reproducibility of the example
+
+import numpy as np
+
 rng = np.random.default_rng(0)
 
 # %%
@@ -37,6 +22,11 @@ rng = np.random.default_rng(0)
 # The California housing dataset is a regression dataset with 8 features. We add a
 # spurious feature that is a linear combination of 3 features plus some noise.
 # The spurious feature does not provide any additional information about the target.
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
 
 dataset = fetch_california_housing()
 X_, y_ = dataset.data, dataset.target
@@ -53,7 +43,7 @@ redundant_coef = rng.choice(np.arange(X.shape[1]), size=(3,), replace=False)
 X_spurious = X[:, redundant_coef].sum(axis=1)
 X_spurious += rng.normal(0, scale=np.std(X_spurious) * 0.5, size=X.shape[0])
 X = np.hstack([X, X_spurious[:, np.newaxis]])
-feature_names = dataset.feature_names + ["Spurious"]
+feature_names = [*dataset.feature_names, "Spurious"]
 print(f"The dataset contains {X.shape[0]} samples and {X.shape[1]} features.")
 
 # Compute the correlation matrix
@@ -86,13 +76,22 @@ plt.show()
 # We fit a neural network model to the California housing dataset. PFI is a
 # model-agnostic method, we therefore illustrate its behavior when using a neural
 # network model.
+
+from sklearn.base import clone
+from sklearn.compose import TransformedTargetRegressor
+from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold
+from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+
 fitted_estimators = []
 scores = []
 model = TransformedTargetRegressor(
     regressor=make_pipeline(
         StandardScaler(),
         MLPRegressor(
-            random_state=2,
+            random_state=0,
             hidden_layer_sizes=(32, 16, 8),
             early_stopping=True,
             learning_rate_init=0.01,
@@ -103,7 +102,7 @@ model = TransformedTargetRegressor(
 )
 
 
-kf = KFold(n_splits=5, shuffle=True, random_state=3)
+kf = KFold(n_splits=5, shuffle=True, random_state=0)
 for train_index, test_index in kf.split(X):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -114,7 +113,9 @@ for train_index, test_index in kf.split(X):
     y_pred = model_c.predict(X_test)
     scores.append(r2_score(y_test, y_pred))
 
-print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}")
+print(
+    f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}"
+)
 
 # %%
 # Measure the importance of variables using the PFI method
@@ -123,9 +124,13 @@ print(f"Cross-validation R2 score: {np.mean(scores):.3f} ± {np.std(scores):.3f}
 # way. We then derive a p-value from importance scores using a one-sample t-test.
 # As shown in the figure below, the PFI method does not provide valid p-values for
 # testing conditional importance, as it identifies the spurious feature as important.
+
+from scipy.stats import ttest_1samp
+
+from hidimstat import PFI
+
 permutation_importances = []
 conditional_permutation_importances = []
-kf = KFold(n_splits=5)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -137,11 +142,11 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
         model_c,
         n_permutations=50,
         n_jobs=5,
-        random_state=4,
+        random_state=0,
     )
     pfi.fit(X_test, y_test)
 
-    permutation_importances.append(pfi.importance(X_test, y_test)["importance"])
+    permutation_importances.append(pfi.importance(X_test, y_test))
 permutation_importances = np.stack(permutation_importances)
 pval_pfi = ttest_1samp(
     permutation_importances, 0.0, axis=0, alternative="greater"
@@ -152,7 +157,9 @@ pval_pfi = ttest_1samp(
 pval_threshold = 0.05
 # Create a horizontal boxplot of permutation importances
 fig, ax = plt.subplots()
-sns.barplot(permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5)
+sns.barplot(
+    permutation_importances, orient="h", color="tab:blue", capsize=0.2, seed=5
+)
 ax.set_xlabel("Permutation Importance")
 # Add asterisks for features with p-values below the threshold
 for i, pval in enumerate(pval_pfi):
@@ -188,8 +195,13 @@ plt.show()
 # intrinsic information of the feature of interest while leaving the information that is
 # explained by the other features unchanged. This method is valid for testing conditional
 # importance. As shown below, it does not identify the spurious feature as important.
+
+import pandas as pd
+from sklearn.linear_model import RidgeCV
+
+from hidimstat import CFI
+
 conditional_importances = []
-kf = KFold(n_splits=5)
 for i, (train_index, test_index) in enumerate(kf.split(X)):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
@@ -203,12 +215,12 @@ for i, (train_index, test_index) in enumerate(kf.split(X)):
             alphas=np.logspace(-3, 3, 5),
             cv=KFold(n_splits=3),
         ),
-        random_state=7,
+        random_state=0,
         n_jobs=5,
     )
     cfi.fit(X_test, y_test)
 
-    conditional_importances.append(cfi.importance(X_test, y_test)["importance"])
+    conditional_importances.append(cfi.importance(X_test, y_test))
 
 
 cfi_pval = ttest_1samp(
@@ -256,21 +268,25 @@ plt.show()
 # longitude that fall outside of the borders of California and therefore are by
 # definition not in the training data. This is not the case for the conditional
 # permutation that generates perturbed but reasonable values of longitude.
+
+from matplotlib.lines import Line2D
+
+from hidimstat.samplers.conditional_sampling import ConditionalSampler
+
 X_train, X_test = train_test_split(
     X,
     test_size=0.3,
-    random_state=8,
+    random_state=0,
 )
 
 conditional_sampler = ConditionalSampler(
-    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5), cv=KFold(n_splits=3)),
-    random_state=10,
+    model_regression=RidgeCV(alphas=np.logspace(-3, 3, 5)),
 )
 
 
 conditional_sampler.fit(X_train[:, :7], X_train[:, 7])
 X_test_sample = conditional_sampler.sample(
-    X_test[:, :7], X_test[:, 7], n_samples=1
+    X_test[:, :7], X_test[:, 7], n_samples=1, random_state=0
 ).ravel()
 # sphinx_gallery_thumbnail_number = 4
 fig, ax = plt.subplots()

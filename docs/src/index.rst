@@ -15,7 +15,7 @@ spatially structured data.
 Installation
 ------------
 
-HiDimStat working only with Python 3, ideally Python 3.6+. For installation,
+HiDimStat working only with Python 3, ideally Python 3.10+. For installation,
 run the following from terminal::
 
   pip install hidimstat
@@ -35,11 +35,12 @@ HiDimStat depends on the following packages::
 
   joblib
   numpy
+  pandas
   scipy
   scikit-learn
-  pandas
+  tqdm
 
-To run examples it is necessary to install ``matplotlib``, and to run tests it
+To run examples it is necessary to install ``seaborn``, and to run tests it
 is also needed to install ``pytest``.
 
 
@@ -47,7 +48,7 @@ Documentation & Examples
 ------------------------
 
 Documentation about the main HiDimStat functions is available
-:ref:`here <api_documentation>` 
+:ref:`here <api_documentation>`
 and examples are available
 :ref:`there <general_examples>`.
 
@@ -110,7 +111,7 @@ Other useful references
 
 .. |Build| image:: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml?branch=main
-  
+
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
    :target: https://circleci.com/gh/mind-inria/hidimstat
 
@@ -125,7 +126,7 @@ References
 ----------
 .. bibliography:: ../tools/references.bib
 
-  
+
 .. toctree::
   :hidden:
   :maxdepth: 1
@@ -133,4 +134,6 @@ References
   api
   user_guide
   generated/gallery/examples/index
+  glossary_and_notations
+  whats_news/whats_news
   dev/index

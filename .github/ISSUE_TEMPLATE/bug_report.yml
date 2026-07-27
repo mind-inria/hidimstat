@@ -1,0 +1,48 @@
+name: Bug Report
+description: Create a report to help us improve HiDimStat
+title: "[BUG] <Please write a comprehensive title after the '[BUG] ' prefix>"
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for taking the time to file a bug report.
+  - type: markdown
+    attributes:
+        value: Before continuing, please check existing issues to avoid duplicates.
+  - type: checkboxes
+    attributes:
+        label: Please confirm that you have searched existing issues in the repository.
+        description: You can do this by searching https://github.com/mind-inria/hidimstat/issues and making sure the bug is not related to another existing issue.
+        options:
+            - label: 'Yes'
+              required: true
+  - type: textarea
+    attributes:
+      label: Describe your issue.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproducing Code Example
+      description: 'Paste the Reproducing code example and it will be rendered as a code block. Please try to reduce the code to its minimum, and the use of external dependencies as best as possible.'
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Error message
+      description: 'If any, paste the *full* error message as above (starting from line Traceback) and it will be rendered as a code block'
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: HiDimStat/Python version, required external dependency version
+      description: 'Please run the following and paste the result here - `import hidimstat, sys; print(hidimstat.__version__, sys.version_info)`'
+      render: shell
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: Thank you for contributing !
