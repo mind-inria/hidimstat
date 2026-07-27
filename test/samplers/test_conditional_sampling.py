@@ -61,7 +61,9 @@ def test_binary_case(rng):
     n = 1000
 
     sampler = ConditionalSampler(
-        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
+        ),
         data_type="categorical",
     )
 
@@ -90,7 +92,9 @@ def test_binary_case(rng):
 
     sampler = ConditionalSampler(
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
-        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
+        ),
         data_type="auto",
     )
     X = rng.multivariate_normal(mean=[0, 0], cov=[[1, 0.0], [0.0, 1]], size=n)
@@ -199,7 +203,7 @@ def test_group_case_binary_case():
     )
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0  # noqa : NPY002
 
-    model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
+    model = LogisticRegressionCV(Cs=np.logspace(-2, 2, 10), l1_ratios=(0,))
     sampler = ConditionalSampler(
         model_categorical=model, data_type="categorical"
     )
@@ -238,7 +242,9 @@ def test_sample_categorical(rng):
     X[:, 3:][np.where(X[:, 3:] == 0)] = 1
 
     sampler = ConditionalSampler(
-        model_categorical=LogisticRegressionCV(Cs=np.logspace(-2, 2, 10)),
+        model_categorical=LogisticRegressionCV(
+            Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
+        ),
         data_type="categorical",
     )
 
@@ -256,7 +262,7 @@ def test_sample_categorical(rng):
     # Using a provided OneVsRestClassifier
     sampler = ConditionalSampler(
         model_categorical=OneVsRestClassifier(
-            LogisticRegressionCV(Cs=np.logspace(-2, 2, 10))
+            LogisticRegressionCV(Cs=np.logspace(-2, 2, 10), l1_ratios=(0,))
         ),
         data_type="categorical",
     )

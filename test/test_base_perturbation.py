@@ -3,9 +3,19 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
+from .conftest import _rng, check_estimator
+
+
+def _fitted_linear_regression():
+    X = _rng().integers(0, 2, size=(100, 2, 1))
+    estimator = LinearRegression()
+    estimator.fit(X[:, 0], X[:, 1])
+    return estimator
+
 
 ESTIMATORS_TO_CHECK = [
     BasePerturbation(estimator=fitted_linear_regression()),

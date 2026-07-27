@@ -15,6 +15,7 @@ from sklearn.utils._testing import ignore_warnings
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.desparsified_lasso import (
     DesparsifiedLasso,
     desparsified_lasso_importance,
@@ -22,7 +23,7 @@ from hidimstat.desparsified_lasso import (
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-from .conftest import SKLEARN_LT_1_6, check_estimator
+from .conftest import check_estimator
 
 ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 
