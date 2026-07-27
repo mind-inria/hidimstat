@@ -129,20 +129,6 @@ class ClusterImportance(BaseVariableImportance):
         self.importance(X, y)
         return self.importances_
 
-    def fdr_selection(self, fdr):
-        """
-        Overrides the default signature to use the default signature of the underlying vim.
-        """
-        vim_sig = inspect.signature(self.vim_.fdr_selection)
-        # get the default values of the fdr_selection method of the chosen vim.
-        vim_default_args = [
-            p.default
-            for p in vim_sig.parameters.values()
-            if p.default is not inspect.Parameter.empty
-        ]
-
-        return super().fdr_selection(fdr, *vim_default_args)
-
     @staticmethod
     def _ungroup_importance(importance, n_features, ward):
         """

@@ -213,23 +213,6 @@ class EnsembleImportance(BaseVariableImportance):
         self.importance(X, y)
         return self.importances_
 
-    def fdr_selection(
-        self,
-        fdr,
-        fdr_control="bhq",
-        reshaping_function=None,
-        two_tailed_test=True,
-    ):
-        """
-        Overrides the signature to set two_tailed_test=True by default.
-        """
-        return super().fdr_selection(
-            fdr=fdr,
-            fdr_control=fdr_control,
-            reshaping_function=reshaping_function,
-            two_tailed_test=two_tailed_test,
-        )
-
     def _check_fit(self):
         """
         Check that the ensemble has been fitted.
