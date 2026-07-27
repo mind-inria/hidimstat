@@ -16,7 +16,7 @@ from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
-def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
+def set_alpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
     """
     Configure a LassoCV estimator's regularization path for concatenated features.
 
@@ -33,10 +33,10 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
     estimator : sklearn.linear_model.LassoCV
         LassoCV instance to configure. This function modifies estimator.alphas
         in-place and returns the same estimator.
-    X : array-like, shape (n_samples, n_features)
-        Original feature matrix.
-    X_tilde : array-like, shape (n_samples, n_features)
-        Knockoff/auxiliary feature matrix (must have same n_features as X).
+    X_ko : array-like, shape (n_samples, 2*n_features)
+        Column concatenation of original and knockoff feature matrices.
+    n_features : int
+        Number of features for matrix X_ko.
     y : array-like, shape (n_samples,)
         Target vector.
     n_alphas : int, default=20
@@ -62,9 +62,6 @@ def set_alpha_max_lasso_path(estimator, X, X_tilde, y, n_alphas=20):
         raise TypeError(
             "You should not use this function to configure the estimator"
         )
-
-    n_features = X.shape[1]
-    X_ko = np.column_stack([X, X_tilde])
     alpha_max = np.max(np.dot(X_ko.T, y)) / (2 * n_features)
     alphas = np.linspace(alpha_max * np.exp(-n_alphas), alpha_max, n_alphas)
     estimator.alphas = alphas
@@ -99,8 +96,8 @@ class ModelXKnockoff(BaseVariableImportance):
     preconfigure_lasso_path : bool, default=True
         An optional function is called to configure the LassoCV estimator's regularization path.
         The maximum alpha is computed as `alpha_max = max(X_ko.T @ y) / (2 * n_features)`
-        and an alpha grid of length n_alphas is created between
-        alpha_max * exp(-n_alphas) and alpha_max.
+        and an alpha grid of length alphas is created between
+        alpha_max * exp(-alphas) and alpha_max.
     random_state : int or None, default=None
         Random seed forwarded to the knockoff generator sampling.
     joblib_verbose : int, default=0
@@ -111,7 +108,7 @@ class ModelXKnockoff(BaseVariableImportance):
     Attributes
     ----------
     importances_ : ndarray, shape (n_repeats, n_features)
-        Test statistics for each repeat.
+        Knockoff statistics :math:`W_j` for each original feature across repetitions.
     pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
     threshold_fdr_ : float
@@ -228,9 +225,8 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,)
-            Feature importance scores for each feature.
-            Higher absolute values indicate higher importance.
+        importances_ : ndarray of shape (n_repeats, n_features)
+            Knockoff statistics :math:`W_j` for each original feature across repetitions.
 
         Notes
         -----
@@ -272,9 +268,8 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features,)
-            Feature importance scores (p-values) for each feature.
-            Lower values indicate higher importance. Values range from 0 to 1.
+        importances_ : ndarray of shape (n_repeats, n_features)
+            Knockoff statistics :math:`W_j` for each original feature across repetitions.
 
         Notes
         -----
@@ -328,7 +323,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        numpy.ndarray
+        selected: numpy.ndarray of shape (n_features,)
             Boolean array indicating selected features (True for selected, False for not selected)
 
         Raises
@@ -393,26 +388,37 @@ class ModelXKnockoff(BaseVariableImportance):
         """
         Single fit of the estimator on the concatenated design matrix [X, X_tilde].
         """
+        n_features = X.shape[1]
+        X_ko = np.column_stack([X, X_tilde])
+
         estimator_ = clone(estimator)
         # Preconfigure the estimator if needed
         if preconfigure_lasso_path:
+            # TODO: remove isinstance(estimator_.alphas, str) when Sklearn minimum version is 1.9
             if hasattr(estimator_, "alphas") and (
                 estimator_.alphas is not None
+                and not isinstance(
+                    estimator_.alphas, str
+                )  # to avoid alphas="warn"
             ):
-                n_alphas = len(estimator_.alphas)
+                if isinstance(estimator_.alphas, int):
+                    n_alphas = estimator_.alphas
+                elif isinstance(estimator_.alphas, (list, np.ndarray)):
+                    n_alphas = len(estimator_.alphas)
             elif hasattr(estimator_, "n_alphas") and (
-                estimator_.n_alphas is not None
+                estimator_.n_alphas
+                is not None  # to avoid n_alphas="deprecated"
+                and not isinstance(estimator_.n_alphas, str)
             ):
                 n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
             estimator_ = set_alpha_max_lasso_path(
-                estimator_, X, X_tilde, y, n_alphas=n_alphas
+                estimator_, X_ko, n_features, y, n_alphas=n_alphas
             )
 
-        X_ = np.column_stack([X, X_tilde])
         estimator_ = seed_estimator(estimator_, random_state)
-        estimator_.fit(X_, y)
+        estimator_.fit(X_ko, y)
         return estimator_
 
     @staticmethod
@@ -441,7 +447,7 @@ class ModelXKnockoff(BaseVariableImportance):
         Returns
         -------
         test_statistic : ndarray, shape (n_repeats, n_features)
-            Knockoff statistics :math:`W_j` for each original feature across repeats. The number
+            Knockoff statistics :math:`W_j` for each original feature across repetitions. The number
             of repeats corresponds to the length of the estimators list.
         """
         test_statistic_list = []
@@ -507,12 +513,12 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Parameters
         ----------
-        test_score : 1D ndarray, shape (n_features, )
+        test_score : 1D ndarray, shape (n_features,)
             Vector of test statistics.
 
         Returns
         -------
-        pvals : 1D ndarray, shape (n_features, )
+        pvals : 1D ndarray, shape (n_features,)
             Vector of empirical p-values.
         """
         pvals = []
@@ -539,7 +545,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Parameters
         ----------
-        test_score : 1D ndarray, shape (n_features, )
+        test_score : 1D ndarray, shape (n_features,)
             Vector of test statistics.
 
         ko_threshold : float
@@ -547,7 +553,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        evals : 1D ndarray, shape (n_features, )
+        evals : 1D ndarray, shape (n_features,)
             Vector of empirical e-values.
         """
         evals = []
