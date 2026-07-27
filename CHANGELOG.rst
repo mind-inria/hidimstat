@@ -31,3 +31,4 @@ under development (0.3.2.dev0)
 - :bdg-secondary:`Maint`: Fix conditional sampling test by verifying that sampler produces diverse samples. (:gh:`692` by `Joseph Paillard`_).
 - :bdg-primary:`Doc` add documentation about test suite organization and general logic. (:gh:`712` by `Marc Hulcelle`_).
 - :bdg-success:`Feature`: Implement marginal SAGE (:gh:`674` by `Joseph Paillard`_).
+- :bdg-primary:`Doc`: Add section on SAGE in the user guide (:gh:`736` by `Joseph Paillard`_).
