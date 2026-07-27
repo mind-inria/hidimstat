@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.utils import _generate_group_mask
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -67,7 +68,7 @@ class CFI(BasePerturbation):
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
-        imputation_model_categorical=LogisticRegressionCV(),
+        imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
@@ -195,8 +196,11 @@ class CFI(BasePerturbation):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized.
         """
-        X_j = X[:, features_groups_ids].copy()
-        X_minus_j = np.delete(X, features_groups_ids, axis=1)
+        X_j = X[:, features_groups_ids]
+        mask = _generate_group_mask(
+            X.shape[1], features_groups_ids, selected=False
+        )
+        X_minus_j = X[:, mask]
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -224,10 +228,13 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(
-            X, self._features_groups_ids[features_group_id], axis=1
+        X_j = X[:, self._features_groups_ids[features_group_id]]
+        mask = _generate_group_mask(
+            X.shape[1],
+            self._features_groups_ids[features_group_id],
+            selected=False,
         )
+        X_minus_j = X[:, mask]
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,
             X_j,
@@ -244,7 +251,7 @@ def cfi_importance(
     loss: callable = mean_squared_error,
     n_permutations: int = 50,
     imputation_model_continuous=RidgeCV(),
-    imputation_model_categorical=LogisticRegressionCV(),
+    imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
     features_groups=None,
     feature_types="auto",
     categorical_max_cardinality: int = 10,
@@ -291,11 +298,11 @@ cfi_importance.__doc__ = _aggregate_docstring(
     """
     Returns
     -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics.
-    pvalues : ndarray of shape (n_features,)
+    selection : ndarray of shape (n_groups,)
+        Boolean array indicating selected feature groups (True = selected)
+    importances : ndarray of shape (n_groups,)
+        Feature group importance scores/test statistics.
+    pvalues : ndarray of shape (n_groups,)
         P-values for importance scores.
     """,
 )
@@ -372,7 +379,7 @@ class CFICV(BasePerturbationCV):
         loss=mean_squared_error,
         n_permutations=50,
         imputation_model_continuous=RidgeCV(),
-        imputation_model_categorical=LogisticRegressionCV(),
+        imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
         features_groups=None,
         feature_types="auto",
         categorical_max_cardinality=10,

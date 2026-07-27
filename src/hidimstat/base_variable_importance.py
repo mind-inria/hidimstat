@@ -295,7 +295,7 @@ class BaseVariableImportance(BaseEstimator):
 
         Returns
         -------
-        selected : ndarray of int
+        selected : ndarray of int of shape (n_features,)
             Integer array indicating the selected features.
             1 indicates selected features with positive effects,
             -1 indicates selected features with negative effects,
@@ -361,7 +361,7 @@ class BaseVariableImportance(BaseEstimator):
 
         Returns
         -------
-        selected : ndarray of int
+        selected : ndarray of int of shape (n_features,)
             Integer array indicating the selected features.
             1 indicates selected features with positive effects,
             -1 indicates selected features with negative effects,
@@ -446,7 +446,7 @@ class BaseVariableImportance(BaseEstimator):
                 ]
         elif isinstance(feature_names, list):
             assert np.all(isinstance(name, str) for name in feature_names), (
-                "The feature_names should be a list of the string"
+                "feature_names should be a list of strings"
             )
         else:
             raise ValueError("feature_names should be a list")
