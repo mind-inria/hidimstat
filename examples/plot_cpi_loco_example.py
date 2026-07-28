@@ -84,6 +84,7 @@ for feature in X.columns:
         X.columns.get_loc(feature),
         grid_resolution=50,
         confidence_interval=True,
+        percentiles=(0, 100),
     )
     add_metrics_box(ax_ale[1], corr, r2_feat)
     plt.show()
