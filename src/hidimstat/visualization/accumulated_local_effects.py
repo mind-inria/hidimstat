@@ -68,6 +68,104 @@ def _predict_fn(estimator, X, method="predict"):
     return pred.ravel()
 
 
+def _compute_ale_1d_curve(
+    estimator,
+    X_sample,
+    feature_idx,
+    feature_type,
+    grid_values,
+    method="predict",
+):
+    """Internal closure to compute the ALE 1D curve on a fixed grid.
+
+    Parameters
+    ----------
+    estimator : fitted sklearn-compatible estimator
+        Must expose `predict`, `predict_proba`, or `decision_function`.
+    X_sample : ndarray of shape (n_samples, n_features)
+        Training (or evaluation) dataset used to compute the ALE curve on the
+        given grid.
+    feature_idx : int
+        Column index of the feature of interest.
+    feature_type : string among "continuous", or "categorical"
+        Type of the numeric feature.
+    grid_values: ndarray
+        The grid used to compute the ALE curve.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
+    """
+    X_j_sample = X_sample[:, feature_idx]
+    X_low = X_sample.copy()
+    X_high = X_sample.copy()
+
+    if feature_type == "continuous":
+        n_bins = len(grid_values) - 1
+        bin_idx = _bin_indices(X_j_sample, grid_values)
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low[:, feature_idx] = grid_values[bin_idx]
+        X_high[:, feature_idx] = grid_values[bin_idx + 1]
+
+        local_effects = _predict_fn(estimator, X_high, method) - _predict_fn(
+            estimator, X_low, method
+        )  # shape (n_samples,)
+
+        combined_idx = bin_idx
+        combined_effects = local_effects
+        min_weight_bin = 0
+
+    else:
+        n_bins = len(grid_values)
+        value_idx = np.digitize(X_j_sample, grid_values) - 1
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        mask_low = X_j_sample != grid_values[0]
+        mask_high = X_j_sample != grid_values[-1]
+        X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
+        X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
+
+        local_effects_low = _predict_fn(
+            estimator, X_sample[mask_low], method
+        ) - _predict_fn(estimator, X_low[mask_low], method)
+        local_effects_high = _predict_fn(
+            estimator, X_high[mask_high], method
+        ) - _predict_fn(estimator, X_sample[mask_high], method)
+
+        # Average local effects within each bin
+        combined_idx = np.concatenate(
+            [value_idx[mask_low], value_idx[mask_high] + 1]
+        )
+        combined_effects = np.concatenate(
+            [local_effects_low, local_effects_high]
+        )
+        min_weight_bin = 1
+
+    # Average local effects within each bin
+    bin_counts = np.bincount(combined_idx, minlength=n_bins).astype(float)
+    bin_sums = np.bincount(
+        combined_idx, weights=combined_effects, minlength=n_bins
+    )
+
+    mean_effects = np.zeros(n_bins, dtype=float)
+    non_zero = bin_counts > 0
+    mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+
+    # Cumulative sum: uncentered ALE evaluated for each bin edge
+    if feature_type == "continuous":
+        ale_curve = np.array([0, *np.cumsum(mean_effects)])
+    else:
+        ale_curve = np.cumsum(mean_effects)
+
+    # Center: subtract the sample-weighted mean
+    ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
+    ale_curve -= (
+        np.sum(ale_centers * bin_counts[min_weight_bin:]) / bin_counts.sum()
+    )
+
+    return ale_curve
+
+
 def compute_ale_1d(
     estimator,
     X,
@@ -117,11 +215,11 @@ def compute_ale_1d(
     percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
         Must be in [0, 100].
-    confidence_level : float or None, default=0.95
+    confidence_level : float, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
-        If None, confidence intervals are not computed.
+        If set to 0, confidence intervals are not computed. Must be in [0, 1[.
     n_bootstraps : int, default=20
-        Number of bootstrap samples to generate if `confidence_level` is not None.
+        Number of bootstrap samples to generate if `confidence_level` is not 0.
     n_jobs : int, default=1
         Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
     random_state : int or None, default=None
@@ -136,7 +234,7 @@ def compute_ale_1d(
         and the unique values of the feature otherwise).
     ale_err : ndarray of shape (n_quantiles,) or None
         The margin of error for each quantile boundary at the specified confidence level.
-        Returns `None` if `confidence_level` is None.
+        Returns `None` if `confidence_level` is 0.
     """
     X = np.asarray(X)
     X_j = X[:, feature_idx]
@@ -189,97 +287,36 @@ def compute_ale_1d(
             "'feature_type' must be a string among 'continuous' and 'categorical'."
         )
 
-    def _compute_ale_curve(X_sample):
-        """Internal closure to compute the ALE curve on a fixed grid."""
-        X_j_sample = X_sample[:, feature_idx]
-        X_low = X_sample.copy()
-        X_high = X_sample.copy()
-
-        if feature_type == "continuous":
-            bin_idx = _bin_indices(X_j_sample, grid_values)
-
-            # For each sample, evaluate the model at the lower and upper edge of its bin
-            X_low[:, feature_idx] = grid_values[bin_idx]
-            X_high[:, feature_idx] = grid_values[bin_idx + 1]
-
-            local_effects = _predict_fn(
-                estimator, X_high, method
-            ) - _predict_fn(estimator, X_low, method)  # shape (n_samples,)
-
-            combined_idx = bin_idx
-            combined_effects = local_effects
-            min_weight_bin = 0
-
-        else:
-            value_idx = np.digitize(X_j_sample, grid_values) - 1
-
-            # For each sample, evaluate the model at the lower and upper edge of its bin
-            mask_low = X_j_sample != grid_values[0]
-            mask_high = X_j_sample != grid_values[-1]
-            X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
-            X_high[mask_high, feature_idx] = grid_values[
-                value_idx[mask_high] + 1
-            ]
-
-            local_effects_low = _predict_fn(
-                estimator, X_sample[mask_low], method
-            ) - _predict_fn(estimator, X_low[mask_low], method)
-            local_effects_high = _predict_fn(
-                estimator, X_high[mask_high], method
-            ) - _predict_fn(estimator, X_sample[mask_high], method)
-
-            # Average local effects within each bin
-            combined_idx = np.concatenate(
-                [value_idx[mask_low], value_idx[mask_high] + 1]
-            )
-            combined_effects = np.concatenate(
-                [local_effects_low, local_effects_high]
-            )
-            min_weight_bin = 1
-
-        # Average local effects within each bin
-        bin_counts = np.bincount(combined_idx, minlength=n_bins).astype(float)
-        bin_sums = np.bincount(
-            combined_idx, weights=combined_effects, minlength=n_bins
-        )
-
-        mean_effects = np.zeros(n_bins, dtype=float)
-        non_zero = bin_counts > 0
-        mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
-
-        # Cumulative sum: uncentered ALE evaluated for each bin edge
-        if feature_type == "continuous":
-            ale_curve = np.array([0, *np.cumsum(mean_effects)])
-        else:
-            ale_curve = np.cumsum(mean_effects)
-
-        # Center: subtract the sample-weighted mean
-        ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
-        ale_curve -= (
-            np.sum(ale_centers * bin_counts[min_weight_bin:])
-            / bin_counts.sum()
-        )
-
-        return ale_curve
-
     # Base calculation
-    ale = _compute_ale_curve(X_bootstrap)
+    ale = _compute_ale_1d_curve(
+        estimator,
+        X_bootstrap,
+        feature_idx=feature_idx,
+        feature_type=feature_type,
+        grid_values=grid_values,
+        method=method,
+    )
     ale_err = None
 
     # Confidence interval
-    if confidence_level is not None:
+    if confidence_level != 0:
         if n_bootstraps < 1:
             raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
         rng = check_random_state(random_state)
 
         bootstrap_curves = Parallel(n_jobs=n_jobs)(
-            delayed(_compute_ale_curve)(
+            delayed(_compute_ale_1d_curve)(
+                estimator,
                 X_bootstrap[
                     rng.choice(
                         len(X_bootstrap), size=len(X_bootstrap), replace=True
                     )
-                ]
+                ],
+                feature_idx=feature_idx,
+                feature_type=feature_type,
+                grid_values=grid_values,
+                method=method,
             )
             for _ in range(n_bootstraps)
         )
@@ -593,11 +630,12 @@ class ALE:
         percentiles : tuple of float, default=(5, 95)
             The lower and upper percentile used to create the extreme values for the grid.
             Must be in [0, 100].
-        confidence_level : float or None, default=0.95
+        confidence_level : float, default=0.95
             The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%)
-            for the 1D ALE curve. If None, confidence intervals are not computed.
+            for the 1D ALE curve. If set to 0, confidence intervals are not computed.
+            Must be in [0, 1[.
         n_bootstraps : int, default=20
-            Number of bootstrap samples to generate if `confidence_level` is not None.
+            Number of bootstrap samples to generate if `confidence_level` is not 0.
         n_jobs : int, default=1
             Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
         random_state : int or None, default=None
