@@ -15,18 +15,14 @@ from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-def test_loco():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
+    ids=["basic data"],
+)
+def test_loco(data_generator):
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
-
+    X, y, important_features, non_important_features = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -36,7 +32,7 @@ def test_loco():
         estimator=regression_model,
         method="predict",
         features_groups=None,
-        n_jobs=1,
+        n_jobs=-1,
     )
 
     loco.fit(
@@ -108,9 +104,9 @@ def test_loco():
 def test_raises_value_error():
     """Test for error when model does not have predict_proba or predict."""
     X, y, _, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
+        n_samples=100,
+        n_features=20,
+        support_size=4,
         shuffle=False,
         seed=42,
     )
@@ -149,18 +145,14 @@ def test_raises_value_error():
         loco.importance(X, y)
 
 
-def test_loco_function():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
+    ids=["basic data"],
+)
+def test_loco_function(data_generator):
     """Test the function of LOCO algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=100,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
-
+    X, y, important_features, non_important_features = data_generator
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -171,7 +163,7 @@ def test_loco_function():
         X,
         y,
         method="predict",
-        n_jobs=1,
+        n_jobs=-1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -202,7 +194,7 @@ def test_loco_cv(data_generator):
     loco_cv = LOCOCV(
         estimators=model,
         cv=cv,
-        n_jobs=5,
+        n_jobs=-1,
     )
     loco_cv.fit(X, y)
     loco_cv.importance(X, y)

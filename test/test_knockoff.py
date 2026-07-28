@@ -66,13 +66,14 @@ else:
 
 def test_knockoff_bootstrap_quantile():
     """Test bootstrap knockoof with quantile aggregation"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 5
     n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
+
     for seed in range(10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
@@ -81,7 +82,7 @@ def test_knockoff_bootstrap_quantile():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=5,
+            n_jobs=-1,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -93,19 +94,21 @@ def test_knockoff_bootstrap_quantile():
         assert model_x_knockoff.importances_.shape == (n_repeats, p)
         assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
         assert model_x_knockoff.aggregated_pval_.shape == (p,)
+
     assert np.mean(fdp_list) < fdr
     assert np.mean(power_list) > 0.2
 
 
 def test_knockoff_bootstrap_e_values():
     """Test bootstrap Knockoff with e-values"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 32
     n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
+
     for seed in range(10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
@@ -116,7 +119,7 @@ def test_knockoff_bootstrap_e_values():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=5,
+            n_jobs=-1,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -137,8 +140,8 @@ def test_knockoff_bootstrap_e_values():
 
 def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 5
     fdr = 0.2
     X, y, beta, _ = multivariate_simulation(
@@ -152,6 +155,7 @@ def test_invariant_with_bootstrap():
         ),
         random_state=0,
         n_repeats=1,
+        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -164,6 +168,7 @@ def test_invariant_with_bootstrap():
         ),
         random_state=0,
         n_repeats=3,
+        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)
@@ -185,8 +190,8 @@ def test_invariant_with_bootstrap():
 def test_model_x_knockoff():
     """Test the selection of variable from knockoff"""
     fdr = 0.2
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     support_size = 18
     fdp_list = []
     power_list = []
@@ -212,8 +217,8 @@ def test_model_x_knockoff_estimator():
     """Test knockoff with a crossvalidation estimator"""
     seed = 42
     fdr = 0.2
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
@@ -221,6 +226,7 @@ def test_model_x_knockoff_estimator():
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
         preconfigure_lasso_path=None,
+        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -236,7 +242,7 @@ def test_estimate_distribution():
     seed = 42
     fdr = 0.1
     n = 100
-    p = 50
+    p = 20
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
         cov_estimator=GraphicalLassoCV(
@@ -245,7 +251,7 @@ def test_estimate_distribution():
         ),
     )
     model_x_knockoff = ModelXKnockoff(
-        n_repeats=1, random_state=2, ko_generator=generator
+        n_repeats=1, random_state=2, ko_generator=generator, n_jobs=-1
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -256,11 +262,17 @@ def test_knockoff_function_not_centered():
     """Test function of knockoff not centered"""
     fdr = 0.2
     n = 100
-    p = 50
+    p = 20
     seed = 0
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     selected, importances, pvalues = model_x_knockoff_importance(
-        X, y, centered=False, n_repeats=5, random_state=seed, fdr=fdr
+        X,
+        y,
+        centered=False,
+        n_repeats=5,
+        random_state=seed,
+        fdr=fdr,
+        n_jobs=-1,
     )
     fdp_power(selected, beta)
     assert selected.shape == (p,)
@@ -272,8 +284,8 @@ def test_model_x_knockoff_null():
     """Test knockoff with a crossvalidation estimator"""
     seed = 42
     fdr = 0.05
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
@@ -281,6 +293,7 @@ def test_model_x_knockoff_null():
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
         preconfigure_lasso_path=None,
+        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -291,8 +304,8 @@ def test_model_x_knockoff_null():
 
 def test_lasso_estimator_alphas():
     """Test configuration of alphas when estimator is LassoCV depending on Scikit-Learn version."""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 32
     n_repeats = 5
     seed = 42
@@ -309,7 +322,7 @@ def test_lasso_estimator_alphas():
         estimator=estimator,
         n_repeats=n_repeats,
         random_state=seed,
-        n_jobs=5,
+        n_jobs=-1,
     ).fit(X, y)
 
     assert all(

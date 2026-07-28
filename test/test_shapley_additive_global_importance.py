@@ -6,15 +6,11 @@ from sklearn.model_selection import train_test_split
 from hidimstat import SAGE
 from hidimstat._utils.scenario import multivariate_simulation
 
-parameter_smoke = [
-    ("sage", 150, 20, 5, 0.2, 42, 1.0, 4.0, 0.0),
-]
-
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_smoke, strict=False))[1:]), strict=False),
-    ids=next(zip(*parameter_smoke, strict=False)),
+    [(150, 20, 5, 0.2, 42, 1.0, 4.0, 0.0)],
+    ids=["basic data"],
 )
 def test_sage_smoke(data_generator):
     """Smoke test for SAGE. Checks that the importance values are computed and
@@ -25,7 +21,11 @@ def test_sage_smoke(data_generator):
     model = LinearRegression()
     model.fit(X, y)
     sage = SAGE(
-        estimator=model, n_permutations=10, n_subsets=20, random_state=42
+        estimator=model,
+        n_permutations=10,
+        n_subsets=20,
+        random_state=42,
+        n_jobs=-1,
     )
     sage.fit(X)
     importance = sage.importance(X, y)
@@ -58,7 +58,7 @@ def sage_test_data():
         "method": "predict",
         "n_subsets": 20,
         "n_permutations": 10,
-        "n_jobs": 1,
+        "n_jobs": -1,
     }
     return X_train, y_train, X_test, y_test, sage_default_parameters
 

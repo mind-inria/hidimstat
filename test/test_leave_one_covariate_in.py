@@ -16,17 +16,14 @@ from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-def test_loci():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
+    ids=["basic data"],
+)
+def test_loci(data_generator):
     """Test the Leave-One-Covariate-In algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=100,
-        n_features=20,
-        support_size=4,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
+    X, y, important_features, non_important_features = data_generator
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
@@ -66,7 +63,7 @@ def test_loci():
         estimator=regression_model,
         method="predict",
         features_groups=groups,
-        n_jobs=1,
+        n_jobs=-1,
     )
     loci.fit(
         X_train_df,
@@ -90,7 +87,7 @@ def test_loci():
             "the_group_1": non_important_features,
         },
         loss=log_loss,
-        n_jobs=1,
+        n_jobs=-1,
     )
     loci_clf.fit(
         X_train,
@@ -130,7 +127,7 @@ def test_multiclass_loci():
         method="predict_proba",
         features_groups=groups,
         loss=log_loss,
-        n_jobs=1,
+        n_jobs=-1,
     )
     loci_clf.fit(
         X_train,
@@ -186,17 +183,14 @@ def test_raises_value_error():
         loci.importance(X, y)
 
 
-def test_loci_function():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
+    ids=["basic data"],
+)
+def test_loci_function(data_generator):
     """Test the function of LOCI algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=20,
-        support_size=4,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
+    X, y, important_features, non_important_features = data_generator
 
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
@@ -208,7 +202,7 @@ def test_loci_function():
         X,
         y,
         method="predict",
-        n_jobs=1,
+        n_jobs=-1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -239,7 +233,7 @@ def test_loci_cv(data_generator):
     loci_cv = LOCICV(
         estimators=model,
         cv=cv,
-        n_jobs=5,
+        n_jobs=-1,
     )
     loci_cv.fit(X, y)
     loci_cv.importance(X, y)

@@ -95,8 +95,8 @@ def data_generator(
         shuffle=False,
         seed=seed,
     )
-    important_features = np.where(beta != 0)[0]
-    not_important_features = np.where(beta == 0)[0]
+    important_features = np.where(beta)[0]
+    not_important_features = np.where(~beta)[0]
     return X, y, important_features, not_important_features
 
 

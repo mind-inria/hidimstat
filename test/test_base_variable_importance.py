@@ -62,7 +62,7 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
     def test_selection_percentile(self, set_100_variable_sorted):
-        """Test selection bae on percentile"""
+        """Test selection based on percentile"""
         vi = set_100_variable_sorted
         true_value = vi.importances_ >= 50
         selection = vi.importance_selection(percentile=50)
@@ -119,7 +119,7 @@ def test_selection_fdr(rng):
      - Power is greater than 0.8 (arbitrary threshold)
 
     The p-values are generated as uniform for null features and very small (divided by
-    100) for important features. The computation of FDP and power is repeated over 100
+    500) for important features. The computation of FDP and power is repeated over 100
     random draws.
 
     """
@@ -187,7 +187,7 @@ def test_selection_bhq():
             1 - np.logspace(-1, -20, n_features // 2, base=2),
         ]
     )
-    vim.pvalues_ = pvalues_.copy()
+    vim.pvalues_ = pvalues_
     one_minus_pval = 1 - vim.pvalues_
 
     # Test selection based on pvalues_

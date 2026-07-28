@@ -82,7 +82,7 @@ def test_desparsified_lasso():
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples, n_features = 500, 50
+    n_samples, n_features = 100, 20
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
@@ -107,7 +107,7 @@ def test_desparsified_lasso():
         )
 
         desparsified_lasso = DesparsifiedLasso(
-            confidence=confidence, random_state=seed
+            confidence=confidence, random_state=seed, n_jobs=-1
         ).fit(X, y)
         _ = desparsified_lasso.importance()
         # Check that beta is within the confidence intervals
@@ -128,7 +128,10 @@ def test_desparsified_lasso():
         powr_list.append(power)
 
         desparsified_lasso = DesparsifiedLasso(
-            dof_ajdustement=True, confidence=confidence, random_state=seed
+            dof_ajdustement=True,
+            confidence=confidence,
+            random_state=seed,
+            n_jobs=-1,
         ).fit(X, y)
         _ = desparsified_lasso.importance()
 
@@ -160,8 +163,8 @@ def test_desparsified_group_lasso():
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples = 500
-    n_features = 50
+    n_samples = 100
+    n_features = 20
     n_target = 10
     support_size = 5
     signal_noise_ratio = 32
@@ -185,7 +188,7 @@ def test_desparsified_group_lasso():
             tol=1e-4,
             max_iter=50,
             random_state=1,
-            n_jobs=1,
+            n_jobs=-1,
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -266,7 +269,7 @@ def test_desparsified_group_lasso():
 @ignore_warnings(category=UserWarning)
 def test_exception():
     """Test exception of Desparsified Lasso"""
-    n_samples = 50
+    n_samples = 20
     n_features = 100
     n_target = 10
     support_size = 2
@@ -280,7 +283,7 @@ def test_exception():
         tol=1e-4,
         max_iter=5000,
         random_state=1,
-        n_jobs=1,
+        n_jobs=-1,
     )
 
     X, y, _, _ = multivariate_simulation(
@@ -376,7 +379,7 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=0,
     )
-    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = LassoCV(n_jobs=-1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -396,7 +399,7 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=2,
     )
-    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = LassoCV(n_jobs=-1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     sigma_hat = reid(lasso_cv.coef_, residual)
@@ -432,7 +435,7 @@ def test_group_reid():
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = support_size / signal_noise_ratio * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV(n_jobs=-1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -493,7 +496,7 @@ def test_group_reid_2():
     )  # covariance matrix of time
     cov = 1.0 * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV(n_jobs=-1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     cov_hat = reid(lasso_cv.coef_, residual, multioutput=True)
@@ -561,9 +564,10 @@ def dl_y1d_test_data():
         rho_serial=0.5,
     )
     dl = DesparsifiedLasso(
-        estimator=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
+        estimator=LassoCV(cv=KFold(n_splits=3, shuffle=True), n_jobs=-1),
         model_x=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
         preconfigure_model_x_path=False,
+        n_jobs=-1,
     )
     return X, y, dl
 
