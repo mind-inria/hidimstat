@@ -98,7 +98,10 @@ for feature in X.columns:
 
     locoplot = LOCOPlot(model, feature_names=X.columns)
     ax_loco = locoplot.plot(
-        X_test, y_test, X.columns.get_loc(feature), grid_resolution=50,
+        X_test,
+        y_test,
+        X.columns.get_loc(feature),
+        grid_resolution=50,
     )
     add_metrics_box(ax_loco[1], corr, r2_feat)
     plt.show()
