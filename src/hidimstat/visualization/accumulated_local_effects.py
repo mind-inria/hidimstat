@@ -76,7 +76,6 @@ def compute_ale_1d(
     method="predict",
     grid_resolution="auto",
     percentiles=(5, 95),
-    confidence_interval=True,
     confidence_level=0.95,
     n_bootstraps=20,
     n_jobs=1,
@@ -118,12 +117,11 @@ def compute_ale_1d(
     percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
         Must be in [0, 100].
-    confidence_interval : bool, default=True
-        Whether to compute the confidence intervals of the ALE curve.
-    confidence_level : float, default=0.95
+    confidence_level : float or None, default=0.95
         The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
+        If None, confidence intervals are not computed.
     n_bootstraps : int, default=20
-        Number of bootstrap samples to generate if `confidence_interval` is True.
+        Number of bootstrap samples to generate if `confidence_level` is not None.
     n_jobs : int, default=1
         Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
     random_state : int or None, default=None
@@ -138,7 +136,7 @@ def compute_ale_1d(
         and the unique values of the feature otherwise).
     ale_err : ndarray of shape (n_quantiles,) or None
         The margin of error for each quantile boundary at the specified confidence level.
-        Returns `None` if `confidence_interval` is False.
+        Returns `None` if `confidence_level` is None.
     """
     X = np.asarray(X)
     X_j = X[:, feature_idx]
@@ -269,7 +267,7 @@ def compute_ale_1d(
     ale_err = None
 
     # Confidence interval
-    if confidence_interval:
+    if confidence_level is not None:
         if n_bootstraps < 1:
             raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
@@ -555,7 +553,6 @@ class ALE:
         method="predict",
         grid_resolution="auto",
         percentiles=(5, 95),
-        confidence_interval=True,
         confidence_level=0.95,
         n_bootstraps=20,
         n_jobs=1,
@@ -596,12 +593,11 @@ class ALE:
         percentiles : tuple of float, default=(5, 95)
             The lower and upper percentile used to create the extreme values for the grid.
             Must be in [0, 100].
-        confidence_interval : bool, default=True
-            Whether to compute and display confidence intervals around the 1D ALE curve.
-        confidence_level : float, default=0.95
-            The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
+        confidence_level : float or None, default=0.95
+            The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%)
+            for the 1D ALE curve. If None, confidence intervals are not computed.
         n_bootstraps : int, default=20
-            Number of bootstrap samples to generate if `confidence_interval` is True.
+            Number of bootstrap samples to generate if `confidence_level` is not None.
         n_jobs : int, default=1
             Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
         random_state : int or None, default=None
@@ -647,7 +643,6 @@ class ALE:
                     feature_type=feature_type,
                     grid_resolution=grid_resolution,
                     percentiles=percentiles,
-                    confidence_interval=confidence_interval,
                     confidence_level=confidence_level,
                     n_bootstraps=n_bootstraps,
                     n_jobs=n_jobs,
