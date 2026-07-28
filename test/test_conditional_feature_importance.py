@@ -680,8 +680,8 @@ class TestCFIExceptions:
 )
 def test_function_cfi(data_generator, n_permutation, cfi_seed):
     """Test CFI function"""
-    X, y, _, _ = data_generator
-    cfi_importance(
+    X, y, important_features, not_important_features = data_generator
+    _, importance, _ = cfi_importance(
         LinearRegression().fit(X, y),
         X,
         y,
@@ -689,6 +689,14 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
         n_permutations=n_permutation,
         random_state=cfi_seed,
         n_jobs=-1,
+    )
+    # check that importance is defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # check that mean importance of important features is
+    # higher than mean importance of other features
+    assert (
+        importance[important_features].mean()
+        > importance[not_important_features].mean()
     )
 
 
