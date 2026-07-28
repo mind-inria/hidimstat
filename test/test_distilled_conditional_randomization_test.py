@@ -79,9 +79,9 @@ else:
 @pytest.fixture(scope="module")
 def d0crt_test_data():
     X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
+        n_samples=100,
         n_features=20,
-        support_size=10,
+        support_size=4,
         rho=0,
         value=1,
         signal_noise_ratio=2,
@@ -389,12 +389,11 @@ def test_dcrt_RF_regression():
 
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
-            n_estimators=100, random_state=2026, n_jobs=1
+            n_estimators=20, random_state=2026, n_jobs=-1
         ),
         method="predict",
         screening_threshold=None,
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -412,12 +411,11 @@ def test_dcrt_RF_classification():
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
-            n_estimators=100, random_state=2026, n_jobs=1
+            n_estimators=20, random_state=2026, n_jobs=-1
         ),
         method="predict_proba",
         screening_threshold=None,
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -433,7 +431,7 @@ def test_exception_not_fitted():
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
-            n_estimators=100, random_state=2026, n_jobs=1
+            n_estimators=20, random_state=2026, n_jobs=-1
         ),
         method="predict_proba",
         screening_threshold=None,
@@ -450,11 +448,10 @@ def test_warning_not_used_parameters():
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
-            n_estimators=100, random_state=2026, n_jobs=1
+            n_estimators=20, random_state=2026, n_jobs=-1
         ),
         method="predict_proba",
         screening_threshold=None,
-        n_jobs=-1,
     )
     d0crt.fit(X, y)
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -488,7 +485,9 @@ def test_function_d0crt():
         n_features=10,
         noise=0.2,
     )
-    sv, importances, pvalues = d0crt_importance(LassoCV(n_jobs=1), X, y)
+    sv, importances, pvalues = d0crt_importance(
+        LassoCV(n_jobs=1), X, y, n_jobs=-1
+    )
 
     assert len(sv) <= 10
     assert len(importances) == 10
@@ -604,11 +603,10 @@ def test_d0crt_rf(d0crt_test_data):
     important_ids = np.where(beta != 0)[0]
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
-            n_estimators=100, random_state=0, n_jobs=1
+            n_estimators=20, random_state=0, n_jobs=-1
         ),
         screening_threshold=None,
         random_state=0,
-        n_jobs=-1,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)

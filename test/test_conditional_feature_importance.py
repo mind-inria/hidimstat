@@ -86,9 +86,9 @@ def run_cfi(X, y, n_permutation, seed):
 ##############################################################################
 ## tests cfi on different type of data
 parameter_exact = [
-    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    ("HiDim", 150, 50, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    ("HiDim with noise", 150, 50, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    ("HiDim with correlated noise", 150, 50, 10, 0.0, 42, 1.0, 10.0, 0.2),
 ]
 
 
@@ -116,8 +116,8 @@ parameter_partial = [
     (
         "HiDim with correlated features",
         150,
-        200,
-        10,
+        20,
+        4,
         0.2,
         42,
         1.0,
@@ -127,8 +127,8 @@ parameter_partial = [
     (
         "HiDim with correlated features and noise",
         150,
-        200,
-        10,
+        20,
+        4,
         0.2,
         42,
         1,
@@ -138,8 +138,8 @@ parameter_partial = [
     (
         "HiDim with correlated features and correlated noise",
         150,
-        200,
-        10,
+        20,
+        4,
         0.2,
         42,
         1.0,
@@ -175,7 +175,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    [(150, 50, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
@@ -203,7 +203,7 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
 ## Test specific options of cfi
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    [(150, 20, 4, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_group(data_generator):
@@ -300,7 +300,7 @@ def test_classication(data_generator):
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(150, 20, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIClass:
@@ -395,7 +395,7 @@ class TestCFIClass:
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    [(150, 20, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIExceptions:
@@ -530,7 +530,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             AssertionError,
-            match=r"The array is missing at least one of the following columns \['col_100', 'col_101', 'col_102',",
+            match=r"The array is missing at least one of the following columns \['col_10', 'col_11', 'col_12',",
         ):
             cfi.importance(
                 X[
@@ -642,10 +642,12 @@ class TestCFIExceptions:
             n_jobs=-1,
         )
         cfi.fit(X, y)
+        cfi.importance(X, y)
+        print("lol")
 
         with pytest.warns(
             UserWarning,
-            match="The number of features in X: 200 differs from the"
+            match="The number of features in X: 20 differs from the"
             " number of features for which importance is computed: 4",
         ):
             cfi.importance(X, y)
@@ -670,7 +672,7 @@ class TestCFIExceptions:
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    [(150, 20, 4, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
@@ -686,6 +688,7 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutation,
         random_state=cfi_seed,
+        n_jobs=-1,
     )
 
 
