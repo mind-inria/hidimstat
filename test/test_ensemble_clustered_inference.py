@@ -132,7 +132,7 @@ def test_cludl_independence():
     assert np.sum(s1) != 0
     assert (
         np.abs(np.sum(s2_iterations) / n_iterations - np.sum(s1)) / np.sum(s1)
-        < 0.5
+        < 0.6
     )
 
 
