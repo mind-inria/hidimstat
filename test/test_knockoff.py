@@ -241,7 +241,7 @@ def test_estimate_distribution():
     """
     seed = 42
     fdr = 0.1
-    n = 100
+    n = 200
     p = 20
     X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
     generator = GaussianKnockoffs(
@@ -251,7 +251,7 @@ def test_estimate_distribution():
         ),
     )
     model_x_knockoff = ModelXKnockoff(
-        n_repeats=1, random_state=2, ko_generator=generator, n_jobs=-1
+        n_repeats=5, random_state=42, ko_generator=generator, n_jobs=-1
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
