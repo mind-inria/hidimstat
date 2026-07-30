@@ -5,7 +5,7 @@ from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import check_statistical_test
+from hidimstat._utils.utils import _get_array_cols, check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -89,10 +89,10 @@ class LOCI(BasePerturbation):
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                estimator, X, y, key_features_groups
+                estimator, X, y, features_groups_ids
             )
-            for key_features_groups, estimator in zip(
-                self.features_groups_.keys(),
+            for features_groups_ids, estimator in zip(
+                self._features_groups_ids,
                 self._list_estimators,
                 strict=False,
             )
@@ -190,16 +190,13 @@ class LOCI(BasePerturbation):
         return self.importances_
 
     def _joblib_fit_one_features_group(
-        self, estimator, X, y, key_features_group
+        self, estimator, X, y, features_groups_ids
     ):
         """
         Fit the estimator on a group of covariates.
         Used in parallel.
         """
-        if isinstance(X, pd.DataFrame):
-            X_j = X[self.features_groups_[key_features_group]]
-        else:
-            X_j = X[:, self.features_groups_[key_features_group]]
+        X_j = _get_array_cols(X, features_groups_ids)
         estimator.fit(X_j, y)
         return estimator
 
@@ -211,12 +208,8 @@ class LOCI(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        if isinstance(X, pd.DataFrame):
-            X_j = X[self.features_groups_[features_group_id]]
-        else:
-            # Since we don't have access to column names, we use the member _features_groups_ids
-            X_j = X[:, self._features_groups_ids[features_group_id]]
-
+        # Since we don't have access to column names, we use the member _features_groups_ids
+        X_j = _get_array_cols(X, self._features_groups_ids[features_group_id])
         y_pred_loci = getattr(
             self._list_estimators[features_group_id], self.method
         )(X_j)

@@ -7,11 +7,12 @@ interest is removed from the subset.
 """
 
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import _get_array_cols, check_random_state
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
     GroupVariableImportanceMixin,
@@ -49,7 +50,10 @@ def _sage_value_function(
     )  # (n_permutations, n_samples, n_features)
     for perm_idx in range(n_permutations):
         for col in complement:
-            X_sampled[perm_idx, :, col] = rng.permutation(X[:, col])
+            X_col = _get_array_cols(X, col)
+            X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
+                -1,
+            )
 
     X_sampled_batch = X_sampled.reshape(-1, n_features)
     y_pred = getattr(estimator, method)(X_sampled_batch)
@@ -164,7 +168,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         # subset of features without j
         self.subset_map_ = {}
         for j in range(self.n_features_groups_):
-            group_ids = self.features_groups_[j]
+            group_ids = self._features_groups_ids[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )

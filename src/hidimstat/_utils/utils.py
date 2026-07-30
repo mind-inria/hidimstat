@@ -2,6 +2,7 @@ import numbers
 from functools import partial
 
 import numpy as np
+import pandas as pd
 from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
@@ -74,6 +75,17 @@ def _generate_group_mask(array_size, indexes, selected=True):
     mask = np.full(array_size, not selected, dtype=bool)
     mask[indexes] = selected
     return mask
+
+
+def _get_array_cols(X, columns_ids, drop=False):
+    """
+    Retrieves columns from X depending on type numpy array or pandas DataFrame, or drops them from X.
+    """
+    mask = _generate_group_mask(X.shape[1], columns_ids, selected=not drop)
+    if isinstance(X, pd.DataFrame):
+        return X[X.columns[mask]]
+    else:
+        return X[:, mask]
 
 
 def get_fitted_attributes(cls):

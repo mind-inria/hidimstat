@@ -1,11 +1,11 @@
-import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _generate_group_mask
+from hidimstat._utils.utils import _get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -150,10 +150,9 @@ class CFI(BasePerturbation):
         ]
 
         # Parallelize the fitting of the covariate estimators
-        X_ = np.asarray(X)
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X_, features_groups_ids
+                imputation_model, X, features_groups_ids
             )
             for features_groups_ids, imputation_model in zip(
                 self._features_groups_ids,
@@ -196,11 +195,8 @@ class CFI(BasePerturbation):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized.
         """
-        X_j = X[:, features_groups_ids]
-        mask = _generate_group_mask(
-            X.shape[1], features_groups_ids, selected=False
-        )
-        X_minus_j = X[:, mask]
+        X_j = _get_array_cols(X, features_groups_ids)
+        X_minus_j = _get_array_cols(X, features_groups_ids, drop=True)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -228,13 +224,10 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = X[:, self._features_groups_ids[features_group_id]]
-        mask = _generate_group_mask(
-            X.shape[1],
-            self._features_groups_ids[features_group_id],
-            selected=False,
+        X_j = _get_array_cols(X, self._features_groups_ids[features_group_id])
+        X_minus_j = _get_array_cols(
+            X, self._features_groups_ids[features_group_id], drop=True
         )
-        X_minus_j = X[:, mask]
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,
             X_j,

@@ -237,11 +237,7 @@ def test_group(data_generator):
         n_jobs=1,
     )
     cfi.fit(X_train_df)
-    # Warning expected since column names in pandas are not considered
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = cfi.importance(X_test_df, y_test)
+    importance = cfi.importance(X_test_df, y_test)
 
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)

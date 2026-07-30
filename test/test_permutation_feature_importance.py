@@ -70,11 +70,7 @@ def test_permutation_importance():
         X_train_df,
         y_train,
     )
-    # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = pfi.importance(X_test_df, y_test)
+    importance = pfi.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()
 
