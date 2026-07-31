@@ -79,7 +79,8 @@ def _generate_group_mask(array_size, indexes, selected=True):
 
 def _get_array_cols(X, columns_ids, drop=False):
     """
-    Retrieves columns from X depending on type numpy array or pandas DataFrame, or drops them from X.
+    Retrieves columns from X depending on type numpy array or pandas DataFrame,
+    or drops them from X.
     """
     mask = _generate_group_mask(X.shape[1], columns_ids, selected=not drop)
     if isinstance(X, pd.DataFrame):
