@@ -298,7 +298,6 @@ def test_model_x_knockoff_null():
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp_power(selected, beta)
-    print(len(np.where(beta)[0]))
     assert not selected.any()
 
 

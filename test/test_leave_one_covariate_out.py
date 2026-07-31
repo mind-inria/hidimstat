@@ -76,7 +76,7 @@ def test_loco(data_generator):
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
-    y_clf = np.where(y > np.median(y), 1, 0)
+    y_clf = (y > np.median(y)).astype(int)
     _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
     logistic_model = LogisticRegression()
     logistic_model.fit(X_train, y_train_clf)

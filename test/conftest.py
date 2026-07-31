@@ -95,9 +95,9 @@ def data_generator(
         shuffle=False,
         seed=seed,
     )
-    important_features = np.where(beta)[0]
-    not_important_features = np.where(~beta)[0]
-    return X, y, important_features, not_important_features
+    important_features_ids = np.arange(X.shape[1])[beta]
+    not_important_features_ids = np.arange(X.shape[1])[~beta]
+    return X, y, important_features_ids, not_important_features_ids
 
 
 def check_estimator(

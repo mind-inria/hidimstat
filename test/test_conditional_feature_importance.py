@@ -260,10 +260,10 @@ def test_classication(data_generator):
     X, y, important_features, not_important_features = data_generator
     # Create categories
     y_clf = deepcopy(y)
-    y_clf[np.where(y > 4)] = 0
-    y_clf[np.where(np.logical_and(y <= 4, y > 0))] = 1
-    y_clf[np.where(np.logical_and(y <= 0, y > -4))] = 2
-    y_clf[np.where(y <= -4)] = 3
+    y_clf[y > 4] = 0
+    y_clf[np.logical_and(y <= 4, y > 0)] = 1
+    y_clf[np.logical_and(y <= 0, y > -4)] = 2
+    y_clf[y <= -4] = 3
     y_clf = np.array(y_clf, dtype=int)
 
     # Split the data into training and test sets

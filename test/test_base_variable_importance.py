@@ -90,7 +90,7 @@ class TestSelection:
         """Test selection when percentile when the percentile equal on value"""
         vi = set_100_variable_sorted
         mask = np.ones_like(vi.importances_, dtype=bool)
-        mask[np.where(vi.importances_ == 99)] = False
+        mask[vi.importances_ == 99] = False
         vi.importances_ = vi.importances_[mask]
         true_value = vi.importances_ >= 50
         selection = vi.importance_selection(percentile=50)

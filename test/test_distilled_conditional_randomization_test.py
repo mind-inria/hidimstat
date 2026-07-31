@@ -327,7 +327,7 @@ def test_dcrt_distillation_x_different():
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
+    assert (d0crt.importances_ != 0).sum() <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -349,7 +349,7 @@ def test_dcrt_distillation_y_different():
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
+    assert (d0crt.importances_ != 0).sum() <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -398,7 +398,7 @@ def test_dcrt_RF_regression():
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
+    assert (d0crt.importances_ != 0).sum() <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -420,7 +420,7 @@ def test_dcrt_RF_classification():
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.where(d0crt.importances_ != 0)[0].shape[0] <= 10
+    assert (d0crt.importances_ != 0).sum() <= 10
     assert len(sv) <= 10
     assert len(pvalue) == 10
     assert len(d0crt.importances_) == 10
@@ -577,7 +577,6 @@ def test_d0crt_linear(d0crt_test_data):
     features.
     """
     X, y, beta, _ = d0crt_test_data
-    important_ids = np.where(beta != 0)[0]
     lasso_estimator = LassoCV(n_jobs=1)
     setattr(lasso_estimator, alphas_attr, 10)
 
@@ -589,10 +588,8 @@ def test_d0crt_linear(d0crt_test_data):
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.mean(importances[important_ids]) > np.mean(
-        importances[~important_ids]
-    )
-    assert np.array_equal(np.where(sv)[0], important_ids)
+    assert np.mean(importances[beta]) > np.mean(importances[~beta])
+    assert np.array_equal(sv, beta)
 
 
 def test_d0crt_rf(d0crt_test_data):
@@ -600,7 +597,6 @@ def test_d0crt_rf(d0crt_test_data):
     This function tests the D0CRT on a random forest model.
     """
     X, y, beta, _ = d0crt_test_data
-    important_ids = np.where(beta != 0)[0]
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
             n_estimators=20, random_state=0, n_jobs=-1
@@ -611,10 +607,8 @@ def test_d0crt_rf(d0crt_test_data):
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
 
-    assert np.mean(importances[important_ids]) > np.mean(
-        importances[~important_ids]
-    )
-    assert np.array_equal(np.where(sv)[0], important_ids)
+    assert np.mean(importances[beta]) > np.mean(importances[~beta])
+    assert np.array_equal(sv, beta)
 
 
 def test_dcrt_logit(generate_binary_classif_dataset):
@@ -803,11 +797,11 @@ def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
     )
     dcrt.fit(X, y)
     dcrt.importance(X, y)
-    assert np.all(dcrt.importances_[np.where(beta == 1)] >= 0)
+    assert np.all(dcrt.importances_[beta] >= 0)
     # Negative effects (multiply y to increase signal)
     dcrt.fit(X, -10 * y)
     dcrt.importance(X, -10 * y)
-    assert np.all(dcrt.importances_[np.where(beta == 1)] <= 0)
+    assert np.all(dcrt.importances_[beta] <= 0)
 
 
 def test_d0crt_no_regression_variance_fix(d0crt_test_data):
