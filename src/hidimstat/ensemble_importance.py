@@ -53,6 +53,10 @@ class EnsembleImportance(BaseVariableImportance):
     pvalues_ : ndarray, shape (n_features,)
         P-values for each feature.
 
+    Notes
+    -----
+    .. versionadded:: 0.4.0
+
     .. footbibliography::
     """
 

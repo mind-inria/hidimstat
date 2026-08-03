@@ -113,6 +113,10 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         Random state for reproducibility. Default is None.
     n_jobs : int, default=1
         The number of parallel jobs to run for computing the SAGE values.
+
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
 
     def __init__(

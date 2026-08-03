@@ -38,6 +38,10 @@ def _predict_fn(estimator, X, method="predict"):
     -------
     pred : ndarray of shape (n_samples,)
         A 1D array containing the scalar-output predictions.
+
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
     check_is_fitted(estimator)
 

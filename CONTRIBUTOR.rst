@@ -1,3 +1,11 @@
+Version 0.4.0
+-------------
+- https://github.com/bthirion
+- https://github.com/AngelReyero
+- https://github.com/jpaillard
+- https://github.com/Remi-Gau
+- https://github.com/abaziree
+
 Version 0.3.0
 -------------
 
