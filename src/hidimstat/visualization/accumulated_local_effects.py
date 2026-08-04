@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
@@ -12,6 +13,7 @@ from hidimstat._utils.grid import (
     _build_quantile_grid_1d,
     _build_quantile_grid_2d,
 )
+from hidimstat._utils.utils import check_random_state
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
 
@@ -66,6 +68,104 @@ def _predict_fn(estimator, X, method="predict"):
     return pred.ravel()
 
 
+def _compute_ale_1d_curve(
+    estimator,
+    X_sample,
+    feature_idx,
+    feature_type,
+    grid_values,
+    method="predict",
+):
+    """Internal closure to compute the ALE 1D curve on a fixed grid.
+
+    Parameters
+    ----------
+    estimator : fitted sklearn-compatible estimator
+        Must expose `predict`, `predict_proba`, or `decision_function`.
+    X_sample : ndarray of shape (n_samples, n_features)
+        Training (or evaluation) dataset used to compute the ALE curve on the
+        given grid.
+    feature_idx : int
+        Column index of the feature of interest.
+    feature_type : string among "continuous", or "categorical"
+        Type of the numeric feature.
+    grid_values: ndarray
+        The grid used to compute the ALE curve.
+    method : str, default="predict"
+        The method to use for the prediction. Supported methods are "predict",
+        "predict_proba" or "decision_function".
+    """
+    X_j_sample = X_sample[:, feature_idx]
+    X_low = X_sample.copy()
+    X_high = X_sample.copy()
+
+    if feature_type == "continuous":
+        n_bins = len(grid_values) - 1
+        bin_idx = _bin_indices(X_j_sample, grid_values)
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        X_low[:, feature_idx] = grid_values[bin_idx]
+        X_high[:, feature_idx] = grid_values[bin_idx + 1]
+
+        local_effects = _predict_fn(estimator, X_high, method) - _predict_fn(
+            estimator, X_low, method
+        )  # shape (n_samples,)
+
+        combined_idx = bin_idx
+        combined_effects = local_effects
+        min_weight_bin = 0
+
+    else:
+        n_bins = len(grid_values)
+        value_idx = np.digitize(X_j_sample, grid_values) - 1
+
+        # For each sample, evaluate the model at the lower and upper edge of its bin
+        mask_low = X_j_sample != grid_values[0]
+        mask_high = X_j_sample != grid_values[-1]
+        X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
+        X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
+
+        local_effects_low = _predict_fn(
+            estimator, X_sample[mask_low], method
+        ) - _predict_fn(estimator, X_low[mask_low], method)
+        local_effects_high = _predict_fn(
+            estimator, X_high[mask_high], method
+        ) - _predict_fn(estimator, X_sample[mask_high], method)
+
+        # Average local effects within each bin
+        combined_idx = np.concatenate(
+            [value_idx[mask_low], value_idx[mask_high] + 1]
+        )
+        combined_effects = np.concatenate(
+            [local_effects_low, local_effects_high]
+        )
+        min_weight_bin = 1
+
+    # Average local effects within each bin
+    bin_counts = np.bincount(combined_idx, minlength=n_bins).astype(float)
+    bin_sums = np.bincount(
+        combined_idx, weights=combined_effects, minlength=n_bins
+    )
+
+    mean_effects = np.zeros(n_bins, dtype=float)
+    non_zero = bin_counts > 0
+    mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
+
+    # Cumulative sum: uncentered ALE evaluated for each bin edge
+    if feature_type == "continuous":
+        ale_curve = np.array([0, *np.cumsum(mean_effects)])
+    else:
+        ale_curve = np.cumsum(mean_effects)
+
+    # Center: subtract the sample-weighted mean
+    ale_centers = (ale_curve[1:] + ale_curve[:-1]) / 2
+    ale_curve -= (
+        np.sum(ale_centers * bin_counts[min_weight_bin:]) / bin_counts.sum()
+    )
+
+    return ale_curve
+
+
 def compute_ale_1d(
     estimator,
     X,
@@ -73,9 +173,11 @@ def compute_ale_1d(
     feature_type,
     method="predict",
     grid_resolution="auto",
-    confidence_interval=True,
-    confidence_level=0.95,
     percentiles=(5, 95),
+    confidence_level=0.95,
+    n_bootstraps=20,
+    n_jobs=1,
+    random_state=None,
 ):
     """Compute the 1D Accumulated Local Effect for a single numerical feature.
 
@@ -110,13 +212,18 @@ def compute_ale_1d(
           if the data contains many duplicate values or fewer unique points
           than requested.
 
-    confidence_interval : bool, default=True
-        Whether to compute the confidence intervals of the ALE curve.
-    confidence_level : float, default=0.95
-        The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
     percentiles : tuple of float, default=(5, 95)
         The lower and upper percentile used to create the extreme values for the grid.
         Must be in [0, 100].
+    confidence_level : float, default=0.95
+        The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
+        If set to 0, confidence intervals are not computed. Must be in [0, 1[.
+    n_bootstraps : int, default=20
+        Number of bootstrap samples to generate if `confidence_level` is not 0.
+    n_jobs : int, default=1
+        Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
+    random_state : int or None, default=None
+        Seed for reproducible bootstraps.
 
     Returns
     -------
@@ -127,15 +234,15 @@ def compute_ale_1d(
         and the unique values of the feature otherwise).
     ale_err : ndarray of shape (n_quantiles,) or None
         The margin of error for each quantile boundary at the specified confidence level.
-        Returns `None` if `confidence_interval` is False.
+        Returns `None` if `confidence_level` is 0.
     """
     X = np.asarray(X)
-    x = X[:, feature_idx]
+    X_j = X[:, feature_idx]
 
     if feature_type == "continuous":
         # Grid defined by quantiles
         grid_values = _build_quantile_grid_1d(
-            x, grid_resolution=grid_resolution, percentiles=percentiles
+            X_j, grid_resolution=grid_resolution, percentiles=percentiles
         )
         n_bins = len(grid_values) - 1
 
@@ -144,23 +251,10 @@ def compute_ale_1d(
                 f"Feature {feature_idx} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
             )
 
-        bin_idx = _bin_indices(x, grid_values)
-
-        # For each sample, evaluate the model at the lower and upper edge of its bin
-        X_low = X.copy()
-        X_high = X.copy()
-        X_low[:, feature_idx] = grid_values[bin_idx]
-        X_high[:, feature_idx] = grid_values[bin_idx + 1]
-
-        local_effects = _predict_fn(estimator, X_high, method) - _predict_fn(
-            estimator, X_low, method
-        )  # shape (n_samples,)
-
-        combined_idx = bin_idx
-        combined_effects = local_effects
-        min_weight_bin = 0
+        X_bootstrap = X
 
     elif feature_type == "categorical":
+        # Grid defined by unique values
         if (
             not isinstance(percentiles, tuple)
             or len(percentiles) != 2
@@ -171,15 +265,14 @@ def compute_ale_1d(
                 "in [0, 100] in increasing order"
             )
 
-        # Grid defined by unique values
-        low_bnd = np.percentile(x, percentiles[0])
-        high_bnd = np.percentile(x, percentiles[1])
+        low_bnd = np.percentile(X_j, percentiles[0])
+        high_bnd = np.percentile(X_j, percentiles[1])
 
-        valid_mask = (x >= low_bnd) & (x <= high_bnd)
+        valid_mask = (X_j >= low_bnd) & (X_j <= high_bnd)
         X_filtered = X[valid_mask]
-        x_filtered = x[valid_mask]
+        X_j_filtered = X_j[valid_mask]
 
-        grid_values = np.unique(x_filtered)
+        grid_values = np.unique(X_j_filtered)
         n_bins = len(grid_values)
 
         if n_bins < 2:
@@ -187,76 +280,51 @@ def compute_ale_1d(
                 f"Feature {feature_idx} has fewer than 2 unique values. Check your data."
             )
 
-        value_idx = np.digitize(x_filtered, grid_values) - 1
-
-        # For each sample, evaluate the model at the lower and upper edge of its bin
-        X_low = X_filtered.copy()
-        X_high = X_filtered.copy()
-        mask_low = x_filtered != grid_values[0]
-        mask_high = x_filtered != grid_values[-1]
-        X_low[mask_low, feature_idx] = grid_values[value_idx[mask_low] - 1]
-        X_high[mask_high, feature_idx] = grid_values[value_idx[mask_high] + 1]
-
-        local_effects_low = _predict_fn(
-            estimator, X_filtered[mask_low], method
-        ) - _predict_fn(estimator, X_low[mask_low], method)
-        local_effects_high = _predict_fn(
-            estimator, X_high[mask_high], method
-        ) - _predict_fn(estimator, X_filtered[mask_high], method)
-
-        # Average local effects within each bin
-        combined_idx = np.concatenate(
-            [value_idx[mask_low], value_idx[mask_high] + 1]
-        )
-        combined_effects = np.concatenate(
-            [local_effects_low, local_effects_high]
-        )
-        min_weight_bin = 1
+        X_bootstrap = X_filtered
 
     else:
         raise ValueError(
             "'feature_type' must be a string among 'continuous' and 'categorical'."
         )
 
-    # Average local effects within each bin
-    bin_counts = np.bincount(combined_idx, minlength=n_bins).astype(float)
-    bin_sums = np.bincount(
-        combined_idx, weights=combined_effects, minlength=n_bins
+    # Base calculation
+    ale = _compute_ale_1d_curve(
+        estimator,
+        X_bootstrap,
+        feature_idx=feature_idx,
+        feature_type=feature_type,
+        grid_values=grid_values,
+        method=method,
     )
-
-    mean_effects = np.zeros(n_bins, dtype=float)
-    non_zero = bin_counts > 0
-    mean_effects[non_zero] = bin_sums[non_zero] / bin_counts[non_zero]
-
-    # Cumulative sum: uncentered ALE evaluated for each bin edge
-    if feature_type == "continuous":
-        ale = np.array([0, *np.cumsum(mean_effects)])
-    else:
-        ale = np.cumsum(mean_effects)
-
-    # Center: subtract the sample-weighted mean
-    ale_centers = (ale[1:] + ale[:-1]) / 2
-    ale -= np.sum(ale_centers * bin_counts[min_weight_bin:]) / bin_counts.sum()
+    ale_err = None
 
     # Confidence interval
-    ale_err = None
-    if confidence_interval:
-        sample_means = mean_effects[combined_idx]
-        squared_deviations = (combined_effects - sample_means) ** 2
-        sum_squared_deviations = np.bincount(
-            combined_idx, weights=squared_deviations, minlength=n_bins
-        )
+    if confidence_level != 0:
+        if n_bootstraps < 1:
+            raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
-        var_of_mean = np.zeros(n_bins, dtype=float)
-        valid_bins = bin_counts > 1
-        var_of_mean[valid_bins] = sum_squared_deviations[valid_bins] / (
-            bin_counts[valid_bins] * (bin_counts[valid_bins] - 1)
-        )
+        rng = check_random_state(random_state)
 
-        if feature_type == "continuous":
-            var_of_mean = np.array([0, *var_of_mean])
+        bootstrap_curves = Parallel(n_jobs=n_jobs)(
+            delayed(_compute_ale_1d_curve)(
+                estimator,
+                X_bootstrap[
+                    rng.choice(
+                        len(X_bootstrap), size=len(X_bootstrap), replace=True
+                    )
+                ],
+                feature_idx=feature_idx,
+                feature_type=feature_type,
+                grid_values=grid_values,
+                method=method,
+            )
+            for _ in range(n_bootstraps)
+        )
+        bootstrap_curves = np.array(bootstrap_curves)
+
+        ale = np.mean(bootstrap_curves, axis=0)
         z_score = stats.norm.ppf(1 - (1 - confidence_level) / 2)
-        ale_err = z_score * np.sqrt(var_of_mean)
+        ale_err = z_score * np.std(bootstrap_curves, axis=0)
 
     return ale, grid_values, ale_err
 
@@ -321,10 +389,10 @@ def compute_ale_2d(
 
     X = np.asarray(X)
     idx_i, idx_j = feature_indices
-    x_i, x_j = X[:, idx_i], X[:, idx_j]
+    X_i, X_j = X[:, idx_i], X[:, idx_j]
 
     quantiles_i, quantiles_j = _build_quantile_grid_2d(
-        x_i, x_j, grid_resolution=grid_resolution, percentiles=percentiles
+        X_i, X_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
 
     n_bins_i = len(quantiles_i) - 1
@@ -339,8 +407,8 @@ def compute_ale_2d(
             f"Feature {idx_j} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
         )
 
-    bin_idx_i = _bin_indices(x_i, quantiles_i)
-    bin_idx_j = _bin_indices(x_j, quantiles_j)
+    bin_idx_i = _bin_indices(X_i, quantiles_i)
+    bin_idx_j = _bin_indices(X_j, quantiles_j)
     bin_idx = [bin_idx_i, bin_idx_j]
 
     # Second-order finite differences: evaluate at the four corners of each 2D bin
@@ -521,9 +589,11 @@ class ALE:
         feature_type="auto",
         method="predict",
         grid_resolution="auto",
-        confidence_interval=True,
-        confidence_level=0.95,
         percentiles=(5, 95),
+        confidence_level=0.95,
+        n_bootstraps=20,
+        n_jobs=1,
+        random_state=None,
         cmap="viridis",
         **kwargs,
     ):
@@ -556,13 +626,20 @@ class ALE:
               strictly less than `grid_resolution` (or the auto-calculated value)
               if the data contains many duplicate values or fewer unique points
               than requested.
-        confidence_interval : bool, default=True
-            Whether to compute and display confidence intervals around the 1D ALE curve.
-        confidence_level : float, default=0.95
-            The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%).
+
         percentiles : tuple of float, default=(5, 95)
             The lower and upper percentile used to create the extreme values for the grid.
             Must be in [0, 100].
+        confidence_level : float, default=0.95
+            The confidence level used to compute the confidence intervals (e.g., 0.95 for 95%)
+            for the 1D ALE curve. If set to 0, confidence intervals are not computed.
+            Must be in [0, 1[.
+        n_bootstraps : int, default=20
+            Number of bootstrap samples to generate if `confidence_level` is not 0.
+        n_jobs : int, default=1
+            Number of jobs to run in parallel during bootstrapping. `-1` means using all processors.
+        random_state : int or None, default=None
+            Seed for reproducible bootstraps.
         cmap : str, default="viridis"
             Matplotlib colormap used for the 2D mesh plot.
         **kwargs
@@ -603,9 +680,11 @@ class ALE:
                     feature_idx=features,
                     feature_type=feature_type,
                     grid_resolution=grid_resolution,
-                    confidence_interval=confidence_interval,
-                    confidence_level=confidence_level,
                     percentiles=percentiles,
+                    confidence_level=confidence_level,
+                    n_bootstraps=n_bootstraps,
+                    n_jobs=n_jobs,
+                    random_state=random_state,
                 )
                 result = {
                     "ale": ale,

@@ -94,7 +94,7 @@ pdp_axes = pdp.plot(X_test, features=1)
 # 2. ALE Plot
 ale = ALE(model, feature_names=X.columns)
 ale_axes = ale.plot(
-    X_test, features=1, grid_resolution=100, confidence_interval=False
+    X_test, features=1, grid_resolution=100, confidence_level=0
 )
 
 mean_pred = model.predict(X_test).mean()
