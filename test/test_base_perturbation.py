@@ -6,8 +6,11 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
-from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
-from .conftest import _rng, check_estimator
+from .conftest import (
+    _rng,
+    check_estimator,
+    fitted_linear_regression,
+)
 
 
 def _fitted_linear_regression():
