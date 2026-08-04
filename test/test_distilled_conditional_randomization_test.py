@@ -20,7 +20,7 @@ from hidimstat._utils.utils import SKLEARN_LT_1_6, _make_sklearn_estimator
 from .conftest import check_estimator
 
 ESTIMATORS_TO_CHECK = [
-    D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None, n_jobs=-1)
+    D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
 ]
 
 
@@ -93,7 +93,7 @@ def d0crt_test_data():
         "estimator": LassoCV(cv=KFold(shuffle=True)),
         "screening_threshold": None,
         "model_distillation_x": LassoCV(cv=KFold(shuffle=True)),
-        "n_jobs": -1,
+        "n_jobs": 1,
     }
     setattr(dcrt_default_parameters["model_distillation_x"], alphas_attr, 10)
     return X, y, beta, dcrt_default_parameters
@@ -123,7 +123,6 @@ def test_dcrt_lasso_screening(d0crt_test_data):
     d0crt_no_screening = D0CRT(
         estimator=LassoCV(n_jobs=1),
         screening_threshold=None,
-        n_jobs=-1,
     )
     pvalue_no_screening = d0crt_no_screening.fit_importance(X, y)
     sv_no_screening = d0crt_no_screening.pvalue_selection(threshold_max=0.05)
@@ -137,7 +136,6 @@ def test_dcrt_lasso_screening(d0crt_test_data):
     d0crt_screening = D0CRT(
         estimator=LassoCV(n_jobs=1),
         screening_threshold=10,
-        n_jobs=-1,
     )
     pvalue_screening = d0crt_screening.fit_importance(X, y)
     sv_screening = d0crt_screening.pvalue_selection(threshold_max=0.05)
@@ -152,7 +150,6 @@ def test_dcrt_lasso_screening(d0crt_test_data):
         estimator=LassoCV(n_jobs=1),
         screening_threshold=None,
         scaled_statistics=True,
-        n_jobs=-1,
     )
     d0crt_no_screening.fit_importance(X, y)
     pvalue_no_screening = d0crt_no_screening.importance(X, y)
@@ -177,7 +174,6 @@ def test_dcrt_lasso_with_estimed_coefficient(d0crt_test_data):
         estimator=LassoCV(n_jobs=1),
         estimated_coef=estimated_coefs,
         screening_threshold=None,
-        n_jobs=-1,
     )
     d0crt.fit(X, y)
     pvalue = d0crt.importance(X, y)
@@ -198,7 +194,6 @@ def test_dcrt_lasso_with_refit(d0crt_test_data):
         estimator=LassoCV(n_jobs=1),
         refit=True,
         screening_threshold=None,
-        n_jobs=-1,
     )
     pvalue = d0crt_refit.fit_importance(X, y)
     sv = d0crt_refit.pvalue_selection(threshold_max=0.05)
@@ -218,7 +213,6 @@ def test_dcrt_lasso_with_no_cv(d0crt_test_data):
         estimator=LassoCV(n_jobs=1),
         lasso_screening=LassoCV(n_jobs=1, fit_intercept=False),
         screening_threshold=None,
-        n_jobs=-1,
     )
     pvalue = d0crt_use_cv.fit_importance(X, y)
     sv = d0crt_use_cv.pvalue_selection(threshold_max=0.05)
@@ -240,7 +234,6 @@ def test_dcrt_lasso_with_covariance(d0crt_test_data):
         estimator=LassoCV(n_jobs=1),
         sigma_X=cov.covariance_,
         screening_threshold=None,
-        n_jobs=-1,
     )
     pvalue = d0crt_covariance.fit_importance(X, y)
     sv = d0crt_covariance.pvalue_selection(threshold_max=0.05)
@@ -261,7 +254,6 @@ def test_dcrt_lasso_center():
         centered=False,
         screening_threshold=None,
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -301,7 +293,6 @@ def test_dcrt_lasso_no_selection():
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         estimated_coef=np.ones(10) * 10,
-        n_jobs=-1,
     )
     with pytest.warns(
         UserWarning,
@@ -322,7 +313,6 @@ def test_dcrt_distillation_x_different():
     d0crt = D0CRT(
         estimator=Lasso(alpha=0.5 * _alpha_max(X, y), fit_intercept=False),
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -344,7 +334,6 @@ def test_dcrt_distillation_y_different():
         estimator=LassoCV(n_jobs=1),
         model_distillation_x=Lasso(),
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -368,7 +357,6 @@ def test_dcrt_lasso_fit_with_no_cv():
         lasso_screening=LassoCV(n_jobs=1),
         screening_threshold=None,
         scaled_statistics=True,
-        n_jobs=-1,
     )
     pvalue = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -486,7 +474,9 @@ def test_function_d0crt():
         noise=0.2,
     )
     sv, importances, pvalues = d0crt_importance(
-        LassoCV(n_jobs=1), X, y, n_jobs=-1
+        LassoCV(n_jobs=1),
+        X,
+        y,
     )
 
     assert len(sv) <= 10
@@ -583,7 +573,6 @@ def test_d0crt_linear(d0crt_test_data):
     d0crt = D0CRT(
         estimator=lasso_estimator,
         screening_threshold=90,
-        n_jobs=-1,
     )
     importances = d0crt.fit_importance(X, y)
     sv = d0crt.pvalue_selection(threshold_max=0.05)
@@ -599,7 +588,8 @@ def test_d0crt_rf(d0crt_test_data):
     X, y, beta, _ = d0crt_test_data
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
-            n_estimators=20, random_state=0, n_jobs=-1
+            n_estimators=20,
+            random_state=0,
         ),
         screening_threshold=None,
         random_state=0,
@@ -634,7 +624,6 @@ def test_dcrt_logit(generate_binary_classif_dataset):
         ),
         screening_threshold=50,
         random_state=0,
-        n_jobs=-1,
     )
     dcrt.fit(X, y)
     dcrt.importance(X, y)
@@ -719,7 +708,6 @@ def test_dcrt_logit_refit(generate_binary_classif_dataset):
         reuse_screening_model=False,
         screening_threshold=50,
         random_state=0,
-        n_jobs=-1,
     )
     dcrt.fit(X, y)
     dcrt.importance(X, y)
@@ -742,12 +730,10 @@ def test_regression_intercept(d0crt_test_data):
     d0crt_intercept = D0CRT(
         estimator=LassoCV(fit_intercept=True),
         screening_threshold=None,
-        n_jobs=-1,
     )
     d0crt_no_intercept = D0CRT(
         estimator=LassoCV(fit_intercept=False),
         screening_threshold=None,
-        n_jobs=-1,
     )
     d0crt_intercept.fit_importance(X, y)
     d0crt_no_intercept.fit_importance(X, y)
@@ -793,7 +779,6 @@ def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
         ),
         screening_threshold=50,
         random_state=0,
-        n_jobs=-1,
     )
     dcrt.fit(X, y)
     dcrt.importance(X, y)
@@ -842,7 +827,6 @@ def test_d0crt_no_regression_variance_fix(d0crt_test_data):
         estimator=LassoCV(random_state=0),
         screening_threshold=None,
         random_state=0,
-        n_jobs=-1,
     )
     dcrt.fit_importance(X, y)
     thr = fdr_threshold(dcrt.pvalues_, fdr=fdr_target)
@@ -852,7 +836,6 @@ def test_d0crt_no_regression_variance_fix(d0crt_test_data):
         estimator=LassoCV(random_state=0),
         screening_threshold=None,
         random_state=0,
-        n_jobs=-1,
     )
     # Old implementation (with alpha term) using test patching
     with patch(

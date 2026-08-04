@@ -82,7 +82,6 @@ def test_knockoff_bootstrap_quantile():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=-1,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -119,7 +118,6 @@ def test_knockoff_bootstrap_e_values():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=-1,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -155,7 +153,6 @@ def test_invariant_with_bootstrap():
         ),
         random_state=0,
         n_repeats=1,
-        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -168,7 +165,6 @@ def test_invariant_with_bootstrap():
         ),
         random_state=0,
         n_repeats=3,
-        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff_repeat.importance()
     selected_repeat = model_x_knockoff_repeat.fdr_selection(fdr=fdr)
@@ -226,7 +222,6 @@ def test_model_x_knockoff_estimator():
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
         preconfigure_lasso_path=None,
-        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -251,7 +246,9 @@ def test_estimate_distribution():
         ),
     )
     model_x_knockoff = ModelXKnockoff(
-        n_repeats=5, random_state=42, ko_generator=generator, n_jobs=-1
+        n_repeats=5,
+        random_state=42,
+        ko_generator=generator,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -272,7 +269,6 @@ def test_knockoff_function_not_centered():
         n_repeats=5,
         random_state=seed,
         fdr=fdr,
-        n_jobs=-1,
     )
     fdp_power(selected, beta)
     assert selected.shape == (p,)
@@ -293,7 +289,6 @@ def test_model_x_knockoff_null():
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
         preconfigure_lasso_path=None,
-        n_jobs=-1,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -321,7 +316,6 @@ def test_lasso_estimator_alphas():
         estimator=estimator,
         n_repeats=n_repeats,
         random_state=seed,
-        n_jobs=-1,
     ).fit(X, y)
 
     assert all(

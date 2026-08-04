@@ -25,7 +25,6 @@ def test_sage_smoke(data_generator):
         n_permutations=10,
         n_subsets=20,
         random_state=42,
-        n_jobs=-1,
     )
     sage.fit(X)
     importance = sage.importance(X, y)
@@ -58,7 +57,7 @@ def sage_test_data():
         "method": "predict",
         "n_subsets": 20,
         "n_permutations": 10,
-        "n_jobs": -1,
+        "n_jobs": 1,
     }
     return X_train, y_train, X_test, y_test, sage_default_parameters
 

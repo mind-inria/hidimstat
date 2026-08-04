@@ -39,7 +39,6 @@ def test_permutation_importance(data_generator):
         method="predict",
         features_groups=None,
         random_state=0,
-        n_jobs=-1,
     )
 
     pfi.fit(
@@ -129,7 +128,6 @@ def test_permutation_importance_function(data_generator):
         n_permutations=20,
         method="predict",
         random_state=0,
-        n_jobs=-1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -162,7 +160,7 @@ def pfi_test_data():
         "estimator": model,
         "n_permutations": 20,
         "method": "predict",
-        "n_jobs": -1,
+        "n_jobs": 1,
     }
     return X_train, X_test, y_train, y_test, pfi_default_parameters
 
@@ -269,7 +267,6 @@ def test_pfi_cv(data_generator):
         cv=cv,
         n_permutations=20,
         random_state=0,
-        n_jobs=-1,
     )
     pfi_cv.fit(X, y)
     pfi_cv.importance(X, y)

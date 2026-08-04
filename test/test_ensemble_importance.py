@@ -93,7 +93,6 @@ def test_ensemble_importance(data_generator):
         vim=dl,
         n_repeats=5,
         random_state=0,
-        n_jobs=-1,
     )
     endl.fit(
         X_train,
@@ -152,7 +151,6 @@ def test_encluvi_spatial():
             ),
             n_repeats=5,
             random_state=seed,
-            n_jobs=-1,
         )
         encludl.fit_importance(X_init, y)
         fwer = 0.1
@@ -218,7 +216,6 @@ def test_encluvi_temporal():
             ),
             n_repeats=5,
             random_state=seed,
-            n_jobs=-1,
         )
         encludl.fit_importance(X, y)
 
@@ -260,7 +257,7 @@ def test_encluvi_independence():
         bootstrap_frac=0.7,
         n_repeats=20,
         random_state=1,
-        n_jobs=-1,
+        n_jobs=1,
     )
     encluvi.fit_importance(X_init, y)
     selected_ecdl = encluvi.fwer_selection(alpha, n_tests=n_clusters)
@@ -291,7 +288,7 @@ def ensemble_test_data():
         "vim": dl,
         "n_repeats": 10,
         "bootstrap_frac": 0.5,
-        "n_jobs": -1,
+        "n_jobs": 1,
     }
     return X_train, y_train, X_test, y_test, en_dl_default_parameters
 

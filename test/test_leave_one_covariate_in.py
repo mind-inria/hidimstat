@@ -63,7 +63,6 @@ def test_loci(data_generator):
         estimator=regression_model,
         method="predict",
         features_groups=groups,
-        n_jobs=-1,
     )
     loci.fit(
         X_train_df,
@@ -87,7 +86,6 @@ def test_loci(data_generator):
             "the_group_1": non_important_features,
         },
         loss=log_loss,
-        n_jobs=-1,
     )
     loci_clf.fit(
         X_train,
@@ -127,7 +125,6 @@ def test_multiclass_loci():
         method="predict_proba",
         features_groups=groups,
         loss=log_loss,
-        n_jobs=-1,
     )
     loci_clf.fit(
         X_train,
@@ -202,7 +199,6 @@ def test_loci_function(data_generator):
         X,
         y,
         method="predict",
-        n_jobs=-1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -233,7 +229,6 @@ def test_loci_cv(data_generator):
     loci_cv = LOCICV(
         estimators=model,
         cv=cv,
-        n_jobs=-1,
     )
     loci_cv.fit(X, y)
     loci_cv.importance(X, y)

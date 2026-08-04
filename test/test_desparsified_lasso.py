@@ -107,7 +107,8 @@ def test_desparsified_lasso():
         )
 
         desparsified_lasso = DesparsifiedLasso(
-            confidence=confidence, random_state=seed, n_jobs=-1
+            confidence=confidence,
+            random_state=seed,
         ).fit(X, y)
         _ = desparsified_lasso.importance()
         # Check that beta is within the confidence intervals
@@ -131,7 +132,6 @@ def test_desparsified_lasso():
             dof_ajdustement=True,
             confidence=confidence,
             random_state=seed,
-            n_jobs=-1,
         ).fit(X, y)
         _ = desparsified_lasso.importance()
 
@@ -188,7 +188,6 @@ def test_desparsified_group_lasso():
             tol=1e-4,
             max_iter=50,
             random_state=1,
-            n_jobs=-1,
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -283,7 +282,6 @@ def test_exception():
         tol=1e-4,
         max_iter=5000,
         random_state=1,
-        n_jobs=-1,
     )
 
     X, y, _, _ = multivariate_simulation(
@@ -379,7 +377,7 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=0,
     )
-    lasso_cv = LassoCV(n_jobs=-1).fit(X, y)
+    lasso_cv = LassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -399,7 +397,7 @@ def test_reid():
         signal_noise_ratio=signal_noise_ratio,
         seed=2,
     )
-    lasso_cv = LassoCV(n_jobs=-1).fit(X, y)
+    lasso_cv = LassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     sigma_hat = reid(lasso_cv.coef_, residual)
@@ -435,7 +433,7 @@ def test_group_reid():
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = support_size / signal_noise_ratio * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=-1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -496,7 +494,7 @@ def test_group_reid_2():
     )  # covariance matrix of time
     cov = 1.0 * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=-1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     cov_hat = reid(lasso_cv.coef_, residual, multioutput=True)
@@ -564,10 +562,9 @@ def dl_y1d_test_data():
         rho_serial=0.5,
     )
     dl = DesparsifiedLasso(
-        estimator=LassoCV(cv=KFold(n_splits=3, shuffle=True), n_jobs=-1),
+        estimator=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
         model_x=LassoCV(cv=KFold(n_splits=3, shuffle=True)),
         preconfigure_model_x_path=False,
-        n_jobs=-1,
     )
     return X, y, dl
 

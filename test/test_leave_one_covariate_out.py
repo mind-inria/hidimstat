@@ -32,7 +32,6 @@ def test_loco(data_generator):
         estimator=regression_model,
         method="predict",
         features_groups=None,
-        n_jobs=-1,
     )
 
     loco.fit(
@@ -163,7 +162,6 @@ def test_loco_function(data_generator):
         X,
         y,
         method="predict",
-        n_jobs=-1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -194,7 +192,6 @@ def test_loco_cv(data_generator):
     loco_cv = LOCOCV(
         estimators=model,
         cv=cv,
-        n_jobs=-1,
     )
     loco_cv.fit(X, y)
     loco_cv.importance(X, y)
