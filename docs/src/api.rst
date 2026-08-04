@@ -32,7 +32,9 @@ Feature Importance Classes
    CFI
    CFICV
    CluDL
+   ClusterImportance
    EnCluDL
+   EnsembleImportance
    PFI
    PFICV
    SAGE

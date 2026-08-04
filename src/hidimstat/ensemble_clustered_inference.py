@@ -1,14 +1,16 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.utils import resample
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.desparsified_lasso import DesparsifiedLasso
+from hidimstat.samplers.utils import _subsampling
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
@@ -52,6 +54,11 @@ class CluDL(BaseVariableImportance):
     n_features_ : int
         Number of features in the original data.
 
+    Notes
+    -----
+    .. deprecated:: 0.5.0
+       Use :class:`hidimstat.ClusterImportance` instead with  vim=:class:`hidimstat.DesparsifiedLasso`.
+
     """
 
     def __init__(
@@ -80,6 +87,13 @@ class CluDL(BaseVariableImportance):
         self.clustering_ = None
         self.clustering_samples_ = None
 
+        warnings.warn(
+            "CluDL is deprecated and will be removed in version 0.5.0."
+            "Please use class ClusterImportance instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
+
     def fit(self, X, y):
         """
         Fit the clustering and desparsified lasso on the data.
@@ -102,7 +116,7 @@ class CluDL(BaseVariableImportance):
         self.n_features_in_ = X.shape[1]
 
         # Clustering
-        self.clustering_samples_ = self._subsampling(
+        self.clustering_samples_ = _subsampling(
             n_samples=X.shape[0],
             train_size=self.cluster_bootstrap_size,
             groups=self.bootstrap_groups,
@@ -233,41 +247,6 @@ class CluDL(BaseVariableImportance):
                 )
         return beta_hat_degrouped
 
-    @staticmethod
-    def _subsampling(n_samples, train_size, groups=None, random_state=None):
-        """
-        Random subsampling for statistical inference.
-
-        Parameters
-        ----------
-        n_samples : int
-            Total number of samples in the dataset.
-        train_size : float
-            Fraction of samples to include in the training set (between 0 and 1).
-        groups : ndarray, shape (n_samples,), optional (default=None)
-            Group labels for samples.
-            If not None, a subset of groups is selected.
-        random_state : int, optional (default=0)
-            Random seed for reproducibility.
-
-        Returns
-        -------
-        train_index : ndarray
-            Indices of selected samples for training.
-        """
-        index_row = (
-            np.arange(n_samples) if groups is None else np.unique(groups)
-        )
-        train_index = resample(
-            index_row,
-            n_samples=int(len(index_row) * train_size),
-            replace=False,
-            random_state=np.random.RandomState(random_state.bit_generator),
-        )
-        if groups is not None:
-            train_index = np.arange(n_samples)[np.isin(groups, train_index)]
-        return train_index
-
 
 class EnCluDL(BaseVariableImportance):
     """
@@ -318,6 +297,11 @@ class EnCluDL(BaseVariableImportance):
     pvalues_ : ndarray, shape (n_features,)
         P-values for each feature.
 
+    Notes
+    -----
+    .. deprecated:: 0.5.0
+       Use :class:`hidimstat.EnsembleImportance` instead.
+
     .. footbibliography::
     """
 
@@ -348,6 +332,13 @@ class EnCluDL(BaseVariableImportance):
         self.adaptive_aggregation = adaptive_aggregation
 
         self.desparsified_lassos_ = None
+
+        warnings.warn(
+            "EnCluDL is deprecated and will be removed in version 0.5.0."
+            "Please use class EnsembleImportance instead.",
+            FutureWarning,
+            stacklevel=2,
+        )
 
     @staticmethod
     def _joblib_fit_one(
