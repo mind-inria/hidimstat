@@ -2,6 +2,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from joblib import parallel_backend
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.exceptions import NotFittedError
@@ -180,7 +181,7 @@ def test_compute_ale_1d_continuous(ale_test_data):
         feature_idx=important_features[0],
         feature_type="continuous",
         grid_resolution=grid_resolution,
-        confidence_interval=False,
+        confidence_level=0,
     )
     assert isinstance(ale, np.ndarray)
     assert isinstance(grid_values, np.ndarray)
@@ -189,27 +190,26 @@ def test_compute_ale_1d_continuous(ale_test_data):
     assert len(grid_values) <= grid_resolution + 1
 
     # With confidence interval
-    ale_ci, grid_values_ci, ale_err_ci = compute_ale_1d(
+    _, grid_values_ci, ale_err_ci = compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
         feature_type="continuous",
         grid_resolution=grid_resolution,
-        confidence_interval=True,
         confidence_level=0.95,
     )
-    assert isinstance(ale_ci, np.ndarray)
-    assert isinstance(grid_values_ci, np.ndarray)
     assert isinstance(ale_err_ci, np.ndarray)
-    assert len(ale_ci) == len(grid_values_ci)
-    assert len(grid_values_ci) <= grid_resolution + 1
     assert len(ale_err_ci) == len(grid_values_ci)
 
 
 def test_compute_ale_1d_continuous_error(ale_test_data):
     """Check the raised error if the continuous feature does not have enough unique quantiles."""
     data = ale_test_data["continuous"]
-    X, model = data["X"], data["model"]
+    X, model, important_features = (
+        data["X"],
+        data["model"],
+        data["important_features"],
+    )
 
     X_const = X.copy()
     X_const[:, 0] = 7
@@ -235,6 +235,15 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
             feature_type="invalid_feature_type",
             grid_resolution=10,
         )
+    with pytest.raises(ValueError, match="must be strictly greater than"):
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=important_features[0],
+            feature_type="continuous",
+            confidence_level=0.95,
+            n_bootstraps=0,
+        )
 
 
 def test_compute_ale_1d_discrete(ale_test_data):
@@ -248,7 +257,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
         X,
         feature_idx=0,
         feature_type="categorical",
-        confidence_interval=False,
+        confidence_level=0,
     )
     assert isinstance(ale, np.ndarray)
     assert isinstance(grid_values, np.ndarray)
@@ -262,11 +271,21 @@ def test_compute_ale_1d_discrete(ale_test_data):
         X,
         feature_idx=0,
         feature_type="categorical",
-        confidence_interval=True,
-        confidence_level=0.90,
+        confidence_level=0.95,
     )
     assert isinstance(ale_err_ci, np.ndarray)
     assert len(ale_err_ci) == len(grid_values_ci)
+
+    # To test _bootstrap()
+    with parallel_backend("threading"):
+        result_bootstrap = compute_ale_1d(
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            confidence_level=0.95,
+            n_bootstraps=2,
+        )
 
 
 def test_compute_ale_1d_discrete_error(ale_test_data):
@@ -280,6 +299,15 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     with pytest.raises(ValueError, match="has fewer than 2 unique values"):
         compute_ale_1d(
             model, X_const, feature_idx=0, feature_type="categorical"
+        )
+    with pytest.raises(ValueError, match="must be strictly greater than"):
+        compute_ale_1d(
+            model,
+            X,
+            feature_idx=0,
+            feature_type="categorical",
+            confidence_level=0.95,
+            n_bootstraps=0,
         )
 
     with pytest.raises(
@@ -474,13 +502,13 @@ def test_ale_plot_smoke(ale_test_data):
         data_continuous["X"],
         features=data_continuous["important_features"][0],
         grid_resolution=10,
-        confidence_interval=True,
+        confidence_level=0.95,
     )
     assert ax_1d_continuous is not None
     plt.close("all")
 
     ax_1d_discrete = ale_discrete.plot(
-        data_discrete["X"], features=0, confidence_interval=True
+        data_discrete["X"], features=0, confidence_level=0.95
     )
     assert ax_1d_discrete is not None
     plt.close("all")
