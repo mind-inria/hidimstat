@@ -1,0 +1,184 @@
+name: 'CI Publish'
+on:
+  workflow_run:
+    workflows: ['CI', 'CI maintenance']
+    types: [completed]
+
+# disable all the permission for the workflow by default
+permissions: {}
+
+jobs:
+  gather_metadata:
+    name: Gather PR metadata
+    # Only proceed for PR-triggered runs of CI that succeeded.
+    # (ci.yml also runs on push, which has no pr-meta artifact to fetch.)
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read   # required to download artifacts from another run
+    outputs:
+      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME }}
+      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH }}
+    steps:
+      - name: Download PR metadata from the triggering run
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-meta
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: pr-meta
+
+      - name: Read PR metadata
+        id: read_meta
+        run: |
+          BRANCH_NAME=$(cat pr-meta/branch_name.txt)
+          PR_DRAFT=$(cat pr-meta/pr_draft.txt)
+          DOC_FLAG=$(cat pr-meta/doc_flag.txt)
+
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+          if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
+            echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
+          else
+            echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
+          fi
+
+  merge_and_upload_test_data:
+    name: Merge and upload test data
+    needs: [gather_metadata]
+    if: needs.gather_metadata.outputs.SHOULD_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: read   # required to download artifacts from another run
+    env:
+      TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
+      BRANCH_INPUT: ${{ needs.gather_metadata.outputs.BRANCH_NAME }}
+      REPO: ${{ github.repository }}
+    steps:
+      # get reports from the untrusted build/test run
+      - name: Get HTML reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: pytest-results-html-*-os-*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get time reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: pytest-results-log-*-os-*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      # put all the reports in one folder and add an index
+      - name: gather reports and add an index
+        run: |
+          mkdir reports
+          mv */*.html reports
+          mv */*.txt reports
+          (
+          echo '<html><body><p>List TESTs Reports:</p><ul>'
+          echo "$(ls reports)" | sed 's|.*|<li><a href="&">&</a></li>|'
+          echo '</ul></body></html>'
+          ) > index.html
+          mv index.html reports
+      - name: upload the reports
+        id: upload_all
+        uses: actions/upload-artifact@v7
+        with:
+          name: pytest-results-all
+          path: reports
+          if-no-files-found: error
+      - name: Trigger hosting job on circle ci
+        env:
+          ARTIFACT_URL: ${{ steps.upload_all.outputs.artifact-url }}
+        run: |
+          #display command executed with argument
+          set -x -a
+          # get the number of the PR
+          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          # get the branch of the PR — passed through an env var, never
+          # interpolated directly into the script, since branch names are
+          # attacker-controlled and can contain shell metacharacters
+          if [ "$PULL_REQUEST_NUMBER" == "null" ]
+          then
+            BRANCH="$BRANCH_INPUT"
+          else
+            BRANCH="pull/$PULL_REQUEST_NUMBER/head"
+          fi
+          # get URL for download artifact without identification
+          GITHUB_RUN_URL="https://nightly.link/$(echo "$ARTIFACT_URL" | cut -d/ -f4-8)/pytest-results-all.zip"
+          # Build the request body with jq rather than string interpolation.
+          # BRANCH can contain double quotes and other JSON-breaking
+          # characters — jq --arg handles the escaping safely.
+          REQUEST_BODY=$(jq -n \
+            --arg branch "$BRANCH" \
+            --arg run_url "$GITHUB_RUN_URL" \
+            '{
+              definition_id: "303559b0-0f61-548c-acc0-803f0f8edfba",
+              config: { branch: $branch },
+              checkout: { branch: $branch },
+              parameters: { GITHUB_RUN_URL: $run_url }
+            }')
+          # Send the information to circleci
+          http_response=$(curl --request POST \
+          --output result_post.txt \
+          --write-out "%{response_code}" \
+          --url "https://circleci.com/api/v2/project/gh/$REPO/pipeline/run" \
+          --header "Circle-Token: $TOKEN_CIRCLECI" \
+          --header 'content-type: application/json' \
+          --header 'x-attribution-actor-id: github_actions' \
+          --header 'x-attribution-login: github_actions' \
+          --data "$REQUEST_BODY")
+          # for more information, see: https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
+          # definition_id is the id of the pipeline of hidimstat
+          # display result for debugging
+          cat result_post.txt
+          if [[ "$http_response" == '201' ]]
+            then
+              exit 0
+            else
+              exit 1
+            fi
+
+  upload_coverage_data:
+    name: Upload coverage data
+    needs: [gather_metadata]
+    if: needs.gather_metadata.outputs.SHOULD_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read   # required to download artifacts from another run
+    # name for files
+    env:
+      OS: 'macos-latest'
+      PYTHON: '3.14'
+    steps:
+    # initialize the repository (base branch — safe, no PR code involved)
+    - uses: actions/checkout@v7
+
+    # get coverage only for 1 job, from the untrusted build/test run
+    - name: Get data
+      uses: actions/download-artifact@v8
+      with:
+        pattern: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}  #CHECK: need to be updated when new version are available
+        path: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    # check the size of the file for not pushing empty file
+    - name: Check file size
+      id: check_size
+      run: |
+          FILE_SIZE=$(stat -c%s "cov-results-${PYTHON}-os-${OS}/cov-${PYTHON}-os-${OS}.xml")
+          echo "File size is $FILE_SIZE bytes"
+          echo "FILE_SIZE=$FILE_SIZE" >> $GITHUB_ENV
+    # Upload coverage report for Codecov
+    - name: Upload coverage reports to Codecov
+      if: ${{ env.FILE_SIZE > 1 }}
+      uses: codecov/codecov-action@v7.0.0
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        env_vars: OS,PYTHON
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        fail_ci_if_error: true
