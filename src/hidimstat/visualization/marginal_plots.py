@@ -458,6 +458,8 @@ class MPlot:
         low_i, high_i = quantiles_i.min(), quantiles_i.max()
         low_j, high_j = quantiles_j.min(), quantiles_j.max()
 
+        """
+        This is what was plotted instead of bin_means.T with ax_main.pcolormesh()
         zz_cells = np.empty(
             (bin_means.shape[0] - 1, bin_means.shape[1] - 1),
             dtype=bin_means.dtype,
@@ -467,7 +469,7 @@ class MPlot:
             + bin_means[1:, 1:]
             + bin_means[:-1, 1:]
             + bin_means[1:, :-1]
-        ) / 4
+        ) / 4"""
 
         fig, axes = plt.subplots(
             2,
@@ -487,9 +489,9 @@ class MPlot:
         mesh = ax_main.pcolormesh(
             quantiles_i,
             quantiles_j,
-            zz_cells.T,
+            bin_means.T,
             cmap=cmap,
-            shading="nearest",
+            shading="flat",
             edgecolors="face",
             **kwargs,
         )
