@@ -13,7 +13,8 @@ jobs:
     # Only proceed for PR-triggered runs of CI that succeeded.
     # (ci.yml also runs on push, which has no pr-meta artifact to fetch.)
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.event == 'pull_request' ||
+      github.event.workflow_run.event == 'push') &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
@@ -33,16 +34,22 @@ jobs:
       - name: Read PR metadata
         id: read_meta
         run: |
-          BRANCH_NAME=$(cat pr-meta/branch_name.txt)
-          PR_DRAFT=$(cat pr-meta/pr_draft.txt)
-          DOC_FLAG=$(cat pr-meta/doc_flag.txt)
-
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-          if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
+          if [ "${{ github.event.workflow_run.event }}" == "push" ]; then
+            # a push trigger on main
+            echo "BRANCH_NAME=main" >> $GITHUB_OUTPUT
             echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
           else
-            echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
+            BRANCH_NAME=$(cat pr-meta/branch_name.txt)
+            PR_DRAFT=$(cat pr-meta/pr_draft.txt)
+            DOC_FLAG=$(cat pr-meta/doc_flag.txt)
+
+            echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+            if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
+              echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
+            else
+              echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
   merge_and_upload_test_data:
