@@ -56,6 +56,9 @@ def _sage_value_function(
             )
 
     X_sampled_batch = X_sampled.reshape(-1, n_features)
+    if isinstance(X, pd.DataFrame):
+        X_sampled_batch = pd.DataFrame(X_sampled_batch, columns=X.columns)
+
     y_pred = getattr(estimator, method)(X_sampled_batch)
     # In case of classification, the output is a 2D array. Reshape accordingly
     if y_pred.ndim == 1:

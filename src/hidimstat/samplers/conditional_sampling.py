@@ -110,7 +110,7 @@ class ConditionalSampler:
             self.multioutput_ = True
         else:
             if y.ndim > 1:
-                y = y.ravel()
+                y = np.asarray(y).ravel()
             self.multioutput_ = False
         if self.model is None:
             raise AttributeError(
