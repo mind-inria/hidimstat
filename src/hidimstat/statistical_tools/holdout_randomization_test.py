@@ -1,9 +1,9 @@
 import numpy as np
 
-from hidimstat.statistical_tools.utils import TtestResult
+from hidimstat.statistical_tools.utils import TestResult
 
 
-def holdout_randomization_test(loss_diff):
+def holdout_randomization_test(loss_diff, approx=False):
     """
     Compute the p-value of the holdout randomization, following the procedure
     described in :footcite:t:`tansey2022holdout`.
@@ -26,13 +26,35 @@ def holdout_randomization_test(loss_diff):
     loss_diff : array-like of shape (n_features, n_permutations)
         The loss differences between the two models for each feature and each
         permutation.
+    approx : bool, default=False
+        Whether to use the approximate version of the holdout randomization
+        test (Algorithm 4).
 
     Returns
     -------
     p_value : float
         The p-value of the holdout randomization test.
+
+    References
+    ----------
+    .. footbibliography::
     """
     n_permutations = loss_diff.shape[1]
-
     p_values = (1 + np.sum(loss_diff >= 0, axis=1)) / (n_permutations + 1)
-    return TtestResult(None, p_values)
+    if loss_diff.ndim == 2:
+        return TestResult(None, p_values)
+    elif loss_diff.ndim == 3:
+        n_folds = loss_diff.shape[2]
+        if approx:
+            approx_pvalues = (
+                1 + np.sum(np.sum(loss_diff, axis=2) >= 0, axis=1)
+            ) / (n_permutations + 1)
+            return TestResult(None, approx_pvalues)
+        else:
+            corrected_p_values = n_folds * np.min(p_values, axis=1)
+            return TestResult(None, corrected_p_values)
+    else:
+        raise ValueError(
+            "loss_diff must be a 2D or 3D array, but got an array with shape "
+            f"{loss_diff.shape}."
+        )
