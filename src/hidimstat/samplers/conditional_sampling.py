@@ -109,8 +109,8 @@ class ConditionalSampler:
                 self.model = MultiOutputRegressor(self.model)
             self.multioutput_ = True
         else:
-            if y.ndim > 1:
-                y = np.asarray(y).ravel()
+            if y.ndim > 1 and isinstance(y, np.ndarray):
+                y = y.ravel()
             self.multioutput_ = False
         if self.model is None:
             raise AttributeError(

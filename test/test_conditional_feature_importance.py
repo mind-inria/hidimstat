@@ -244,6 +244,40 @@ def test_group(data_generator):
     # Verify that important feature group has higher score
     # than non-important feature group
     assert importance[0] > importance[1]
+    assert all(model.multioutput_ for model in cfi._list_imputation_models)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["high dimension"],
+)
+def test_no_group_output_detection(data_generator):
+    X, y, _important_features, _not_important_features = data_generator
+    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+
+    # Create and fit linear regression model on training set
+    regression_model = LinearRegression()
+    regression_model.fit(X_df, y)
+
+    cfi = CFI(
+        estimator=regression_model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        features_groups=None,
+        feature_types="auto",
+        random_state=0,
+        n_jobs=1,
+    )
+
+    # Check that the conditional samplers properly detect this is not a multi-output setting.
+    cfi.fit(X_df)
+    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+
+    # Check same thing when X is a np.ndarray
+    cfi.fit(X)
+    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
 
 
 @pytest.mark.parametrize(
