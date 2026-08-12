@@ -16,6 +16,7 @@ from sklearn.linear_model import (
 )
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
@@ -955,7 +956,10 @@ def test_unfitted_estimator(data_generator):
     X, y, _, _ = data_generator
 
     regression_model = LinearRegression()
+    with pytest.raises(NotFittedError):
+        check_is_fitted(regression_model)
 
     cfi = CFI(estimator=regression_model)
-    fitted_cfi = cfi.fit(X, y)
-    assert isinstance(fitted_cfi, CFI)
+    cfi.fit(X, y)
+    # the estimator is fitted internally by CFI.fit
+    check_is_fitted(cfi.estimator_)
