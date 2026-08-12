@@ -943,3 +943,19 @@ def test_cfi_cv(data_generator):
     fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(20, 3, 1, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default"],
+)
+def test_unfitted_estimator(data_generator):
+    """Test CFI with an unfitted estimator"""
+    X, y, _, _ = data_generator
+
+    regression_model = LinearRegression()
+
+    cfi = CFI(estimator=regression_model)
+    fitted_cfi = cfi.fit(X, y)
+    assert isinstance(fitted_cfi, CFI)
