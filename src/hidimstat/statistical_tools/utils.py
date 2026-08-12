@@ -1,4 +1,4 @@
 from collections import namedtuple
 
-TtestResult = namedtuple("TtestResult", ["statistic", "pvalue"])
-TtestResult.__doc__ = "Results from a statistical test."
+TestResult = namedtuple("TestResult", ["statistic", "pvalue"])
+TestResult.__doc__ = "Results from a statistical test."
