@@ -1,11 +1,8 @@
-from collections import namedtuple
-
 import numpy as np
 from scipy.stats import t
 from scipy.stats._stats_py import _var
 
-NBTtestResult = namedtuple("NBTtestResult", ["statistic", "pvalue"])
-NBTtestResult.__doc__ = "Class for Nadeau Bengio t-test"
+from hidimstat.statistical_tools.utils import TtestResult
 
 
 def _get_pvalue(df, statistic, alternative, symmetric=True):
@@ -88,4 +85,4 @@ def nadeau_bengio_ttest(
     denom = np.sqrt(v * (1 / n + test_frac))
     t = np.divide(d, denom)
     prob = _get_pvalue(np.asarray(n - 1, dtype=t.dtype), t, alternative)
-    return NBTtestResult(t, prob)
+    return TtestResult(t, prob)

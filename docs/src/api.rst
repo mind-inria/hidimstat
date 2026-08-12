@@ -78,6 +78,17 @@ Samplers
    ~samplers.ConditionalSampler
    ~samplers.GaussianKnockoffs
 
+
+Statistical Tests
+=================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.holdout_randomization_test
+
 Helper Functions
 ================
 
