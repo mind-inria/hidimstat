@@ -24,7 +24,7 @@ jobs:
   build-test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true # if on job fail all the other jobs are cancelled
+      fail-fast: false # if on job fail all the other jobs are cancelled
       matrix:
         python-version: ["3.14", "3.10"] #CHECK: not forget to add new version of python
         os: [macos-latest, ubuntu-latest, windows-latest]
