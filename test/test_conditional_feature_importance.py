@@ -255,10 +255,14 @@ def test_group(data_generator):
 def test_no_group_output_detection(data_generator):
     X, y, _important_features, _not_important_features = data_generator
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+    # Split data into training and test sets
+    X_train_df, X_test_df, y_train, y_test = train_test_split(
+        X_df, y, random_state=0
+    )
 
     # Create and fit linear regression model on training set
     regression_model = LinearRegression()
-    regression_model.fit(X_df, y)
+    regression_model.fit(X_train_df, y_train)
 
     cfi = CFI(
         estimator=regression_model,
@@ -272,12 +276,19 @@ def test_no_group_output_detection(data_generator):
     )
 
     # Check that the conditional samplers properly detect this is not a multi-output setting.
-    cfi.fit(X_df)
+    cfi.fit(X_train_df)
     assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    importance = cfi.importance(X_test_df, y_test)
+    # Check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
 
     # Check same thing when X is a np.ndarray
-    cfi.fit(X)
+    regression_model.fit(X_train_df.values, y_train)
+    cfi.fit(X_train_df.values)
     assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    importance = cfi.importance(X_test_df.values, y_test)
+    # Check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
 
 
 @pytest.mark.parametrize(
