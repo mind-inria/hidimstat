@@ -42,6 +42,10 @@ class LOCI(BasePerturbation):
     References
     ----------
     .. footbibliography::
+
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
 
     def __init__(

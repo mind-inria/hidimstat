@@ -555,6 +555,9 @@ class ALE:
 
     Notes
     -----
+
+    .. versionadded:: 0.4.0
+
     **Estimators and Discretization**
 
     In practice, the continuous derivatives and integrals are unknown. The package
