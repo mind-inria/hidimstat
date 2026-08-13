@@ -1,8 +1,9 @@
 import numpy as np
+import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import _get_array_cols, check_random_state
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -75,7 +76,9 @@ class PFI(BasePerturbation):
         X_perm_j = np.array(
             [
                 rng.permutation(
-                    X[:, self._features_groups_ids[features_group_id]].copy()
+                    _get_array_cols(
+                        X, self._features_groups_ids[features_group_id]
+                    )
                 )
                 for _ in range(self.n_permutations)
             ]
