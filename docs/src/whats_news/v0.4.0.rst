@@ -42,3 +42,14 @@ Changes
 - :bdg-danger:`Fix` Allowed unfitted estimators for CFI (estimator is then fitted before CFI) (:gh:`750` by `Joseph Paillard`_).
 - :bdg-secondary:`Maint` Fixed CI security issues by switching to 'pull_request' (:gh:`735` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Fixed math formatting in total sobol index section (:gh:`746` by `Joseph Paillard`_).
+
+
+Contributors:
+-------------
+
+ - `Bertrand Thirion`_
+ - `Joseph Paillard`_
+ - `Marc Hulcelle`_
+ - `Rémi Gau`_
+ - `Ángel Reyero Lobo`_
+ - `Aurélien Bazire`_
