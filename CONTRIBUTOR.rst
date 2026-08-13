@@ -5,6 +5,7 @@ Version 0.4.0
 - https://github.com/jpaillard
 - https://github.com/Remi-Gau
 - https://github.com/abaziree
+- https://github.com/GrituX
 
 Version 0.3.0
 -------------
