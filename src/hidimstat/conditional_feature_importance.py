@@ -117,8 +117,7 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        del y
-        super().fit(X, None)
+        super().fit(X, y)
 
         # check the feature type
         if isinstance(self.feature_types, str):

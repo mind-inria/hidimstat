@@ -16,6 +16,7 @@ from sklearn.linear_model import (
 )
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
@@ -943,3 +944,22 @@ def test_cfi_cv(data_generator):
     fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(20, 3, 1, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default"],
+)
+def test_unfitted_estimator(data_generator):
+    """Test CFI with an unfitted estimator"""
+    X, y, _, _ = data_generator
+
+    regression_model = LinearRegression()
+    with pytest.raises(NotFittedError):
+        check_is_fitted(regression_model)
+
+    cfi = CFI(estimator=regression_model)
+    cfi.fit(X, y)
+    # the estimator is fitted internally by CFI.fit
+    check_is_fitted(cfi.estimator_)
