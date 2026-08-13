@@ -91,7 +91,7 @@ class ConditionalSampler:
             The group of variables to predict.
         """
         self.data_type = _check_data_type(
-            self.data_type, y, self.categorical_max_cardinality
+            self.data_type, np.array(y), self.categorical_max_cardinality
         )
         self.model = (
             self.model_categorical
@@ -109,7 +109,7 @@ class ConditionalSampler:
                 self.model = MultiOutputRegressor(self.model)
             self.multioutput_ = True
         else:
-            if y.ndim > 1:
+            if y.ndim > 1 and isinstance(y, np.ndarray):
                 y = y.ravel()
             self.multioutput_ = False
         if self.model is None:

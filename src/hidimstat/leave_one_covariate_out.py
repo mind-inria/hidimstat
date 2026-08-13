@@ -5,7 +5,7 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _generate_group_mask, check_statistical_test
+from hidimstat._utils.utils import _get_array_cols, check_statistical_test
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -95,10 +95,10 @@ class LOCO(BasePerturbation):
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                estimator, X, y, key_features_groups
+                estimator, X, y, features_groups_ids
             )
-            for key_features_groups, estimator in zip(
-                self.features_groups_.keys(),
+            for features_groups_ids, estimator in zip(
+                self._features_groups_ids,
                 self._list_estimators,
                 strict=False,
             )
@@ -174,22 +174,10 @@ class LOCO(BasePerturbation):
         return self.importances_
 
     def _joblib_fit_one_features_group(
-        self, estimator, X, y, key_features_group
+        self, estimator, X, y, features_groups_ids
     ):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
-        if isinstance(X, pd.DataFrame):
-            X_minus_j = X.drop(
-                columns=self.features_groups_[key_features_group]
-            )
-        else:
-            X_minus_j = X[
-                :,
-                _generate_group_mask(
-                    X.shape[1],
-                    self.features_groups_[key_features_group],
-                    selected=False,
-                ),
-            ]
+        X_minus_j = _get_array_cols(X, features_groups_ids, drop=True)
         estimator.fit(X_minus_j, y)
         return estimator
 
@@ -200,15 +188,10 @@ class LOCO(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        X_minus_j = X[
-            :,
-            _generate_group_mask(
-                X.shape[1],
-                self._features_groups_ids[features_group_id],
-                selected=False,
-            ),
-        ]
-
+        # Since we don't have access to column names, we use the member _features_groups_ids
+        X_minus_j = _get_array_cols(
+            X, self._features_groups_ids[features_group_id], drop=True
+        )
         y_pred_loco = getattr(
             self._list_estimators[features_group_id], self.method
         )(X_minus_j)

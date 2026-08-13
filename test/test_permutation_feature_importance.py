@@ -48,16 +48,35 @@ def test_permutation_importance():
         > importance[non_important_features].mean()
     )
 
-    # Same with groups and a pd.DataFrame
-    groups = {
-        "group_0": [f"col_{i}" for i in important_features],
-        "the_group_1": [f"col_{i}" for i in non_important_features],
-    }
+    # Same with a pd.DataFrame
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(
         X_df, y, random_state=0
     )
     regression_model.fit(X_train_df, y_train)
+    pfi = PFI(
+        estimator=regression_model,
+        n_permutations=20,
+        method="predict",
+        random_state=0,
+        n_jobs=1,
+    )
+    pfi.fit(
+        X_train_df,
+        y_train,
+    )
+    features_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
+    assert pfi.features_groups_ == features_groups
+    importance = pfi.importance(X_test_df, y_test)
+
+    assert importance[0].mean() > importance[1].mean()
+
+    # Now with groups
+    groups = {
+        "group_0": [f"col_{i}" for i in important_features],
+        "the_group_1": [f"col_{i}" for i in non_important_features],
+    }
+
     pfi = PFI(
         estimator=regression_model,
         n_permutations=20,
@@ -70,11 +89,7 @@ def test_permutation_importance():
         X_train_df,
         y_train,
     )
-    # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = pfi.importance(X_test_df, y_test)
+    importance = pfi.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()
 
