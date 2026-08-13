@@ -35,8 +35,11 @@ under development (0.3.2.dev0)
 - :bdg-success:`Feature` Implement generic ClusterImportance and EnsembleImportance (:gh:`714` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Fix shape inconsistencies in docstring for importance and selection arrays (:gh:`711` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Add documentation about test suite organization and general logic. (:gh:`712` by `Marc Hulcelle`_).
-- :bdg-warning:`API` column names are properly handled when a pandas DataFrame is given as input, grouping can be done on column names (:gh:`721` by `Marc Hulcelle`_).
+- :bdg-warning:`API` Column names are properly handled when a pandas DataFrame is given as input, grouping can be done on column names (:gh:`721` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Add section on SAGE in the user guide (:gh:`736` by `Joseph Paillard`_).
 - :bdg-primary:`Doc` Missing classes from API autosummary (:gh:`734` by `Marc Hulcelle`_).
 - :bdg-success:`Feature` Implement Accumulated Local Effects (ALE) (:gh:`701` by `Aurélien Bazire`_).
 - :bdg-success:`Feature` Add bootstrap for ALE confidence intervals (:gh:`703` by `Aurélien Bazire`_).
+- :bdg-danger:`Fix` Allowed unfitted estimators for CFI (estimator is then fitted before CFI) (:gh:`750` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint` Fixed CI security issues by switching to 'pull_request' (:gh:`735` by `Marc Hulcelle`_).
+- :bdg-primary:`Doc` Fixed math formatting in total sobol index section (:gh:`746` by `Joseph Paillard`_).
