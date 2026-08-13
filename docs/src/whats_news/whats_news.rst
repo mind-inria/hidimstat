@@ -31,5 +31,6 @@ Each entry is tagged with one of the following categories:
   :hidden:
   :maxdepth: 1
 
+  v0.4.0
   v0.3.1
   v0.3.0
