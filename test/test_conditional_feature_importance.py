@@ -118,44 +118,15 @@ def cfi_test_data():
 ##############################################################################
 ## tests cfi on different type of data
 PARAM_EXACT = [
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.0,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": np.inf,
-        "rho_serial": 0.0,
-    },
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.0,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": 10.0,
-        "rho_serial": 0.0,
-    },
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.0,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": 10.0,
-        "rho_serial": 0.2,
-    },
+    (150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
 ]
 PARAM_EXACT_IDS = ["HiDim", "HiDim with noise", "HiDim with correlated noise"]
 
 
 @pytest.mark.parametrize(
-    [
-        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
-    ],
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
@@ -175,9 +146,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 @pytest.mark.parametrize(
-    [
-        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
-    ],
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
@@ -224,36 +193,9 @@ def test_classication(data_generator):
 
 
 PARAM_PARTIAL = [
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.2,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": np.inf,
-        "rho_serial": 0.0,
-    },
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.2,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": 1.0,
-        "rho_serial": 0.0,
-    },
-    {
-        "n_samples": 150,
-        "n_features": 200,
-        "support_size": 10,
-        "rho": 0.2,
-        "seed": 42,
-        "value": 1.0,
-        "signal_noise_ratio": 1.0,
-        "rho_serial": 0.2,
-    },
+    (150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    (150, 200, 10, 0.2, 42, 1.0, 10, 0.0),
+    (150, 200, 10, 0.2, 42, 1.0, 10, 0.2),
 ]
 PARAM_PARTIAL_IDS = [
     "HiDim with correlated features",
@@ -263,9 +205,7 @@ PARAM_PARTIAL_IDS = [
 
 
 @pytest.mark.parametrize(
-    [
-        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
-    ],
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_PARTIAL,
     ids=PARAM_PARTIAL_IDS,
 )

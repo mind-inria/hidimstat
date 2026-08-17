@@ -9,7 +9,7 @@ from hidimstat._utils.scenario import multivariate_simulation
 
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    (150, 20, 5, 0.2, 42, 1.0, 4.0, 0.0),
+    [(150, 20, 5, 0.2, 42, 1.0, 4.0, 0.0)],
     ids=["sage"],
 )
 def test_sage_smoke(data_generator):
