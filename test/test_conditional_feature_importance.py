@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
     LogisticRegression,
@@ -15,6 +16,7 @@ from sklearn.linear_model import (
 )
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.utils.validation import check_is_fitted
 
 from hidimstat import CFI, cfi_importance
 from hidimstat._utils.exception import InternalError
@@ -235,17 +237,57 @@ def test_group(data_generator):
     )
     cfi.fit(X_train_df)
     importance = cfi.importance(X_test_df, y_test)
-    """# Warning expected since column names in pandas are not considered
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = cfi.importance(X_test_df, y_test)"""
 
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)
     # Verify that important feature group has higher score
     # than non-important feature group
     assert importance[0] > importance[1]
+    assert all(model.multioutput_ for model in cfi._list_imputation_models)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["high dimension"],
+)
+def test_no_group_output_detection(data_generator):
+    X, y, _important_features, _not_important_features = data_generator
+    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+    # Split data into training and test sets
+    X_train_df, X_test_df, y_train, y_test = train_test_split(
+        X_df, y, random_state=0
+    )
+
+    # Create and fit linear regression model on training set
+    regression_model = LinearRegression()
+    regression_model.fit(X_train_df, y_train)
+
+    cfi = CFI(
+        estimator=regression_model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict",
+        features_groups=None,
+        feature_types="auto",
+        random_state=0,
+        n_jobs=1,
+    )
+
+    # Check that the conditional samplers properly detect this is not a multi-output setting.
+    cfi.fit(X_train_df)
+    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    importance = cfi.importance(X_test_df, y_test)
+    # Check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+
+    # Check same thing when X is a np.ndarray
+    regression_model.fit(X_train_df.values, y_train)
+    cfi.fit(X_train_df.values)
+    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    importance = cfi.importance(X_test_df.values, y_test)
+    # Check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
 
 
 @pytest.mark.parametrize(
@@ -950,3 +992,22 @@ def test_cfi_cv(data_generator):
     fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(20, 3, 1, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default"],
+)
+def test_unfitted_estimator(data_generator):
+    """Test CFI with an unfitted estimator"""
+    X, y, _, _ = data_generator
+
+    regression_model = LinearRegression()
+    with pytest.raises(NotFittedError):
+        check_is_fitted(regression_model)
+
+    cfi = CFI(estimator=regression_model)
+    cfi.fit(X, y)
+    # the estimator is fitted internally by CFI.fit
+    check_is_fitted(cfi.estimator_)
