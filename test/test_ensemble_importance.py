@@ -63,7 +63,7 @@ def test_ensemble_importance_check_fit(data_generator):
     """
     Check that a call to importance() fails if EnsembleImportance is not fitted.
     """
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     encludl = EnsembleImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
@@ -84,7 +84,7 @@ def test_ensemble_importance_check_fit(data_generator):
 )
 def test_ensemble_importance(data_generator):
     """Test the EnsembleImportance algorithm on a linear scenario."""
-    X, y, beta, _ = data_generator
+    X, y, important_mask = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
@@ -101,7 +101,9 @@ def test_ensemble_importance(data_generator):
     importance = endl.importance(X_test, y_test)
 
     assert importance.shape == (X.shape[1],)
-    assert importance[beta].mean() > importance[~beta].mean()
+    assert (
+        importance[important_mask].mean() > importance[~important_mask].mean()
+    )
 
 
 def test_encluvi_spatial():

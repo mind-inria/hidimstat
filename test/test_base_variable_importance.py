@@ -539,13 +539,14 @@ def test_feature_groups_order_preserved(data_generator):
     preserved in the output of .importance() even when the keys are not in
     the order that would be returned by sorted(groups.keys()).
     """
-    X, y, important_features, non_important_features = data_generator
+    X, y, important_features = data_generator
     X_df = pd.DataFrame(X)
     model = LinearRegression()
     model.fit(X_df, y)
+    feature_ids = np.arange(X.shape[1])
     groups = {
-        "non_important": non_important_features,
-        "important": important_features,
+        "non_important": feature_ids[~important_features],
+        "important": feature_ids[important_features],
     }
 
     cfi = CFI(estimator=model, features_groups=groups, random_state=0)

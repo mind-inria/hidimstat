@@ -335,7 +335,7 @@ class TestModelXKnockoffExceptions:
 
     def test_warning(self, data_generator):
         """Test if some warning are raised"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeats=5)
         model_x_knockoff.fit(X, y)
         with pytest.warns(Warning, match="X won't be used"):
@@ -347,7 +347,7 @@ class TestModelXKnockoffExceptions:
         self, data_generator
     ):
         """Test error lasso statistic"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeats=1, estimator=SVR())
         with pytest.raises(
             TypeError,
@@ -357,7 +357,7 @@ class TestModelXKnockoffExceptions:
 
     def test_error_lasso_statistic_with_sampling(self, data_generator):
         """Test error lasso statistic"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeats=1,
             estimator=SVR(),
@@ -368,7 +368,7 @@ class TestModelXKnockoffExceptions:
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeats=5,
             ko_generator=GaussianKnockoffs(

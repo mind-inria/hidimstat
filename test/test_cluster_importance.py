@@ -76,7 +76,7 @@ def test_cluster_importance_check_fit(data_generator):
     """
     Check that a call to importance() fails if ClusterImportance is not fitted.
     """
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     cludl = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
@@ -96,7 +96,7 @@ def test_cluster_importance_check_fit(data_generator):
 )
 def test_cluster_importance(data_generator):
     """Test the ClusterImportance algorithm on a linear scenario."""
-    X, y, beta, _ = data_generator
+    X, y, beta = data_generator
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 

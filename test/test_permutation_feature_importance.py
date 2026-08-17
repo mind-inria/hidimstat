@@ -27,7 +27,7 @@ from .conftest import check_estimator, fitted_linear_regression
 )
 def test_permutation_importance(data_generator):
     """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, important_features, non_important_features = data_generator
+    X, y, important_features = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -50,7 +50,7 @@ def test_permutation_importance(data_generator):
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
     # Same with a pd.DataFrame
@@ -77,9 +77,10 @@ def test_permutation_importance(data_generator):
     assert importance[0].mean() > importance[1].mean()
 
     # Now with groups
+    feature_ids = np.arange(X.shape[1])
     groups = {
-        "group_0": [f"col_{i}" for i in important_features],
-        "the_group_1": [f"col_{i}" for i in non_important_features],
+        "group_0": [f"col_{i}" for i in feature_ids[important_features]],
+        "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
     }
 
     pfi = PFI(
@@ -130,7 +131,7 @@ def test_permutation_importance(data_generator):
 )
 def test_permutation_importance_function(data_generator):
     """Test the function of Permutation Importance algorithm on a linear scenario."""
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -273,7 +274,7 @@ def test_pfi_cv(data_generator):
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = LassoCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -289,8 +290,8 @@ def test_pfi_cv(data_generator):
     alpha = 0.05
     selected = pfi_cv.fdr_selection(fdr=alpha)
     fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(),
-        ground_truth=important_features,
+        selected=selected,
+        ground_truth=important_features.astype(int),
     )
     assert fdp < alpha
     assert power > 0.8

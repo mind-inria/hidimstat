@@ -22,7 +22,7 @@ from hidimstat.statistical_tools.multiple_testing import fdp_power
 )
 def test_loco(data_generator):
     """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, important_features, non_important_features = data_generator
+    X, y, important_features = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -43,13 +43,14 @@ def test_loco(data_generator):
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
     # Same with groups and a pd.DataFrame
+    feature_ids = np.arange(X.shape[1])
     groups = {
-        "group_0": [f"col_{i}" for i in important_features],
-        "the_group_1": [f"col_{i}" for i in non_important_features],
+        "group_0": [f"col_{i}" for i in feature_ids[important_features]],
+        "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     X_train_df, X_test_df, y_train, y_test = train_test_split(
@@ -80,8 +81,8 @@ def test_loco(data_generator):
         estimator=logistic_model,
         method="predict_proba",
         features_groups={
-            "group_0": important_features,
-            "the_group_1": non_important_features,
+            "group_0": feature_ids[important_features],
+            "the_group_1": feature_ids[~important_features],
         },
         loss=log_loss,
         n_jobs=1,
@@ -147,7 +148,7 @@ def test_raises_value_error():
 )
 def test_loco_function(data_generator):
     """Test the function of LOCO algorithm on a linear scenario."""
-    X, y, important_features, non_important_features = data_generator
+    X, y, important_features = data_generator
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -163,7 +164,7 @@ def test_loco_function(data_generator):
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
 
@@ -181,7 +182,7 @@ def test_loco_cv(data_generator):
     Note: even though the only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = RidgeCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -194,8 +195,8 @@ def test_loco_cv(data_generator):
 
     alpha = 0.1
     selected = loco_cv.fdr_selection(fdr=alpha)
-    gt_mask = np.zeros(X.shape[1], dtype=int)
-    gt_mask[important_features] = 1
-    fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
+    fdp, power = fdp_power(
+        selected=selected, ground_truth=important_features.astype(int)
+    )
     assert fdp < alpha
     assert power > 0.8
