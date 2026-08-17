@@ -85,19 +85,79 @@ def run_cfi(X, y, n_permutation, seed):
     return importance
 
 
+@pytest.fixture(scope="module")
+def cfi_test_data():
+    """
+    Fixture to generate test data and a fitted LinearRegression model for CFI
+    reproducibility tests.
+    """
+    X, y, _, _ = multivariate_simulation(
+        n_samples=100,
+        n_features=5,
+        support_size=2,
+        rho=0,
+        value=1,
+        signal_noise_ratio=4,
+        rho_serial=0,
+        shuffle=False,
+        seed=0,
+    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+    cfi_default_parameters = {
+        "estimator": model,
+        "imputation_model_continuous": LinearRegression(),
+        "n_permutations": 20,
+        "method": "predict",
+        "n_jobs": 1,
+    }
+    return X_train, X_test, y_test, cfi_default_parameters
+
+
 ##############################################################################
 ## tests cfi on different type of data
-parameter_exact = [
-    ("HiDim", 150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    ("HiDim with noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    ("HiDim with correlated noise", 150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+PARAM_EXACT = [
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.0,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": np.inf,
+        "rho_serial": 0.0,
+    },
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.0,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": 10.0,
+        "rho_serial": 0.0,
+    },
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.0,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": 10.0,
+        "rho_serial": 0.2,
+    },
 ]
+PARAM_EXACT_IDS = ["HiDim", "HiDim with noise", "HiDim with correlated noise"]
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_exact, strict=False))[1:]), strict=False),
-    ids=next(zip(*parameter_exact, strict=False)),
+    [
+        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
+    ],
+    PARAM_EXACT,
+    ids=PARAM_EXACT_IDS,
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -114,47 +174,100 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
     )
 
 
-parameter_partial = [
-    (
-        "HiDim with correlated features",
-        150,
-        200,
-        10,
-        0.2,
-        42,
-        1.0,
-        np.inf,
-        0.0,
-    ),
-    (
-        "HiDim with correlated features and noise",
-        150,
-        200,
-        10,
-        0.2,
-        42,
-        1,
-        10,
-        0,
-    ),
-    (
-        "HiDim with correlated features and correlated noise",
-        150,
-        200,
-        10,
-        0.2,
-        42,
-        1.0,
-        10,
-        0.2,
-    ),
+@pytest.mark.parametrize(
+    [
+        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
+    ],
+    PARAM_EXACT,
+    ids=PARAM_EXACT_IDS,
+)
+def test_classication(data_generator):
+    """Test CFI for a classification problem"""
+    X, y, important_features, not_important_features = data_generator
+    # Create categories
+    y_clf = deepcopy(y)
+    y_clf[np.where(y > 4)] = 0
+    y_clf[np.where(np.logical_and(y <= 4, y > 0))] = 1
+    y_clf[np.where(np.logical_and(y <= 0, y > -4))] = 2
+    y_clf[np.where(y <= -4)] = 3
+    y_clf = np.array(y_clf, dtype=int)
+
+    # Split the data into training and test sets
+    X_train, X_test, y_train_clf, y_test_clf = train_test_split(
+        X, y_clf, random_state=0
+    )
+
+    # Create and fit a logistic regression model on the training set
+    logistic_model = LogisticRegression()
+    logistic_model.fit(X_train, y_train_clf)
+
+    cfi = CFI(
+        estimator=logistic_model,
+        imputation_model_continuous=LinearRegression(),
+        n_permutations=20,
+        method="predict_proba",
+        loss=log_loss,
+        features_groups=None,
+        feature_types=["continuous"] * X.shape[1],
+        random_state=0,
+        n_jobs=1,
+    )
+    cfi.fit(X_train)
+    importance = cfi.importance(X_test, y_test_clf)
+    # Check that importance scores are defined for each feature
+    assert importance.shape == (X.shape[1],)
+    # Check that important features have higher mean importance scores
+    assert (
+        importance[important_features].mean()
+        > importance[not_important_features].mean()
+    )
+
+
+PARAM_PARTIAL = [
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.2,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": np.inf,
+        "rho_serial": 0.0,
+    },
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.2,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": 1.0,
+        "rho_serial": 0.0,
+    },
+    {
+        "n_samples": 150,
+        "n_features": 200,
+        "support_size": 10,
+        "rho": 0.2,
+        "seed": 42,
+        "value": 1.0,
+        "signal_noise_ratio": 1.0,
+        "rho_serial": 0.2,
+    },
+]
+PARAM_PARTIAL_IDS = [
+    "HiDim with correlated features",
+    "HiDim with correlated features and noise",
+    "HiDim with correlated features and correlated noise",
 ]
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_partial, strict=False))[1:]), strict=False),
-    ids=next(zip(*parameter_partial, strict=False)),
+    [
+        "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
+    ],
+    PARAM_PARTIAL,
+    ids=PARAM_PARTIAL_IDS,
 )
 @pytest.mark.parametrize(
     "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
@@ -175,6 +288,7 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
     assert min_rank < 25
 
 
+##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
@@ -201,7 +315,6 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
     ) != len(important_features)
 
 
-##############################################################################
 ## Test specific options of cfi
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
@@ -290,53 +403,6 @@ def test_no_group_output_detection(data_generator):
     importance = cfi.importance(X_test_df.values, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
-
-
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_exact, strict=False))[1:]), strict=False),
-    ids=next(zip(*parameter_exact, strict=False)),
-)
-def test_classication(data_generator):
-    """Test CFI for a classification problem"""
-    X, y, important_features, not_important_features = data_generator
-    # Create categories
-    y_clf = deepcopy(y)
-    y_clf[np.where(y > 4)] = 0
-    y_clf[np.where(np.logical_and(y <= 4, y > 0))] = 1
-    y_clf[np.where(np.logical_and(y <= 0, y > -4))] = 2
-    y_clf[np.where(y <= -4)] = 3
-    y_clf = np.array(y_clf, dtype=int)
-
-    # Split the data into training and test sets
-    X_train, X_test, y_train_clf, y_test_clf = train_test_split(
-        X, y_clf, random_state=0
-    )
-
-    # Create and fit a logistic regression model on the training set
-    logistic_model = LogisticRegression()
-    logistic_model.fit(X_train, y_train_clf)
-
-    cfi = CFI(
-        estimator=logistic_model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict_proba",
-        loss=log_loss,
-        features_groups=None,
-        feature_types=["continuous"] * X.shape[1],
-        random_state=0,
-        n_jobs=1,
-    )
-    cfi.fit(X_train)
-    importance = cfi.importance(X_test, y_test_clf)
-    # Check that importance scores are defined for each feature
-    assert importance.shape == (X.shape[1],)
-    # Check that important features have higher mean importance scores
-    assert (
-        importance[important_features].mean()
-        > importance[not_important_features].mean()
-    )
 
 
 ##############################################################################
@@ -790,6 +856,7 @@ def test_cfi_plot_2d_imp(data_generator):
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    ids=["3_features"],
 )
 def test_cfi_plot_coverage(data_generator, rng):
     """Add arguments combinations to test coverage of the plot function"""
@@ -818,36 +885,6 @@ def test_cfi_plot_coverage(data_generator, rng):
     cfi.importances_ = rng.standard_normal((3, X.shape[1]))
     ax = cfi.plot_importance(ax=ax)
     assert isinstance(ax, plt.Axes)
-
-
-@pytest.fixture(scope="module")
-def cfi_test_data():
-    """
-    Fixture to generate test data and a fitted LinearRegression model for CFI
-    reproducibility tests.
-    """
-    X, y, _, _ = multivariate_simulation(
-        n_samples=100,
-        n_features=5,
-        support_size=2,
-        rho=0,
-        value=1,
-        signal_noise_ratio=4,
-        rho_serial=0,
-        shuffle=False,
-        seed=0,
-    )
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-    model = LinearRegression()
-    model.fit(X_train, y_train)
-    cfi_default_parameters = {
-        "estimator": model,
-        "imputation_model_continuous": LinearRegression(),
-        "n_permutations": 20,
-        "method": "predict",
-        "n_jobs": 1,
-    }
-    return X_train, X_test, y_test, cfi_default_parameters
 
 
 def test_cfi_repeatibility(cfi_test_data):
