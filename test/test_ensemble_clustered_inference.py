@@ -46,7 +46,7 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_cludl_spatial():
+def test_cludl_spatial(rng):
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
@@ -67,7 +67,7 @@ def test_cludl_spatial():
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -141,7 +141,7 @@ def test_cludl_independence():
     )
 
 
-def test_encludl_spatial():
+def test_encludl_spatial(rng):
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
@@ -151,7 +151,7 @@ def test_encludl_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-    n_samples = 400
+    n_samples = 500
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
@@ -163,7 +163,7 @@ def test_encludl_spatial():
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -204,7 +204,7 @@ def test_encludl_spatial():
     assert np.mean(fp_list) <= fwer + tol
 
 
-def test_cludl_temporal():
+def test_cludl_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
@@ -223,7 +223,7 @@ def test_cludl_temporal():
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
@@ -265,7 +265,7 @@ def test_cludl_temporal():
     assert np.mean(fdp_list) <= alpha + test_tol
 
 
-def test_encludl_temporal():
+def test_encludl_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
@@ -283,7 +283,7 @@ def test_encludl_temporal():
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
