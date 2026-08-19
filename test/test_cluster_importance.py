@@ -103,8 +103,8 @@ def test_cluster_importance_check_fit(data_generator):
 def test_cluster_importance(data_generator):
     """Test the ClusterImportance algorithm on a linear scenario."""
     X, y, beta, _ = data_generator
-    important_features = np.zeros(X.shape[1])
-    important_features[beta] = 1
+    important_features = np.zeros(X.shape[1], dtype=bool)
+    important_features[beta] = True
     non_important_features = ~important_features
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)

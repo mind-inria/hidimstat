@@ -289,7 +289,7 @@ def test_group(data_generator):
         y=y,
         seed=0,
         features_groups=groups,
-    ).importances_
+    )
     importance = cfi.importances_
 
     # Check if importance scores are computed for each feature
