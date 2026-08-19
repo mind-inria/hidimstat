@@ -111,6 +111,20 @@ def generate_binary_classif_dataset(n=100, p=10, seed=0):
     return X, y, beta
 
 
+@pytest.fixture
+def generate_regression_data(noise):
+    X, y = make_regression(
+        n_samples=100, n_features=10, noise=noise, random_state=42
+    )
+    return X, y
+
+
+@pytest.fixture(scope="module")
+def generate_classif_data():
+    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    return X, y
+
+
 def test_dcrt_lasso_screening(d0crt_test_data):
     """
     Test for screening parameter and pvalue function
@@ -235,13 +249,12 @@ def test_dcrt_lasso_with_covariance(d0crt_test_data):
     assert len(d0crt_covariance.importances_) == n_features
 
 
-def test_dcrt_lasso_center():
+@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
+def test_dcrt_lasso_center(generate_regression_data):
     """
     Test for not center the data
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.2, random_state=2024
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         centered=False,
@@ -255,13 +268,12 @@ def test_dcrt_lasso_center():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_lasso_refit():
+@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
+def test_dcrt_lasso_refit(generate_regression_data):
     """
     This function tests the dcrt function using the Lasso learner and refit
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.2, random_state=2024
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         refit=True,
@@ -275,14 +287,13 @@ def test_dcrt_lasso_refit():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_lasso_no_selection():
+@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
+def test_dcrt_lasso_no_selection(generate_regression_data):
     """
     This function tests the dcrt function using the Lasso learner
     with distillation y when precomputed coefficients are provided.
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.8, random_state=20
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10)
     with pytest.warns(
         UserWarning,
@@ -292,14 +303,13 @@ def test_dcrt_lasso_no_selection():
     assert np.all(d0crt.selection_set_)
 
 
-def test_dcrt_distillation_x_different():
+@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
+def test_dcrt_distillation_x_different(generate_regression_data):
     """
     This function tests the dcrt function using the Lasso learner
     with distillation x using different argument
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.8, random_state=20
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(
         estimator=Lasso(alpha=0.5 * _alpha_max(X, y), fit_intercept=False),
         scaled_statistics=True,
@@ -312,13 +322,12 @@ def test_dcrt_distillation_x_different():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_distillation_y_different():
+@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
+def test_dcrt_distillation_y_different(generate_regression_data):
     """
     This function tests the dcrt function using the Lasso learner
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.8, random_state=20
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         model_distillation_x=Lasso(),
@@ -332,13 +341,12 @@ def test_dcrt_distillation_y_different():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_lasso_fit_with_no_cv():
+@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
+def test_dcrt_lasso_fit_with_no_cv(generate_regression_data):
     """
     Test the dcrt function using the Lasso learner
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.2, random_state=2024
-    )
+    X, y = generate_regression_data
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         fit_y=True,
@@ -354,13 +362,12 @@ def test_dcrt_lasso_fit_with_no_cv():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_RF_regression():
+@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
+def test_dcrt_RF_regression(generate_regression_data):
     """
     This function tests the dcrt function using the Random Forest learner
     """
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=0.2, random_state=2024
-    )
+    X, y = generate_regression_data
 
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
@@ -378,11 +385,11 @@ def test_dcrt_RF_regression():
     assert len(d0crt.importances_) == 10
 
 
-def test_dcrt_RF_classification():
+def test_dcrt_RF_classification(generate_classif_data):
     """
     This function tests the dcrt function using the Random Forest learner
     """
-    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    X, y = generate_classif_data
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
             n_estimators=100, random_state=2026, n_jobs=1
@@ -399,9 +406,9 @@ def test_dcrt_RF_classification():
     assert len(d0crt.importances_) == 10
 
 
-def test_exception_not_fitted():
+def test_exception_not_fitted(generate_classif_data):
     """Test if an exception is raised when the method is not fitted"""
-    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    X, y = generate_classif_data
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
             n_estimators=100, random_state=2026, n_jobs=1
@@ -416,9 +423,9 @@ def test_exception_not_fitted():
         _, _ = d0crt.importance(X, y)
 
 
-def test_warning_not_used_parameters():
+def test_warning_not_used_parameters(generate_classif_data):
     """Test if an exception is raised when the method is not fitted"""
-    X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
+    X, y = generate_classif_data
     d0crt = D0CRT(
         estimator=RandomForestClassifier(
             n_estimators=100, random_state=2026, n_jobs=1
@@ -449,13 +456,10 @@ def test_dcrt_invalid_lasso_screening(d0crt_test_data):
         d0crt.fit(X, y)
 
 
-def test_function_d0crt():
+@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
+def test_function_d0crt(generate_regression_data):
     """Test the d0crt function"""
-    X, y = make_regression(
-        n_samples=100,
-        n_features=10,
-        noise=0.2,
-    )
+    X, y = generate_regression_data
     sv, importances, pvalues = d0crt_importance(LassoCV(n_jobs=1), X, y)
     assert len(sv) <= 10
     assert len(importances) == 10
@@ -785,7 +789,12 @@ def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
     assert np.all(dcrt.importances_[np.where(beta == 1)] <= 0)
 
 
-def test_d0crt_no_regression_variance_fix():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 20, None, 5, 0.5, 0, 1, 2.0, 0)],
+    ids=["d0crt regression test"],
+)
+def test_d0crt_no_regression_variance_fix(data_generator):
     """Non-regression test for PR#649: removing the extra alpha * ||coef||_1
     term from sigma2 should not degrade power or FDR control compared to the
     old implementation.
@@ -815,15 +824,9 @@ def test_d0crt_no_regression_variance_fix():
     fdr_target = 0.1
     tolerance = 0.05
 
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=200,
-        n_features=20,
-        support_size=5,
-        rho=0.5,
-        signal_noise_ratio=2,
-        seed=0,
-    )
-    ground_truth = beta != 0
+    X, y, beta, _ = data_generator
+    ground_truth = np.zeros(X.shape[1])
+    ground_truth[beta] = 1
 
     # Current implementation (no alpha term)
     dcrt = D0CRT(

@@ -531,8 +531,8 @@ def test_clustered_fwer_selection(rng):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 10, 5, 0.5, 0, 1.0, 64.0, 0.5)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 5, 0.5, 0, 1.0, 64.0, 0.5)],
 )
 def test_feature_groups_order_preserved(data_generator):
     """Regression test to check that the order of the feature groups is

@@ -253,8 +253,8 @@ def test_pfi_reproducibility_with_rng(pfi_test_data):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 100, 5, 0.0, 0, 2.0, 8, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 100, None, 5, 0.0, 0, 2.0, 8, 0.0)],
     ids=["default data"],
 )
 def test_pfi_cv(data_generator):

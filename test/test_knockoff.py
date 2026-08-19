@@ -320,8 +320,8 @@ def test_lasso_estimator_alphas():
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(300, 20, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default data"],
 )
 class TestModelXKnockoffExceptions:

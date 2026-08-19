@@ -118,15 +118,15 @@ def cfi_test_data():
 ##############################################################################
 ## tests cfi on different type of data
 PARAM_EXACT = [
-    (150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    (150, 200, None, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    (150, 200, None, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    (150, 200, None, 10, 0.0, 42, 1.0, 10.0, 0.2),
 ]
 PARAM_EXACT_IDS = ["HiDim", "HiDim with noise", "HiDim with correlated noise"]
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
@@ -146,7 +146,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
@@ -193,9 +193,9 @@ def test_classication(data_generator):
 
 
 PARAM_PARTIAL = [
-    (150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
-    (150, 200, 10, 0.2, 42, 1.0, 10, 0.0),
-    (150, 200, 10, 0.2, 42, 1.0, 10, 0.2),
+    (150, 200, None, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    (150, 200, None, 10, 0.2, 42, 1.0, 10, 0.0),
+    (150, 200, None, 10, 0.2, 42, 1.0, 10, 0.2),
 ]
 PARAM_PARTIAL_IDS = [
     "HiDim with correlated features",
@@ -205,7 +205,7 @@ PARAM_PARTIAL_IDS = [
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     PARAM_PARTIAL,
     ids=PARAM_PARTIAL_IDS,
 )
@@ -230,8 +230,8 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
@@ -257,8 +257,8 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
 
 ## Test specific options of cfi
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_group(data_generator):
@@ -302,8 +302,8 @@ def test_group(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["high dimension"],
 )
 def test_no_group_output_detection(data_generator):
@@ -347,8 +347,8 @@ def test_no_group_output_detection(data_generator):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIClass:
@@ -408,6 +408,7 @@ class TestCFIClass:
         self,
         n_samples,
         n_features,  # noqa: ARG002
+        n_targets,  # noqa: ARG002
         support_size,  # noqa: ARG002
         rho,  # noqa: ARG002
         seed,
@@ -439,8 +440,8 @@ class TestCFIClass:
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, 0.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIExceptions:
@@ -708,8 +709,8 @@ class TestCFIExceptions:
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
@@ -729,8 +730,8 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 10, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 10, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["10 features"],
 )
 @pytest.mark.mpl_image_compare
@@ -758,8 +759,8 @@ def test_cfi_plot(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 5, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 5, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["5_features"],
 )
 @pytest.mark.mpl_image_compare
@@ -794,8 +795,8 @@ def test_cfi_plot_2d_imp(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(10, 3, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["3_features"],
 )
 def test_cfi_plot_coverage(data_generator, rng):
@@ -926,8 +927,8 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 50, 5, 0.1, 0, 8.0, 4, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 50, None, 5, 0.1, 0, 8.0, 4, 0.0)],
     ids=["default data"],
 )
 def test_cfi_cv(data_generator):
@@ -965,8 +966,8 @@ def test_cfi_cv(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(20, 3, 1, 0.0, 42, 1.0, np.inf, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(20, 3, None, 1, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default"],
 )
 def test_unfitted_estimator(data_generator):
