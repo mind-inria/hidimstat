@@ -1,6 +1,5 @@
 ---
 title: hidimstat-release
-
 ---
 # How to create a release
 
