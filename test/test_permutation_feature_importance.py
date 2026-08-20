@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
-from sklearn.metrics import log_loss
+from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import PFI, PFICV, pfi_importance
@@ -10,28 +10,26 @@ from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-def test_permutation_importance():
-    """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
-
+def run_pfi(
+    X,
+    y,
+    estimator,
+    n_permutations=20,
+    features_groups=None,
+    method="predict",
+    loss=mean_squared_error,
+):
+    """Test the Permutation Feature Importance algorithm on a linear scenario."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
-    regression_model = LinearRegression()
-    regression_model.fit(X_train, y_train)
+    estimator.fit(X_train, y_train)
 
     pfi = PFI(
-        estimator=regression_model,
-        n_permutations=20,
-        method="predict",
-        features_groups=None,
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        n_permutations=n_permutations,
+        features_groups=features_groups,
         random_state=0,
         n_jobs=1,
     )
@@ -40,7 +38,25 @@ def test_permutation_importance():
         X_train,
         y_train,
     )
-    importance = pfi.importance(X_test, y_test)
+    pfi.importance(X_test, y_test)
+
+    return pfi
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_permutation_importance(data_generator):
+    """Test the Permutation Importance algorithm on a linear scenario."""
+    X, y, beta, _ = data_generator
+    important_features = np.zeros(X.shape[1], dtype=bool)
+    important_features[beta] = True
+    non_important_features = ~important_features
+
+    pfi = run_pfi(X=X, y=y, estimator=LinearRegression())
+    importance = pfi.importances_
 
     assert importance.shape == (X.shape[1],)
     assert (
@@ -50,84 +66,54 @@ def test_permutation_importance():
 
     # Same with a pd.DataFrame
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    X_train_df, X_test_df, y_train, y_test = train_test_split(
-        X_df, y, random_state=0
-    )
-    regression_model.fit(X_train_df, y_train)
-    pfi = PFI(
-        estimator=regression_model,
-        n_permutations=20,
-        method="predict",
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi.fit(
-        X_train_df,
-        y_train,
-    )
+    pfi = run_pfi(X=X_df, y=y, estimator=LinearRegression())
+    importance = pfi.importances_
     features_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
-    assert pfi.features_groups_ == features_groups
-    importance = pfi.importance(X_test_df, y_test)
 
+    assert pfi.features_groups_ == features_groups
     assert importance[0].mean() > importance[1].mean()
 
     # Now with groups
     groups = {
-        "group_0": [f"col_{i}" for i in important_features],
-        "the_group_1": [f"col_{i}" for i in non_important_features],
+        "group_0": [f"col_{i}" for i in beta],
+        "the_group_1": [
+            f"col_{i}" for i in np.arange(X.shape[1])[non_important_features]
+        ],
     }
-
-    pfi = PFI(
-        estimator=regression_model,
-        n_permutations=20,
-        method="predict",
+    pfi = run_pfi(
+        X=X_df,
+        y=y,
+        estimator=LinearRegression(),
         features_groups=groups,
-        random_state=0,
-        n_jobs=1,
     )
-    pfi.fit(
-        X_train_df,
-        y_train,
-    )
-    importance = pfi.importance(X_test_df, y_test)
+    importance = pfi.importances_
 
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
     y_clf = np.where(y > np.median(y), 1, 0)
-    _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
-    logistic_model = LogisticRegression()
-    logistic_model.fit(X_train, y_train_clf)
-
-    pfi_clf = PFI(
-        estimator=logistic_model,
-        n_permutations=20,
+    pfi = run_pfi(
+        X=X,
+        y=y_clf,
+        estimator=LogisticRegression(),
         method="predict_proba",
         loss=log_loss,
-        features_groups=None,
-        random_state=0,
-        n_jobs=1,
     )
-
-    pfi_clf.fit(
-        X_train,
-        y_train_clf,
-    )
-    importance_clf = pfi_clf.importance(X_test, y_test_clf)
+    importance_clf = pfi.importances_
 
     assert importance_clf.shape == (X.shape[1],)
 
 
-def test_permutation_importance_function():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_permutation_importance_function(data_generator):
     """Test the function of Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = beta != 0
+    X, y, beta, _ = data_generator
+    important_features = np.zeros(X.shape[1], dtype=bool)
+    important_features[beta] = True
 
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 

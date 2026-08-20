@@ -24,7 +24,7 @@ def run_loci(
     method="predict",
     loss=mean_squared_error,
 ):
-    """Test the Leave-One-Covariate-In algorithm on a linear scenario."""
+    """Run the Leave-One-Covariate-In algorithm on given data."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
     estimator.fit(X_train, y_train)
