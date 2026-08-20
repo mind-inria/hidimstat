@@ -10,6 +10,7 @@ Developer Documentation
 You need more information, look here:
 
 - :ref:`How to contribute <how_to_contribute_hidimstat>`
+- :ref:`How to create a release <how_to_release>`
 - :ref:`Continuous Integration<developer_documentation_CI>`
 - :ref:`Building the documentation<developer_documentation_build>`
 - :ref:`Contributor's Code of Conduct <dev_code_of_conduct>`
@@ -26,8 +27,10 @@ CONTRIBUTORS
 
   developer_guidelines
   how_to_contribute
+  how_to_release
   building_documentation
   CI_documentation
   CONTRIBUTORS
   developer_code_of_conduct
   test_suite
+  release_useful_links

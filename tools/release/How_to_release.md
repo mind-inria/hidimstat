@@ -80,7 +80,7 @@ If you have to make changes after this, update the tag as described in Step 8.
      3. `git checkout release_(X+1).0.0` # switch to the branch
      4. Add a tag on this version `(X+1).0.0` (the branch should be already create) `git tag (X+1).0.0`
 
-5\. build the wheel & test it
+5\. Build the wheel & test it
   - `cd $(root of repository)`
   - `rm -r release_file`  # remove the previous build
   - `mkdir release_file`
@@ -106,7 +106,7 @@ If you have to make changes after this, update the tag as described in Step 8.
 
 8\. Update the tag if any modifications were pushed at the previous step
   - Update the tag: `git tag -d X.Y.Z`  # this requires an exception on the tag deletion rule of the repository (Settings/Rulesets/Prevent Tag Deletion)
-  - `git tag -s 'X.Y.Z'` # `-s` is for signing, optional
+  - `git tag -s X.Y.Z` # `-s` is for signing, optional
   - `git push origin X.Y.Z` # (disable the rule Prevent Branch deletion)
 
 9\. merge the PR on `release_X.Y.Z` (don't squash the commits)
