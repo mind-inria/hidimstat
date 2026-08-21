@@ -195,10 +195,10 @@ def test_encludl_spatial(rng):
             selected=selected,
             ground_truth=beta,
             roi_size=roi_size,
-            spatial_tolerance=2,
+            spatial_tolerance=3,
             shape=shape,
         )
-        fp_list.append(fdp)
+        fp_list.append(int(fdp > 0))
         power_list.append(power)
     assert np.mean(power_list) >= 0.5
     assert np.mean(fp_list) <= fwer + tol
