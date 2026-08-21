@@ -20,8 +20,8 @@ def check_named_results(res, attributes):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [[100, 6, 2, 0.2, 0, 1.0, 10.0, 0.0]],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [[100, 6, None, 2, 0.2, 0, 1.0, 10.0, 0.0]],
 )
 def test_ttest_1samp_corrected_NB(data_generator):
     """

@@ -57,9 +57,14 @@ def test_s_equi_not_definite_positive(rng):
     np.testing.assert_equal(res / np.diag(sigma), np.ones_like(res))
 
 
-def test_reproducibility_sample():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_reproducibility_sample(data_generator):
     """Test the repeatability of the samples"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(random_state=0)
@@ -67,9 +72,14 @@ def test_reproducibility_sample():
     assert np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_reproducibility_sample_repeat():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_reproducibility_sample_repeat(data_generator):
     """Test the repeatability of the samples"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=0)
@@ -77,9 +87,14 @@ def test_reproducibility_sample_repeat():
     assert np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_randomness_sample_no_seed():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_randomness_sample_no_seed(data_generator):
     """Test the non repeatability of the samples when no seed"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(random_state=None)
@@ -87,9 +102,14 @@ def test_randomness_sample_no_seed():
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_randomness_sample_no_seed_repeat():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_randomness_sample_no_seed_repeat(data_generator):
     """Test the non repeatability of the samples when no seed"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=None)
@@ -97,9 +117,14 @@ def test_randomness_sample_no_seed_repeat():
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_randomness_sample_rgn():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_randomness_sample_rgn(data_generator):
     """Test the non repeatability of the samples when the usage of random generator"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     rng = np.random.default_rng(0)
     gaussian_sampler_rng = GaussianKnockoffs()
     gaussian_sampler_rng.fit(X=X)
@@ -108,9 +133,14 @@ def test_randomness_sample_rgn():
     assert not np.array_equal(X_tilde_1, X_tilde_2)
 
 
-def test_randomness_sample_rgn_repeat():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 0, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_randomness_sample_rgn_repeat(data_generator):
     """Test the non repeatability of the samples when the usage of random generator"""
-    X, _, _, _ = multivariate_simulation(100, 10, seed=0)
+    X, _, _ = data_generator
     rng = np.random.default_rng(0)
     gaussian_sampler_rng = GaussianKnockoffs()
     gaussian_sampler_rng.fit(X=X)

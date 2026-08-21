@@ -55,9 +55,9 @@ def test_ensemble_parameter_check():
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 20, 10, 0.5, 42, 1.0, 50.0, 0.9)],
-    ids=["basic data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 3, 10, 0.5, 42, 1, 50, 0.9)],
+    ids=["correlated noisy"],
 )
 def test_ensemble_importance_check_fit(data_generator):
     """
@@ -78,13 +78,14 @@ def test_ensemble_importance_check_fit(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0, 42, 1.0, 10.0, 0.0)],
-    ids=["basic data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["high dimension"],
 )
 def test_ensemble_importance(data_generator):
     """Test the EnsembleImportance algorithm on a linear scenario."""
     X, y, important_mask = data_generator
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)

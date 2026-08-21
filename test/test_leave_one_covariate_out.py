@@ -6,7 +6,7 @@ import pytest
 from scipy.stats import ttest_1samp
 from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
-from sklearn.metrics import log_loss
+from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
@@ -15,30 +15,47 @@ from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
-    ids=["basic data"],
-)
-def test_loco(data_generator):
-    """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
-    X, y, important_features = data_generator
+def run_loco(
+    X,
+    y,
+    estimator,
+    features_groups=None,
+    method="predict",
+    loss=mean_squared_error,
+):
+    """Run the Leave-One-Covariate-Out algorithm on given data."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
-    regression_model = LinearRegression()
-    regression_model.fit(X_train, y_train)
+    estimator.fit(X_train, y_train)
 
     loco = LOCO(
-        estimator=regression_model,
-        method="predict",
-        features_groups=None,
+        estimator=estimator,
+        method=method,
+        loss=loss,
+        features_groups=features_groups,
+        n_jobs=1,
     )
 
     loco.fit(
         X_train,
         y_train,
     )
-    importance = loco.importance(X_test, y_test)
+    loco.importance(X_test, y_test)
+
+    return loco
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_loco(data_generator):
+    """Test the Leave-One-Covariate-Out algorithm on a linear scenario."""
+    X, y, important_features = data_generator
+
+    loco = run_loco(X=X, y=y, estimator=LinearRegression())
+    importance = loco.importances_
 
     assert importance.shape == (X.shape[1],)
     assert (
@@ -53,59 +70,40 @@ def test_loco(data_generator):
         "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    X_train_df, X_test_df, y_train, y_test = train_test_split(
-        X_df, y, random_state=0
+    loco = run_loco(
+        X=X_df, y=y, estimator=LinearRegression(), features_groups=groups
     )
-    regression_model.fit(X_train_df, y_train)
-    loco = LOCO(
-        estimator=regression_model,
-        method="predict",
-        features_groups=groups,
-        n_jobs=1,
-    )
-    loco.fit(
-        X_train_df,
-        y_train,
-    )
-    importance = loco.importance(X_test_df, y_test)
+    importance = loco.importances_
 
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
     y_clf = (y > np.median(y)).astype(int)
-    _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
-    logistic_model = LogisticRegression()
-    logistic_model.fit(X_train, y_train_clf)
-
-    loco_clf = LOCO(
-        estimator=logistic_model,
-        method="predict_proba",
+    loco_clf = run_loco(
+        X=X,
+        y=y_clf,
+        estimator=LogisticRegression(),
         features_groups={
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
+        method="predict_proba",
         loss=log_loss,
-        n_jobs=1,
     )
-    loco_clf.fit(
-        X_train,
-        y_train_clf,
-    )
-    importance_clf = loco_clf.importance(X_test, y_test_clf)
+    importance_clf = loco_clf.importances_
 
     assert importance_clf.shape == (2,)
     assert importance_clf[0].mean() > importance_clf[1].mean()
 
 
-def test_raises_value_error():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_raises_value_error(data_generator):
     """Test for error when model does not have predict_proba or predict."""
-    X, y, _, _ = multivariate_simulation(
-        n_samples=100,
-        n_features=20,
-        support_size=4,
-        shuffle=False,
-        seed=42,
-    )
+    X, y, _ = data_generator
 
     # Not fitted sub-model when calling importance and predict
     with pytest.raises(
@@ -142,8 +140,8 @@ def test_raises_value_error():
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
     ids=["basic data"],
 )
 def test_loco_function(data_generator):
@@ -169,8 +167,8 @@ def test_loco_function(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 50, 5, 0.1, 0, 2.0, 8, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 50, None, 5, 0.1, 0, 2.0, 8, 0.0)],
     ids=["default data"],
 )
 def test_loco_cv(data_generator):

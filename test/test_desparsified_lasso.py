@@ -265,15 +265,15 @@ def test_desparsified_group_lasso():
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 100, 10, 2, 0, 42, 1, 50, 0.9)],
+    ids=["basic"],
+)
 @ignore_warnings(category=UserWarning)
-def test_exception():
+def test_exception(data_generator):
     """Test exception of Desparsified Lasso"""
-    n_samples = 20
-    n_features = 100
-    n_target = 10
-    support_size = 2
-    signal_noise_ratio = 50
-    rho_serial = 0.9
+    X, y, _ = data_generator
 
     multi_task_lasso_cv = MultiTaskLassoCV(
         eps=1e-2,
@@ -282,16 +282,6 @@ def test_exception():
         tol=1e-4,
         max_iter=5000,
         random_state=1,
-    )
-
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        rho_serial=rho_serial,
-        signal_noise_ratio=signal_noise_ratio,
-        seed=10,
     )
 
     desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
@@ -357,27 +347,18 @@ def test_function_not_center():
     desparsified_lasso_importance(X, y, centered=False)
 
 
-def test_reid():
-    """Estimating noise standard deviation in two scenarios.
-    First scenario: no structure and a support of size 2.
-    Second scenario: no structure and an empty support.
-    """
-    n_samples, n_features = 100, 20
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 2, 0.25, 42, 1, 2.0, 0)],
+    ids=["no structure with support"],
+)
+def test_reid_no_structure_with_support(data_generator):
+    """Estimating noise standard deviation with no structure and a support of size 2."""
     signal_noise_ratio = 2.0
-
-    # First expe
-    # ##########
     support_size = 2
+    X, y, _ = data_generator
 
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        rho=0.25,
-        signal_noise_ratio=signal_noise_ratio,
-        seed=0,
-    )
-    lasso_cv = LassoCV().fit(X, y)
+    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -386,18 +367,16 @@ def test_reid():
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.3
 
-    # Second expe
-    # ###########
-    support_size = 0
 
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        seed=2,
-    )
-    lasso_cv = LassoCV().fit(X, y)
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 0, 0.25, 42, 1, 2.0, 0)],
+    ids=["no structure with no support"],
+)
+def test_reid_no_structure_with_no_support(data_generator):
+    """Estimating noise standard deviation with no structure and an empty support."""
+    X, y, _ = data_generator
+    lasso_cv = LassoCV(n_jobs=1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     sigma_hat = reid(lasso_cv.coef_, residual)
@@ -406,30 +385,22 @@ def test_reid():
     assert error_relative < 0.2
 
 
-def test_group_reid():
-    """Estimating (temporal) noise covariance matrix in two scenarios.
-    First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support.
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 50, 2, 0, 0, 1, 3.0, 0.9)],
+    ids=["group reid"],
+)
+def test_group_reid(data_generator):
     """
-    n_samples = 100
-    n_features = 20
+    Estimating (temporal) noise covariance matrix in two scenarios with
+    no data structure and an empty support.
+    """
     n_target = 50
     signal_noise_ratio = 3.0
     rho_serial = 0.9
-
-    # First expe
-    # ##########
     support_size = 2
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        rho=0.0,
-        seed=0,
-    )
+
+    X, y, _ = data_generator
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = support_size / signal_noise_ratio * corr
 
@@ -465,30 +436,20 @@ def test_group_reid():
     assert np.max(error_relative) > 0.3
 
 
-def test_group_reid_2():
-    """Estimating (temporal) noise covariance matrix in two scenarios.
-    First scenario: no data structure and a support of size 2.
-    Second scenario: no data structure and an empty support.
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 50, 0, 0.25, 4, 1, 1.0, 0.9)],
+    ids=["group reid no support"],
+)
+def test_group_reid_2(data_generator):
     """
-    n_samples = 100
-    n_features = 20
+    Estimating (temporal) noise covariance matrix with no data structure an
+    an empty support.
+    """
     n_target = 50
-    signal_noise_ratio = 1.0
     rho_serial = 0.9
 
-    # Second expe
-    # ###########
-    support_size = 0
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        rho=0.25,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        seed=4,
-    )
+    X, y, _ = data_generator
     corr = toeplitz(
         rho_serial ** np.arange(0, n_target)
     )  # covariance matrix of time
@@ -512,38 +473,27 @@ def test_group_reid_2():
     assert np.max(error_relative) > 0.3
 
 
-def test_reid_exception():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 50, 2, 0, 42, 1, 1.0, 0.9)],
+    ids=["reid exception"],
+)
+def test_reid_exception(data_generator):
     """Test for testing the exceptions on the arguments of reid function"""
-    n_samples, n_features = 100, 20
-    n_target = 50
-    signal_noise_ratio = 1.0
-    rho_serial = 0.9
-
-    # First expe
-    # ##########
-    support_size = 2
-
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-    )
+    X, y, _ = data_generator
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):
-        _, _ = reid(X, y, method="test", multioutput=True)
+        reid(X, y, method="test", multioutput=True)
     with pytest.raises(
         ValueError,
         match="The AR method is not compatible with the non-stationary",
     ):
-        _, _ = reid(X, y, method="AR", stationary=False, multioutput=True)
+        reid(X, y, method="AR", stationary=False, multioutput=True)
     with pytest.raises(
         ValueError, match="The requested AR order is to high with"
     ):
-        _, _ = reid(X, y, method="AR", order=1e4, multioutput=True)
+        reid(X, y, method="AR", order=1e4, multioutput=True)
 
 
 @pytest.fixture(scope="module")

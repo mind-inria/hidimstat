@@ -105,7 +105,7 @@ def test_binary_case(rng):
         np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
     )
     for i in range(n_samples):
-        assert 0.9 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
+        assert 0.99 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
 
 def test_error_wrong_type_data(rng):

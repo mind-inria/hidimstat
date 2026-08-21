@@ -68,9 +68,9 @@ def test_cluster_parameter_check():
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 20, 10, 0.5, 42, 1.0, 50.0, 0.9)],
-    ids=["basic corr data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 100, 3, 10, 0.5, 42, 1, 50.0, 0.9)],
+    ids=["high noise"],
 )
 def test_cluster_importance_check_fit(data_generator):
     """
@@ -90,9 +90,9 @@ def test_cluster_importance_check_fit(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 20, 4, 0, 42, 1.0, 10.0, 0.0)],
-    ids=["basic data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
 )
 def test_cluster_importance(data_generator):
     """Test the ClusterImportance algorithm on a linear scenario."""

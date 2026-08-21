@@ -26,7 +26,23 @@ from hidimstat.conditional_feature_importance import CFICV
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
 
-def run_cfi(X, y, n_permutation, seed):
+def make_cfi(X, y, **kwargs):
+    """
+    Fit a LinearRegression and wrap it in a CFI with kwargs parameters.
+    """
+    estimator = LinearRegression().fit(X, y)
+    return CFI(estimator=estimator, **kwargs)
+
+
+def run_cfi(
+    X,
+    y,
+    seed,
+    n_permutations=20,
+    method="predict",
+    features_groups=None,
+    feature_types="auto",
+):
     """
     Configure Conditional Feature Importance (CFI) model with linear regression
     for feature importance analysis.
@@ -38,17 +54,15 @@ def run_cfi(X, y, n_permutation, seed):
         and each row a sample.
     y : array-like of shape (n_samples,)
         Target variable array.
-    n_permutation : int
+    n_permutations : int
         Number of permutations to perform for the CFI analysis.
     seed : int
         Random seed for reproducibility.
 
     Returns
     -------
-    importance : array-like
-        Array containing importance scores for each feature.
-        Higher values indicate greater feature importance in predicting
-        the target variable.
+    cfi : hidimstat.CFI
+        CFI instance fitted on input data with given parameters
 
     Notes
     -----
@@ -63,25 +77,22 @@ def run_cfi(X, y, n_permutation, seed):
     # split the data into training and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
-    # create and fit a linear regression model on the training set
-    regression_model = LinearRegression()
-    regression_model.fit(X_train, y_train)
-
     # instantiate CFI model with linear regression imputer
-    cfi = CFI(
-        estimator=regression_model,
+    cfi = make_cfi(
+        X=X_train,
+        y=y_train,
         imputation_model_continuous=LinearRegression(),
-        n_permutations=n_permutation,
-        method="predict",
-        features_groups=None,
-        feature_types="auto",
+        n_permutations=n_permutations,
+        method=method,
+        features_groups=features_groups,
+        feature_types=feature_types,
         random_state=seed,
     )
     # fit the model using the training set
     cfi.fit(X_train)
     # calculate feature importance using the test set
-    importance = cfi.importance(X_test, y_test)
-    return importance
+    cfi.importance(X_test, y_test)
+    return cfi
 
 
 @pytest.fixture(scope="module")
@@ -116,26 +127,27 @@ def cfi_test_data():
 
 ##############################################################################
 ## tests cfi on different type of data
+PARAM_NAMES = "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial"
 PARAM_EXACT = [
-    (150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0),
-    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.0),
-    (150, 200, 10, 0.0, 42, 1.0, 10.0, 0.2),
+    (100, 20, None, 10, 0.0, 42, 1.0, np.inf, 0.0),
+    (100, 20, None, 10, 0.0, 42, 1.0, 10.0, 0.0),
+    (100, 20, None, 10, 0.0, 42, 1.0, 10.0, 0.2),
 ]
 PARAM_EXACT_IDS = ["HiDim", "HiDim with noise", "HiDim with correlated noise"]
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    PARAM_NAMES,
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
 @pytest.mark.parametrize(
-    "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
+    "n_permutations, cfi_seed", [(10, 5)], ids=["default_cfi"]
 )
-def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
+def test_linear_data_exact(data_generator, n_permutations, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features = data_generator
-    importance = run_cfi(X, y, n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutations, cfi_seed).importances_
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -148,7 +160,7 @@ def test_linear_data_exact(data_generator, n_permutation, cfi_seed):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    PARAM_NAMES,
     PARAM_EXACT,
     ids=PARAM_EXACT_IDS,
 )
@@ -195,9 +207,9 @@ def test_classification(data_generator):
 
 
 PARAM_PARTIAL = [
-    (150, 200, 10, 0.2, 42, 1.0, np.inf, 0.0),
-    (150, 200, 10, 0.2, 42, 1.0, 10, 0.0),
-    (150, 200, 10, 0.2, 42, 1.0, 10, 0.2),
+    (100, 20, None, 10, 0.2, 42, 1.0, np.inf, 0.0),
+    (100, 20, None, 10, 0.2, 42, 1.0, 10, 0.0),
+    (100, 20, None, 10, 0.2, 42, 1.0, 10, 0.2),
 ]
 PARAM_PARTIAL_IDS = [
     "HiDim with correlated features",
@@ -207,17 +219,17 @@ PARAM_PARTIAL_IDS = [
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    PARAM_NAMES,
     PARAM_PARTIAL,
     ids=PARAM_PARTIAL_IDS,
 )
 @pytest.mark.parametrize(
-    "n_permutation, cfi_seed", [(10, 5)], ids=["default_cfi"]
+    "n_permutations, cfi_seed", [(10, 5)], ids=["default_cfi"]
 )
-def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
+def test_linear_data_partial(data_generator, n_permutations, cfi_seed):
     """Tests the method on linear cases with noise and correlation"""
     X, y, important_features = data_generator
-    importance = run_cfi(X, y, n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutations, cfi_seed).importances_
     # check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that important features have the highest importance scores
@@ -233,17 +245,17 @@ def test_linear_data_partial(data_generator, n_permutation, cfi_seed):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 50, 10, 0.2, 42, 1.0, 1.0, 0.0)],
+    PARAM_NAMES,
+    [(100, 20, None, 10, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
-    "n_permutation, cfi_seed", [(20, 5)], ids=["default_cfi"]
+    "n_permutations, cfi_seed", [(20, 5)], ids=["default_cfi"]
 )
-def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
+def test_linear_data_fail(data_generator, n_permutations, cfi_seed):
     """Tests when the method doesn't identify all important features"""
     X, y, important_features = data_generator
-    importance = run_cfi(X, y, n_permutation, cfi_seed)
+    importance = run_cfi(X, y, n_permutations, cfi_seed).importances_
     # check that importance is defined for each feature
     assert importance.shape == (X.shape[1],)
     # check that mean importance of important features is
@@ -263,9 +275,9 @@ def test_linear_data_fail(data_generator, n_permutation, cfi_seed):
 
 ## Test specific options of cfi
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 20, 4, 0.0, 42, 1.0, np.inf, 0.0)],
-    ids=["high dimension"],
+    PARAM_NAMES,
+    [(100, 20, None, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
 )
 def test_group(data_generator):
     """Test CFI with groups using pandas objects"""
@@ -279,25 +291,13 @@ def test_group(data_generator):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     # Split data into training and test sets
-    X_train_df, X_test_df, y_train, y_test = train_test_split(
-        X_df, y, random_state=0
-    )
-
-    # Create and fit linear regression model on training set
-    regression_model = LinearRegression()
-    regression_model.fit(X_train_df, y_train)
-
-    cfi = CFI(
-        estimator=regression_model,
-        imputation_model_continuous=LinearRegression(),
-        n_permutations=20,
-        method="predict",
+    cfi = run_cfi(
+        X=X_df,
+        y=y,
+        seed=0,
         features_groups=groups,
-        feature_types="auto",
-        random_state=0,
     )
-    cfi.fit(X_train_df)
-    importance = cfi.importance(X_test_df, y_test)
+    importance = cfi.importances_
 
     # Check if importance scores are computed for each feature
     assert importance.shape == (2,)
@@ -308,9 +308,9 @@ def test_group(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0.0, 42, 1.0, np.inf, 0.0)],
-    ids=["high dimension"],
+    PARAM_NAMES,
+    [(100, 20, None, 10, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
 )
 def test_no_group_output_detection(data_generator):
     X, y, _ = data_generator
@@ -353,8 +353,8 @@ def test_no_group_output_detection(data_generator):
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 20, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIClass:
@@ -414,6 +414,7 @@ class TestCFIClass:
         self,
         n_samples,
         n_features,  # noqa: ARG002
+        n_targets,  # noqa: ARG002
         support_size,  # noqa: ARG002
         rho,  # noqa: ARG002
         seed,
@@ -427,26 +428,19 @@ class TestCFIClass:
         X_cat = rng.integers(low=0, high=3, size=(n_samples, 1))
         X = np.hstack([X_cont, X_cat])
         y = rng.random((n_samples, 1))
-        fitted_model = LinearRegression().fit(X, y)
-
         feature_types = ["continuous", "continuous", "categorical"]
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            imputation_model_categorical=LogisticRegression(),
-            feature_types=feature_types,
-            random_state=0,
-        )
-        cfi.fit(X, y)
 
-        importances = cfi.importance(X, y)
+        cfi = run_cfi(
+            X=X, y=y, n_permutations=50, feature_types=feature_types, seed=0
+        )
+        importances = cfi.importances_
         assert len(importances) == 3
 
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 20, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
 class TestCFIExceptions:
@@ -455,15 +449,9 @@ class TestCFIExceptions:
     def test_unknown_predict_method(self, data_generator):
         """Test when an unknown prediction method is provided"""
         X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-
-        cfi = CFI(
-            estimator=fitted_model,
-            method="unknown method",
-        )
 
         with pytest.raises(ValueError):
-            cfi.fit(X, y)
+            run_cfi(X=X, y=y, seed=0, method="unknown method")
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
@@ -498,25 +486,21 @@ class TestCFIExceptions:
     def test_invalid_type(self, data_generator):
         """Test invalid type of data"""
         X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(estimator=fitted_model, feature_types="invalid")
 
         # Test error when passing invalid var_type
         with pytest.raises(
             ValueError, match="feature_types support only the string 'auto'"
         ):
-            cfi.fit(X)
+            run_cfi(X=X, y=y, seed=0, feature_types="invalid")
 
     def test_invalid_n_permutations(self, data_generator):
         """Test when invalid number of permutations is provided"""
         X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
 
-        cfi = CFI(estimator=fitted_model, n_permutations=-1, method="predict")
         with pytest.raises(
             AssertionError, match="n_permutations must be positive"
         ):
-            cfi.fit(X, y)
+            run_cfi(X=X, y=y, seed=0, n_permutations=-1)
 
     def test_not_good_type_X(self, data_generator):
         """Test when X is wrong type"""
@@ -622,18 +606,13 @@ class TestCFIExceptions:
     def test_invalid_var_type(self, data_generator):
         """Test when invalid variable type is provided"""
         X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-            features_groups=None,
-            feature_types=["invalid_type"] * X.shape[1],
-        )
 
         with pytest.raises(
             ValueError, match="type of data 'invalid_type' unknown"
         ):
-            cfi.fit(X)
+            run_cfi(
+                X=X, y=y, seed=0, feature_types=["invalid_type"] * X.shape[1]
+            )
 
     def test_incompatible_imputer(self, data_generator):
         """Test when incompatible imputer is provided"""
@@ -661,41 +640,23 @@ class TestCFIExceptions:
     def test_invalid_groups_format(self, data_generator):
         """Test when groups are provided in invalid format"""
         X, y, _ = data_generator
-        invalid_groups = ["group1", "group2"]  # Should be dictionary
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-            features_groups=invalid_groups,
-            feature_types="auto",
-        )
 
         with pytest.raises(
             ValueError, match="features_groups needs to be a dictionary"
         ):
-            cfi.fit(X)
+            run_cfi(X=X, y=y, seed=0, features_groups=["group1", "group2"])
 
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
         X, y, _ = data_generator
         subgroups = {"group1": [0, 1], "group2": [2, 3]}
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-            features_groups=subgroups,
-            feature_types="auto",
-        )
-        cfi.fit(X, y)
-        cfi.importance(X, y)
 
         with pytest.warns(
             UserWarning,
             match="The number of features in X: 20 differs from the"
             " number of features for which importance is computed: 4",
         ):
-            cfi.importance(X, y)
+            run_cfi(X=X, y=y, seed=0, features_groups=subgroups)
 
     def test_assert_dimension_pvalue(self, data_generator):
         """Test that assert is raise if function stat is not good"""
@@ -715,14 +676,14 @@ class TestCFIExceptions:
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 20, 4, 0.2, 42, 1.0, 1.0, 0.0)],
+    PARAM_NAMES,
+    [(150, 200, None, 4, 0.2, 42, 1.0, 1.0, 0.0)],
     ids=["high level noise"],
 )
 @pytest.mark.parametrize(
-    "n_permutation, cfi_seed", [(20, 0)], ids=["default_cfi"]
+    "n_permutations, cfi_seed", [(20, 0)], ids=["default_cfi"]
 )
-def test_function_cfi(data_generator, n_permutation, cfi_seed):
+def test_function_cfi(data_generator, n_permutations, cfi_seed):
     """Test CFI function"""
     X, y, important_features = data_generator
     _, importance, _ = cfi_importance(
@@ -730,7 +691,7 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
         X,
         y,
         imputation_model_continuous=LinearRegression(),
-        n_permutations=n_permutation,
+        n_permutations=n_permutations,
         random_state=cfi_seed,
     )
     # check that importance is defined for each feature
@@ -744,8 +705,8 @@ def test_function_cfi(data_generator, n_permutation, cfi_seed):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 10, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    PARAM_NAMES,
+    [(10, 10, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["10 features"],
 )
 @pytest.mark.mpl_image_compare
@@ -773,8 +734,8 @@ def test_cfi_plot(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 5, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    PARAM_NAMES,
+    [(10, 5, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["5_features"],
 )
 @pytest.mark.mpl_image_compare
@@ -809,8 +770,8 @@ def test_cfi_plot_2d_imp(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(10, 3, 1, 0.2, 0, 1.0, 1.0, 0.0)],
+    PARAM_NAMES,
+    [(10, 3, None, 1, 0.2, 0, 1.0, 1.0, 0.0)],
     ids=["3_features"],
 )
 def test_cfi_plot_coverage(data_generator, rng):
@@ -941,8 +902,8 @@ def test_cfi_reproducibility_with_rng(cfi_test_data):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 50, 5, 0.1, 0, 8.0, 4, 0.0)],
+    PARAM_NAMES,
+    [(500, 50, None, 5, 0.1, 0, 8.0, 4, 0.0)],
     ids=["default data"],
 )
 def test_cfi_cv(data_generator):
@@ -980,8 +941,8 @@ def test_cfi_cv(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(20, 3, 1, 0.0, 42, 1.0, np.inf, 0.0)],
+    PARAM_NAMES,
+    [(20, 3, None, 1, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default"],
 )
 def test_unfitted_estimator(data_generator):
