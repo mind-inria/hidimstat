@@ -26,25 +26,19 @@ def spatially_relaxed_fdp_power(
     false positives near true positives can be less penalized.
 
     """
-    beta_ids = np.argwhere(ground_truth == 1).flatten()
     roi_size_extended = roi_size + spatial_tolerance
     ground_truth_extended = ground_truth.copy().reshape(shape)
     ground_truth_extended[0:roi_size_extended, 0:roi_size_extended] += 1
     ground_truth_extended[-roi_size_extended:, -roi_size_extended:] += 1
     ground_truth_extended[0:roi_size_extended, -roi_size_extended:] += 1
     ground_truth_extended[-roi_size_extended:, 0:roi_size_extended] += 1
-    ground_truth_extended = (ground_truth_extended > 0).astype(int).flatten()
+    ground_truth_extended = (ground_truth_extended > 0).astype(bool).flatten()
 
-    selected_ids = np.argwhere(selected).flatten()
-    true_positive = np.intersect1d(selected_ids, beta_ids)
+    true_positive = np.sum(selected.astype(bool) & ground_truth.astype(bool))
+    false_positive = np.sum(selected.astype(bool) & ~ground_truth_extended)
 
-    ground_truth_extended_ids = np.argwhere(
-        ground_truth_extended.flatten() == 1
-    ).flatten()
-    false_positive = np.setdiff1d(selected_ids, ground_truth_extended_ids)
-
-    fdp = len(false_positive) / len(selected_ids)
-    power = len(true_positive) / len(beta_ids)
+    fdp = false_positive / np.sum(selected)
+    power = true_positive / np.sum(ground_truth)
     return fdp, power
 
 
@@ -60,34 +54,21 @@ def test_ensemble_parameter_check():
         en_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
 
 
-def test_ensemble_importance_check_fit():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 10, 0.5, 42, 1.0, 50.0, 0.9)],
+    ids=["basic data"],
+)
+def test_ensemble_importance_check_fit(data_generator):
     """
     Check that a call to importance() fails if EnsembleImportance is not fitted.
     """
-    n_samples, n_features, n_target = 200, 100, 3
-    support_size = 10
-    signal_noise_ratio = 50.0
-    rho_serial = 0.9
-    rho_data = 0.5
-    seed = 42
-
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        rho=rho_data,
-        shuffle=False,
-        continuous_support=True,
-        seed=seed,
-    )
+    X, y, _ = data_generator
 
     encludl = EnsembleImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
         n_repeats=5,
-        random_state=seed,
+        random_state=42,
     )
 
     with pytest.raises(
@@ -96,20 +77,15 @@ def test_ensemble_importance_check_fit():
         encludl.importance(X, y)
 
 
-def test_ensemble_importance():
+@pytest.mark.parametrize(
+    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, 10, 0, 42, 1.0, 10.0, 0.0)],
+    ids=["basic data"],
+)
+def test_ensemble_importance(data_generator):
     """Test the EnsembleImportance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
-
+    X, y, important_mask = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
 
@@ -118,7 +94,6 @@ def test_ensemble_importance():
         n_repeats=5,
         random_state=0,
     )
-
     endl.fit(
         X_train,
         y_train,
@@ -127,14 +102,13 @@ def test_ensemble_importance():
 
     assert importance.shape == (X.shape[1],)
     assert (
-        importance[important_features].mean()
-        > importance[non_important_features].mean()
+        importance[important_mask].mean() > importance[~important_mask].mean()
     )
 
 
 def test_encluvi_spatial(rng):
     """
-    Test CluVI on a 2D spatial simulation. Testing for support recovery methods using
+    Test EnCluVI on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
     include non-support features, rapidly increasing false positives. To address this,
     we introduce a spatial relaxation in the evaluation metrics.
@@ -193,6 +167,7 @@ def test_encluvi_spatial(rng):
         )
         fp_list.append(int(fdp > 0))
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fp_list) <= fwer + tol
 
@@ -204,7 +179,7 @@ def test_encluvi_temporal(rng):
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 200, 100, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -256,6 +231,7 @@ def test_encluvi_temporal(rng):
         )
         fdp_list.append(fdp)
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fdp_list) <= alpha
 
@@ -283,7 +259,7 @@ def test_encluvi_independence():
         bootstrap_frac=0.7,
         n_repeats=20,
         random_state=1,
-        n_jobs=-1,
+        n_jobs=1,
     )
     encluvi.fit_importance(X_init, y)
     selected_ecdl = encluvi.fwer_selection(alpha, n_tests=n_clusters)
@@ -310,13 +286,13 @@ def ensemble_test_data():
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
-    cfi_default_parameters = {
+    en_dl_default_parameters = {
         "vim": dl,
         "n_repeats": 10,
         "bootstrap_frac": 0.5,
         "n_jobs": 1,
     }
-    return X_train, y_train, X_test, y_test, cfi_default_parameters
+    return X_train, y_train, X_test, y_test, en_dl_default_parameters
 
 
 def test_ensemble_repeatibility(ensemble_test_data):

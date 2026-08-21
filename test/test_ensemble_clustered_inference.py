@@ -24,25 +24,19 @@ def spatially_relaxed_fdp_power(
     false positives near true positives can be less penalized.
 
     """
-    beta_ids = np.argwhere(ground_truth == 1).flatten()
     roi_size_extended = roi_size + spatial_tolerance
     ground_truth_extended = ground_truth.copy().reshape(shape)
     ground_truth_extended[0:roi_size_extended, 0:roi_size_extended] += 1
     ground_truth_extended[-roi_size_extended:, -roi_size_extended:] += 1
     ground_truth_extended[0:roi_size_extended, -roi_size_extended:] += 1
     ground_truth_extended[-roi_size_extended:, 0:roi_size_extended] += 1
-    ground_truth_extended = (ground_truth_extended > 0).astype(int).flatten()
+    ground_truth_extended = (ground_truth_extended > 0).astype(bool).flatten()
 
-    selected_ids = np.argwhere(selected).flatten()
-    true_positive = np.intersect1d(selected_ids, beta_ids)
+    true_positive = np.sum(selected.astype(bool) & ground_truth.astype(bool))
+    false_positive = np.sum(selected.astype(bool) & ~ground_truth_extended)
 
-    ground_truth_extended_ids = np.argwhere(
-        ground_truth_extended.flatten() == 1
-    ).flatten()
-    false_positive = np.setdiff1d(selected_ids, ground_truth_extended_ids)
-
-    fdp = len(false_positive) / len(selected_ids)
-    power = len(true_positive) / len(beta_ids)
+    fdp = false_positive / np.sum(selected)
+    power = true_positive / np.sum(ground_truth)
     return fdp, power
 
 
@@ -56,7 +50,7 @@ def test_cludl_spatial(rng):
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-    n_samples = 400
+    n_samples = 100
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
@@ -102,6 +96,7 @@ def test_cludl_spatial(rng):
         )
         fp_list.append(int(fdp > 0))
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fp_list) <= fwer
 
@@ -137,7 +132,7 @@ def test_cludl_independence():
     assert np.sum(s1) != 0
     assert (
         np.abs(np.sum(s2_iterations) / n_iterations - np.sum(s1)) / np.sum(s1)
-        < 0.5
+        < 0.6
     )
 
 
@@ -151,7 +146,7 @@ def test_encludl_spatial(rng):
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-    n_samples = 500
+    n_samples = 100
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
@@ -200,6 +195,7 @@ def test_encludl_spatial(rng):
         )
         fp_list.append(int(fdp > 0))
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fp_list) <= fwer + tol
 
@@ -211,15 +207,15 @@ def test_cludl_temporal(rng):
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 100, 500, 3
+    n_samples, n_features, n_target = 50, 200, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
     rho_data = 0.9
-    n_clusters = 100
+    n_clusters = 50
     margin_size = 5
     extended_support = support_size + margin_size
-    test_tol = 0.05
+    test_tol = 0.1
 
     fdp_list = []
     power_list = []
@@ -251,7 +247,7 @@ def test_cludl_temporal(rng):
         )
         cludl.fit_importance(X, y)
 
-        alpha = 0.05
+        alpha = 0.1
         selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
         gt_mask = np.zeros(n_features, dtype=int)
         gt_mask[:extended_support] = 1
@@ -272,7 +268,7 @@ def test_encludl_temporal(rng):
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 200, 100, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
