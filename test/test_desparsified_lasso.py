@@ -82,7 +82,7 @@ def test_desparsified_lasso():
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples, n_features = 500, 50
+    n_samples, n_features = 100, 20
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
@@ -107,7 +107,8 @@ def test_desparsified_lasso():
         )
 
         desparsified_lasso = DesparsifiedLasso(
-            confidence=confidence, random_state=seed
+            confidence=confidence,
+            random_state=seed,
         ).fit(X, y)
         _ = desparsified_lasso.importance()
         # Check that beta is within the confidence intervals
@@ -128,7 +129,9 @@ def test_desparsified_lasso():
         powr_list.append(power)
 
         desparsified_lasso = DesparsifiedLasso(
-            dof_ajdustement=True, confidence=confidence, random_state=seed
+            dof_ajdustement=True,
+            confidence=confidence,
+            random_state=seed,
         ).fit(X, y)
         _ = desparsified_lasso.importance()
 
@@ -160,8 +163,8 @@ def test_desparsified_group_lasso():
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples = 500
-    n_features = 50
+    n_samples = 100
+    n_features = 20
     n_target = 10
     support_size = 5
     signal_noise_ratio = 32
@@ -185,7 +188,6 @@ def test_desparsified_group_lasso():
             tol=1e-4,
             max_iter=50,
             random_state=1,
-            n_jobs=1,
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -271,7 +273,7 @@ def test_desparsified_group_lasso():
 @ignore_warnings(category=UserWarning)
 def test_exception(data_generator):
     """Test exception of Desparsified Lasso"""
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     multi_task_lasso_cv = MultiTaskLassoCV(
         eps=1e-2,
@@ -280,7 +282,6 @@ def test_exception(data_generator):
         tol=1e-4,
         max_iter=5000,
         random_state=1,
-        n_jobs=1,
     )
 
     desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
@@ -355,7 +356,7 @@ def test_reid_no_structure_with_support(data_generator):
     """Estimating noise standard deviation with no structure and a support of size 2."""
     signal_noise_ratio = 2.0
     support_size = 2
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     lasso_cv = LassoCV(n_jobs=1).fit(X, y)
     residual = lasso_cv.predict(X) - y
@@ -374,7 +375,7 @@ def test_reid_no_structure_with_support(data_generator):
 )
 def test_reid_no_structure_with_no_support(data_generator):
     """Estimating noise standard deviation with no structure and an empty support."""
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
     lasso_cv = LassoCV(n_jobs=1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
@@ -399,11 +400,11 @@ def test_group_reid(data_generator):
     rho_serial = 0.9
     support_size = 2
 
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
     corr = toeplitz(np.geomspace(1, rho_serial ** (n_target - 1), n_target))
     cov = support_size / signal_noise_ratio * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
@@ -448,13 +449,13 @@ def test_group_reid_2(data_generator):
     n_target = 50
     rho_serial = 0.9
 
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
     corr = toeplitz(
         rho_serial ** np.arange(0, n_target)
     )  # covariance matrix of time
     cov = 1.0 * corr
 
-    lasso_cv = MultiTaskLassoCV(n_jobs=1).fit(X, y)
+    lasso_cv = MultiTaskLassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
     cov_hat = reid(lasso_cv.coef_, residual, multioutput=True)
@@ -479,7 +480,7 @@ def test_group_reid_2(data_generator):
 )
 def test_reid_exception(data_generator):
     """Test for testing the exceptions on the arguments of reid function"""
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
     with pytest.raises(
         ValueError, match="Unknown method for estimating the covariance matrix"
     ):

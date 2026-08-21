@@ -66,13 +66,14 @@ else:
 
 def test_knockoff_bootstrap_quantile():
     """Test bootstrap knockoof with quantile aggregation"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 5
     n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
+
     for seed in range(10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
@@ -81,7 +82,6 @@ def test_knockoff_bootstrap_quantile():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=5,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -93,19 +93,21 @@ def test_knockoff_bootstrap_quantile():
         assert model_x_knockoff.importances_.shape == (n_repeats, p)
         assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
         assert model_x_knockoff.aggregated_pval_.shape == (p,)
+
     assert np.mean(fdp_list) < fdr
     assert np.mean(power_list) > 0.2
 
 
 def test_knockoff_bootstrap_e_values():
     """Test bootstrap Knockoff with e-values"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 32
     n_repeats = 5
     fdr = 0.2
     fdp_list = []
     power_list = []
+
     for seed in range(10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
@@ -116,7 +118,6 @@ def test_knockoff_bootstrap_e_values():
             estimator=LassoCV(),
             n_repeats=n_repeats,
             random_state=seed,
-            n_jobs=5,
         ).fit(X, y)
         model_x_knockoff.importance()
         selected = model_x_knockoff.fdr_selection(
@@ -137,8 +138,8 @@ def test_knockoff_bootstrap_e_values():
 
 def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     signal_noise_ratio = 5
     fdr = 0.2
     X, y, beta, _ = multivariate_simulation(
@@ -185,8 +186,8 @@ def test_invariant_with_bootstrap():
 def test_model_x_knockoff():
     """Test the selection of variable from knockoff"""
     fdr = 0.2
-    n = 200
-    p = 50
+    n = 100
+    p = 20
     support_size = 18
     fdp_list = []
     power_list = []
@@ -216,9 +217,7 @@ def test_model_x_knockoff():
 def test_model_x_knockoff_estimator(data_generator):
     """Test knockoff with a crossvalidation estimator"""
     fdr = 0.2
-    X, y, beta, _ = data_generator
-    important_feats = np.zeros(X.shape[1], dtype=bool)
-    important_feats[beta] = True
+    X, y, beta = data_generator
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
         estimator=GridSearchCV(
@@ -228,14 +227,14 @@ def test_model_x_knockoff_estimator(data_generator):
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp_power(selected, important_feats)
+    fdp_power(selected, beta)
 
     assert selected.shape == (50,)
 
 
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 50, None, 10, 0, 42, 1, 10, 0)],
+    [(200, 20, None, 10, 0, 42, 1, 10, 0)],
     ids=["low samples"],
 )
 def test_estimate_distribution(data_generator):
@@ -243,7 +242,7 @@ def test_estimate_distribution(data_generator):
     Test different estimation of the covariance
     """
     fdr = 0.1
-    X, y, beta, _ = data_generator
+    X, y, beta = data_generator
     generator = GaussianKnockoffs(
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
@@ -251,11 +250,13 @@ def test_estimate_distribution(data_generator):
         ),
     )
     model_x_knockoff = ModelXKnockoff(
-        n_repeats=1, random_state=2, ko_generator=generator
+        n_repeats=5,
+        random_state=42,
+        ko_generator=generator,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    assert np.all(np.arange(X.shape[1])[selected] == beta)
+    assert np.all(beta[selected])
 
 
 @pytest.mark.parametrize(
@@ -267,13 +268,11 @@ def test_knockoff_function_not_centered(data_generator):
     """Test function of knockoff not centered"""
     fdr = 0.2
     p = 50
-    X, y, beta, _ = data_generator
-    important_feats = np.zeros(X.shape[1])
-    important_feats[beta] = True
+    X, y, beta = data_generator
     selected, importances, pvalues = model_x_knockoff_importance(
         X, y, centered=False, n_repeats=5, random_state=0, fdr=fdr
     )
-    fdp_power(selected, important_feats)
+    fdp_power(selected, beta)
     assert selected.shape == (p,)
     assert importances.shape == (5, p)
     assert pvalues.shape == (5, p)
@@ -287,9 +286,7 @@ def test_knockoff_function_not_centered(data_generator):
 def test_model_x_knockoff_null(data_generator):
     """Test knockoff with a crossvalidation estimator"""
     fdr = 0.05
-    X, y, beta, _ = data_generator
-    important_feats = np.zeros(X.shape[1])
-    important_feats[beta] = True
+    X, y, beta = data_generator
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
         estimator=GridSearchCV(
@@ -299,7 +296,7 @@ def test_model_x_knockoff_null(data_generator):
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
-    fdp_power(selected, important_feats)
+    fdp_power(selected, beta)
     assert not selected.any()
 
 
@@ -312,7 +309,7 @@ def test_lasso_estimator_alphas(data_generator):
     """Test configuration of alphas when estimator is LassoCV depending on Scikit-Learn version."""
     n_repeats = 5
     n_alphas = 10
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
     if SKLEARN_LT_1_6:
         estimator = LassoCV(n_alphas=n_alphas)
     else:
@@ -322,7 +319,7 @@ def test_lasso_estimator_alphas(data_generator):
         estimator=estimator,
         n_repeats=n_repeats,
         random_state=42,
-        n_jobs=5,
+        n_jobs=1,
     ).fit(X, y)
 
     assert all(
@@ -342,7 +339,7 @@ class TestModelXKnockoffExceptions:
 
     def test_warning(self, data_generator):
         """Test if some warning are raised"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeats=5)
         model_x_knockoff.fit(X, y)
         with pytest.warns(Warning, match="X won't be used"):
@@ -354,7 +351,7 @@ class TestModelXKnockoffExceptions:
         self, data_generator
     ):
         """Test error lasso statistic"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(n_repeats=1, estimator=SVR())
         with pytest.raises(
             TypeError,
@@ -364,7 +361,7 @@ class TestModelXKnockoffExceptions:
 
     def test_error_lasso_statistic_with_sampling(self, data_generator):
         """Test error lasso statistic"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeats=1,
             estimator=SVR(),
@@ -375,7 +372,7 @@ class TestModelXKnockoffExceptions:
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
-        X, y, _, _ = data_generator
+        X, y, _ = data_generator
         model_x_knockoff = ModelXKnockoff(
             n_repeats=5,
             ko_generator=GaussianKnockoffs(

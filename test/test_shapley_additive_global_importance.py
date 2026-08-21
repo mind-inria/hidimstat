@@ -16,12 +16,15 @@ def test_sage_smoke(data_generator):
     """Smoke test for SAGE. Checks that the importance values are computed and
     have the expected shape.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = LinearRegression()
     model.fit(X, y)
     sage = SAGE(
-        estimator=model, n_permutations=10, n_subsets=20, random_state=42
+        estimator=model,
+        n_permutations=10,
+        n_subsets=20,
+        random_state=42,
     )
     sage.fit(X)
     importance = sage.importance(X, y)

@@ -64,7 +64,7 @@ def test_s_equi_not_definite_positive(rng):
 )
 def test_reproducibility_sample(data_generator):
     """Test the repeatability of the samples"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(random_state=0)
@@ -79,7 +79,7 @@ def test_reproducibility_sample(data_generator):
 )
 def test_reproducibility_sample_repeat(data_generator):
     """Test the repeatability of the samples"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=0)
@@ -94,7 +94,7 @@ def test_reproducibility_sample_repeat(data_generator):
 )
 def test_randomness_sample_no_seed(data_generator):
     """Test the non repeatability of the samples when no seed"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(random_state=None)
@@ -109,7 +109,7 @@ def test_randomness_sample_no_seed(data_generator):
 )
 def test_randomness_sample_no_seed_repeat(data_generator):
     """Test the non repeatability of the samples when no seed"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     gaussian_sampler = GaussianKnockoffs()
     gaussian_sampler.fit(X=X)
     X_tilde_1 = gaussian_sampler.sample(n_repeats=3, random_state=None)
@@ -124,7 +124,7 @@ def test_randomness_sample_no_seed_repeat(data_generator):
 )
 def test_randomness_sample_rgn(data_generator):
     """Test the non repeatability of the samples when the usage of random generator"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     rng = np.random.default_rng(0)
     gaussian_sampler_rng = GaussianKnockoffs()
     gaussian_sampler_rng.fit(X=X)
@@ -140,7 +140,7 @@ def test_randomness_sample_rgn(data_generator):
 )
 def test_randomness_sample_rgn_repeat(data_generator):
     """Test the non repeatability of the samples when the usage of random generator"""
-    X, _, _, _ = data_generator
+    X, _, _ = data_generator
     rng = np.random.default_rng(0)
     gaussian_sampler_rng = GaussianKnockoffs()
     gaussian_sampler_rng.fit(X=X)

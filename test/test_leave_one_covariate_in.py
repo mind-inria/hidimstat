@@ -53,10 +53,7 @@ def run_loci(
 )
 def test_loci(data_generator):
     """Test the Leave-One-Covariate-In algorithm on a linear scenario."""
-    X, y, beta, _ = data_generator
-    important_features = np.zeros(X.shape[1], dtype=bool)
-    important_features[beta] = True
-    non_important_features = ~important_features
+    X, y, important_features = data_generator
 
     loci = run_loci(X=X, y=y, estimator=LinearRegression())
     importance = loci.importances_
@@ -64,15 +61,14 @@ def test_loci(data_generator):
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
     # Same with groups and a pd.DataFrame
+    feature_ids = np.arange(X.shape[1])
     groups = {
-        "group_0": [f"col_{i}" for i in beta],
-        "the_group_1": [
-            f"col_{i}" for i in np.arange(X.shape[1])[non_important_features]
-        ],
+        "group_0": [f"col_{i}" for i in feature_ids[important_features]],
+        "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     loci = run_loci(
@@ -83,14 +79,14 @@ def test_loci(data_generator):
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
-    y_clf = np.where(y > np.median(y), 1, 0)
+    y_clf = (y > np.median(y)).astype(int)
     loci_clf = run_loci(
         X=X,
         y=y_clf,
         estimator=LogisticRegression(),
         features_groups={
-            "group_0": beta,
-            "the_group_1": np.arange(X.shape[1])[non_important_features],
+            "group_0": feature_ids[important_features],
+            "the_group_1": feature_ids[~important_features],
         },
         method="predict_proba",
         loss=log_loss,
@@ -129,7 +125,6 @@ def test_multiclass_loci():
         method="predict_proba",
         features_groups=groups,
         loss=log_loss,
-        n_jobs=1,
     )
     loci_clf.fit(
         X_train,
@@ -148,7 +143,7 @@ def test_multiclass_loci():
 )
 def test_raises_value_error(data_generator):
     """Test for error when model does not have predict_proba or predict."""
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     # Not fitted sub-model when calling importance and predict
     with pytest.raises(
@@ -191,10 +186,7 @@ def test_raises_value_error(data_generator):
 )
 def test_loci_function(data_generator):
     """Test the function of LOCI algorithm on a linear scenario."""
-    X, y, beta, _ = data_generator
-    important_features = np.zeros(X.shape[1], dtype=bool)
-    important_features[beta] = True
-    non_important_features = ~important_features
+    X, y, important_features = data_generator
 
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
@@ -206,13 +198,12 @@ def test_loci_function(data_generator):
         X,
         y,
         method="predict",
-        n_jobs=1,
     )
 
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
 
@@ -230,22 +221,21 @@ def test_loci_cv(data_generator):
     Note: even though the only the expected FDP should be controlled, in practice
     the simulation setting is simple enough to satisfy this stronger condition.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = RidgeCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
     loci_cv = LOCICV(
         estimators=model,
         cv=cv,
-        n_jobs=5,
     )
     loci_cv.fit(X, y)
     loci_cv.importance(X, y)
 
     alpha = 0.2
     selected = loci_cv.fdr_selection(fdr=alpha)
-    gt_mask = np.zeros(X.shape[1], dtype=int)
-    gt_mask[important_features] = 1
-    fdp, power = fdp_power(selected=selected, ground_truth=gt_mask)
+    fdp, power = fdp_power(
+        selected=selected, ground_truth=important_features.astype(int)
+    )
     assert fdp < alpha
     assert power >= 0.8

@@ -26,25 +26,19 @@ def spatially_relaxed_fdp_power(
     false positives near true positives can be less penalized.
 
     """
-    beta_ids = np.argwhere(ground_truth == 1).flatten()
     roi_size_extended = roi_size + spatial_tolerance
     ground_truth_extended = ground_truth.copy().reshape(shape)
     ground_truth_extended[0:roi_size_extended, 0:roi_size_extended] += 1
     ground_truth_extended[-roi_size_extended:, -roi_size_extended:] += 1
     ground_truth_extended[0:roi_size_extended, -roi_size_extended:] += 1
     ground_truth_extended[-roi_size_extended:, 0:roi_size_extended] += 1
-    ground_truth_extended = (ground_truth_extended > 0).astype(int).flatten()
+    ground_truth_extended = (ground_truth_extended > 0).astype(bool).flatten()
 
-    selected_ids = np.argwhere(selected).flatten()
-    true_positive = np.intersect1d(selected_ids, beta_ids)
+    true_positive = np.sum(selected.astype(bool) & ground_truth.astype(bool))
+    false_positive = np.sum(selected.astype(bool) & ~ground_truth_extended)
 
-    ground_truth_extended_ids = np.argwhere(
-        ground_truth_extended.flatten() == 1
-    ).flatten()
-    false_positive = np.setdiff1d(selected_ids, ground_truth_extended_ids)
-
-    fdp = len(false_positive) / len(selected_ids)
-    power = len(true_positive) / len(beta_ids)
+    fdp = false_positive / np.sum(selected)
+    power = true_positive / np.sum(ground_truth)
     return fdp, power
 
 
@@ -82,7 +76,7 @@ def test_cluster_importance_check_fit(data_generator):
     """
     Check that a call to importance() fails if ClusterImportance is not fitted.
     """
-    X, y, _, _ = data_generator
+    X, y, _ = data_generator
 
     cludl = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
@@ -102,10 +96,7 @@ def test_cluster_importance_check_fit(data_generator):
 )
 def test_cluster_importance(data_generator):
     """Test the ClusterImportance algorithm on a linear scenario."""
-    X, y, beta, _ = data_generator
-    important_features = np.zeros(X.shape[1], dtype=bool)
-    important_features[beta] = True
-    non_important_features = ~important_features
+    X, y, beta = data_generator
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
@@ -128,10 +119,7 @@ def test_cluster_importance(data_generator):
 
     importance = importance_stack.mean(axis=0)
 
-    assert (
-        importance[important_features].mean()
-        > importance[non_important_features].mean()
-    )
+    assert importance[beta].mean() > importance[~beta].mean()
 
 
 def test_cluvi_spatial():
@@ -144,7 +132,7 @@ def test_cluvi_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-    n_samples = 400
+    n_samples = 50
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
@@ -164,7 +152,7 @@ def test_cluvi_spatial():
         y = y - np.mean(y)
         X_init = X_init - np.mean(X_init, axis=0)
 
-        n_clusters = 50
+        n_clusters = 20
         connectivity = image.grid_to_graph(n_x=n_features, n_y=1, n_z=1)
         clustering = FeatureAgglomeration(
             n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
@@ -189,6 +177,7 @@ def test_cluvi_spatial():
         )
         fp_list.append(int(fdp > 0))
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fp_list) <= fwer
 
@@ -204,7 +193,7 @@ def test_cluvi_independence():
         n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     )
     alpha = 0.05  # alpha is the significance level for the statistical test
-    n_clusters = 50
+    n_clusters = 20
     connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     ward = FeatureAgglomeration(
         n_clusters=n_clusters, connectivity=connectivity, linkage="ward"
@@ -243,7 +232,7 @@ def test_cluvi_temporal():
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 100, 500, 3
+    n_samples, n_features, n_target = 50, 200, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -290,5 +279,6 @@ def test_cluvi_temporal():
         )
         fdp_list.append(fdp)
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5 - test_tol
     assert np.mean(fdp_list) <= alpha + test_tol

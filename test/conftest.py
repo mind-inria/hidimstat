@@ -80,10 +80,8 @@ def data_generator(
         Feature matrix.
     y : ndarray of shape (n_samples,)
         Target vector.
-    important_features : ndarray
-        Indices of features with non-zero coefficients.
-    not_important_features : ndarray
-        Indices of features with zero coefficients.
+    important_features_mask : ndarray
+        Mask array of features with non-zero coefficients.
     """
     X, y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
@@ -97,9 +95,8 @@ def data_generator(
         shuffle=False,
         seed=seed,
     )
-    important_features = np.where(beta != 0)[0]
-    not_important_features = np.where(beta == 0)[0]
-    return X, y, important_features, not_important_features
+    important_features_mask = beta.astype(bool)
+    return X, y, important_features_mask
 
 
 def check_estimator(
