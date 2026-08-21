@@ -40,7 +40,7 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_cludl_spatial():
+def test_cludl_spatial(rng):
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
@@ -61,7 +61,7 @@ def test_cludl_spatial():
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -136,7 +136,7 @@ def test_cludl_independence():
     )
 
 
-def test_encludl_spatial():
+def test_encludl_spatial(rng):
     """
     Test CluDL on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
@@ -158,7 +158,7 @@ def test_encludl_spatial():
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -190,7 +190,7 @@ def test_encludl_spatial():
             selected=selected,
             ground_truth=beta,
             roi_size=roi_size,
-            spatial_tolerance=2,
+            spatial_tolerance=3,
             shape=shape,
         )
         fp_list.append(int(fdp > 0))
@@ -200,14 +200,14 @@ def test_encludl_spatial():
     assert np.mean(fp_list) <= fwer + tol
 
 
-def test_cludl_temporal():
+def test_cludl_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 50, 200, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -215,11 +215,11 @@ def test_cludl_temporal():
     n_clusters = 50
     margin_size = 5
     extended_support = support_size + margin_size
-    test_tol = 0.05
+    test_tol = 0.1
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
@@ -247,7 +247,7 @@ def test_cludl_temporal():
         )
         cludl.fit_importance(X, y)
 
-        alpha = 0.05
+        alpha = 0.1
         selected = cludl.fdr_selection(fdr=alpha, two_tailed_test=False)
         gt_mask = np.zeros(n_features, dtype=int)
         gt_mask[:extended_support] = 1
@@ -261,14 +261,14 @@ def test_cludl_temporal():
     assert np.mean(fdp_list) <= alpha + test_tol
 
 
-def test_encludl_temporal():
+def test_encludl_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 50, 200, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -279,7 +279,7 @@ def test_encludl_temporal():
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,

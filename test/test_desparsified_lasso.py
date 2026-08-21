@@ -71,7 +71,7 @@ else:
 
 
 @ignore_warnings(category=UserWarning)
-def test_desparsified_lasso():
+def test_desparsified_lasso(rng):
     """
     Test desparsified lasso on a simple simulation with no structure and
     a support of size 5.
@@ -82,7 +82,7 @@ def test_desparsified_lasso():
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples, n_features = 100, 20
+    n_samples, n_features = 200, 20
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
@@ -95,7 +95,7 @@ def test_desparsified_lasso():
     powr_list = []
     fdp_dof_list = []
     powr_dof_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, beta, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
@@ -157,13 +157,13 @@ def test_desparsified_lasso():
 
 
 @ignore_warnings(category=UserWarning)
-def test_desparsified_group_lasso():
+def test_desparsified_group_lasso(rng):
     """
     Testing the procedure on a simulation with no structure and a support of size 2.
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples = 100
+    n_samples = 200
     n_features = 20
     n_target = 10
     support_size = 5
@@ -177,7 +177,7 @@ def test_desparsified_group_lasso():
     power_list = []
     fd_ftest_list = []
     power_ftest_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         corr = toeplitz(
             np.geomspace(1, rho_serial ** (n_target - 1), n_target)
         )

@@ -106,7 +106,7 @@ def test_ensemble_importance(data_generator):
     )
 
 
-def test_encluvi_spatial():
+def test_encluvi_spatial(rng):
     """
     Test EnCluVI on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
@@ -128,7 +128,7 @@ def test_encluvi_spatial():
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -172,14 +172,14 @@ def test_encluvi_spatial():
     assert np.mean(fp_list) <= fwer + tol
 
 
-def test_encluvi_temporal():
+def test_encluvi_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 50, 200, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -190,7 +190,7 @@ def test_encluvi_temporal():
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
