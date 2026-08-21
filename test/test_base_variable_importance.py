@@ -12,8 +12,15 @@ from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
 @pytest.fixture
-def set_100_variable_sorted(rng, create_BVI):
+def set_100_variable_sorted(rng, create_bvi):
     """Create a BaseVariableImportance instance with test data for testing purposes.
+
+    Parameters
+    ----------
+    rng: Python fixture
+        Returns a Generator for random number generation.
+    create_bvi: Python fixture
+        Returns a new instance of hidimstat.BaseVariableImportance
 
     Returns
     -------
@@ -21,7 +28,7 @@ def set_100_variable_sorted(rng, create_BVI):
         A BaseVariableImportance instance with test data.
     """
     n_features = 100
-    vi = create_BVI
+    vi = create_bvi
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
     vi.pvalues_ = np.flip(np.sort(rng.uniform(0, 1, n_features)))[
@@ -31,7 +38,7 @@ def set_100_variable_sorted(rng, create_BVI):
 
 
 @pytest.fixture(scope="function")
-def create_BVI():
+def create_bvi():
     return BaseVariableImportance()
 
 
@@ -116,7 +123,7 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-def test_selection_fdr(rng, create_BVI):
+def test_selection_fdr(rng, create_bvi):
     """
     Test that the FDR-based selection using BH and BHY procedures achieve the good
     guarantees:
@@ -137,7 +144,7 @@ def test_selection_fdr(rng, create_BVI):
     test_tol = 0.1
 
     for _ in range(100):
-        vim = create_BVI
+        vim = create_bvi
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
         vim.pvalues_ = rng.uniform(0, 1, n_features)
@@ -170,14 +177,14 @@ def test_selection_fdr(rng, create_BVI):
     assert np.mean(bhy_power_list) > 0.8 - test_tol
 
 
-def test_selection_bhq(create_BVI):
+def test_selection_bhq(create_bvi):
     """
     Test selection based on Benjamini-Hochberg procedure. p-values are logarithmically
     spaced between 2^-20 and 0.5 then between 0.5 and 1-2^-20 to have significant
     features for both tails. The BH procedure is compared to ground truth selection,
     based on the analytical critical p-value threshold.
     """
-    vim = create_BVI
+    vim = create_bvi
     n_features = 100
     vim.importances_ = np.hstack(
         [
@@ -251,9 +258,9 @@ def test_selection_bhq(create_BVI):
 class TestBVIExceptions:
     """Test class for BVI Exception"""
 
-    def test_not_fit(self, create_BVI):
+    def test_not_fit(self, create_bvi):
         """Test detection unfit"""
-        vi = create_BVI
+        vi = create_bvi
         with pytest.raises(
             ValueError,
             match="The importance method need to be called before calling this method",
@@ -346,9 +353,9 @@ class TestBVIExceptions:
 
 
 class TestSelectionFDRExceptions:
-    def test_not_fit(self, create_BVI):
+    def test_not_fit(self, create_bvi):
         """Test detection unfit"""
-        vi = create_BVI
+        vi = create_bvi
         with pytest.raises(
             ValueError,
             match="The importance method need to be called before calling this method",
@@ -394,10 +401,10 @@ class TestSelectionFDRExceptions:
             vi.fdr_selection(fdr=0.1, fdr_control="ehb")
 
 
-def test_plot_importance_axis(rng, create_BVI):
+def test_plot_importance_axis(rng, create_bvi):
     """Test argument axis of plot function"""
     n_features = 10
-    vi = create_BVI
+    vi = create_bvi
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
     ax_1 = vi.plot_importance(ax=None)
@@ -410,10 +417,10 @@ def test_plot_importance_axis(rng, create_BVI):
     assert ax_2_bis == ax_2
 
 
-def test_plot_importance_ascending(rng, create_BVI):
+def test_plot_importance_ascending(rng, create_bvi):
     """Test argument ascending of plot function"""
     n_features = 10
-    vi = create_BVI
+    vi = create_bvi
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
@@ -431,10 +438,10 @@ def test_plot_importance_ascending(rng, create_BVI):
     )
 
 
-def test_plot_importance_feature_names(rng, create_BVI):
+def test_plot_importance_feature_names(rng, create_bvi):
     """Test argument feature of plot function"""
     n_features = 10
-    vi = create_BVI
+    vi = create_bvi
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
@@ -472,7 +479,7 @@ def test_plot_importance_feature_names(rng, create_BVI):
         ax_none_group = vi.plot_importance(feature_names="ttt")
 
 
-def test_fwer_selection(rng, create_BVI):
+def test_fwer_selection(rng, create_bvi):
     """
     Test that the FWER selection procedure achieves the desired guarantees.
     For 100 draws of p-values with 10 important ones the rest drawn from a uniform
@@ -486,7 +493,7 @@ def test_fwer_selection(rng, create_BVI):
     test_tol = 0.1
 
     for _ in range(100):
-        vim = create_BVI
+        vim = create_bvi
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
         vim.pvalues_ = rng.uniform(0, 1, n_features)
