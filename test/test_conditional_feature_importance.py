@@ -689,7 +689,6 @@ class TestCFIExceptions:
         )
         cfi.fit(X, y)
         cfi.importance(X, y)
-        print("lol")
 
         with pytest.warns(
             UserWarning,
