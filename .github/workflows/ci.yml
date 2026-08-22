@@ -83,11 +83,11 @@ jobs:
     needs: [get_information]
     uses: ./.github/workflows/call_test_package.yml
     with:
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') || github.event.pull_request.draft }}
 
   tests_minimal:
     name: tests minimal
     needs: [get_information]
     uses: ./.github/workflows/call_test_minimal.yml
     with:
-      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
+      skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') || github.event.pull_request.draft }}
