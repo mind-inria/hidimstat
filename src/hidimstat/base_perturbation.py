@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
@@ -154,13 +155,12 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         out: array-like of shape (n_groups, n_permutations, n_samples)
             The predictions after perturbation of the data for each group of variables.
         """
-        X_ = np.asarray(X)
         rng = check_random_state(self.random_state)
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_predict_one_features_group)(
-                X_, features_group_id, random_state=child_state
+                X, features_group_id, random_state=child_state
             )
             for features_group_id, child_state in enumerate(
                 rng.spawn(self.n_features_groups_)
@@ -283,6 +283,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
         # where the j-th group of covariates is permuted
         X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
+        # This also works with pandas DataFrame
         X_perm[:, :, non_features_group_ids] = np.delete(
             X, features_group_ids, axis=1
         )
@@ -291,6 +292,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         # Reshape X_perm to allow for batch prediction
         X_perm_batch = X_perm.reshape(-1, X.shape[1])
+        if isinstance(X, pd.DataFrame):
+            X_perm_batch = pd.DataFrame(X_perm_batch, columns=X.columns)
         y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
 
         # In case of classification, the output is a 2D array. Reshape accordingly

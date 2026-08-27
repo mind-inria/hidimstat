@@ -4,7 +4,7 @@
 What's new
 ============
 
-See the latest revision: :ref:`lastest_version`.
+See the latest revision: :ref:`latest_version`.
 
 Each entry is tagged with one of the following categories:
 
@@ -17,8 +17,11 @@ Each entry is tagged with one of the following categories:
 .. _changelog:
 .. include:: CHANGELOG.rst
 
+.. _v0.4.0:
+.. _latest_version:
+.. include:: v0.4.0.rst
+
 .. _v0.3.1:
-.. _lastest_version:
 .. include:: v0.3.1.rst
 
 .. _v0.3.0:
@@ -28,5 +31,6 @@ Each entry is tagged with one of the following categories:
   :hidden:
   :maxdepth: 1
 
+  v0.4.0
   v0.3.1
   v0.3.0

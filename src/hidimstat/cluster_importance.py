@@ -38,6 +38,9 @@ class ClusterImportance(BaseVariableImportance):
     n_features_ : int
         Number of features in the original data.
 
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
 
     def __init__(
