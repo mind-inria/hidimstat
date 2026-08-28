@@ -68,7 +68,8 @@ def nadeau_bengio_ttest(
     -----
     The variance is corrected using the factor implemented here:
     `corrected_var = var * (1 / n + test_frac)`
-    where n is the number of repeated evaluations along `axis`.
+    where n is the number of repeated evaluations, i.e. the size of the last
+    axis of `a`.
 
     This function does not support masked arrays and only accepts numpy arrays.
 

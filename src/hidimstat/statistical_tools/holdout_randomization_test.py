@@ -5,9 +5,9 @@ from hidimstat.statistical_tools.utils import TestResult
 
 def holdout_randomization_test(loss_diff, approx=False):
     """
-    Compute the p-value of the holdout randomization, following the procedure
-    described in :footcite:t:`tansey2022holdout`.
+    Compute the p-values of the holdout randomization test (HRT).
 
+    The procedure follows :footcite:t:`tansey2022holdout`.
     For a feature :math:`j` (resp. a feature group), `n_permutations` samples
     are drawn from the conditional distribution :math:`p(X_j \\mid X_{-j})`, and
     for each draw, the loss difference difference between the empirical risk
@@ -18,23 +18,30 @@ def holdout_randomization_test(loss_diff, approx=False):
     using the following formula:
 
     .. math::
-        p_j = \\frac{1}{K+1} \\sum_{k=1}^{K} \\mathbb{I}(\\Delta_k \\geq 0)
+        p_j = \\frac{1}{K+1} \\left(1 + \\sum_{k=1}^{K}
+        \\mathbb{I}(\\Delta_k \\geq 0)\\right)
 
+    In the cross-validated setting, one p-value is obtained per fold. They are
+    combined either with a Bonferroni correction over the folds (the default),
+    or by summing the loss differences over the folds before computing a single
+    p-value (``approx=True``, Algorithm 4 of :footcite:t:`tansey2022holdout`).
 
     Parameters
     ----------
-    loss_diff : array-like of shape (n_features, n_permutations) or
-    (n_features, n_permutations, n_folds)
+    loss_diff : ndarray of shape (n_features, n_permutations) or \
+(n_features, n_permutations, n_folds)
         The loss differences between the two models for each feature and each
         permutation.
     approx : bool, default=False
         Whether to use the approximate version of the holdout randomization
-        test (Algorithm 4).
+        test (Algorithm 4). Only used when `loss_diff` is 3D.
 
     Returns
     -------
-    p_value : float
-        The p-value of the holdout randomization test.
+    TestResult
+        Named tuple with fields: statistic, pvalue. The holdout randomization
+        test does not define a test statistic, so `statistic` is always None
+        and `pvalue` is an array of shape (n_features,).
 
     References
     ----------
@@ -52,7 +59,11 @@ def holdout_randomization_test(loss_diff, approx=False):
             ) / (n_permutations + 1)
             return TestResult(None, approx_pvalues)
         else:
-            corrected_p_values = n_folds * np.min(p_values, axis=1)
+            # Bonferroni over the folds, clipped so that the result stays a
+            # valid p-value.
+            corrected_p_values = np.minimum(
+                1.0, n_folds * np.min(p_values, axis=1)
+            )
             return TestResult(None, corrected_p_values)
     else:
         raise ValueError(

@@ -12,7 +12,7 @@ from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
 class HoldoutRandomTest(BasePerturbation):
     """
-    Holdout Randomization Test (HRT) :footcite:t:`tansey2022holdout`
+    Holdout Randomization Test (HRT) algorithm.
 
     The HRT is computed following the algorithm 2 of
     :footcite:t:`tansey2022holdout`. For each feature group, draw
@@ -23,7 +23,8 @@ class HoldoutRandomTest(BasePerturbation):
     a feature :math:`j` (resp. a feature group), the p-value is computed as:
 
     .. math::
-        p_j = \\frac{1}{K+1} \\sum_{k=1}^{K} \\mathbb{I}(t_k \\geq t_0)
+        p_j = \\frac{1}{K+1} \\left(1 + \\sum_{k=1}^{K}
+        \\mathbb{I}(t_k \\geq t_0)\\right)
 
     Parameters
     ----------
