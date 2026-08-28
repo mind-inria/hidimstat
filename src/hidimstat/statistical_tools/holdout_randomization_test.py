@@ -23,7 +23,8 @@ def holdout_randomization_test(loss_diff, approx=False):
 
     Parameters
     ----------
-    loss_diff : array-like of shape (n_features, n_permutations)
+    loss_diff : array-like of shape (n_features, n_permutations) or
+    (n_features, n_permutations, n_folds)
         The loss differences between the two models for each feature and each
         permutation.
     approx : bool, default=False

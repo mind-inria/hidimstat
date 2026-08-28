@@ -235,7 +235,6 @@ def check_statistical_test(statistical_test, test_frac=None):
                 popmean=0,
                 test_frac=test_frac,
                 alternative="greater",
-                axis=1,
             )
         else:
             raise ValueError(f"the test '{statistical_test}' is not supported")

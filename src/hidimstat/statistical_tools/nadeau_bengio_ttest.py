@@ -80,8 +80,10 @@ def nadeau_bengio_ttest(
         a_ = np.mean(a, axis=1)
     elif a.ndim == 2:
         a_ = a
+    elif a.ndim == 1:
+        a_ = a[np.newaxis, :]
     else:
-        raise ValueError("Input array must be 2D or 3D.")
+        raise ValueError("Input array must be 1D, 2D, or 3D.")
     n = a_.shape[1]
     d = np.mean(a_, axis=1) - popmean
     v = _var(a_, axis=1, ddof=1)

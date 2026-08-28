@@ -47,12 +47,16 @@ def test_ttest_1samp_corrected_NB(data_generator):
         vim.fit(X_train, y_train)
         importances = vim.importance(X_test, y_test)
         importance_list.append(importances)
-    importance_array = np.array(importance_list)
+    importance_array = np.stack(
+        importance_list, axis=1
+    )  # shape (n_features, n_folds)
 
     pvalue_corr = nadeau_bengio_ttest(
         importance_array, 0, test_frac=0.2
     ).pvalue
-    pvalue = ttest_1samp(importance_array, 0, alternative="greater").pvalue
+    pvalue = ttest_1samp(
+        importance_array, 0, alternative="greater", axis=1
+    ).pvalue
     n_features = X.shape[1]
     alpha = 0.05
     assert pvalue_corr.shape == (n_features,)
