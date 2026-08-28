@@ -5,9 +5,10 @@ Feature selection with the Holdout Randomization Test
 Here we show how to compute p-values with the **Holdout Randomization Test
 (HRT)** [:footcite:t:`tansey2022holdout`]. We simulate a regression problem in
 which only 10 of the 100 features carry signal, fit a linear model, and test
-each feature with :class:`~hidimstat.CFI` by passing ``statistical_test="hrt"``.
-The resulting p-values are valid in finite samples and make no assumption on
-the model; we check this on the features that carry no signal.
+each feature with :class:`~hidimstat.CFI` by passing
+``statistical_test="hrt"``. The resulting p-values are valid in finite samples
+and make no assumption on the model; we check this on the features that carry
+no signal.
 """
 
 # %%
@@ -51,11 +52,19 @@ print(f"R² score on the test set: {r2_score(y_test, y_pred):.2f}")
 # in risk caused by replacing it with draws from an estimate of its conditional
 # distribution :math:`p(X_j \mid X_{-j})`, as in
 # :ref:`sphx_glr_generated_gallery_examples_plot_cfi.py`. Those draws are
-# exactly the ones the HRT needs. By default the loss differences they produce
-# are summarized with a t-test; ``statistical_test="hrt"`` instead counts the
-# draws that did *not* increase the risk, which is what removes the normality
-# assumption. The model is never refitted, so each draw only costs one more
-# prediction.
+# exactly the ones the HRT needs. Write :math:`t_0` for the risk of the model
+# on the original data, :math:`t_k` for its risk on the :math:`k`-th of the
+# :math:`K` draws, and :math:`\Delta_k = t_k - t_0` for the difference between
+# the two. The p-value of feature :math:`j` counts the draws that did not
+# raise the risk:
+#
+# .. math::
+#     p_j = \frac{1}{K + 1} \left( 1 + \sum_{k=1}^{K}
+#     \mathbb{I}(\Delta_k \leq 0) \right)
+#
+# An important feature makes most draws worse, so most :math:`\Delta_k` are
+# positive and :math:`p_j` is small. The :math:`+1` terms keep the p-value
+# exact at finite :math:`K`.
 
 from hidimstat import CFI
 
