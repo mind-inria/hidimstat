@@ -39,6 +39,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Number of permutations for each feature group.
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
+        One of 'ttest', 'wilcoxon', 'nb-ttest', 'hrt' or 'hrt-approx'. The
+        holdout randomization tests are only valid for :class:`~hidimstat.CFI`.
     features_groups : dict or None, default=None
         Mapping of group names to lists of feature indices or names. If None, groups are inferred.
     n_jobs : int, default=1
