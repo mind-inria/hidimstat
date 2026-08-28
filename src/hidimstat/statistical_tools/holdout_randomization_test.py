@@ -19,7 +19,10 @@ def holdout_randomization_test(loss_diff, approx=False):
 
     .. math::
         p_j = \\frac{1}{K+1} \\left(1 + \\sum_{k=1}^{K}
-        \\mathbb{I}(\\Delta_k \\geq 0)\\right)
+        \\mathbb{I}(\\Delta_k \\leq 0)\\right)
+
+    An important feature makes the resampled risks larger than the original
+    one, so :math:`\\Delta_k > 0` for most draws and the p-value is small.
 
     In the cross-validated setting, one p-value is obtained per fold. They are
     combined either with a Bonferroni correction over the folds (the default),
@@ -47,26 +50,22 @@ def holdout_randomization_test(loss_diff, approx=False):
     ----------
     .. footbibliography::
     """
-    n_permutations = loss_diff.shape[1]
-    p_values = (1 + np.sum(loss_diff >= 0, axis=1)) / (n_permutations + 1)
-    if loss_diff.ndim == 2:
-        return TestResult(None, p_values)
-    elif loss_diff.ndim == 3:
-        n_folds = loss_diff.shape[2]
-        if approx:
-            approx_pvalues = (
-                1 + np.sum(np.sum(loss_diff, axis=2) >= 0, axis=1)
-            ) / (n_permutations + 1)
-            return TestResult(None, approx_pvalues)
-        else:
-            # Bonferroni over the folds, clipped so that the result stays a
-            # valid p-value.
-            corrected_p_values = np.minimum(
-                1.0, n_folds * np.min(p_values, axis=1)
-            )
-            return TestResult(None, corrected_p_values)
-    else:
+    if loss_diff.ndim not in (2, 3):
         raise ValueError(
             "loss_diff must be a 2D or 3D array, but got an array with shape "
             f"{loss_diff.shape}."
         )
+    n_permutations = loss_diff.shape[1]
+    p_values = (1 + np.sum(loss_diff <= 0, axis=1)) / (n_permutations + 1)
+    if loss_diff.ndim == 2:
+        return TestResult(None, p_values)
+    n_folds = loss_diff.shape[2]
+    if approx:
+        approx_pvalues = (
+            1 + np.sum(np.sum(loss_diff, axis=2) <= 0, axis=1)
+        ) / (n_permutations + 1)
+        return TestResult(None, approx_pvalues)
+    # Bonferroni over the folds, clipped so that the result stays a valid
+    # p-value.
+    corrected_p_values = np.minimum(1.0, n_folds * np.min(p_values, axis=1))
+    return TestResult(None, corrected_p_values)
