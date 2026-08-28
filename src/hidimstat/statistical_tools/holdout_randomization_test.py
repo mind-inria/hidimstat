@@ -24,20 +24,28 @@ def holdout_randomization_test(loss_diff, approx=False):
     An important feature makes the resampled risks larger than the original
     one, so :math:`\\Delta_k > 0` for most draws and the p-value is small.
 
-    In the cross-validated setting, one p-value is obtained per fold. They are
-    combined either with a Bonferroni correction over the folds (the default),
-    or by summing the loss differences over the folds before computing a single
-    p-value (``approx=True``, Algorithm 4 of :footcite:t:`tansey2022holdout`).
+    In the cross-validated setting, the folds have to be combined. By default,
+    one p-value is computed per fold and they are combined with a Bonferroni
+    correction, which is valid but conservative. With ``approx=True``
+    (Algorithm 4 of :footcite:t:`tansey2022holdout`), the loss differences are
+    instead summed over the folds and a single p-value is computed from the
+    resulting draws, as in the single-split case. Pooling the folds this way
+    accumulates the evidence of all of them and is therefore less
+    conservative, but it is only approximate: the k-th draw of a fold is
+    arbitrarily paired with the k-th draw of the others.
 
     Parameters
     ----------
-    loss_diff : ndarray of shape (n_features, n_permutations) or \
-(n_features, n_permutations, n_folds)
+    loss_diff : ndarray
         The loss differences between the two models for each feature and each
-        permutation.
+        permutation. Should be of shape (n_features, n_permutations) or
+        (n_features, n_permutations, n_folds), or (n_permutations,) for a
+        single feature.
     approx : bool, default=False
-        Whether to use the approximate version of the holdout randomization
-        test (Algorithm 4). Only used when `loss_diff` is 3D.
+        Whether to pool the folds by summing their loss differences instead of
+        combining their p-values with a Bonferroni correction (Algorithm 4).
+        Less conservative, but only approximate. Only used when `loss_diff` is
+        3D.
 
     Returns
     -------
@@ -50,19 +58,23 @@ def holdout_randomization_test(loss_diff, approx=False):
     ----------
     .. footbibliography::
     """
-    if loss_diff.ndim not in (2, 3):
+    if loss_diff.ndim == 1:
+        loss_diff_ = loss_diff[np.newaxis, :]
+    elif loss_diff.ndim in (2, 3):
+        loss_diff_ = loss_diff
+    else:
         raise ValueError(
-            "loss_diff must be a 2D or 3D array, but got an array with shape "
+            "loss_diff must be 1D, 2D, or 3D, but got an array with shape "
             f"{loss_diff.shape}."
         )
-    n_permutations = loss_diff.shape[1]
-    p_values = (1 + np.sum(loss_diff <= 0, axis=1)) / (n_permutations + 1)
-    if loss_diff.ndim == 2:
+    n_permutations = loss_diff_.shape[1]
+    p_values = (1 + np.sum(loss_diff_ <= 0, axis=1)) / (n_permutations + 1)
+    if loss_diff_.ndim == 2:
         return TestResult(None, p_values)
-    n_folds = loss_diff.shape[2]
+    n_folds = loss_diff_.shape[2]
     if approx:
         approx_pvalues = (
-            1 + np.sum(np.sum(loss_diff, axis=2) <= 0, axis=1)
+            1 + np.sum(np.sum(loss_diff_, axis=2) <= 0, axis=1)
         ) / (n_permutations + 1)
         return TestResult(None, approx_pvalues)
     # Bonferroni over the folds, clipped so that the result stays a valid
