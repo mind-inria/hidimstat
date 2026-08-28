@@ -65,6 +65,34 @@ def test_ttest_1samp_corrected_NB(data_generator):
     assert np.all(pvalue_corr[~important_features] >= alpha)
 
 
+def test_average_over_permutations():
+    """
+    Test the three-dimensional input, of shape
+    (n_features, n_permutations, n_folds).
+     - Test that the permutations are averaged out before the test is computed
+       over the folds, i.e. that it matches the two-dimensional call on the
+       permutation-averaged array.
+     - Test that the reduced axes are dropped.
+    """
+    rng = np.random.default_rng(0)
+    n_features, n_permutations, n_folds = 4, 10, 5
+    a = rng.normal(loc=0.5, size=(n_features, n_permutations, n_folds))
+
+    result = nadeau_bengio_ttest(a, 0, test_frac=0.25)
+    expected = nadeau_bengio_ttest(np.mean(a, axis=1), 0, test_frac=0.25)
+
+    assert result.statistic.shape == (n_features,)
+    assert result.pvalue.shape == (n_features,)
+    assert_allclose(result.statistic, expected.statistic, rtol=1e-14)
+    assert_allclose(result.pvalue, expected.pvalue, rtol=1e-14)
+
+
+def test_wrong_dimension():
+    """Test that only 1D, 2D and 3D inputs are accepted."""
+    with pytest.raises(ValueError, match="must be 1D, 2D, or 3D"):
+        nadeau_bengio_ttest(np.zeros((2, 3, 4, 5)), 0, test_frac=0.25)
+
+
 class TestTtest_1samp:
     """
     Adapted from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/test_mstats_basic.py#L1455
