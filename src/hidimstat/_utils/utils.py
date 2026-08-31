@@ -205,7 +205,7 @@ def check_statistical_test(statistical_test, test_frac=None):
 
     Parameters
     ----------
-    statisticcal_test : str or callable
+    statistical_test : str or callable
         If str, must be one of:
 
         - 'ttest': one-sample Student's t-test against a zero mean
