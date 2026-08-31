@@ -81,17 +81,48 @@ cfi.importance(X_test, y_test)
 p_values = cfi.pvalues_
 
 # %%
-# Visualizing the control of the type-I error
-# -------------------------------------------
-# The HRT controls the type-I error of each null feature separately: for a
-# feature that carries no information about ``y`` once the others are known,
-# :math:`P(p \leq \alpha) \leq \alpha` at any level :math:`\alpha`. We plot
-# that probability, measured across the null features, as a function of
-# :math:`\alpha`. The diagonal is where the two are equal, and the guarantee
-# asks that the curve not run above it.
+# Looking at the p-values
+# -----------------------
+# We plot the p-value of every feature, separating the 10 informative features
+# from the 90 null ones. The horizontal line is the usual level
+# :math:`\alpha = 0.05`: a feature below it is declared important. The
+# informative features sit at the smallest p-value the test can return,
+# :math:`1 / (K + 1)`, while the null ones spread over the whole range, as
+# they should when the null hypothesis holds.
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+alpha = 0.05
+index = np.arange(len(p_values))
+
+_, ax = plt.subplots(figsize=(6, 3.5))
+ax.scatter(index[support], p_values[support], label="informative features")
+ax.scatter(index[~support], p_values[~support], label="null features")
+ax.axhline(alpha, ls="--", lw=1.5, color="black", label=rf"$\alpha$ = {alpha}")
+ax.set_yscale("log")
+ax.set_ylim(bottom=5e-4)
+ax.set_xlabel("feature index")
+ax.set_ylabel("p-value")
+ax.legend(loc="lower center", ncols=3, fontsize="small")
+plt.tight_layout()
+plt.show()
+
+# %%
+# Visualizing the control of the type-I error
+# -------------------------------------------
+# Above we drew the line at :math:`\alpha = 0.05`, but that choice is
+# arbitrary: the guarantee of the HRT holds at any level. For a feature that
+# carries no information about ``y`` once the others are known,
+# :math:`P(p \leq \alpha) \leq \alpha` for every :math:`\alpha`. In words,
+# whatever threshold we pick, the fraction of null features we wrongly declare
+# important is at most the threshold we asked for. So we sweep :math:`\alpha`
+# from 0 to 1 and, at each value, count the fraction of null features that
+# fall below it. If the p-values are calibrated, that fraction tracks
+# :math:`\alpha` itself, i.e. the curve follows the diagonal; the guarantee
+# asks that it never run above it.
+
+# sphinx_gallery_thumbnail_number = 2
 
 alphas = np.linspace(0, 1, 101)
 null = p_values[~support][:, None]
