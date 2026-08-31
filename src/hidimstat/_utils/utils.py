@@ -206,9 +206,23 @@ def check_statistical_test(statistical_test, test_frac=None):
     Parameters
     ----------
     statisticcal_test : str or callable
-        If str, must be one of 'ttest', 'wilcoxon', 'nb-ttest', 'hrt' or
-        'hrt-approx'.
-        If callable, must be a function that can be used as a test statistic.
+        If str, must be one of:
+
+        - 'ttest': one-sample Student's t-test against a zero mean
+          (:func:`scipy.stats.ttest_1samp`).
+        - 'wilcoxon': Wilcoxon signed-rank test, non-parametric counterpart
+          of the t-test (:func:`scipy.stats.wilcoxon`).
+        - 'nb-ttest': Nadeau-Bengio t-test, a t-test whose variance is
+          corrected for the dependence between cross-validation folds
+          (:func:`~hidimstat.statistical_tools.nadeau_bengio_ttest`).
+        - 'hrt': holdout randomization test, folds combined with a Bonferroni
+          correction
+          (:func:`~hidimstat.statistical_tools.holdout_randomization_test`).
+        - 'hrt-approx': HRT pooling the folds instead of a Bonferroni
+          correction; less conservative, but only approximate.
+
+        When specified with a string, all tests are one-sided ('greater'). If
+        callable, must be a function that can be used as a test statistic.
     test_frac : float, optional
         The fraction of data used for testing in the Nadeau-Bengio t-test.
 
