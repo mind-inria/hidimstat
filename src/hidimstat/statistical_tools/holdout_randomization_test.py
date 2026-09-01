@@ -1,9 +1,10 @@
 import numpy as np
 
+from hidimstat.statistical_tools.aggregation import quantile_aggregation
 from hidimstat.statistical_tools.utils import TestResult
 
 
-def holdout_randomization_test(loss_diff, approx=False):
+def holdout_randomization_test(loss_diff, gamma=0.5, adaptive=False):
     """
     Compute the p-values of the holdout randomization test (HRT).
 
@@ -41,11 +42,12 @@ def holdout_randomization_test(loss_diff, approx=False):
         permutation. Should be of shape (n_features, n_permutations) or
         (n_features, n_permutations, n_folds), or (n_permutations,) for a
         single feature.
-    approx : bool, default=False
-        Whether to pool the folds by summing their loss differences instead of
-        combining their p-values with a Bonferroni correction (Algorithm 4).
-        Less conservative, but only approximate. Only used when `loss_diff` is
-        3D.
+    gamma : float, default=0.5
+        Quantile level for aggregation. Must be in range (0,1].
+    adaptive : bool, default=False
+        If True, uses adaptive quantile aggregation which optimizes over
+        multiple gamma values. If False, uses fixed quantile aggregation with
+        the provided gamma value.
 
     Returns
     -------
@@ -71,13 +73,8 @@ def holdout_randomization_test(loss_diff, approx=False):
     p_values = (1 + np.sum(loss_diff_ <= 0, axis=1)) / (n_permutations + 1)
     if loss_diff_.ndim == 2:
         return TestResult(None, p_values)
-    n_folds = loss_diff_.shape[2]
-    if approx:
-        approx_pvalues = (
-            1 + np.sum(np.sum(loss_diff_, axis=2) <= 0, axis=1)
-        ) / (n_permutations + 1)
-        return TestResult(None, approx_pvalues)
-    # Bonferroni over the folds, clipped so that the result stays a valid
-    # p-value.
-    corrected_p_values = np.minimum(1.0, n_folds * np.min(p_values, axis=1))
+
+    corrected_p_values = quantile_aggregation(
+        p_values, gamma=gamma, adaptive=adaptive
+    )
     return TestResult(None, corrected_p_values)
