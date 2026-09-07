@@ -112,14 +112,6 @@ def generate_binary_classif_dataset(n=100, p=10, seed=0):
     return X, y, beta
 
 
-@pytest.fixture
-def generate_regression_data(noise):
-    X, y = make_regression(
-        n_samples=100, n_features=10, noise=noise, random_state=42
-    )
-    return X, y
-
-
 @pytest.fixture(scope="module")
 def generate_classif_data():
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
@@ -256,12 +248,16 @@ def test_dcrt_lasso_with_covariance(d0crt_test_data):
     assert len(d0crt_covariance.importances_) == n_features
 
 
-@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
-def test_dcrt_lasso_center(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
+    ids=["bit noisy"],
+)
+def test_dcrt_lasso_center(data_generator):
     """
     Test for not center the data
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         centered=False,
@@ -275,12 +271,16 @@ def test_dcrt_lasso_center(generate_regression_data):
     assert len(d0crt.importances_) == 10
 
 
-@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
-def test_dcrt_lasso_refit(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
+    ids=["bit noisy"],
+)
+def test_dcrt_lasso_refit(data_generator):
     """
     This function tests the dcrt function using the Lasso learner and refit
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         refit=True,
@@ -294,13 +294,17 @@ def test_dcrt_lasso_refit(generate_regression_data):
     assert len(d0crt.importances_) == 10
 
 
-@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
-def test_dcrt_lasso_no_selection(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.8, 0.0)],
+    ids=["noisy"],
+)
+def test_dcrt_lasso_no_selection(data_generator):
     """
     This function tests the dcrt function using the Lasso learner
     with distillation y when precomputed coefficients are provided.
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(estimator=LassoCV(n_jobs=1), estimated_coef=np.ones(10) * 10)
     with pytest.warns(
         UserWarning,
@@ -310,13 +314,17 @@ def test_dcrt_lasso_no_selection(generate_regression_data):
     assert np.all(d0crt.selection_set_)
 
 
-@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
-def test_dcrt_distillation_x_different(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.8, 0.0)],
+    ids=["noisy"],
+)
+def test_dcrt_distillation_x_different(data_generator):
     """
     This function tests the dcrt function using the Lasso learner
     with distillation x using different argument
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(
         estimator=Lasso(alpha=0.5 * _alpha_max(X, y), fit_intercept=False),
         scaled_statistics=True,
@@ -330,12 +338,16 @@ def test_dcrt_distillation_x_different(generate_regression_data):
     assert len(d0crt.importances_) == 10
 
 
-@pytest.mark.parametrize("noise", [(0.8)], ids=["noisy"])
-def test_dcrt_distillation_y_different(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.8, 0.0)],
+    ids=["noisy"],
+)
+def test_dcrt_distillation_y_different(data_generator):
     """
     This function tests the dcrt function using the Lasso learner
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         model_distillation_x=Lasso(),
@@ -350,12 +362,16 @@ def test_dcrt_distillation_y_different(generate_regression_data):
     assert len(d0crt.importances_) == 10
 
 
-@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
-def test_dcrt_lasso_fit_with_no_cv(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
+    ids=["bit noisy"],
+)
+def test_dcrt_lasso_fit_with_no_cv(data_generator):
     """
     Test the dcrt function using the Lasso learner
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     d0crt = D0CRT(
         estimator=LassoCV(n_jobs=1),
         fit_y=True,
@@ -372,12 +388,16 @@ def test_dcrt_lasso_fit_with_no_cv(generate_regression_data):
     assert len(d0crt.importances_) == 10
 
 
-@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
-def test_dcrt_RF_regression(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
+    ids=["bit noisy"],
+)
+def test_dcrt_RF_regression(data_generator):
     """
     This function tests the dcrt function using the Random Forest learner
     """
-    X, y = generate_regression_data
+    X, y, _ = data_generator
 
     d0crt = D0CRT(
         estimator=RandomForestRegressor(
@@ -470,10 +490,14 @@ def test_dcrt_invalid_lasso_screening(d0crt_test_data):
         d0crt.fit(X, y)
 
 
-@pytest.mark.parametrize("noise", [(0.2)], ids=["bit noisy"])
-def test_function_d0crt(generate_regression_data):
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
+    ids=["bit noisy"],
+)
+def test_function_d0crt(data_generator):
     """Test the d0crt function"""
-    X, y = generate_regression_data
+    X, y, _ = data_generator
     sv, importances, pvalues = d0crt_importance(LassoCV(n_jobs=1), X, y)
     assert len(sv) <= 10
     assert len(importances) == 10
