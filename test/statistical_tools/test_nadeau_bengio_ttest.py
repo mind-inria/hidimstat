@@ -32,7 +32,7 @@ def test_ttest_1samp_corrected_NB(data_generator):
        larger (more conservative).
      - Check that it allows to identify important features.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
     importance_list = []
     for train_idx, test_idx in cv.split(X):
@@ -58,10 +58,7 @@ def test_ttest_1samp_corrected_NB(data_generator):
     assert pvalue_corr.shape == (n_features,)
     assert np.all(pvalue_corr >= pvalue)
     assert np.all(pvalue_corr[important_features] < alpha)
-    assert np.all(
-        pvalue_corr[np.setdiff1d(np.arange(n_features), important_features)]
-        >= alpha
-    )
+    assert np.all(pvalue_corr[~important_features] >= alpha)
 
 
 class TestTtest_1samp:

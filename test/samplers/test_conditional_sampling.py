@@ -239,7 +239,7 @@ def test_sample_categorical(rng):
         bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]),
         right=True,
     )
-    X[:, 3:][np.where(X[:, 3:] == 0)] = 1
+    X[:, 3:][X[:, 3:] == 0] = 1
 
     sampler = ConditionalSampler(
         model_categorical=LogisticRegressionCV(
