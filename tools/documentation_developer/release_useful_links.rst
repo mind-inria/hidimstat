@@ -19,7 +19,7 @@ The following links help configure ``setuptool``:
 The version of the packages is defined dynamically based on the git tag using setuptools_scm.
 For more details, look at this page:
 
-- `https://setuptools-scm.readthedocs.io/en/stable/usage/#builtin-mechanisms-for-obtaining-version-numbers <https://setuptools-scm.readthedocs.io/en/stable/usage/#builtin-mechanisms-for-obtaining-version-numbers>`_
+- `https://setuptools-scm.readthedocs.io/latest/usage/#builtin-mechanisms-for-obtaining-version-numbers <https://setuptools-scm.readthedocs.io/latest/usage/#builtin-mechanisms-for-obtaining-version-numbers>`_
 
 Branch management issues
 ------------------------
