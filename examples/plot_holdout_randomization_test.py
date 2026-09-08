@@ -140,7 +140,7 @@ plt.show()
 
 # %%
 # The curve tracks the diagonal closely, so the p-values of the null features
-# are well calibrated. This does not, however, control the proportion of false
+# are well calibrated. This does not, however, control the *proportion* of false
 # discoveries among the selected features: that proportion also depends on how
 # many features are informative, and keeping it in check needs a correction
 # such as the Benjamini-Hochberg procedure available in ``fdr_threshold``.
