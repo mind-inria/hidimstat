@@ -25,15 +25,8 @@ def holdout_randomization_test(loss_diff, gamma=0.5, adaptive=False):
     An important feature makes the resampled risks larger than the original
     one, so :math:`\\Delta_k > 0` for most draws and the p-value is small.
 
-    In the cross-validated setting, the folds have to be combined. By default,
-    one p-value is computed per fold and they are aggregated with a quantile approach (the min p-value multiplied by the number of tests)
-    correction, which is valid but conservative. With ``approx=True``
-    (Algorithm 4 of :footcite:t:`tansey2022holdout`), the loss differences are
-    instead summed over the folds and a single p-value is computed from the
-    resulting draws, as in the single-split case. Pooling the folds this way
-    accumulates the evidence of all of them and is therefore less
-    conservative, but it is only approximate: the k-th draw of a fold is
-    arbitrarily paired with the k-th draw of the others.
+    In the cross-validated setting, the p-values are aggregated across folds
+    using quantile aggregation.
 
     Parameters
     ----------

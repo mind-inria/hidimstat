@@ -218,8 +218,6 @@ def check_statistical_test(statistical_test, test_frac=None):
         - 'hrt': holdout randomization test, folds combined with a Bonferroni
           correction
           (:func:`~hidimstat.statistical_tools.holdout_randomization_test`).
-        - 'hrt-approx': HRT pooling the folds instead of a Bonferroni
-          correction; less conservative, but only approximate.
 
         When specified with a string, all tests are one-sided ('greater'). If
         callable, must be a function that can be used as a test statistic.
@@ -237,7 +235,7 @@ def check_statistical_test(statistical_test, test_frac=None):
     ------
     ValueError
         If test is a string but not one of the supported test names ('ttest',
-        'wilcoxon', 'nb-ttest', 'hrt' or 'hrt-approx').
+        'wilcoxon', 'nb-ttest', 'hrt').
     ValueError
         If test is neither a string nor a callable.
     """
@@ -257,8 +255,6 @@ def check_statistical_test(statistical_test, test_frac=None):
             )
         elif statistical_test == "hrt":
             return holdout_randomization_test
-        elif statistical_test == "hrt-approx":
-            return partial(holdout_randomization_test, approx=True)
         else:
             raise ValueError(f"the test '{statistical_test}' is not supported")
     elif callable(statistical_test):
@@ -268,6 +264,6 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"Unsupported value for 'statistical_test'."
             f"The provided argument was '{statistical_test}'. "
             f"Please choose from the following valid options: "
-            f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt', 'hrt-approx') "
+            f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
