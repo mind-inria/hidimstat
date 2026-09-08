@@ -64,7 +64,7 @@ else:
         check(estimator)
 
 
-def test_knockoff_bootstrap_quantile():
+def test_knockoff_bootstrap_quantile(rng):
     """Test bootstrap knockoof with quantile aggregation"""
     n = 100
     p = 20
@@ -73,8 +73,7 @@ def test_knockoff_bootstrap_quantile():
     fdr = 0.2
     fdp_list = []
     power_list = []
-
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
@@ -98,7 +97,7 @@ def test_knockoff_bootstrap_quantile():
     assert np.mean(power_list) > 0.2
 
 
-def test_knockoff_bootstrap_e_values():
+def test_knockoff_bootstrap_e_values(rng):
     """Test bootstrap Knockoff with e-values"""
     n = 100
     p = 20
@@ -107,8 +106,7 @@ def test_knockoff_bootstrap_e_values():
     fdr = 0.2
     fdp_list = []
     power_list = []
-
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, beta, _ = multivariate_simulation(
             n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
         )
@@ -183,7 +181,7 @@ def test_invariant_with_bootstrap():
     assert not np.array_equal(selected, selected_repeat)
 
 
-def test_model_x_knockoff():
+def test_model_x_knockoff(rng):
     """Test the selection of variable from knockoff"""
     fdr = 0.2
     n = 100
@@ -191,7 +189,7 @@ def test_model_x_knockoff():
     support_size = 18
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, beta, _ = multivariate_simulation(
             n, p, support_size=support_size, seed=seed
         )
