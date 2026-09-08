@@ -26,7 +26,7 @@ def holdout_randomization_test(loss_diff, gamma=0.5, adaptive=False):
     one, so :math:`\\Delta_k > 0` for most draws and the p-value is small.
 
     In the cross-validated setting, the folds have to be combined. By default,
-    one p-value is computed per fold and they are combined with a Bonferroni
+    one p-value is computed per fold and they are aggregated with a quantile approach (the min p-value multiplied by the number of tests)
     correction, which is valid but conservative. With ``approx=True``
     (Algorithm 4 of :footcite:t:`tansey2022holdout`), the loss differences are
     instead summed over the folds and a single p-value is computed from the
