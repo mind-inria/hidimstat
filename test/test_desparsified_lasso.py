@@ -82,8 +82,8 @@ def test_desparsified_lasso(rng):
     is simple enough for the test to pass
     - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples, n_features = 200, 20
-    support_size = 5
+    n_samples, n_features = 800, 50
+    support_size = 10
     signal_noise_ratio = 32
     rho = 0.0
     confidence = 0.9
@@ -163,8 +163,8 @@ def test_desparsified_group_lasso(rng):
      - Test that the empirical FWER is below the target FWER
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
-    n_samples = 200
-    n_features = 20
+    n_samples = 1000
+    n_features = 50
     n_target = 10
     support_size = 5
     signal_noise_ratio = 32
