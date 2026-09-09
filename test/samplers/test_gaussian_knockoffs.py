@@ -32,7 +32,7 @@ def test_gaussian_error():
 
 def test_s_equi_not_definite_positive(rng):
     """Test the warning and error of s_equi function"""
-    n = 10
+    n = 100
     tol = 1e-7
 
     # random positive matrix
