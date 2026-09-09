@@ -1,11 +1,8 @@
-from collections import namedtuple
-
 import numpy as np
 from scipy.stats import t
 from scipy.stats._stats_py import _var
 
-NBTtestResult = namedtuple("NBTtestResult", ["statistic", "pvalue"])
-NBTtestResult.__doc__ = "Class for Nadeau Bengio t-test"
+from hidimstat.statistical_tools.utils import TestResult
 
 
 def _get_pvalue(df, statistic, alternative, symmetric=True):
@@ -34,7 +31,6 @@ def nadeau_bengio_ttest(
     a,
     popmean,
     test_frac,
-    axis=0,
     alternative="greater",
 ):
     """
@@ -50,23 +46,21 @@ def nadeau_bengio_ttest(
     Parameters
     ----------
     a : array_like
-        Sample data. The axis specified by `axis` is the sample (observation)
-        axis.
+        Sample data should be of shape (n_features, n_folds) or
+        (n_features, n_permutations, n_folds) in which case it is averaged over
+        permutations before computing the test statistic.
     popmean : scalar
         The population mean to test against.
     test_frac : float
         Fraction of the data used for testing (test set size / total
         samples). Used by the :footcite:t:`nadeau1999inference` correction
         when adjusting the sample variance.
-    axis : int or None, default=0
-        Axis along which to compute the test. Default is 0. If None, the
-        input array is flattened.
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
 
     Returns
     -------
-    NBTtestResult
+    TestResult
         Named tuple with fields: statistic, pvalue. Both are computed using the
         Nadeau & Bengio corrected standard error.
 
@@ -74,7 +68,8 @@ def nadeau_bengio_ttest(
     -----
     The variance is corrected using the factor implemented here:
     `corrected_var = var * (1 / n + test_frac)`
-    where n is the number of repeated evaluations along `axis`.
+    where n is the number of repeated evaluations, i.e. the size of the last
+    axis of `a`.
 
     This function does not support masked arrays and only accepts numpy arrays.
 
@@ -82,10 +77,18 @@ def nadeau_bengio_ttest(
     ----------
     .. footbibliography::
     """
-    n = a.shape[axis]
-    d = np.mean(a, axis=axis) - popmean
-    v = _var(a, axis=axis, ddof=1)
+    if a.ndim == 3:
+        a_ = np.mean(a, axis=1)
+    elif a.ndim == 2:
+        a_ = a
+    elif a.ndim == 1:
+        a_ = a[np.newaxis, :]
+    else:
+        raise ValueError("Input array must be 1D, 2D, or 3D.")
+    n = a_.shape[1]
+    d = np.mean(a_, axis=1) - popmean
+    v = _var(a_, axis=1, ddof=1)
     denom = np.sqrt(v * (1 / n + test_frac))
     t = np.divide(d, denom)
     prob = _get_pvalue(np.asarray(n - 1, dtype=t.dtype), t, alternative)
-    return NBTtestResult(t, prob)
+    return TestResult(t, prob)

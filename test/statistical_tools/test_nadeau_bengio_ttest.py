@@ -47,18 +47,50 @@ def test_ttest_1samp_corrected_NB(data_generator):
         vim.fit(X_train, y_train)
         importances = vim.importance(X_test, y_test)
         importance_list.append(importances)
-    importance_array = np.array(importance_list)
+    importance_array = np.stack(
+        importance_list, axis=1
+    )  # shape (n_features, n_folds)
 
     pvalue_corr = nadeau_bengio_ttest(
         importance_array, 0, test_frac=0.2
     ).pvalue
-    pvalue = ttest_1samp(importance_array, 0, alternative="greater").pvalue
+    pvalue = ttest_1samp(
+        importance_array, 0, alternative="greater", axis=1
+    ).pvalue
     n_features = X.shape[1]
     alpha = 0.05
     assert pvalue_corr.shape == (n_features,)
     assert np.all(pvalue_corr >= pvalue)
     assert np.all(pvalue_corr[important_features] < alpha)
     assert np.all(pvalue_corr[~important_features] >= alpha)
+
+
+def test_average_over_permutations():
+    """
+    Test the three-dimensional input, of shape
+    (n_features, n_permutations, n_folds).
+     - Test that the permutations are averaged out before the test is computed
+       over the folds, i.e. that it matches the two-dimensional call on the
+       permutation-averaged array.
+     - Test that the reduced axes are dropped.
+    """
+    rng = np.random.default_rng(0)
+    n_features, n_permutations, n_folds = 4, 10, 5
+    a = rng.normal(loc=0.5, size=(n_features, n_permutations, n_folds))
+
+    result = nadeau_bengio_ttest(a, 0, test_frac=0.25)
+    expected = nadeau_bengio_ttest(np.mean(a, axis=1), 0, test_frac=0.25)
+
+    assert result.statistic.shape == (n_features,)
+    assert result.pvalue.shape == (n_features,)
+    assert_allclose(result.statistic, expected.statistic, rtol=1e-14)
+    assert_allclose(result.pvalue, expected.pvalue, rtol=1e-14)
+
+
+def test_wrong_dimension():
+    """Test that only 1D, 2D and 3D inputs are accepted."""
+    with pytest.raises(ValueError, match="must be 1D, 2D, or 3D"):
+        nadeau_bengio_ttest(np.zeros((2, 3, 4, 5)), 0, test_frac=0.25)
 
 
 class TestTtest_1samp:
