@@ -177,7 +177,7 @@ def test_desparsified_group_lasso(rng):
     power_list = []
     fd_ftest_list = []
     power_ftest_list = []
-    for seed in rng.integers(low=0, high=500, size=10):
+    for seed in rng.integers(low=0, high=500, size=20):
         corr = toeplitz(
             np.geomspace(1, rho_serial ** (n_target - 1), n_target)
         )

@@ -129,7 +129,7 @@ def test_encluvi_spatial(rng):
 
     fp_list = []
     power_list = []
-    for seed in rng.integers(low=0, high=500, size=10):
+    for seed in rng.integers(low=0, high=500, size=20):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
