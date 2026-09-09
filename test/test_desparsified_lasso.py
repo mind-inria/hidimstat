@@ -95,7 +95,7 @@ def test_desparsified_lasso(rng):
     powr_list = []
     fdp_dof_list = []
     powr_dof_list = []
-    for seed in rng.integers(low=0, high=500, size=10):
+    for seed in rng.integers(low=0, high=500, size=20):
         X, y, beta, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
@@ -328,22 +328,14 @@ def test_exception(data_generator):
 
 
 @ignore_warnings(category=UserWarning)
-def test_function_not_center():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(52, 50, None, 1, 0.0, 10, 1, 50, 0)],
+    ids=["n close to p"],
+)
+def test_function_not_center(data_generator):
     """Test function when the data don't need to be centered"""
-    n_samples, n_features = 52, 50
-    support_size = 1
-    signal_noise_ratio = 50
-    rho = 0.0
-
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho=rho,
-        shuffle=False,
-        seed=10,
-    )
+    X, y, _ = data_generator
     desparsified_lasso_importance(X, y, centered=False)
 
 
