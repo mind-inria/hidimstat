@@ -48,8 +48,8 @@ def test_wrong_dimension():
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [[300, 5, 2, 0.0, 1, 1.0, 10.0, 0.0]],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [[300, 5, None, 2, 0.0, 1, 1.0, 10.0, 0.0]],
 )
 def test_holdout_randomization_test(data_generator):
     """

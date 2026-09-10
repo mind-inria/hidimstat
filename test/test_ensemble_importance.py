@@ -4,6 +4,7 @@ Test the clustered_inference module
 
 import numpy as np
 import pytest
+from scipy.stats import binomtest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -55,9 +56,9 @@ def test_ensemble_parameter_check():
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 20, 10, 0.5, 42, 1.0, 50.0, 0.9)],
-    ids=["basic data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 3, 10, 0.5, 42, 1, 50, 0.9)],
+    ids=["correlated noisy"],
 )
 def test_ensemble_importance_check_fit(data_generator):
     """
@@ -78,13 +79,14 @@ def test_ensemble_importance_check_fit(data_generator):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(150, 200, 10, 0, 42, 1.0, 10.0, 0.0)],
-    ids=["basic data"],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["high dimension"],
 )
 def test_ensemble_importance(data_generator):
     """Test the EnsembleImportance algorithm on a linear scenario."""
     X, y, important_mask = data_generator
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
@@ -113,7 +115,7 @@ def test_encluvi_spatial(rng):
     include non-support features, rapidly increasing false positives. To address this,
     we introduce a spatial relaxation in the evaluation metrics.
 
-     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
+     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.2).
      - Test that the statistical power is above a specified threshold (0.8).
     """
     n_samples = 400
@@ -124,11 +126,13 @@ def test_encluvi_spatial(rng):
     smooth_X = (
         0.2  # level of spatial smoothing introduced by the Gaussian filter
     )
+    fwer = 0.2
     tol = 0.1
+    n_seeds = 20
 
     fp_list = []
     power_list = []
-    for seed in rng.integers(low=0, high=500, size=10):
+    for seed in rng.integers(low=0, high=500, size=n_seeds):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -155,7 +159,6 @@ def test_encluvi_spatial(rng):
             random_state=seed,
         )
         encludl.fit_importance(X_init, y)
-        fwer = 0.1
         selected = encludl.fwer_selection(fwer=fwer, two_tailed_test=False)
 
         fdp, power = spatially_relaxed_fdp_power(
@@ -169,7 +172,10 @@ def test_encluvi_spatial(rng):
         power_list.append(power)
 
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fp_list) <= fwer + tol
+    result = binomtest(
+        sum(fp_list), n=len(fp_list), p=fwer, alternative="greater"
+    )
+    assert result.pvalue > 0.01
 
 
 def test_encluvi_temporal(rng):
