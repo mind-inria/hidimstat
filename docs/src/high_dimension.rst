@@ -54,7 +54,6 @@ Then we perform inference on this data using the Desparsified Lasso:
     >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)} features among {np.sum(true_support)}')
     Desparsified Lasso selected 5 features among 64
 
-
 Feature Grouping and its shortcomings
 -------------------------------------
 
