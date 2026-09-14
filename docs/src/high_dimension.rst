@@ -26,8 +26,8 @@ to identify relevant features. We need some data to start:
 
     >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
     >>>
-    >>> n_samples = 100
-    >>> shape = (40, 40)
+    >>> n_samples = 10
+    >>> shape = (10, 10)
     >>> # size of the edge of the four predictive regions
     >>> roi_size = 4
     >>>
@@ -41,7 +41,7 @@ Then we perform inference on this data using the Desparsified Lasso:
     >>>
     >>> # compute importance score and associated corrected p-values
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
-    >>> dlasso.importance(X_init, y)
+    >>> importance = dlasso.importance(X_init, y)
     >>>
     >>> # compute estimated support
     >>>
@@ -52,7 +52,7 @@ Then we perform inference on this data using the Desparsified Lasso:
     >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> true_support = beta > 0
     >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)} features among {np.sum(true_support)}')
-    >>> Desparsified Lasso selected 19 features among 64
+    Desparsified Lasso selected 5 features among 64
 
 
 Feature Grouping and its shortcomings
@@ -82,10 +82,10 @@ among pixels, which avoids creating overly messy clusters:
     >>> from sklearn.feature_extraction import image
     >>> from sklearn.cluster import FeatureAgglomeration
     >>>
-    >>> n_clusters = 200
+    >>> n_clusters = 50
     >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     >>> ward = FeatureAgglomeration(
-    >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
+    ...     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
     >>>
     >>> # Equipped with this, we can use CluDL:
     >>>
@@ -94,15 +94,14 @@ among pixels, which avoids creating overly messy clusters:
     >>>
     >>> cludl = CluDL(
     ...    clustering=ward,
+    ...    random_state = 42,
     ...    desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
-    >>> cludl.fit_importance(X_init, y)
+    >>> importance = cludl.fit_importance(X_init, y)
     >>>
     >>> # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> print(f'Clustered Desparsified Lasso selected
-    ...    {np.sum(selected_cdl *  true_support)} features among
-    ...    {np.sum(true_support)}')
-    Clustered Desparsified Lasso selected 51 features among 64
+    >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl *  true_support)} features among {np.sum(true_support)}')
+    Clustered Desparsified Lasso selected 5 features among 64
 
 
 Note that inference is also way faster on the compressed representation.
@@ -124,16 +123,14 @@ The behavior is illustrated here:
     >>>
     >>> # ensemble of clustered desparsified lasso (EnCluDL)
     >>> encludl = EnCluDL(
-         clustering=ward,
-            desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
-            n_bootstraps=20,
-            random_state=0)
-    >>> encludl.fit_importance(X_init, y)
+    ...     clustering=ward,
+    ...     desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+    ...     n_bootstraps=20,
+    ...     random_state=0)
+    >>> importance = encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> print(f'Ensemble of Clustered Desparsified Lasso selected
-        {np.sum(selected_ecdl *  true_support)} features among
-        {np.sum(true_support)} ')
-    Ensemble of Clustered Desparsified Lasso selected 57 features among 64
+    >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl *  true_support)} features among {np.sum(true_support)}.')
+    Ensemble of Clustered Desparsified Lasso selected 4 features among 64.
 
 .. topic:: **Full example**
 
