@@ -40,7 +40,7 @@ Desparsified Lasso can be used as follows:
     >>>
     >>> X, y = make_regression(n_features=2, random_state=0)
     >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=1, random_state=0)
-    >>> features_importance = dl.fit(X, y).importance(X, y)
+    >>> importance = dl.fit_importance(X, y)
 
 Selection based on FDR control
 
@@ -132,6 +132,7 @@ Regression example
 ------------------
 Model-X Knockoffs can be used as follows:
 
+    >>> import numpy as np
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
     >>>
@@ -139,8 +140,8 @@ Model-X Knockoffs can be used as follows:
     >>>
     >>> X, y = make_regression(n_features=2, random_state=0)
     >>> ko = ModelXKnockoff(estimator=LassoCV(), random_state=0)
-    >>> ko.fit(X, y).importance(X, y)
-    array([[29.67680727, 98.30585387]])
+    >>> ko = ko.fit(X, y)
+    >>> importance = ko.importance(X, y)
     >>>
     >>> # Selection based on FDR control
     >>> selected_features = ko.fdr_selection(fdr=0.05)
@@ -355,11 +356,7 @@ The following example illustrates the use of dCRT on a regression task::
     >>> X, y = make_regression(n_samples=200, n_features=20, n_informative=5, random_state=0)
     >>>
     >>> dcrt = D0CRT(estimator=LassoCV(), random_state=0)
-    >>> dcrt.fit(X, y).importance(X, y)
-    array([ 0.        ,  0.        , 13.49744286,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        , 13.379225  ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>> importance = dcrt.fit_importance(X, y)
     >>>
     >>> # Selection based on p-value threshold
     >>> selected_features = dcrt.pvalue_selection(threshold_max=0.05)
@@ -389,12 +386,14 @@ automatically::
     ...     lasso_screening=LogisticRegressionCV(l1_ratios=(1,), solver="liblinear"),
     ...     random_state=0,
     ... )
-    >>> features_importance = dcrt.fit(X, y).importance(X, y)
-    >>> features_importance
-    array([10.23443281, 10.65377231,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>> importance = dcrt.fit_importance(X, y)
+    >>>
+    >>> # Selection based on p-value threshold
+    >>> selected_features = dcrt.pvalue_selection(threshold_max=0.05)
+    >>> selected_features
+    array([ True,  True, False, False, False, False, False, False, False,
+           False, False, False, False, False, False, False, False, False,
+           False, False])
 
 Examples
 --------

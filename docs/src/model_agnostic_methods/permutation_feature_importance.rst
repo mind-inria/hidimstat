@@ -102,7 +102,7 @@ The following example illustrates the use of PFI on a regression task with:
     >>>
     >>> pfi = PFI(estimator=model)
     >>> pfi = pfi.fit(X_train, y_train)
-    >>> features_importance = pfi.importance(X_test, y_test)
+    >>> importance = pfi.importance(X_test, y_test)
 
 
 Classification example
@@ -128,7 +128,7 @@ of PFI on a classification task::
     ...     method="predict_proba",
     ... )
     >>> pfi = pfi.fit(X_train, y_train)
-    >>> features_importance = pfi.importance(X_test, y_test)
+    >>> importance = pfi.importance(X_test, y_test)
 
 References
 ----------

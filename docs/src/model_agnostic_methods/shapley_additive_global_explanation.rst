@@ -122,8 +122,8 @@ The following example illustrates the use of SAGE on a regression task:
     >>> model = LinearRegression().fit(X_train, y_train)
     >>> sage = SAGE(estimator=model, imputation="marginal", random_state=0)
     >>> sage = sage.fit(X_train, y_train)
-    >>> features_importance = sage.importance(X_test, y_test)
-    >>> features_importance
+    >>> importance = sage.importance(X_test, y_test)
+    >>> importance
     array([  895.75820432, 26525.60423282])
 
 
@@ -150,7 +150,7 @@ following example illustrates the use of SAGE on a classification task::
     ...     method="predict_proba",
     ... )
     >>> sage = sage.fit(X_train, y_train)
-    >>> features_importance = sage.importance(X_test, y_test)
+    >>> importance = sage.importance(X_test, y_test)
 
 References
 ----------
