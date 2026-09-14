@@ -141,7 +141,7 @@ Model-X Knockoffs can be used as follows:
     >>> X, y = make_regression(n_features=2, random_state=0)
     >>> ko = ModelXKnockoff(estimator=LassoCV(), random_state=0)
     >>> ko = ko.fit(X, y)
-    >>> importance = ko.importance(X, y)
+    >>> importance = ko.importance()
     >>>
     >>> # Selection based on FDR control
     >>> selected_features = ko.fdr_selection(fdr=0.05)
