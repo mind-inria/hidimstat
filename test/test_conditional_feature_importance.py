@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
 from sklearn.base import clone
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import (
     LinearRegression,
     LogisticRegression,

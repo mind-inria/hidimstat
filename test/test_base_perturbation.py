@@ -11,14 +11,13 @@ from .conftest import (
     check_estimator,
     fitted_linear_regression,
 )
-from .conftest import check_estimator, fitted_linear_regression
+
 
 def _fitted_linear_regression():
     X = _rng().integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
-
 
 
 ESTIMATORS_TO_CHECK = [
