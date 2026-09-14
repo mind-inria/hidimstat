@@ -25,14 +25,19 @@ Feature Importance Classes
    :toctree: ./generated/api/class/
    :template: class.rst
 
+   LOCI
+   LOCICV
    LOCO
    LOCOCV
    CFI
    CFICV
    CluDL
+   ClusterImportance
    EnCluDL
+   EnsembleImportance
    PFI
    PFICV
+   SAGE
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso
@@ -48,6 +53,7 @@ Feature Importance functions
    d0crt_importance
    desparsified_lasso_importance
    model_x_knockoff_importance
+   loci_importance
    loco_importance
    pfi_importance
 
@@ -59,6 +65,7 @@ Visualization
    :template: class.rst
 
    ~visualization.PDP
+   ~visualization.ALE
 
 
 Samplers
@@ -71,6 +78,17 @@ Samplers
    ~samplers.ConditionalSampler
    ~samplers.GaussianKnockoffs
 
+
+Statistical Tests
+=================
+
+.. autosummary::
+   :toctree: ./generated/api/statistical_tests/
+   :template: function.rst
+
+   ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.holdout_randomization_test
+
 Helper Functions
 ================
 
@@ -80,4 +98,3 @@ Helper Functions
 
    ~statistical_tools.aggregation.quantile_aggregation
    ~desparsified_lasso.reid
-   ~statistical_tools.nadeau_bengio_ttest

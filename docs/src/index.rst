@@ -122,8 +122,8 @@ Other useful references
    :target: https://github.com/psf/black
 
 
-References
-----------
+Bibliography
+------------
 .. bibliography:: ../tools/references.bib
 
 

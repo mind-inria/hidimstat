@@ -1,51 +1,70 @@
 ---
 title: hidimstat-release
-
 ---
 # How to create a release
 
-The simplest way to make a release can be find in this `tutorial <https://packaging.python.org/en/latest/tutorials/packaging-projects/>`
+## Introduction
 
-The creation of the release is based on a builder.
-We use `setuptools` has builder. This following links, we helps to configure it:
-https://learn.scientific-python.org/development/guides/packaging-simple/
-https://setuptools.pypa.io/en/latest/userguide/quickstart.html
-https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-
-The version of the packages is defined dynamically based on the git tag using setuptools_scm.
-For more details about it, look at this pages:
-https://setuptools-scm.readthedocs.io/en/stable/usage/#builtin-mechanisms-for-obtaining-version-numbers
+The creation of the release is based on a specific tool called a builder, `setuptools`.
+This tool normally doesn't have to be called directly here, as all the configuration
+has already been written in the `pyproject.toml` file.
 
 The format of version tag is X.Y.Z:
   - X represents a major revision (frequency: more than 1 year):
     - Important modification of the API
     - Refactoring of the major part of the code
-  - Y represents major release (frequency: 6 month to 1 year):
+  - Y represents major release (frequency: 6 months to 1 year):
     - Add new functionality (methods, functionalities, ...)
     - Important modification of one function
-  - Z represents minor release (minimum: 1 days):
+  - Z represents minor release (minimum: 1 day):
     - Fix important bugs in a release
     - Small modification of the example
     - Adding new examples
 
-## Step for creating the Release:
-This steps suppose that there a branch for each a major release (release_X.Y.Z).
-The main branch is used for the ongoing work on the next major release.
-For a major revision, a new branch should be created from scratch or from a commit on main.
-For a modification of a previous release, the modification should be pushed on the branch associated with it.
-      # TODO check if it's necessary to have a script release/build_packages.py
+## Side note
+
+Some useful links for tool configuration or to write this guide were saved in the file
+``release_useful_links.md``. Please have a quick look if you want to, or face an issue during release.
+This guide should be enough to walk you through the different steps.
+
+# Release steps
+The release needs to be executed from a branch that follows a specific naming convention,
+due to how to CI is built: release_X.Y.Z
+This branch is created from the main branch, and the following steps should be executed
+only once all target modifications for the new version have been included on the release branch.
 
 0. [Check if today is a good day for releasing](https://shouldideploy.today/)
 
 1\. Update the information related to the release:
-  - Update `CHANGELOG.rst` with the missing elements
-  - Update `CONTRIBUTORS.rst` with the missing contributors
+  - Update `hidimstat\CHANGELOG.rst` with the missing elements.
+  - Update `hidimstat\CONTRIBUTORS.rst` with the missing contributors for the new version.
 
-2\. Update the docstring of function based on CHANGELOG with ``deprecated``, ``versionchanged`` and ``versionadded`` directives.
-Add `        .. versionadded:: x.y.z` in the docstring.
-Additionally, make sure all deprecations that are supposed to be removed with this new version have been addressed.
+2\. Update the docstring of function based on CHANGELOG with ``deprecated``, ``versionchanged``
+and ``versionadded`` directives in the docstrings under a ``Note`` section.
+Additionally, make sure all deprecations that are supposed to be removed with this new version
+have been removed.
 
-2\. Create create a tag and branches associate with the release.
+3\. Update the changelog, contributor and version:
+   - Move the `CHANGELOG.rst` in the directory `docs/src/whats_news/`
+    and rename it according to the target version `vX.Y.Z.rst`
+      `mv CHANGELOG.rst docs/whats_news/vX.Y.Z.rst`
+   - Update symlink to latest version of the changelog: `rm docs/src/whats_news/latest.rst`
+   `cd docs/src/whats_news/; ln -s ./vX.Y.Z.rst ./latest.rst`
+   - Replace `CHANGELOG.rst` with an empty template of `hidimstat\docs\tools\_templates\CHANGELOG.rst`
+      `cp docs\tools\_templates\CHANGELOG.rst .\CHANGELOG.rst`
+   - Change the version in this template and commit the modification
+   - Create a new entry in `docs\src\whats_news\whats_news.rst`
+   - Update the file `CONTRIBUTORS.rst` in the documentation
+      `cp CONTRIBUTORS.rst docs\src\whats_news\CONTRIBUTORS.rst`
+   - Update the file `docs\tools\version.json` which defines all the versions of the project.
+   The first two elements indicate the development version and the last stable version.
+   Write a new entry for the current version, update the last stable version, and the new dev version.
+  - Update symlink to stable version in the github branches repo: https://github.com/hidimstat/hidimstat.github.io
+    This update requires special authorization, so ask admins/main maintainers for edition authorization.
+
+4\. Create a tag and branches associate with the release.
+Please be aware that once you create the tag, the tag head will be detached from the release branch.
+If you have to make changes after this, update the tag as described in Step 8.
 
    1. git commit --allow-empty-message -m 'release X.Y.Z'
    - **minor release of the ongoing release**:
@@ -61,7 +80,7 @@ Additionally, make sure all deprecations that are supposed to be removed with th
      3. `git checkout release_(X+1).0.0` # switch to the branch
      4. Add a tag on this version `(X+1).0.0` (the branch should be already create) `git tag (X+1).0.0`
 
-3\. build the wheel & test it
+5\. Build the wheel & test it
   - `cd $(root of repository)`
   - `rm -r release_file`  # remove the previous build
   - `mkdir release_file`
@@ -75,66 +94,54 @@ Additionally, make sure all deprecations that are supposed to be removed with th
   - `pip install release_file/dist/hidimstat.....whl` # install the wheel in a fresh virtualenv
   - `uv pip install -r pyproject.toml --extra test; pytest` # test the installation
 
-4\. Create a PR for creating the release:
+6\. Push the tag, and push and create a PR for the release branch, if not done yet:
    1. `git push origin tag X.Y.Z`
-   2. Create a PR based on this new branch to the **right branch**.
+   2. `git checkout release_X.Y.Z`  # return to the release branch
+   3. `git push origin`  # push the release branch
+   4. Create the PR for the release branch, with the main branch as target.
 
-Merging this PR will update the documentation automatically
-
-5a. If you are on main => Update the changelog, contributor and version:
-   - Move the `CHANGELOG.rst` in the `docs/src/whats_news/vX.Y.Z.rst`
-      `mv CHANGELOG.rst docs/whats_news/vX.Y.Z.rst`
-   - Update symlink to latest version of the changelog: `rm docs/src/whats_news/latest.rst`
-   `cd docs/src/whats_news/; ln -s ./vX.Y.Z.rst ./latest.rst`
-   - Replace `CHANGELOG.rst` with an empty template of `build_tools\template\CHANGELOG.rst`
-      `cp build_tools\template\CHANGELOG.rst CHANGELOG.rst`
-   - Change the version in this template and commit the modification
-   - Create a new entry in `doc_conf\whats_news\whats_news.rst`
-   - Update the file `CONTRIBUTORS.rst` in the documentation
-      `cp CONTRIBUTORS.rst doc_conf\whats_news\CONTRIBUTORS.rst`
-   - Add/Update the documentation with the new version. For doing it's require to update `doc_conf/version.json` which define all the version of the project.\
-   The first two elements indicate the development version and the last stable version.
-  - Update symlink to stable version in the github branches repo: https://github.com/hidimstat/hidimstat.github.io
-
-
-5b. For minor release => Update the changelog, contributor:
-  - Modify the `build_tools\template\CHANGELOG.rst` with the modification
-  - Update `CONTRIBUTORS.rst` if it's necessary
-
-6\. Commit and push modification:
+7\. Commit and push any modifications:
    - Commit the modifications
-   - Push the modification
+   - Push the modifications
 
-7\. merge the PR on `release_X.Y.Z` (don't squash the commits)
+8\. Update the tag if any modifications were pushed at the previous step
+  - Update the tag: `git tag -d X.Y.Z`  # this requires an exception on the tag deletion rule of the repository (Settings/Rulesets/Prevent Tag Deletion)
+  - `git tag -s X.Y.Z` # `-s` is for signing, optional
+  - `git push origin X.Y.Z` # (disable the rule Prevent Branch deletion)
+
+9\. merge the PR on `release_X.Y.Z` (don't squash the commits)
   - check if the tests pass, the rendering of the documentation, the examples and the changelog are good
   - merge the PR **without squashing commit**:
-  no squash see warning in https://scikit-learn.org/dev/developers/maintainer.html#reference-steps \
-  *NOTE*: in normal times only squash&merge is enabled because that's what we want for the main branch and we don't want to rebase or merge without squashing mistakes. There seems to be no way to configure this per branch ATM on github. so when we do a release we temporarily enable rebase. go to repository settings -> general -> pull requests, enable rebase, then merge the PR on release_X.Y.Z (with the rebase option), then in the settings disable it again
-- now we build the wheel we will upload to pypi locally `git fetch mind-inria` and `git checkout mind-inria/X.Y.Z`
+  Normally, only squash & merge is enabled. There seems to be no way to configure this per branch ATM on github.
+  When we do a release, we temporarily enable rebase. To do so, go to repository settings -> general -> pull requests,
+  enable rebase, then merge the PR on release_X.Y.Z (with the rebase option).
+  Once done, switch to squash and merge in the settings again.
+  Once the PR is merged, the documentation will automatically be updated by the CI.
 
-7\. Rebuild the wheel & retest it (see step [3])
+10\. Rebuild the wheel & retest it (see step [3]):
+  - `git fetch origin`
+  - `git checkout origin/X.Y.Z`
+  - Follow step 3 instructions
 
-8\. (Optional) upload to TestPyPi for testing (https://test.pypi.org/)
+11\. (Optional) Upload to TestPyPi for testing (https://test.pypi.org/)
+This requires an authorization for the organization, and the creation of an access token.
   - `twine upload --repository testpypi release_file/dist/*`
-  - `python3 -m pip install --upgrade --force-reinstall --index-url https://test.pypi.org/simple/ --no-deps --extra-index-url https://test.pypi.org/simple/hidismtat` hidimstat
+  - `python3 -m pip install --upgrade --force-reinstall --index-url https://test.pypi.org/simple/ --no-deps --extra-index-url https://test.pypi.org/simple/hidismtat`
   - `pytest` # test the installation
 
-9\. upload to pype
+12\. Upload to PyPi. This requires a separate authorization from TestPyPi for the organization,
+and the creation of an access token that is different from TestPyPi.
   - `twine upload release_file/dist/*`
-  - (Optional) `python3 -m pip install --upgrade --force-reinstall --no-deps hidimstat==X.Y.Z`
-  - (Optional) `pytest` # test the installation
+  - `python3 -m pip install --upgrade --force-reinstall --no-deps hidimstat==X.Y.Z`
+  - `pytest` # test the installation
 
-10\. Update the tag if it is necessary
-  - Update the tag: `git tag -d X.Y.Z`
-  - `git tag -s 'X.Y.Z'` # `-s` is for signing, optional
-  - `git push mind-inria X.Y.Z` # (disable the rule Prevent Branch deletion)
+13\. Create a release on github from a specific tag:
+  At this point, we need to upload the binaries (what we have just built) to GitHub and link them to the tag.
+  To do so, go there: `https://github.com/mind-inria/hidimstat/tags`
+  and edit the tag by providing a description (copy and paste the content of the `docs\src\whats_news\X.Y.Z.rst`),
+  and upload both build files that we created situated in the folder `release_file\dist`
 
-11\. Create a release on github from a specific tag:
-  - See the following tutorial: https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#about-release-management
-  At this point, we need to upload the binaries to GitHub and link them to the tag.
-  To do so, go to the :nilearn-gh:`Hidimstat GitHub page <tags>` under the "Releases" tab, and edit the ``x.y.z`` tag by providing a description, and upload the distributions we just created (you can just drag and drop the files).
-
-12\. Update the conda-forge recipe
+14\. Update the conda-forge recipe
   - in `hidimstat-feedstock` https://github.com/conda-forge/hidimstat-feedstock
   - create branch `release_X.Y.Z`
   - update `recipe/meta.yml`
@@ -152,6 +159,4 @@ Merging this PR will update the documentation automatically
     - when it becomes available, install in a fresh env & test
     - NOTE: to add new maintainers to that repo add them to the list at the end of meta.yml
 
-13\. Update the symbolic link of the folder `stable` in the documentary repository: https://github.com/hidimstat/hidimstat.github.io . This is for be sure that the people go to the documentation of the last stable version.
-
-14\. Once everything is done take a break by announced the release on social network channels.
+15\. Congratulations, the release is over !

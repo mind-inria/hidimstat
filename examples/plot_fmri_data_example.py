@@ -154,8 +154,7 @@ from copy import deepcopy
 
 from sklearn.base import clone
 
-from hidimstat.desparsified_lasso import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import CluDL
+from hidimstat import ClusterImportance, DesparsifiedLasso
 
 # number of worker
 n_jobs = 3
@@ -166,10 +165,9 @@ desparsified_lasso_1 = DesparsifiedLasso(
     n_jobs=1,
 )
 
-cludl = CluDL(
+cludl = ClusterImportance(
+    vim=desparsified_lasso_1,
     clustering=ward,
-    desparsified_lasso=deepcopy(desparsified_lasso_1),
-    random_state=0,
 )
 cludl.fit_importance(X, y)
 
@@ -183,15 +181,14 @@ cludl.fit_importance(X, y)
 # However you might benefit from clustering randomization taking
 # `n_bootstraps=25` or `n_bootstraps=100`, also we set `n_jobs=n_jobs`.
 
-from hidimstat.ensemble_clustered_inference import EnCluDL
+from hidimstat import EnsembleImportance
 
-encludl = EnCluDL(
-    clustering=ward,
-    desparsified_lasso=deepcopy(desparsified_lasso_1),
-    n_jobs=n_jobs,
-    n_bootstraps=10,
-    cluster_bootstrap_size=0.75,
+encludl = EnsembleImportance(
+    vim=cludl,
+    n_repeats=10,
+    bootstrap_frac=0.75,
     random_state=0,
+    n_jobs=n_jobs,
 )
 encludl.fit_importance(X, y)
 

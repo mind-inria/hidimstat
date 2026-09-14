@@ -13,7 +13,7 @@ when a feature is removed, similarly to an ablation study. More formally, it can
 be defined as:
 
 .. math::
-    \psi^j_{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right],
+    \psi^j_{TSI} = \mathbb{E} \left[\mathcal{L}\left(y, \mu_{-j}(X^{-j})\right)\right] - \mathbb{E} \left[\mathcal{L}\left(y, \mu(X)\right)\right],
 
 where :math:`X^{-j}` denotes the feature vector without the :math:`j^{th}` feature, and
 :math:`\mu_{-j}(X^{-j})` is the same predictive model as :math:`\mu(X)` but retrained
@@ -38,14 +38,14 @@ equivalent forms which provide different intuitions of why the target quantity i
 
 .. math::
 
-   \begin{align}
+   \begin{aligned}
    \psi^j_{\mathrm{TSI}}
    &= \mathbb{E}\!\left[\left(\mu_{-j}(X^{-j})- Y\right)^2\right]
       - \mathbb{E}\!\left[(\mu(X)- Y)^2\right]
       &\textcolor{gray}{\text{loss / refitting}}\\
-   &= \sigma^2(R^2_{-j}-R^2)
+   &= \sigma^2(R^2-R^2_{-j})
       &\textcolor{gray}{\text{adjustment}}\\
-   &= \mathbb{E}\!\left[\mathrm{Var}(Y\mid X^{-j})\right]
+   &= \mathbb{E}\!\left[\mathrm{Var}\left(\mu(X)\mid X^{-j}\right)\right]
       &\textcolor{gray}{\text{variance}}\\
    &= \mathbb{E}\!\left[\left(\mathbb{E}[\mu(X)\mid X^{-j}]- Y\right)^2\right]
       - \mathbb{E}\!\left[(\mu(X)- Y)^2\right]
@@ -53,7 +53,7 @@ equivalent forms which provide different intuitions of why the target quantity i
    &= \frac{1}{2}\!\left[\mathbb{E}\!\left[\left(\mu(X^{\pi(j\mid -j)})- Y\right)^2\right]
       - \mathbb{E}\!\left[(\mu(X)- Y)^2\right]\right]
       &\textcolor{gray}{\text{perturbation}}.
-   \end{align}
+   \end{aligned}
 
 
 The first formulation (loss / refitting) provides the definition of the TSI with
@@ -78,11 +78,11 @@ in terms of information-theoretic quantities:
 
 .. math::
 
-   \begin{align}
+   \begin{aligned}
    \psi_{\mathrm{TSI}}^j
    &= \mathrm{I}(Y; X^j \mid X^{-j}) &\textcolor{gray}{\text{mutual information}}
-   \\&= D_{\mathrm{KL}}\left(P\left(Y, X^j \mid X^{-j}\right) \,\big\|\, P\left(Y \mid X^{-j}\right) P\left(X^j \mid X^{-j}\right)\right)&\textcolor{gray}{\text{KL divergence}}.
-   \end{align}
+   \\&= \mathbb{E}_{X^{-j}}\left[D_{\mathrm{KL}}\left(P\left(Y, X^j \mid X^{-j}\right) \,\big\|\, P\left(Y \mid X^{-j}\right) P\left(X^j \mid X^{-j}\right)\right)\right]&\textcolor{gray}{\text{KL divergence}}.
+   \end{aligned}
 
 From the first formulation (mutual information), we see that the TSI quantifies the
 mutual information between the output :math:`Y` and the feature :math:`X^j` conditionally on the

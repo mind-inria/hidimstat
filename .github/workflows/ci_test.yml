@@ -20,7 +20,7 @@ jobs:
     name: Get Information
     # information is: commit message for PR
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'reposit'
+    if: contains(github.event.pull_request.labels.*.name, 'testCI') || github.event_name == 'repository_dispatch'
     outputs:
       COMMIT_MSG: ${{ steps.get_commit_message.outputs.COMMIT_MSG }}
     steps:
@@ -38,7 +38,7 @@ jobs:
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
             echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
             echo "$EOF" >> $GITHUB_OUTPUT

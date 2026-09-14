@@ -98,23 +98,24 @@ fi
 # generate all the example if it's push on main or on a previous version
 if [[ "$CIRCLE_BRANCH" =~ ^main$|^release\_[0-9]+\.[0-9]+\.[0-9]$ && -z "$CI_PULL_REQUEST" ]]
 then
-    make_args="html"
+    make_target="html"
 elif [[ "$build_type" =~ ^QUICK ]]
 # do not generate examples
 then
-    make_args="html-noplot"
+    make_target="html-noplot"
 elif [[ "$build_type" =~ ^'BUILD: detected examples' ]]
 # generate only example which has been modified
 then
     # pattern for examples to run is the last line of output
     pattern=$(echo "$build_type" | tail -n 1)
-    make_args="html EXAMPLES_PATTERN=$pattern"
+    export EXAMPLES_PATTERN="$pattern"
+    make_target="html"
 else
-    make_args="html"
+    make_target="html"
 fi
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd docs && make N_JOB=2 $make_args 2>&1 | tee ~/output_sphinx.txt
+set -o pipefail && cd docs && make N_JOB=2 "$make_target" 2>&1 | tee ~/output_sphinx.txt
 cd -
 
 set +o pipefail

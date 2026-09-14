@@ -40,7 +40,7 @@ jobs:
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "COMMIT_MSG<<$EOF" >> $GITHUB_OUTPUT
-          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "COMMIT_MSG=$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" # use for debugging
             echo "$(git log -1 --pretty=%B ${{ github.event.pull_request.head.sha }})" >> $GITHUB_OUTPUT
             echo "$EOF" >> $GITHUB_OUTPUT
@@ -53,23 +53,31 @@ jobs:
         run: |
           echo "BRANCH_NAME=${{ github.event.pull_request.head.ref || github.ref_name }}" >> $GITHUB_OUTPUT
 
+      - name: Save PR metadata for downstream publish workflow
+        if: github.event_name == 'pull_request'
+        env:
+          BRANCH_NAME_VAL: ${{ steps.get_branch_name.outputs.BRANCH_NAME }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_DRAFT: ${{ github.event.pull_request.draft }}
+          DOC_FLAG: ${{ contains(steps.get_commit_message.outputs.COMMIT_MSG, '[doc ') }}
+        run: |
+          mkdir -p pr-meta
+          echo "$BRANCH_NAME_VAL" > pr-meta/branch_name.txt
+          echo "$PR_NUMBER" > pr-meta/pr_number.txt
+          echo "$PR_DRAFT" > pr-meta/pr_draft.txt
+          echo "$DOC_FLAG" > pr-meta/doc_flag.txt
+
+      - name: Upload PR metadata
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-meta
+          path: pr-meta
+          if-no-files-found: error
+
   tests:
     name: tests
     needs: [get_information]
     uses: ./.github/workflows/call_test_package.yml
     with:
       skip_test: ${{ contains(needs.get_information.outputs.COMMIT_MSG, '[skip tests]') }}
-
-  tests_publish:
-    name: tests_publish
-    needs: [tests, get_information]
-    if: |
-      ${{ github.event.pull_request.draft == false
-          || contains(needs.get_information.outputs.COMMIT_MSG, '[doc ')
-        }}
-    permissions:
-      pull-requests: write
-    secrets: inherit
-    uses: ./.github/workflows/call_publish_result.yml
-    with:
-      BRANCH_NAME: ${{ needs.get_information.outputs.BRANCH_NAME }}

@@ -3,7 +3,9 @@ Shapley Additive Global Importance (SAGE) example
 =================================================
 
 In this example, we demonstrate how to measure feature importance using
-SAGE :footcite:t:`Covert2020` on the diabetes dataset. For this example, we use
+SAGE :footcite:t:`Covert2020` on the diabetes dataset.
+Read more in the :ref:`User Guide <shapley_additive_global_explanation>`.
+For this example, we use
 the marginal version of SAGE, which limits the computational cost. To further
 reduce the computational cost, Shapley values are estimated using a Monte Carlo
 approximation. Only a subset of all possible feature coalitions is sampled.
