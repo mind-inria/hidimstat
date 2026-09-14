@@ -100,7 +100,7 @@ among pixels, which avoids creating overly messy clusters:
     >>> # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Clustered Desparsified Lasso selected {np.sum(selected_cdl *  true_support)} features among {np.sum(true_support)}')
-    Clustered Desparsified Lasso selected 5 features among 64
+    Clustered Desparsified Lasso selected 4 features among 64
 
 
 Note that inference is also way faster on the compressed representation.
