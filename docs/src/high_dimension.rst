@@ -128,9 +128,8 @@ The behavior is illustrated here:
     ...     random_state=0)
     >>> importance = encludl.fit_importance(X_init, y)
     >>> selected_ecdl = encludl.fwer_selection(alpha, n_tests=n_clusters)
-    >>> n_selected_ecdl = np.sum(selected_ecdl * true_support)
-    >>> print(f'Ensemble of Clustered Desparsified Lasso selected at least {min(n_selected_ecdl, 3)} features among {np.sum(true_support)}.')
-    Ensemble of Clustered Desparsified Lasso selected at least 3 features among 64.
+    >>> print(f'Ensemble of Clustered Desparsified Lasso selected {np.sum(selected_ecdl *  true_support)} features among {np.sum(true_support)}')
+    Ensemble of Clustered Desparsified Lasso selected 4 features among 64
 
 .. topic:: **Full example**
 
