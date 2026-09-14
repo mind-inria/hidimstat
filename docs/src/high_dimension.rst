@@ -29,18 +29,19 @@ to identify relevant features. We need some data to start::
     >>> # size of the edge of the four predictive regions
     >>> roi_size = 4
 
-    >>> # generating the data
-    >>>
+Generating the data
+
     >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
     >>>
     >>> X_init, y, beta, epsilon = multivariate_simulation_spatial(
     ...     n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
     ... )
 
-    >>> # Then we perform inference on this data using the Desparsified Lasso:
-    >>>
+Then we perform inference on this data using the Desparsified Lasso:
+
+
     >>> from hidimstat.desparsified_lasso import DesparsifiedLasso
-    >>>
+
     >>> # compute importance score and associated corrected p-values
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
     >>> dlasso.importance(X_init, y)

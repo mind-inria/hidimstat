@@ -114,7 +114,6 @@ of PFI on a classification task::
 
     >>> from sklearn.datasets import make_classification
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.metrics import log_loss
     >>> from sklearn.model_selection import train_test_split
 
