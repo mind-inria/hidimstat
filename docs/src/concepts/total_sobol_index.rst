@@ -1,5 +1,3 @@
-.. _total_sobol_index:
-
 
 Generalized Total Sobol Index
 =============================
@@ -69,6 +67,7 @@ conditionally on the rest.
 Also, we observe that LOCO (:ref:`leave_one_covariate_out`), CFI (:ref:`conditional_feature_importance`)
 and conditional SAGE value functions (:footcite:t:`Covert2020`)  target the TSI since they
 consists on plug-in estimators of the refitting, perturbation and marginalization formulation respectively.
+
 
 Cross-entropy case
 --------------------

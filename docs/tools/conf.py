@@ -170,7 +170,8 @@ html_theme_options = {
     "header_links_before_dropdown": 4,
     "pygments_light_style": "sas",
     "pygments_dark_style": "monokai",
-    "navigation_depth": 4,
+    "navigation_depth": 5,
+    "show_nav_level": 5,
     "switcher": {
         "json_url": (
             "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"

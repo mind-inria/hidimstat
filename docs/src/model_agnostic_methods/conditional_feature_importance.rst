@@ -1,5 +1,3 @@
-.. _conditional_feature_importance:
-
 
 Conditional Feature Importance
 ==============================
@@ -41,6 +39,7 @@ Indeed,
 
 Where in regression, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[Y| X^{-j}]` is the
 theoretical model without the :math:`j^{th}` feature.
+
 
 Estimation procedure
 --------------------

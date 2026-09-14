@@ -1,5 +1,3 @@
-.. _shapley_additive_global_explanation:
-
 
 Shapley Additive Global Explanation (SAGE)
 ==========================================
@@ -105,7 +103,6 @@ sampling where the number of subsets is controlled by the parameter
 ``n_subsets``.
 
 
-
 Regression example
 ------------------
 The following example illustrates the use of SAGE on a regression task::
@@ -148,6 +145,7 @@ following example illustrates the use of SAGE on a classification task::
     ... )
     >>> sage = sage.fit(X_train, y_train)
     >>> features_importance = sage.importance(X_test, y_test)
+
 
 References
 ----------

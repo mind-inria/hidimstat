@@ -13,6 +13,9 @@ high-dimensional settings by leveraging sparse linear models (SLM).
    :local:
    :depth: 2
 
+.. _desparsified_lasso:
 .. include:: slm_methods/desparsified_lasso.rst
+.. _knockoffs:
 .. include:: slm_methods/model_x_knockoffs.rst
+.. _d0crt:
 .. include:: slm_methods/dcrt.rst

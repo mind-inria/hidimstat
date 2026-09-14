@@ -1,5 +1,3 @@
-.. _permutation_feature_importance:
-
 
 Permutation Feature Importance
 ==============================
@@ -12,7 +10,6 @@ perturbation-based method that compares the predictive performance of a model on
 unmodified test data—following the same distribution as the training data—
 to its performance when the studied feature is marginally permutated. Thus, this approach
 does not require retraining the model contrary to other methods such as :ref:`leave_one_covariate_out`.
-
 
 
 Theoretical index
@@ -85,6 +82,7 @@ The conditional version of the PFI (:ref:`conditional_feature_importance`) tackl
 both issues of extrapolation and of inference by using conditional sampling instead of
 the marginal permutation.
 
+
 Regression example
 ------------------
 The following example illustrates the use of PFI on a regression task with::
@@ -128,6 +126,7 @@ of PFI on a classification task::
     ... )
     >>> pfi = pfi.fit(X_train, y_train)
     >>> features_importance = pfi.importance(X_test, y_test)
+
 
 References
 ----------
