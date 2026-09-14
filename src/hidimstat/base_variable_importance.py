@@ -537,12 +537,17 @@ class GroupVariableImportanceMixin:
         del y
         if self.features_groups is None:
             self.n_features_groups_ = X.shape[1]
-            self.features_groups_ = {
-                j: [j] for j in range(self.n_features_groups_)
-            }
-            self._features_groups_ids = np.array(
-                list(self.features_groups_.values()), dtype=int
-            )
+            if isinstance(X, pd.DataFrame):
+                self.features_groups_ = {
+                    j: [col] for j, col in enumerate(X.columns)
+                }
+            else:
+                self.features_groups_ = {
+                    j: [j] for j in range(self.n_features_groups_)
+                }
+            self._features_groups_ids = np.arange(
+                self.n_features_groups_, dtype=int
+            ).reshape(-1, 1)
         elif isinstance(self.features_groups, dict):
             self.features_groups_ = self.features_groups
             self.n_features_groups_ = len(self.features_groups_)

@@ -78,6 +78,17 @@ Samplers
    ~samplers.ConditionalSampler
    ~samplers.GaussianKnockoffs
 
+
+Statistical Tests
+=================
+
+.. autosummary::
+   :toctree: ./generated/api/statistical_tests/
+   :template: function.rst
+
+   ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.holdout_randomization_test
+
 Helper Functions
 ================
 
@@ -87,4 +98,3 @@ Helper Functions
 
    ~statistical_tools.aggregation.quantile_aggregation
    ~desparsified_lasso.reid
-   ~statistical_tools.nadeau_bengio_ttest

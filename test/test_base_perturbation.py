@@ -11,13 +11,14 @@ from .conftest import (
     check_estimator,
     fitted_linear_regression,
 )
-
+from .conftest import check_estimator, fitted_linear_regression
 
 def _fitted_linear_regression():
     X = _rng().integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
     estimator.fit(X[:, 0], X[:, 1])
     return estimator
+
 
 
 ESTIMATORS_TO_CHECK = [
@@ -113,7 +114,6 @@ def test_no_implemented_methods(rng):
     """Test that the methods are not implemented in the base class"""
     X = rng.integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
-    estimator.fit(X[:, 0], X[:, 1])
     basic_class = BasePerturbation(estimator=estimator)
     with pytest.raises(NotImplementedError):
         basic_class._permutation(X, features_group_id=None)

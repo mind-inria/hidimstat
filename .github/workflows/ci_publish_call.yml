@@ -13,16 +13,18 @@ jobs:
     # Only proceed for PR-triggered runs of CI that succeeded.
     # (ci.yml also runs on push, which has no pr-meta artifact to fetch.)
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.event == 'pull_request' ||
+      github.event.workflow_run.event == 'push') &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       actions: read   # required to download artifacts from another run
     outputs:
-      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME }}
-      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH }}
+      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME || steps.push_meta.outputs.BRANCH_NAME }}
+      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH || steps.push_meta.outputs.SHOULD_PUBLISH }}
     steps:
       - name: Download PR metadata from the triggering run
+        if: github.event.workflow_run.event == 'pull_request'
         uses: actions/download-artifact@v8
         with:
           name: pr-meta
@@ -32,6 +34,7 @@ jobs:
 
       - name: Read PR metadata
         id: read_meta
+        if: github.event.workflow_run.event == 'pull_request'
         run: |
           BRANCH_NAME=$(cat pr-meta/branch_name.txt)
           PR_DRAFT=$(cat pr-meta/pr_draft.txt)
@@ -44,6 +47,13 @@ jobs:
           else
             echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Set metadata for a push to main
+        id: push_meta
+        if: github.event.workflow_run.event == 'push'
+        run: |
+          echo "BRANCH_NAME=main" >> $GITHUB_OUTPUT
+          echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
 
   merge_and_upload_test_data:
     name: Merge and upload test data
@@ -96,17 +106,7 @@ jobs:
         run: |
           #display command executed with argument
           set -x -a
-          # get the number of the PR
-          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          # get the branch of the PR — passed through an env var, never
-          # interpolated directly into the script, since branch names are
-          # attacker-controlled and can contain shell metacharacters
-          if [ "$PULL_REQUEST_NUMBER" == "null" ]
-          then
-            BRANCH="$BRANCH_INPUT"
-          else
-            BRANCH="pull/$PULL_REQUEST_NUMBER/head"
-          fi
+          BRANCH="$BRANCH_INPUT"
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo "$ARTIFACT_URL" | cut -d/ -f4-8)/pytest-results-all.zip"
           # Build the request body with jq rather than string interpolation.
