@@ -1,7 +1,6 @@
 .. _general_concepts:
 
 
-======================
 Definition of concepts
 ======================
 

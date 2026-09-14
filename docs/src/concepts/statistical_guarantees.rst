@@ -1,8 +1,6 @@
 .. _statistical_guarantees:
 
 
-
-=============================================
 Statistical guarantees for variable selection
 =============================================
 

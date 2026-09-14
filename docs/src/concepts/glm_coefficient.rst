@@ -1,9 +1,8 @@
 .. _glm_coefficient:
 
 
-===========================================
 Generalized Linear Model (GLM) Coefficient
-===========================================
+==========================================
 
 Assuming that the data is generated from a Linear Model,
 

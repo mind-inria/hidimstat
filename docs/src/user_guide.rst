@@ -1,18 +1,20 @@
 .. _user_guide:
 
-==========
+##########
 User guide
-==========
+##########
 
 
 TODO: define the target audience of the user guide.
 
+*****************
 Table of contents
-=================
+*****************
+
 
 .. toctree::
    :numbered:
-   :maxdepth: 2
+   :maxdepth: 4
 
    concepts.rst
    slm_methods.rst

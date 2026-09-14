@@ -1,7 +1,6 @@
 .. _shapley_additive_global_explanation:
 
 
-==========================================
 Shapley Additive Global Explanation (SAGE)
 ==========================================
 

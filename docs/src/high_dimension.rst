@@ -1,12 +1,12 @@
 .. _high_dimension:
 
 
-===========================
+***************************
 Inference in high dimension
-===========================
+***************************
 
 Naive inference in high dimension is ill-posed
-----------------------------------------------
+==============================================
 
 In some cases, data represent high-dimensional measurements of some phenomenon
 of interest (e.g. imaging or genotyping). The common characteristic of these
@@ -51,7 +51,7 @@ Then we perform inference on this data using the Desparsified Lasso::
 
 
 Feature Grouping and its shortcomings
--------------------------------------
+=====================================
 
 As discussed earlier, feature grouping is a meaningful solution to deal with
 such cases: it reduces the number of features to condition on, and generally
@@ -133,7 +133,7 @@ The behavior is illustrated here::
     :ref:`sphx_glr_generated_gallery_examples_plot_2D_simulation_example.py`
 
 What type of Control does this Ensemble of CLustered inference come with ?
---------------------------------------------------------------------------
+==========================================================================
 
 Ensemble of Clustered Inference is not a local method, so control cannot be
 maintained at each brain site in isolation. The notion of a false positive
@@ -164,5 +164,5 @@ The details of the method and the underlying guarantees are described in
 
 
 References
-----------
+==========
 .. footbibliography::

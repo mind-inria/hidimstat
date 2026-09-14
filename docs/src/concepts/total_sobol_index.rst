@@ -1,8 +1,8 @@
 .. _total_sobol_index:
 
-===============================
+
 Generalized Total Sobol Index
-===============================
+=============================
 
 The Generalized Total Sobol Index (TSI) is a theoretical measure of feature importance
 that comes from sensitivity analysis. It has gained popularity in the field of interpretable

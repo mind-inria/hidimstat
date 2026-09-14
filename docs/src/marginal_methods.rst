@@ -1,11 +1,13 @@
 .. _marginal_methods:
 
 
-======================
+****************
 Marginal methods
-======================
+****************
 
-.. toctree::
-   :maxdepth: 2
 
-   marginal_methods/leave_one_covariate_in.rst
+.. contents:: Table of Contents
+   :local:
+   :depth: 3
+
+.. include:: marginal_methods/leave_one_covariate_in.rst
