@@ -22,16 +22,14 @@ expensive and powerless:
 
 This is illustrated in the above example, where the Desparsified Lasso
 (:class:`hidimstat.DesparsifiedLasso`) struggles
-to identify relevant features. We need some data to start::
+to identify relevant features. We need some data to start:
 
+    >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
+    >>>
     >>> n_samples = 100
     >>> shape = (40, 40)
     >>> # size of the edge of the four predictive regions
     >>> roi_size = 4
-
-Generating the data
-
-    >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
     >>>
     >>> X_init, y, beta, epsilon = multivariate_simulation_spatial(
     ...     n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
@@ -39,9 +37,8 @@ Generating the data
 
 Then we perform inference on this data using the Desparsified Lasso:
 
-
     >>> from hidimstat.desparsified_lasso import DesparsifiedLasso
-
+    >>>
     >>> # compute importance score and associated corrected p-values
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
     >>> dlasso.importance(X_init, y)
@@ -80,10 +77,11 @@ Desparsified lasso, or :class:`hidimstat.CluDL`.
 Using the same example as previously, we start by defining a clustering
 method that will perform the grouping. For image data, Ward clustering is a
 good default model, because it takes into account the neighboring structure
-among pixels, which avoids creating overly messy clusters::
+among pixels, which avoids creating overly messy clusters:
 
     >>> from sklearn.feature_extraction import image
     >>> from sklearn.cluster import FeatureAgglomeration
+    >>>
     >>> n_clusters = 200
     >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     >>> ward = FeatureAgglomeration(
@@ -93,16 +91,18 @@ among pixels, which avoids creating overly messy clusters::
     >>>
     >>> from hidimstat import CluDL
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> cludl = CluDL(
     ...    clustering=ward,
     ...    desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
     >>> cludl.fit_importance(X_init, y)
+    >>>
     >>> # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Clustered Desparsified Lasso selected
     ...    {np.sum(selected_cdl *  true_support)} features among
     ...    {np.sum(true_support)}')
-    >>> Clustered Desparsified Lasso selected 51 features among 64
+    Clustered Desparsified Lasso selected 51 features among 64
 
 
 Note that inference is also way faster on the compressed representation.
@@ -118,13 +118,13 @@ alternative *ensembling* or  *aggregation* strategy is used instead. When the
 inference engine is Desparsified Lasso, the resulting method is called
 Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnCluDL`.
 
-The behavior is illustrated here::
+The behavior is illustrated here:
 
     >>> from hidimstat import EnCluDL
-
-    # ensemble of clustered desparsified lasso (EnCluDL)
+    >>>
+    >>> # ensemble of clustered desparsified lasso (EnCluDL)
     >>> encludl = EnCluDL(
-    >>>     clustering=ward,
+         clustering=ward,
             desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
             n_bootstraps=20,
             random_state=0)

@@ -88,18 +88,18 @@ the marginal permutation.
 
 Regression example
 ------------------
-The following example illustrates the use of PFI on a regression task with::
+The following example illustrates the use of PFI on a regression task with:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.model_selection import train_test_split
-
+    >>>
     >>> from hidimstat import PFI
-
+    >>>
     >>> X, y = make_regression(n_features=2)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = LinearRegression().fit(X_train, y_train)
-
+    >>>
     >>> pfi = PFI(estimator=model)
     >>> pfi = pfi.fit(X_train, y_train)
     >>> features_importance = pfi.importance(X_test, y_test)

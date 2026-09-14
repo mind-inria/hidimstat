@@ -31,13 +31,13 @@ samples.
 
 Regression example
 ------------------
-Desparsified Lasso can be used as follows
+Desparsified Lasso can be used as follows:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
-
+    >>>
     >>> from hidimstat import DesparsifiedLasso
-
+    >>>
     >>> X, y = make_regression(n_features=2, random_state=0)
     >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=1, random_state=0)
     >>> features_importance = dl.fit(X, y).importance(X, y)
@@ -130,7 +130,7 @@ with the Lasso.
 
 Regression example
 ------------------
-Model-X Knockoffs can be used as follows::
+Model-X Knockoffs can be used as follows:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
