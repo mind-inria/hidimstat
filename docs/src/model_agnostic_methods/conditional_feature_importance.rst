@@ -112,7 +112,7 @@ Two technical challenges arise in this context:
   converges to zero, the variance of the loss differences also vanishes due to the quadratic
   functional (:footcite:t:`verdinelli2024feature`) . This makes the standard one-sample
   t-test invalid. This second issue can be handled by correcting the variance estimate,
- using other nonparametric test or using a conditional randomization test (:ref:`plot_holdout_randomization_test`). 
+ using other nonparametric test or using a conditional randomization test (:ref:`plot_holdout_randomization_test`).
 
 
 Regression example
