@@ -103,11 +103,11 @@ class LOCI(BasePerturbation):
         )
         if self.method in ["predict_proba", "decision_function"]:
             values, counts = np.unique(y, return_counts=True)
-            # Binary classification
+            # We take the marginal probability in any case.
+            # Binary classification, shape of y is (n_samples,)
             if len(values) == 2:
-                values, counts = np.unique(y, return_counts=True)
-                self._baseline_mean = values[np.argmax(counts)]
-            # For multiclass classification, we take the marginal probability.
+                self._baseline_mean = counts[1] / y.shape[0]
+            # For multiclass classification, shape of y is (n_samples, n_classes)
             else:
                 self._baseline_mean = counts / y.shape[0]
         elif self.method == "predict":
