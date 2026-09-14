@@ -35,19 +35,23 @@ Desparsified Lasso can be used as follows::
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import DesparsifiedLasso
-
-
-    >>> X, y = make_regression(n_features=2)
-
-    >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=n_jobs, random_state=0)
-    >>> dl.fit(X, y)
-    >>> features_importance = dl.importance(X, y)
-
+    >>>
+    >>> X, y = make_regression(n_features=2, random_state=0)
+    >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=1, random_state=0)
+    >>> features_importance = dl.fit(X, y).importance(X, y)
+    >>>
     >>> # Selection based on FDR control
     >>> selected_features = dl.fdr_selection(fdr=0.05)
+    >>> selected_features
+    array([1., 1.])
+    >>>
     >>> # Selection based on FWER control
     >>> selected_features = dl.fwer_selection(fwer=0.05)
+    Using number of features for multiple testing correction.
+    >>> selected_features
+    array([1, 1])
 
 
 Target quantity
@@ -128,16 +132,18 @@ Model-X Knockoffs can be used as follows::
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import ModelXKnockoff
-
-
-    >>> X, y = make_regression(n_features=2)
-
+    >>>
+    >>> X, y = make_regression(n_features=2, random_state=0)
     >>> ko = ModelXKnockoff(estimator=LassoCV(), random_state=0)
-    >>> ko.fit(X, y)
-
+    >>> ko.fit(X, y).importance(X, y)
+    array([[29.67680727, 98.30585387]])
+    >>>
     >>> # Selection based on FDR control
     >>> selected_features = ko.fdr_selection(fdr=0.05)
+    >>> selected_features
+    array([False, False])
 
 
 Target quantity
@@ -341,16 +347,24 @@ The following example illustrates the use of dCRT on a regression task::
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import D0CRT
-
-    >>> X, y = make_regression(n_samples=200, n_features=20, n_informative=5)
-
+    >>>
+    >>> X, y = make_regression(n_samples=200, n_features=20, n_informative=5, random_state=0)
+    >>>
     >>> dcrt = D0CRT(estimator=LassoCV(), random_state=0)
-    >>> dcrt.fit(X, y)
-    >>> features_importance = dcrt.importance(X, y)
-
+    >>> dcrt.fit(X, y).importance(X, y)
+    array([ 0.        ,  0.        , 13.49744286,  0.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        , 13.379225  ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>>
     >>> # Selection based on p-value threshold
     >>> selected_features = dcrt.pvalue_selection(threshold_max=0.05)
+    >>> selected_features
+    array([False, False,  True, False, False, False, False, False, False,
+            True, False, False, False, False, False, False, False, False,
+           False, False])
 
 
 Classification example
@@ -361,21 +375,24 @@ automatically::
     >>> import numpy as np
     >>> from sklearn.linear_model import LogisticRegressionCV
     >>> from hidimstat import D0CRT
-
+    >>>
     >>> rng = np.random.default_rng(0)
     >>> X = rng.standard_normal((200, 20))
     >>> beta = np.zeros(20)
     >>> beta[:2] = 10.0
     >>> y = rng.binomial(1, 1 / (1 + np.exp(-X @ beta)))
-
+    >>>
     >>> dcrt = D0CRT(
-    ...     estimator=LogisticRegressionCV(penalty="l1", solver="liblinear"),
-    ...     lasso_screening=LogisticRegressionCV(penalty="l1", solver="liblinear"),
+    ...     estimator=LogisticRegressionCV(l1_ratios=(1,), solver="liblinear"),
+    ...     lasso_screening=LogisticRegressionCV(l1_ratios=(1,), solver="liblinear"),
     ...     random_state=0,
     ... )
-    >>> dcrt.fit(X, y)
-    >>> features_importance = dcrt.importance(X, y)
-
+    >>> features_importance = dcrt.fit(X, y).importance(X, y)
+    >>> features_importance
+    array([10.23443281, 10.65377231,  0.        ,  0.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
+            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
 
 Examples
 --------

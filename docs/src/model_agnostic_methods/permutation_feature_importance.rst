@@ -93,8 +93,8 @@ The following example illustrates the use of PFI on a regression task with::
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.model_selection import train_test_split
-    >>> from hidimstat import PFI
 
+    >>> from hidimstat import PFI
 
     >>> X, y = make_regression(n_features=2)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
@@ -117,6 +117,7 @@ of PFI on a classification task::
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.metrics import log_loss
     >>> from sklearn.model_selection import train_test_split
+
     >>> from hidimstat import PFI
 
     >>> X, y = make_classification(n_features=4)

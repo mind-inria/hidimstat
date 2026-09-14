@@ -26,28 +26,35 @@ to identify relevant features. We need some data to start::
 
     >>> n_samples = 100
     >>> shape = (40, 40)
-    >>> roi_size = 4  # size of the edge of the four predictive regions
+    >>> # size of the edge of the four predictive regions
+    >>> roi_size = 4
 
-    # generating the data
+    >>> # generating the data
+    >>>
     >>> from hidimstat._utils.scenario import multivariate_simulation_spatial
+    >>>
     >>> X_init, y, beta, epsilon = multivariate_simulation_spatial(
-    >>>     n_samples, shape, roi_size, signal_noise_ratio=10., smooth_X=1)
+    ...     n_samples, shape, roi_size, signal_noise_ratio=10.0, smooth_X=1
+    ... )
 
-Then we perform inference on this data using the Desparsified Lasso::
-
+    >>> # Then we perform inference on this data using the Desparsified Lasso:
+    >>>
     >>> from hidimstat.desparsified_lasso import DesparsifiedLasso
+    >>>
+    >>> # compute importance score and associated corrected p-values
     >>> dlasso = DesparsifiedLasso().fit(X_init, y)
-    >>> dlasso.importance(X_init, y) # compute importance score and associated
-        corrected p-values
-
-    # compute estimated support
+    >>> dlasso.importance(X_init, y)
+    >>>
+    >>> # compute estimated support
+    >>>
     >>> import numpy as np
-    >>> alpha = .05 # alpha is the significance level for the statistical test
+    >>>
+    >>> # alpha is the significance level for the statistical test
+    >>> alpha = .05
     >>> selected_dl = dlasso.pvalues_ < alpha / (shape[0] * shape[1])
     >>> true_support = beta > 0
-    >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)}
-        features among {np.sum(true_support)} ')
-    Desparsified Lasso selected 19 features among 64
+    >>> print(f'Desparsified Lasso selected {np.sum(selected_dl * true_support)} features among {np.sum(true_support)}')
+    >>> Desparsified Lasso selected 19 features among 64
 
 
 Feature Grouping and its shortcomings
@@ -80,21 +87,21 @@ among pixels, which avoids creating overly messy clusters::
     >>> connectivity = image.grid_to_graph(n_x=shape[0], n_y=shape[1])
     >>> ward = FeatureAgglomeration(
     >>>     n_clusters=n_clusters, connectivity=connectivity, linkage="ward")
-
-Equipped with this, we can use CluDL:
-
+    >>>
+    >>> # Equipped with this, we can use CluDL:
+    >>>
     >>> from hidimstat import CluDL
     >>> from sklearn.linear_model import LassoCV
     >>> cludl = CluDL(
-        clustering=ward,
-        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
+    ...    clustering=ward,
+    ...    desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()))
     >>> cludl.fit_importance(X_init, y)
-    # compute estimated support
+    >>> # compute estimated support
     >>> selected_cdl = cludl.fwer_selection(alpha, n_tests=n_clusters)
     >>> print(f'Clustered Desparsified Lasso selected
-        {np.sum(selected_cdl *  true_support)} features among
-        {np.sum(true_support)}')
-    Clustered Desparsified Lasso selected 51 features among 64
+    ...    {np.sum(selected_cdl *  true_support)} features among
+    ...    {np.sum(true_support)}')
+    >>> Clustered Desparsified Lasso selected 51 features among 64
 
 
 Note that inference is also way faster on the compressed representation.
