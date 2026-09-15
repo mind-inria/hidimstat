@@ -15,7 +15,7 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat import D0CRT, d0crt_importance
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import _make_sklearn_estimator
+from hidimstat._utils.utils import SKLEARN_LT_1_7, _make_sklearn_estimator
 
 ESTIMATORS_TO_CHECK = [
     D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
@@ -36,7 +36,7 @@ def expected_failed_checks(estimator):
         }
 
 
-alphas_attr = "alphas"
+alphas_attr = "n_alphas" if SKLEARN_LT_1_7 else "alphas"
 
 
 @parametrize_with_checks(
