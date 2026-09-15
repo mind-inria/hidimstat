@@ -8,7 +8,7 @@ Statistical guarantees for variable selection
 
 It is important to determine whether the importance of a given variable is actually different from 0.
 A variable importance is typically obtained as a point estimate of the effect of each variable on the outcome of interest.
-To gain statistical significance, one  needs instead an estimate of the variable importance distribution.
+To gain statistical significance, one needs instead an estimate of the variable importance distribution.
 At the very least, this requires an estimate of the variability of the importance estimate on top of the point estimate itself.
 Then, given an estimate of the variable importance distribution,
 there exist different characterizations of the statistical significance of variable importance being nonzero,
