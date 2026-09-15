@@ -120,7 +120,7 @@ The following example illustrates the use of LOCI on a regression task with::
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = LinearRegression().fit(X_train, y_train)
 
-    >>> loci = LOCI(estimator=model, imputation_model_continuous=LinearRegression())
+    >>> loci = LOCI(estimator=model)
     >>> loci = LOCI.fit(X_train, y_train)
     >>> features_importance = loci.importance(X_test, y_test)
 
@@ -144,7 +144,6 @@ of LOCI on a classification task::
     >>> model = RandomForestClassifier().fit(X_train, y_train)
     >>> loci = LOCI(
     ...     estimator=model,
-    ...     imputation_model_continuous=LinearRegression(),
     ...     loss=log_loss,
     ...     method="predict_proba",
     ... )
