@@ -117,7 +117,7 @@ For bug reports, feature requests, documentation improvements, or other issues,
 you can create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`_.
 
 If you want to contribute directly to the library, check the
-`how to contribute <https://hidimstat.github.io/dev/how_to_contribute.html/>`_ page
+`how to contribute <https://hidimstat.github.io/stable/dev/how_to_contribute.html>`_ page
 on the website for more information.
 
 Contact us

@@ -5,7 +5,7 @@ Visualization with Partial Dependency Plots
 This example demonstrates how to create Partial Dependency Plots (PDPs). This
 visualization method allows you to examine a model's dependence on a single feature or
 a pair of features. The underlying implementation is built upon
-sklearn.inspection.partial_dependence, which calculates the dependence by taking the
+:func:`sklearn.inspection.partial_dependence`, which calculates the dependence by taking the
 average response of an estimator across all possible values of the target feature(s).
 We'll use the circles dataset to illustrate the basic usage.
 """
@@ -13,8 +13,8 @@ We'll use the circles dataset to illustrate the basic usage.
 # %%
 # Loading the circles dataset
 # ----------------------------
-# We start by sampling a synthetic dataset using the `make_circles` function from
-# `sklearn.datasets`.
+# We start by sampling a synthetic dataset using the :func:`~sklearn.datasets.make_circles` function from
+# :mod:`sklearn.datasets`.
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -40,8 +40,8 @@ _ = ax.legend(loc="upper right")
 # ---------------------
 # Next, we train a model to solve the binary classification task presented by the
 # non-linearly separable circles dataset. For this example, we'll use a gradient
-# boosted tree ensemble, specifically the HistGradientBoostingClassifier from
-# scikit-learn.
+# boosted tree ensemble, specifically the
+# :class:`~sklearn.ensemble.HistGradientBoostingClassifier` from scikit-learn.
 
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
@@ -64,7 +64,7 @@ print(f"ROC AUC on the test set: {auc:.2f}")
 # --------------------------------------------
 # Once the model is fitted, we use the Partial Dependency Plot (PDP) to visualize its
 # dependence on a single input feature (e.g., the first feature, :math:`X_0`).The
-# resulting plot shows the average response of the model (on the :math`y`-axis)
+# resulting plot shows the average response of the model (on the :math:`y`-axis)
 # for each possible value of the selected feature (on the :math:`x`-axis), with the averaging
 # performed over all other features in the dataset.
 #
