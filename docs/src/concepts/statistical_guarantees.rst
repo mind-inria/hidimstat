@@ -25,7 +25,7 @@ the null hypothesis for a variable that is actually not important.
 Depending on the statistical nature of the data,
 one can perform different types of statistical tests to obtain the p-value, such as a t-test or a Wilcoxon test.
 
-Note: quite often, the tests will be carried out on importance values produces by a cross-validation procedure,
+Note: quite often, the tests will be carried out on importance values produced by a cross-validation procedure,
 which are *not* independent. This makes the standard two-sample tests potentially invalid.
 The so-called Nadeau-Bengio correction :footcite:p:`nadeau2003inference` can be used to adjust for this dependency.
 
