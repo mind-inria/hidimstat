@@ -1,7 +1,5 @@
 .. _general_concepts:
 
-
-======================
 Definition of concepts
 ======================
 
@@ -34,6 +32,7 @@ It allow us to rank the variables from more to less important.
 
 Here, ``VI`` can be a variable importance method that inherits from :class:`hidimstat.base_variable_importance.BaseVariableImportance`
 
+
 Variable Selection
 -------------------
 
@@ -56,6 +55,7 @@ This step is important to make insighful discoveries. Even if variable
 importance provides a ranking, due to the estimation step, we need
 statistical control to do reliable selection.
 
+
 Variable Selection vs Variable Importance
 ------------------------------------------
 
@@ -68,7 +68,6 @@ whereas Model-X Knockoffs (:class:`hidimstat.ModelXKnockoff`) generally
 provide selection but little beyond that. For this reason, we have adapted the
 methods to provide both types of information while preserving their standard
 names.
-
 
 
 Types of VI methods
@@ -110,7 +109,6 @@ underlying concept. This approach extends naturally to many methods,
 for example :class:`hidimstat.CFI`.
 
 
-
 Statistical Inference
 ---------------------
 
@@ -120,12 +118,7 @@ features without such control is not valid. Different forms of guarantees can
 be employed, such as controlling the type-I error or the False Discovery Rate.
 This step is directly related to the task of Variable Selection.
 
-
-
-
-
-
 References
-----------
+==========
 
 .. footbibliography::

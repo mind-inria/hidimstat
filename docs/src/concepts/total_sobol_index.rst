@@ -1,8 +1,7 @@
 .. _total_sobol_index:
 
-===============================
 Generalized Total Sobol Index
-===============================
+=============================
 
 The Generalized Total Sobol Index (TSI) is a theoretical measure of feature importance
 that comes from sensitivity analysis. It has gained popularity in the field of interpretable
@@ -70,6 +69,7 @@ Also, we observe that LOCO (:ref:`leave_one_covariate_out`), CFI (:ref:`conditio
 and conditional SAGE value functions (:footcite:t:`Covert2020`)  target the TSI since they
 consists on plug-in estimators of the refitting, perturbation and marginalization formulation respectively.
 
+
 Cross-entropy case
 --------------------
 
@@ -92,8 +92,7 @@ The second formulation (Kullback-Leibler divergence) shows that the TSI can be s
 the original probability distribution diverges from the one that we would have obtained
 if the :math:`j^{th}` feature was conditionally independent from the output given the rest of the features.
 
-
 References
-----------
+==========
 
 .. footbibliography::

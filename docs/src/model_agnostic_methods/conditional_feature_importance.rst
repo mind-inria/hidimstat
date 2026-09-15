@@ -1,7 +1,5 @@
 .. _conditional_feature_importance:
 
-
-==============================
 Conditional Feature Importance
 ==============================
 
@@ -11,10 +9,6 @@ perturbation-based method that compares the predictive performance of a model on
 unmodified test data—following the same distribution as the training data—
 to its performance when the studied feature is conditionally perturbed. Thus, this approach
 does not require retraining the model.
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
-    :target: ../generated/gallery/examples/plot_cfi.html
-    :align: center
 
 
 Theoretical index
@@ -42,6 +36,7 @@ Indeed,
 
 Where in regression, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[Y| X^{-j}]` is the
 theoretical model without the :math:`j^{th}` feature.
+
 
 Estimation procedure
 --------------------
@@ -162,5 +157,6 @@ of CFI on a classification task:
     >>> importance = cfi.importance(X_test, y_test)
 
 References
-----------
+==========
+
 .. footbibliography::
