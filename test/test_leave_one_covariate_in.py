@@ -8,7 +8,6 @@ from sklearn.datasets import make_classification
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss
 from sklearn.model_selection import KFold, train_test_split
-from sklearn.preprocessing import OneHotEncoder
 
 from hidimstat import LOCI, LOCICV, loci_importance
 from hidimstat._utils.scenario import multivariate_simulation
