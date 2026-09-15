@@ -144,7 +144,6 @@ of LOCI on a classification task::
     >>> model = RandomForestClassifier().fit(X_train, y_train)
     >>> loci = LOCI(
     ...     estimator=model,
-    ...     imputation_model_continuous=LinearRegression(),
     ...     loss=log_loss,
     ...     method="predict_proba",
     ... )
