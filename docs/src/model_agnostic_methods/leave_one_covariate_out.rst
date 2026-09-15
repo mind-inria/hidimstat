@@ -78,7 +78,7 @@ The following example illustrates the use of LOCO on a regression task with::
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = LinearRegression().fit(X_train, y_train)
 
-    >>> loco = LOCO(estimator=model, imputation_model_continuous=LinearRegression())
+    >>> loco = LOCO(estimator=model)
     >>> loco = loco.fit(X_train, y_train)
     >>> features_importance = loco.importance(X_test, y_test)
 
