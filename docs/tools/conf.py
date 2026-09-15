@@ -235,6 +235,7 @@ sphinx_gallery_conf = {
         # We don't specify the other modules as we use the intershpinx ext.
         # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
+    "remove_config_comments": True,
 }
 
 
