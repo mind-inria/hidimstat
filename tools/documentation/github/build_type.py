@@ -124,7 +124,7 @@ def main():
             print(f"Checking example {filename} ...")
             pattern_parts.append(Path(filename).name)
 
-    build_type = "ci-html-noplot"
+    build_type = "html-noplot"
     pattern = ""
     if pattern_parts:
         pattern = r"\(" + "\\|".join(pattern_parts) + r"\)"
@@ -215,9 +215,9 @@ try:
     @pytest.mark.parametrize(
         "commit_msg, expected_in_pattern",
         [
-            ("", "ci-html-noplot\n"),
+            ("", "html-noplot\n"),
             ("[full doc]", "html-strict\n"),
-            ("[reports]", "ci-html-noplot-reports\n"),
+            ("[reports]", "html-noplot-reports\n"),
             (
                 "[example] plot_3d_and_4d_niimg.py",
                 "html-modified-examples-only\n",
