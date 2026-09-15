@@ -1,3 +1,4 @@
+.. _desparsified_lasso:
 
 Desparsified Lasso
 ======================
@@ -83,3 +84,8 @@ Examples
 --------
 
 .. minigallery:: hidimstat.DesparsifiedLasso
+
+References
+==========
+
+.. footbibliography::

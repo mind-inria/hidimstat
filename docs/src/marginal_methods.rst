@@ -6,9 +6,7 @@ Marginal methods
 ****************
 
 
-.. contents:: Table of Contents
-   :local:
-   :depth: 3
+.. toctree::
+   :maxdepth: 2
 
-.. _leave_one_covariate_in:
-.. include:: marginal_methods/leave_one_covariate_in.rst
+   marginal_methods/leave_one_covariate_in.rst

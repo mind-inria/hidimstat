@@ -1,3 +1,4 @@
+.. _d0crt:
 
 Distilled Conditional Randomization Test
 ========================================
@@ -140,3 +141,8 @@ Examples
 --------
 
 .. minigallery:: hidimstat.D0CRT
+
+References
+==========
+
+.. footbibliography::

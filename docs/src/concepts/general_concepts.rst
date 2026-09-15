@@ -1,3 +1,4 @@
+.. _general_concepts:
 
 Definition of concepts
 ======================
@@ -116,3 +117,8 @@ statistical control to the discoveries made. Simply selecting the most important
 features without such control is not valid. Different forms of guarantees can
 be employed, such as controlling the type-I error or the False Discovery Rate.
 This step is directly related to the task of Variable Selection.
+
+References
+==========
+
+.. footbibliography::

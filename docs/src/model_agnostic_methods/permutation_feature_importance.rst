@@ -1,3 +1,4 @@
+.. _permutation_feature_importance:
 
 Permutation Feature Importance
 ==============================
@@ -126,3 +127,8 @@ of PFI on a classification task::
     ... )
     >>> pfi = pfi.fit(X_train, y_train)
     >>> features_importance = pfi.importance(X_test, y_test)
+
+References
+==========
+
+.. footbibliography::

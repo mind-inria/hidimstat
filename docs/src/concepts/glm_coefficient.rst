@@ -1,3 +1,4 @@
+.. _glm_coefficient:
 
 Generalized Linear Model (GLM) Coefficient
 ==========================================
@@ -38,3 +39,8 @@ For instance, the popular Model-X Knockoff (:ref:`knockoffs`, :footcite:`candes2
 and the Distilled Conditional Randomization Test
 (:ref:`d0crt`, :footcite:`liu2022fast`) usually rely on GLM coefficients to perform
 variable selection with FDR and type-I error control, respectively.
+
+References
+==========
+
+.. footbibliography::

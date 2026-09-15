@@ -5,6 +5,9 @@
 Inference in high dimension
 ***************************
 
+.. toctree::
+    :maxdepth: 2
+
 Naive inference in high dimension is ill-posed
 ==============================================
 

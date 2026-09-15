@@ -1,3 +1,4 @@
+.. _knockoffs:
 
 Model-X Knockoffs
 =================
@@ -122,3 +123,8 @@ Examples
 --------
 
 .. minigallery:: hidimstat.ModelXKnockoff
+
+References
+==========
+
+.. footbibliography::
