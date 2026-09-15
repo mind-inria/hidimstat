@@ -12,7 +12,7 @@ To gain statistical significance, one needs instead an estimate of the variable 
 At the very least, this requires an estimate of the variability of the importance estimate on top of the point estimate itself.
 Then, given an estimate of the variable importance distribution,
 there exist different characterizations of the statistical significance of variable importance being nonzero,
-which correspond to different statistical tests.
+which corresponds to different statistical tests.
 
 False positive rate
 --------------------
