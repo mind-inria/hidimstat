@@ -101,16 +101,20 @@ The following example illustrates the use of dCRT on a regression task::
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import D0CRT
-
-    >>> X, y = make_regression(n_samples=200, n_features=20, n_informative=5)
-
+    >>>
+    >>> X, y = make_regression(n_samples=200, n_features=20, n_informative=5, random_state=0)
+    >>>
     >>> dcrt = D0CRT(estimator=LassoCV(), random_state=0)
-    >>> dcrt.fit(X, y)
-    >>> features_importance = dcrt.importance(X, y)
-
+    >>> importance = dcrt.fit_importance(X, y)
+    >>>
     >>> # Selection based on p-value threshold
     >>> selected_features = dcrt.pvalue_selection(threshold_max=0.05)
+    >>> selected_features
+    array([False, False,  True, False, False, False, False, False, False,
+            True, False, False, False, False, False, False, False, False,
+           False, False])
 
 
 Classification example
@@ -121,20 +125,26 @@ automatically::
     >>> import numpy as np
     >>> from sklearn.linear_model import LogisticRegressionCV
     >>> from hidimstat import D0CRT
-
+    >>>
     >>> rng = np.random.default_rng(0)
     >>> X = rng.standard_normal((200, 20))
     >>> beta = np.zeros(20)
     >>> beta[:2] = 10.0
     >>> y = rng.binomial(1, 1 / (1 + np.exp(-X @ beta)))
-
+    >>>
     >>> dcrt = D0CRT(
-    ...     estimator=LogisticRegressionCV(penalty="l1", solver="liblinear"),
-    ...     lasso_screening=LogisticRegressionCV(penalty="l1", solver="liblinear"),
+    ...     estimator=LogisticRegressionCV(l1_ratios=(1,), solver="liblinear"),
+    ...     lasso_screening=LogisticRegressionCV(l1_ratios=(1,), solver="liblinear"),
     ...     random_state=0,
     ... )
-    >>> dcrt.fit(X, y)
-    >>> features_importance = dcrt.importance(X, y)
+    >>> importance = dcrt.fit_importance(X, y)
+    >>>
+    >>> # Selection based on p-value threshold
+    >>> selected_features = dcrt.pvalue_selection(threshold_max=0.05)
+    >>> selected_features
+    array([ True,  True, False, False, False, False, False, False, False,
+           False, False, False, False, False, False, False, False, False,
+           False, False])
 
 
 Examples

@@ -16,20 +16,23 @@ with the Lasso.
 
 Regression example
 ------------------
-Model-X Knockoffs can be used as follows::
+Model-X Knockoffs can be used as follows:
 
+    >>> import numpy as np
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import ModelXKnockoff
-
-
-    >>> X, y = make_regression(n_features=2)
-
+    >>>
+    >>> X, y = make_regression(n_features=2, random_state=0)
     >>> ko = ModelXKnockoff(estimator=LassoCV(), random_state=0)
-    >>> ko.fit(X, y)
-
+    >>> ko = ko.fit(X, y)
+    >>> importance = ko.importance()
+    >>>
     >>> # Selection based on FDR control
     >>> selected_features = ko.fdr_selection(fdr=0.05)
+    >>> selected_features
+    array([False, False])
 
 
 Target quantity

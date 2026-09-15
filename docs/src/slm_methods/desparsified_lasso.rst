@@ -16,23 +16,29 @@ samples.
 
 Regression example
 ------------------
-Desparsified Lasso can be used as follows::
+Desparsified Lasso can be used as follows:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LassoCV
+    >>>
     >>> from hidimstat import DesparsifiedLasso
+    >>>
+    >>> X, y = make_regression(n_features=2, random_state=0)
+    >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=1, random_state=0)
+    >>> importance = dl.fit_importance(X, y)
 
+Selection based on FDR control
 
-    >>> X, y = make_regression(n_features=2)
-
-    >>> dl = DesparsifiedLasso(estimator=LassoCV(), n_jobs=n_jobs, random_state=0)
-    >>> dl.fit(X, y)
-    >>> features_importance = dl.importance(X, y)
-
-    >>> # Selection based on FDR control
     >>> selected_features = dl.fdr_selection(fdr=0.05)
-    >>> # Selection based on FWER control
+    >>> selected_features
+    array([1., 1.])
+
+Selection based on FWER control
+
     >>> selected_features = dl.fwer_selection(fwer=0.05)
+    Using number of features for multiple testing correction.
+    >>> selected_features
+    array([1, 1])
 
 
 Target quantity
