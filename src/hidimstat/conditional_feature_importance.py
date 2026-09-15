@@ -1,4 +1,3 @@
-import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
