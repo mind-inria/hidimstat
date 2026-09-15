@@ -19,11 +19,6 @@ performance measured through a loss function, and the notion of "players" by
 features.
 
 
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_msage_001.png
-    :target: ../generated/gallery/examples/plot_msage.html
-    :align: center
-
-
 Theoretical index
 ------------------
 

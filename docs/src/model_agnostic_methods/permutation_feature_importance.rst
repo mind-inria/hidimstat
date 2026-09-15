@@ -57,10 +57,6 @@ predicting both the original and perturbed datasets.
     This issue is discussed in :footcite:t:`stroblConditionalVariableImportance2008`,
     :footcite:t:`Hooker2021ExtrapolationPFI`.
 
-    .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_pitfalls_permutation_importance_004.png
-        :target: ../generated/gallery/examples/plot_pitfalls_permutation_importance.html
-        :align: center
-
 
 Inference
 ---------
@@ -73,11 +69,6 @@ valid p-values for the null hypothesis
     \mathcal{H}_0: Y \perp\!\!\!\perp X_j | X_{-j}.
 
 is not straightforward. This leads to many false discoveries, especially when features are correlated.
-
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_pitfalls_permutation_importance_002.png
-    :target: ../generated/gallery/examples/plot_pitfalls_permutation_importance.html
-    :align: center
 
 The conditional version of the PFI (:ref:`conditional_feature_importance`) tackles
 both issues of extrapolation and of inference by using conditional sampling instead of
