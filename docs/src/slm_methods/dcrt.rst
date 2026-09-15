@@ -140,8 +140,3 @@ Examples
 --------
 
 .. minigallery:: hidimstat.D0CRT
-
-
-References
-----------
-.. footbibliography::

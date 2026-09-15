@@ -157,7 +157,3 @@ of CFI on a classification task::
     ... )
     >>> cfi = cfi.fit(X_train, y_train)
     >>> features_importance = cfi.importance(X_test, y_test)
-
-References
-----------
-.. footbibliography::

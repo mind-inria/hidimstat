@@ -16,3 +16,8 @@ General concepts
 .. include:: concepts/glm_coefficient.rst
 .. _total_sobol_index:
 .. include:: concepts/total_sobol_index.rst
+
+References
+==========
+
+.. footbibliography::

@@ -17,3 +17,8 @@ Model-agnostic methods
 .. include:: model_agnostic_methods/shapley_additive_global_explanation.rst
 .. _leave_one_covariate_out:
 .. include:: model_agnostic_methods/leave_one_covariate_out.rst
+
+References
+==========
+
+.. footbibliography::

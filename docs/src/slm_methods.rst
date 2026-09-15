@@ -19,3 +19,8 @@ high-dimensional settings by leveraging sparse linear models (SLM).
 .. include:: slm_methods/model_x_knockoffs.rst
 .. _d0crt:
 .. include:: slm_methods/dcrt.rst
+
+References
+==========
+
+.. footbibliography::

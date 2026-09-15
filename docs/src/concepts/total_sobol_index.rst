@@ -90,9 +90,3 @@ about :math:`Y` is contained in :math:`X^j` that is not already contained in :ma
 The second formulation (Kullback-Leibler divergence) shows that the TSI can be seen as how much
 the original probability distribution diverges from the one that we would have obtained
 if the :math:`j^{th}` feature was conditionally independent from the output given the rest of the features.
-
-
-References
-----------
-
-.. footbibliography::

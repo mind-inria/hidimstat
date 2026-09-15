@@ -13,9 +13,3 @@ Family Wise Error Rate (FWER)
 
 False Discovery Rate (FDR)
 ---------------------------
-
-
-References
-----------
-
-.. footbibliography::

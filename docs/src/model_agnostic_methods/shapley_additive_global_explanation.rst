@@ -145,8 +145,3 @@ following example illustrates the use of SAGE on a classification task::
     ... )
     >>> sage = sage.fit(X_train, y_train)
     >>> features_importance = sage.importance(X_test, y_test)
-
-
-References
-----------
-.. footbibliography::
