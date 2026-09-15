@@ -8,12 +8,8 @@ Leave-One-Covariate-Out
 Leave One Covariate Out (LOCO) is a model-agnostic approach for quantifying the
 relevance of individual or groups of features in predictive models. It is a
 refitting-based method that compares the predictive performance of the original
- model with performance of a model refitted without the feature(s) of interest.
+model with performance of a model refitted without the feature(s) of interest.
 
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_loco_001.png
-    :target: ../generated/gallery/examples/plot_loco.html
-    :align: center
 
 Theoretical index
 ------------------
@@ -32,7 +28,7 @@ The target quantity estimated by LOCO is the Total Sobol Index (TSI) :ref:`total
 Estimation procedure
 --------------------
 
-The estimation of LOCO consists of a direct plug-in in the Total Sobol Index. It
+The estimation of LOCO consists of a direct plug-in in the Total Sobol Index :ref:`total_sobol_index`. It
 involves refitting the model without the feature(s) of interest and comparing
 the performance of the original model with that of the refitted model.
 This can be done using cross-validation or a hold-out test set to evaluate the performance of both models.
