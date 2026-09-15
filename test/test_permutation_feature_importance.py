@@ -37,7 +37,7 @@ def test_permutation_importance(data_generator):
         estimator=regression_model,
         n_permutations=20,
         method="predict",
-        features_groups=None,
+        feature_groups=None,
         random_state=0,
     )
 
@@ -70,8 +70,8 @@ def test_permutation_importance(data_generator):
         X_train_df,
         y_train,
     )
-    features_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
-    assert pfi.features_groups_ == features_groups
+    feature_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
+    assert pfi.feature_groups_ == feature_groups
     importance = pfi.importance(X_test_df, y_test)
 
     assert importance[0].mean() > importance[1].mean()
@@ -87,7 +87,7 @@ def test_permutation_importance(data_generator):
         estimator=regression_model,
         n_permutations=20,
         method="predict",
-        features_groups=groups,
+        feature_groups=groups,
         random_state=0,
         n_jobs=1,
     )
@@ -110,7 +110,7 @@ def test_permutation_importance(data_generator):
         n_permutations=20,
         method="predict_proba",
         loss=log_loss,
-        features_groups=None,
+        feature_groups=None,
         random_state=0,
         n_jobs=1,
     )

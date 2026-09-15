@@ -33,7 +33,7 @@ def test_loci(data_generator):
     loci = LOCI(
         estimator=regression_model,
         method="predict",
-        features_groups=None,
+        feature_groups=None,
         n_jobs=1,
     )
 
@@ -63,7 +63,7 @@ def test_loci(data_generator):
     loci = LOCI(
         estimator=regression_model,
         method="predict",
-        features_groups=groups,
+        feature_groups=groups,
     )
     loci.fit(
         X_train_df,
@@ -82,7 +82,7 @@ def test_loci(data_generator):
     loci_clf = LOCI(
         estimator=logistic_model,
         method="predict_proba",
-        features_groups={
+        feature_groups={
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
@@ -124,7 +124,7 @@ def test_multiclass_loci():
     loci_clf = LOCI(
         estimator=logistic_model,
         method="predict_proba",
-        features_groups=groups,
+        feature_groups=groups,
         loss=log_loss,
     )
     loci_clf.fit(
