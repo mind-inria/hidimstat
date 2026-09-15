@@ -17,12 +17,6 @@ GITHUB_PAGES_BRANCH = gh-pages
 SOURCEDIR = ./src
 OUTPUTDIR = ./_build/html
 
-# move to source dir before any operation
-
-# add an option for selecting the example to run
-ifneq ($(EXAMPLES_PATTERN),)
-    EXAMPLES_PATTERN_OPTS := -D sphinx_gallery_conf.filename_pattern="$(EXAMPLES_PATTERN)"
-endif
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -32,7 +26,7 @@ endif
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -c tools -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(EXAMPLES_PATTERN_OPTS)
+ALLSPHINXOPTS   = -c tools -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS)
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
@@ -74,6 +68,12 @@ html-noplot:
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: html-modified-examples-only
+html-modified-examples-only:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html --define sphinx_gallery_conf.filename_pattern=$(PATTERN) --define sphinx_gallery_conf.run_stale_examples=True
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
