@@ -121,7 +121,7 @@ The following example illustrates the use of LOCI on a regression task with::
     >>> model = LinearRegression().fit(X_train, y_train)
 
     >>> loci = LOCI(estimator=model, imputation_model_continuous=LinearRegression())
-    >>> loci = LOCI.fit(X_train, y_train)
+    >>> loci = loci.fit(X_train, y_train)
     >>> features_importance = loci.importance(X_test, y_test)
 
 
