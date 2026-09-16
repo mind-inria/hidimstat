@@ -19,10 +19,6 @@ workflows:
     jobs:
       - build-documentation
       - get-tests-reports
-      - deploy-documentation:
-          requires:
-            - get-tests-reports
-            - build-documentation
 
 jobs:
   build-documentation:
@@ -49,11 +45,6 @@ jobs:
           command:
             bash ./tools/documentation/circleci/build_doc.sh
           no_output_timeout: 40m
-      - run:
-          name: "check links"
-          command: |
-            source .venv/bin/activate
-            make -C docs linkcheck
       # store the documentation for see it in a PR
       - store_artifacts:
           path: docs/_build/html
@@ -98,43 +89,6 @@ jobs:
           root: docs/_build/html/
           paths: .
 
-  deploy-documentation:
-    docker:
-      - image: cimg/deploy:2025.01
-    environment:
-      - USERNAME: "hidimstat-circleci"
-      - ORGANIZATION: "hidimstat"
-      - DOC_REPO: "hidimstat.github.io"
-      - DOC_URL: ""
-      - EMAIL: "hidimstat@circleci.com"
-    steps:
-      - checkout
-      # Halt before the deploy key is ever loaded if this isn't a release branch
-      - run:
-          name: "Skip deploy steps unless on a release branch"
-          command: |
-            if [[ ! "${CIRCLE_BRANCH}" =~ ^main$|^release_[0-9]+\.[0-9]+\.[0-9]$ ]]; then
-                echo "Branch ${CIRCLE_BRANCH} is not a release branch, skipping the rest of this job."
-                circleci-agent step halt
-              fi
-      - add_ssh_keys:
-          fingerprints:
-            - "SHA256:8Ryl+7R+ElSw3nmGIeoEwKJth2nxOO3G/a3cHQscAfA"
-      # Attach documentation generated in the 'build-documentation' step so that it can be
-      # deployed.
-      - attach_workspace:
-          at: docs/_build/html
-      - run:
-          name:
-            "Add the ssh key and list the file in the documentation"
-          command: |
-              mkdir -p ~/.ssh
-              ssh-keyscan github.com >> ~/.ssh/known_hosts
-              ls -ltrh docs/_build/html
-      - run:
-          name: "Deploy documentation"
-          command: |
-            bash ./tools/documentation/circleci/push_doc.sh docs/_build/html
 
   # this action is only to avoid any error
   wait-action:
