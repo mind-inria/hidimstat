@@ -621,13 +621,17 @@ model_x_knockoff_importance.__doc__ = _aggregate_docstring(
         ModelXKnockoff.fdr_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection: binary array-like of shape (n_features)
-        Binary array of the selected features
-    importance : array-like of shape (n_features)
-        The computed feature importance scores.
-    pvalues : array-like of shape (n_features)
-        The computed significant of feature for the prediction.
-    """,
+Returns
+-------
+selection: binary array-like of shape (n_features)
+    Binary array of the selected features
+importance : array-like of shape (n_features)
+    The computed feature importance scores.
+pvalues : array-like of shape (n_features)
+    The computed significant of feature for the prediction.
+
+Notes
+-----
+.. deprecated:: 0.6.0
+""",
 )

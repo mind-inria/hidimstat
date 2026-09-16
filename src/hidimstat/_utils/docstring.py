@@ -20,7 +20,7 @@ def _detection_section(lines):
     index_line = 1
     begin_section = index_line
     while len(lines) > index_line:
-        if "-------" in lines[index_line]:
+        if "-----" in lines[index_line]:
             sections.append(lines[begin_section : index_line - 2])
             begin_section = index_line - 1
         index_line += 1
@@ -102,4 +102,5 @@ def _aggregate_docstring(list_docstring, returns_docstring):
         final_docstring += list_line[i]["Parameters"][2:]
     # the last return
     final_docstring += [returns_docstring]
-    return _reindent(final_docstring)
+    final_docstring = _reindent(final_docstring)
+    return final_docstring
