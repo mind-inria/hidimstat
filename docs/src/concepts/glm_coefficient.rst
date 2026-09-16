@@ -41,6 +41,6 @@ and the Distilled Conditional Randomization Test
 variable selection with FDR and type-I error control, respectively.
 
 References
-==========
+----------
 
 .. footbibliography::

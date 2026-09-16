@@ -88,6 +88,6 @@ Examples
 .. minigallery:: hidimstat.DesparsifiedLasso
 
 References
-==========
+----------
 
 .. footbibliography::

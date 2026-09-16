@@ -120,6 +120,6 @@ of PFI on a classification task::
     >>> importance = pfi.importance(X_test, y_test)
 
 References
-==========
+----------
 
 .. footbibliography::

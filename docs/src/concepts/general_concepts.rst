@@ -119,6 +119,6 @@ be employed, such as controlling the type-I error or the False Discovery Rate.
 This step is directly related to the task of Variable Selection.
 
 References
-==========
+----------
 
 .. footbibliography::

@@ -93,6 +93,6 @@ the original probability distribution diverges from the one that we would have o
 if the :math:`j^{th}` feature was conditionally independent from the output given the rest of the features.
 
 References
-==========
+----------
 
 .. footbibliography::

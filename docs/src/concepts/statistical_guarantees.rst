@@ -17,6 +17,6 @@ False Discovery Rate (FDR)
 ---------------------------
 
 References
-==========
+----------
 
 .. footbibliography::

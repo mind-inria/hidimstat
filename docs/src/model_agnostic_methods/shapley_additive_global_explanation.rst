@@ -143,6 +143,6 @@ following example illustrates the use of SAGE on a classification task::
     >>> importance = sage.importance(X_test, y_test)
 
 References
-==========
+----------
 
 .. footbibliography::

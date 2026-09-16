@@ -123,6 +123,6 @@ Examples
 .. minigallery:: hidimstat.ModelXKnockoff
 
 References
-==========
+----------
 
 .. footbibliography::

@@ -157,6 +157,6 @@ of CFI on a classification task:
     >>> importance = cfi.importance(X_test, y_test)
 
 References
-==========
+----------
 
 .. footbibliography::
