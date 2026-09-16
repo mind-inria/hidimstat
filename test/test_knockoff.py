@@ -319,7 +319,7 @@ def test_lasso_estimator_alphas():
     assert all(
         len(estimator.alphas) == n_alphas
         for estimator in model_x_knockoff.estimators_
-)
+    )
 
 ##############################################################################
 @pytest.mark.parametrize(
