@@ -88,6 +88,8 @@ env:
     DISPLAY: :99.0
     MIN_PYTHON_VERSION: '3.10'
     HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+    NILEARN_DATA: /home/runner/work/mind-inria/hidimstat/nilearn_data
+    SCIKIT_LEARN_DATA: /home/runner/work/mind-inria/hidimstat/scikit_learn_data
 
 jobs:
     check_skip_flags:
@@ -223,15 +225,15 @@ jobs:
             run: |
                 du -h -d 3 --exclude=".git"
 
-                mkdir -p doc/_build/html # ensure the folder exists
-                du -h doc/_build/html
+                mkdir -p docs/_build/html # ensure the folder exists
+                du -h docs/_build/html
 
         -   name: Upload documentation
             if: steps.build-docs.outcome == 'success'
             uses: actions/upload-artifact@v7
             with:
                 name: ${{ matrix.env }}
-                path: doc/_build/html
+                path: docs/_build/html
 
         -   name: Save monthly data cache
             uses: actions/cache/save@v6

@@ -4,7 +4,8 @@ Source localization of somatosensory MEG data
 
 This example adapts the experiment presented in
 :footcite:t:`chevalier2020statistical`. We show how to identify which cortical
-sources are activated during a somatosensory task. To do so, we leverage
+sources are activated during a somatosensory task.
+To do so, we leverage
 spatially constrained clustering to effectively reduce the dimensionality of
 the problem while accounting for the spatial structure of the data. We then
 perform inference with the desparsified multitask Lasso to perform support
