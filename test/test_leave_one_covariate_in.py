@@ -136,6 +136,35 @@ def test_multiclass_loci():
     assert importance_clf[0].mean() > importance_clf[1].mean()
 
 
+@pytest.mark.parametrize("method", ["predict_proba", "decision_function"])
+def test_loci_baseline_mean_classification(method):
+    """For binary classification with methods 'predict_proba' and 'decision_function'
+    check that the baseline mean is equal to the marginal distribution.
+    """
+    important_features = 4
+    n_features = 20
+
+    X, y = make_classification(
+        n_samples=100,
+        n_features=n_features,
+        n_informative=important_features,
+        n_classes=2,
+        weights=[0.3, 0.7],
+        random_state=42,
+        shuffle=False,
+    )
+    estimator = LogisticRegression().fit(X, y)
+    loci = LOCI(estimator=estimator, method=method)
+    loci.fit(X, y)
+
+    values, counts = np.unique(y, return_counts=True)
+    assert list(values) == [0, 1]
+    expected_baseline_mean = counts[1] / y.shape[0]
+
+    assert loci._baseline_mean == pytest.approx(expected_baseline_mean)
+    assert loci._baseline_mean == pytest.approx(np.mean(y))
+
+
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 20, None, 4, 0, 42, 1, 10, 0)],

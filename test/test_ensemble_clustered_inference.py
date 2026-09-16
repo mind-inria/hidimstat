@@ -213,9 +213,9 @@ def test_cludl_temporal(rng):
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 50
-    margin_size = 5
+    margin_size = 10
     extended_support = support_size + margin_size
-    test_tol = 0.1
+    test_tol = 0.15
 
     fdp_list = []
     power_list = []

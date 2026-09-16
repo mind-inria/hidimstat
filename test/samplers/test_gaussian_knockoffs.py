@@ -37,6 +37,7 @@ def test_s_equi_not_definite_positive(rng):
 
     # random positive matrix
     a = rng.random((n, n))
+    a = a.T.dot(a)
     a -= np.min(a)
     with pytest.raises(
         Exception, match="The covariance matrix is not positive-definite"

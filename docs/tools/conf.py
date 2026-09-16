@@ -126,7 +126,11 @@ if _citation_path.exists():
     )
 
 # Specify how to identify the prompt when copying a code snippet
-copybutton_prompt_text = r">>> |\.\.\. "
+# We want avoid the copy button to only take
+# the first line of a multiline input.
+copybutton_prompt_text = (
+    r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+)
 copybutton_prompt_is_regexp = True
 copybutton_exclude = "style"
 
@@ -233,6 +237,7 @@ sphinx_gallery_conf = {
         # We don't specify the other modules as we use the intershpinx ext.
         # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
+    "remove_config_comments": True,
 }
 
 
