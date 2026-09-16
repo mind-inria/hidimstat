@@ -11,8 +11,7 @@ To demonstrate these methods, we use the Haxby dataset, focusing on the
 to produce a brain map showing the discriminative pattern between these two conditions.
 
 This example illustrates that in high-dimensional settings (many voxels),
-DL becomes impractical due to memory constraints.
-However, we can overcome
+DL becomes impractical due to memory constraints. However, we can overcome
 this limitation using feature aggregation methods that leverage the spatial structure
 of the data (high correlation between neighboring voxels).
 
@@ -45,10 +44,8 @@ from sklearn.utils import Bunch
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
     # Gathering data
-    haxby_dataset = datasets.fetch_haxby(subjects=[subject], verbose=1)
+    haxby_dataset = datasets.fetch_haxby(subjects=[subject])
     fmri_filename = haxby_dataset.func[0]
-
-    print(fmri_filename)
 
     behavioral = pd.read_csv(haxby_dataset.session_target[0], sep=" ")
 
