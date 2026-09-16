@@ -26,7 +26,7 @@ INPUT1 = [
     "Some notes.",
     "",
 ]
-section_indices1 = [(1, 2), (3, 7), (8, 17)]
+section_indices1 = [(1, 2), (3, 7), (8, 12), (13, 17)]
 
 INPUT2 = [
     "",

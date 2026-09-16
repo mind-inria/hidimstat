@@ -253,15 +253,19 @@ loco_importance.__doc__ = _aggregate_docstring(
         LOCO.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected).
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-        None because there is no p-value for this method.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected).
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    None because there is no p-value for this method.
+
+Notes
+-----
+.. deprecated:: 0.6.0
+""",
 )
 
 
