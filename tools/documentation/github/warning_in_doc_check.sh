@@ -10,8 +10,8 @@ set -e
 set -x
 
 mkdir -p docs/tmp
-grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "Warning: " > doc/tmp/all_warnings.txt || true
-grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "DeprecationWarning: " > doc/tmp/deprecation_warnings.txt || true
-grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "FutureWarning: " > doc/tmp/future_warnings.txt || true
-grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "UserWarning: " > doc/tmp/user_warnings.txt || true
-grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "RuntimeWarning: " > doc/tmp/runtime_warnings.txt || true
+grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "Warning: " > docs/tmp/all_warnings.txt || true
+grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "DeprecationWarning: " > docs/tmp/deprecation_warnings.txt || true
+grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "FutureWarning: " > docs/tmp/future_warnings.txt || true
+grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "UserWarning: " > docs/tmp/user_warnings.txt || true
+grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "RuntimeWarning: " > docs/tmp/runtime_warnings.txt || true
