@@ -245,6 +245,11 @@ jobs:
                     mne_data
                 key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
 
+        -   name: Check warnings in doc
+            if: always()
+            run: |
+                ./tools/documentation/github/warning_in_doc_check.sh
+
     deploy_on_main:
         runs-on: ubuntu-latest
         needs: [build_docs]

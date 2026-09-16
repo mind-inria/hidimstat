@@ -45,8 +45,10 @@ from sklearn.utils import Bunch
 def preprocess_haxby(subject=2, memory=None):
     """Gathering and preprocessing Haxby dataset for a given subject."""
     # Gathering data
-    haxby_dataset = datasets.fetch_haxby(subjects=[subject])
+    haxby_dataset = datasets.fetch_haxby(subjects=[subject], verbose=1)
     fmri_filename = haxby_dataset.func[0]
+
+    print(fmri_filename)
 
     behavioral = pd.read_csv(haxby_dataset.session_target[0], sep=" ")
 

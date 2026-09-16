@@ -197,7 +197,7 @@ stc_pvals = mne.SourceEstimate(
 fs_dir = Path(subjects_dir) / "fsaverage"
 if fs_dir.is_symlink():
     fs_dir.unlink()
-mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir, verbose=1)
 
 morph = mne.compute_source_morph(
     src=forward["src"],
