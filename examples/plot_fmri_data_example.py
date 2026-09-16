@@ -11,7 +11,8 @@ To demonstrate these methods, we use the Haxby dataset, focusing on the
 to produce a brain map showing the discriminative pattern between these two conditions.
 
 This example illustrates that in high-dimensional settings (many voxels),
-DL becomes impractical due to memory constraints. However, we can overcome
+DL becomes impractical due to memory constraints.
+However, we can overcome
 this limitation using feature aggregation methods that leverage the spatial structure
 of the data (high correlation between neighboring voxels).
 
