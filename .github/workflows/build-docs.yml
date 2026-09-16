@@ -139,9 +139,9 @@ jobs:
         needs: [build_type]
         runs-on: ubuntu-latest
         env:
-            NILEARN_DATA: /home/runner/work/mind-inria/hidimstat/nilearn_data
-            SCIKIT_LEARN_DATA: /home/runner/work/mind-inria/hidimstat/scikit_learn_data
-            _MNE_FAKE_HOME_DIR: /home/runner/work/mind-inria/hidimstat/mne_data
+            NILEARN_DATA: /home/runner/work/hidimstat/hidimstat/nilearn_data
+            SCIKIT_LEARN_DATA: /home/runner/work/hidimstat/hidimstat/scikit_learn_data
+            _MNE_FAKE_HOME_DIR: /home/runner/work/hidimstat/hidimstat/mne_data
 
         strategy:
             fail-fast: false
@@ -197,8 +197,6 @@ jobs:
 
         -   name: Key for cache based on month number
             run: date +%m > month_num;
-
-        -   run: pwd
 
         -   name: Restore monthly data cache
             id: restore-monthly-cache
