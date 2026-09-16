@@ -10,7 +10,6 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
@@ -18,8 +17,6 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-
-from .conftest import check_estimator
 
 
 def expected_failed_checks(estimator):
@@ -29,39 +26,13 @@ def expected_failed_checks(estimator):
 
 ESTIMATORS_TO_CHECK = [ModelXKnockoff(), GaussianKnockoffs()]
 
-if SKLEARN_LT_1_6:
 
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 def test_knockoff_bootstrap_quantile(rng):
@@ -305,10 +276,7 @@ def test_lasso_estimator_alphas():
     X, y, _, _ = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
     )
-    if SKLEARN_LT_1_6:
-        estimator = LassoCV(n_alphas=n_alphas)
-    else:
-        estimator = LassoCV(alphas=list(range(n_alphas)))
+    estimator = LassoCV(alphas=list(range(n_alphas)))
 
     model_x_knockoff = ModelXKnockoff(
         estimator=estimator,
