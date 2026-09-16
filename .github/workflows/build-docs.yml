@@ -88,9 +88,6 @@ env:
     DISPLAY: :99.0
     MIN_PYTHON_VERSION: '3.10'
     HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-    NILEARN_DATA: /home/runner/work/mind-inria/hidimstat/nilearn_data
-    SCIKIT_LEARN_DATA: /home/runner/work/mind-inria/hidimstat/scikit_learn_data
-    _MNE_FAKE_HOME_DIR: /home/runner/work/mind-inria/hidimstat/mne_data
 
 jobs:
     check_skip_flags:
@@ -141,13 +138,22 @@ jobs:
     build_docs:
         needs: [build_type]
         runs-on: ubuntu-latest
+        env:
+            # Force to use color
+            FORCE_COLOR: true
+            DISPLAY: :99.0
+            MIN_PYTHON_VERSION: '3.10'
+            HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+            NILEARN_DATA: /home/runner/work/mind-inria/hidimstat/nilearn_data
+            SCIKIT_LEARN_DATA: /home/runner/work/mind-inria/hidimstat/scikit_learn_data
+            _MNE_FAKE_HOME_DIR: /home/runner/work/mind-inria/hidimstat/mne_data
 
         strategy:
             fail-fast: false
             matrix:
                 include:
                 -   py: '3.10'
-                    env: doc
+                    toxenv: doc
 
         defaults:
             run:
@@ -197,6 +203,8 @@ jobs:
         -   name: Key for cache based on month number
             run: date +%m > month_num;
 
+        -   run: pwd
+
         -   name: Restore monthly data cache
             id: restore-monthly-cache
             uses: actions/cache/restore@v6
@@ -212,14 +220,14 @@ jobs:
             # We let tox handle creating virtual env and install dependencies.
         -   name: Build docs
             id: build-docs
-            if: ${{ matrix.env == 'doc' }}
+            if: ${{ matrix.toxenv == 'doc' }}
             run: |
                 set -o pipefail;
                 export PATTERN=$(cat pattern.txt)
                 tox run \
                     --colored yes \
                     --list-dependencies \
-                    -e  ${{ matrix.env }} -- $(cat build.txt) 2>&1 | tee log.txt;
+                    -e  ${{ matrix.toxenv }} -- $(cat build.txt) 2>&1 | tee log.txt;
 
         -   name: Check doc size
             if: always()
@@ -230,10 +238,9 @@ jobs:
                 du -h docs/_build/html
 
         -   name: Upload documentation
-            if: steps.build-docs.outcome == 'success'
             uses: actions/upload-artifact@v7
             with:
-                name: ${{ matrix.env }}
+                name: ${{ matrix.toxenv }}
                 path: docs/_build/html
 
         -   name: Save monthly data cache
