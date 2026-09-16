@@ -139,11 +139,6 @@ jobs:
         needs: [build_type]
         runs-on: ubuntu-latest
         env:
-            # Force to use color
-            FORCE_COLOR: true
-            DISPLAY: :99.0
-            MIN_PYTHON_VERSION: '3.10'
-            HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
             NILEARN_DATA: /home/runner/work/mind-inria/hidimstat/nilearn_data
             SCIKIT_LEARN_DATA: /home/runner/work/mind-inria/hidimstat/scikit_learn_data
             _MNE_FAKE_HOME_DIR: /home/runner/work/mind-inria/hidimstat/mne_data
