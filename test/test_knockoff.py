@@ -321,6 +321,7 @@ def test_lasso_estimator_alphas():
         for estimator in model_x_knockoff.estimators_
     )
 
+
 ##############################################################################
 @pytest.mark.parametrize(
     "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
