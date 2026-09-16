@@ -191,6 +191,19 @@ jobs:
         -   name: Show tox config
             run: tox c
 
+        -   name: Key for cache based on month number
+            run: date +%m > month_num;
+
+        -   name: Restore monthly data cache
+            id: restore-monthly-cache
+            uses: actions/cache/restore@v6
+            with:
+                path: |
+                    nilearn_data
+                    sklearn_data
+                    mne_data
+                key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
+
             # Run the doc build
             #
             # We let tox handle creating virtual env and install dependencies.
@@ -219,6 +232,15 @@ jobs:
             with:
                 name: ${{ matrix.env }}
                 path: doc/_build/html
+
+        -   name: Save monthly data cache
+            uses: actions/cache/save@v6
+            with:
+                path: |
+                    nilearn_data
+                    sklearn_data
+                    mne_data
+                key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
 
     deploy_on_main:
         runs-on: ubuntu-latest
