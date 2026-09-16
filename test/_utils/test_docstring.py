@@ -269,7 +269,6 @@ Returns
 -------
 3D ndarray (n_tests, )
 Vector of aggregated p-values
-
 """
     )
 
@@ -278,7 +277,6 @@ _RETURNS_TRAILING_NEWLINE = """
         Returns
         -------
         final return
-
         """
 
 
