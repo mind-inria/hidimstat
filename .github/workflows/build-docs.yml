@@ -237,6 +237,13 @@ jobs:
             run: |
                 ./tools/documentation/github/warning_in_doc_check.sh
 
+        -   name: Upload doc checks
+            if: always()
+            uses: actions/upload-artifact@v7
+            with:
+                name: ${{ matrix.toxenv }}_checks
+                path: doc/tmp
+
     deploy_on_main:
         runs-on: ubuntu-latest
         needs: [build_docs]
