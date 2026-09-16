@@ -9,7 +9,7 @@
 set -e
 set -x
 
-mkdir -p doc/tmp
+mkdir -p docs/tmp
 grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "Warning: " > doc/tmp/all_warnings.txt || true
 grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "DeprecationWarning: " > doc/tmp/deprecation_warnings.txt || true
 grep --include "*.html" -rn "docs/_build/html/generated/gallery/examples" -e "FutureWarning: " > doc/tmp/future_warnings.txt || true
