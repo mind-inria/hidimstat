@@ -1,0 +1,290 @@
+---
+# Workflow to build the documentation.
+#
+# - build doc and upload it as artifact
+# - on ``main`` (or on github release): trigger hosting of dev (or stable) doc on https://github.com/nilearn//nilearn.github.io.git
+# .. admonition:: Control via commit message
+#    :class: tip
+#
+#    This workflow can be controlled if your commit message contains:
+#
+#    - ``[full doc]`` runs a full build on pull-request.
+#    - ``[skip doc]`` skip build of the documentation.
+#    - ``[example] name_of_example.py`` trigger build of some specific examples.
+#
+# On Pull Requests, "partial builds" are run by default which render all the rst files,
+# but only build examples modified in the Pull Request.
+# This saves time and resources when working on Pull Requests.
+#
+# Occasionally, some changes necessitate rebuilding the documentation from scratch,
+# for example to see the full effect of the changes.
+# These are called "full builds".
+#
+# You can request a full build from a Pull Request at any time by including the tag ``[full doc]`` in your commit message.
+#
+# .. code-block:: bash
+#
+#   $ git commit --message "[full doc] request full build"
+#
+# Full builds are always run on "main".
+# This is done every time there is a push on "main".
+#
+# Most of this workflow is skipped if ``[skip doc]`` is in the commit message.
+#
+# Though partial builds will build modified examples,
+# sometimes code changes on the module side could affect the plots in unmodified examples.
+# For this, you can request for the CI to build a specific example
+# by using the tag ``[example]`` and the name of the example.
+# This is useful when wanting to get quick feedback from reviewers.
+#
+# .. code-block:: bash
+#
+#   $ git commit --message "[example] plot_nilearn_101.py"
+#
+# However for quick checks to do yourself
+# you should always opt for local builds.
+#
+###
+name: DocumentationBuilder
+
+on:
+    push:
+        branches:
+        -   main
+    pull_request:
+        branches:
+        -   '*'
+
+    # This enables manual triggering from GitHub UI
+    # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch
+    workflow_dispatch:
+
+    # This will run automatically when a release is published
+    release:
+        types: [published]
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    # Force to use color
+    FORCE_COLOR: true
+    DISPLAY: :99.0
+    MIN_PYTHON_VERSION: '3.10'
+    HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+jobs:
+    check_skip_flags:
+        uses: ./.github/workflows/check_skip_flags.yml
+        with:
+            skip_type: doc
+
+
+    # Check the build type and files examples to generate
+    # Upload as an artifact for other jobs.
+    build_type:
+        needs: [check_skip_flags]
+        runs-on: ubuntu-latest
+        steps:
+        -   name: Checkout
+            uses: actions/checkout@v7
+            with:
+                  # If pull request, checkout HEAD commit with all commit history
+                ref: ${{ github.event.pull_request.head.sha }}
+                fetch-depth: 0
+        -   name: Setup python
+            uses: actions/setup-python@v6
+            with:
+                python-version: ${{ env.MIN_PYTHON_VERSION }}
+        -   name: Install dependencies
+            run: python -m pip install --upgrade pip rich
+        -   name: Merge with upstream
+            run: ./tools/documentation/github/merge_upstream.sh
+        -   name: Check if we are doing a full or partial build
+            run: python ./tools/documentation/github/build_type.py
+            env:
+                COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        -   name: Verify build type
+            run: |
+                echo "PATTERN = $(cat pattern.txt)"
+                echo "BUILD = $(cat build.txt)"
+        -   name: Upload build.txt and pattern.txt
+            uses: actions/upload-artifact@v7
+            with:
+                name: build_type
+                path: |
+                    build.txt
+                    pattern.txt
+                retention-days: 1
+                overwrite: true
+
+    # Steps to build the documentation.
+    build_docs:
+        needs: [build_type]
+        runs-on: ubuntu-latest
+        env:
+            NILEARN_DATA: /home/runner/work/hidimstat/hidimstat/nilearn_data
+            SCIKIT_LEARN_DATA: /home/runner/work/hidimstat/hidimstat/scikit_learn_data
+            _MNE_FAKE_HOME_DIR: /home/runner/work/hidimstat/hidimstat/mne_data
+
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                -   py: '3.10'
+                    toxenv: doc
+
+        defaults:
+            run:
+                shell: bash -el {0}
+
+        steps:
+        -   name: Checkout
+            uses: actions/checkout@v7
+            with:
+                # If pull request, checkout HEAD commit with all commit history
+                ref: ${{ github.event.pull_request.head.sha }}
+                fetch-depth: 0
+        -   name: Merge with upstream
+            run: ./tools/documentation/github/merge_upstream.sh
+
+            # Set up environment
+        -   name: Install apt packages
+            run: |
+                sudo -E apt-get -yq update
+                sudo -E apt-get -yq --no-install-suggests --no-install-recommends install \
+                    dvipng texlive-latex-base texlive-latex-extra
+
+        -   name: Install the latest version of uv
+            uses: astral-sh/setup-uv@v7
+
+        -   name: Setup python
+            uses: actions/setup-python@v6
+            with:
+                python-version: ${{ matrix.py }}
+
+        -   name: Download build type
+            uses: actions/download-artifact@v8
+            with:
+                name: build_type
+
+        -   name: Install tox
+            run: uv tool install tox --with=tox-uv --with=tox-gh-actions
+
+        -   name: Show tox config
+            run: tox c
+
+        -   name: Key for cache based on month number
+            run: date +%m > month_num;
+
+        -   name: Restore monthly data cache
+            id: restore-monthly-cache
+            uses: actions/cache/restore@v6
+            with:
+                path: |
+                    nilearn_data
+                    sklearn_data
+                    mne_data
+                key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
+
+        -   name: Create data cache dir
+            # necessary if previous step failed (e.g github cache was deleted)
+            # ensure we can write to them
+            run:
+                mkdir -p mne_data nilearn_data sklearn_data
+                chmod +w mne_data nilearn_data sklearn_data
+
+            # Run the doc build
+            #
+            # We let tox handle creating virtual env and install dependencies.
+        -   name: Build docs
+            id: build-docs
+            if: ${{ matrix.toxenv == 'doc' }}
+            run: |
+                set -o pipefail;
+                export PATTERN=$(cat pattern.txt)
+                tox run \
+                    --colored yes \
+                    --list-dependencies \
+                    -e  ${{ matrix.toxenv }} -- $(cat build.txt) 2>&1 | tee log.txt;
+
+        -   name: Check doc size
+            if: always()
+            run: |
+                du -h -d 3 --exclude=".git"
+
+                mkdir -p docs/_build/html # ensure the folder exists
+                du -h docs/_build/html
+
+        -   name: Upload documentation
+            uses: actions/upload-artifact@v7
+            with:
+                name: ${{ matrix.toxenv }}
+                path: docs/_build/html
+
+        -   name: Save monthly data cache
+            uses: actions/cache/save@v6
+            with:
+                path: |
+                    nilearn_data
+                    sklearn_data
+                    mne_data
+                key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
+
+        -   name: Check warnings in doc
+            if: always()
+            run: |
+                ./tools/documentation/github/warning_in_doc_check.sh
+
+        -   name: Upload doc checks
+            if: always()
+            uses: actions/upload-artifact@v7
+            with:
+                name: ${{ matrix.toxenv }}_checks
+                path: docs/tmp
+
+    deploy_on_main:
+        runs-on: ubuntu-latest
+        needs: [build_docs]
+        if: ${{ contains(fromJSON('["push", "workflow_dispatch", "release"]'), github.event_name)}}
+        steps:
+        -   name: Checkout
+            uses: actions/checkout@v7
+            with:
+                fetch-depth: 0
+
+        -   name: Add SSH key
+            env:
+                SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+            run: |
+                mkdir -p ~/.ssh
+                ssh-keyscan github.com >> ~/.ssh/known_hosts
+                echo "${{ secrets.ACTIONS_SSH_DEPLOY }}" > ~/.ssh/github_actions
+                chmod 600 ~/.ssh/github_actions
+                ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+                ssh-add ~/.ssh/github_actions
+
+        -   uses: actions/download-artifact@v8
+            with:
+                name: doc
+                path: doc/_build/html
+
+        -   name: Identify deploy type
+            id: deploy-type
+            run: |
+                if ${{ contains(fromJSON('["release"]'), github.event_name)}}; then
+                    echo "DEPLOY_TYPE=stable" >> $GITHUB_OUTPUT
+                else
+                    echo "DEPLOY_TYPE=dev" >> $GITHUB_OUTPUT
+                fi
+
+        -   name: deploy
+            env:
+                SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+                COMMIT_SHA: ${{ github.event.head_commit.id }}
+                DEPLOY_TYPE: ${{ steps.deploy-type.outputs.DEPLOY_TYPE }}
+            run: |
+                git config --global user.email "actions@github.com"
+                git config --global user.name "GitHub actions"
+                ./build_tools/github/deploy_doc.sh
