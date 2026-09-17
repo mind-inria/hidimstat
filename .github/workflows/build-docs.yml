@@ -242,7 +242,7 @@ jobs:
             uses: actions/upload-artifact@v7
             with:
                 name: ${{ matrix.toxenv }}_checks
-                path: doc/tmp
+                path: docs/tmp
 
     deploy_on_main:
         runs-on: ubuntu-latest
