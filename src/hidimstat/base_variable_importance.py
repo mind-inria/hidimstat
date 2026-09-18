@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.utils import find_stack_level
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -60,7 +61,7 @@ def _selection_generic(
             warnings.warn(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
                 "All the features will be returned.",
-                stacklevel=2,
+                stacklevel=find_stack_level(),
             )
         mask_k_best = np.zeros_like(values, dtype=bool)
 
@@ -75,7 +76,7 @@ def _selection_generic(
             warnings.warn(
                 f"k={k_lowest} is greater than n_features={values.shape[0]}. "
                 "All the features will be returned.",
-                stacklevel=2,
+                stacklevel=find_stack_level(),
             )
         mask_k_lowest = np.zeros_like(values, dtype=bool)
 
@@ -647,5 +648,5 @@ class GroupVariableImportanceMixin:
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}",
-                stacklevel=2,
+                stacklevel=find_stack_level(),
             )
