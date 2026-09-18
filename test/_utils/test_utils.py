@@ -8,7 +8,9 @@ from hidimstat._utils.utils import (
     _make_sklearn_estimator,
     check_random_state,
     check_statistical_test,
+    find_stack_level,
     get_fitted_attributes,
+    one_level_deeper,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -127,3 +129,9 @@ def test__make_sklearn_estimator(monkeypatch):
             n_alphas=target,
         )
         assert est.alphas == target
+
+
+def test_find_stack_level():
+    """Test find_stack_level."""
+    assert find_stack_level() == 1
+    assert one_level_deeper() == 2
