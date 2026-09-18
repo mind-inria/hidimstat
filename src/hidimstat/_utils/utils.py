@@ -1,5 +1,7 @@
+import inspect
 import numbers
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -266,3 +268,56 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def find_stack_level() -> int:
+    """
+    Find the first place in the stack that is not inside nilearn
+    (tests notwithstanding).
+
+    Taken from the pandas codebase.
+    https://github.com/pandas-dev/pandas/tree/main/pandas/util/_exceptions.py#L37
+    """
+    import hidimstat as hd
+
+    pkg_dir = Path(hd.__file__).parent
+
+    # list of stack frames to skip
+    skip_list = [
+        Path("sklearn") / "utils" / "_set_output.py",
+        Path("sklearn") / "base.py",
+        Path("joblib") / "memory.py",
+        Path("joblib") / "parallel.py",
+    ]
+
+    # https://stackoverflow.com/questions/17407119/python-inspect-stack-is-slow
+    frame = inspect.currentframe()
+    try:
+        n = 0
+        while frame:
+            filename = inspect.getfile(frame)
+
+            is_test_file = Path(filename).name.startswith("test_")
+
+            in_hidimstat_code = filename.startswith(str(pkg_dir))
+            skip = any(str(x) in filename for x in skip_list)
+            if (not in_hidimstat_code and not skip) or is_test_file:
+                break
+
+            frame = frame.f_back
+
+            n += 1
+
+    finally:
+        # See note in
+        # https://docs.python.org/3/library/inspect.html#inspect.Traceback
+        del frame
+    return n
+
+
+def one_level_deeper() -> int:
+    """Use for testing find_stack_level.
+
+    Needs to be in a module that does not start with 'test'
+    """
+    return find_stack_level()

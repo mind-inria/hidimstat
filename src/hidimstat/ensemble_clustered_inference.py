@@ -7,7 +7,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils.validation import check_memory
 from tqdm import tqdm
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import check_random_state, find_stack_level
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.samplers.utils import _subsampling
@@ -91,7 +91,7 @@ class CluDL(BaseVariableImportance):
             "CluDL is deprecated and will be removed in version 0.5.0. "
             "Please use class ClusterImportance instead.",
             FutureWarning,
-            stacklevel=2,
+            stacklevel=find_stack_level(),
         )
 
     def fit(self, X, y):
@@ -337,7 +337,7 @@ class EnCluDL(BaseVariableImportance):
             "EnCluDL is deprecated and will be removed in version 0.5.0. "
             "Please use class EnsembleImportance instead.",
             FutureWarning,
-            stacklevel=2,
+            stacklevel=find_stack_level(),
         )
 
     @staticmethod
