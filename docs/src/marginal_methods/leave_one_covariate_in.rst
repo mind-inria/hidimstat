@@ -8,7 +8,6 @@ relevance of individual or groups of features in predictive models. It is a
 refitting-based method that compares the predictive performance of the empty
 model with performance of a model refitted just with the feature(s) of interest.
 
-
 Theoretical index
 ------------------
 
@@ -19,7 +18,7 @@ would be when accommodating only the given feature. The importance of feature
 model is refitted using only that feature.
 
 .. math::
-\psi^j_{\mathrm{LOCI}}
+  \psi^j_{\mathrm{LOCI}}
   = \mathbb{E}\left[\mathcal{L}\left(Y, \mu_{\emptyset}(X^{\emptyset})\right)\right]
   - \mathbb{E}\left[\mathcal{L}\left(Y, \mu_j(X^j)\right)\right].
 
@@ -38,35 +37,32 @@ variance of the output that can be explained by the studied feature alone.
 Indeed, under the quadratic loss, we have
 
 .. math::
-\begin{aligned}
-\psi^j_{\mathrm{LOCI}}
-&= \mathbb{E}\left[
-\mathcal{L}\left(Y,\mu_{\emptyset}(X^{\emptyset})\right)
-\right]
--
-\mathbb{E}\left[
-\mathcal{L}\left(Y,\mu_j(X^j)\right)
-\right] \
-&= \operatorname{Var}\left(\mathbb{E}[Y\mid X^j]\right) \
-&= \operatorname{Var}(Y) R_j^2,
-\end{aligned}
+  \begin{aligned}
+  \psi^j_{\mathrm{LOCI}}
+  &= \mathbb{E}\left[
+  \mathcal{L}\left(Y,\mu_{\emptyset}(X^{\emptyset})\right)
+  \right]
+  -
+  \mathbb{E}\left[
+  \mathcal{L}\left(Y,\mu_j(X^j)\right)
+  \right] \
+  &= \operatorname{Var}\left(\mathbb{E}[Y\mid X^j]\right) \
+  &= \operatorname{Var}(Y) R_j^2,
+  \end{aligned}
 
 where :math:`R_j^2` denotes the coefficient of determination obtained by
 predicting :math:`Y` from :math:`X^j` alone. Consequently, normalizing the LOCI
 quantity by the total variance of :math:`Y` gives
 
 .. math::
-\frac{\psi^j_{\mathrm{LOCI}}}{\operatorname{Var}(Y)}
-=
-\frac{\operatorname{Var}\left(\mathbb{E}[Y\mid X^j]\right)}
-{\operatorname{Var}(Y)}
-=
-S_j,
+  \frac{\psi^j_{\mathrm{LOCI}}}{\operatorname{Var}(Y)}
+  =
+  \frac{\operatorname{Var}\left(\mathbb{E}[Y\mid X^j]\right)}
+  {\operatorname{Var}(Y)}
+  =
+  S_j,
 
 where :math:`S_j` is the first-order Sobol index of feature :math:`j`.
-
-
-
 
 Estimation procedure
 --------------------
