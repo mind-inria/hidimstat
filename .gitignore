@@ -10,6 +10,7 @@ joblib
 __pycache__
 *.egg-info
 .coverage*
+uv.lock
 
 # documentation
 docs/_build/
