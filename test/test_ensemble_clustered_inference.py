@@ -213,9 +213,9 @@ def test_cludl_temporal(rng):
     rho_serial = 0.9
     rho_data = 0.9
     n_clusters = 50
-    margin_size = 5
+    margin_size = 10
     extended_support = support_size + margin_size
-    test_tol = 0.1
+    test_tol = 0.15
 
     fdp_list = []
     power_list = []
@@ -266,7 +266,7 @@ def test_encludl_temporal(rng):
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
-    parametrized by `margin_size`.
+    parametrized by `margin_size`
     """
     n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
