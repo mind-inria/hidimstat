@@ -266,7 +266,7 @@ def test_encludl_temporal(rng):
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
-    parametrized by `margin_size`.
+    parametrized by `margin_size`
     """
     n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
