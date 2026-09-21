@@ -5,7 +5,7 @@ import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.linear_model import LassoCV, LinearRegression
 
-from hidimstat import CFI, CluDL, DesparsifiedLasso
+from hidimstat import CFI, ClusterImportance, DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
@@ -516,8 +516,8 @@ def test_clustered_fwer_selection(rng):
     as default for `n_tests` in fwer_selection.
     """
     n_features = 10
-    cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+    cludl = ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV()),
         clustering=FeatureAgglomeration(n_clusters=5),
     )
     cludl.fit_importance(rng.random((100, n_features)), rng.random(100))
