@@ -1,7 +1,5 @@
 .. _shapley_additive_global_explanation:
 
-
-==========================================
 Shapley Additive Global Explanation (SAGE)
 ==========================================
 
@@ -19,11 +17,6 @@ contribution of features. The definition above can be translated to the
 predictive modeling setting by replacing the notion of "outcome" by the model
 performance measured through a loss function, and the notion of "players" by
 features.
-
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_msage_001.png
-    :target: ../generated/gallery/examples/plot_msage.html
-    :align: center
 
 
 Theoretical index
@@ -106,7 +99,6 @@ sampling where the number of subsets is controlled by the parameter
 ``n_subsets``.
 
 
-
 Regression example
 ------------------
 The following example illustrates the use of SAGE on a regression task:
@@ -152,4 +144,5 @@ following example illustrates the use of SAGE on a classification task::
 
 References
 ----------
+
 .. footbibliography::
