@@ -1,3 +1,5 @@
+import warnings
+
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
@@ -255,6 +257,13 @@ def cfi_importance(
     random_state: int | None = None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "cfi_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class CFI instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     methods = CFI(
         estimator=estimator,
         method=method,

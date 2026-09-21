@@ -590,6 +590,13 @@ def model_x_knockoff_importance(
     adaptive_aggregation=False,
     gamma=0.5,
 ):
+    warnings.warn(
+        "model_x_knockoff_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class ModelXKnockoff instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     methods = ModelXKnockoff(
         ko_generator=ko_generator,
         n_repeats=n_repeats,

@@ -893,6 +893,13 @@ def d0crt_importance(
     threshold_max=None,
     alternative_hypothesis=False,
 ):
+    warnings.warn(
+        "d0crt_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class D0CRT instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     methods = D0CRT(
         estimator=estimator,
         method=method,

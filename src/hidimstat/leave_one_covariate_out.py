@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -226,6 +228,13 @@ def loco_importance(
     threshold_max=None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "loco_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class LOCO instead.",
+        FutureWarning,
+        stacklevel=2,
+    )
+
     method = LOCO(
         estimator=estimator,
         method=method,
