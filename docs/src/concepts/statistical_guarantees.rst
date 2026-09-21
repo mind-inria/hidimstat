@@ -1,8 +1,6 @@
+
 .. _statistical_guarantees:
 
-
-
-=============================================
 Statistical guarantees for variable selection
 =============================================
 
@@ -41,7 +39,6 @@ the probability of observing at least one false positive increases,
 necessitating the use of multiple testing corrections such as controlling the Family Wise Error Rate (FWER)
 or the False Discovery Rate (FDR).
 
-
 Family Wise Error Rate (FWER)
 ------------------------------
 
@@ -71,8 +68,6 @@ See :ref:`sphx_glr_generated_gallery_examples_plot_knockoffs_wisconsin.py` for a
 
 In any case, it is important to remember that statistical control is tied to some **assumptions** being met.
 Non-parametric approaches, such as *permutation tests*, can provide valid statistical control while relying on weaker assumptions.
-
-
 
 References
 ----------

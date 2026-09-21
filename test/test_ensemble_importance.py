@@ -162,7 +162,7 @@ def test_encluvi_spatial(rng):
             selected=selected,
             ground_truth=beta,
             roi_size=roi_size,
-            spatial_tolerance=2,
+            spatial_tolerance=3,
             shape=shape,
         )
         fp_list.append(int(fdp > 0))

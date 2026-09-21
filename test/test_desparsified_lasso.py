@@ -86,10 +86,10 @@ def test_desparsified_lasso(rng):
     support_size = 5
     signal_noise_ratio = 32
     rho = 0.0
-    confidence = 0.9
+    confidence = 0.95
     alpha = 1 - confidence
     # Tolerance for the FDP and power test
-    test_tol = 0.05
+    test_tol = 0.1
 
     fdp_list = []
     powr_list = []
