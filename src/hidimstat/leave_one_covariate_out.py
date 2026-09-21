@@ -231,7 +231,7 @@ def loco_importance(
     warnings.warn(
         "loco_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class LOCO instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

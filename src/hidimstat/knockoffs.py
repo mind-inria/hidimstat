@@ -593,7 +593,7 @@ def model_x_knockoff_importance(
     warnings.warn(
         "model_x_knockoff_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class ModelXKnockoff instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

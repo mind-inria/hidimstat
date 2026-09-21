@@ -253,7 +253,7 @@ def loci_importance(
     warnings.warn(
         "loci_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class LOCI instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

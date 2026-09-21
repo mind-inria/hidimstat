@@ -896,7 +896,7 @@ def d0crt_importance(
     warnings.warn(
         "d0crt_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class D0CRT instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

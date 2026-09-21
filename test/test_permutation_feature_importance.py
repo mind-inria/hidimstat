@@ -370,3 +370,9 @@ else:
     )
     def test_check_estimator_sklearn(estimator, check):
         check(estimator)
+
+
+@pytest.mark.filterwarnings("error:pfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class PFI"):
+        pfi_importance(estimator=None, X=None, y=None)

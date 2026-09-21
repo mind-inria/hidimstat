@@ -107,7 +107,7 @@ def pfi_importance(
     warnings.warn(
         "pfi_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class PFI instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

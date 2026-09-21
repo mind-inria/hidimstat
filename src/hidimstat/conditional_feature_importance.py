@@ -260,7 +260,7 @@ def cfi_importance(
     warnings.warn(
         "cfi_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class CFI instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 

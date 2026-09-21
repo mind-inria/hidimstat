@@ -602,3 +602,13 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     dl_refit.random_state = np.random.default_rng(0)
     importance_refit = dl_refit.fit_importance(X, y)
     assert np.array_equal(importance_1, importance_refit)
+
+
+@pytest.mark.filterwarnings(
+    "error:desparsified_lasso_importance is deprecated"
+)
+def test_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning, match="Please use class DesparsifiedLasso"
+    ):
+        desparsified_lasso_importance(X=None, y=None)

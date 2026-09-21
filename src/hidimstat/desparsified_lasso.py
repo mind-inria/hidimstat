@@ -591,7 +591,7 @@ def desparsified_lasso_importance(
     warnings.warn(
         "desparsified_lasso_importance is deprecated and will be removed in version 0.6.0. "
         "Please use class DesparsifiedLasso instead.",
-        FutureWarning,
+        DeprecationWarning,
         stacklevel=2,
     )
 
