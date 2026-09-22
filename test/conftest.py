@@ -20,7 +20,7 @@ def _rng(seed=42):
     return np.random.default_rng(seed)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="package")
 def rng():
     """Return a seeded random number generator."""
     return _rng()
@@ -38,6 +38,7 @@ def fitted_linear_regression():
 def data_generator(
     n_samples,
     n_features,
+    n_targets,
     support_size,
     rho,
     seed,
@@ -79,6 +80,7 @@ def data_generator(
     X, y, beta, _ = multivariate_simulation(
         n_samples=n_samples,
         n_features=n_features,
+        n_targets=n_targets,
         support_size=support_size,
         rho=rho,
         value=value,

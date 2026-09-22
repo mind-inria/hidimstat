@@ -88,7 +88,7 @@ class CluDL(BaseVariableImportance):
         self.clustering_samples_ = None
 
         warnings.warn(
-            "CluDL is deprecated and will be removed in version 0.5.0."
+            "CluDL is deprecated and will be removed in version 0.5.0. "
             "Please use class ClusterImportance instead.",
             FutureWarning,
             stacklevel=2,
@@ -334,7 +334,7 @@ class EnCluDL(BaseVariableImportance):
         self.desparsified_lassos_ = None
 
         warnings.warn(
-            "EnCluDL is deprecated and will be removed in version 0.5.0."
+            "EnCluDL is deprecated and will be removed in version 0.5.0. "
             "Please use class EnsembleImportance instead.",
             FutureWarning,
             stacklevel=2,

@@ -1,7 +1,5 @@
 .. _conditional_feature_importance:
 
-
-==============================
 Conditional Feature Importance
 ==============================
 
@@ -11,10 +9,6 @@ perturbation-based method that compares the predictive performance of a model on
 unmodified test data—following the same distribution as the training data—
 to its performance when the studied feature is conditionally perturbed. Thus, this approach
 does not require retraining the model.
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
-    :target: ../generated/gallery/examples/plot_cfi.html
-    :align: center
 
 
 Theoretical index
@@ -42,6 +36,7 @@ Indeed,
 
 Where in regression, :math:`\mu_{-j}(X^{-j}) = \mathbb{E}[Y| X^{-j}]` is the
 theoretical model without the :math:`j^{th}` feature.
+
 
 Estimation procedure
 --------------------
@@ -117,21 +112,21 @@ Two technical challenges arise in this context:
 
 Regression example
 ------------------
-The following example illustrates the use of CFI on a regression task with::
+The following example illustrates the use of CFI on a regression task with:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.model_selection import train_test_split
+    >>>
     >>> from hidimstat import CFI
-
-
+    >>>
     >>> X, y = make_regression(n_features=2)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = LinearRegression().fit(X_train, y_train)
-
+    >>>
     >>> cfi = CFI(estimator=model, imputation_model_continuous=LinearRegression())
     >>> cfi = cfi.fit(X_train, y_train)
-    >>> features_importance = cfi.importance(X_test, y_test)
+    >>> importance = cfi.importance(X_test, y_test)
 
 
 Classification example
@@ -139,15 +134,16 @@ Classification example
 To measure feature importance in a classification task, a classification loss should be
 used, in addition, the prediction method of the estimator should output the corresponding
 type of prediction (probabilities or classes). The following example illustrates the use
-of CFI on a classification task::
+of CFI on a classification task:
 
     >>> from sklearn.datasets import make_classification
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.metrics import log_loss
     >>> from sklearn.model_selection import train_test_split
+    >>>
     >>> from hidimstat import CFI
-
+    >>>
     >>> X, y = make_classification(n_features=4)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = RandomForestClassifier().fit(X_train, y_train)
@@ -158,8 +154,9 @@ of CFI on a classification task::
     ...     method="predict_proba",
     ... )
     >>> cfi = cfi.fit(X_train, y_train)
-    >>> features_importance = cfi.importance(X_test, y_test)
+    >>> importance = cfi.importance(X_test, y_test)
 
 References
 ----------
+
 .. footbibliography::

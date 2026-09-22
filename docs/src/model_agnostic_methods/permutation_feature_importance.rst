@@ -1,7 +1,5 @@
 .. _permutation_feature_importance:
 
-
-==============================
 Permutation Feature Importance
 ==============================
 
@@ -13,7 +11,6 @@ perturbation-based method that compares the predictive performance of a model on
 unmodified test data—following the same distribution as the training data—
 to its performance when the studied feature is marginally permutated. Thus, this approach
 does not require retraining the model contrary to other methods such as :ref:`leave_one_covariate_out`.
-
 
 
 Theoretical index
@@ -60,10 +57,6 @@ predicting both the original and perturbed datasets.
     This issue is discussed in :footcite:t:`stroblConditionalVariableImportance2008`,
     :footcite:t:`Hooker2021ExtrapolationPFI`.
 
-    .. figure:: ../generated/gallery/examples/images/sphx_glr_plot_pitfalls_permutation_importance_004.png
-        :target: ../generated/gallery/examples/plot_pitfalls_permutation_importance.html
-        :align: center
-
 
 Inference
 ---------
@@ -77,32 +70,28 @@ valid p-values for the null hypothesis
 
 is not straightforward. This leads to many false discoveries, especially when features are correlated.
 
-
-.. figure:: ../generated/gallery/examples/images/sphx_glr_plot_pitfalls_permutation_importance_002.png
-    :target: ../generated/gallery/examples/plot_pitfalls_permutation_importance.html
-    :align: center
-
 The conditional version of the PFI (:ref:`conditional_feature_importance`) tackles
 both issues of extrapolation and of inference by using conditional sampling instead of
 the marginal permutation.
 
+
 Regression example
 ------------------
-The following example illustrates the use of PFI on a regression task with::
+The following example illustrates the use of PFI on a regression task with:
 
     >>> from sklearn.datasets import make_regression
     >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.model_selection import train_test_split
+    >>>
     >>> from hidimstat import PFI
-
-
+    >>>
     >>> X, y = make_regression(n_features=2)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> model = LinearRegression().fit(X_train, y_train)
-
+    >>>
     >>> pfi = PFI(estimator=model)
     >>> pfi = pfi.fit(X_train, y_train)
-    >>> features_importance = pfi.importance(X_test, y_test)
+    >>> importance = pfi.importance(X_test, y_test)
 
 
 Classification example
@@ -114,9 +103,9 @@ of PFI on a classification task::
 
     >>> from sklearn.datasets import make_classification
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from sklearn.linear_model import LinearRegression
     >>> from sklearn.metrics import log_loss
     >>> from sklearn.model_selection import train_test_split
+
     >>> from hidimstat import PFI
 
     >>> X, y = make_classification(n_features=4)
@@ -128,8 +117,9 @@ of PFI on a classification task::
     ...     method="predict_proba",
     ... )
     >>> pfi = pfi.fit(X_train, y_train)
-    >>> features_importance = pfi.importance(X_test, y_test)
+    >>> importance = pfi.importance(X_test, y_test)
 
 References
 ----------
+
 .. footbibliography::
