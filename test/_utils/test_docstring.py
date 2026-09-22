@@ -229,7 +229,6 @@ def test_smoke_aggregate_docstring():
     -------
     None
 
-
     References
     ----------
     .. footbibliography::
@@ -247,6 +246,8 @@ def test_smoke_aggregate_docstring():
     assert (
         final_doc
         == """Short Summary
+
+
 Parameters
 ----------
 param_1: ndarray of shape (n_sampling,)
