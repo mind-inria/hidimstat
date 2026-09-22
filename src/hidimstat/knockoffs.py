@@ -1,4 +1,5 @@
 import warnings
+from dataclasses import fields
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -9,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.tags import HidimstatTags
 from hidimstat._utils.utils import check_random_state, seed_estimator
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
@@ -570,6 +572,16 @@ class ModelXKnockoff(BaseVariableImportance):
                 )
 
         return np.array(evals)
+
+    def __sklearn_tags__(self):
+        tags_orig = super().__sklearn_tags__()
+        as_dict = {
+            field.name: getattr(tags_orig, field.name)
+            for field in fields(tags_orig)
+        }
+        tags = HidimstatTags(**as_dict)
+        tags.needs_importance_data = False
+        return tags
 
 
 def model_x_knockoff_importance(

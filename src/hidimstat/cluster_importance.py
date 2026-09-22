@@ -3,6 +3,7 @@ import inspect
 import numpy as np
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
+from sklearn.utils import get_tags
 from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.utils import check_random_state
@@ -100,8 +101,12 @@ class ClusterImportance(BaseVariableImportance):
         """
         self._check_fit()
 
-        X_reduced = self.clustering_.transform(X)
-        self.vim_.importance(X_reduced, y)
+        tags = get_tags(self.vim_)
+        if tags.needs_importance_data:
+            X_reduced = self.clustering_.transform(X)
+            self.vim_.importance(X_reduced, y)
+        else:
+            self.vim_.importance()
 
         self.pvalues_ = self.clustering_.inverse_transform(self.vim_.pvalues_)
 

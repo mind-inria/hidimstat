@@ -602,3 +602,9 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     dl_refit.random_state = np.random.default_rng(0)
     importance_refit = dl_refit.fit_importance(X, y)
     assert np.array_equal(importance_1, importance_refit)
+
+
+def test_hidimstat_tags():
+    dl = DesparsifiedLasso()
+    tags = dl.__sklearn_tags__()
+    assert not tags.needs_importance_data

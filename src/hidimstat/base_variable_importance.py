@@ -1,5 +1,6 @@
 import numbers
 import warnings
+from dataclasses import fields
 
 import numpy as np
 import pandas as pd
@@ -7,6 +8,7 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.tags import HidimstatTags
 from hidimstat.statistical_tools.multiple_testing import fdr_threshold
 
 
@@ -483,6 +485,16 @@ class BaseVariableImportance(BaseEstimator):
         sns.despine(ax=ax)
         ax.set_ylabel("")
         return ax
+
+    def __sklearn_tags__(self):
+        tags_orig = super().__sklearn_tags__()
+        as_dict = {
+            field.name: getattr(tags_orig, field.name)
+            for field in fields(tags_orig)
+        }
+        tags = HidimstatTags(**as_dict)
+        tags.needs_importance_data = True
+        return tags
 
 
 class GroupVariableImportanceMixin:

@@ -1,6 +1,7 @@
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone
+from sklearn.utils import get_tags
 from tqdm import tqdm
 
 from hidimstat._utils.utils import check_random_state
@@ -152,7 +153,11 @@ class EnsembleImportance(BaseVariableImportance):
 
     @staticmethod
     def _joblib_compute_importance(vim, X, y):
-        vim.importance(X, y)
+        tags = get_tags(vim)
+        if tags.needs_importance_data:
+            vim.importance(X, y)
+        else:
+            vim.importance()
         return vim
 
     def importance(self, X, y):

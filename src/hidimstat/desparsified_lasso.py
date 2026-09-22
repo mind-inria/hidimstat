@@ -1,4 +1,5 @@
 import warnings
+from dataclasses import fields
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -19,6 +20,7 @@ from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.tags import HidimstatTags
 from hidimstat._utils.utils import (
     _generate_group_mask,
     check_random_state,
@@ -488,6 +490,16 @@ class DesparsifiedLasso(BaseVariableImportance):
             reshaping_function=reshaping_function,
             two_tailed_test=two_tailed_test,
         )
+
+    def __sklearn_tags__(self):
+        tags_orig = super().__sklearn_tags__()
+        as_dict = {
+            field.name: getattr(tags_orig, field.name)
+            for field in fields(tags_orig)
+        }
+        tags = HidimstatTags(**as_dict)
+        tags.needs_importance_data = False
+        return tags
 
 
 def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):

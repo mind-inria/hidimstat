@@ -564,3 +564,9 @@ def test_feature_groups_order_preserved(data_generator):
     cfi = CFI(estimator=model, features_groups=groups, random_state=0)
     importance = cfi.fit_importance(X_df, y)
     assert importance[0] < importance[1]
+
+
+def test_hidimstat_tags(create_bvi):
+    bvi = create_bvi
+    tags = bvi.__sklearn_tags__()
+    assert tags.needs_importance_data
