@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy.special import expit
 from sklearn.covariance import LedoitWolf
-from sklearn.datasets import make_classification, make_regression
+from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
@@ -36,7 +36,7 @@ def expected_failed_checks(estimator):
         }
 
 
-alphas_attr = "alphas"
+alphas_attr = "n_alphas"
 
 
 @parametrize_with_checks(

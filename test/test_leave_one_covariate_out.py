@@ -9,7 +9,6 @@ from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 

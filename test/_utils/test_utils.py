@@ -116,4 +116,5 @@ def test__make_sklearn_estimator(monkeypatch):
     target = 10
 
     est = _make_sklearn_estimator(LassoCV, n_alphas=target)
-    assert est.alphas is None
+
+    assert est.alphas == 10
