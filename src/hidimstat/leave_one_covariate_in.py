@@ -292,10 +292,6 @@ importances : ndarray of shape (n_groups,)
     Feature group importance scores/test statistics.
 pvalues : ndarray of shape (n_groups,)
     P-values computed for the marginal importance.
-
-Notes
------
-.. deprecated:: 0.6.0
 """,
 )
 

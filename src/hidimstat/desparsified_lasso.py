@@ -646,10 +646,6 @@ importances : ndarray of shape (n_features,)
 pvalues : ndarray of shape (n_features,)
     Two-sided p-values for each feature under Gaussian null hypothesis.
     For features not selected during screening, p-values are set to 1.
-
-Notes
------
-.. deprecated:: 0.6.0
 """,
 )
 

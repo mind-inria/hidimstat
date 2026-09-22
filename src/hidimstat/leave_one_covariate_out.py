@@ -270,10 +270,6 @@ importances : ndarray of shape (n_groups,)
     Feature group importance scores/test statistics.
 pvalues : ndarray of shape (n_groups,)
     None because there is no p-value for this method.
-
-Notes
------
-.. deprecated:: 0.6.0
 """,
 )
 

@@ -94,7 +94,10 @@ def _aggregate_docstring(list_docstring, returns_docstring):
             list_line.append(_parse_docstring(docstring=docstring))
 
     # add summary
-    final_docstring = [*deepcopy(list_line[0]["short"]), "\n"]
+    final_docstring = [
+        *deepcopy(list_line[0]["short"]),
+        "\n.. deprecated:: 0.6.0\n\n",
+    ]
     # add parameter
     final_docstring += list_line[0]["Parameters"]
     for i in range(1, len(list_line)):

@@ -247,6 +247,8 @@ def test_smoke_aggregate_docstring():
         final_doc
         == """Short Summary
 
+.. deprecated:: 0.6.0
+
 
 Parameters
 ----------

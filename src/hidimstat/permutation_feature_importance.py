@@ -148,10 +148,6 @@ importances : ndarray of shape (n_groups,)
     Feature group importance scores/test statistics.
 pvalues : ndarray of shape (n_groups,)
         P-values for importance scores.
-
-Notes
------
-.. deprecated:: 0.6.0
 """,
 )
 

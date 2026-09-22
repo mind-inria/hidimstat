@@ -636,9 +636,5 @@ importance : array-like of shape (n_features)
     The computed feature importance scores.
 pvalues : array-like of shape (n_features)
     The computed significant of feature for the prediction.
-
-Notes
------
-.. deprecated:: 0.6.0
 """,
 )
