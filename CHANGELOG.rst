@@ -18,3 +18,4 @@ Changes
 -------
 
 - :bdg-success:`Feature` Add the holdout randomization test (HRT). As a side effect, ``nadeau_bengio_ttest`` loses its ``axis`` argument and now always reduces over the last axis (:gh:`754` by `Joseph Paillard`_).
+- :bdg-danger:`Fix` Removed unnecessary warning in ``fit_importance`` when (X, y) are passed to estimators that don't need it to compute importance scores (:gh:`804` by `Marc Hulcelle`_).
