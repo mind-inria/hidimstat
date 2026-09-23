@@ -7,6 +7,8 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
+from sklearn.metrics import get_scorer, log_loss, mean_squared_error
+from sklearn.utils import get_tags
 
 from hidimstat.statistical_tools.holdout_randomization_test import (
     holdout_randomization_test,
@@ -266,3 +268,43 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def check_scoring(estimator=None, scoring=None):
+    """
+    Provide explanation here
+    """
+    if isinstance(scoring, str):
+        get_scorer(scoring)
+    elif callable(scoring):
+        module = getattr(scoring, "__module__", None)
+        if (
+            hasattr(module, "startswith")
+            and module.startswith("sklearn.metrics.")
+            and not module.startswith("sklearn.metrics._scorer")
+            and not module.startswith("sklearn.metrics.tests.")
+        ):
+            raise ValueError(
+                f"scoring value {scoring} looks like it is a metric "
+                "function rather than a scorer. A scorer should "
+                "require an estimator as its first parameter. "
+                "Please use `make_scorer` to convert a metric "
+                "to a scorer."
+            )
+        return get_scorer(scoring)
+    elif scoring is None:
+        if estimator is not None:
+            tags = get_tags(estimator)
+            if tags.estimator_type == "classifier":
+                return log_loss
+            elif tags.estimator_type == "regressor":
+                return mean_squared_error
+            else:
+                raise TypeError(
+                    f"Estimator {estimator} should be one of two types "
+                    "'classifier' or 'regressor'."
+                )
+        else:
+            raise TypeError(
+                "No scoring nor estimator was passed to the method."
+            )
