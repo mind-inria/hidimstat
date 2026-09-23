@@ -18,3 +18,4 @@ Changes
 -------
 
 - :bdg-success:`Feature` Add the holdout randomization test (HRT). As a side effect, ``nadeau_bengio_ttest`` loses its ``axis`` argument and now always reduces over the last axis (:gh:`754` by `Joseph Paillard`_).
+- :bdg-warning:`API` Removed deprecated classes ``CluDL`` and ``EnCluDL`` (:gh:`807` by `Marc Hulcelle`_).
