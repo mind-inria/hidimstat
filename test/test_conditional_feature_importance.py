@@ -40,7 +40,7 @@ def run_cfi(
     seed,
     n_permutations=20,
     method="predict",
-    features_groups=None,
+    feature_groups=None,
     feature_types="auto",
 ):
     """
@@ -84,7 +84,7 @@ def run_cfi(
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutations,
         method=method,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         feature_types=feature_types,
         random_state=seed,
     )
@@ -190,7 +190,7 @@ def test_classification(data_generator):
         n_permutations=20,
         method="predict_proba",
         loss=log_loss,
-        features_groups=None,
+        feature_groups=None,
         feature_types=["continuous"] * X.shape[1],
         random_state=0,
         n_jobs=1,
@@ -295,7 +295,7 @@ def test_group(data_generator):
         X=X_df,
         y=y,
         seed=0,
-        features_groups=groups,
+        feature_groups=groups,
     )
     importance = cfi.importances_
 
@@ -329,7 +329,7 @@ def test_no_group_output_detection(data_generator):
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
         method="predict",
-        features_groups=None,
+        feature_groups=None,
         feature_types="auto",
         random_state=0,
         n_jobs=1,
@@ -391,7 +391,7 @@ class TestCFIClass:
         # Test fit with auto var_type
         cfi.fit(X)
         assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_features_groups_ == X.shape[1]
+        assert cfi.n_feature_groups_ == X.shape[1]
 
     def test_fit_group(self, data_generator):
         """Test fitting CFI with group"""
@@ -402,13 +402,13 @@ class TestCFIClass:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            features_groups=groups,
+            feature_groups=groups,
             random_state=42,
         )
         cfi.fit(X)
 
         assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_features_groups_ == 2
+        assert cfi.n_feature_groups_ == 2
 
     def test_categorical(
         self,
@@ -509,7 +509,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            features_groups=None,
+            feature_groups=None,
             feature_types="auto",
             method="predict",
         )
@@ -529,7 +529,7 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            features_groups=None,
+            feature_groups=None,
             feature_types="auto",
         )
         cfi.fit(X)
@@ -555,7 +555,7 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            features_groups=subgroups,
+            feature_groups=subgroups,
             feature_types="auto",
         )
         cfi.fit(X)
@@ -589,11 +589,11 @@ class TestCFIExceptions:
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
             method="predict",
-            features_groups=subgroups,
+            feature_groups=subgroups,
             feature_types="auto",
         )
         cfi.fit(X)
-        cfi.features_groups["group1"] = [None for i in range(100)]
+        cfi.feature_groups["group1"] = [None for i in range(100)]
 
         X = X.to_records(index=False)
         X = np.array(X, dtype=X.dtype.descr)
@@ -642,9 +642,9 @@ class TestCFIExceptions:
         X, y, _ = data_generator
 
         with pytest.raises(
-            ValueError, match="features_groups needs to be a dictionary"
+            ValueError, match="feature_groups needs to be a dictionary"
         ):
-            run_cfi(X=X, y=y, seed=0, features_groups=["group1", "group2"])
+            run_cfi(X=X, y=y, seed=0, feature_groups=["group1", "group2"])
 
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
@@ -656,7 +656,7 @@ class TestCFIExceptions:
             match="The number of features in X: 20 differs from the"
             " number of features for which importance is computed: 4",
         ):
-            run_cfi(X=X, y=y, seed=0, features_groups=subgroups)
+            run_cfi(X=X, y=y, seed=0, feature_groups=subgroups)
 
     def test_assert_dimension_pvalue(self, data_generator):
         """Test that assert is raise if function stat is not good"""
