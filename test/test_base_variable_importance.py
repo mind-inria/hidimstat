@@ -463,7 +463,7 @@ def test_plot_importance_feature_names(rng, create_bvi):
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    vi.features_groups_ = {
+    vi.feature_groups_ = {
         str(j * 2): [] for j in np.flip(np.sort(vi.importances_))
     }
     features_name = [str(j * 2) for j in np.flip(np.sort(vi.importances_))]
@@ -561,6 +561,6 @@ def test_feature_groups_order_preserved(data_generator):
         "important": feature_ids[important_features],
     }
 
-    cfi = CFI(estimator=model, features_groups=groups, random_state=0)
+    cfi = CFI(estimator=model, feature_groups=groups, random_state=0)
     importance = cfi.fit_importance(X_df, y)
     assert importance[0] < importance[1]
