@@ -574,12 +574,7 @@ class ModelXKnockoff(BaseVariableImportance):
         return np.array(evals)
 
     def __sklearn_tags__(self):
-        tags_orig = super().__sklearn_tags__()
-        as_dict = {
-            field.name: getattr(tags_orig, field.name)
-            for field in fields(tags_orig)
-        }
-        tags = HidimstatTags(**as_dict)
+        tags = super().__sklearn_tags__()
         tags.needs_importance_data = False
         return tags
 
