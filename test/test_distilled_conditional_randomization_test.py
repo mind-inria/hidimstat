@@ -873,3 +873,9 @@ def test_d0crt_no_regression_variance_fix(d0crt_test_data):
     )
     # FDR should remain controlled
     assert fdp_current <= fdr_target + tolerance
+
+
+@pytest.mark.filterwarnings("error:d0crt_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class D0CRT"):
+        d0crt_importance(estimator=None, X=None, y=None)

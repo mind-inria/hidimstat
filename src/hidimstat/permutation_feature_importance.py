@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
@@ -102,6 +104,13 @@ def pfi_importance(
     random_state: int | None = None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "pfi_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class PFI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = PFI(
         estimator=estimator,
         method=method,
@@ -131,15 +140,15 @@ pfi_importance.__doc__ = _aggregate_docstring(
         PFI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected)
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-         P-values for importance scores.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected)
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+        P-values for importance scores.
+""",
 )
 
 

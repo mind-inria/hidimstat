@@ -957,3 +957,9 @@ def test_unfitted_estimator(data_generator):
     cfi.fit(X, y)
     # the estimator is fitted internally by CFI.fit
     check_is_fitted(cfi.estimator_)
+
+
+@pytest.mark.filterwarnings("error:cfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class CFI"):
+        cfi_importance(estimator=None, X=None, y=None)

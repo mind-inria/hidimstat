@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -226,6 +228,13 @@ def loco_importance(
     threshold_max=None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "loco_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class LOCO instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     method = LOCO(
         estimator=estimator,
         method=method,
@@ -253,15 +262,15 @@ loco_importance.__doc__ = _aggregate_docstring(
         LOCO.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected).
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-        None because there is no p-value for this method.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected).
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    None because there is no p-value for this method.
+""",
 )
 
 

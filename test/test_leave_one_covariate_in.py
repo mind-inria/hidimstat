@@ -268,3 +268,9 @@ def test_loci_cv(data_generator):
     )
     assert fdp < alpha
     assert power >= 0.8
+
+
+@pytest.mark.filterwarnings("error:loci_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class LOCI"):
+        loci_importance(estimator=None, X=None, y=None)

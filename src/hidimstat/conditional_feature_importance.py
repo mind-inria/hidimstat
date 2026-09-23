@@ -1,3 +1,5 @@
+import warnings
+
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
@@ -253,6 +255,13 @@ def cfi_importance(
     random_state: int | None = None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "cfi_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class CFI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = CFI(
         estimator=estimator,
         method=method,
@@ -286,15 +295,15 @@ cfi_importance.__doc__ = _aggregate_docstring(
         CFI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected)
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-        P-values for importance scores.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected)
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    P-values for importance scores.
+""",
 )
 
 

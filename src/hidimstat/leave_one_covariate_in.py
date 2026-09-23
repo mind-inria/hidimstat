@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -248,6 +250,13 @@ def loci_importance(
     threshold_max=None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "loci_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class LOCI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     method = LOCI(
         estimator=estimator,
         method=method,
@@ -275,15 +284,15 @@ loci_importance.__doc__ = _aggregate_docstring(
         LOCI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected).
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-        P-values computed for the marginal importance.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected).
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    P-values computed for the marginal importance.
+""",
 )
 
 
