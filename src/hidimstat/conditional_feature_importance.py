@@ -39,10 +39,10 @@ class CFI(BasePerturbation):
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     feature_types: str or list, default="auto"
         The feature type. Supported types include "auto", "continuous", and
         "categorical". If "auto", the type is inferred from the cardinality
@@ -71,7 +71,7 @@ class CFI(BasePerturbation):
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
-        features_groups=None,
+        feature_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
         statistical_test="ttest",
@@ -85,7 +85,7 @@ class CFI(BasePerturbation):
             n_permutations=n_permutations,
             statistical_test=statistical_test,
             n_jobs=n_jobs,
-            features_groups=features_groups,
+            feature_groups=feature_groups,
             random_state=random_state,
         )
 
@@ -125,7 +125,7 @@ class CFI(BasePerturbation):
         if isinstance(self.feature_types, str):
             if self.feature_types in ["auto", "continuous", "categorical"]:
                 self.feature_types = [
-                    self.feature_types for _ in range(self.n_features_groups_)
+                    self.feature_types for _ in range(self.n_feature_groups_)
                 ]
             else:
                 raise ValueError(
@@ -147,16 +147,16 @@ class CFI(BasePerturbation):
                 ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for features_group_id in range(self.n_features_groups_)
+            for features_group_id in range(self.n_feature_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators
         self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X, features_groups_ids
+                imputation_model, X, feature_groups_ids
             )
-            for features_groups_ids, imputation_model in zip(
-                self._features_groups_ids,
+            for feature_groups_ids, imputation_model in zip(
+                self._feature_groups_ids,
                 self._list_imputation_models,
                 strict=False,
             )
@@ -190,14 +190,12 @@ class CFI(BasePerturbation):
         self.fit(X, y)
         return self.importance(X, y)
 
-    def _joblib_fit_one_features_group(
-        self, estimator, X, features_groups_ids
-    ):
+    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
         """Fit a single imputation model, for a single group of features. This method
         is parallelized.
         """
-        X_j = _get_array_cols(X, features_groups_ids)
-        X_minus_j = _get_array_cols(X, features_groups_ids, drop=True)
+        X_j = _get_array_cols(X, feature_groups_ids)
+        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
         estimator.fit(X_minus_j, X_j)
         return estimator
 
@@ -208,8 +206,8 @@ class CFI(BasePerturbation):
         Raises
         ------
         ValueError
-            If the class has not been fitted (i.e., if n_features_groups_
-            or _features_groups_ids attributes are missing).
+            If the class has not been fitted (i.e., if n_feature_groups_
+            or _feature_groups_ids attributes are missing).
             If the class has not been fitted or imputation models are not fitted.
 
         """
@@ -225,9 +223,9 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = _get_array_cols(X, self._features_groups_ids[features_group_id])
+        X_j = _get_array_cols(X, self._feature_groups_ids[features_group_id])
         X_minus_j = _get_array_cols(
-            X, self._features_groups_ids[features_group_id], drop=True
+            X, self._feature_groups_ids[features_group_id], drop=True
         )
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,
@@ -246,7 +244,7 @@ def cfi_importance(
     n_permutations: int = 50,
     imputation_model_continuous=RidgeCV(),
     imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
-    features_groups=None,
+    feature_groups=None,
     feature_types="auto",
     categorical_max_cardinality: int = 10,
     test_statistic="ttest",
@@ -271,7 +269,7 @@ def cfi_importance(
         n_permutations=n_permutations,
         imputation_model_continuous=imputation_model_continuous,
         imputation_model_categorical=imputation_model_categorical,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         feature_types=feature_types,
         categorical_max_cardinality=categorical_max_cardinality,
         statistical_test=test_statistic,
@@ -339,10 +337,10 @@ class CFICV(BasePerturbationCV):
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     feature_types: str or list, default="auto"
         The feature type. Supported types include "auto", "continuous", and
         "categorical". If "auto", the type is inferred from the cardinality
@@ -381,7 +379,7 @@ class CFICV(BasePerturbationCV):
         n_permutations=50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
-        features_groups=None,
+        feature_groups=None,
         feature_types="auto",
         categorical_max_cardinality=10,
         random_state=None,
@@ -393,7 +391,7 @@ class CFICV(BasePerturbationCV):
         self.n_permutations = n_permutations
         self.imputation_model_continuous = imputation_model_continuous
         self.imputation_model_categorical = imputation_model_categorical
-        self.features_groups = features_groups
+        self.feature_groups = feature_groups
         self.feature_types = feature_types
         self.categorical_max_cardinality = categorical_max_cardinality
         self.random_state = random_state
@@ -407,7 +405,7 @@ class CFICV(BasePerturbationCV):
             n_permutations=self.n_permutations,
             imputation_model_continuous=self.imputation_model_continuous,
             imputation_model_categorical=self.imputation_model_categorical,
-            features_groups=self.features_groups,
+            feature_groups=self.feature_groups,
             feature_types=self.feature_types,
             categorical_max_cardinality=self.categorical_max_cardinality,
             random_state=self.random_state,

@@ -20,7 +20,7 @@ def run_loci(
     X,
     y,
     estimator,
-    features_groups=None,
+    feature_groups=None,
     method="predict",
     loss=mean_squared_error,
 ):
@@ -33,7 +33,7 @@ def run_loci(
         estimator=estimator,
         method=method,
         loss=loss,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         n_jobs=1,
     )
 
@@ -72,7 +72,7 @@ def test_loci(data_generator):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     loci = run_loci(
-        X=X_df, y=y, estimator=LinearRegression(), features_groups=groups
+        X=X_df, y=y, estimator=LinearRegression(), feature_groups=groups
     )
     importance = loci.importances_
 
@@ -84,7 +84,7 @@ def test_loci(data_generator):
         X=X,
         y=y_clf,
         estimator=LogisticRegression(),
-        features_groups={
+        feature_groups={
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
@@ -123,7 +123,7 @@ def test_multiclass_loci():
     loci_clf = LOCI(
         estimator=logistic_model,
         method="predict_proba",
-        features_groups=groups,
+        feature_groups=groups,
         loss=log_loss,
     )
     loci_clf.fit(
