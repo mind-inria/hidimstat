@@ -5,7 +5,7 @@ import pytest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.linear_model import LassoCV, LinearRegression
 
-from hidimstat import CFI, CluDL, DesparsifiedLasso
+from hidimstat import CFI, ClusterImportance, DesparsifiedLasso
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
@@ -463,7 +463,7 @@ def test_plot_importance_feature_names(rng, create_bvi):
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    vi.features_groups_ = {
+    vi.feature_groups_ = {
         str(j * 2): [] for j in np.flip(np.sort(vi.importances_))
     }
     features_name = [str(j * 2) for j in np.flip(np.sort(vi.importances_))]
@@ -528,8 +528,8 @@ def test_clustered_fwer_selection(rng):
     as default for `n_tests` in fwer_selection.
     """
     n_features = 10
-    cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+    cludl = ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV()),
         clustering=FeatureAgglomeration(n_clusters=5),
     )
     cludl.fit_importance(rng.random((100, n_features)), rng.random(100))
@@ -561,7 +561,7 @@ def test_feature_groups_order_preserved(data_generator):
         "important": feature_ids[important_features],
     }
 
-    cfi = CFI(estimator=model, features_groups=groups, random_state=0)
+    cfi = CFI(estimator=model, feature_groups=groups, random_state=0)
     importance = cfi.fit_importance(X_df, y)
     assert importance[0] < importance[1]
 

@@ -41,7 +41,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Statistical test function for computing p-values from importance scores.
         One of 'ttest', 'wilcoxon', 'nb-ttest', 'hrt'. The
         holdout randomization tests are only valid for :class:`~hidimstat.CFI`.
-    features_groups : dict or None, default=None
+    feature_groups : dict or None, default=None
         Mapping of group names to lists of feature indices or names. If None, groups are inferred.
     n_jobs : int, default=1
         Number of parallel jobs for computation.
@@ -52,7 +52,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     ----------
     estimator_ : sklearn-compatible estimator
         The fitted estimator used for predictions.
-    features_groups_ : dict
+    feature_groups_ : dict
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
         Importance scores for each feature group.
@@ -76,13 +76,13 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
         statistical_test="ttest",
-        features_groups=None,
+        feature_groups=None,
         n_jobs: int = 1,
         random_state=None,
     ):
         super().__init__()
         GroupVariableImportanceMixin.__init__(
-            self, features_groups=features_groups
+            self, feature_groups=feature_groups
         )
         self.estimator = estimator
         self.loss = loss
@@ -165,7 +165,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 X, features_group_id, random_state=child_state
             )
             for features_group_id, child_state in enumerate(
-                rng.spawn(self.n_features_groups_)
+                rng.spawn(self.n_feature_groups_)
             )
         )
 
@@ -212,7 +212,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         test_result = np.array(
             [
                 self.loss_[j] - self.loss_reference_
-                for j in range(self.n_features_groups_)
+                for j in range(self.n_feature_groups_)
             ]
         )
         self.importances_ = np.mean(test_result, axis=1)
@@ -278,7 +278,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state:
             The random state to use for sampling.
         """
-        features_group_ids = self._features_groups_ids[features_group_id]
+        features_group_ids = self._feature_groups_ids[features_group_id]
         non_features_group_ids = np.delete(
             np.arange(X.shape[1]), features_group_ids
         )

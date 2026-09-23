@@ -407,3 +407,11 @@ def test_preconfigure_LassoCV(rng):
             n_features=10,
             y=rng.random(10),
         )
+
+
+@pytest.mark.filterwarnings("error:model_x_knockoff_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning, match="Please use class ModelXKnockoff"
+    ):
+        model_x_knockoff_importance(estimator=None, X=None, y=None)

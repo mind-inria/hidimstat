@@ -608,3 +608,13 @@ def test_hidimstat_tags():
     dl = DesparsifiedLasso()
     tags = dl.__sklearn_tags__()
     assert not tags.needs_importance_data
+
+
+@pytest.mark.filterwarnings(
+    "error:desparsified_lasso_importance is deprecated"
+)
+def test_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning, match="Please use class DesparsifiedLasso"
+    ):
+        desparsified_lasso_importance(X=None, y=None)
