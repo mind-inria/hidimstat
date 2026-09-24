@@ -277,17 +277,30 @@ def check_statistical_test(statistical_test, test_frac=None):
 
 def check_scoring(estimator=None, scoring=None):
     """
-    Determine scorer from user options.
+    Determine sklearn-compatible scorer from user options.
     A TypeError will be thrown if the estimator cannot be scored.
 
     Parameters
     ----------
-    estimator: sklearn-compatible estimator
-        The estimator that will be used for predictions.
-        If no scoring is explicitly provided, the scorer
-        will be set to
+    estimator: sklearn-compatible estimator, default=None
+        The estimator that will be used for predictions. If no scoring is explicitly
+        provided, the scorer will be set to "neg_log_loss" for classifiers, and
+        "neg_mean_squared_error" for regressors.
+    scoring: str, callable, default=None
+        Sklearn-comptabile scorer to use.
+
+    Returns
+    -------
+    scoring : callable
+        A scorer callable object / function with signature ``scorer(estimator, X, y)``.
     """
     if isinstance(scoring, str):
+        if scoring == "log_loss":
+            return get_scorer(
+                make_scorer(log_loss, response_method="predict_proba")
+            )
+        if scoring == "mean_squared_error":
+            return get_scorer(make_scorer(mean_squared_error))
         return get_scorer(scoring)
     elif callable(scoring):
         module = getattr(scoring, "__module__", None)
@@ -309,9 +322,11 @@ def check_scoring(estimator=None, scoring=None):
         if estimator is not None:
             tags = get_tags(estimator)
             if tags.estimator_type == "classifier":
-                return get_scorer("neg_log_loss")
+                return get_scorer(
+                    make_scorer(log_loss, response_method="predict_proba")
+                )
             elif tags.estimator_type == "regressor":
-                return get_scorer("neg_mean_squared_error")
+                return get_scorer(make_scorer(mean_squared_error))
             else:
                 raise TypeError(
                     f"Estimator {estimator} should be one of two types "

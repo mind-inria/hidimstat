@@ -232,8 +232,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             estimator=self.estimator_, scoring=self.scoring
         )
 
-        # Scorer returns NEGATIVE log_loss/MSE
-        self.loss_reference_ = -self.scoring(self.estimator_, X, y)
+        self.loss_reference_ = self.scoring(self.estimator_, X, y)
 
         X_perm = self._perturb(X)
         self.loss_ = {}
@@ -242,7 +241,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 self.scoring(self.estimator_, X_group_perm, y)
                 for X_group_perm in X_group_j
             ]
-            self.loss_[j] = -np.array(list_loss)
+            self.loss_[j] = np.array(list_loss)
 
         test_result = np.array(
             [
