@@ -277,7 +277,15 @@ def check_statistical_test(statistical_test, test_frac=None):
 
 def check_scoring(estimator=None, scoring=None):
     """
-    Provide explanation here
+    Determine scorer from user options.
+    A TypeError will be thrown if the estimator cannot be scored.
+
+    Parameters
+    ----------
+    estimator: sklearn-compatible estimator
+        The estimator that will be used for predictions.
+        If no scoring is explicitly provided, the scorer
+        will be set to
     """
     if isinstance(scoring, str):
         return get_scorer(scoring)
@@ -301,9 +309,9 @@ def check_scoring(estimator=None, scoring=None):
         if estimator is not None:
             tags = get_tags(estimator)
             if tags.estimator_type == "classifier":
-                return make_scorer(log_loss)
+                return get_scorer("neg_log_loss")
             elif tags.estimator_type == "regressor":
-                return make_scorer(mean_squared_error)
+                return get_scorer("neg_mean_squared_error")
             else:
                 raise TypeError(
                     f"Estimator {estimator} should be one of two types "
