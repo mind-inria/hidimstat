@@ -26,7 +26,7 @@ INPUT1 = [
     "Some notes.",
     "",
 ]
-section_indices1 = [(1, 2), (3, 7), (8, 17)]
+section_indices1 = [(1, 2), (3, 7), (8, 12), (13, 17)]
 
 INPUT2 = [
     "",
@@ -229,7 +229,6 @@ def test_smoke_aggregate_docstring():
     -------
     None
 
-
     References
     ----------
     .. footbibliography::
@@ -247,6 +246,10 @@ def test_smoke_aggregate_docstring():
     assert (
         final_doc
         == """Short Summary
+
+.. deprecated:: 0.6.0
+
+
 Parameters
 ----------
 param_1: ndarray of shape (n_sampling,)

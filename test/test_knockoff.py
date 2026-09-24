@@ -10,7 +10,6 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
@@ -18,8 +17,6 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-
-from .conftest import check_estimator
 
 
 def expected_failed_checks(estimator):
@@ -29,39 +26,13 @@ def expected_failed_checks(estimator):
 
 ESTIMATORS_TO_CHECK = [ModelXKnockoff(), GaussianKnockoffs()]
 
-if SKLEARN_LT_1_6:
 
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 def test_knockoff_bootstrap_quantile(rng):
@@ -207,13 +178,15 @@ def test_model_x_knockoff(rng):
     assert np.mean(power_list) > 0.7
 
 
-def test_model_x_knockoff_estimator():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 50, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_model_x_knockoff_estimator(data_generator):
     """Test knockoff with a crossvalidation estimator"""
-    seed = 42
     fdr = 0.2
-    n = 100
-    p = 20
-    X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
+    X, y, beta = data_generator
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
         estimator=GridSearchCV(
@@ -225,18 +198,20 @@ def test_model_x_knockoff_estimator():
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
     fdp_power(selected, beta)
 
-    assert selected.shape == (p,)
+    assert selected.shape == (50,)
 
 
-def test_estimate_distribution():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["low samples"],
+)
+def test_estimate_distribution(data_generator):
     """
     Test different estimation of the covariance
     """
-    seed = 42
     fdr = 0.1
-    n = 200
-    p = 20
-    X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
+    X, y, beta = data_generator
     generator = GaussianKnockoffs(
         cov_estimator=GraphicalLassoCV(
             alphas=[1e-3, 1e-2, 1e-1, 1],
@@ -253,20 +228,18 @@ def test_estimate_distribution():
     assert np.all(beta[selected])
 
 
-def test_knockoff_function_not_centered():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 50, None, 10, 0, 0, 1, 10, 0)],
+    ids=["low samples"],
+)
+def test_knockoff_function_not_centered(data_generator):
     """Test function of knockoff not centered"""
     fdr = 0.2
-    n = 100
-    p = 20
-    seed = 0
-    X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
+    p = 50
+    X, y, beta = data_generator
     selected, importances, pvalues = model_x_knockoff_importance(
-        X,
-        y,
-        centered=False,
-        n_repeats=5,
-        random_state=seed,
-        fdr=fdr,
+        X, y, centered=False, n_repeats=5, random_state=0, fdr=fdr
     )
     fdp_power(selected, beta)
     assert selected.shape == (p,)
@@ -274,13 +247,15 @@ def test_knockoff_function_not_centered():
     assert pvalues.shape == (5, p)
 
 
-def test_model_x_knockoff_null():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 50, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_model_x_knockoff_null(data_generator):
     """Test knockoff with a crossvalidation estimator"""
-    seed = 42
     fdr = 0.05
-    n = 100
-    p = 20
-    X, y, beta, _ = multivariate_simulation(n, p, seed=seed)
+    X, y, beta = data_generator
     model_x_knockoff = ModelXKnockoff(
         n_repeats=1,
         estimator=GridSearchCV(
@@ -294,26 +269,23 @@ def test_model_x_knockoff_null():
     assert not selected.any()
 
 
-def test_lasso_estimator_alphas():
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(200, 50, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_lasso_estimator_alphas(data_generator):
     """Test configuration of alphas when estimator is LassoCV depending on Scikit-Learn version."""
-    n = 100
-    p = 20
-    signal_noise_ratio = 32
     n_repeats = 5
-    seed = 42
     n_alphas = 10
-    X, y, _, _ = multivariate_simulation(
-        n, p, signal_noise_ratio=signal_noise_ratio, seed=seed
-    )
-    if SKLEARN_LT_1_6:
-        estimator = LassoCV(n_alphas=n_alphas)
-    else:
-        estimator = LassoCV(alphas=list(range(n_alphas)))
+    X, y, _ = data_generator
+    estimator = LassoCV(alphas=list(range(n_alphas)))
 
     model_x_knockoff = ModelXKnockoff(
         estimator=estimator,
         n_repeats=n_repeats,
-        random_state=seed,
+        random_state=42,
+        n_jobs=1,
     ).fit(X, y)
 
     assert all(
@@ -324,8 +296,8 @@ def test_lasso_estimator_alphas():
 
 ##############################################################################
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(300, 20, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default data"],
 )
 class TestModelXKnockoffExceptions:
@@ -397,3 +369,11 @@ def test_preconfigure_LassoCV(rng):
             n_features=10,
             y=rng.random(10),
         )
+
+
+@pytest.mark.filterwarnings("error:model_x_knockoff_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning, match="Please use class ModelXKnockoff"
+    ):
+        model_x_knockoff_importance(estimator=None, X=None, y=None)
