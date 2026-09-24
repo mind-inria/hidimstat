@@ -273,7 +273,7 @@ def check_statistical_test(statistical_test, test_frac=None):
 
 def find_stack_level() -> int:
     """
-    Find the first place in the stack that is not inside nilearn
+    Find the first place in the stack that is not inside hidimstat
     (tests notwithstanding).
 
     Taken from the pandas codebase.
