@@ -140,7 +140,7 @@ plt.show()
 # -------------------------------------
 # Inspecting the correlation between features is a useful preliminary step.
 # When high correlations are present, it may indicate that features are
-# redundant and their conditional importance (measured by methods such as CFI)
+# redundant and their conditional importance
 # will vanish. In such circumstances measuring the importance of groups of
 # features may be more appropriate, see :ref:`grouping`. Here, by construction,
 # the features are uncorrelated.
@@ -157,7 +157,7 @@ plt.show()
 # are listed in the :ref:`Feature Importance Classes
 # <feature_importance_classes>` section of the API. Here we use CFI
 # (:class:`~hidimstat.CFI`), a good default choice: unlike simpler methods such
-# as permutation importance (:class:`~hidimstat.PFI`), it accounts for the
+# as permutation importance (:class:`~hidimstat.PFI`), it accounts explicitly for the
 # dependencies between features, while being computationally more efficient and
 # statistically more powerful than methods such as LOCO
 # (:class:`~hidimstat.LOCO`). These trade-offs are detailed in
