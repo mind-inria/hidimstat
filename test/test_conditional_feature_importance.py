@@ -39,7 +39,7 @@ def run_cfi(
     y,
     seed,
     n_permutations=20,
-    method="predict",
+    scoring="neg_mean_squared_error",
     feature_groups=None,
     feature_types="auto",
 ):
@@ -83,7 +83,7 @@ def run_cfi(
         y=y_train,
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutations,
-        method=method,
+        scoring=scoring,
         feature_groups=feature_groups,
         feature_types=feature_types,
         random_state=seed,
@@ -119,7 +119,7 @@ def cfi_test_data():
         "estimator": model,
         "imputation_model_continuous": LinearRegression(),
         "n_permutations": 20,
-        "method": "predict",
+        "scoring": "neg_mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_test, cfi_default_parameters
@@ -188,8 +188,7 @@ def test_classification(data_generator):
         estimator=logistic_model,
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
-        method="predict_proba",
-        loss=log_loss,
+        scoring="neg_log_loss",
         feature_groups=None,
         feature_types=["continuous"] * X.shape[1],
         random_state=0,
@@ -328,7 +327,7 @@ def test_no_group_output_detection(data_generator):
         estimator=regression_model,
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
-        method="predict",
+        scoring="neg_mean_squared_error",
         feature_groups=None,
         feature_types="auto",
         random_state=0,
@@ -366,12 +365,11 @@ class TestCFIClass:
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(
             estimator=fitted_model,
-            method="predict",
+            scoring="neg_mean_squared_error",
         )
         assert cfi.n_jobs == 1
         assert cfi.n_permutations == 50
-        assert cfi.loss == mean_squared_error
-        assert cfi.method == "predict"
+        assert cfi.scoring == "neg_mean_squared_error"
         assert cfi.categorical_max_cardinality == 10
         assert isinstance(
             cfi.imputation_model_categorical, LogisticRegressionCV
@@ -451,7 +449,7 @@ class TestCFIExceptions:
         X, y, _ = data_generator
 
         with pytest.raises(ValueError):
-            run_cfi(X=X, y=y, seed=0, method="unknown method")
+            run_cfi(X=X, y=y, seed=0, scoring="unknown method")
 
     def test_unfitted_importance(self, data_generator):
         """Test importance method with unfitted model"""
@@ -459,7 +457,7 @@ class TestCFIExceptions:
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(
             estimator=fitted_model,
-            method="predict",
+            scoring="neg_mean_squared_error",
         )
 
         with pytest.raises(
@@ -473,7 +471,7 @@ class TestCFIExceptions:
         fitted_model = LinearRegression().fit(X, y)
         cfi = CFI(
             estimator=fitted_model,
-            method="predict",
+            scoring="neg_mean_squared_error",
         )
         BasePerturbation.fit(cfi, X, y)
 
@@ -511,7 +509,7 @@ class TestCFIExceptions:
             imputation_model_continuous=LinearRegression(),
             feature_groups=None,
             feature_types="auto",
-            method="predict",
+            scoring="neg_mean_squared_error",
         )
         cfi.fit(X)
 
@@ -528,7 +526,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            method="predict",
+            scoring="neg_mean_squared_error",
             feature_groups=None,
             feature_types="auto",
         )
@@ -554,7 +552,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            method="predict",
+            scoring="neg_mean_squared_error",
             feature_groups=subgroups,
             feature_types="auto",
         )
@@ -588,7 +586,7 @@ class TestCFIExceptions:
         cfi = CFI(
             estimator=fitted_model,
             imputation_model_continuous=LinearRegression(),
-            method="predict",
+            scoring="neg_mean_squared_error",
             feature_groups=subgroups,
             feature_types="auto",
         )
@@ -625,7 +623,7 @@ class TestCFIExceptions:
             cfi = CFI(
                 estimator=fitted_model,
                 imputation_model_continuous="invalid_imputer",
-                method="predict",
+                scoring="neg_mean_squared_error",
             )
 
         with pytest.raises(
@@ -634,7 +632,7 @@ class TestCFIExceptions:
             cfi = CFI(
                 estimator=fitted_model,
                 imputation_model_categorical="invalid_imputer",
-                method="predict",
+                scoring="neg_mean_squared_error",
             )
 
     def test_invalid_groups_format(self, data_generator):
