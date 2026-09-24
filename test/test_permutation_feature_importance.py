@@ -337,11 +337,11 @@ ESTIMATORS_TO_CHECK = [
 
 
 @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
 def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+    check(estimator)
 
 
 @pytest.mark.filterwarnings("error:pfi_importance is deprecated")
