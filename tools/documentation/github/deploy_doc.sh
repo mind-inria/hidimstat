@@ -7,7 +7,7 @@
 # For deploy of doc build on release (stable)
 # - Deletes stable folder
 #
-# - Replaces it with content from doc/_build/html
+# - Replaces it with content from docs/_build/html
 # For deploy of doc build on release (stable)
 # - Also copies the doc in a folder X.Y.Z with X.Y.Z corresponding to the doc version
 #
@@ -29,7 +29,7 @@
 
 set -x -e
 
-CLONED_DOC='doc/_build/hidimstat.github.io'
+CLONED_DOC='docs/_build/hidimstat.github.io'
 
 if [ ! -d ${CLONED_DOC} ]; then
     echo "Cloning hidimstat/hidimstat.github.io: this may take a while..."
@@ -50,11 +50,11 @@ echo "Copying ${DEPLOY_TYPE} docs."
 
 rm -fr "${CLONED_DOC:?}/${DEPLOY_TYPE}"
 
-cp -a ./doc/_build/html "${CLONED_DOC}/${DEPLOY_TYPE}"
+cp -a ./docs/_build/html "${CLONED_DOC}/${DEPLOY_TYPE}"
 
 if [ "${DEPLOY_TYPE}" == "stable" ]; then
     VERSIONTAG=$(git describe --tags --abbrev=0)
-    cp -a ./doc/_build/html "${CLONED_DOC}/${VERSIONTAG}"
+    cp -a ./docs/_build/html "${CLONED_DOC}/${VERSIONTAG}"
 fi
 
 echo "Deploying ${DEPLOY_TYPE} docs."

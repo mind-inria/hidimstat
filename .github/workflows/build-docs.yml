@@ -268,7 +268,7 @@ jobs:
         -   uses: actions/download-artifact@v8
             with:
                 name: doc
-                path: doc/_build/html
+                path: docs/_build/html
 
         -   name: Identify deploy type
             id: deploy-type
