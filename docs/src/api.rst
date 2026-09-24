@@ -33,9 +33,7 @@ Feature Importance Classes
    LOCOCV
    CFI
    CFICV
-   CluDL
    ClusterImportance
-   EnCluDL
    EnsembleImportance
    PFI
    PFICV
