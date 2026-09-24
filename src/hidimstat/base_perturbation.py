@@ -3,12 +3,10 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
-from sklearn.metrics import mean_squared_error
 from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
-    _check_vim_predict_method,
     check_random_state,
     check_scoring,
     check_statistical_test,
@@ -136,7 +134,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
 
-    def _predict(self, X):
+    def _perturb(self, X):
         """
         Compute the predictions after perturbation of the data for each group of
         variables.
@@ -155,7 +153,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_features_group)(
+            delayed(self._joblib_perturb_one_feature_group)(
                 X, features_group_id, random_state=child_state
             )
             for features_group_id, child_state in enumerate(
@@ -165,11 +163,11 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         return np.stack(out_list, axis=0)
 
-    def _joblib_predict_one_features_group(
+    def _joblib_perturb_one_feature_group(
         self, X, features_group_id, random_state=None
     ):
         """
-        Compute the predictions after perturbation of the data for a given
+        Perform perturbation of the data for a given
         group of variables. This function is parallelized.
 
         Parameters
@@ -195,20 +193,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         X_perm[:, :, features_group_ids] = self._permutation(
             X, features_group_id=features_group_id, random_state=random_state
         )
-        """# Reshape X_perm to allow for batch prediction
-        X_perm_batch = X_perm.reshape(-1, X.shape[1])
-        if isinstance(X, pd.DataFrame):
-            X_perm_batch = pd.DataFrame(X_perm_batch, columns=X.columns)
-        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
-
-        # In case of classification, the output is a 2D array. Reshape accordingly
-        if y_pred_perm.ndim == 1:
-            y_pred_perm = y_pred_perm.reshape(self.n_permutations, X.shape[0])
-        else:
-            y_pred_perm = y_pred_perm.reshape(
-                self.n_permutations, X.shape[0], y_pred_perm.shape[1]
-            )
-        return y_pred_perm"""
         if isinstance(X, pd.DataFrame):
             X_perm = [
                 pd.DataFrame(X_perm_j, columns=X.columns)
@@ -251,7 +235,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         # Scorer returns NEGATIVE log_loss/MSE
         self.loss_reference_ = -self.scoring(self.estimator_, X, y)
 
-        X_perm = self._predict(X)
+        X_perm = self._perturb(X)
         self.loss_ = {}
         for j, X_group_j in enumerate(X_perm):
             list_loss = [
