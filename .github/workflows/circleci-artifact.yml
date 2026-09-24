@@ -28,11 +28,11 @@ jobs:
         if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: get-tests-reports'"
         name: Run CircleCI artifacts reports
         steps:
-        -   name: GitHub Action step
-            uses: larsoner/circleci-artifacts-redirector-action@master
-            with:
-                repo-token: ${{ secrets.GITHUB_TOKEN }}
-                api-token: ${{ secrets.CIRCLE_CI }}
-                artifact-path: 0/documentation/test_reports/index.html
-                circleci-jobs: get-tests-reports
-                job-title: Check the reports of the tests here!
+        - name: GitHub Action step
+          uses: larsoner/circleci-artifacts-redirector-action@master
+          with:
+            repo-token: ${{ secrets.GITHUB_TOKEN }}
+            api-token: ${{ secrets.CIRCLE_CI }}
+            artifact-path: 0/documentation/test_reports/index.html
+            circleci-jobs: get-tests-reports
+            job-title: Check the reports of the tests here!
