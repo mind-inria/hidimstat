@@ -4,13 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
 from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
@@ -198,3 +196,9 @@ def test_loco_cv(data_generator):
     )
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.filterwarnings("error:loco_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class LOCO"):
+        loco_importance(estimator=None, X=None, y=None)

@@ -588,6 +588,13 @@ def desparsified_lasso_importance(
     threshold_min=None,
     threshold_max=None,
 ):
+    warnings.warn(
+        "desparsified_lasso_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class DesparsifiedLasso instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = DesparsifiedLasso(
         estimator=estimator,
         centered=centered,
@@ -629,17 +636,17 @@ desparsified_lasso_importance.__doc__ = _aggregate_docstring(
         DesparsifiedLasso.pvalue_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected
-        during screening, scores are set to 0.
-    pvalues : ndarray of shape (n_features,)
-        Two-sided p-values for each feature under Gaussian null hypothesis.
-        For features not selected during screening, p-values are set to 1.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_features,)
+    Boolean array indicating selected features (True = selected)
+importances : ndarray of shape (n_features,)
+    Feature importance scores/test statistics. For features not selected
+    during screening, scores are set to 0.
+pvalues : ndarray of shape (n_features,)
+    Two-sided p-values for each feature under Gaussian null hypothesis.
+    For features not selected during screening, p-values are set to 1.
+""",
 )
 
 

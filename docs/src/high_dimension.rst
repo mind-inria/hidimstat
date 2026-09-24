@@ -134,7 +134,7 @@ The behavior is illustrated here:
     See the following example for a full file running the analysis:
     :ref:`sphx_glr_generated_gallery_examples_plot_2D_simulation_example.py`
 
-What type of Control does this Ensemble of CLustered inference come with ?
+What type of Control does this Ensemble of Clustered inference come with ?
 ==========================================================================
 
 Ensemble of Clustered Inference is not a local method, so control cannot be
