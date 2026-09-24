@@ -26,8 +26,7 @@ def run_pfi(
     estimator,
     n_permutations=20,
     feature_groups=None,
-    method="predict",
-    loss=mean_squared_error,
+    scoring="neg_mean_squared_error",
 ):
     """Test the Permutation Feature Importance algorithm on a linear scenario."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -36,8 +35,7 @@ def run_pfi(
 
     pfi = PFI(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         n_permutations=n_permutations,
         feature_groups=feature_groups,
         random_state=0,
@@ -98,11 +96,7 @@ def test_permutation_importance(data_generator):
     # Classification case
     y_clf = (y > np.median(y)).astype(int)
     pfi = run_pfi(
-        X=X,
-        y=y_clf,
-        estimator=LogisticRegression(),
-        method="predict_proba",
-        loss=log_loss,
+        X=X, y=y_clf, estimator=LogisticRegression(), scoring="neg_log_loss"
     )
     importance_clf = pfi.importances_
 
@@ -127,7 +121,7 @@ def test_permutation_importance_function(data_generator):
         X,
         y,
         n_permutations=20,
-        method="predict",
+        scoring="neg_mean_squared_error",
         random_state=0,
     )
 
@@ -160,7 +154,7 @@ def pfi_test_data():
     pfi_default_parameters = {
         "estimator": model,
         "n_permutations": 20,
-        "method": "predict",
+        "scoring": "neg_mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_train, y_test, pfi_default_parameters

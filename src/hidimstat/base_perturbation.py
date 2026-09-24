@@ -10,6 +10,7 @@ from tqdm import tqdm
 from hidimstat._utils.utils import (
     _check_vim_predict_method,
     check_random_state,
+    check_scoring,
     check_statistical_test,
 )
 from hidimstat.base_variable_importance import (
@@ -28,13 +29,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     estimator : sklearn-compatible estimator
         The estimator that will be used for predictions.
         It will be automatically fitted if it has not already been.
-    method : str, default="predict"
-        The method used for making predictions. This determines the predictions
-        passed to the loss function. Supported methods are "predict",
-        "predict_proba", "decision_function", "transform".
-    loss : callable, default=mean_squared_error
-        The function to compute the loss when comparing the perturbed model
-        to the original model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     n_permutations : int, default=50
         Number of permutations for each feature group.
     statistical_test : callable or str, default="nb-ttest"
@@ -72,8 +69,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     def __init__(
         self,
         estimator=None,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
         n_permutations: int = 50,
         statistical_test="ttest",
         feature_groups=None,
@@ -85,9 +81,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             self, feature_groups=feature_groups
         )
         self.estimator = estimator
-        self.loss = loss
+        self.scoring = scoring
 
-        self.method = method
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
@@ -119,7 +114,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
         assert self.n_permutations > 0, "n_permutations must be positive"
-        _check_vim_predict_method(self.method)
         check_array(X)
 
         # variable set in importance
@@ -171,6 +165,57 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         return np.stack(out_list, axis=0)
 
+    def _joblib_predict_one_features_group(
+        self, X, features_group_id, random_state=None
+    ):
+        """
+        Compute the predictions after perturbation of the data for a given
+        group of variables. This function is parallelized.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        features_group_id: int
+            The index of the group of variables.
+        random_state:
+            The random state to use for sampling.
+        """
+        features_group_ids = self._feature_groups_ids[features_group_id]
+        non_features_group_ids = np.delete(
+            np.arange(X.shape[1]), features_group_ids
+        )
+        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
+        # where the j-th group of covariates is permuted
+        X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
+        # This also works with pandas DataFrame
+        X_perm[:, :, non_features_group_ids] = np.delete(
+            X, features_group_ids, axis=1
+        )
+        X_perm[:, :, features_group_ids] = self._permutation(
+            X, features_group_id=features_group_id, random_state=random_state
+        )
+        """# Reshape X_perm to allow for batch prediction
+        X_perm_batch = X_perm.reshape(-1, X.shape[1])
+        if isinstance(X, pd.DataFrame):
+            X_perm_batch = pd.DataFrame(X_perm_batch, columns=X.columns)
+        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
+
+        # In case of classification, the output is a 2D array. Reshape accordingly
+        if y_pred_perm.ndim == 1:
+            y_pred_perm = y_pred_perm.reshape(self.n_permutations, X.shape[0])
+        else:
+            y_pred_perm = y_pred_perm.reshape(
+                self.n_permutations, X.shape[0], y_pred_perm.shape[1]
+            )
+        return y_pred_perm"""
+        if isinstance(X, pd.DataFrame):
+            X_perm = [
+                pd.DataFrame(X_perm_j, columns=X.columns)
+                for X_perm_j in X_perm
+            ]
+        return X_perm
+
     def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
@@ -199,15 +244,21 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
+        self.scoring = check_scoring(
+            estimator=self.estimator_, scoring=self.scoring
+        )
 
-        y_pred = getattr(self.estimator_, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
+        # Scorer returns NEGATIVE log_loss/MSE
+        self.loss_reference_ = -self.scoring(self.estimator_, X, y)
 
-        y_pred = self._predict(X)
+        X_perm = self._predict(X)
         self.loss_ = {}
-        for j, y_pred_j in enumerate(y_pred):
-            list_loss = [self.loss(y, y_pred_perm) for y_pred_perm in y_pred_j]
-            self.loss_[j] = np.array(list_loss)
+        for j, X_group_j in enumerate(X_perm):
+            list_loss = [
+                self.scoring(self.estimator_, X_group_perm, y)
+                for X_group_perm in X_group_j
+            ]
+            self.loss_[j] = -np.array(list_loss)
 
         test_result = np.array(
             [
@@ -217,7 +268,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = statistical_test(test_result).pvalue
-        assert self.pvalues_.shape[0] == y_pred.shape[0], (
+        assert self.pvalues_.shape[0] == X_perm.shape[0], (
             "The statistical test doesn't provide the correct dimension."
         )
         return self.importances_
@@ -261,51 +312,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             raise ValueError(
                 "The importance method need to be called before calling this method."
             )
-
-    def _joblib_predict_one_features_group(
-        self, X, features_group_id, random_state=None
-    ):
-        """
-        Compute the predictions after perturbation of the data for a given
-        group of variables. This function is parallelized.
-
-        Parameters
-        ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        features_group_id: int
-            The index of the group of variables.
-        random_state:
-            The random state to use for sampling.
-        """
-        features_group_ids = self._feature_groups_ids[features_group_id]
-        non_features_group_ids = np.delete(
-            np.arange(X.shape[1]), features_group_ids
-        )
-        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
-        # where the j-th group of covariates is permuted
-        X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        # This also works with pandas DataFrame
-        X_perm[:, :, non_features_group_ids] = np.delete(
-            X, features_group_ids, axis=1
-        )
-        X_perm[:, :, features_group_ids] = self._permutation(
-            X, features_group_id=features_group_id, random_state=random_state
-        )
-        # Reshape X_perm to allow for batch prediction
-        X_perm_batch = X_perm.reshape(-1, X.shape[1])
-        if isinstance(X, pd.DataFrame):
-            X_perm_batch = pd.DataFrame(X_perm_batch, columns=X.columns)
-        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
-
-        # In case of classification, the output is a 2D array. Reshape accordingly
-        if y_pred_perm.ndim == 1:
-            y_pred_perm = y_pred_perm.reshape(self.n_permutations, X.shape[0])
-        else:
-            y_pred_perm = y_pred_perm.reshape(
-                self.n_permutations, X.shape[0], y_pred_perm.shape[1]
-            )
-        return y_pred_perm
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Method for creating the permuted data for the j-th group of covariates."""
