@@ -15,7 +15,6 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
-    SKLEARN_LT_1_6,
     _check_vim_predict_method,
     _generate_group_mask,
     _make_sklearn_estimator,

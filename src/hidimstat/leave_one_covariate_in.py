@@ -1,9 +1,8 @@
 import warnings
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
+from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring

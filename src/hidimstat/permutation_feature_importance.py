@@ -1,7 +1,6 @@
 import warnings
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring

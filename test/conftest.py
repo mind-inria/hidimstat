@@ -1,14 +1,8 @@
 import numpy as np
 import pytest
-from packaging.version import parse
-from sklearn import __version__ as sklearn_version
 from sklearn.linear_model import LinearRegression
-from sklearn.utils.estimator_checks import (
-    check_estimator as sklearn_check_estimator,
-)
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 
 try:
     import matplotlib
@@ -97,51 +91,3 @@ def data_generator(
     )
     important_features_mask = beta.astype(bool)
     return X, y, important_features_mask
-
-
-def check_estimator(
-    estimators, return_expected_failed_checks, valid: bool = True
-):
-    """Yield a valid or invalid sklearn estimators check.
-
-    ONLY USED FOR sklearn<1.6
-
-    As some of estimators do not comply
-    with sklearn recommendations
-    (cannot fit Numpy arrays, do input validation in the constructor...)
-    we cannot directly use
-    sklearn.utils.estimator_checks.check_estimator.
-
-    So this is a home made generator that yields an estimator instance
-    along with a
-    - valid check from sklearn: those should stay valid
-    - or an invalid check that is known to fail.
-
-    See this section rolling-your-own-estimator in
-    the scikit-learn doc for more info:
-    https://scikit-learn.org/stable/developers/develop.html
-
-    Parameters
-    ----------
-    estimators : list of estimator object
-        Estimator instance to check.
-
-    valid : bool, default=True
-        Whether to return only the valid checks or not.
-    """
-    # TODO (sklearn >= 1.6.0) remove this function
-    if not SKLEARN_LT_1_6:  # pragma: no cover
-        raise RuntimeError(
-            "Use dedicated sklearn utilities to test estimators."
-        )
-
-    for est in estimators:
-        expected_failed_checks = return_expected_failed_checks(est)
-
-        for e, check in sklearn_check_estimator(
-            estimator=est, generate_only=True
-        ):
-            if not valid and check.func.__name__ in expected_failed_checks:
-                yield e, check, check.func.__name__
-            if valid and check.func.__name__ not in expected_failed_checks:
-                yield e, check, check.func.__name__
