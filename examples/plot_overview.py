@@ -140,10 +140,12 @@ plt.show()
 # -------------------------------------
 # Inspecting the correlation between features is a useful preliminary step.
 # When high correlations are present, it may indicate that features are
-# redundant and their conditional importance
-# will vanish. In such circumstances measuring the importance of groups of
-# features may be more appropriate, see :ref:`grouping`. Here, by construction,
-# the features are uncorrelated.
+# redundant, in which case their :ref:`conditional importance
+# <types_of_vi_methods>` will vanish: this follows from the definition of
+# conditional importance, and holds for any conditional estimator. In such
+# circumstances measuring the importance of groups of features may be more
+# appropriate, see :ref:`grouping`. Here, by construction, the features are
+# uncorrelated.
 
 corr = pd.DataFrame(X, columns=feature_names).corr()
 _, ax = plt.subplots(figsize=(8, 6))
@@ -267,14 +269,7 @@ viz.plot(
 # first feature: class 0 (the outer circle) is predicted for low and high values
 # of :math:`X_0`, whereas class 1 (the inner circle) is predicted for
 # intermediate values of :math:`X_0`.
-#
-# .. note::
-#     :class:`~hidimstat.visualization.PDP` computes partial dependence instead,
-#     which is easier to interpret but biased when features are correlated. The
-#     two are compared in
-#     :ref:`sphx_glr_generated_gallery_examples_plot_comparison_pdp_ale.py`, and
-#     ALE is covered in more depth in
-#     :ref:`sphx_glr_generated_gallery_examples_plot_accumulated_local_effects.py`.
+
 
 # %%
 # Going further
