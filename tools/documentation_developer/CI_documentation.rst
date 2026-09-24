@@ -17,7 +17,7 @@ actions are taken.
 
     ============================  =======================================
     Commit Message Marker         Action Taken by CI
-    ---------------------- -----  ---------------------------------------
+    ----------------------------  ---------------------------------------
     [skip tests]                  the tests are not run
     [skip doc]                    skip build of the documentation
     [full doc]                    runs a full build on pull-request
