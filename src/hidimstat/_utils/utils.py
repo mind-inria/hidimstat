@@ -7,7 +7,12 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
-from sklearn.metrics import get_scorer, log_loss, mean_squared_error
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 from sklearn.utils import get_tags
 
 from hidimstat.statistical_tools.holdout_randomization_test import (
@@ -275,7 +280,7 @@ def check_scoring(estimator=None, scoring=None):
     Provide explanation here
     """
     if isinstance(scoring, str):
-        get_scorer(scoring)
+        return get_scorer(scoring)
     elif callable(scoring):
         module = getattr(scoring, "__module__", None)
         if (
@@ -296,9 +301,9 @@ def check_scoring(estimator=None, scoring=None):
         if estimator is not None:
             tags = get_tags(estimator)
             if tags.estimator_type == "classifier":
-                return log_loss
+                return make_scorer(log_loss)
             elif tags.estimator_type == "regressor":
-                return mean_squared_error
+                return make_scorer(mean_squared_error)
             else:
                 raise TypeError(
                     f"Estimator {estimator} should be one of two types "
