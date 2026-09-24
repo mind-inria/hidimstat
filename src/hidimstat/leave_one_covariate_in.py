@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
@@ -30,10 +32,10 @@ class LOCI(BasePerturbation):
         model.
     statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     n_jobs : int, default=1
         The number of jobs to run in parallel. Parallelization is done over the
         variables or groups of variables.
@@ -53,7 +55,7 @@ class LOCI(BasePerturbation):
         method: str = "predict",
         loss: callable = mean_squared_error,
         statistical_test="ttest",
-        features_groups=None,
+        feature_groups=None,
         n_jobs: int = 1,
     ):
         super().__init__(
@@ -61,7 +63,7 @@ class LOCI(BasePerturbation):
             method=method,
             loss=loss,
             statistical_test=statistical_test,
-            features_groups=features_groups,
+            feature_groups=feature_groups,
             n_jobs=n_jobs,
         )
         self._list_estimators = None
@@ -86,16 +88,16 @@ class LOCI(BasePerturbation):
         super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [
-            clone(self.estimator) for _ in range(self.n_features_groups_)
+            clone(self.estimator) for _ in range(self.n_feature_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators
         self._list_estimators = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                estimator, X, y, features_groups_ids
+                estimator, X, y, feature_groups_ids
             )
-            for features_groups_ids, estimator in zip(
-                self._features_groups_ids,
+            for feature_groups_ids, estimator in zip(
+                self._feature_groups_ids,
                 self._list_estimators,
                 strict=False,
             )
@@ -182,7 +184,7 @@ class LOCI(BasePerturbation):
         self.importances_ = np.mean(
             [
                 self.loss_reference_ - self.loss_[j]
-                for j in range(self.n_features_groups_)
+                for j in range(self.n_feature_groups_)
             ],
             axis=1,
         )
@@ -193,13 +195,13 @@ class LOCI(BasePerturbation):
         return self.importances_
 
     def _joblib_fit_one_features_group(
-        self, estimator, X, y, features_groups_ids
+        self, estimator, X, y, feature_groups_ids
     ):
         """
         Fit the estimator on a group of covariates.
         Used in parallel.
         """
-        X_j = _get_array_cols(X, features_groups_ids)
+        X_j = _get_array_cols(X, feature_groups_ids)
         estimator.fit(X_j, y)
         return estimator
 
@@ -211,8 +213,8 @@ class LOCI(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        # Since we don't have access to column names, we use the member _features_groups_ids
-        X_j = _get_array_cols(X, self._features_groups_ids[features_group_id])
+        # Since we don't have access to column names, we use the member _feature_groups_ids
+        X_j = _get_array_cols(X, self._feature_groups_ids[features_group_id])
         y_pred_loci = getattr(
             self._list_estimators[features_group_id], self.method
         )(X_j)
@@ -239,7 +241,7 @@ def loci_importance(
     y,
     method: str = "predict",
     loss: callable = mean_squared_error,
-    features_groups=None,
+    feature_groups=None,
     test_statistic="ttest",
     k_best=None,
     percentile=None,
@@ -247,12 +249,19 @@ def loci_importance(
     threshold_max=None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "loci_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class LOCI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     method = LOCI(
         estimator=estimator,
         method=method,
         loss=loss,
         statistical_test=test_statistic,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         n_jobs=n_jobs,
     )
     method.fit_importance(X, y)
@@ -274,15 +283,15 @@ loci_importance.__doc__ = _aggregate_docstring(
         LOCI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected).
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-        P-values computed for the marginal importance.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected).
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    P-values computed for the marginal importance.
+""",
 )
 
 
@@ -306,10 +315,10 @@ class LOCICV(BasePerturbationCV):
     loss : callable, default=mean_squared_error
         The loss function to use when comparing the perturbed model to the full
         model.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     n_jobs : int, default=1
         The number of jobs to run in parallel. Parallelization is done over the folds.
 
@@ -336,13 +345,13 @@ class LOCICV(BasePerturbationCV):
         statistical_test="nb-ttest",
         method="predict",
         loss=mean_squared_error,
-        features_groups=None,
+        feature_groups=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
         self.method = method
         self.loss = loss
-        self.features_groups = features_groups
+        self.feature_groups = feature_groups
 
     def _fit_single_split(self, estimator, X_train, y_train):
         """Fit a LOCI instance on a single train/test split."""
@@ -350,7 +359,7 @@ class LOCICV(BasePerturbationCV):
             estimator=estimator,
             method=self.method,
             loss=self.loss,
-            features_groups=self.features_groups,
+            feature_groups=self.feature_groups,
             n_jobs=1,  # no parallelization inside the fold
         )
         loci.fit(X_train, y_train)

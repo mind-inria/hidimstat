@@ -56,21 +56,24 @@ File Inventory
      - ``BaseVariableImportance`` — the shared selection/plotting logic
        (top-k, percentile, threshold, FDR, FWER selection; plotting)
    * - ``test_permutation_feature_importance.py``
-     - ``PFI`` / ``PFICV`` (Permutation Feature Importance)
+     - :class:`hidimstat.PFI` / :class:`hidimstat.PFICV` (Permutation Feature Importance)
    * - ``test_conditional_feature_importance.py``
-     - ``CFI`` / ``CFICV`` (Conditional Feature Importance)
+     - :class:`hidimstat.CFI` / :class:`hidimstat.CFICV` (Conditional Feature Importance)
    * - ``test_leave_one_covariate_in.py``
-     - ``LOCI`` / ``LOCICV`` (Leave-One-Covariate-In)
+     - :class:`hidimstat.LOCI` / :class:`hidimstat.LOCICV` (Leave-One-Covariate-In)
    * - ``test_leave_one_covariate_out.py``
-     - ``LOCO`` / ``LOCOCV`` (Leave-One-Covariate-Out)
+     - :class:`hidimstat.LOCO` / :class:`hidimstat.LOCOCV` (Leave-One-Covariate-Out)
    * - ``test_desparsified_lasso.py``
-     - ``DesparsifiedLasso``, the ``reid``/group-Reid noise estimators
+     - :class:`hidimstat.DesparsifiedLasso`, the ``reid``/group-Reid noise estimators
    * - ``test_knockoff.py``
-     - ``ModelXKnockoff``, ``GaussianKnockoffs`` (Model-X knockoffs)
+     - :class:`hidimstat.ModelXKnockoff`, ``GaussianKnockoffs`` (Model-X knockoffs)
    * - ``test_distilled_conditional_randomization_test.py``
-     - ``D0CRT`` (distilled conditional randomization test / dCRT)
-   * - ``test_ensemble_clustered_inference.py``
-     - ``CluDL`` / ``EnCluDL`` (clustered and ensembled-clustered
+     - :class:`hidimstat.D0CRT` (distilled conditional randomization test / dCRT)
+   * - ``test_cluster_importance.py``
+     - :class:`hidimstat.ClusterImportance` (clustered
+       desparsified Lasso inference on spatial/temporal data)
+   * - ``test_ensemble_importance.py``
+     - :class:`hidimstat.EnsembleImportance` (ensemble of clustered
        desparsified Lasso inference on spatial/temporal data)
    * - ``_utils/``
      - The data generation methods, and various method specific

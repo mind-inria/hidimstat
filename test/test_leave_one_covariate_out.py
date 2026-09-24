@@ -17,7 +17,7 @@ def run_loco(
     X,
     y,
     estimator,
-    features_groups=None,
+    feature_groups=None,
     method="predict",
     loss=mean_squared_error,
 ):
@@ -30,7 +30,7 @@ def run_loco(
         estimator=estimator,
         method=method,
         loss=loss,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         n_jobs=1,
     )
 
@@ -69,7 +69,7 @@ def test_loco(data_generator):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     loco = run_loco(
-        X=X_df, y=y, estimator=LinearRegression(), features_groups=groups
+        X=X_df, y=y, estimator=LinearRegression(), feature_groups=groups
     )
     importance = loco.importances_
 
@@ -81,7 +81,7 @@ def test_loco(data_generator):
         X=X,
         y=y_clf,
         estimator=LogisticRegression(),
-        features_groups={
+        feature_groups={
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
@@ -196,3 +196,9 @@ def test_loco_cv(data_generator):
     )
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.filterwarnings("error:loco_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class LOCO"):
+        loco_importance(estimator=None, X=None, y=None)

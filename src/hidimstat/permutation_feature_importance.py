@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
@@ -32,10 +34,10 @@ class PFI(BasePerturbation):
         the mean of the losses over the `n_permutations` is computed.
     statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     random_state : int or None, default=None
         The random state to use for sampling.
     n_jobs : int, default=1
@@ -54,7 +56,7 @@ class PFI(BasePerturbation):
         loss: callable = mean_squared_error,
         n_permutations: int = 50,
         statistical_test="ttest",
-        features_groups=None,
+        feature_groups=None,
         random_state: int | None = None,
         n_jobs: int = 1,
     ):
@@ -64,7 +66,7 @@ class PFI(BasePerturbation):
             loss=loss,
             n_permutations=n_permutations,
             statistical_test=statistical_test,
-            features_groups=features_groups,
+            feature_groups=feature_groups,
             random_state=random_state,
             n_jobs=n_jobs,
         )
@@ -76,7 +78,7 @@ class PFI(BasePerturbation):
             [
                 rng.permutation(
                     _get_array_cols(
-                        X, self._features_groups_ids[features_group_id]
+                        X, self._feature_groups_ids[features_group_id]
                     )
                 )
                 for _ in range(self.n_permutations)
@@ -93,7 +95,7 @@ def pfi_importance(
     loss: callable = mean_squared_error,
     n_permutations: int = 50,
     test_statistic="ttest",
-    features_groups=None,
+    feature_groups=None,
     k_best=None,
     percentile=None,
     threshold_min=None,
@@ -101,13 +103,20 @@ def pfi_importance(
     random_state: int | None = None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "pfi_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class PFI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = PFI(
         estimator=estimator,
         method=method,
         loss=loss,
         n_permutations=n_permutations,
         statistical_test=test_statistic,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         random_state=random_state,
         n_jobs=n_jobs,
     )
@@ -130,15 +139,15 @@ pfi_importance.__doc__ = _aggregate_docstring(
         PFI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_groups,)
-        Boolean array indicating selected feature groups (True = selected)
-    importances : ndarray of shape (n_groups,)
-        Feature group importance scores/test statistics.
-    pvalues : ndarray of shape (n_groups,)
-         P-values for importance scores.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected)
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+        P-values for importance scores.
+""",
 )
 
 
@@ -165,10 +174,10 @@ class PFICV(BasePerturbationCV):
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     random_state : int or None, default=None
         The random state to use for sampling.
     n_jobs : int, default=1
@@ -198,7 +207,7 @@ class PFICV(BasePerturbationCV):
         method="predict",
         loss=mean_squared_error,
         n_permutations=50,
-        features_groups=None,
+        feature_groups=None,
         random_state=None,
         n_jobs=1,
     ):
@@ -206,7 +215,7 @@ class PFICV(BasePerturbationCV):
         self.method = method
         self.loss = loss
         self.n_permutations = n_permutations
-        self.features_groups = features_groups
+        self.feature_groups = feature_groups
         self.random_state = random_state
 
     def _fit_single_split(self, estimator, X_train, y_train):
@@ -216,7 +225,7 @@ class PFICV(BasePerturbationCV):
             method=self.method,
             loss=self.loss,
             n_permutations=self.n_permutations,
-            features_groups=self.features_groups,
+            feature_groups=self.feature_groups,
             random_state=self.random_state,
             n_jobs=1,  # no parallelization inside the fold
         )

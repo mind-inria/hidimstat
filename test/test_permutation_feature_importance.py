@@ -24,7 +24,7 @@ def run_pfi(
     y,
     estimator,
     n_permutations=20,
-    features_groups=None,
+    feature_groups=None,
     method="predict",
     loss=mean_squared_error,
 ):
@@ -38,7 +38,7 @@ def run_pfi(
         method=method,
         loss=loss,
         n_permutations=n_permutations,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         random_state=0,
     )
 
@@ -73,9 +73,9 @@ def test_permutation_importance(data_generator):
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     pfi = run_pfi(X=X_df, y=y, estimator=LinearRegression())
     importance = pfi.importances_
-    features_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
+    feature_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
 
-    assert pfi.features_groups_ == features_groups
+    assert pfi.feature_groups_ == feature_groups
     assert importance[0].mean() > importance[1].mean()
 
     # Now with groups
@@ -88,7 +88,7 @@ def test_permutation_importance(data_generator):
         X=X_df,
         y=y,
         estimator=LinearRegression(),
-        features_groups=groups,
+        feature_groups=groups,
     )
     importance = pfi.importances_
 
@@ -337,8 +337,14 @@ ESTIMATORS_TO_CHECK = [
 
 
 @parametrize_with_checks(
-    estimators=ESTIMATORS_TO_CHECK,
-    expected_failed_checks=expected_failed_checks,
-)
+        estimators=ESTIMATORS_TO_CHECK,
+        expected_failed_checks=expected_failed_checks,
+    )
 def test_check_estimator_sklearn(estimator, check):
-    check(estimator)
+        check(estimator)
+
+
+@pytest.mark.filterwarnings("error:pfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class PFI"):
+        pfi_importance(estimator=None, X=None, y=None)

@@ -147,15 +147,13 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 from sklearn.linear_model import MultiTaskLassoCV
 
-from hidimstat import CluDL, DesparsifiedLasso
+from hidimstat import ClusterImportance, DesparsifiedLasso
 
 # Setting theoretical FWER target
 fwer_target = 0.1
 
-cludl = CluDL(
-    clustering=ward,
-    desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV()),
-    random_state=0,
+cludl = ClusterImportance(
+    vim=DesparsifiedLasso(estimator=MultiTaskLassoCV()), clustering=ward
 )
 
 cludl.fit_importance(gain, y)
@@ -165,8 +163,8 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 
 
 # %%
-# We here used CluDL, which relies on a single clustering. Alternatively,
-# :class:`~hidimstat.EnCluDL` can be used, which relies on aggregating the
+# We here used ClusterImportance, which relies on a single clustering. Alternatively,
+# :class:`~hidimstat.EnsembleImportance` can be used, which relies on aggregating the
 # results over multiple clusterings obtained by running the clustering
 # algorithm on bootstrapped samples of the data. This can lead to more stable
 # results at the cost of a higher computational time.

@@ -5,7 +5,6 @@ from .desparsified_lasso import (
     desparsified_lasso_importance,
 )
 from .distilled_conditional_randomization_test import D0CRT, d0crt_importance
-from .ensemble_clustered_inference import CluDL, EnCluDL
 from .ensemble_importance import EnsembleImportance
 from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
 from .leave_one_covariate_in import LOCI, LOCICV, loci_importance
@@ -29,10 +28,8 @@ __all__ = [
     "PFI",
     "PFICV",
     "SAGE",
-    "CluDL",
     "ClusterImportance",
     "DesparsifiedLasso",
-    "EnCluDL",
     "EnsembleImportance",
     "ModelXKnockoff",
     "cfi_importance",
