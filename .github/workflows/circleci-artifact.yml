@@ -21,7 +21,6 @@ jobs:
                 circleci-jobs: host_docs
                 job-title: Check the HTML doc here!
 
-
     circleci_artifact_tests_reports:
         runs-on: ubuntu-latest
         # For testing this action on a fork, remove the "github.repository =="" condition.
