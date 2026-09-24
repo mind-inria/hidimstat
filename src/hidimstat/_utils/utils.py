@@ -10,6 +10,7 @@ from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
 
+import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
     holdout_randomization_test,
 )
@@ -276,11 +277,11 @@ def find_stack_level() -> int:
     Find the first place in the stack that is not inside hidimstat
     (tests notwithstanding).
 
-    Taken from the pandas codebase.
+    Originally based on the pandas codebase.
     https://github.com/pandas-dev/pandas/tree/main/pandas/util/_exceptions.py#L37
+    and its adaptation in nilearn
+    https://github.com/nilearn/nilearn/blob/3a71575a67ea5cd252142c05b7e784b590b6d4f5/nilearn/_utils/logger.py#L162
     """
-    import hidimstat as hd
-
     pkg_dir = Path(hd.__file__).parent
 
     # list of stack frames to skip
