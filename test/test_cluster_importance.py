@@ -11,7 +11,7 @@ from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
 from sklearn.model_selection import train_test_split
 
-from hidimstat import ClusterImportance, DesparsifiedLasso, ModelXKnockoff
+from hidimstat import ClusterImportance, DesparsifiedLasso
 from hidimstat._utils.scenario import (
     multivariate_simulation,
     multivariate_simulation_spatial,
