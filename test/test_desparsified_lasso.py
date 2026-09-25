@@ -573,6 +573,13 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     assert np.array_equal(importance_1, importance_refit)
 
 
+def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    dl = DesparsifiedLasso()
+    tags = dl.__sklearn_tags__()
+    assert not tags.needs_importance_data
+
+
 @pytest.mark.filterwarnings(
     "error:desparsified_lasso_importance is deprecated"
 )

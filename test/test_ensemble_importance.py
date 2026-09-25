@@ -2,6 +2,8 @@
 Test the clustered_inference module
 """
 
+import warnings
+
 import numpy as np
 import pytest
 from scipy.stats import binomtest
@@ -106,6 +108,35 @@ def test_ensemble_importance(data_generator):
     assert (
         importance[important_mask].mean() > importance[~important_mask].mean()
     )
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_importance_data_no_warning_raised(data_generator):
+    """
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
+    X, y, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Check that no warnings related to handing out data to a method that
+    # doesn't need it for its importance function is raised.
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    endl = EnsembleImportance(vim=dl, n_repeats=2)
+    endl.fit(X_train, y_train)
+
+    # If warnings are raised, make sure it's not about "X/y won't be used"
+    with warnings.catch_warnings(record=True) as warnings_raised:
+        endl.importance(X_test, y_test)
+        if len(warnings_raised) > 0:
+            assert not any(
+                "won't be used" in str(w.message) for w in warnings_raised
+            )
 
 
 def test_encluvi_spatial(rng):

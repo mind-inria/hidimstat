@@ -356,6 +356,13 @@ class TestModelXKnockoffExceptions:
             ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
 
 
+def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    mxko = ModelXKnockoff()
+    tags = mxko.__sklearn_tags__()
+    assert not tags.needs_importance_data
+
+
 ############################## test preconfigure #######################
 def test_preconfigure_LassoCV(rng):
     """Test type errors"""
