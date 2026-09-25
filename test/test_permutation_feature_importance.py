@@ -152,7 +152,7 @@ def pfi_test_data():
     pfi_default_parameters = {
         "estimator": model,
         "n_permutations": 20,
-        "scoring": "neg_mean_squared_error",
+        "scoring": "mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_train, y_test, pfi_default_parameters

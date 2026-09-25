@@ -138,7 +138,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self, X, y, features_group_id, random_state=None
     ):
         """
-        Perform perturbation of the data for a given
+        Perform scoring of the data for a given
         group of variables. This function is parallelized.
 
         Parameters

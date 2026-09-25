@@ -111,7 +111,8 @@ class LOCO(BasePerturbation):
     def _joblib_score_one_feature_group(
         self, X, y, features_group_id, random_state=None
     ):
-        """Predict the target feature after removing a group of covariates.
+        """
+        Score from the predictions the target feature after removing a group of covariates.
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
@@ -127,7 +128,8 @@ class LOCO(BasePerturbation):
         return [scoring_loco]
 
     def _check_fit(self):
-        """Check that an estimator has been fitted after removing each group of
+        """
+        Check that an estimator has been fitted after removing each group of
         covariates.
         """
         super()._check_fit()
