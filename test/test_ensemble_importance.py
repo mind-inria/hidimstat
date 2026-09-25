@@ -116,6 +116,10 @@ def test_ensemble_importance(data_generator):
     ids=["basic"],
 )
 def test_importance_data_no_warning_raised(data_generator):
+    """
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
     X, y, _ = data_generator
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 

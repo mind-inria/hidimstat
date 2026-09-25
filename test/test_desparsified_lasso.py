@@ -605,6 +605,7 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
 
 
 def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
     dl = DesparsifiedLasso()
     tags = dl.__sklearn_tags__()
     assert not tags.needs_importance_data

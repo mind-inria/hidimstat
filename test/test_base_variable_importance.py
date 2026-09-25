@@ -6,6 +6,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.linear_model import LassoCV, LinearRegression
 
 from hidimstat import CFI, ClusterImportance, DesparsifiedLasso
+from hidimstat._utils.tags import HidimstatTags
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
@@ -567,6 +568,8 @@ def test_feature_groups_order_preserved(data_generator):
 
 
 def test_hidimstat_tags(create_bvi):
+    """Test to check that custom tag exists, and checks value of custom tags"""
     bvi = create_bvi
     tags = bvi.__sklearn_tags__()
+    assert isinstance(tags, HidimstatTags)
     assert tags.needs_importance_data
