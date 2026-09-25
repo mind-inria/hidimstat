@@ -18,6 +18,8 @@ Base Classes
    ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
 
+.. _feature_importance_classes:
+
 Feature Importance Classes
 ==========================
 
