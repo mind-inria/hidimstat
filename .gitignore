@@ -10,11 +10,13 @@ joblib
 __pycache__
 *.egg-info
 .coverage*
+tmp
 
 # documentation
 docs/_build/
 docs/src/generated/
 docs/src/sg_execution_times.rst
+
 # ignore file copied during doc build
 tools/documentation_developer/CONTRIBUTING.rst
 tools/documentation_developer/CONTRIBUTORS.rst
