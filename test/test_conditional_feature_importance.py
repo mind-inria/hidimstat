@@ -14,7 +14,6 @@ from sklearn.linear_model import (
     LogisticRegressionCV,
     RidgeCV,
 )
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.utils.validation import check_is_fitted
 
