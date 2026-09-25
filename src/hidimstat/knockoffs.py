@@ -1,5 +1,4 @@
 import warnings
-from dataclasses import fields
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -10,8 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.tags import HidimstatTags
-from hidimstat._utils.utils import check_random_state, seed_estimator
+from hidimstat._utils.utils import (
+    check_random_state,
+    find_stack_level,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
@@ -237,9 +239,9 @@ class ModelXKnockoff(BaseVariableImportance):
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         if X is not None:
-            warnings.warn("X won't be used", stacklevel=2)
+            warnings.warn("X won't be used", stacklevel=find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used", stacklevel=2)
+            warnings.warn("y won't be used", stacklevel=find_stack_level())
         check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(

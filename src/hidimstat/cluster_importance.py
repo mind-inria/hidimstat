@@ -1,12 +1,8 @@
-import inspect
-
 import numpy as np
 from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import get_tags
-from sklearn.utils.validation import check_memory
 
-from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 

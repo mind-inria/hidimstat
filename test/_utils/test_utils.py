@@ -4,11 +4,12 @@ from scipy.stats import ttest_1samp, wilcoxon
 from sklearn.linear_model import LassoCV, LogisticRegressionCV
 
 from hidimstat._utils.utils import (
-    SKLEARN_LT_1_6,
     _make_sklearn_estimator,
     check_random_state,
     check_statistical_test,
+    find_stack_level,
     get_fitted_attributes,
+    one_level_deeper,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -115,15 +116,13 @@ def test__make_sklearn_estimator(monkeypatch):
         assert est.penalty == expected
 
     target = 10
-    if SKLEARN_LT_1_6:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            alphas=target,
-        )
-        assert est.n_alphas == target
-    else:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            n_alphas=target,
-        )
-        assert est.alphas == target
+
+    est = _make_sklearn_estimator(LassoCV, n_alphas=target)
+
+    assert est.alphas == 10
+
+
+def test_find_stack_level():
+    """Test find_stack_level."""
+    assert find_stack_level() == 1
+    assert one_level_deeper() == 2
