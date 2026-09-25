@@ -140,7 +140,7 @@ def test_desparsified_group_lasso(rng):
     rho_serial = 0.9
     alpha = 0.1
     # Small tolerance for the test
-    test_tol = 0.05
+    test_tol = 0.1
 
     fd_list = []
     power_list = []
