@@ -134,37 +134,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
 
-    def _perturb(self, X):
-        """
-        Compute the predictions after perturbation of the data for each group of
-        variables.
-
-        Parameters
-        ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-
-        Returns
-        -------
-        out: array-like of shape (n_groups, n_permutations, n_samples)
-            The predictions after perturbation of the data for each group of variables.
-        """
-        rng = check_random_state(self.random_state)
-
-        # Parallelize the computation of the importance scores for each group
-        out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_perturb_one_feature_group)(
-                X, features_group_id, random_state=child_state
-            )
-            for features_group_id, child_state in enumerate(
-                rng.spawn(self.n_feature_groups_)
-            )
-        )
-
-        return np.stack(out_list, axis=0)
-
-    def _joblib_perturb_one_feature_group(
-        self, X, features_group_id, random_state=None
+    def _joblib_score_one_feature_group(
+        self, X, y, features_group_id, random_state=None
     ):
         """
         Perform perturbation of the data for a given
@@ -198,7 +169,11 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 pd.DataFrame(X_perm_j, columns=X.columns)
                 for X_perm_j in X_perm
             ]
-        return X_perm
+        list_loss = [
+            self.scoring(self.estimator_, X_group_perm, y)
+            for X_group_perm in X_perm
+        ]
+        return list_loss
 
     def importance(self, X, y):
         """
@@ -234,14 +209,19 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         self.loss_reference_ = self.scoring(self.estimator_, X, y)
 
-        X_perm = self._perturb(X)
-        self.loss_ = {}
-        for j, X_group_j in enumerate(X_perm):
-            list_loss = [
-                self.scoring(self.estimator_, X_group_perm, y)
-                for X_group_perm in X_group_j
-            ]
-            self.loss_[j] = np.array(list_loss)
+        rng = check_random_state(self.random_state)
+        # Parallelize the computation of the importance scores for each group
+        out_list = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_score_one_feature_group)(
+                X, y, features_group_id, random_state=child_state
+            )
+            for features_group_id, child_state in enumerate(
+                rng.spawn(self.n_feature_groups_)
+            )
+        )
+
+        losses = np.stack(out_list, axis=0)
+        self.loss_ = dict(enumerate(losses))
 
         test_result = np.array(
             [
@@ -251,7 +231,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = statistical_test(test_result).pvalue
-        assert self.pvalues_.shape[0] == X_perm.shape[0], (
+        assert self.pvalues_.shape[0] == self.n_feature_groups_, (
             "The statistical test doesn't provide the correct dimension."
         )
         return self.importances_
