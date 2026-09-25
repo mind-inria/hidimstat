@@ -7,7 +7,11 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols, check_statistical_test
+from hidimstat._utils.utils import (
+    _get_array_cols,
+    check_scoring,
+    check_statistical_test,
+)
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -24,13 +28,9 @@ class LOCO(BasePerturbation):
     ----------
     estimator : sklearn compatible estimator
         The estimator to use for the prediction.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
     feature_groups: dict or None, default=None
@@ -54,16 +54,14 @@ class LOCO(BasePerturbation):
     def __init__(
         self,
         estimator,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
         statistical_test="ttest",
         feature_groups=None,
         n_jobs: int = 1,
     ):
         super().__init__(
             estimator=estimator,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             n_permutations=1,
             statistical_test=statistical_test,
             feature_groups=feature_groups,
@@ -107,6 +105,14 @@ class LOCO(BasePerturbation):
         )
         return self
 
+    def _joblib_fit_one_features_group(
+        self, estimator, X, y, feature_groups_ids
+    ):
+        """Fit the estimator after removing a group of covariates. Used in parallel."""
+        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
+        estimator.fit(X_minus_j, y)
+        return estimator
+
     def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
@@ -146,9 +152,11 @@ class LOCO(BasePerturbation):
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
+        self.scoring = check_scoring(
+            estimator=self.estimator_, scoring=self.scoring
+        )
 
-        y_pred = getattr(self.estimator, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
+        self.loss_reference_ = self.scoring(self.estimator_, X, y)
 
         y_pred = self._predict(X)
         test_result = []
@@ -174,14 +182,6 @@ class LOCO(BasePerturbation):
             "The statistical test doesn't provide the correct dimension."
         )
         return self.importances_
-
-    def _joblib_fit_one_features_group(
-        self, estimator, X, y, feature_groups_ids
-    ):
-        """Fit the estimator after removing a group of covariates. Used in parallel."""
-        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
-        estimator.fit(X_minus_j, y)
-        return estimator
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, random_state=None

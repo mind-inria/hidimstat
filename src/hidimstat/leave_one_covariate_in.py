@@ -53,16 +53,14 @@ class LOCI(BasePerturbation):
     def __init__(
         self,
         estimator,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
         statistical_test="ttest",
         feature_groups=None,
         n_jobs: int = 1,
     ):
         super().__init__(
             estimator=estimator,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             statistical_test=statistical_test,
             feature_groups=feature_groups,
             n_jobs=n_jobs,
@@ -115,6 +113,17 @@ class LOCI(BasePerturbation):
         elif self.method == "predict":
             self._baseline_mean = np.mean(y)
         return self
+
+    def _joblib_fit_one_features_group(
+        self, estimator, X, y, feature_groups_ids
+    ):
+        """
+        Fit the estimator on a group of covariates.
+        Used in parallel.
+        """
+        X_j = _get_array_cols(X, feature_groups_ids)
+        estimator.fit(X_j, y)
+        return estimator
 
     def importance(self, X, y):
         """
@@ -194,17 +203,6 @@ class LOCI(BasePerturbation):
             "The statistical test doesn't provide the correct dimension."
         )
         return self.importances_
-
-    def _joblib_fit_one_features_group(
-        self, estimator, X, y, feature_groups_ids
-    ):
-        """
-        Fit the estimator on a group of covariates.
-        Used in parallel.
-        """
-        X_j = _get_array_cols(X, feature_groups_ids)
-        estimator.fit(X_j, y)
-        return estimator
 
     def _joblib_predict_one_features_group(
         self, X, features_group_id, random_state=None
