@@ -1,16 +1,11 @@
 import warnings
 
-import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
-from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
     _get_array_cols,
-    check_scoring,
-    check_statistical_test,
 )
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 

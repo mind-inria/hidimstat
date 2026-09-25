@@ -150,7 +150,6 @@ estimator = LassoCV(
 # Now, the clustered inference algorithm which combines parcellation
 # and high-dimensional inference (c.f. References).
 
-from copy import deepcopy
 
 from sklearn.base import clone
 
