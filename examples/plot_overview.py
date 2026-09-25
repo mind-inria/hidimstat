@@ -121,6 +121,7 @@ df_scores = pd.DataFrame(scores)
 _, ax = plt.subplots(figsize=(6, 4))
 sns.boxplot(x="score", y="model", data=df_scores, ax=ax)
 ax.set_xlabel("ROC AUC Score")
+plt.tight_layout()
 plt.show()
 
 # %%
@@ -190,6 +191,29 @@ importances = vim.importance(X, y)
 
 
 # %%
+# Visualizing the importance
+# --------------------------
+# We can now visualize the importance of the features. ``importances`` has one
+# row per feature and one column per cross-validation fold, so a boxplot shows
+# both the magnitude of each score and its variability across folds. Here we
+# display the first ten features. The
+# :meth:`~hidimstat.CFICV.plot_importance` method offers a ready-made summary
+# plot of all features.
+
+_, ax = plt.subplots(figsize=(6, 4))
+ax.boxplot(importances[:10, :].T, orientation="horizontal")
+ax.set_yticklabels(feature_names[:10])
+ax.set_xlabel("CFI importance (increase in log-loss)")
+sns.despine(ax=ax)
+plt.show()
+
+# %%
+# Only :math:`X_0` and :math:`X_1` stand out: perturbing them degrades the
+# log-loss, whereas perturbing the uninformative features leaves it unchanged,
+# with importance scores fluctuating around zero.
+
+
+# %%
 # Feature selection
 # -----------------
 # Features can then be selected with guaranteed control of the false discovery
@@ -214,28 +238,6 @@ print(
 #     :meth:`~hidimstat.CFICV.importance_selection` when no statistical
 #     guarantee is needed (top-k features, percentile, or a threshold on the
 #     scores). These error rates are defined in :ref:`statistical_guarantees`.
-
-# %%
-# Visualizing the importance
-# --------------------------
-# We can now visualize the importance of the features. ``importances`` has one
-# row per feature and one column per cross-validation fold, so a boxplot shows
-# both the magnitude of each score and its variability across folds. Here we
-# display the first ten features. The
-# :meth:`~hidimstat.CFICV.plot_importance` method offers a ready-made summary
-# plot of all features.
-
-_, ax = plt.subplots(figsize=(6, 4))
-ax.boxplot(importances[:10, :].T, orientation="horizontal")
-ax.set_yticklabels(feature_names[:10])
-ax.set_xlabel("CFI importance (increase in log-loss)")
-sns.despine(ax=ax)
-plt.show()
-
-# %%
-# Only :math:`X_0` and :math:`X_1` stand out: perturbing them degrades the
-# log-loss, whereas perturbing the uninformative features leaves it unchanged,
-# with importance scores fluctuating around zero.
 
 
 # %%
