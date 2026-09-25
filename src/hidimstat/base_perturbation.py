@@ -149,6 +149,12 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
             The index of the group of variables.
         random_state:
             The random state to use for sampling.
+
+        Returns
+        -------
+        out: array-like of shape (n_permutations,)
+            The scores of the predictions after perturbation of the data for each
+            group of variables.
         """
         features_group_ids = self._feature_groups_ids[features_group_id]
         non_features_group_ids = np.delete(
