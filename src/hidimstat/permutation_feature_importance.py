@@ -1,7 +1,6 @@
 import warnings
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _get_array_cols, check_random_state
@@ -22,13 +21,9 @@ class PFI(BasePerturbation):
     ----------
     estimator : sklearn compatible estimator
         The estimator to use for the prediction.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -52,8 +47,7 @@ class PFI(BasePerturbation):
     def __init__(
         self,
         estimator=None,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
         n_permutations: int = 50,
         statistical_test="ttest",
         feature_groups=None,
@@ -62,8 +56,7 @@ class PFI(BasePerturbation):
     ):
         super().__init__(
             estimator=estimator,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             n_permutations=n_permutations,
             statistical_test=statistical_test,
             feature_groups=feature_groups,
@@ -91,8 +84,7 @@ def pfi_importance(
     estimator,
     X,
     y,
-    method: str = "predict",
-    loss: callable = mean_squared_error,
+    scoring=None,
     n_permutations: int = 50,
     test_statistic="ttest",
     feature_groups=None,
@@ -112,8 +104,7 @@ def pfi_importance(
 
     methods = PFI(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         n_permutations=n_permutations,
         statistical_test=test_statistic,
         feature_groups=feature_groups,
@@ -164,13 +155,9 @@ class PFICV(BasePerturbationCV):
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -204,16 +191,14 @@ class PFICV(BasePerturbationCV):
         estimators=None,
         cv=None,
         statistical_test="nb-ttest",
-        method="predict",
-        loss=mean_squared_error,
+        scoring=None,
         n_permutations=50,
         feature_groups=None,
         random_state=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
-        self.method = method
-        self.loss = loss
+        self.scoring = scoring
         self.n_permutations = n_permutations
         self.feature_groups = feature_groups
         self.random_state = random_state
@@ -222,8 +207,7 @@ class PFICV(BasePerturbationCV):
         """Fit a PFI instance on a single train/test split."""
         pfi = PFI(
             estimator=estimator,
-            method=self.method,
-            loss=self.loss,
+            scoring=self.scoring,
             n_permutations=self.n_permutations,
             feature_groups=self.feature_groups,
             random_state=self.random_state,

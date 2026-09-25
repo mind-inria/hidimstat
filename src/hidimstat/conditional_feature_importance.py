@@ -3,7 +3,6 @@ import warnings
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _get_array_cols
@@ -21,13 +20,9 @@ class CFI(BasePerturbation):
     ----------
     estimator : sklearn compatible estimator
         The estimator to use for the prediction.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -65,8 +60,7 @@ class CFI(BasePerturbation):
     def __init__(
         self,
         estimator,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
@@ -79,8 +73,7 @@ class CFI(BasePerturbation):
     ):
         super().__init__(
             estimator=estimator,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             n_permutations=n_permutations,
             statistical_test=statistical_test,
             n_jobs=n_jobs,
@@ -163,6 +156,15 @@ class CFI(BasePerturbation):
 
         return self
 
+    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
+        """Fit a single imputation model, for a single group of features. This method
+        is parallelized.
+        """
+        X_j = _get_array_cols(X, feature_groups_ids)
+        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
+        estimator.fit(X_minus_j, X_j)
+        return estimator
+
     def fit_importance(self, X, y):
         """
         Fits the model to the data and computes feature importance scores.
@@ -188,15 +190,6 @@ class CFI(BasePerturbation):
         """
         self.fit(X, y)
         return self.importance(X, y)
-
-    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
-        """Fit a single imputation model, for a single group of features. This method
-        is parallelized.
-        """
-        X_j = _get_array_cols(X, feature_groups_ids)
-        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
-        estimator.fit(X_minus_j, X_j)
-        return estimator
 
     def _check_fit(self):
         """
@@ -238,8 +231,7 @@ def cfi_importance(
     estimator,
     X,
     y,
-    method: str = "predict",
-    loss: callable = mean_squared_error,
+    scoring="mean_squared_error",
     n_permutations: int = 50,
     imputation_model_continuous=RidgeCV(),
     imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
@@ -263,8 +255,7 @@ def cfi_importance(
 
     methods = CFI(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         n_permutations=n_permutations,
         imputation_model_continuous=imputation_model_continuous,
         imputation_model_categorical=imputation_model_categorical,
@@ -319,13 +310,9 @@ class CFICV(BasePerturbationCV):
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -373,8 +360,7 @@ class CFICV(BasePerturbationCV):
         estimators,
         cv,
         statistical_test="nb-ttest",
-        method="predict",
-        loss=mean_squared_error,
+        scoring="mean_squared_error",
         n_permutations=50,
         imputation_model_continuous=RidgeCV(),
         imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
@@ -385,8 +371,7 @@ class CFICV(BasePerturbationCV):
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
-        self.method = method
-        self.loss = loss
+        self.scoring = scoring
         self.n_permutations = n_permutations
         self.imputation_model_continuous = imputation_model_continuous
         self.imputation_model_categorical = imputation_model_categorical
@@ -399,8 +384,7 @@ class CFICV(BasePerturbationCV):
         """Fit a CFI instance on a single train/test split."""
         cfi = CFI(
             estimator=estimator,
-            method=self.method,
-            loss=self.loss,
+            scoring=self.scoring,
             n_permutations=self.n_permutations,
             imputation_model_continuous=self.imputation_model_continuous,
             imputation_model_categorical=self.imputation_model_categorical,

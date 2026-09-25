@@ -9,6 +9,13 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
+from sklearn.utils import get_tags
 
 import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
@@ -270,6 +277,69 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def check_scoring(estimator=None, scoring=None):
+    """
+    Determine sklearn-compatible scorer from user options.
+    A TypeError will be thrown if the estimator cannot be scored.
+
+    Parameters
+    ----------
+    estimator: sklearn-compatible estimator, default=None
+        The estimator that will be used for predictions. If no scoring is explicitly
+        provided, the scorer will be set to "neg_log_loss" for classifiers, and
+        "neg_mean_squared_error" for regressors.
+    scoring: str, callable, default=None
+        Sklearn-comptabile scorer to use.
+
+    Returns
+    -------
+    scoring : callable
+        A scorer callable object / function with signature ``scorer(estimator, X, y)``.
+    """
+    if isinstance(scoring, str):
+        if scoring == "log_loss":
+            return get_scorer(
+                make_scorer(log_loss, response_method="predict_proba")
+            )
+        if scoring == "mean_squared_error":
+            return get_scorer(make_scorer(mean_squared_error))
+        return get_scorer(scoring)
+    elif callable(scoring):
+        module = getattr(scoring, "__module__", None)
+        if (
+            hasattr(module, "startswith")
+            and module.startswith("sklearn.metrics.")
+            and not module.startswith("sklearn.metrics._scorer")
+            and not module.startswith("sklearn.metrics.tests.")
+        ):
+            raise ValueError(
+                f"scoring value {scoring} looks like it is a metric "
+                "function rather than a scorer. A scorer should "
+                "require an estimator as its first parameter. "
+                "Please use `make_scorer` to convert a metric "
+                "to a scorer."
+            )
+        return get_scorer(scoring)
+    elif scoring is None:
+        if estimator is not None:
+            tags = get_tags(estimator)
+            if tags.estimator_type == "classifier":
+                return get_scorer(
+                    make_scorer(log_loss, response_method="predict_proba")
+                )
+            elif tags.estimator_type == "regressor":
+                return get_scorer(make_scorer(mean_squared_error))
+            else:
+                raise TypeError(
+                    f"Estimator {estimator} should be one of two types "
+                    "'classifier' or 'regressor'."
+                )
+        else:
+            raise TypeError(
+                "No scoring nor estimator was passed to the method."
+            )
 
 
 def find_stack_level() -> int:

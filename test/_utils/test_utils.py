@@ -1,11 +1,24 @@
 import numpy as np
 import pytest
 from scipy.stats import ttest_1samp, wilcoxon
-from sklearn.linear_model import LassoCV, LogisticRegressionCV
+from sklearn.linear_model import (
+    LassoCV,
+    LogisticRegressionCV,
+    Ridge,
+    RidgeClassifier,
+)
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 
 from hidimstat._utils.utils import (
+    SKLEARN_LT_1_6,
     _make_sklearn_estimator,
     check_random_state,
+    check_scoring,
     check_statistical_test,
     find_stack_level,
     get_fitted_attributes,
@@ -116,6 +129,18 @@ def test__make_sklearn_estimator(monkeypatch):
         assert est.penalty == expected
 
     target = 10
+    if SKLEARN_LT_1_6:
+        est = _make_sklearn_estimator(
+            LassoCV,
+            alphas=target,
+        )
+        assert est.n_alphas == target
+    else:
+        est = _make_sklearn_estimator(
+            LassoCV,
+            n_alphas=target,
+        )
+        assert est.alphas == target
 
     est = _make_sklearn_estimator(LassoCV, n_alphas=target)
 
@@ -126,3 +151,32 @@ def test_find_stack_level():
     """Test find_stack_level."""
     assert find_stack_level() == 1
     assert one_level_deeper() == 2
+
+
+def test_check_scoring():
+    """Test the in-house check_scoring function"""
+    regressor_scorer = repr(get_scorer(make_scorer(mean_squared_error)))
+    assert (
+        repr(check_scoring(scoring="mean_squared_error")) == regressor_scorer
+    )
+    assert (
+        repr(check_scoring(scoring=make_scorer(mean_squared_error)))
+        == regressor_scorer
+    )
+    assert repr(check_scoring(estimator=Ridge())) == regressor_scorer
+
+    classifier_scorer = repr(
+        get_scorer(make_scorer(log_loss, response_method="predict_proba"))
+    )
+    assert repr(check_scoring(scoring="log_loss")) == classifier_scorer
+    assert (
+        repr(
+            check_scoring(
+                scoring=make_scorer(log_loss, response_method="predict_proba")
+            )
+        )
+        == classifier_scorer
+    )
+    assert (
+        repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
+    )
