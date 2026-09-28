@@ -4,7 +4,8 @@ from sklearn.base import BaseEstimator, ClassifierMixin, RegressorMixin
 
 class _LOCIBaselineClassifier(ClassifierMixin, BaseEstimator):
     """
-    Baseline classifier class for LOCI
+    Classifier that computes the baseline predictions for LOCI,
+    which is the marginal distribution of the input data.
     """
 
     def __init__(self):
@@ -15,6 +16,22 @@ class _LOCIBaselineClassifier(ClassifierMixin, BaseEstimator):
         X,  # noqa: ARG002
         y,
     ):
+        """
+        Fit the data to compute its marginal distribution.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        y: array-like of shape (n_samples,)
+            The input groundtruth.
+
+        Returns
+        -------
+        self: :class:`hidimstat._utils.baselines._LOCIBaselineClassifier`
+            The fitted classifier.
+        """
         self.y_values_, self.y_counts_ = np.unique(y, return_counts=True)
         # Sklearn scorer API compatibility needs to know nb of classes
         self.classes_ = self.y_values_
@@ -28,21 +45,61 @@ class _LOCIBaselineClassifier(ClassifierMixin, BaseEstimator):
         return self
 
     def predict(self, X):
+        """
+        Make prediction from input data.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        out: array-like of shape (n_samples,)
+            The predicted class for each sample.
+        """
         return np.argmax(self.predict_proba(X), axis=1)
 
     def predict_proba(self, X):
+        """
+        Make prediction from input data.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        out: array-like of shape (n_samples, n_features)
+            The marginal distribution of fitted data.
+        """
         y_baseline = np.full(
             (X.shape[0], len(self.y_values_)), self.baseline_mean_
         )
         return y_baseline
 
     def decision_function(self, X):
+        """
+        Make prediction from input data.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        out: array-like of shape (n_samples, n_features)
+            The marginal distribution of fitted data.
+        """
         return self.predict_proba(X)
 
 
 class _LOCIBaselineRegressor(RegressorMixin, BaseEstimator):
     """
-    Baseline regressor class for LOCI
+    Classifier that computes the baseline predictions for LOCI,
+    which is the marginal distribution of the input data.
     """
 
     def __init__(self):
@@ -53,9 +110,38 @@ class _LOCIBaselineRegressor(RegressorMixin, BaseEstimator):
         X,  # noqa: ARG002
         y,
     ):
+        """
+        Fit the data to compute its marginal distribution.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        y: array-like of shape (n_samples,)
+            The input groundtruth.
+
+        Returns
+        -------
+        self: :class:`hidimstat._utils.baselines._LOCIBaselineClassifier`
+            The fitted classifier.
+        """
         self.baseline_mean_ = np.mean(y)
         return self
 
     def predict(self, X):
+        """
+        Make prediction from input data.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        Returns
+        -------
+        out: array-like of shape (n_samples, n_features)
+            The marginal distribution of fitted data.
+        """
         y_pred = np.full((X.shape[0],), self.baseline_mean_, dtype=float)
         return y_pred
