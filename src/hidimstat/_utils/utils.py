@@ -315,7 +315,9 @@ def check_scoring(estimator=None, scoring=None):
                     make_scorer(log_loss, response_method="predict_proba")
                 )
             elif is_regressor(estimator):
-                return get_scorer(make_scorer(mean_squared_error))
+                return get_scorer(
+                    make_scorer(mean_squared_error, response_method="predict")
+                )
             else:
                 raise TypeError(
                     f"Estimator {estimator} should be one of two types "
