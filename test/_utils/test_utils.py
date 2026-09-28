@@ -15,7 +15,6 @@ from sklearn.metrics import (
 )
 
 from hidimstat._utils.utils import (
-    SKLEARN_LT_1_6,
     _make_sklearn_estimator,
     check_random_state,
     check_scoring,
@@ -129,21 +128,7 @@ def test__make_sklearn_estimator(monkeypatch):
         assert est.penalty == expected
 
     target = 10
-    if SKLEARN_LT_1_6:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            alphas=target,
-        )
-        assert est.n_alphas == target
-    else:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            n_alphas=target,
-        )
-        assert est.alphas == target
-
     est = _make_sklearn_estimator(LassoCV, n_alphas=target)
-
     assert est.alphas == 10
 
 

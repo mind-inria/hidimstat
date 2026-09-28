@@ -26,6 +26,17 @@ class LOCO(BasePerturbation):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
     feature_groups: dict or None, default=None
@@ -50,6 +61,8 @@ class LOCO(BasePerturbation):
         self,
         estimator,
         scoring=None,
+        method=None,
+        loss=None,
         statistical_test="ttest",
         feature_groups=None,
         n_jobs: int = 1,
@@ -57,6 +70,8 @@ class LOCO(BasePerturbation):
         super().__init__(
             estimator=estimator,
             scoring=scoring,
+            method=method,
+            loss=loss,
             n_permutations=1,
             statistical_test=statistical_test,
             feature_groups=feature_groups,
@@ -147,6 +162,8 @@ def loco_importance(
     X,
     y,
     scoring=None,
+    method=None,
+    loss=None,
     feature_groups=None,
     test_statistic="ttest",
     k_best=None,
@@ -162,21 +179,23 @@ def loco_importance(
         stacklevel=2,
     )
 
-    method = LOCO(
+    methods = LOCO(
         estimator=estimator,
         scoring=scoring,
+        method=method,
+        loss=loss,
         statistical_test=test_statistic,
         feature_groups=feature_groups,
         n_jobs=n_jobs,
     )
-    method.fit_importance(X, y)
-    selection = method.importance_selection(
+    methods.fit_importance(X, y)
+    selection = methods.importance_selection(
         k_best=k_best,
         percentile=percentile,
         threshold_min=threshold_min,
         threshold_max=threshold_max,
     )
-    return selection, method.importances_, method.pvalues_
+    return selection, methods.importances_, methods.pvalues_
 
 
 # use the docstring of the class for the function
@@ -216,6 +235,17 @@ class LOCOCV(BasePerturbationCV):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -244,12 +274,16 @@ class LOCOCV(BasePerturbationCV):
         estimators,
         cv,
         scoring=None,
+        method=None,
+        loss=None,
         statistical_test="nb-ttest",
         feature_groups=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
         self.scoring = scoring
+        self.method = method
+        self.loss = loss
         self.feature_groups = feature_groups
 
     def _fit_single_split(self, estimator, X_train, y_train):
@@ -257,6 +291,8 @@ class LOCOCV(BasePerturbationCV):
         loco = LOCO(
             estimator=estimator,
             scoring=self.scoring,
+            method=self.method,
+            loss=self.loss,
             feature_groups=self.feature_groups,
             n_jobs=1,  # no parallelization inside the fold
         )

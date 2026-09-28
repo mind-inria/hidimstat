@@ -1,8 +1,11 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
+from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
@@ -30,6 +33,17 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         Number of permutations for each feature group.
     statistical_test : callable or str, default="nb-ttest"
@@ -68,6 +82,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self,
         estimator=None,
         scoring=None,
+        method=None,
+        loss=None,
         n_permutations: int = 50,
         statistical_test="ttest",
         feature_groups=None,
@@ -80,6 +96,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.estimator = estimator
         self.scoring = scoring
+        self.method = method
+        self.loss = loss
 
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
@@ -134,6 +152,24 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
 
+    def _check_loss_method_parameter(self):
+        if self.scoring is None and (
+            self.method is not None or self.loss is not None
+        ):
+            warnings.warn(
+                "Parameters 'method' and 'loss' are deprecated,"
+                "and will be removed in v0.6.0. Please use 'scoring' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if self.method in {"mean_squared_error", "log_loss"}:
+                self.scoring = self.method
+            elif (
+                self.loss.__func__ is log_loss.__func__
+                or self.loss.__func__ is mean_squared_error.__func__
+            ):
+                self.scoring = self.loss
+
     def _joblib_score_one_feature_group(
         self, X, y, features_group_id, random_state=None
     ):
@@ -181,6 +217,23 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         ]
         return list_loss
 
+    def _compute_loss_reference(self, X, y):
+        """
+        Provide explanation.
+        """
+        return self.scoring(self.estimator_, X, y)
+
+    def _compute_test_result_from_loss(self):
+        """
+        Write explanation
+        """
+        return np.array(
+            [
+                self.loss_[j] - self.loss_reference_
+                for j in range(self.n_feature_groups_)
+            ]
+        )
+
     def importance(self, X, y):
         """
         Compute the importance scores for each group of covariates.
@@ -209,11 +262,12 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
+        self._check_loss_method_parameter()
         self.scoring = check_scoring(
             estimator=self.estimator_, scoring=self.scoring
         )
 
-        self.loss_reference_ = self.scoring(self.estimator_, X, y)
+        self.loss_reference_ = self._compute_loss_reference(X, y)
 
         rng = check_random_state(self.random_state)
         # Parallelize the computation of the importance scores for each group
@@ -225,16 +279,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
                 rng.spawn(self.n_feature_groups_)
             )
         )
+        self.loss_ = np.stack(out_list, axis=0)
 
-        losses = np.stack(out_list, axis=0)
-        self.loss_ = dict(enumerate(losses))
+        test_result = self._compute_test_result_from_loss()
 
-        test_result = np.array(
-            [
-                self.loss_[j] - self.loss_reference_
-                for j in range(self.n_feature_groups_)
-            ]
-        )
         self.importances_ = np.mean(test_result, axis=1)
         self.pvalues_ = statistical_test(test_result).pvalue
         assert self.pvalues_.shape[0] == self.n_feature_groups_, (

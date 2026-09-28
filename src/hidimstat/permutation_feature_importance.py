@@ -24,6 +24,17 @@ class PFI(BasePerturbation):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -48,6 +59,8 @@ class PFI(BasePerturbation):
         self,
         estimator=None,
         scoring=None,
+        method=None,
+        loss=None,
         n_permutations: int = 50,
         statistical_test="ttest",
         feature_groups=None,
@@ -57,6 +70,8 @@ class PFI(BasePerturbation):
         super().__init__(
             estimator=estimator,
             scoring=scoring,
+            method=method,
+            loss=loss,
             n_permutations=n_permutations,
             statistical_test=statistical_test,
             feature_groups=feature_groups,
@@ -85,6 +100,8 @@ def pfi_importance(
     X,
     y,
     scoring=None,
+    method=None,
+    loss=None,
     n_permutations: int = 50,
     test_statistic="ttest",
     feature_groups=None,
@@ -105,6 +122,8 @@ def pfi_importance(
     methods = PFI(
         estimator=estimator,
         scoring=scoring,
+        method=method,
+        loss=loss,
         n_permutations=n_permutations,
         statistical_test=test_statistic,
         feature_groups=feature_groups,
@@ -158,6 +177,17 @@ class PFICV(BasePerturbationCV):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -192,6 +222,8 @@ class PFICV(BasePerturbationCV):
         cv=None,
         statistical_test="nb-ttest",
         scoring=None,
+        method=None,
+        loss=None,
         n_permutations=50,
         feature_groups=None,
         random_state=None,
@@ -199,6 +231,8 @@ class PFICV(BasePerturbationCV):
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
         self.scoring = scoring
+        self.method = method
+        self.loss = loss
         self.n_permutations = n_permutations
         self.feature_groups = feature_groups
         self.random_state = random_state
@@ -208,6 +242,8 @@ class PFICV(BasePerturbationCV):
         pfi = PFI(
             estimator=estimator,
             scoring=self.scoring,
+            method=self.method,
+            loss=self.loss,
             n_permutations=self.n_permutations,
             feature_groups=self.feature_groups,
             random_state=self.random_state,
