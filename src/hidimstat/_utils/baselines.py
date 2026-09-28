@@ -71,7 +71,7 @@ class _LOCIBaselineClassifier(ClassifierMixin, BaseEstimator):
 
         Returns
         -------
-        out: array-like of shape (n_samples, n_features)
+        out: array-like of shape (n_samples, n_classes)
             The marginal distribution of fitted data.
         """
         y_baseline = np.full(
