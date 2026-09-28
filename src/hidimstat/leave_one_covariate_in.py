@@ -135,13 +135,33 @@ class LOCI(BasePerturbation):
 
     def _compute_loss_reference(self, X, y):
         """
-        Provide explanation.
+        Compute the loss reference to which predictions from perturbed data
+        will be compared.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+
+        y: array-like of shape (n_samples,)
+            The input groundtruth.
+
+        Returns
+        -------
+        score: float
+            The score of the underlying estimator on the data.
         """
         return self.scoring(self._baseline_estimator_, X, y)
 
     def _compute_test_result_from_loss(self):
         """
-        Write explanation
+        Compute the loss difference between the reference loss
+        and the loss computed from perturbed data.
+
+        Returns
+        -------
+        score: array-like of shape (self.n_feature_groups_)
+            The loss difference.
         """
         return np.array(
             [
