@@ -63,14 +63,12 @@ print(f"Accuracy: {clf.score(X_test, y_test):.3f}")
 # method of our estimator.
 
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import log_loss
 
 from hidimstat import CFI
 
 cfi = CFI(
     estimator=clf,
-    loss=log_loss,
-    method="predict_proba",
+    scoring="log_loss",
     imputation_model_continuous=RidgeCV(),
     feature_groups={
         feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)

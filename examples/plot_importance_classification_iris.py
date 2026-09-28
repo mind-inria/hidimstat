@@ -30,7 +30,7 @@ from scipy.stats import ttest_1samp
 from sklearn.base import clone
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import balanced_accuracy_score, hinge_loss, log_loss
+from sklearn.metrics import balanced_accuracy_score, hinge_loss, make_scorer
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.svm import SVC
 
@@ -76,12 +76,10 @@ def run_one_fold(
     y_pred = model_c.predict(X[test_index])
 
     if isinstance(model_c, LogisticRegressionCV):
-        method = "predict_proba"
-        loss = log_loss
+        scoring = "log_loss"
         model_name = "LogReg"
     else:
-        method = "decision_function"
-        loss = hinge_loss
+        scoring = make_scorer(hinge_loss, response_method="decision_function")
         model_name = "SVC"
 
     if vim_name == "CFI":
@@ -93,8 +91,7 @@ def run_one_fold(
             ),
             n_permutations=50,
             random_state=2,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             feature_groups=feature_groups,
         )
     elif vim_name == "PFI":
@@ -102,8 +99,7 @@ def run_one_fold(
             estimator=model_c,
             n_permutations=50,
             random_state=3,
-            method=method,
-            loss=loss,
+            scoring=scoring,
             feature_groups=feature_groups,
         )
 
