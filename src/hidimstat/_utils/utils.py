@@ -9,13 +9,13 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
+from sklearn.base import is_classifier, is_regressor
 from sklearn.metrics import (
     get_scorer,
     log_loss,
     make_scorer,
     mean_squared_error,
 )
-from sklearn.utils import get_tags
 
 import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
@@ -307,29 +307,14 @@ def check_scoring(estimator=None, scoring=None):
             return get_scorer(make_scorer(mean_squared_error))
         return get_scorer(scoring)
     elif callable(scoring):
-        module = getattr(scoring, "__module__", None)
-        if (
-            hasattr(module, "startswith")
-            and module.startswith("sklearn.metrics.")
-            and not module.startswith("sklearn.metrics._scorer")
-            and not module.startswith("sklearn.metrics.tests.")
-        ):
-            raise ValueError(
-                f"scoring value {scoring} looks like it is a metric "
-                "function rather than a scorer. A scorer should "
-                "require an estimator as its first parameter. "
-                "Please use `make_scorer` to convert a metric "
-                "to a scorer."
-            )
         return get_scorer(scoring)
     elif scoring is None:
         if estimator is not None:
-            tags = get_tags(estimator)
-            if tags.estimator_type == "classifier":
+            if is_classifier(estimator):
                 return get_scorer(
                     make_scorer(log_loss, response_method="predict_proba")
                 )
-            elif tags.estimator_type == "regressor":
+            elif is_regressor(estimator):
                 return get_scorer(make_scorer(mean_squared_error))
             else:
                 raise TypeError(
