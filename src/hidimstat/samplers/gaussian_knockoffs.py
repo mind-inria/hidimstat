@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator
 from sklearn.covariance import LedoitWolf
 from sklearn.utils.validation import check_array, check_is_fitted
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import check_random_state, find_stack_level
 
 
 class GaussianKnockoffs(BaseEstimator):
@@ -101,7 +101,7 @@ class GaussianKnockoffs(BaseEstimator):
                 "The conditional covariance matrix for knockoffs is not positive "
                 "definite. Adding minor positive value to the matrix.",
                 UserWarning,
-                stacklevel=2,
+                stacklevel=find_stack_level(),
             )
 
         self.sigma_tilde_decompose_ = np.linalg.cholesky(sigma_tilde)
@@ -227,7 +227,7 @@ def _s_equi(sigma, tol=1e-14):
             "The equi-correlated matrix for knockoffs is not positive "
             f"definite. Reduce the value of distance by {s_eps}.",
             UserWarning,
-            stacklevel=2,
+            stacklevel=find_stack_level(),
         )
 
     s = s * (1 - s_eps)

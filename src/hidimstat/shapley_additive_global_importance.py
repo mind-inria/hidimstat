@@ -112,7 +112,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
     n_permutations : int, default=50
         The number of samples to draw using the `imputation` strategy for each
         subset (the samples are drawn from the complement of the subset).
-    features_groups : dict, optional
+    feature_groups : dict, optional
         Group of features for which to compute the importance. Default is None,
         which means that the importance of each individual feature will be
         computed.
@@ -134,13 +134,13 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         imputation="marginal",
         n_subsets=50,
         n_permutations=50,
-        features_groups=None,
+        feature_groups=None,
         random_state=None,
         n_jobs=1,
     ):
         super().__init__()
         GroupVariableImportanceMixin.__init__(
-            self, features_groups=features_groups
+            self, feature_groups=feature_groups
         )
         self.estimator = estimator
         self.method = method
@@ -169,13 +169,13 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         # and corresponding SAGE value function to avoid redundant computation.
 
         # For each feature, list of tuples (S, S U {j})
-        self.sum_terms_ = {j: [] for j in range(self.n_features_groups_)}
+        self.sum_terms_ = {j: [] for j in range(self.n_feature_groups_)}
         # dictionary to store computed SAGE values for subsets
         self.subset_value_map_ = {}
         # subset of features without j
         self.subset_map_ = {}
-        for j in range(self.n_features_groups_):
-            group_ids = self._features_groups_ids[j]
+        for j in range(self.n_feature_groups_):
+            group_ids = self._feature_groups_ids[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )
@@ -210,8 +210,8 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
             subset_key = tuple(subset)
             self.subset_value_map_[subset_key] = value
 
-        self.importances_ = np.zeros(self.n_features_groups_)
-        for j in range(self.n_features_groups_):
+        self.importances_ = np.zeros(self.n_feature_groups_)
+        for j in range(self.n_feature_groups_):
             for S_key, S_j_key in self.sum_terms_[j]:
                 self.importances_[j] += (
                     self.subset_value_map_[S_key]

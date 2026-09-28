@@ -22,6 +22,7 @@ from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import (
     _generate_group_mask,
     check_random_state,
+    find_stack_level,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -336,7 +337,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 )
                 warnings.warn(
                     f"'max_iter' has been increased to {estimator.max_iter}",
-                    stacklevel=2,
+                    stacklevel=find_stack_level(),
                 )
             # use the cross-validation for define the best alpha of Lasso
             estimator.set_params(n_jobs=self.n_jobs)
@@ -381,9 +382,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         configured by the test parameter ('chi2' or 'F').
         """
         if X is not None:
-            warnings.warn("X won't be used.", stacklevel=2)
+            warnings.warn("X won't be used.", stacklevel=find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used.", stacklevel=2)
+            warnings.warn("y won't be used.", stacklevel=find_stack_level())
 
         check_is_fitted(self)
 
@@ -489,6 +490,11 @@ class DesparsifiedLasso(BaseVariableImportance):
             two_tailed_test=two_tailed_test,
         )
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
 
 def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     """
@@ -588,6 +594,13 @@ def desparsified_lasso_importance(
     threshold_min=None,
     threshold_max=None,
 ):
+    warnings.warn(
+        "desparsified_lasso_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class DesparsifiedLasso instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = DesparsifiedLasso(
         estimator=estimator,
         centered=centered,
@@ -629,17 +642,17 @@ desparsified_lasso_importance.__doc__ = _aggregate_docstring(
         DesparsifiedLasso.pvalue_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected
-        during screening, scores are set to 0.
-    pvalues : ndarray of shape (n_features,)
-        Two-sided p-values for each feature under Gaussian null hypothesis.
-        For features not selected during screening, p-values are set to 1.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_features,)
+    Boolean array indicating selected features (True = selected)
+importances : ndarray of shape (n_features,)
+    Feature importance scores/test statistics. For features not selected
+    during screening, scores are set to 0.
+pvalues : ndarray of shape (n_features,)
+    Two-sided p-values for each feature under Gaussian null hypothesis.
+    For features not selected during screening, p-values are set to 1.
+""",
 )
 
 

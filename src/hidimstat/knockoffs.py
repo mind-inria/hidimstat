@@ -9,7 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import check_random_state, seed_estimator
+from hidimstat._utils.utils import (
+    check_random_state,
+    find_stack_level,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
@@ -235,9 +239,9 @@ class ModelXKnockoff(BaseVariableImportance):
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
         if X is not None:
-            warnings.warn("X won't be used", stacklevel=2)
+            warnings.warn("X won't be used", stacklevel=find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used", stacklevel=2)
+            warnings.warn("y won't be used", stacklevel=find_stack_level())
         check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
@@ -571,6 +575,11 @@ class ModelXKnockoff(BaseVariableImportance):
 
         return np.array(evals)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
 
 def model_x_knockoff_importance(
     X,
@@ -590,6 +599,13 @@ def model_x_knockoff_importance(
     adaptive_aggregation=False,
     gamma=0.5,
 ):
+    warnings.warn(
+        "model_x_knockoff_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class ModelXKnockoff instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = ModelXKnockoff(
         ko_generator=ko_generator,
         n_repeats=n_repeats,
@@ -621,13 +637,13 @@ model_x_knockoff_importance.__doc__ = _aggregate_docstring(
         ModelXKnockoff.fdr_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection: binary array-like of shape (n_features)
-        Binary array of the selected features
-    importance : array-like of shape (n_features)
-        The computed feature importance scores.
-    pvalues : array-like of shape (n_features)
-        The computed significant of feature for the prediction.
-    """,
+Returns
+-------
+selection: binary array-like of shape (n_features)
+    Binary array of the selected features
+importance : array-like of shape (n_features)
+    The computed feature importance scores.
+pvalues : array-like of shape (n_features)
+    The computed significant of feature for the prediction.
+""",
 )

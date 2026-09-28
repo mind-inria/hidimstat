@@ -32,6 +32,6 @@ see warning here:
 Release from Github tag
 -----------------------
 
-More info here
+More info here:
 
 - `https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#about-release-management <https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository#about-release-management>`_

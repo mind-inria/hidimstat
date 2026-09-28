@@ -1,5 +1,7 @@
+import inspect
 import numbers
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -8,12 +10,13 @@ from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
 
+import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
     holdout_randomization_test,
 )
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
-SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
+SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
 
@@ -22,10 +25,11 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
     kwargs = kwargs.copy()
 
     if estimator_cls.__name__ == "LassoCV":
-        if SKLEARN_LT_1_6 and "alphas" in kwargs:
+        if SKLEARN_LT_1_7 and "alphas" in kwargs:
             kwargs["n_alphas"] = kwargs.pop("alphas")
-        elif not SKLEARN_LT_1_6 and "n_alphas" in kwargs:
+        elif "n_alphas" in kwargs:
             kwargs["alphas"] = kwargs.pop("n_alphas")
+
     elif estimator_cls.__name__ == "LogisticRegressionCV":
         if SKLEARN_LT_1_9 and "penalty" in kwargs:
             penalty = kwargs.pop("penalty")
@@ -266,3 +270,56 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def find_stack_level() -> int:
+    """
+    Find the first place in the stack that is not inside hidimstat
+    (tests notwithstanding).
+
+    Originally based on the pandas codebase.
+    https://github.com/pandas-dev/pandas/tree/main/pandas/util/_exceptions.py#L37
+    and its adaptation in nilearn
+    https://github.com/nilearn/nilearn/blob/3a71575a67ea5cd252142c05b7e784b590b6d4f5/nilearn/_utils/logger.py#L162
+    """
+    pkg_dir = Path(hd.__file__).parent
+
+    # list of stack frames to skip
+    skip_list = [
+        Path("sklearn") / "utils" / "_set_output.py",
+        Path("sklearn") / "base.py",
+        Path("joblib") / "memory.py",
+        Path("joblib") / "parallel.py",
+    ]
+
+    # https://stackoverflow.com/questions/17407119/python-inspect-stack-is-slow
+    frame = inspect.currentframe()
+    try:
+        n = 0
+        while frame:
+            filename = inspect.getfile(frame)
+
+            is_test_file = Path(filename).name.startswith("test_")
+
+            in_hidimstat_code = filename.startswith(str(pkg_dir))
+            skip = any(str(x) in filename for x in skip_list)
+            if (not in_hidimstat_code and not skip) or is_test_file:
+                break
+
+            frame = frame.f_back
+
+            n += 1
+
+    finally:
+        # See note in
+        # https://docs.python.org/3/library/inspect.html#inspect.Traceback
+        del frame
+    return n
+
+
+def one_level_deeper() -> int:
+    """Use for testing find_stack_level.
+
+    Needs to be in a module that does not start with 'test'
+    """
+    return find_stack_level()
