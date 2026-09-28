@@ -8,6 +8,9 @@ from hidimstat._utils.baselines import (
 
 
 def test_baseline_regressor_fitted(rng):
+    """
+    Verify that fit of baseline regressor works, and verify the output predictions.
+    """
     X = rng.random((100, 5))
     y = rng.random(100)
 
@@ -26,6 +29,9 @@ def test_baseline_regressor_fitted(rng):
 
 
 def test_baseline_classifier_fitted(rng):
+    """
+    Verify that fit of baseline classifier works, and verify the output predictions.
+    """
     X = rng.random((100, 5))
     y = rng.random(100)
 
