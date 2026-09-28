@@ -30,11 +30,13 @@ class LOCO(BasePerturbation):
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
         "predict_proba", "decision_function", "transform".
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     loss : callable, default=None
         The function to compute the loss when comparing the perturbed model
         to the original model.
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     statistical_test : callable or str, default="ttest"
@@ -239,11 +241,13 @@ class LOCOCV(BasePerturbationCV):
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
         "predict_proba", "decision_function", "transform".
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     loss : callable, default=None
         The function to compute the loss when comparing the perturbed model
         to the original model.
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     feature_groups: dict or None, default=None

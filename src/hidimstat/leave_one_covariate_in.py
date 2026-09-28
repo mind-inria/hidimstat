@@ -34,11 +34,13 @@ class LOCI(BasePerturbation):
         The method used for making predictions. This determines the predictions
         passed to the loss function. Supported methods are "predict",
         "predict_proba", "decision_function", "transform".
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     loss : callable, default=None
         The function to compute the loss when comparing the perturbed model
         to the original model.
+
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     statistical_test : callable or str, default="ttest"
@@ -279,6 +281,19 @@ class LOCICV(BasePerturbationCV):
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -307,12 +322,16 @@ class LOCICV(BasePerturbationCV):
         estimators,
         cv,
         scoring=None,
+        method=None,
+        loss=None,
         statistical_test="nb-ttest",
         feature_groups=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
         self.scoring = scoring
+        self.method = method
+        self.loss = loss
         self.feature_groups = feature_groups
 
     def _fit_single_split(self, estimator, X_train, y_train):
