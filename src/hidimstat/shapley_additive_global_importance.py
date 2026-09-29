@@ -88,7 +88,7 @@ def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
     return subsets
 
 
-class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
+class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
     """
     Shapley Additive Global Importance (SAGE) values for feature importance.
 
@@ -138,10 +138,8 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         random_state=None,
         n_jobs=1,
     ):
-        super().__init__()
-        GroupVariableImportanceMixin.__init__(
-            self, feature_groups=feature_groups
-        )
+        super.__init__(feature_groups=feature_groups)
+        BaseVariableImportance().__init__(self)
         self.estimator = estimator
         self.method = method
         self.loss = loss
@@ -158,7 +156,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
                 "values."
             )
         self.estimator_ = self._initial_fit(self.estimator, X, y)
-        GroupVariableImportanceMixin.fit(self, X, y)
+        super.fit(X, y)
         return self
 
     def importance(self, X, y):

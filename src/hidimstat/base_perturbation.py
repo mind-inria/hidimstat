@@ -18,7 +18,7 @@ from hidimstat.base_variable_importance import (
 )
 
 
-class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
+class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
     """
     Abstract base class for model-agnostic variable importance measures using
     perturbation techniques.
@@ -80,10 +80,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         n_jobs: int = 1,
         random_state=None,
     ):
-        super().__init__()
-        GroupVariableImportanceMixin.__init__(
-            self, feature_groups=feature_groups
-        )
+        super.__init__(feature_groups=feature_groups)
+        BaseVariableImportance().__init__(self)
         self.estimator = estimator
         self.loss = loss
 
@@ -130,17 +128,17 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         self.n_features_in_ = self.estimator_.n_features_in_
 
-        GroupVariableImportanceMixin.fit(self, X, y)
+        super.fit(X, y)
         return self
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
         check_is_fitted(self)
-        GroupVariableImportanceMixin._check_fit(self)
+        super._check_fit()
 
     def _check_compatibility(self, X):
         """Check compatibility between input data and fitted model."""
-        GroupVariableImportanceMixin._check_compatibility(self, X)
+        super._check_compatibility(X)
 
     def _predict(self, X):
         """
@@ -253,7 +251,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Checks if the loss has been computed.
         """
         check_is_fitted(self)
-        super()._check_importance()
+        BaseVariableImportance()._check_importance(self)
         if (
             getattr(self, "loss_reference_", None) is None
             or getattr(self, "loss_", None) is None
