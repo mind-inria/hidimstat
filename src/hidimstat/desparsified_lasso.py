@@ -490,6 +490,11 @@ class DesparsifiedLasso(BaseVariableImportance):
             two_tailed_test=two_tailed_test,
         )
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
 
 def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     """

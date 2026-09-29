@@ -575,6 +575,11 @@ class ModelXKnockoff(BaseVariableImportance):
 
         return np.array(evals)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
 
 def model_x_knockoff_importance(
     X,
