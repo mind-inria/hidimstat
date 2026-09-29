@@ -21,3 +21,4 @@ Changes
 - :bdg-danger:`Fix` Removed unnecessary warning in ``fit_importance`` when (X, y) are passed to estimators that don't need it to compute importance scores (:gh:`804` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Deprecated feature importance functions such as ``cfi_importance`` to be removed in v0.6 (:gh:`783` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Removed deprecated classes ``CluDL`` and ``EnCluDL`` (:gh:`807` by `Marc Hulcelle`_).
+- :bdg-warning:`API` Re-orded class inheritance with ``GroupVariableImportanceMixin`` (:gh:`788` by `Marc Hulcelle`_).

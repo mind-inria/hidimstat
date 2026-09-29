@@ -80,8 +80,8 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         n_jobs: int = 1,
         random_state=None,
     ):
-        super.__init__(feature_groups=feature_groups)
-        BaseVariableImportance().__init__(self)
+        super().__init__(feature_groups=feature_groups)
+        BaseVariableImportance.__init__(self)
         self.estimator = estimator
         self.loss = loss
 
@@ -128,17 +128,17 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
         self.n_features_in_ = self.estimator_.n_features_in_
 
-        super.fit(X, y)
+        super().fit(X, y)
         return self
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
         check_is_fitted(self)
-        super._check_fit()
+        super()._check_fit()
 
     def _check_compatibility(self, X):
         """Check compatibility between input data and fitted model."""
-        super._check_compatibility(X)
+        super()._check_compatibility(X)
 
     def _predict(self, X):
         """
@@ -251,7 +251,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         Checks if the loss has been computed.
         """
         check_is_fitted(self)
-        BaseVariableImportance()._check_importance(self)
+        BaseVariableImportance._check_importance(self)
         if (
             getattr(self, "loss_reference_", None) is None
             or getattr(self, "loss_", None) is None
