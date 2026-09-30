@@ -2,6 +2,8 @@
 Test the clustered_inference module
 """
 
+import warnings
+
 import numpy as np
 import pytest
 from sklearn.cluster import FeatureAgglomeration
@@ -120,6 +122,35 @@ def test_cluster_importance(data_generator):
     importance = importance_stack.mean(axis=0)
 
     assert importance[beta].mean() > importance[~beta].mean()
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_importance_data_no_warning_raised(data_generator):
+    """
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
+    X, y, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Check that no warnings related to handing out data to a method that
+    # doesn't need it for its importance function is raised.
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    cludl = ClusterImportance(vim=dl, clustering=FeatureAgglomeration())
+    cludl.fit(X_train, y_train)
+
+    # If warnings are raised, make sure it's not about "X/y won't be used"
+    with warnings.catch_warnings(record=True) as warnings_raised:
+        cludl.importance(X_test, y_test)
+        if len(warnings_raised) > 0:
+            assert not any(
+                "won't be used" in str(w.message) for w in warnings_raised
+            )
 
 
 def test_cluvi_spatial():
