@@ -1,5 +1,6 @@
 import inspect
 import numbers
+import warnings
 from functools import partial
 from pathlib import Path
 
@@ -327,6 +328,25 @@ def check_scoring(estimator=None, scoring=None):
             raise TypeError(
                 "No scoring nor estimator was passed to the method."
             )
+
+
+def _check_loss_method_parameter(scoring, method, loss):
+    """Check values of method and loss parameters in regard to scoring parameter."""
+    if scoring is None and (method is not None or loss is not None):
+        warnings.warn(
+            "Parameters 'method' and 'loss' are deprecated,"
+            "and will be removed in v0.6.0. Please use 'scoring' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if method in {"mean_squared_error", "log_loss"}:
+            return method
+        elif (
+            loss.__func__ is log_loss.__func__
+            or loss.__func__ is mean_squared_error.__func__
+        ):
+            return loss
+    return scoring
 
 
 def find_stack_level() -> int:

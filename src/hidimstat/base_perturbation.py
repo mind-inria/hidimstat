@@ -1,15 +1,13 @@
-import warnings
-
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
+    _check_loss_method_parameter,
     check_random_state,
     check_scoring,
     check_statistical_test,
@@ -154,24 +152,6 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """Check compatibility between input data and fitted model."""
         GroupVariableImportanceMixin._check_compatibility(self, X)
 
-    def _check_loss_method_parameter(self):
-        if self.scoring is None and (
-            self.method is not None or self.loss is not None
-        ):
-            warnings.warn(
-                "Parameters 'method' and 'loss' are deprecated,"
-                "and will be removed in v0.6.0. Please use 'scoring' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            if self.method in {"mean_squared_error", "log_loss"}:
-                self.scoring = self.method
-            elif (
-                self.loss.__func__ is log_loss.__func__
-                or self.loss.__func__ is mean_squared_error.__func__
-            ):
-                self.scoring = self.loss
-
     def _joblib_score_one_feature_group(
         self, X, y, features_group_id, random_state=None
     ):
@@ -284,7 +264,9 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
-        self._check_loss_method_parameter()
+        self.scoring = _check_loss_method_parameter(
+            scoring=self.scoring, method=self.method, loss=self.loss
+        )
         self.scoring = check_scoring(
             estimator=self.estimator_, scoring=self.scoring
         )

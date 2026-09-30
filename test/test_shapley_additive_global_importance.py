@@ -54,7 +54,7 @@ def sage_test_data():
     model.fit(X_train, y_train)
     sage_default_parameters = {
         "estimator": model,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_subsets": 20,
         "n_permutations": 10,
         "n_jobs": 1,
