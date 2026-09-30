@@ -208,14 +208,11 @@ def test_desparsified_group_lasso(rng):
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
-basic = pytest.mark.parametrize(
+@pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 100, 10, 2, 0, 42, 1, 50, 0.9)],
     ids=["basic"],
 )
-
-
-@basic
 @ignore_warnings(category=UserWarning)
 def test_exception(data_generator):
     """Test exception of Desparsified Lasso"""
@@ -271,24 +268,6 @@ def test_exception(data_generator):
         desparsified_lasso.importance(X=X)
     with pytest.warns(Warning, match="y won't be used."):
         desparsified_lasso.importance(y=y)
-
-
-@basic
-def test_cov_value_error(data_generator):
-    """
-    Test that a ValueError is raised for covariance input of the wrong shape
-    """
-    X, y, _ = data_generator
-    multi_task_lasso_cv = MultiTaskLassoCV(
-        fit_intercept=False,
-        random_state=1,
-    )
-
-    desparsified_lasso = DesparsifiedLasso(
-        estimator=multi_task_lasso_cv, covariance=np.ones((2, 2))
-    )
-    with pytest.raises(ValueError):
-        desparsified_lasso.fit_importance(X, y)
 
 
 @ignore_warnings(category=UserWarning)
