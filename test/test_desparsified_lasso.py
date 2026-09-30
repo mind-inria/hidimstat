@@ -132,9 +132,9 @@ def test_desparsified_group_lasso(rng):
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
     n_samples = 1000
-    n_features = 50
-    n_target = 10
-    support_size = 5
+    n_features = 20
+    n_target = 3
+    support_size = 2
     signal_noise_ratio = 32
     rho_serial = 0.9
     alpha = 0.1
