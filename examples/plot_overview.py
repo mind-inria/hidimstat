@@ -259,18 +259,22 @@ model = HistGradientBoostingClassifier(random_state=0).fit(X_train, y_train)
 viz = ALE(estimator=model, feature_names=feature_names)
 
 # %%
-viz.plot(
-    X_test,
-    features=0,
-    method="predict_proba",
-    cmap="RdBu",
-)
+# We plot the two selected features side by side.
+
+for feature in range(n_informative):
+    viz.plot(
+        X_test,
+        features=feature,
+        method="predict_proba",
+        cmap="RdBu",
+    )
 
 # %%
-# This plot shows how the prediction of the model changes with the value of the
-# first feature: class 0 (the outer circle) is predicted for low and high values
-# of :math:`X_0`, whereas class 1 (the inner circle) is predicted for
-# intermediate values of :math:`X_0`.
+# These plots show how the prediction of the model changes with the value of
+# each selected feature: class 0 (the outer circle) is predicted for low and
+# high values of :math:`X_0` and :math:`X_1`, whereas class 1 (the inner circle)
+# is predicted for intermediate values. Both features act symmetrically, as
+# expected from the radial structure of the data.
 
 
 # %%
