@@ -25,7 +25,7 @@ one can perform different types of statistical tests to obtain the p-value, such
 
 Note: quite often, the tests will be carried out on importance values produced by a cross-validation procedure,
 which are *not* independent. This makes the standard two-sample tests potentially invalid.
-The so-called Nadeau-Bengio correction :footcite:p:`nadeau2003inference` can be used to adjust for this dependency.
+The so-called Nadeau-Bengio correction :footcite:p:`nadeau1999inference` can be used to adjust for this dependency.
 
 The resulting number, the p-value, is valid whenever its distribution under the null hypothesis is dominated
 by the uniform distribution on the interval :math:`[0, 1]`.
@@ -63,7 +63,7 @@ but it allows for a controlled proportion of false positives.
 
 It is noteworthy that knockoff methods provide control of the FDR,  under some assumptions, but do not give a
 per-feature measure of statistical significance.
-See :class:`hidimstat.KnockoffInference` for more details on knockoff-based inference.
+See :class:`~hidimstat.ModelXKnockoff` for more details on knockoff-based inference.
 See :ref:`sphx_glr_generated_gallery_examples_plot_knockoffs_wisconsin.py` for an example of knockoff-based inference in practice.
 
 In any case, it is important to remember that statistical control is tied to some **assumptions** being met.
