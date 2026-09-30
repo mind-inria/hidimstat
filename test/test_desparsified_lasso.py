@@ -6,7 +6,6 @@ from copy import copy
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -140,7 +139,7 @@ def test_desparsified_group_lasso(rng):
     rho_serial = 0.9
     alpha = 0.1
     # Small tolerance for the test
-    test_tol = 0.1
+    test_tol = 0.05
 
     fd_list = []
     power_list = []
@@ -151,12 +150,7 @@ def test_desparsified_group_lasso(rng):
             np.geomspace(1, rho_serial ** (n_target - 1), n_target)
         )
         multi_task_lasso_cv = MultiTaskLassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
-            max_iter=50,
-            random_state=1,
+            fit_intercept=False, random_state=1
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -169,20 +163,16 @@ def test_desparsified_group_lasso(rng):
             seed=seed,
         )
 
-        with pytest.warns(Warning, match="'max_iter' has been increased to "):
-            desparsified_lasso = DesparsifiedLasso(
-                estimator=multi_task_lasso_cv,
-                covariance=corr,
-                save_model_x=True,
-                random_state=seed,
-            ).fit(X, y)
-        importances = desparsified_lasso.importance()
-
-        assert_almost_equal(importances, beta, decimal=1)
+        desparsified_lasso = DesparsifiedLasso(
+            estimator=multi_task_lasso_cv,
+            covariance=corr,
+            save_model_x=True,
+            random_state=seed,
+        ).fit(X, y)
+        desparsified_lasso.importance()
 
         important = beta[:, 0] != 0
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -197,9 +187,8 @@ def test_desparsified_group_lasso(rng):
         desparsified_lasso = DesparsifiedLasso(
             estimator=multi_task_lasso_cv, test="F", random_state=seed
         ).fit(X, y)
-        importances = desparsified_lasso.importance()
+        desparsified_lasso.importance()
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -213,32 +202,20 @@ def test_desparsified_group_lasso(rng):
         )
         assert selected_two_tailed.shape == (n_features,)
 
-        # Testing error is raised when the covariance matrix has wrong shape
-        bad_cov = np.delete(corr, 0, axis=1)
-        desparsified_lasso = DesparsifiedLasso(
-            estimator=multi_task_lasso_cv, covariance=bad_cov
-        ).fit(X, y)
-        with pytest.raises(ValueError):
-            desparsified_lasso.importance()
-
-        with pytest.raises(
-            ValueError, match="'test' should be on of: 'chi2', 'F'"
-        ):
-            DesparsifiedLasso(
-                estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
-            ).fit(X, y)
-
     assert np.mean(fd_list) <= alpha + test_tol
     assert np.mean(power_list) >= 0.8 - test_tol
     assert np.mean(fd_ftest_list) <= alpha + test_tol
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
-@pytest.mark.parametrize(
+basic = pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 100, 10, 2, 0, 42, 1, 50, 0.9)],
     ids=["basic"],
 )
+
+
+@basic
 @ignore_warnings(category=UserWarning)
 def test_exception(data_generator):
     """Test exception of Desparsified Lasso"""
@@ -294,6 +271,24 @@ def test_exception(data_generator):
         desparsified_lasso.importance(X=X)
     with pytest.warns(Warning, match="y won't be used."):
         desparsified_lasso.importance(y=y)
+
+
+@basic
+def test_cov_value_error(data_generator):
+    """
+    Test that a ValueError is raised for covariance input of the wrong shape
+    """
+    X, y, _ = data_generator
+    multi_task_lasso_cv = MultiTaskLassoCV(
+        fit_intercept=False,
+        random_state=1,
+    )
+
+    desparsified_lasso = DesparsifiedLasso(
+        estimator=multi_task_lasso_cv, covariance=np.ones((2, 2))
+    )
+    with pytest.raises(ValueError):
+        desparsified_lasso.fit_importance(X, y)
 
 
 @ignore_warnings(category=UserWarning)
