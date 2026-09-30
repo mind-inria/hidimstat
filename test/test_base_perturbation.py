@@ -117,6 +117,10 @@ def test_base_cv_errors(rng):
     "error:Parameters 'method' and 'loss' are deprecated"
 )
 def test_deprecation_warning(rng):
+    """
+    Test that a deprecation warning is issued when inputting a method
+    or loss argument.
+    """
     X = rng.random((100, 5))
     y = rng.random(100)
 

@@ -339,13 +339,23 @@ def _check_loss_method_parameter(scoring, method, loss):
             DeprecationWarning,
             stacklevel=2,
         )
-        if method in {"mean_squared_error", "log_loss"}:
-            return method
-        elif (
-            loss.__func__ is log_loss.__func__
-            or loss.__func__ is mean_squared_error.__func__
+        if (
+            method is not None
+            and _check_vim_predict_method(method) is not None
         ):
-            return loss
+            if method in {"predict_proba", "decision_function"}:
+                return log_loss
+            else:
+                return mean_squared_error
+        elif loss is not None:
+            # Verify that loss is a sklearn metric.
+            module = getattr(loss, "__module__", None)
+            if hasattr(module, "startswith") and module.startswith(
+                "sklearn.metrics."
+            ):
+                return loss
+            else:
+                raise ValueError(f"The loss {loss} is not a 'sklearn.metrics'")
     return scoring
 
 

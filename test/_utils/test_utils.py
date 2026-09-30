@@ -9,12 +9,14 @@ from sklearn.linear_model import (
 )
 from sklearn.metrics import (
     get_scorer,
+    hinge_loss,
     log_loss,
     make_scorer,
     mean_squared_error,
 )
 
 from hidimstat._utils.utils import (
+    _check_loss_method_parameter,
     _make_sklearn_estimator,
     check_random_state,
     check_scoring,
@@ -164,4 +166,74 @@ def test_check_scoring():
     )
     assert (
         repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
+    )
+
+
+@pytest.mark.filterwarnings(
+    "error:Parameters 'method' and 'loss' are deprecated"
+)
+def test_check_loss_method_parameter_deprecation_warning():
+    """Test deprecation warning"""
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        _check_loss_method_parameter(
+            scoring=None, method="mean_squared_error", loss=None
+        )
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=mean_squared_error
+        )
+
+
+def test_check_loss_method_parameter():
+    """
+    Test the following:
+    - returns the score when no method nor loss is given
+    - returns the appropriate loss or method when on of them is input
+    """
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method="predict_proba", loss=None
+        )
+        == log_loss
+    )
+    assert (
+        _check_loss_method_parameter(scoring=None, method="predict", loss=None)
+        == mean_squared_error
+    )
+    with pytest.raises(ValueError, match="is not a valid method"):
+        _check_loss_method_parameter(scoring=None, method="unknown", loss=None)
+
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=mean_squared_error
+        )
+        == mean_squared_error
+    )
+    assert (
+        _check_loss_method_parameter(scoring=None, method=None, loss=log_loss)
+        == log_loss
+    )
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=hinge_loss
+        )
+        == hinge_loss
+    )
+    with pytest.raises(ValueError, match=r"is not a 'sklearn.metrics'"):
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=check_scoring
+        )
+
+    assert (
+        _check_loss_method_parameter(
+            scoring="mean_squared_error", method=None, loss=mean_squared_error
+        )
+        == "mean_squared_error"
     )
