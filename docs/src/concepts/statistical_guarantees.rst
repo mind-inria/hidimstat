@@ -25,7 +25,7 @@ one can perform different types of statistical tests to obtain the p-value, such
 
 Note: quite often, the tests will be carried out on importance values produced by a cross-validation procedure,
 which are *not* independent. This makes the standard two-sample tests potentially invalid.
-The so-called Nadeau-Bengio correction :footcite:p:`nadeau2003inference` can be used to adjust for this dependency.
+The so-called Nadeau-Bengio correction :footcite:p:`nadeau1999inference` can be used to adjust for this dependency.
 
 The resulting number, the p-value, is valid whenever its distribution under the null hypothesis is dominated
 by the uniform distribution on the interval :math:`[0, 1]`.
