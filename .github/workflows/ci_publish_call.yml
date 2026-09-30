@@ -106,7 +106,15 @@ jobs:
         run: |
           #display command executed with argument
           set -x -a
-          BRANCH="$BRANCH_INPUT"
+          # get the branch of the PR — passed through an env var, never
+          # interpolated directly into the script, since branch names are
+          # attacker-controlled and can contain shell metacharacters
+          if [ "$PULL_REQUEST_NUMBER" == "null" ]
+          then
+            BRANCH="$BRANCH_INPUT"
+          else
+            BRANCH="pull/$PULL_REQUEST_NUMBER/head"
+          fi
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo "$ARTIFACT_URL" | cut -d/ -f4-8)/pytest-results-all.zip"
           # Build the request body with jq rather than string interpolation.
