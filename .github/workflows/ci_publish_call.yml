@@ -36,11 +36,11 @@ jobs:
         id: read_meta
         if: github.event.workflow_run.event == 'pull_request'
         run: |
-          BRANCH_NAME=$(cat pr-meta/branch_name.txt)
+          BRANCH_NB=$(cat pr-meta/pr_number.txt)
           PR_DRAFT=$(cat pr-meta/pr_draft.txt)
           DOC_FLAG=$(cat pr-meta/doc_flag.txt)
 
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "BRANCH_NAME=pull/$BRANCH_NB/head" >> $GITHUB_OUTPUT
 
           if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
             echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
@@ -106,15 +106,7 @@ jobs:
         run: |
           #display command executed with argument
           set -x -a
-          # get the branch of the PR — passed through an env var, never
-          # interpolated directly into the script, since branch names are
-          # attacker-controlled and can contain shell metacharacters
-          if [ "$PULL_REQUEST_NUMBER" == "null" ]
-          then
-            BRANCH="$BRANCH_INPUT"
-          else
-            BRANCH="pull/$PULL_REQUEST_NUMBER/head"
-          fi
+          BRANCH="$BRANCH_INPUT"
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo "$ARTIFACT_URL" | cut -d/ -f4-8)/pytest-results-all.zip"
           # Build the request body with jq rather than string interpolation.
