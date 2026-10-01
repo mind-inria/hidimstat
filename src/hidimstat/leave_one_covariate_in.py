@@ -155,7 +155,7 @@ class LOCI(BasePerturbation):
         """
         return self.scoring(self._baseline_estimator_, X, y)
 
-    def _compute_test_result_from_loss(self):
+    def _compute_score_difference(self):
         """
         Compute the loss difference between the reference loss
         and the loss computed from perturbed data.

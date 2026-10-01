@@ -219,7 +219,7 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         """
         return self.scoring(self.estimator_, X, y)
 
-    def _compute_test_result_from_loss(self):
+    def _compute_score_difference(self):
         """
         Compute the loss difference between the reference loss
         and the loss computed from perturbed data.
@@ -285,10 +285,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         )
         self.loss_ = np.stack(out_list, axis=0)
 
-        test_result = self._compute_test_result_from_loss()
+        loss_differences_ = self._compute_score_difference()
 
-        self.importances_ = np.mean(test_result, axis=1)
-        self.pvalues_ = statistical_test(test_result).pvalue
+        self.importances_ = np.mean(loss_differences_, axis=1)
+        self.pvalues_ = statistical_test(loss_differences_).pvalue
         assert self.pvalues_.shape[0] == self.n_feature_groups_, (
             "The statistical test doesn't provide the correct dimension."
         )
