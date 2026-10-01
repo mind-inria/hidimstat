@@ -70,6 +70,8 @@ methods to provide both types of information while preserving their standard
 names.
 
 
+.. _types_of_vi_methods:
+
 Types of VI methods
 -------------------
 
