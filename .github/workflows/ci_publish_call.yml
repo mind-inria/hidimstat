@@ -36,11 +36,15 @@ jobs:
         id: read_meta
         if: github.event.workflow_run.event == 'pull_request'
         run: |
-          BRANCH_NB=$(cat pr-meta/pr_number.txt)
+          PR_NUMBER=$(cat pr-meta/pr_number.txt)
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error::pr_number.txt was empty"
+            exit 1
+          fi
           PR_DRAFT=$(cat pr-meta/pr_draft.txt)
           DOC_FLAG=$(cat pr-meta/doc_flag.txt)
 
-          echo "BRANCH_NAME=pull/$BRANCH_NB/head" >> $GITHUB_OUTPUT
+          echo "BRANCH_NAME=pull/$PR_NUMBER/head" >> $GITHUB_OUTPUT
 
           if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
             echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
