@@ -4,6 +4,10 @@ from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
 from .conftest import fitted_linear_regression
 
@@ -110,3 +114,10 @@ def test_base_cv_errors(rng):
     )
     with pytest.raises(NotImplementedError):
         vim.fit(X, y)
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(BasePerturbation.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance
