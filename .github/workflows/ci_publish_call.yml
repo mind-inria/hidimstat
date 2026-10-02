@@ -22,6 +22,7 @@ jobs:
     outputs:
       BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME || steps.push_meta.outputs.BRANCH_NAME }}
       SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH || steps.push_meta.outputs.SHOULD_PUBLISH }}
+      PR_NUMBER: ${{ steps.read_meta.outputs.PR_NUMBER }}
     steps:
       - name: Download PR metadata from the triggering run
         if: github.event.workflow_run.event == 'pull_request'
@@ -41,6 +42,7 @@ jobs:
             echo "::error::pr_number.txt was empty"
             exit 1
           fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT
           PR_DRAFT=$(cat pr-meta/pr_draft.txt)
           DOC_FLAG=$(cat pr-meta/doc_flag.txt)
 
@@ -186,3 +188,6 @@ jobs:
         env_vars: OS,PYTHON
         files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version is available
         fail_ci_if_error: true
+        override_commit: ${{ github.event.workflow_run.head_sha }}
+        override_branch: ${{ github.event.workflow_run.head_branch }}
+        override_pr: ${{ needs.gather_metadata.outputs.PR_NUMBER }}
