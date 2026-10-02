@@ -325,7 +325,7 @@ def check_scoring(estimator=None, scoring=None):
                     "'classifier' or 'regressor'."
                 )
         else:
-            raise TypeError(
+            raise ValueError(
                 "No scoring nor estimator was passed to the method."
             )
 

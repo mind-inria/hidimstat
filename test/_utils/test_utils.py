@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from scipy.stats import ttest_1samp, wilcoxon
+from sklearn.feature_selection import SelectFdr
 from sklearn.linear_model import (
     LassoCV,
     LogisticRegressionCV,
@@ -167,6 +168,18 @@ def test_check_scoring():
     assert (
         repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
     )
+
+    with pytest.raises(
+        TypeError,
+        match=r"should be one of two types "
+        "'classifier' or 'regressor'",
+    ):
+        check_scoring(estimator=SelectFdr())
+
+    with pytest.raises(
+        ValueError, match="No scoring nor estimator was passed to the method"
+    ):
+        check_scoring()
 
 
 @pytest.mark.filterwarnings(
