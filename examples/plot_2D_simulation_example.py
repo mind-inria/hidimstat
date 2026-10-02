@@ -4,7 +4,8 @@ Ensemble Clustered Inference on 2D Data
 
 In this example, we present how to perform inference on simulated 2D data. This setting
 is particularly challenging since the number of features (pixels in 2D) is much larger
-than the number of samples. We first illustrate the limitations of the Desparsified
+than the number of samples.
+We first illustrate the limitations of the Desparsified
 Lasso method in this setting and then present two methods that leverage the data's
 spatial structure to build clusters and perform the inference at the cluster level.
 We first show how to use clustered inference with DL (:class:`hidimstat.ClusterImportance`).
