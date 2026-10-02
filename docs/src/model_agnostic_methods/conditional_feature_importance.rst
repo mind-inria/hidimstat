@@ -150,8 +150,7 @@ of CFI on a classification task:
     >>> cfi = CFI(
     ...     estimator=model,
     ...     imputation_model_continuous=LinearRegression(),
-    ...     loss=log_loss,
-    ...     method="predict_proba",
+    ...     scoring="log_loss",
     ... )
     >>> cfi = cfi.fit(X_train, y_train)
     >>> importance = cfi.importance(X_test, y_test)

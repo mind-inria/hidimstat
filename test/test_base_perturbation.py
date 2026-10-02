@@ -1,5 +1,6 @@
 import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
@@ -114,6 +115,40 @@ def test_base_cv_errors(rng):
     )
     with pytest.raises(NotImplementedError):
         vim.fit(X, y)
+
+
+@pytest.mark.filterwarnings(
+    "error:Parameters 'method' and 'loss' are deprecated"
+)
+def test_deprecation_warning(rng):
+    """
+    Test that a deprecation warning is issued when inputting a method
+    or loss argument.
+    """
+    X = rng.random((100, 5))
+    y = rng.random(100)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), method="mean_squared_error"
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), loss=mean_squared_error
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
 
 
 def test_mro():
