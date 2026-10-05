@@ -2,13 +2,9 @@ import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
-from sklearn.utils import get_tags
+from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
+from sklearn.dummy import DummyClassifier, DummyRegressor
 
-from hidimstat._utils.baselines import (
-    _LOCIBaselineClassifier,
-    _LOCIBaselineRegressor,
-)
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
@@ -116,12 +112,17 @@ class LOCI(BasePerturbation):
                 strict=False,
             )
         )
-        if get_tags(self.estimator).estimator_type == "classifier":
-            self._baseline_estimator = _LOCIBaselineClassifier()
+        # Creating the baseline estimator for the scoring
+        if is_classifier(self.estimator):
+            self._dummy_estimator = DummyClassifier(strategy="prior")
+        elif is_regressor(self.estimator):
+            self._dummy_estimator = DummyRegressor(strategy="mean")
         else:
-            self._baseline_estimator = _LOCIBaselineRegressor()
-        self._baseline_estimator_ = clone(self._baseline_estimator)
-        self._baseline_estimator_.fit(X, y)
+            raise TypeError(
+                r"'self.estimator' must be a classifier or a regressor."
+            )
+        self._dummy_estimator_ = clone(self._dummy_estimator)
+        self._dummy_estimator_.fit(X, y)
         return self
 
     def _joblib_fit_one_features_group(
@@ -153,7 +154,7 @@ class LOCI(BasePerturbation):
         score: float
             The score of the underlying estimator on the data.
         """
-        return self.scoring(self._baseline_estimator_, X, y)
+        return self.scoring(self._dummy_estimator_, X, y)
 
     def _compute_score_difference(self):
         """
