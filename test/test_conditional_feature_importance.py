@@ -721,8 +721,8 @@ def test_cfi_plot(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -750,8 +750,8 @@ def test_cfi_plot_2d_imp(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.stack(
         [
@@ -785,8 +785,8 @@ def test_cfi_plot_coverage(data_generator, rng):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     _, ax = plt.subplots(figsize=(6, 3))

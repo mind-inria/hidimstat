@@ -56,10 +56,10 @@ def _sage_value_function(
             X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
                 -1,
             )
-    losses = np.array(
+    scores = np.array(
         [scoring(estimator, X_sampled[i], y) for i in range(n_permutations)]
     )
-    return subset, np.mean(losses)
+    return subset, np.mean(scores)
 
 
 def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):

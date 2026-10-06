@@ -33,8 +33,8 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     method : str, default=None
         The method used for making predictions. This determines the predictions
-        passed to the loss function. Supported methods are "predict",
-        "predict_proba", "decision_function", "transform".
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
 
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
@@ -65,10 +65,10 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
         Importance scores for each feature group.
-    loss_reference_ : float
-        Loss on original (non-perturbed) data.
-    loss_ : dict
-        Loss values for each permutation of each group.
+    score_reference_ : float
+        Score on original (non-perturbed) data.
+    score_ : dict
+        Score values for each permutation of each group.
     pvalues_ : ndarray of shape (n_groups,)
         P-values for importance scores.
 
@@ -131,8 +131,8 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         check_array(X)
 
         # variable set in importance
-        self.loss_reference_ = None
-        self.loss_ = None
+        self.score_reference_ = None
+        self.score_ = None
 
         self.estimator_ = self._initial_fit(self.estimator, X, y)
 
@@ -168,7 +168,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
         Returns
         -------
-        list_loss: array-like of shape (n_permutations,)
+        list_score: array-like of shape (n_permutations,)
             The scores of the predictions after perturbation of the data for each
             group of variables.
         """
@@ -191,15 +191,15 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
                 pd.DataFrame(X_perm_j, columns=X.columns)
                 for X_perm_j in X_perm
             ]
-        list_loss = [
+        list_score = [
             self.scoring(self.estimator_, X_group_perm, y)
             for X_group_perm in X_perm
         ]
-        return list_loss
+        return list_score
 
-    def _compute_loss_reference(self, X, y):
+    def _compute_score_reference(self, X, y):
         """
-        Compute the loss reference to which predictions from perturbed data
+        Compute the score reference to which predictions from perturbed data
         will be compared.
 
         Parameters
@@ -219,17 +219,17 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
     def _compute_score_difference(self):
         """
-        Compute the loss difference between the reference loss
-        and the loss computed from perturbed data.
+        Compute the score difference between the reference score
+        and the score computed from perturbed data.
 
         Returns
         -------
-        score: array-like of shape (self.n_feature_groups_)
-            The loss difference.
+        score: array-like of shape (self.n_feature_groups_, n_samples)
+            The score difference.
         """
         return np.array(
             [
-                self.loss_[j] - self.loss_reference_
+                self.score_[j] - self.score_reference_
                 for j in range(self.n_feature_groups_)
             ]
         )
@@ -252,8 +252,8 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
         Notes
         -----
-        The importance score for each group is calculated as the mean increase in loss
-        when that group is perturbed, compared to the reference loss.
+        The importance score for each group is calculated as the mean increase in score
+        when that group is perturbed, compared to the reference score.
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
         When no group has been specified, the importance is computed for each single
@@ -269,7 +269,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
             estimator=self.estimator_, scoring=self.scoring
         )
 
-        self.loss_reference_ = self._compute_loss_reference(X, y)
+        self.score_reference_ = self._compute_score_reference(X, y)
 
         rng = check_random_state(self.random_state)
         # Parallelize the computation of the importance scores for each group
@@ -281,12 +281,12 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
                 rng.spawn(self.n_feature_groups_)
             )
         )
-        self.loss_ = np.stack(out_list, axis=0)
+        self.score_ = np.stack(out_list, axis=0)
 
-        loss_differences_ = self._compute_score_difference()
+        score_differences_ = self._compute_score_difference()
 
-        self.importances_ = np.mean(loss_differences_, axis=1)
-        self.pvalues_ = statistical_test(loss_differences_).pvalue
+        self.importances_ = np.mean(score_differences_, axis=1)
+        self.pvalues_ = statistical_test(score_differences_).pvalue
         assert self.pvalues_.shape[0] == self.n_feature_groups_, (
             "The statistical test doesn't provide the correct dimension."
         )
@@ -320,13 +320,13 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
     def _check_importance(self):
         """
-        Checks if the loss has been computed.
+        Checks if the score has been computed.
         """
         check_is_fitted(self)
         BaseVariableImportance._check_importance(self)
         if (
-            getattr(self, "loss_reference_", None) is None
-            or getattr(self, "loss_", None) is None
+            getattr(self, "score_reference_", None) is None
+            or getattr(self, "score_", None) is None
         ):
             raise ValueError(
                 "The importance method need to be called before calling this method."
@@ -343,7 +343,7 @@ class BasePerturbationCV(BaseVariableImportance):
 
     This class extends the BasePerturbation class to handle cross-validated. The fit
     is performed iteratively on each fold, and the importance is computed by computing
-    the mean loss over samples of each fold. The statistical test is performed on the
+    the mean score over samples of each fold. The statistical test is performed on the
     importance scores obtained from each fold.
 
     Parameters

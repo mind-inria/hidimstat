@@ -289,8 +289,8 @@ def check_scoring(estimator=None, scoring=None):
     ----------
     estimator: sklearn-compatible estimator, default=None
         The estimator that will be used for predictions. If no scoring is explicitly
-        provided, the scorer will be set to "neg_log_loss" for classifiers, and
-        "neg_mean_squared_error" for regressors.
+        provided, the scorer will be set to "log_loss" for classifiers, and
+        "mean_squared_error" for regressors.
     scoring: str, callable, default=None
         Sklearn-comptabile scorer to use.
 
@@ -343,10 +343,14 @@ def _check_loss_method_parameter(scoring, method, loss):
             method is not None
             and _check_vim_predict_method(method) is not None
         ):
-            if method in {"predict_proba", "decision_function"}:
+            if method == "predict_proba":
                 return log_loss
-            else:
+            elif method == "predict":
                 return mean_squared_error
+            else:
+                raise ValueError(
+                    r"Only 'predict' and 'predict_proba' are supported."
+                )
         elif loss is not None:
             # Verify that loss is a sklearn metric.
             module = getattr(loss, "__module__", None)

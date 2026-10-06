@@ -28,8 +28,8 @@ class LOCI(BasePerturbation):
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     method : str, default=None
         The method used for making predictions. This determines the predictions
-        passed to the loss function. Supported methods are "predict",
-        "predict_proba", "decision_function", "transform".
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
 
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
@@ -136,9 +136,9 @@ class LOCI(BasePerturbation):
         estimator.fit(X_j, y)
         return estimator
 
-    def _compute_loss_reference(self, X, y):
+    def _compute_score_reference(self, X, y):
         """
-        Compute the loss reference to which predictions from perturbed data
+        Compute the score reference to which predictions from perturbed data
         will be compared.
 
         Parameters
@@ -158,17 +158,17 @@ class LOCI(BasePerturbation):
 
     def _compute_score_difference(self):
         """
-        Compute the loss difference between the reference loss
-        and the loss computed from perturbed data.
+        Compute the score difference between the reference score
+        and the score computed from perturbed data.
 
         Returns
         -------
-        score: array-like of shape (self.n_feature_groups_)
-            The loss difference.
+        score: array-like of shape (self.n_feature_groups_, n_samples)
+            The score difference.
         """
         return np.array(
             [
-                self.loss_reference_ - self.loss_[j]
+                self.score_reference_ - self.score_[j]
                 for j in range(self.n_feature_groups_)
             ]
         )

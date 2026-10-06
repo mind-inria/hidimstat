@@ -26,8 +26,8 @@ class PFI(BasePerturbation):
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     method : str, default=None
         The method used for making predictions. This determines the predictions
-        passed to the loss function. Supported methods are "predict",
-        "predict_proba", "decision_function", "transform".
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
 
         .. deprecated:: 0.5.0
             Will be removed in 0.6.0. Please use parameter 'scoring' instead.
