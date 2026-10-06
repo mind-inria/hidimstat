@@ -1,12 +1,12 @@
 import warnings
 
-import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
-from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols, check_statistical_test
+from hidimstat._utils.utils import (
+    _get_array_cols,
+)
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -23,13 +23,22 @@ class LOCO(BasePerturbation):
     ----------
     estimator : sklearn compatible estimator
         The estimator to use for the prediction.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     statistical_test : callable or str, default="ttest"
         Statistical test function for computing p-values of importance scores.
     feature_groups: dict or None, default=None
@@ -53,14 +62,16 @@ class LOCO(BasePerturbation):
     def __init__(
         self,
         estimator,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
+        method=None,
+        loss=None,
         statistical_test="ttest",
         feature_groups=None,
         n_jobs: int = 1,
     ):
         super().__init__(
             estimator=estimator,
+            scoring=scoring,
             method=method,
             loss=loss,
             n_permutations=1,
@@ -106,74 +117,6 @@ class LOCO(BasePerturbation):
         )
         return self
 
-    def importance(self, X, y):
-        """
-        Compute the importance scores for each group of covariates.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            The input samples to compute importance scores for.
-        y : array-like of shape (n_samples,)
-
-        Returns
-        -------
-        importances_ : ndarray of shape (n_groups,)
-            The importance scores for each group of covariates.
-            A higher score indicates greater importance of that group.
-
-        Attributes
-        ----------
-        loss_reference_ : float
-            The loss of the model with the original (non-perturbed) data.
-        loss_ : dict
-            Dictionary with indices as keys and arrays of perturbed losses as values.
-            Contains the loss values for each permutation of each group.
-        importances_ : ndarray of shape (n_groups,)
-            The calculated importance scores for each group.
-        pvalues_ : ndarray of shape (n_groups,)
-            P-values from one-sided t-test testing if importance scores are
-            significantly greater than 0.
-
-        Notes
-        -----
-        The importance score for each group is calculated as the mean increase in loss
-        when that group is perturbed, compared to the reference loss.
-        A higher importance score indicates that perturbing that group leads to
-        worse model performance, suggesting those features are more important.
-        """
-        self._check_fit()
-        self._check_compatibility(X)
-        statistical_test = check_statistical_test(self.statistical_test)
-
-        y_pred = getattr(self.estimator, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
-
-        y_pred = self._predict(X)
-        test_result = []
-        self.loss_ = {}
-        for j, y_pred_j in enumerate(y_pred):
-            self.loss_[j] = np.array([self.loss(y, y_pred_j[0])])
-            if np.all(np.equal(y.shape, y_pred_j[0].shape)):
-                test_result.append(y - y_pred_j[0])
-            else:
-                test_result.append(
-                    y - np.unique(y)[np.argmax(y_pred_j[0], axis=-1)]
-                )
-
-        self.importances_ = np.mean(
-            [
-                self.loss_[j] - self.loss_reference_
-                for j in range(self.n_feature_groups_)
-            ],
-            axis=1,
-        )
-        self.pvalues_ = statistical_test(np.array(test_result)).pvalue
-        assert self.pvalues_.shape[0] == y_pred.shape[0], (
-            "The statistical test doesn't provide the correct dimension."
-        )
-        return self.importances_
-
     def _joblib_fit_one_features_group(
         self, estimator, X, y, feature_groups_ids
     ):
@@ -182,10 +125,11 @@ class LOCO(BasePerturbation):
         estimator.fit(X_minus_j, y)
         return estimator
 
-    def _joblib_predict_one_features_group(
-        self, X, features_group_id, random_state=None
+    def _joblib_score_one_feature_group(
+        self, X, y, features_group_id, random_state=None
     ):
-        """Predict the target feature after removing a group of covariates.
+        """
+        Score from the predictions the target feature after removing a group of covariates.
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
@@ -193,14 +137,16 @@ class LOCO(BasePerturbation):
         X_minus_j = _get_array_cols(
             X, self._feature_groups_ids[features_group_id], drop=True
         )
-        y_pred_loco = getattr(
-            self._list_estimators[features_group_id], self.method
-        )(X_minus_j)
 
-        return [y_pred_loco]
+        scoring_loco = self.scoring(
+            self._list_estimators[features_group_id], X_minus_j, y
+        )
+
+        return [scoring_loco]
 
     def _check_fit(self):
-        """Check that an estimator has been fitted after removing each group of
+        """
+        Check that an estimator has been fitted after removing each group of
         covariates.
         """
         super()._check_fit()
@@ -217,8 +163,9 @@ def loco_importance(
     estimator,
     X,
     y,
-    method: str = "predict",
-    loss: callable = mean_squared_error,
+    scoring=None,
+    method=None,
+    loss=None,
     feature_groups=None,
     test_statistic="ttest",
     k_best=None,
@@ -234,22 +181,23 @@ def loco_importance(
         stacklevel=2,
     )
 
-    method = LOCO(
+    methods = LOCO(
         estimator=estimator,
+        scoring=scoring,
         method=method,
         loss=loss,
         statistical_test=test_statistic,
         feature_groups=feature_groups,
         n_jobs=n_jobs,
     )
-    method.fit_importance(X, y)
-    selection = method.importance_selection(
+    methods.fit_importance(X, y)
+    selection = methods.importance_selection(
         k_best=k_best,
         percentile=percentile,
         threshold_min=threshold_min,
         threshold_max=threshold_max,
     )
-    return selection, method.importances_, method.pvalues_
+    return selection, methods.importances_, methods.pvalues_
 
 
 # use the docstring of the class for the function
@@ -286,13 +234,22 @@ class LOCOCV(BasePerturbationCV):
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
@@ -320,13 +277,15 @@ class LOCOCV(BasePerturbationCV):
         self,
         estimators,
         cv,
+        scoring=None,
+        method=None,
+        loss=None,
         statistical_test="nb-ttest",
-        method="predict",
-        loss=mean_squared_error,
         feature_groups=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
+        self.scoring = scoring
         self.method = method
         self.loss = loss
         self.feature_groups = feature_groups
@@ -335,6 +294,7 @@ class LOCOCV(BasePerturbationCV):
         """Fit a LOCO instance on a single train/test split."""
         loco = LOCO(
             estimator=estimator,
+            scoring=self.scoring,
             method=self.method,
             loss=self.loss,
             feature_groups=self.feature_groups,

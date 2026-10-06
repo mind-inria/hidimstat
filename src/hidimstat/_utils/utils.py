@@ -1,5 +1,6 @@
 import inspect
 import numbers
+import warnings
 from functools import partial
 from pathlib import Path
 
@@ -9,6 +10,13 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
+from sklearn.base import is_classifier, is_regressor
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 
 import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
@@ -270,6 +278,89 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def check_scoring(estimator=None, scoring=None):
+    """
+    Determine sklearn-compatible scorer from user options.
+    A TypeError will be thrown if the estimator cannot be scored.
+
+    Parameters
+    ----------
+    estimator: sklearn-compatible estimator, default=None
+        The estimator that will be used for predictions. If no scoring is explicitly
+        provided, the scorer will be set to "log_loss" for classifiers, and
+        "mean_squared_error" for regressors.
+    scoring: str, callable, default=None
+        Sklearn-comptabile scorer to use.
+
+    Returns
+    -------
+    scoring : callable
+        A scorer callable object / function with signature ``scorer(estimator, X, y)``.
+    """
+    if isinstance(scoring, str):
+        if scoring == "log_loss":
+            return get_scorer(
+                make_scorer(log_loss, response_method="predict_proba")
+            )
+        if scoring == "mean_squared_error":
+            return get_scorer(make_scorer(mean_squared_error))
+        return get_scorer(scoring)
+    elif callable(scoring):
+        return get_scorer(scoring)
+    elif scoring is None:
+        if estimator is not None:
+            if is_classifier(estimator):
+                return get_scorer(
+                    make_scorer(log_loss, response_method="predict_proba")
+                )
+            elif is_regressor(estimator):
+                return get_scorer(
+                    make_scorer(mean_squared_error, response_method="predict")
+                )
+            else:
+                raise TypeError(
+                    f"Estimator {estimator} should be one of two types "
+                    "'classifier' or 'regressor'."
+                )
+        else:
+            raise ValueError(
+                "No scoring nor estimator was passed to the method."
+            )
+
+
+def _check_loss_method_parameter(scoring, method, loss):
+    """Check values of method and loss parameters in regard to scoring parameter."""
+    if scoring is None and (method is not None or loss is not None):
+        warnings.warn(
+            "Parameters 'method' and 'loss' are deprecated,"
+            "and will be removed in v0.6.0. Please use 'scoring' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if (
+            method is not None
+            and _check_vim_predict_method(method) is not None
+        ):
+            if method == "predict_proba":
+                return log_loss
+            elif method == "predict":
+                return mean_squared_error
+            else:
+                raise ValueError(
+                    r"Only 'predict' and 'predict_proba' are supported."
+                )
+        elif loss is not None:
+            # Verify that loss is a sklearn metric.
+            module = getattr(loss, "__module__", None)
+            if hasattr(module, "startswith") and module.startswith(
+                "sklearn.metrics."
+            ):
+                return loss
+            else:
+                raise ValueError(f"The loss {loss} is not a 'sklearn.metrics'")
+    return scoring
 
 
 def find_stack_level() -> int:
