@@ -7,12 +7,15 @@ interest is removed from the subset.
 """
 
 import numpy as np
-import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 
-from hidimstat._utils.utils import _get_array_cols, check_random_state
+from hidimstat._utils.utils import (
+    _check_loss_method_parameter,
+    _get_array_cols,
+    check_random_state,
+    check_scoring,
+)
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
     GroupVariableImportanceMixin,
@@ -24,8 +27,7 @@ def _sage_value_function(
     X,
     y,
     subset,
-    method,
-    loss,
+    scoring,
     n_permutations,
     imputation="marginal",
     random_state=None,
@@ -43,7 +45,7 @@ def _sage_value_function(
         )
 
     # Sample the complement of the subset according to the marginal distribution
-    n_samples, n_features = X.shape
+    _n_samples, n_features = X.shape
     complement = np.setdiff1d(np.arange(n_features), subset)
     X_sampled = np.tile(
         X, (n_permutations, 1, 1)
@@ -54,20 +56,10 @@ def _sage_value_function(
             X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
                 -1,
             )
-
-    X_sampled_batch = X_sampled.reshape(-1, n_features)
-    if isinstance(X, pd.DataFrame):
-        X_sampled_batch = pd.DataFrame(X_sampled_batch, columns=X.columns)
-
-    y_pred = getattr(estimator, method)(X_sampled_batch)
-    # In case of classification, the output is a 2D array. Reshape accordingly
-    if y_pred.ndim == 1:
-        y_pred = y_pred.reshape(n_permutations, n_samples)
-    else:
-        y_pred = y_pred.reshape(n_permutations, n_samples, y_pred.shape[1])
-
-    losses = np.array([loss(y, y_pred[i]) for i in range(n_permutations)])
-    return subset, np.mean(losses)
+    scores = np.array(
+        [scoring(estimator, X_sampled[i], y) for i in range(n_permutations)]
+    )
+    return subset, np.mean(scores)
 
 
 def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
@@ -99,10 +91,19 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
     ----------
     estimator : object
         The fitted model for which to compute the SAGE values.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     method : str, default="predict"
         The method of the estimator to use for predictions.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     loss : callable, default=mean_squared_error
         The loss function to use for computing the SAGE values.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     imputation : str, default="marginal"
         The imputation strategy to use for sampling the complement of the
         subset. Currently, only "marginal" is implemented.
@@ -129,8 +130,9 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
     def __init__(
         self,
         estimator,
-        method="predict",
-        loss=mean_squared_error,
+        scoring="mean_squared_error",
+        method=None,
+        loss=None,
         imputation="marginal",
         n_subsets=50,
         n_permutations=50,
@@ -141,6 +143,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         super().__init__(feature_groups=feature_groups)
         BaseVariableImportance.__init__(self)
         self.estimator = estimator
+        self.scoring = scoring
         self.method = method
         self.loss = loss
         self.imputation = imputation
@@ -162,6 +165,13 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
     def importance(self, X, y):
         self._check_fit()
         rng = check_random_state(self.random_state)
+        self._check_compatibility(X)
+        self.scoring = _check_loss_method_parameter(
+            scoring=self.scoring, method=self.method, loss=self.loss
+        )
+        self.scoring = check_scoring(
+            estimator=self.estimator_, scoring=self.scoring
+        )
 
         # 1. Sample all subsets, create a dictionary mapping between subsets
         # and corresponding SAGE value function to avoid redundant computation.
@@ -194,8 +204,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
                 X,
                 y,
                 subset=self.subset_map_[subset_key],
-                method=self.method,
-                loss=self.loss,
+                scoring=self.scoring,
                 n_permutations=self.n_permutations,
                 imputation=self.imputation,
                 random_state=rng,

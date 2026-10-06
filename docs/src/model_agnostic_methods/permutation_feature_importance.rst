@@ -113,8 +113,7 @@ of PFI on a classification task::
     >>> model = RandomForestClassifier().fit(X_train, y_train)
     >>> pfi = PFI(
     ...     estimator=model,
-    ...     loss=log_loss,
-    ...     method="predict_proba",
+    ...     scoring="log_loss",
     ... )
     >>> pfi = pfi.fit(X_train, y_train)
     >>> importance = pfi.importance(X_test, y_test)

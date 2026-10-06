@@ -57,7 +57,6 @@ X_train, X_test, y_train, y_test = train_test_split(
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error
 from sklearn.neural_network import MLPRegressor
 from sklearn.svm import SVR
 
@@ -81,7 +80,7 @@ df_list = []
 for model in models_list:
     # Fit the full model
     model = model.fit(X_train, y_train)
-    loci = LOCI(model, method="predict", loss=mean_squared_error)
+    loci = LOCI(model, scoring="mean_squared_error")
     # Refit the model on a single feature / group of feature, and compute LOCI
     # importance. This process is repeated for all features / groups of features to assess
     # their individual contributions.
