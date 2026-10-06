@@ -42,7 +42,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         self.k_best = k_best
 
     def transform(self, X):
-        importances = self.importances_.mean(axis=0)
+        importances = self.importances_.mean(axis=1)
         if self.k_best < 0:
             raise ValueError(r"'self.k_best' can't be a negative number.")
 
@@ -75,19 +75,15 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         self.alternative_hypothesis = alternative_hypothesis
 
     def transform(self, X):
-        if self.k_lowest < 0:
-            raise ValueError(r"'self.k_lowest' can't be a negative number.")
-
-        k_lowest = min(self.k_lowest, X.shape[1])
         _, p_values = nadeau_bengio_ttest(
             self.importances_,
-            pop_mean=0,
+            popmean=0,
             test_frac=1 / (self.cv.get_n_splits() - 1),
             alternative=self.alternative_hypothesis,
         )
         selected = _selection_generic(
             values=p_values,
-            k_lowest=k_lowest,
+            k_lowest=self.k_lowest,
             percentile=self.percentile,
             threshold_max=self.threshold_max,
             threshold_min=self.threshold_min,
@@ -121,7 +117,7 @@ class SelectFDR(SelectorMixin, BaseEstimator):
     def transform(self, X):
         _, p_values = nadeau_bengio_ttest(
             self.importances_,
-            pop_mean=0,
+            popmean=0,
             test_frac=1 / (self.cv.get_n_splits() - 1),
             alternative=self.alternative_hypothesis,
         )
@@ -133,7 +129,7 @@ class SelectFDR(SelectorMixin, BaseEstimator):
             method=self.fdr_control,
             reshaping_function=self.reshaping_function,
         )
-        selected = (self.pvalues_ <= threshold_pvalues).astype(int)
+        selected = (p_values <= threshold_pvalues).astype(int)
 
         # For two-tailed test, determine the sign of the effect
         if self.two_tailed_test:
@@ -172,23 +168,14 @@ class SelectFWER(SelectorMixin, BaseEstimator):
     def transform(self, X):
         _, p_values = nadeau_bengio_ttest(
             self.importances_,
-            pop_mean=0,
+            popmean=0,
             test_frac=1 / (self.cv.get_n_splits() - 1),
             alternative=self.alternative_hypothesis,
         )
 
         if self.procedure == "bonferroni":
             if self.n_tests is None:
-                if hasattr(self, "clustering_"):
-                    print(
-                        "Using number of clusters for multiple testing correction."
-                    )
-                    self.n_tests = self.clustering_.n_clusters_
-                else:
-                    print(
-                        "Using number of features for multiple testing correction."
-                    )
-                    self.n_tests = p_values.shape[0]
+                self.n_tests = p_values.shape[0]
 
             # Adjust fwer for two-tailed test
             if self.two_tailed_test:
