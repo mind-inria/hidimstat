@@ -51,11 +51,11 @@ def _selection_generic(
             ]
         ]
     )
-    if n_criteria <= 1:
+    if n_criteria > 1:
         raise ValueError("Only support selection based on one criteria.")
     if k_best is not None:
         if k_best <= 0:
-            raise ValueError("k_best needs to be positive.")
+            raise ValueError("k_best needs to be strictly positive.")
         if k_best > values.shape[0]:
             warnings.warn(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
@@ -71,7 +71,7 @@ def _selection_generic(
         return mask_k_best
     elif k_lowest is not None:
         if k_lowest <= 0:
-            raise ValueError("k_lowest needs to be positive.")
+            raise ValueError("k_lowest needs to be strictly positive.")
         if k_lowest > values.shape[0]:
             warnings.warn(
                 f"k={k_lowest} is greater than n_features={values.shape[0]}. "
@@ -86,7 +86,7 @@ def _selection_generic(
         mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
         return mask_k_lowest
     elif percentile is not None:
-        if percentile < 0 or percentile > 100:
+        if percentile <= 0 or percentile >= 100:
             raise ValueError(
                 f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
             )
@@ -158,9 +158,11 @@ def _selection_fdr(
             r"Shape mismatch of 'p_values' and 'importances' on axis 0."
         )
     if fdr < 0 or fdr > 1:
-        raise ValueError("'fdr' must be a float between 0 and 1.")
+        raise ValueError(f"'fdr' must be a float between 0 and 1, got {fdr}.")
     if fdr_control not in {"bhq", "bhy"}:
-        raise ValueError("'fdr_control' must be one of {'bhq', 'bhy'}.")
+        raise ValueError(
+            f"'fdr_control' must be one of ('bhq', 'bhy'), got {fdr_control}."
+        )
 
     # Adjust fdr for two-tailed test
     if two_tailed_test:
@@ -235,11 +237,13 @@ def _selection_fwer(
             r"Shape mismatch of 'p_values' and 'importances' on axis 0."
         )
     if fwer < 0 or fwer > 1:
-        raise ValueError("'fwer' must be a float between 0 and 1.")
+        raise ValueError(
+            f"'fwer' must be a float between 0 and 1, got {fwer}."
+        )
     if procedure != "bonferroni":
-        raise ValueError("Only 'bonferroni' procedure is supported")
+        raise ValueError(r"Only 'bonferroni' procedure is supported")
     if n_tests <= 0:
-        raise ValueError(r"'n_tests' cannot be less than or equal to 0.")
+        raise ValueError(r"'n_tests' must be strictly positive.")
 
     # Adjust fwer for two-tailed test
     if two_tailed_test:
