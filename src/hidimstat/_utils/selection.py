@@ -51,9 +51,11 @@ def _selection_generic(
             ]
         ]
     )
-    assert n_criteria <= 1, "Only support selection based on one criteria."
+    if n_criteria <= 1:
+        raise ValueError("Only support selection based on one criteria.")
     if k_best is not None:
-        assert k_best >= 1, "k_best needs to be positive or None"
+        if k_best <= 0:
+            raise ValueError("k_best needs to be positive.")
         if k_best > values.shape[0]:
             warnings.warn(
                 f"k={k_best} is greater than n_features={values.shape[0]}. "
@@ -68,7 +70,8 @@ def _selection_generic(
         mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
         return mask_k_best
     elif k_lowest is not None:
-        assert k_lowest >= 1, "k_lowest needs to be positive or None"
+        if k_lowest <= 0:
+            raise ValueError("k_lowest needs to be positive.")
         if k_lowest > values.shape[0]:
             warnings.warn(
                 f"k={k_lowest} is greater than n_features={values.shape[0]}. "
@@ -83,9 +86,10 @@ def _selection_generic(
         mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
         return mask_k_lowest
     elif percentile is not None:
-        assert 0 < percentile < 100, (
-            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
-        )
+        if percentile < 0 or percentile > 100:
+            raise ValueError(
+                f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
+            )
         # based on SelectPercentile in Scikit-Learn
         threshold_percentile = np.percentile(values, 100 - percentile)
         mask_percentile = values > threshold_percentile
@@ -145,6 +149,19 @@ def _selection_fdr(
         -1 indicates selected features with negative effects,
         0 indicates non-selected features.
     """
+    if p_values is None or not isinstance(p_values, np.ndarray):
+        raise ValueError(r"'p_values' must be an numpy ndarray.")
+    if importances is None or not isinstance(importances, np.ndarray):
+        raise ValueError(r"'importances' must be an numpy ndarray.")
+    if p_values.shape[0] != importances.shape[0]:
+        raise ValueError(
+            r"Shape mismatch of 'p_values' and 'importances' on axis 0."
+        )
+    if fdr < 0 or fdr > 1:
+        raise ValueError("'fdr' must be a float between 0 and 1.")
+    if fdr_control not in {"bhq", "bhy"}:
+        raise ValueError("'fdr_control' must be one of {'bhq', 'bhy'}.")
+
     # Adjust fdr for two-tailed test
     if two_tailed_test:
         fdr = fdr / 2
@@ -209,23 +226,32 @@ def _selection_fwer(
         If `procedure` is not 'bonferroni'.
         If 'n_tests' <= 0.
     """
+    if p_values is None or not isinstance(p_values, np.ndarray):
+        raise ValueError(r"'p_values' must be an numpy ndarray.")
+    if importances is None or not isinstance(importances, np.ndarray):
+        raise ValueError(r"'importances' must be an numpy ndarray.")
+    if p_values.shape[0] != importances.shape[0]:
+        raise ValueError(
+            r"Shape mismatch of 'p_values' and 'importances' on axis 0."
+        )
+    if fwer < 0 or fwer > 1:
+        raise ValueError("'fwer' must be a float between 0 and 1.")
+    if procedure != "bonferroni":
+        raise ValueError("Only 'bonferroni' procedure is supported")
     if n_tests <= 0:
         raise ValueError(r"'n_tests' cannot be less than or equal to 0.")
 
-    if procedure == "bonferroni":
-        # Adjust fwer for two-tailed test
-        if two_tailed_test:
-            fwer = fwer / 2
+    # Adjust fwer for two-tailed test
+    if two_tailed_test:
+        fwer = fwer / 2
 
-        threshold_pvalue = fwer / n_tests
-        selected = (p_values < threshold_pvalue).astype(int)
-        if two_tailed_test:
-            if importances.ndim > 1:
-                sign_beta = np.sign(importances.sum(axis=1))
-            else:
-                sign_beta = np.sign(importances)
-            selected = selected * sign_beta
+    threshold_pvalue = fwer / n_tests
+    selected = (p_values < threshold_pvalue).astype(int)
+    if two_tailed_test:
+        if importances.ndim > 1:
+            sign_beta = np.sign(importances.sum(axis=1))
+        else:
+            sign_beta = np.sign(importances)
+        selected = selected * sign_beta
 
-        return selected
-    else:
-        raise ValueError("Only 'bonferroni' procedure is supported")
+    return selected

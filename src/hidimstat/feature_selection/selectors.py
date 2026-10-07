@@ -1,9 +1,12 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin, clone
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import BaseCrossValidator, StratifiedKFold
 
 from hidimstat._utils.selection import _selection_fdr, _selection_fwer
-from hidimstat.base_variable_importance import _selection_generic
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    _selection_generic,
+)
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
 
@@ -24,6 +27,12 @@ class SelectorMixin(TransformerMixin):
     cv: cross-validation generator, default=None
         A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
         the parameter will default to StratifiedKFold.
+
+    Raise
+    -----
+    TypeError
+        If 'estimator' is not an instance of a hidimstat-compatible estimator.
+        If 'cv' is not an sklearn-compatible cross-validation generator.
     """
 
     def __init__(self, estimator, cv=None):
@@ -31,9 +40,23 @@ class SelectorMixin(TransformerMixin):
         self.estimator = estimator
         self.cv = cv
 
-    def fit(self, X, y):
+    def _check_fit_parameters(self):
         if self.cv is None:
             self.cv = StratifiedKFold()
+        elif not isinstance(self.cv, BaseCrossValidator):
+            raise TypeError(
+                r"Parameter 'cv' is not an sklearn-compatible"
+                "cross-validation generator object."
+            )
+
+        if not isinstance(self.estimator, BaseVariableImportance):
+            raise TypeError(
+                r"Parameter 'estimator' is not an instance of a"
+                "hidimstat-compatible estimator"
+            )
+
+    def fit(self, X, y):
+        self._check_fit_parameters()
 
         self.importances_ = np.zeros((0, X.shape[1]))
         for cv_split_train, cv_split_test in self.cv.split(X, y):
@@ -42,6 +65,7 @@ class SelectorMixin(TransformerMixin):
             )
             importances = vim.importance(X[cv_split_test], y[cv_split_test])
             self.importances_ = np.vstack((self.importances_, importances))
+
         # Swap to (n_feature_groups, n_folds)
         self.importances_ = self.importances_.T
         return self
@@ -70,13 +94,9 @@ class SelectTopK(SelectorMixin, BaseEstimator):
 
     def transform(self, X):
         importances = self.importances_.mean(axis=1)
-        if self.k_best <= 0:
-            raise ValueError(
-                r"Parameter 'k_best' can't be less than or equal to 0."
-            )
-
         k_best = min(self.k_best, X.shape[1])
         self.selected_ = _selection_generic(values=importances, k_best=k_best)
+
         return X[:, self.selected_]
 
 
