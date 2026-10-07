@@ -51,7 +51,7 @@ class SelectorMixin(TransformerMixin):
 
         if not isinstance(self.estimator, BaseVariableImportance):
             raise TypeError(
-                r"Parameter 'estimator' is not an instance of a"
+                r"Parameter 'estimator' is not an instance of a "
                 "hidimstat-compatible estimator"
             )
 
