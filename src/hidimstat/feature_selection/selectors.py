@@ -2,14 +2,23 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin, clone
 from sklearn.model_selection import StratifiedKFold
 
+from hidimstat._utils.selection import _selection_fdr, _selection_fwer
 from hidimstat.base_variable_importance import _selection_generic
 from hidimstat.statistical_tools import nadeau_bengio_ttest
-from hidimstat.statistical_tools.multiple_testing import (
-    fdr_threshold,
-)
 
 
 class SelectorMixin(TransformerMixin):
+    """
+    Mixin class for feature selection based on different strategies.
+
+    Parameters
+    ----------
+    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+        The estimator that will be used to perform feature selection.
+    cv: cross-validation generator
+        A cross-validation generator object (e.g., KFold, StratifiedKFold).
+    """
+
     def __init__(self, estimator, cv=None):
         super().__init__()
         self.estimator = estimator
@@ -47,8 +56,8 @@ class SelectTopK(SelectorMixin, BaseEstimator):
             raise ValueError(r"'self.k_best' can't be a negative number.")
 
         k_best = min(self.k_best, X.shape[1])
-        selected = _selection_generic(values=importances, k_best=k_best)
-        return X[:, selected]
+        self.selected_ = _selection_generic(values=importances, k_best=k_best)
+        return X[:, self.selected_]
 
 
 class SelectPValue(SelectorMixin, BaseEstimator):
@@ -81,14 +90,14 @@ class SelectPValue(SelectorMixin, BaseEstimator):
             test_frac=1 / (self.cv.get_n_splits() - 1),
             alternative=self.alternative_hypothesis,
         )
-        selected = _selection_generic(
+        self.selected_ = _selection_generic(
             values=p_values,
             k_lowest=self.k_lowest,
             percentile=self.percentile,
             threshold_max=self.threshold_max,
             threshold_min=self.threshold_min,
         )
-        return X[:, selected]
+        return X[:, self.selected_]
 
 
 class SelectFDR(SelectorMixin, BaseEstimator):
@@ -121,25 +130,16 @@ class SelectFDR(SelectorMixin, BaseEstimator):
             test_frac=1 / (self.cv.get_n_splits() - 1),
             alternative=self.alternative_hypothesis,
         )
-        fdr = self.fdr / 2 if self.two_tailed_test else self.fdr
 
-        threshold_pvalues = fdr_threshold(
-            p_values,
-            fdr=fdr,
-            method=self.fdr_control,
+        self.selected_ = _selection_fdr(
+            p_values=p_values,
+            importances=self.importances_,
+            fdr=self.fdr,
+            two_tailed_test=self.two_tailed_test,
             reshaping_function=self.reshaping_function,
         )
-        selected = (p_values <= threshold_pvalues).astype(int)
 
-        # For two-tailed test, determine the sign of the effect
-        if self.two_tailed_test:
-            if self.importances_.ndim > 1:
-                sign_beta = np.sign(self.importances_.sum(axis=1))
-            else:
-                sign_beta = np.sign(self.importances_)
-            selected = selected * sign_beta
-
-        return X[:, selected]
+        return X[:, self.selected_]
 
 
 class SelectFWER(SelectorMixin, BaseEstimator):
@@ -173,23 +173,16 @@ class SelectFWER(SelectorMixin, BaseEstimator):
             alternative=self.alternative_hypothesis,
         )
 
-        if self.procedure == "bonferroni":
-            if self.n_tests is None:
-                self.n_tests = p_values.shape[0]
+        if self.n_tests is None:
+            self.n_tests = p_values.shape[0]
 
-            # Adjust fwer for two-tailed test
-            if self.two_tailed_test:
-                self.fwer = self.fwer / 2
+        self.selected_ = _selection_fwer(
+            p_values=p_values,
+            importances=self.importances_,
+            fwer=self.fwer,
+            n_tests=self.n_tests,
+            procedure=self.procedure,
+            two_tailed_test=self.two_tailed_test,
+        )
 
-            threshold_pvalue = self.fwer / self.n_tests
-            selected = (p_values < threshold_pvalue).astype(int)
-            if self.two_tailed_test:
-                if self.importances_.ndim > 1:
-                    sign_beta = np.sign(self.importances_.sum(axis=1))
-                else:
-                    sign_beta = np.sign(self.importances_)
-                selected = selected * sign_beta
-            return X[:, selected]
-
-        else:
-            raise ValueError("Only 'bonferroni' procedure is supported")
+        return X[:, self.selected_]

@@ -8,107 +8,13 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.selection import (
+    _selection_fdr,
+    _selection_fwer,
+    _selection_generic,
+)
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat._utils.utils import find_stack_level
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-
-
-def _selection_generic(
-    values,
-    k_best=None,
-    k_lowest=None,
-    percentile=None,
-    threshold_max=None,
-    threshold_min=None,
-):
-    """
-    Helper function for selecting features based on multiple criteria.
-
-    Parameters
-    ----------
-    values : array-like of shape (n_features,)
-        Values to use for feature selection (e.g., importance scores or p-values)
-    k_best : int, default=None
-        Selects the top k features based on values.
-    k_lowest : int, default=None
-        Selects the lowest k features based on values.
-    percentile : float, default=None
-        Selects features based on a specified percentile of values.
-    threshold_max : float, default=None
-        Selects features with values below the specified maximum threshold.
-    threshold_min : float, default=None
-        Selects features with values above the specified minimum threshold.
-
-    Returns
-    -------
-    selection : array-like of shape (n_features,)
-        Boolean array indicating the selected features.
-    """
-    n_criteria = np.sum(
-        [
-            criteria is not None
-            for criteria in [
-                k_best,
-                k_lowest,
-                percentile,
-                threshold_max,
-                threshold_min,
-            ]
-        ]
-    )
-    assert n_criteria <= 1, "Only support selection based on one criteria."
-    if k_best is not None:
-        assert k_best >= 1, "k_best needs to be positive or None"
-        if k_best > values.shape[0]:
-            warnings.warn(
-                f"k={k_best} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_best = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
-        return mask_k_best
-    elif k_lowest is not None:
-        assert k_lowest >= 1, "k_lowest needs to be positive or None"
-        if k_lowest > values.shape[0]:
-            warnings.warn(
-                f"k={k_lowest} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_lowest = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
-        return mask_k_lowest
-    elif percentile is not None:
-        assert 0 < percentile < 100, (
-            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
-        )
-        # based on SelectPercentile in Scikit-Learn
-        threshold_percentile = np.percentile(values, 100 - percentile)
-        mask_percentile = values > threshold_percentile
-        ties = np.where(values == threshold_percentile)[0]
-        if len(ties):
-            max_feats = int(len(values) * percentile / 100)
-            kept_ties = ties[: max_feats - mask_percentile.sum()]
-            mask_percentile[kept_ties] = True
-        return mask_percentile
-    elif threshold_max is not None:
-        mask_threshold_max = values < threshold_max
-        return mask_threshold_max
-    elif threshold_min is not None:
-        mask_threshold_min = values > threshold_min
-        return mask_threshold_min
-    else:
-        no_mask = np.ones_like(values, dtype=bool)
-        return no_mask
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -320,27 +226,14 @@ class BaseVariableImportance(BaseEstimator):
             "only 'bhq' and 'bhy' are supported"
         )
 
-        # Adjust fdr for two-tailed test
-        if two_tailed_test:
-            fdr = fdr / 2
-
-        threshold_pvalues = fdr_threshold(
-            self.pvalues_,
+        return _selection_fdr(
+            p_values=self.pvalues_,
+            importances=self.importances_,
             fdr=fdr,
-            method=fdr_control,
+            two_tailed_test=two_tailed_test,
+            fdr_control=fdr_control,
             reshaping_function=reshaping_function,
         )
-        selected = (self.pvalues_ <= threshold_pvalues).astype(int)
-
-        # For two-tailed test, determine the sign of the effect
-        if two_tailed_test:
-            if self.importances_.ndim > 1:
-                sign_beta = np.sign(self.importances_.sum(axis=1))
-            else:
-                sign_beta = np.sign(self.importances_)
-            selected = selected * sign_beta
-
-        return selected
 
     def fwer_selection(
         self, fwer, procedure="bonferroni", n_tests=None, two_tailed_test=False
@@ -372,35 +265,26 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
 
-        if procedure == "bonferroni":
-            if n_tests is None:
-                if hasattr(self, "clustering_"):
-                    print(
-                        "Using number of clusters for multiple testing correction."
-                    )
-                    n_tests = self.clustering_.n_clusters_
-                else:
-                    print(
-                        "Using number of features for multiple testing correction."
-                    )
-                    n_tests = self.importances_.shape[0]
+        if n_tests is None:
+            if hasattr(self, "clustering_"):
+                print(
+                    "Using number of clusters for multiple testing correction."
+                )
+                n_tests = self.clustering_.n_clusters_
+            else:
+                print(
+                    "Using number of features for multiple testing correction."
+                )
+                n_tests = self.importances_.shape[0]
 
-            # Adjust fwer for two-tailed test
-            if two_tailed_test:
-                fwer = fwer / 2
-
-            threshold_pvalue = fwer / n_tests
-            selected = (self.pvalues_ < threshold_pvalue).astype(int)
-            if two_tailed_test:
-                if self.importances_.ndim > 1:
-                    sign_beta = np.sign(self.importances_.sum(axis=1))
-                else:
-                    sign_beta = np.sign(self.importances_)
-                selected = selected * sign_beta
-            return selected
-
-        else:
-            raise ValueError("Only 'bonferroni' procedure is supported")
+        return _selection_fwer(
+            p_values=self.pvalues_,
+            importances=self.importances_,
+            fwer=fwer,
+            n_tests=n_tests,
+            procedure=procedure,
+            two_tailed_test=two_tailed_test,
+        )
 
     def plot_importance(
         self,
