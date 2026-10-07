@@ -35,7 +35,7 @@ class TestSelectionGenericParameterCheck:
     """Test class for '_selection_generic' parameter checks"""
 
     def test_selection_multiple_criteria(self, create_importances_pvalues):
-        """Test selection k_best wrong"""
+        """Test selection multiple criteria error"""
         _importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match="Only support selection based on one criteria"
@@ -91,6 +91,7 @@ class TestSelectionFDRParameterChecks:
     """Test class for 'selection_fdr' parameter checks"""
 
     def test_selection_fdr_pvalues_check(self, create_importances_pvalues):
+        """Test selection pvalues wrong"""
         importances, _ = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'p_values' must be an numpy ndarray"
@@ -110,6 +111,7 @@ class TestSelectionFDRParameterChecks:
             )
 
     def test_selection_fdr_importances_check(self, create_importances_pvalues):
+        """Test selection importances wrong"""
         _, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'importances' must be an numpy ndarray"
@@ -129,6 +131,7 @@ class TestSelectionFDRParameterChecks:
             )
 
     def test_selection_fdr_pvalues_importances_shape_check(self):
+        """Test selection pvalues and importances shape mismatch"""
         with pytest.raises(
             ValueError,
             match=r"Shape mismatch of 'p_values' and 'importances' on axis 0",
@@ -140,6 +143,7 @@ class TestSelectionFDRParameterChecks:
             )
 
     def test_selection_fdr_fdr_check(self, create_importances_pvalues):
+        """Test selection fdr wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'fdr' must be a float between 0 and 1, got -1."
@@ -160,6 +164,7 @@ class TestSelectionFDRParameterChecks:
             )
 
     def test_selection_fdr_fdr_control_check(self, create_importances_pvalues):
+        """Test selection fdr_control wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError,
@@ -177,6 +182,7 @@ class TestSelectionFWERParameterChecks:
     """Test class for 'selection_fwer' parameter checks"""
 
     def test_selection_fwer_pvalues_check(self, create_importances_pvalues):
+        """Test selection pvalues wrong"""
         importances, _ = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'p_values' must be an numpy ndarray"
@@ -198,6 +204,7 @@ class TestSelectionFWERParameterChecks:
     def test_selection_fwer_importances_check(
         self, create_importances_pvalues
     ):
+        """Test selection importances wrong"""
         _, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'importances' must be an numpy ndarray"
@@ -217,6 +224,7 @@ class TestSelectionFWERParameterChecks:
             )
 
     def test_selection_fwer_pvalues_importances_shape_check(self):
+        """Test selection pvalues and importances shape mismatch"""
         with pytest.raises(
             ValueError,
             match=r"Shape mismatch of 'p_values' and 'importances' on axis 0",
@@ -228,6 +236,7 @@ class TestSelectionFWERParameterChecks:
             )
 
     def test_selection_fwer_fwer_check(self, create_importances_pvalues):
+        """Test selection fwer wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError,
@@ -249,6 +258,7 @@ class TestSelectionFWERParameterChecks:
             )
 
     def test_selection_fwer_procedure_check(self, create_importances_pvalues):
+        """Test selection procedure wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"Only 'bonferroni' procedure is supported."
@@ -261,6 +271,7 @@ class TestSelectionFWERParameterChecks:
             )
 
     def test_selection_fwer_ntests_check(self, create_importances_pvalues):
+        """Test selection n_tests wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
             ValueError, match=r"'n_tests' must be strictly positive."
