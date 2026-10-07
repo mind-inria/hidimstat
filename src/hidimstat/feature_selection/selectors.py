@@ -11,12 +11,19 @@ class SelectorMixin(TransformerMixin):
     """
     Mixin class for feature selection based on different strategies.
 
+    This class defines the fit strategy for all selection methods,
+    based on a cross-validation procedure on training data to estimate importance
+    values from which p-values are computed for selection.
+
+    .. versionadded:: 0.5.0
+
     Parameters
     ----------
     estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
         The estimator that will be used to perform feature selection.
-    cv: cross-validation generator
-        A cross-validation generator object (e.g., KFold, StratifiedKFold).
+    cv: cross-validation generator, default=None
+        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
+        the parameter will default to StratifiedKFold.
     """
 
     def __init__(self, estimator, cv=None):
@@ -35,7 +42,7 @@ class SelectorMixin(TransformerMixin):
             )
             importances = vim.importance(X[cv_split_test], y[cv_split_test])
             self.importances_ = np.vstack((self.importances_, importances))
-        # (n_feature_groups, n_folds)
+        # Swap to (n_feature_groups, n_folds)
         self.importances_ = self.importances_.T
         return self
 
@@ -43,7 +50,18 @@ class SelectorMixin(TransformerMixin):
 class SelectTopK(SelectorMixin, BaseEstimator):
     """
     Feature selection class from top-k most important features.
+
     .. versionadded:: 0.5.0
+
+    Parameters
+    ----------
+    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+        The estimator that will be used to perform feature selection.
+    k_best : int, default=5
+        Selects the top k features based on values.
+    cv: cross-validation generator, default=None
+        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
+        the parameter will default to StratifiedKFold.
     """
 
     def __init__(self, estimator, k_best=5, cv=None):
@@ -52,8 +70,10 @@ class SelectTopK(SelectorMixin, BaseEstimator):
 
     def transform(self, X):
         importances = self.importances_.mean(axis=1)
-        if self.k_best < 0:
-            raise ValueError(r"'self.k_best' can't be a negative number.")
+        if self.k_best <= 0:
+            raise ValueError(
+                r"Parameter 'k_best' can't be less than or equal to 0."
+            )
 
         k_best = min(self.k_best, X.shape[1])
         self.selected_ = _selection_generic(values=importances, k_best=k_best)
@@ -63,7 +83,27 @@ class SelectTopK(SelectorMixin, BaseEstimator):
 class SelectPValue(SelectorMixin, BaseEstimator):
     """
     Feature selection class from k-lowest p-values.
+
     .. versionadded:: 0.5.0
+
+    Parameters
+    ----------
+    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+        The estimator that will be used to perform feature selection.
+        Selects the top k features based on values.
+    k_lowest : int, default=None
+        Selects the lowest k features based on values.
+    percentile : float, default=None
+        Selects features based on a specified percentile of values.
+    threshold_max : float, default=None
+        Selects features with values below the specified maximum threshold.
+    threshold_min : float, default=None
+        Selects features with values above the specified minimum threshold.
+    alternative : {'two-sided', 'greater', 'less'}, optional
+        Defines the alternative hypothesis. Default is 'greater'.
+    cv: cross-validation generator, default=None
+        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
+        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
@@ -103,7 +143,31 @@ class SelectPValue(SelectorMixin, BaseEstimator):
 class SelectFDR(SelectorMixin, BaseEstimator):
     """
     Feature selection class from False Discovery Rate (FDR) control.
+
     .. versionadded:: 0.5.0
+
+    Parameters
+    ----------
+    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+        The estimator that will be used to perform feature selection.
+    fdr : float
+        The target false discovery rate level (between 0 and 1)
+    fdr_control: {'bhq', 'bhy'}, default='bhq'
+        The FDR control method to use:
+        - 'bhq': Benjamini-Hochberg procedure
+        - 'bhy': Benjamini-Hochberg-Yekutieli procedure
+    reshaping_function: callable or None, default=None
+        Optional reshaping function for FDR control methods.
+        If None, defaults to sum of reciprocals for 'bhy'.
+    two_tailed_test: bool, default=False
+        If True, performs two-tailed test selection using both p-values
+        for positive effects and one-minus p-values for negative effects. The sign
+        of the effect is determined from the sign of the importance scores.
+    alternative : {'two-sided', 'greater', 'less'}, optional
+        Defines the alternative hypothesis. Default is 'greater'.
+    cv: cross-validation generator, default=None
+        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
+        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
@@ -145,7 +209,28 @@ class SelectFDR(SelectorMixin, BaseEstimator):
 class SelectFWER(SelectorMixin, BaseEstimator):
     """
     Feature selection class from Family-Wise Error Rate (FWER) control.
+
     .. versionadded:: 0.5.0
+
+    Parameters
+    ----------
+    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+        The estimator that will be used to perform feature selection.
+    fwer : float
+        The target family-wise error rate level (between 0 and 1)
+    procedure : {'bonferroni'}, default='bonferroni'
+        The FWER control method to use:
+        - 'bonferroni': Bonferroni correction
+    n_tests : int, default=1
+        Factor for multiple testing correction.
+    two_tailed_test : bool, default=False
+        If True, uses the sign of the importance scores to indicate whether the
+        selected features have positive or negative effects.
+    alternative : {'two-sided', 'greater', 'less'}, optional
+        Defines the alternative hypothesis. Default is 'greater'.
+    cv: cross-validation generator, default=None
+        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
+        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
