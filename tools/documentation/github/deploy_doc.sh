@@ -24,7 +24,7 @@
 #  # must be dev or stable
 #  DEPLOY_TYPE="dev"
 #
-#  bash ./build_tools/github/deploy_doc.sh
+#  bash ./tools/documentation/github/deploy_doc.sh
 #
 
 set -x -e

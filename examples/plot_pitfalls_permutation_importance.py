@@ -356,4 +356,4 @@ plt.show()
 # the conditional distribution of the feature of interest.
 
 
-# sphinx_gallery_dummy_images=4# sphinx_gallery_dummy_images=2
+# sphinx_gallery_dummy_images=4

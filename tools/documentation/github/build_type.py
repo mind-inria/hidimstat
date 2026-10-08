@@ -21,7 +21,7 @@ this exits early and sets things for a full doc build.
 Otherwise it checks if any examples must be built
 (either because it was changed in the PR or requested in the commit message).
 
-Must be run after running build_tools/github/merge_upstream.sh
+Must be run after running tools/documentation/github/merge_upstream.sh
 """
 
 import builtins
@@ -48,13 +48,13 @@ def main():
         raise RuntimeError(
             "'gitlog.txt' not found. "
             "It should have been generated "
-            "by 'build_tools/github/merge_upstream.sh'"
+            "by 'tools/documentation/github/merge_upstream.sh'"
         )
     if not Path("merge.txt").exists():
         raise RuntimeError(
             "'merge.txt' not found. "
             "It should have been generated "
-            "by 'build_tools/github/merge_upstream.sh'"
+            "by 'tools/documentation/github/merge_upstream.sh'"
         )
 
     # Set missing variables
@@ -85,10 +85,8 @@ def main():
         or "[full doc]" in COMMIT_MSG
     ):
         print("Doing a full build")
-        Path("build.txt").write_text("html-strict\n")
+        Path("build.txt").write_text("html\n")
         return
-
-    GENERATE_REPORT = "[reports]" in COMMIT_MSG
 
     # Check for [example] in commit message
     example = []
@@ -129,9 +127,6 @@ def main():
     if pattern_parts:
         pattern = r"\(" + "\\|".join(pattern_parts) + r"\)"
         build_type = "html-modified-examples-only"
-
-    if GENERATE_REPORT:
-        build_type += "-reports"
 
     Path("build.txt").write_text(build_type + "\n")
 
@@ -216,15 +211,10 @@ try:
         "commit_msg, expected_in_pattern",
         [
             ("", "html-noplot\n"),
-            ("[full doc]", "html-strict\n"),
-            ("[reports]", "html-noplot-reports\n"),
+            ("[full doc]", "html\n"),
             (
                 "[example] plot_3d_and_4d_niimg.py",
                 "html-modified-examples-only\n",
-            ),
-            (
-                "[reports][example] plot_3d_and_4d_niimg.py",
-                "html-modified-examples-only-reports\n",
             ),
         ],
     )

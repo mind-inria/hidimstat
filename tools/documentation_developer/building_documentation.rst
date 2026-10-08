@@ -38,8 +38,7 @@ Here is a way to run all examples with filenames containing "dcrt":
 
 .. prompt:: bash
 
-    PATTERN="dcrt"
-    make html-modified-examples-only
+    PATTERN="dcrt" make html-modified-examples-only
 
 You can use regular expressions for more advanced use cases.
 
@@ -65,8 +64,7 @@ by looking at the details of `Check the rendered docs here!`.
         tox run -e doc -- html-noplot
 
         # only build certain examples
-        PATTERN="dcrt"
-        tox run -e doc -- html-modified-examples-only
+        PATTERN="dcrt" tox run -e doc -- html-modified-examples-only
 
 
 Debugging the documentation

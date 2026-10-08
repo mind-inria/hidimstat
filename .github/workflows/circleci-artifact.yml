@@ -2,15 +2,14 @@
 # Display a link to the circle-CI artifacts at the bottom of a pull-request.
 ###
 name: Redirect circleci artifacts
-permissions: read-all
+permissions:
+    statuses: write
 on: [status]
 jobs:
     circleci_artifacts_redirector_job:
         runs-on: ubuntu-latest
         if: "${{ github.event.context == 'ci/circleci: host_docs' }}"
         name: Run CircleCI artifacts redirector
-        permissions:
-            statuses: write
         steps:
         -   name: GitHub Action step
             uses: scientific-python/circleci-artifacts-redirector-action@v1
