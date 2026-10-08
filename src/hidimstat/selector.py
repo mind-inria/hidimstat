@@ -1,13 +1,7 @@
-import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin, clone
-from sklearn.model_selection import BaseCrossValidator, StratifiedKFold
+from sklearn.base import BaseEstimator, TransformerMixin
 
-from hidimstat._utils.selection import _selection_fdr, _selection_fwer
-from hidimstat.base_variable_importance import (
-    BaseVariableImportance,
-    _selection_generic,
-)
-from hidimstat.statistical_tools import nadeau_bengio_ttest
+from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.base_variable_importance import BaseVariableImportance
 
 
 class SelectorMixin(TransformerMixin):
@@ -24,50 +18,33 @@ class SelectorMixin(TransformerMixin):
     ----------
     estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
         The estimator that will be used to perform feature selection.
-    cv: cross-validation generator, default=None
-        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
-        the parameter will default to StratifiedKFold.
 
     Raise
     -----
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
-        If 'cv' is not an sklearn-compatible cross-validation generator.
     """
 
-    def __init__(self, estimator, cv=None):
+    def __init__(self, estimator):
         super().__init__()
         self.estimator = estimator
-        self.cv = cv
 
     def _check_fit_parameters(self):
-        if self.cv is None:
-            self.cv = StratifiedKFold()
-        elif not isinstance(self.cv, BaseCrossValidator):
-            raise TypeError(
-                r"Parameter 'cv' is not an sklearn-compatible"
-                "cross-validation generator object."
-            )
-
         if not isinstance(self.estimator, BaseVariableImportance):
             raise TypeError(
                 r"Parameter 'estimator' is not an instance of a "
                 "hidimstat-compatible estimator"
             )
 
+        if isinstance(self.estimator, BasePerturbation):
+            raise TypeError(
+                r"Instances of BasePerturbation are not supported."
+                "Please use an instance of BasePerturbationCV."
+            )
+
     def fit(self, X, y):
         self._check_fit_parameters()
-
-        self.importances_ = np.zeros((0, X.shape[1]))
-        for cv_split_train, cv_split_test in self.cv.split(X, y):
-            vim = clone(self.estimator).fit(
-                X[cv_split_train], y[cv_split_train]
-            )
-            importances = vim.importance(X[cv_split_test], y[cv_split_test])
-            self.importances_ = np.vstack((self.importances_, importances))
-
-        # Swap to (n_feature_groups, n_folds)
-        self.importances_ = self.importances_.T
+        self.estimator.fit_importance(X, y)
         return self
 
 
@@ -83,19 +60,16 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         The estimator that will be used to perform feature selection.
     k_best : int, default=5
         Selects the top k features based on values.
-    cv: cross-validation generator, default=None
-        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
-        the parameter will default to StratifiedKFold.
     """
 
-    def __init__(self, estimator, k_best=5, cv=None):
-        super().__init__(estimator=estimator, cv=cv)
+    def __init__(self, estimator, k_best=5):
+        super().__init__(estimator=estimator)
         self.k_best = k_best
 
     def transform(self, X):
-        importances = self.importances_.mean(axis=1)
-        k_best = min(self.k_best, X.shape[1])
-        self.selected_ = _selection_generic(values=importances, k_best=k_best)
+        self.selected_ = self.estimator.importance_selection(
+            k_best=self.k_best
+        )
 
         return X[:, self.selected_]
 
@@ -121,9 +95,6 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         Selects features with values above the specified minimum threshold.
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
-    cv: cross-validation generator, default=None
-        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
-        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
@@ -134,9 +105,8 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         threshold_max=0.05,
         threshold_min=None,
         alternative_hypothesis="greater",
-        cv=None,
     ):
-        super().__init__(estimator=estimator, cv=cv)
+        super().__init__(estimator=estimator)
         self.k_lowest = k_lowest
         self.percentile = percentile
         self.threshold_max = threshold_max
@@ -144,18 +114,12 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         self.alternative_hypothesis = alternative_hypothesis
 
     def transform(self, X):
-        _, p_values = nadeau_bengio_ttest(
-            self.importances_,
-            popmean=0,
-            test_frac=1 / (self.cv.get_n_splits() - 1),
-            alternative=self.alternative_hypothesis,
-        )
-        self.selected_ = _selection_generic(
-            values=p_values,
+        self.selected_ = self.estimator.p_value_selection(
             k_lowest=self.k_lowest,
             percentile=self.percentile,
             threshold_max=self.threshold_max,
             threshold_min=self.threshold_min,
+            alternative_hypothesis=self.alternative_hypothesis,
         )
         return X[:, self.selected_]
 
@@ -185,9 +149,6 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         of the effect is determined from the sign of the importance scores.
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
-    cv: cross-validation generator, default=None
-        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
-        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
@@ -198,9 +159,8 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         reshaping_function=None,
         two_tailed_test=False,
         alternative_hypothesis="greater",
-        cv=None,
     ):
-        super().__init__(estimator=estimator, cv=cv)
+        super().__init__(estimator=estimator)
         self.fdr = fdr
         self.fdr_control = fdr_control
         self.reshaping_function = reshaping_function
@@ -208,19 +168,11 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         self.alternative_hypothesis = alternative_hypothesis
 
     def transform(self, X):
-        _, p_values = nadeau_bengio_ttest(
-            self.importances_,
-            popmean=0,
-            test_frac=1 / (self.cv.get_n_splits() - 1),
-            alternative=self.alternative_hypothesis,
-        )
-
-        self.selected_ = _selection_fdr(
-            p_values=p_values,
-            importances=self.importances_,
+        self.selected_ = self.estimator.fdr_selection(
             fdr=self.fdr,
-            two_tailed_test=self.two_tailed_test,
+            fdr_control=self.fdr_control,
             reshaping_function=self.reshaping_function,
+            two_tailed_test=self.two_tailed_test,
         )
 
         return X[:, self.selected_]
@@ -248,9 +200,6 @@ class SelectFWER(SelectorMixin, BaseEstimator):
         selected features have positive or negative effects.
     alternative : {'two-sided', 'greater', 'less'}, optional
         Defines the alternative hypothesis. Default is 'greater'.
-    cv: cross-validation generator, default=None
-        A cross-validation generator object (e.g., KFold, StratifiedKFold). If no method is provided,
-        the parameter will default to StratifiedKFold.
     """
 
     def __init__(
@@ -261,9 +210,8 @@ class SelectFWER(SelectorMixin, BaseEstimator):
         n_tests=None,
         two_tailed_test=False,
         alternative_hypothesis="greater",
-        cv=None,
     ):
-        super().__init__(estimator=estimator, cv=cv)
+        super().__init__(estimator=estimator)
         self.fwer = fwer
         self.procedure = procedure
         self.n_tests = n_tests
@@ -271,19 +219,7 @@ class SelectFWER(SelectorMixin, BaseEstimator):
         self.alternative_hypothesis = alternative_hypothesis
 
     def transform(self, X):
-        _, p_values = nadeau_bengio_ttest(
-            self.importances_,
-            popmean=0,
-            test_frac=1 / (self.cv.get_n_splits() - 1),
-            alternative=self.alternative_hypothesis,
-        )
-
-        if self.n_tests is None:
-            self.n_tests = p_values.shape[0]
-
-        self.selected_ = _selection_fwer(
-            p_values=p_values,
-            importances=self.importances_,
+        self.selected_ = self.estimator.fwer_selection(
             fwer=self.fwer,
             n_tests=self.n_tests,
             procedure=self.procedure,

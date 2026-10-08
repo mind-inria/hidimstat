@@ -8,7 +8,7 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
-from hidimstat._utils.selection import (
+from hidimstat._utils.feature_selection import (
     _selection_fdr,
     _selection_fwer,
     _selection_generic,

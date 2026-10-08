@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from hidimstat._utils.selection import (
+from hidimstat._utils.feature_selection import (
     _selection_fdr,
     _selection_fwer,
     _selection_generic,
@@ -261,7 +261,7 @@ class TestSelectionFWERParameterChecks:
         """Test selection procedure wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
-            ValueError, match=r"Only 'bonferroni' procedure is supported."
+            ValueError, match=r"Only 'bonferroni' procedure is supported"
         ):
             _selection_fwer(
                 p_values=pvalues,
