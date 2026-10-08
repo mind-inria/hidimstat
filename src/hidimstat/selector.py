@@ -4,7 +4,8 @@ import warnings
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import StratifiedKFold
 
-from hidimstat.base_perturbation import BasePerturbation
+from hidimstat._utils.feature_selection import _selection_generic
+from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -85,9 +86,16 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         self.k_best = k_best
 
     def transform(self, X):
-        self.selected_ = self.estimator.importance_selection(
-            k_best=self.k_best
-        )
+        if isinstance(self.estimator, BasePerturbationCV):
+            # importance shape is gonna be (n_feature_groups, n_folds)
+            self.selected_ = _selection_generic(
+                self.importances_.mean(axis=1),
+                k_best=self.k_best,
+            )
+        else:
+            self.selected_ = self.estimator.importance_selection(
+                k_best=self.k_best
+            )
 
         return X[:, self.selected_]
 
@@ -111,8 +119,8 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         Selects features with values below the specified maximum threshold.
     threshold_min : float, default=None
         Selects features with values above the specified minimum threshold.
-    alternative : {'two-sided', 'greater', 'less'}, optional
-        Defines the alternative hypothesis. Default is 'greater'.
+    alternative_hypothesis : bool, default=False
+        If True, selects based on 1-pvalues instead of p-values.
     """
 
     def __init__(
@@ -122,7 +130,7 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         percentile=None,
         threshold_max=0.05,
         threshold_min=None,
-        alternative_hypothesis="greater",
+        alternative_hypothesis=False,
     ):
         super().__init__(estimator=estimator)
         self.k_lowest = k_lowest
@@ -132,7 +140,7 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         self.alternative_hypothesis = alternative_hypothesis
 
     def transform(self, X):
-        self.selected_ = self.estimator.p_value_selection(
+        self.selected_ = self.estimator.pvalue_selection(
             k_lowest=self.k_lowest,
             percentile=self.percentile,
             threshold_max=self.threshold_max,
@@ -165,8 +173,8 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         If True, performs two-tailed test selection using both p-values
         for positive effects and one-minus p-values for negative effects. The sign
         of the effect is determined from the sign of the importance scores.
-    alternative : {'two-sided', 'greater', 'less'}, optional
-        Defines the alternative hypothesis. Default is 'greater'.
+    alternative_hypothesis : bool, default=False
+        If True, selects based on 1-pvalues instead of p-values.
     """
 
     def __init__(
@@ -176,7 +184,7 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         fdr_control="bhq",
         reshaping_function=None,
         two_tailed_test=False,
-        alternative_hypothesis="greater",
+        alternative_hypothesis=False,
     ):
         super().__init__(estimator=estimator)
         self.fdr = fdr
@@ -216,8 +224,8 @@ class SelectFWER(SelectorMixin, BaseEstimator):
     two_tailed_test : bool, default=False
         If True, uses the sign of the importance scores to indicate whether the
         selected features have positive or negative effects.
-    alternative : {'two-sided', 'greater', 'less'}, optional
-        Defines the alternative hypothesis. Default is 'greater'.
+    alternative_hypothesis : bool, default=False
+        If True, selects based on 1-pvalues instead of p-values.
     """
 
     def __init__(
@@ -227,7 +235,7 @@ class SelectFWER(SelectorMixin, BaseEstimator):
         procedure="bonferroni",
         n_tests=None,
         two_tailed_test=False,
-        alternative_hypothesis="greater",
+        alternative_hypothesis=False,
     ):
         super().__init__(estimator=estimator)
         self.fwer = fwer
