@@ -3,13 +3,13 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
-from sklearn.metrics import mean_squared_error
 from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
-    _check_vim_predict_method,
+    _check_loss_method_parameter,
     check_random_state,
+    check_scoring,
     check_statistical_test,
 )
 from hidimstat.base_variable_importance import (
@@ -18,7 +18,7 @@ from hidimstat.base_variable_importance import (
 )
 
 
-class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
+class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
     """
     Abstract base class for model-agnostic variable importance measures using
     perturbation techniques.
@@ -28,13 +28,22 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     estimator : sklearn-compatible estimator
         The estimator that will be used for predictions.
         It will be automatically fitted if it has not already been.
-    method : str, default="predict"
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
         The method used for making predictions. This determines the predictions
-        passed to the loss function. Supported methods are "predict",
-        "predict_proba", "decision_function", "transform".
-    loss : callable, default=mean_squared_error
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
         The function to compute the loss when comparing the perturbed model
         to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         Number of permutations for each feature group.
     statistical_test : callable or str, default="nb-ttest"
@@ -56,10 +65,10 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         Mapping of feature groups identified during fit.
     importances_ : ndarray (n_groups,)
         Importance scores for each feature group.
-    loss_reference_ : float
-        Loss on original (non-perturbed) data.
-    loss_ : dict
-        Loss values for each permutation of each group.
+    score_reference_ : float
+        Score on original (non-perturbed) data.
+    score_ : dict
+        Score values for each permutation of each group.
     pvalues_ : ndarray of shape (n_groups,)
         P-values for importance scores.
 
@@ -72,22 +81,22 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
     def __init__(
         self,
         estimator=None,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
+        method=None,
+        loss=None,
         n_permutations: int = 50,
         statistical_test="ttest",
         feature_groups=None,
         n_jobs: int = 1,
         random_state=None,
     ):
-        super().__init__()
-        GroupVariableImportanceMixin.__init__(
-            self, feature_groups=feature_groups
-        )
+        super().__init__(feature_groups=feature_groups)
+        BaseVariableImportance.__init__(self)
         self.estimator = estimator
+        self.scoring = scoring
+        self.method = method
         self.loss = loss
 
-        self.method = method
         self.n_permutations = n_permutations
         self.statistical_test = statistical_test
         self.n_jobs = n_jobs
@@ -119,57 +128,111 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
         assert self.n_permutations > 0, "n_permutations must be positive"
-        _check_vim_predict_method(self.method)
         check_array(X)
 
         # variable set in importance
-        self.loss_reference_ = None
-        self.loss_ = None
+        self.score_reference_ = None
+        self.score_ = None
 
         self.estimator_ = self._initial_fit(self.estimator, X, y)
 
         self.n_features_in_ = self.estimator_.n_features_in_
 
-        GroupVariableImportanceMixin.fit(self, X, y)
+        super().fit(X, y)
         return self
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
         check_is_fitted(self)
-        GroupVariableImportanceMixin._check_fit(self)
+        super()._check_fit()
 
     def _check_compatibility(self, X):
         """Check compatibility between input data and fitted model."""
-        GroupVariableImportanceMixin._check_compatibility(self, X)
+        super()._check_compatibility(X)
 
-    def _predict(self, X):
+    def _joblib_score_one_feature_group(
+        self, X, y, features_group_id, random_state=None
+    ):
         """
-        Compute the predictions after perturbation of the data for each group of
-        variables.
+        Perform scoring of the data for a given
+        group of variables. This function is parallelized.
+
+        Parameters
+        ----------
+        X: array-like of shape (n_samples, n_features)
+            The input samples.
+        features_group_id: int
+            The index of the group of variables.
+        random_state:
+            The random state to use for sampling.
+
+        Returns
+        -------
+        list_score: array-like of shape (n_permutations,)
+            The scores of the predictions after perturbation of the data for each
+            group of variables.
+        """
+        features_group_ids = self._feature_groups_ids[features_group_id]
+        non_features_group_ids = np.delete(
+            np.arange(X.shape[1]), features_group_ids
+        )
+        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
+        # where the j-th group of covariates is permuted
+        X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
+        # This also works with pandas DataFrame
+        X_perm[:, :, non_features_group_ids] = np.delete(
+            X, features_group_ids, axis=1
+        )
+        X_perm[:, :, features_group_ids] = self._permutation(
+            X, features_group_id=features_group_id, random_state=random_state
+        )
+        if isinstance(X, pd.DataFrame):
+            X_perm = [
+                pd.DataFrame(X_perm_j, columns=X.columns)
+                for X_perm_j in X_perm
+            ]
+        list_score = [
+            self.scoring(self.estimator_, X_group_perm, y)
+            for X_group_perm in X_perm
+        ]
+        return list_score
+
+    def _compute_score_reference(self, X, y):
+        """
+        Compute the score reference to which predictions from perturbed data
+        will be compared.
 
         Parameters
         ----------
         X: array-like of shape (n_samples, n_features)
             The input samples.
 
+        y: array-like of shape (n_samples,)
+            The input groundtruth.
+
         Returns
         -------
-        out: array-like of shape (n_groups, n_permutations, n_samples)
-            The predictions after perturbation of the data for each group of variables.
+        score: float
+            The score of the underlying estimator on the data.
         """
-        rng = check_random_state(self.random_state)
+        return self.scoring(self.estimator_, X, y)
 
-        # Parallelize the computation of the importance scores for each group
-        out_list = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._joblib_predict_one_features_group)(
-                X, features_group_id, random_state=child_state
-            )
-            for features_group_id, child_state in enumerate(
-                rng.spawn(self.n_feature_groups_)
-            )
+    def _compute_score_difference(self):
+        """
+        Compute the score difference between the reference score
+        and the score computed from perturbed data.
+
+        Returns
+        -------
+        score: array-like of shape (self.n_feature_groups_, n_samples)
+            The score difference.
+        """
+        return np.array(
+            [
+                self.score_[j] - self.score_reference_
+                for j in range(self.n_feature_groups_)
+            ]
         )
-
-        return np.stack(out_list, axis=0)
 
     def importance(self, X, y):
         """
@@ -189,8 +252,8 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
         Notes
         -----
-        The importance score for each group is calculated as the mean increase in loss
-        when that group is perturbed, compared to the reference loss.
+        The importance score for each group is calculated as the mean increase in score
+        when that group is perturbed, compared to the reference score.
         A higher importance score indicates that perturbing that group leads to
         worse model performance, suggesting those features are more important.
         When no group has been specified, the importance is computed for each single
@@ -199,25 +262,32 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
         self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
-
-        y_pred = getattr(self.estimator_, self.method)(X)
-        self.loss_reference_ = self.loss(y, y_pred)
-
-        y_pred = self._predict(X)
-        self.loss_ = {}
-        for j, y_pred_j in enumerate(y_pred):
-            list_loss = [self.loss(y, y_pred_perm) for y_pred_perm in y_pred_j]
-            self.loss_[j] = np.array(list_loss)
-
-        test_result = np.array(
-            [
-                self.loss_[j] - self.loss_reference_
-                for j in range(self.n_feature_groups_)
-            ]
+        self.scoring = _check_loss_method_parameter(
+            scoring=self.scoring, method=self.method, loss=self.loss
         )
-        self.importances_ = np.mean(test_result, axis=1)
-        self.pvalues_ = statistical_test(test_result).pvalue
-        assert self.pvalues_.shape[0] == y_pred.shape[0], (
+        self.scoring = check_scoring(
+            estimator=self.estimator_, scoring=self.scoring
+        )
+
+        self.score_reference_ = self._compute_score_reference(X, y)
+
+        rng = check_random_state(self.random_state)
+        # Parallelize the computation of the importance scores for each group
+        out_list = Parallel(n_jobs=self.n_jobs)(
+            delayed(self._joblib_score_one_feature_group)(
+                X, y, features_group_id, random_state=child_state
+            )
+            for features_group_id, child_state in enumerate(
+                rng.spawn(self.n_feature_groups_)
+            )
+        )
+        self.score_ = np.stack(out_list, axis=0)
+
+        score_differences_ = self._compute_score_difference()
+
+        self.importances_ = np.mean(score_differences_, axis=1)
+        self.pvalues_ = statistical_test(score_differences_).pvalue
+        assert self.pvalues_.shape[0] == self.n_feature_groups_, (
             "The statistical test doesn't provide the correct dimension."
         )
         return self.importances_
@@ -250,62 +320,17 @@ class BasePerturbation(BaseVariableImportance, GroupVariableImportanceMixin):
 
     def _check_importance(self):
         """
-        Checks if the loss has been computed.
+        Checks if the score has been computed.
         """
         check_is_fitted(self)
-        super()._check_importance()
+        BaseVariableImportance._check_importance(self)
         if (
-            getattr(self, "loss_reference_", None) is None
-            or getattr(self, "loss_", None) is None
+            getattr(self, "score_reference_", None) is None
+            or getattr(self, "score_", None) is None
         ):
             raise ValueError(
                 "The importance method need to be called before calling this method."
             )
-
-    def _joblib_predict_one_features_group(
-        self, X, features_group_id, random_state=None
-    ):
-        """
-        Compute the predictions after perturbation of the data for a given
-        group of variables. This function is parallelized.
-
-        Parameters
-        ----------
-        X: array-like of shape (n_samples, n_features)
-            The input samples.
-        features_group_id: int
-            The index of the group of variables.
-        random_state:
-            The random state to use for sampling.
-        """
-        features_group_ids = self._feature_groups_ids[features_group_id]
-        non_features_group_ids = np.delete(
-            np.arange(X.shape[1]), features_group_ids
-        )
-        # Create an array X_perm_j of shape (n_permutations, n_samples, n_features)
-        # where the j-th group of covariates is permuted
-        X_perm = np.empty((self.n_permutations, X.shape[0], X.shape[1]))
-        # This also works with pandas DataFrame
-        X_perm[:, :, non_features_group_ids] = np.delete(
-            X, features_group_ids, axis=1
-        )
-        X_perm[:, :, features_group_ids] = self._permutation(
-            X, features_group_id=features_group_id, random_state=random_state
-        )
-        # Reshape X_perm to allow for batch prediction
-        X_perm_batch = X_perm.reshape(-1, X.shape[1])
-        if isinstance(X, pd.DataFrame):
-            X_perm_batch = pd.DataFrame(X_perm_batch, columns=X.columns)
-        y_pred_perm = getattr(self.estimator_, self.method)(X_perm_batch)
-
-        # In case of classification, the output is a 2D array. Reshape accordingly
-        if y_pred_perm.ndim == 1:
-            y_pred_perm = y_pred_perm.reshape(self.n_permutations, X.shape[0])
-        else:
-            y_pred_perm = y_pred_perm.reshape(
-                self.n_permutations, X.shape[0], y_pred_perm.shape[1]
-            )
-        return y_pred_perm
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Method for creating the permuted data for the j-th group of covariates."""
@@ -318,7 +343,7 @@ class BasePerturbationCV(BaseVariableImportance):
 
     This class extends the BasePerturbation class to handle cross-validated. The fit
     is performed iteratively on each fold, and the importance is computed by computing
-    the mean loss over samples of each fold. The statistical test is performed on the
+    the mean score over samples of each fold. The statistical test is performed on the
     importance scores obtained from each fold.
 
     Parameters

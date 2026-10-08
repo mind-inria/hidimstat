@@ -1,13 +1,16 @@
-import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
-from .conftest import check_estimator, fitted_linear_regression
+from .conftest import fitted_linear_regression
 
 ESTIMATORS_TO_CHECK = [
     BasePerturbation(estimator=fitted_linear_regression()),
@@ -62,40 +65,12 @@ def expected_failed_checks(estimator):
         return failed_checks
 
 
-if SKLEARN_LT_1_6:
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 def test_no_implemented_methods(rng):
@@ -140,3 +115,44 @@ def test_base_cv_errors(rng):
     )
     with pytest.raises(NotImplementedError):
         vim.fit(X, y)
+
+
+@pytest.mark.filterwarnings(
+    "error:Parameters 'method' and 'loss' are deprecated"
+)
+def test_deprecation_warning(rng):
+    """
+    Test that a deprecation warning is issued when inputting a method
+    or loss argument.
+    """
+    X = rng.random((100, 5))
+    y = rng.random(100)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), method="mean_squared_error"
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), loss=mean_squared_error
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(BasePerturbation.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance

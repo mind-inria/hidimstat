@@ -5,6 +5,10 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import SAGE
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
 
 @pytest.mark.parametrize(
@@ -54,7 +58,7 @@ def sage_test_data():
     model.fit(X_train, y_train)
     sage_default_parameters = {
         "estimator": model,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_subsets": 20,
         "n_permutations": 10,
         "n_jobs": 1,
@@ -136,3 +140,10 @@ def test_sage_reproducibility_with_rng(sage_test_data):
     sage_2.fit(X_train, y_train)
     vim_reproducibility = sage_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(SAGE.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance

@@ -15,11 +15,11 @@ from sklearn.preprocessing import StandardScaler
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
-    SKLEARN_LT_1_6,
     _check_vim_predict_method,
     _generate_group_mask,
     _make_sklearn_estimator,
     check_random_state,
+    find_stack_level,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -236,7 +236,7 @@ class D0CRT(BaseVariableImportance):
                 warnings.warn(
                     "Precomputed coefficients were provided, screening is skipped and "
                     "screening_threshold is set to 100.",
-                    stacklevel=2,
+                    stacklevel=find_stack_level(),
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
@@ -581,7 +581,7 @@ class D0CRT(BaseVariableImportance):
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
-            warnings.warn("cv won't be used", stacklevel=2)
+            warnings.warn("cv won't be used", stacklevel=find_stack_level())
         self.fit(X, y)
         return self.importance(X, y)
 

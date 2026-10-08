@@ -10,7 +10,6 @@ from sklearn.utils.estimator_checks import (
 )
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
@@ -18,8 +17,6 @@ from hidimstat.knockoffs import (
 )
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-
-from .conftest import check_estimator
 
 
 def expected_failed_checks(estimator):
@@ -29,39 +26,13 @@ def expected_failed_checks(estimator):
 
 ESTIMATORS_TO_CHECK = [ModelXKnockoff(), GaussianKnockoffs()]
 
-if SKLEARN_LT_1_6:
 
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 def test_knockoff_bootstrap_quantile(rng):
@@ -308,10 +279,7 @@ def test_lasso_estimator_alphas(data_generator):
     n_repeats = 5
     n_alphas = 10
     X, y, _ = data_generator
-    if SKLEARN_LT_1_6:
-        estimator = LassoCV(n_alphas=n_alphas)
-    else:
-        estimator = LassoCV(alphas=list(range(n_alphas)))
+    estimator = LassoCV(alphas=list(range(n_alphas)))
 
     model_x_knockoff = ModelXKnockoff(
         estimator=estimator,
@@ -386,6 +354,13 @@ class TestModelXKnockoffExceptions:
         """Test when invalid number of permutations is provided"""
         with pytest.raises(AssertionError, match="n_repeats must be positive"):
             ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
+
+
+def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    mxko = ModelXKnockoff()
+    tags = mxko.__sklearn_tags__()
+    assert not tags.needs_importance_data
 
 
 ############################## test preconfigure #######################

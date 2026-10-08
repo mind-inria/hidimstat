@@ -6,12 +6,9 @@ import pytest
 from scipy.stats import ttest_1samp
 from sklearn.datasets import make_classification
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
-from sklearn.preprocessing import OneHotEncoder
 
 from hidimstat import LOCI, LOCICV, loci_importance
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
@@ -21,8 +18,7 @@ def run_loci(
     y,
     estimator,
     feature_groups=None,
-    method="predict",
-    loss=mean_squared_error,
+    scoring="mean_squared_error",
 ):
     """Run the Leave-One-Covariate-In algorithm on given data."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -31,8 +27,7 @@ def run_loci(
 
     loci = LOCI(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         feature_groups=feature_groups,
         n_jobs=1,
     )
@@ -88,8 +83,7 @@ def test_loci(data_generator):
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
-        method="predict_proba",
-        loss=log_loss,
+        scoring="log_loss",
     )
     importance_clf = loci_clf.importances_
 
@@ -122,9 +116,8 @@ def test_multiclass_loci():
 
     loci_clf = LOCI(
         estimator=logistic_model,
-        method="predict_proba",
         feature_groups=groups,
-        loss=log_loss,
+        scoring="log_loss",
     )
     loci_clf.fit(
         X_train,
@@ -134,35 +127,6 @@ def test_multiclass_loci():
 
     assert importance_clf.shape == (2,)
     assert importance_clf[0].mean() > importance_clf[1].mean()
-
-
-@pytest.mark.parametrize("method", ["predict_proba", "decision_function"])
-def test_loci_baseline_mean_classification(method):
-    """For binary classification with methods 'predict_proba' and 'decision_function'
-    check that the baseline mean is equal to the marginal distribution.
-    """
-    important_features = 4
-    n_features = 20
-
-    X, y = make_classification(
-        n_samples=100,
-        n_features=n_features,
-        n_informative=important_features,
-        n_classes=2,
-        weights=[0.3, 0.7],
-        random_state=42,
-        shuffle=False,
-    )
-    estimator = LogisticRegression().fit(X, y)
-    loci = LOCI(estimator=estimator, method=method)
-    loci.fit(X, y)
-
-    values, counts = np.unique(y, return_counts=True)
-    assert list(values) == [0, 1]
-    expected_baseline_mean = counts[1] / y.shape[0]
-
-    assert loci._baseline_mean == pytest.approx(expected_baseline_mean)
-    assert loci._baseline_mean == pytest.approx(np.mean(y))
 
 
 @pytest.mark.parametrize(
@@ -181,7 +145,6 @@ def test_raises_value_error(data_generator):
         fitted_model = LinearRegression().fit(X, y)
         loci = LOCI(
             estimator=fitted_model,
-            method="predict",
         )
         loci.importance(X, None)
 
@@ -191,7 +154,6 @@ def test_raises_value_error(data_generator):
         fitted_model = LinearRegression().fit(X, y)
         loci = LOCI(
             estimator=fitted_model,
-            method="predict",
         )
         BasePerturbation.fit(loci, X, y)
         loci.importance(X, y)
@@ -226,7 +188,6 @@ def test_loci_function(data_generator):
         regression_model,
         X,
         y,
-        method="predict",
     )
 
     assert importance.shape == (X.shape[1],)

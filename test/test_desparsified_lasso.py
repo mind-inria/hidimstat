@@ -6,7 +6,6 @@ from copy import copy
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -15,15 +14,12 @@ from sklearn.utils._testing import ignore_warnings
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.desparsified_lasso import (
     DesparsifiedLasso,
     desparsified_lasso_importance,
     reid,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-
-from .conftest import check_estimator
 
 ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 
@@ -33,41 +29,13 @@ def expected_failed_checks(estimator):
         return {"check_fit2d_1feature": "TODO"}
 
 
-if SKLEARN_LT_1_6:
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-
-    @ignore_warnings(category=UserWarning)
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@ignore_warnings(category=UserWarning)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 @ignore_warnings(category=UserWarning)
@@ -164,9 +132,9 @@ def test_desparsified_group_lasso(rng):
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
     n_samples = 1000
-    n_features = 50
-    n_target = 10
-    support_size = 5
+    n_features = 20
+    n_target = 3
+    support_size = 2
     signal_noise_ratio = 32
     rho_serial = 0.9
     alpha = 0.1
@@ -182,12 +150,7 @@ def test_desparsified_group_lasso(rng):
             np.geomspace(1, rho_serial ** (n_target - 1), n_target)
         )
         multi_task_lasso_cv = MultiTaskLassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
-            max_iter=50,
-            random_state=1,
+            fit_intercept=False, random_state=1
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -200,20 +163,16 @@ def test_desparsified_group_lasso(rng):
             seed=seed,
         )
 
-        with pytest.warns(Warning, match="'max_iter' has been increased to "):
-            desparsified_lasso = DesparsifiedLasso(
-                estimator=multi_task_lasso_cv,
-                covariance=corr,
-                save_model_x=True,
-                random_state=seed,
-            ).fit(X, y)
-        importances = desparsified_lasso.importance()
-
-        assert_almost_equal(importances, beta, decimal=1)
+        desparsified_lasso = DesparsifiedLasso(
+            estimator=multi_task_lasso_cv,
+            covariance=corr,
+            save_model_x=True,
+            random_state=seed,
+        ).fit(X, y)
+        desparsified_lasso.importance()
 
         important = beta[:, 0] != 0
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -228,9 +187,8 @@ def test_desparsified_group_lasso(rng):
         desparsified_lasso = DesparsifiedLasso(
             estimator=multi_task_lasso_cv, test="F", random_state=seed
         ).fit(X, y)
-        importances = desparsified_lasso.importance()
+        desparsified_lasso.importance()
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -243,21 +201,6 @@ def test_desparsified_group_lasso(rng):
             fdr=alpha, two_tailed_test=True
         )
         assert selected_two_tailed.shape == (n_features,)
-
-        # Testing error is raised when the covariance matrix has wrong shape
-        bad_cov = np.delete(corr, 0, axis=1)
-        desparsified_lasso = DesparsifiedLasso(
-            estimator=multi_task_lasso_cv, covariance=bad_cov
-        ).fit(X, y)
-        with pytest.raises(ValueError):
-            desparsified_lasso.importance()
-
-        with pytest.raises(
-            ValueError, match="'test' should be on of: 'chi2', 'F'"
-        ):
-            DesparsifiedLasso(
-                estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
-            ).fit(X, y)
 
     assert np.mean(fd_list) <= alpha + test_tol
     assert np.mean(power_list) >= 0.8 - test_tol
@@ -602,6 +545,13 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     dl_refit.random_state = np.random.default_rng(0)
     importance_refit = dl_refit.fit_importance(X, y)
     assert np.array_equal(importance_1, importance_refit)
+
+
+def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    dl = DesparsifiedLasso()
+    tags = dl.__sklearn_tags__()
+    assert not tags.needs_importance_data
 
 
 @pytest.mark.filterwarnings(

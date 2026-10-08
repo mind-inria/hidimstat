@@ -1,5 +1,8 @@
+import inspect
 import numbers
+import warnings
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -7,13 +10,21 @@ from numpy.random import RandomState
 from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
 from sklearn import __version__ as sklearn_version
+from sklearn.base import is_classifier, is_regressor
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 
+import hidimstat as hd
 from hidimstat.statistical_tools.holdout_randomization_test import (
     holdout_randomization_test,
 )
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
-SKLEARN_LT_1_6 = parse(sklearn_version).minor <= 6
+SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
 
@@ -22,10 +33,11 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
     kwargs = kwargs.copy()
 
     if estimator_cls.__name__ == "LassoCV":
-        if SKLEARN_LT_1_6 and "alphas" in kwargs:
+        if SKLEARN_LT_1_7 and "alphas" in kwargs:
             kwargs["n_alphas"] = kwargs.pop("alphas")
-        elif not SKLEARN_LT_1_6 and "n_alphas" in kwargs:
+        elif "n_alphas" in kwargs:
             kwargs["alphas"] = kwargs.pop("n_alphas")
+
     elif estimator_cls.__name__ == "LogisticRegressionCV":
         if SKLEARN_LT_1_9 and "penalty" in kwargs:
             penalty = kwargs.pop("penalty")
@@ -266,3 +278,139 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def check_scoring(estimator=None, scoring=None):
+    """
+    Determine sklearn-compatible scorer from user options.
+    A TypeError will be thrown if the estimator cannot be scored.
+
+    Parameters
+    ----------
+    estimator: sklearn-compatible estimator, default=None
+        The estimator that will be used for predictions. If no scoring is explicitly
+        provided, the scorer will be set to "log_loss" for classifiers, and
+        "mean_squared_error" for regressors.
+    scoring: str, callable, default=None
+        Sklearn-comptabile scorer to use.
+
+    Returns
+    -------
+    scoring : callable
+        A scorer callable object / function with signature ``scorer(estimator, X, y)``.
+    """
+    if isinstance(scoring, str):
+        if scoring == "log_loss":
+            return get_scorer(
+                make_scorer(log_loss, response_method="predict_proba")
+            )
+        if scoring == "mean_squared_error":
+            return get_scorer(make_scorer(mean_squared_error))
+        return get_scorer(scoring)
+    elif callable(scoring):
+        return get_scorer(scoring)
+    elif scoring is None:
+        if estimator is not None:
+            if is_classifier(estimator):
+                return get_scorer(
+                    make_scorer(log_loss, response_method="predict_proba")
+                )
+            elif is_regressor(estimator):
+                return get_scorer(
+                    make_scorer(mean_squared_error, response_method="predict")
+                )
+            else:
+                raise TypeError(
+                    f"Estimator {estimator} should be one of two types "
+                    "'classifier' or 'regressor'."
+                )
+        else:
+            raise ValueError(
+                "No scoring nor estimator was passed to the method."
+            )
+
+
+def _check_loss_method_parameter(scoring, method, loss):
+    """Check values of method and loss parameters in regard to scoring parameter."""
+    if scoring is None and (method is not None or loss is not None):
+        warnings.warn(
+            "Parameters 'method' and 'loss' are deprecated,"
+            "and will be removed in v0.6.0. Please use 'scoring' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if (
+            method is not None
+            and _check_vim_predict_method(method) is not None
+        ):
+            if method == "predict_proba":
+                return log_loss
+            elif method == "predict":
+                return mean_squared_error
+            else:
+                raise ValueError(
+                    r"Only 'predict' and 'predict_proba' are supported."
+                )
+        elif loss is not None:
+            # Verify that loss is a sklearn metric.
+            module = getattr(loss, "__module__", None)
+            if hasattr(module, "startswith") and module.startswith(
+                "sklearn.metrics."
+            ):
+                return loss
+            else:
+                raise ValueError(f"The loss {loss} is not a 'sklearn.metrics'")
+    return scoring
+
+
+def find_stack_level() -> int:
+    """
+    Find the first place in the stack that is not inside hidimstat
+    (tests notwithstanding).
+
+    Originally based on the pandas codebase.
+    https://github.com/pandas-dev/pandas/tree/main/pandas/util/_exceptions.py#L37
+    and its adaptation in nilearn
+    https://github.com/nilearn/nilearn/blob/3a71575a67ea5cd252142c05b7e784b590b6d4f5/nilearn/_utils/logger.py#L162
+    """
+    pkg_dir = Path(hd.__file__).parent
+
+    # list of stack frames to skip
+    skip_list = [
+        Path("sklearn") / "utils" / "_set_output.py",
+        Path("sklearn") / "base.py",
+        Path("joblib") / "memory.py",
+        Path("joblib") / "parallel.py",
+    ]
+
+    # https://stackoverflow.com/questions/17407119/python-inspect-stack-is-slow
+    frame = inspect.currentframe()
+    try:
+        n = 0
+        while frame:
+            filename = inspect.getfile(frame)
+
+            is_test_file = Path(filename).name.startswith("test_")
+
+            in_hidimstat_code = filename.startswith(str(pkg_dir))
+            skip = any(str(x) in filename for x in skip_list)
+            if (not in_hidimstat_code and not skip) or is_test_file:
+                break
+
+            frame = frame.f_back
+
+            n += 1
+
+    finally:
+        # See note in
+        # https://docs.python.org/3/library/inspect.html#inspect.Traceback
+        del frame
+    return n
+
+
+def one_level_deeper() -> int:
+    """Use for testing find_stack_level.
+
+    Needs to be in a module that does not start with 'test'
+    """
+    return find_stack_level()

@@ -4,13 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
@@ -20,8 +17,7 @@ def run_loco(
     y,
     estimator,
     feature_groups=None,
-    method="predict",
-    loss=mean_squared_error,
+    scoring="mean_squared_error",
 ):
     """Run the Leave-One-Covariate-Out algorithm on given data."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -30,8 +26,7 @@ def run_loco(
 
     loco = LOCO(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         feature_groups=feature_groups,
         n_jobs=1,
     )
@@ -87,8 +82,7 @@ def test_loco(data_generator):
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
-        method="predict_proba",
-        loss=log_loss,
+        scoring="log_loss",
     )
     importance_clf = loco_clf.importances_
 
@@ -112,7 +106,6 @@ def test_raises_value_error(data_generator):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
-            method="predict",
         )
         loco.importance(X, None)
 
@@ -122,7 +115,6 @@ def test_raises_value_error(data_generator):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
-            method="predict",
         )
         BasePerturbation.fit(loco, X, y)
         loco.importance(X, y)
@@ -156,7 +148,6 @@ def test_loco_function(data_generator):
         regression_model,
         X,
         y,
-        method="predict",
     )
 
     assert importance.shape == (X.shape[1],)
