@@ -13,11 +13,12 @@
 #
 #   https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
 #
-# .. admonition:: CIRCLE_CI_TOKEN
+# .. admonition:: CIRCLE_CI_WRITE
 #   :class: warning
 #
-#   The ``CIRCLE_CI_TOKEN`` used in this workflow must be a personal token and not a project token:
-#   https://support.circleci.com/hc/en-us/articles/360060360811-CircleCI-API-v2-Returns-404-Not-Found
+#   Uses the same token and pipeline definition as ``ci_publish_call.yml``.
+#   For more information, see:
+#   https://circleci.com/docs/api/v2/index.html#tag/Pipeline/operation/triggerPipelineRun
 #
 ###
 name: Documentation push trigger
@@ -41,6 +42,8 @@ jobs:
         steps:
 
         -   name: Trigger hosting job on circle ci
+            env:
+                TOKEN_CIRCLECI: ${{ secrets.CIRCLE_CI_WRITE }}
             run: |4
 
                 COMMIT_SHA=${{ github.event.workflow_run.head_sha }}
@@ -69,10 +72,30 @@ jobs:
 
                 GITHUB_RUN_URL="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
 
-                curl --request POST \
-                --url https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline \
-                --header "Circle-Token: ${{ secrets.CIRCLE_CI_TOKEN }}" \
-                --header "content-type: application/json" \
-                --header "x-attribution-actor-id: github_actions" \
-                --header "x-attribution-login: github_actions" \
-                --data \{\"branch\":\"$BRANCH\",\"parameters\":\{\"GITHUB_RUN_URL\":\"$GITHUB_RUN_URL\"\}\}
+                # Build the request body with jq to handle escaping safely.
+                # definition_id is the id of the pipeline of hidimstat.
+                REQUEST_BODY=$(jq -n \
+                    --arg branch "$BRANCH" \
+                    --arg run_url "$GITHUB_RUN_URL" \
+                    '{
+                        definition_id: "303559b0-0f61-548c-acc0-803f0f8edfba",
+                        config: { branch: $branch },
+                        checkout: { branch: $branch },
+                        parameters: { GITHUB_RUN_URL: $run_url }
+                    }')
+
+                http_response=$(curl --request POST \
+                    --output result_post.txt \
+                    --write-out "%{response_code}" \
+                    --url "https://circleci.com/api/v2/project/gh/${{ github.repository }}/pipeline/run" \
+                    --header "Circle-Token: $TOKEN_CIRCLECI" \
+                    --header "content-type: application/json" \
+                    --header "x-attribution-actor-id: github_actions" \
+                    --header "x-attribution-login: github_actions" \
+                    --data "$REQUEST_BODY")
+
+                # display result for debugging
+                cat result_post.txt
+                if [[ "$http_response" != '201' ]]; then
+                    exit 1
+                fi
