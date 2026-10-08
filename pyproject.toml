@@ -91,6 +91,7 @@ test = [
 ]
 
 
+
 [project.urls]
 Repository = "https://github.com/mind-inria/hidimstat"
 Documentation = "https://github.com/hidimstat/hidimstat.github.io"
@@ -144,14 +145,14 @@ OMP_NUM_THREADS = 1
 
 
 [tool.ruff]
-extend-exclude = ["doc/auto_examples/*", "hidimstat/_version.py"]
+extend-exclude = ["docs/auto_examples/*", "hidimstat/_version.py"]
 include = [
     "pyproject.toml",
     "src/**/*.py",
     "examples/**/*.py",
     "test/**/*.py",
     "tools/**/*.py",
-    "doc/**/*.py"
+    "docs/**/*.py"
 ]
 indent-width = 4
 line-length = 79

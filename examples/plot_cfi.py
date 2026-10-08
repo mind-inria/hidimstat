@@ -108,3 +108,6 @@ plt.show()
 # References
 # ----------
 # .. footbibliography::
+
+
+# sphinx_gallery_dummy_images=2
