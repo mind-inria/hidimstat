@@ -60,8 +60,8 @@ def test_knockoff_bootstrap_quantile(rng):
         fdp_list.append(fdp)
         power_list.append(power)
 
-        assert model_x_knockoff.importances_.shape == (n_repeats, p)
-        assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
+        assert model_x_knockoff.importances_.shape == (p, n_repeats)
+        assert model_x_knockoff.pvalues_.shape == (p, n_repeats)
         assert model_x_knockoff.aggregated_pval_.shape == (p,)
 
     assert np.mean(fdp_list) < fdr
@@ -97,8 +97,8 @@ def test_knockoff_bootstrap_e_values(rng):
         fdp_list.append(fdp)
         power_list.append(power)
 
-        assert model_x_knockoff.importances_.shape == (n_repeats, p)
-        assert model_x_knockoff.pvalues_.shape == (n_repeats, p)
+        assert model_x_knockoff.importances_.shape == (p, n_repeats)
+        assert model_x_knockoff.pvalues_.shape == (p, n_repeats)
         assert model_x_knockoff.aggregated_eval_.shape == (p,)
 
     assert np.mean(fdp_list) < fdr
@@ -140,8 +140,8 @@ def test_invariant_with_bootstrap():
     fdp_power(selected_repeat, beta)
 
     np.testing.assert_array_equal(
-        model_x_knockoff.importances_[0],
-        model_x_knockoff_repeat.importances_[0],
+        model_x_knockoff.importances_[:, 0],
+        model_x_knockoff_repeat.importances_[:, 0],
     )
     assert not np.array_equal(
         model_x_knockoff.pvalues_, model_x_knockoff_repeat.pvalues_
@@ -243,8 +243,8 @@ def test_knockoff_function_not_centered(data_generator):
     )
     fdp_power(selected, beta)
     assert selected.shape == (p,)
-    assert importances.shape == (5, p)
-    assert pvalues.shape == (5, p)
+    assert importances.shape == (p, 5)
+    assert pvalues.shape == (p, 5)
 
 
 @pytest.mark.parametrize(

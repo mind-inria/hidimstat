@@ -77,7 +77,8 @@ model_x_knockoff.fit_importance(X, y)
 fdp_individual = []
 power_individual = []
 
-for ko_statistics in model_x_knockoff.importances_:
+for i in range(model_x_knockoff.importances_.shape[1]):
+    ko_statistics = model_x_knockoff.importances_[:, i]
     threshold = model_x_knockoff.knockoff_threshold(ko_statistics, fdr=fdr)
     ko_selection = ko_statistics > threshold
 
