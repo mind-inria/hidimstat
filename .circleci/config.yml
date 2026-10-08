@@ -13,15 +13,26 @@ workflows:
     wait:
         jobs:
         - wait-action
+    # Both workflows are triggered from GitHub Actions with GITHUB_RUN_URL set:
+    # - by ci_publish_call.yml with a URL to pytest-results-all.zip
+    # - by trigger_hosting_on_pr.yml with a URL to the doc build run
     host_and_deploy_doc:
         when:
-            not:
-                equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
-    # The jobs should run only when triggered by the workflow
+            and:
+            -   not:
+                    equal: [none, << pipeline.parameters.GITHUB_RUN_URL >>]
+            -   not:
+                    matches:
+                        pattern: .*pytest-results-all\.zip$
+                        value: << pipeline.parameters.GITHUB_RUN_URL >>
         jobs:
         -   host_docs
 
     host_reports:
+        when:
+            matches:
+                pattern: .*pytest-results-all\.zip$
+                value: << pipeline.parameters.GITHUB_RUN_URL >>
         jobs:
         - get-tests-reports
 
