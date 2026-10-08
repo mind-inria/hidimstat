@@ -1,4 +1,8 @@
+import inspect
+import warnings
+
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.model_selection import StratifiedKFold
 
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -37,10 +41,24 @@ class SelectorMixin(TransformerMixin):
             )
 
         if isinstance(self.estimator, BasePerturbation):
-            raise TypeError(
-                r"Instances of BasePerturbation are not supported."
-                "Please use an instance of BasePerturbationCV."
+            warnings.warn(
+                "An instance of BasePerturbation was given. "
+                "This is not supported by the method. Falling back to an "
+                "instance of BasePerturbationCV",
+                UserWarning,
+                stacklevel=2,
             )
+            module = __import__("hidimstat")
+            signature = inspect.signature(self.estimator.__class__).parameters
+            param_dict = {}
+            for name in signature:
+                param_dict[name] = getattr(self.estimator, name)
+            param_dict["estimators"] = param_dict["estimator"]
+            del param_dict["estimator"]
+            class_ = getattr(
+                module, str(self.estimator.__class__.__name__) + "CV"
+            )
+            self.estimator = class_(cv=StratifiedKFold(), **param_dict)
 
     def fit(self, X, y):
         self._check_fit_parameters()
