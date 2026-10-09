@@ -42,6 +42,18 @@ Feature Importance Classes
    ModelXKnockoff
    DesparsifiedLasso
 
+Feature Selection Classes
+=========================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   FDRSelect
+   FWERSelect
+   PValueSelect
+   SelectTopK
+
 Feature Importance functions
 ============================
 
