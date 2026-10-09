@@ -89,7 +89,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         if isinstance(self.estimator, BasePerturbationCV):
             # importance shape is gonna be (n_feature_groups, n_folds)
             self.selected_ = _selection_generic(
-                self.importances_.mean(axis=1),
+                self.estimator.importances_.mean(axis=1),
                 k_best=self.k_best,
             )
         else:
