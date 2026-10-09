@@ -21,18 +21,18 @@ class SelectorMixin(TransformerMixin):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
         operated with a warning.
 
-    Raise
-    -----
+    Raises
+    ------
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
     UserWarning
-        If 'estimator' is an instance of :class:`BasePerturbation` instead of :class:`BasePerturbationCV`.
+        If 'estimator' is an instance of hidimstat.BasePerturbation instead of hidimstat.BasePerturbationCV.
     """
 
     def __init__(self, estimator):
@@ -80,7 +80,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -88,12 +88,12 @@ class SelectTopK(SelectorMixin, BaseEstimator):
     k_best : int, default=5
         Selects the top k features based on values.
 
-    Raise
-    -----
+    Raises
+    ------
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
     UserWarning
-        If 'estimator' is an instance of :class:`BasePerturbation` instead of :class:`BasePerturbationCV`.
+        If 'estimator' is an instance of hidimstat.BasePerturbation instead of hidimstat.BasePerturbationCV.
     """
 
     def __init__(self, estimator, k_best=5):
@@ -123,7 +123,7 @@ class PValueSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -142,12 +142,12 @@ class PValueSelect(SelectorMixin, BaseEstimator):
     alternative_hypothesis : bool, default=False
         If True, selects based on 1-pvalues instead of p-values.
 
-    Raise
-    -----
+    Raises
+    ------
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
     UserWarning
-        If 'estimator' is an instance of :class:`BasePerturbation` instead of :class:`BasePerturbationCV`.
+        If 'estimator' is an instance of hidimstat.BasePerturbation instead of hidimstat.BasePerturbationCV.
     """
 
     def __init__(
@@ -185,7 +185,7 @@ class FDRSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -206,12 +206,12 @@ class FDRSelect(SelectorMixin, BaseEstimator):
     alternative_hypothesis : bool, default=False
         If True, selects based on 1-pvalues instead of p-values.
 
-    Raise
-    -----
+    Raises
+    ------
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
     UserWarning
-        If 'estimator' is an instance of :class:`BasePerturbation` instead of :class:`BasePerturbationCV`.
+        If 'estimator' is an instance of hidimstat.BasePerturbation instead of hidimstat.BasePerturbationCV.
     """
 
     def __init__(
@@ -249,7 +249,7 @@ class FWERSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from :class:`hidimstat.BaseVariableImportance`
+    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -267,12 +267,12 @@ class FWERSelect(SelectorMixin, BaseEstimator):
     alternative_hypothesis : bool, default=False
         If True, selects based on 1-pvalues instead of p-values.
 
-    Raise
-    -----
+    Raises
+    ------
     TypeError
         If 'estimator' is not an instance of a hidimstat-compatible estimator.
     UserWarning
-        If 'estimator' is an instance of :class:`BasePerturbation` instead of :class:`BasePerturbationCV`.
+        If 'estimator' is an instance of hidimstat.BasePerturbation instead of hidimstat.BasePerturbationCV.
     """
 
     def __init__(

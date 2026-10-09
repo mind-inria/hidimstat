@@ -17,6 +17,7 @@ Base Classes
    ~base_perturbation.BasePerturbation
    ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
+   ~selector.SelectorMixin
 
 .. _feature_importance_classes:
 
