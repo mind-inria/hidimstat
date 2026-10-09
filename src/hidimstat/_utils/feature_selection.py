@@ -29,6 +29,9 @@ def _selection_generic(
         Selects the lowest k features based on values.
     percentile : float, default=None
         Selects features based on a specified percentile of values.
+        If certain values lie exactly at the given percentile,
+        then ties are selected based on a maximum amount of values to return,
+        computed as the proportion of total features given by the percentile.
     threshold_max : float, default=None
         Selects features with values below the specified maximum threshold.
     threshold_min : float, default=None
@@ -52,7 +55,7 @@ def _selection_generic(
         ]
     )
     if n_criteria > 1:
-        raise ValueError("Only support selection based on one criteria.")
+        raise ValueError("Only support selection based on one criterion.")
     if k_best is not None:
         if k_best <= 0:
             raise ValueError("k_best needs to be strictly positive.")
@@ -195,7 +198,7 @@ def _selection_fwer(
     two_tailed_test=False,
 ):
     """
-    Performs feature selection based on False Discovery Rate (FDR) control.
+    Performs feature selection based on Family-Wise Error Rate (FWER) control.
 
     Parameters
     ----------

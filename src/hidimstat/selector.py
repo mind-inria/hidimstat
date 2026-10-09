@@ -100,7 +100,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         return X[:, self.selected_]
 
 
-class SelectPValue(SelectorMixin, BaseEstimator):
+class PValueSelect(SelectorMixin, BaseEstimator):
     """
     Feature selection class from k-lowest p-values.
 
@@ -115,6 +115,9 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         Selects the lowest k features based on values.
     percentile : float, default=None
         Selects features based on a specified percentile of values.
+        If certain values lie exactly at the given percentile,
+        then ties are selected based on a maximum amount of values to return,
+        computed as the proportion of total features given by the percentile.
     threshold_max : float, default=None
         Selects features with values below the specified maximum threshold.
     threshold_min : float, default=None
@@ -150,7 +153,7 @@ class SelectPValue(SelectorMixin, BaseEstimator):
         return X[:, self.selected_]
 
 
-class SelectFDR(SelectorMixin, BaseEstimator):
+class FDRSelect(SelectorMixin, BaseEstimator):
     """
     Feature selection class from False Discovery Rate (FDR) control.
 
@@ -204,7 +207,7 @@ class SelectFDR(SelectorMixin, BaseEstimator):
         return X[:, self.selected_]
 
 
-class SelectFWER(SelectorMixin, BaseEstimator):
+class FWERSelect(SelectorMixin, BaseEstimator):
     """
     Feature selection class from Family-Wise Error Rate (FWER) control.
 
