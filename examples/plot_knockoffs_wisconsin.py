@@ -193,11 +193,11 @@ print(f"Knockoffs make at least {num_false_discoveries} False Discoveries")
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-selected_mask = np.array(["not selected"] * len(importance[0]))
+selected_mask = np.array(["not selected"] * len(importance[:, 0]))
 selected_mask[selected] = "selected"
 df_ko = pd.DataFrame(
     {
-        "score": importance[0],
+        "score": importance[:, 0],
         "variable": feature_names_noise,
         "selected": selected_mask,
     }
