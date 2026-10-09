@@ -24,4 +24,4 @@ Changes
 - :bdg-warning:`API` Deprecated ``method`` and ``loss`` parameters of classes to replace with sklearn compatible ``scoring`` (:gh:`787` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Re-orded class inheritance with ``GroupVariableImportanceMixin`` (:gh:`788` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Added an example giving an overview of a feature importance analysis with ``hidimstat`` (:gh:`800` by `Joseph Paillard`_).
-- :bdg-primary:`API` Added sklearn-compatible feature selectors (SelectTopK / SelectPValue / SelectFDR / SelectFWER) (:gh:`824` by `Marc Hulcelle`_).
+- :bdg-primary:`API` Added sklearn-compatible feature selectors (SelectTopK / PValueSelect / FDRSelect / FWERSelect) (:gh:`824` by `Marc Hulcelle`_).

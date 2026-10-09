@@ -38,7 +38,7 @@ class TestSelectionGenericParameterCheck:
         """Test selection multiple criteria error"""
         _importances, pvalues = create_importances_pvalues
         with pytest.raises(
-            ValueError, match="Only support selection based on one criteria"
+            ValueError, match="Only support selection based on one criterion"
         ):
             _selection_generic(pvalues, k_best=5, k_lowest=5)
 
