@@ -17,6 +17,7 @@ Base Classes
    ~base_perturbation.BasePerturbation
    ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
+   ~selector.SelectorMixin
 
 .. _feature_importance_classes:
 
@@ -41,6 +42,18 @@ Feature Importance Classes
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso
+
+Feature Selection Classes
+=========================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   FDRSelect
+   FWERSelect
+   PValueSelect
+   SelectTopK
 
 Feature Importance functions
 ============================
