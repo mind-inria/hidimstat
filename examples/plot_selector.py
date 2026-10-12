@@ -50,10 +50,11 @@ clf = make_pipeline(
 )
 
 clf.fit(X, y)
+initial_score = clf.score
 
 # %%
-# Next, we define the Hidimstat feature importance estimator and the Selector from p-values
-# with a standard threshold of :math:`p=0.05`.
+# Next, we define the Hidimstat feature importance estimator and the Selector from the importance
+# p-values with a standard threshold of :math:`p<0.05`.
 
 cficv = CFICV(
     estimators=clf,
@@ -111,3 +112,9 @@ pipeline = make_pipeline(
 
 pipeline.fit(X_train, y_train)
 score = pipeline.score(X_test, y_test)
+
+initial_score = clf.fit(X_train, y_train).score(X_test, y_test)
+
+print(
+    f"Score before feature selection: {initial_score:.2f} / after: {score:.2f}."
+)

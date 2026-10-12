@@ -9,9 +9,9 @@ from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.feature_selection import (
-    _selection_fdr,
-    _selection_fwer,
-    _selection_generic,
+    _fdr_selection,
+    _fwer_selection,
+    _generic_selection,
 )
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat._utils.utils import find_stack_level
@@ -114,7 +114,7 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        return _selection_generic(
+        return _generic_selection(
             self.importances_,
             k_best=k_best,
             percentile=percentile,
@@ -168,7 +168,7 @@ class BaseVariableImportance(BaseEstimator):
         ), (
             "alternative_hippothesis can have only three values: True, False and None."
         )
-        return _selection_generic(
+        return _generic_selection(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
             percentile=percentile,
@@ -226,7 +226,7 @@ class BaseVariableImportance(BaseEstimator):
             "only 'bhq' and 'bhy' are supported"
         )
 
-        return _selection_fdr(
+        return _fdr_selection(
             p_values=self.pvalues_,
             importances=self.importances_,
             fdr=fdr,
@@ -277,7 +277,7 @@ class BaseVariableImportance(BaseEstimator):
                 )
                 n_tests = self.importances_.shape[0]
 
-        return _selection_fwer(
+        return _fwer_selection(
             p_values=self.pvalues_,
             importances=self.importances_,
             fwer=fwer,

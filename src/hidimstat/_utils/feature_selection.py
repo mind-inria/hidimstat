@@ -8,7 +8,7 @@ from hidimstat.statistical_tools.multiple_testing import (
 )
 
 
-def _selection_generic(
+def _generic_selection(
     values,
     k_best=None,
     k_lowest=None,
@@ -113,7 +113,7 @@ def _selection_generic(
         return no_mask
 
 
-def _selection_fdr(
+def _fdr_selection(
     p_values,
     importances,
     fdr,
@@ -189,7 +189,7 @@ def _selection_fdr(
     return selected
 
 
-def _selection_fwer(
+def _fwer_selection(
     p_values,
     importances,
     fwer,

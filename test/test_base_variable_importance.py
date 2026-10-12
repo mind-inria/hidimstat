@@ -124,7 +124,7 @@ class TestSelection:
         np.testing.assert_array_equal(true_value, selection)
 
 
-def test_selection_fdr(rng, create_bvi):
+def test_fdr_selection(rng, create_bvi):
     """
     Test that the FDR-based selection using BH and BHY procedures achieve the good
     guarantees:
@@ -314,7 +314,7 @@ class TestSelectionFDRExceptions:
         ):
             vi.fdr_selection(0.1)
 
-    def test_selection_fdr_wrong_fdr(self, set_100_variable_sorted):
+    def test_fdr_selection_wrong_fdr(self, set_100_variable_sorted):
         """Test selection fdr with wrong fdr"""
         vi = set_100_variable_sorted
         with pytest.raises(
@@ -333,7 +333,7 @@ class TestSelectionFDRExceptions:
         ):
             vi.fdr_selection(fdr=-1.0)
 
-    def test_selection_fdr_pvalue_None(self, set_100_variable_sorted):
+    def test_fdr_selection_pvalue_None(self, set_100_variable_sorted):
         """Test selection fdr without pvalue"""
         vi = set_100_variable_sorted
         vi.pvalues_ = None
@@ -343,7 +343,7 @@ class TestSelectionFDRExceptions:
         ):
             vi.fdr_selection(fdr=0.1)
 
-    def test_selection_fdr_fdr_control(self, set_100_variable_sorted):
+    def test_fdr_selection_fdr_control(self, set_100_variable_sorted):
         """Test selection fdr_control wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
