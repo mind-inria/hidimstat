@@ -111,9 +111,9 @@ class ModelXKnockoff(BaseVariableImportance):
 
     Attributes
     ----------
-    importances_ : ndarray, shape (n_features, n_repeats)
+    importances_ : ndarray, shape (n_repeats, n_features)
         Knockoff statistics :math:`W_j` for each original feature across repetitions.
-    pvalues_ : ndarray, shape (n_features, n_repeats)
+    pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
     threshold_fdr_ : float
         Threshold computed by the FDR selection procedure.
@@ -229,7 +229,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        importances_ : ndarray of shape (n_features, n_repeats)
+        importances_ : ndarray of shape (n_repeats, n_features)
             Knockoff statistics :math:`W_j` for each original feature across repetitions.
 
         Notes
@@ -238,6 +238,12 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
+        warnings.warn(
+            r"Dimensions of 'importances_' and 'pvalues_' attributes will be swapped in 0.6.0 "
+            "for global API consistency.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if X is not None:
             warnings.warn("X won't be used", stacklevel=find_stack_level())
         if y is not None:
@@ -249,10 +255,10 @@ class ModelXKnockoff(BaseVariableImportance):
         )
         self.pvalues_ = np.array(
             [
-                self._empirical_knockoff_pval(self.importances_[:, i])
+                self._empirical_knockoff_pval(self.importances_[i])
                 for i in range(self.n_repeats)
             ]
-        ).T
+        )
         return self.importances_
 
     def fit_importance(self, X, y):
@@ -340,19 +346,19 @@ class ModelXKnockoff(BaseVariableImportance):
             "this method doesn't support selection base on FDR"
         )
 
-        if self.importances_.shape[1] == 1:
+        if self.importances_.shape[0] == 1:
             self.threshold_fdr_ = self.knockoff_threshold(
                 self.importances_, fdr=fdr
             )
-            selected = self.importances_[:, 0] >= self.threshold_fdr_
+            selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
             assert fdr_control != "ebh", (
                 "for p-values, the fdr control can't be 'ebh'"
             )
             pvalues = np.array(
                 [
-                    self._empirical_knockoff_pval(self.importances_[:, i])
-                    for i in range(self.importances_.shape[1])
+                    self._empirical_knockoff_pval(self.importances_[i])
+                    for i in range(self.importances_.shape[0])
                 ]
             )
             self.aggregated_pval_ = quantile_aggregation(
@@ -370,8 +376,8 @@ class ModelXKnockoff(BaseVariableImportance):
                 "for e-value, the fdr control need to be 'ebh'"
             )
             evalues = []
-            for i in range(self.importances_.shape[1]):
-                test_score = self.importances_[:, i]
+            for i in range(self.importances_.shape[0]):
+                test_score = self.importances_[i]
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
                 evalues.append(
                     self._empirical_knockoff_eval(test_score, ko_threshold)
@@ -451,7 +457,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Returns
         -------
-        test_statistic : ndarray, shape (n_features, n_repeats)
+        test_statistic : ndarray, shape (n_repeats, n_features)
             Knockoff statistics :math:`W_j` for each original feature across repetitions. The number
             of repeats corresponds to the length of the estimators list.
         """
@@ -472,7 +478,7 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             test_statistic_list.append(statistic_tmp)
 
-        test_statistic = np.array(test_statistic_list).T
+        test_statistic = np.array(test_statistic_list)
         return test_statistic
 
     @staticmethod
