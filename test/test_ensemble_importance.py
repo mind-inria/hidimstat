@@ -45,16 +45,79 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_ensemble_parameter_check():
-    """
-    Test to verify parameter's class compliance.
-    """
-    en_vi = EnsembleImportance(vim=LassoCV())
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_vim_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
+    endl = EnsembleImportance(vim=LassoCV())
+
     with pytest.raises(
-        AssertionError,
-        match="estimator needs to be a subclass of BaseVariableImportance",
+        TypeError,
+        match=r"'vim' needs to be a subclass of BaseVariableImportance",
     ):
-        en_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        endl._check_fit_attributes()
+
+
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.n_repeats = "1"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be an int"):
+        endl._check_fit_attributes()
+
+    endl.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_frac_attribute_before_fit():
+    """Test checks on bootstrap_frac attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_frac = "1"
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_frac' needs to be an float"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = -1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = 1.1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_groups_attribute_before_fit():
+    """Test checks on bootstrap_groups attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_groups = [1, 4]
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_groups' needs to be an np.ndarray"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_groups = np.array([[1, 2], [2, 1]])
+    with pytest.raises(
+        ValueError,
+        match=r"'bootstrap_groups' needs to be of shape \(n_samples,\)",
+    ):
+        endl._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(

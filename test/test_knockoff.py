@@ -35,6 +35,61 @@ def test_check_estimator_sklearn(estimator, check):
     check(estimator)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_ko_generator_attribute_before_fit():
+    """Test checks on ko_generator attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.ko_generator = LassoCV()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'ko_generator' needs to be a hidimstat.samplers.GaussianKnockoffs",
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.n_repeats = "smthg"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be a number"):
+        ko._check_fit_attributes()
+
+    ko.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.centered = "smthg"
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a bool"):
+        ko._check_fit_attributes()
+
+
+def test_check_preconfigure_lasso_path_attribute_before_fit():
+    """Test checks on preconfigure_lasso_path attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.preconfigure_lasso_path = "smthg"
+
+    with pytest.raises(
+        TypeError, match=r"'preconfigure_lasso_path' needs to be a bool"
+    ):
+        ko._check_fit_attributes()
+
+
+###########################################################################################
+
+
 def test_knockoff_bootstrap_quantile(rng):
     """Test bootstrap knockoof with quantile aggregation"""
     n = 100
@@ -192,7 +247,7 @@ def test_model_x_knockoff_estimator(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -261,7 +316,7 @@ def test_model_x_knockoff_null(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -349,11 +404,6 @@ class TestModelXKnockoffExceptions:
 
         with pytest.raises(NotFittedError):
             model_x_knockoff.importance(X, y)
-
-    def test_invalid_n_samplings(self, data_generator):
-        """Test when invalid number of permutations is provided"""
-        with pytest.raises(AssertionError, match="n_repeats must be positive"):
-            ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
 
 
 def test_hidimstat_tags():

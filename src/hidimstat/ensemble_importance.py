@@ -115,14 +115,15 @@ class EnsembleImportance(BaseVariableImportance):
                 "'bootstrap_frac' needs to be in [0, 1] interval."
             )
 
-        if self.bootstrap_groups is not None and not isinstance(
-            self.bootstrap_groups, np.ndarray
-        ):
-            raise TypeError("'bootstrap_groups' needs to be an np.ndarray.")
-        elif self.bootstrap_groups.ndim != 1:
-            raise ValueError(
-                "'bootstrap_groups' needs to be of shape (n_samples,)."
-            )
+        if self.bootstrap_groups is not None:
+            if not isinstance(self.bootstrap_groups, np.ndarray):
+                raise TypeError(
+                    "'bootstrap_groups' needs to be an np.ndarray."
+                )
+            elif self.bootstrap_groups.ndim != 1:
+                raise ValueError(
+                    "'bootstrap_groups' needs to be of shape (n_samples,)."
+                )
 
     @staticmethod
     def _joblib_fit_one(

@@ -162,6 +162,7 @@ class ModelXKnockoff(BaseVariableImportance):
         """
         Check attributes needed during fitting of the estimator.
         """
+        super()._check_fit_attributes()
         # Attributes that are checked outside of the class:
         # n_jobs, joblib_verbose, random_state
         # 'estimator' is checked during importance call.
