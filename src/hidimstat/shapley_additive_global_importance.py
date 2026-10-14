@@ -166,11 +166,6 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         elif self.n_subsets <= 0:
             raise ValueError("'n_subsets' needs to be strictly positive.")
 
-        if not isinstance(self.n_permutations, numbers.Number):
-            raise TypeError("'n_permutations' needs to be an int.")
-        elif self.n_permutations <= 0:
-            raise ValueError("'n_permutations' needs to be strictly positive.")
-
         if self.imputation != "marginal":
             raise NotImplementedError(
                 "Only marginal imputation is currently implemented for SAGE "
