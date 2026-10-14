@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import pytest
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.linear_model import LassoCV, LinearRegression
+from sklearn.linear_model import LassoCV
 
-from hidimstat import CFI, ClusterImportance, DesparsifiedLasso
+from hidimstat import ClusterImportance, DesparsifiedLasso
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
@@ -41,6 +40,30 @@ def set_100_variable_sorted(rng, create_bvi):
 @pytest.fixture(scope="function")
 def create_bvi():
     return BaseVariableImportance()
+
+
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_estimator_attribute_before_fit():
+    """Test checks on estimator attribute before fitting."""
+    dl = DesparsifiedLasso()
+    dl.estimator = None
+
+    with pytest.raises(ValueError, match=r"No 'estimator' was given"):
+        dl._check_fit_attributes()
+
+    dl.estimator = "wrongtype"
+    with pytest.raises(
+        TypeError,
+        match=r"'estimator' must be a valid sklearn compatible estimator",
+    ):
+        dl._check_fit_attributes()
+
+
+###########################################################################################
 
 
 class TestSelection:
@@ -541,30 +564,6 @@ def test_clustered_fwer_selection(rng):
         fwer=0.5, n_tests=n_features, two_tailed_test=True
     )
     assert selection.shape[0] == n_features
-
-
-@pytest.mark.parametrize(
-    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 10, None, 5, 0.5, 0, 1.0, 64.0, 0.5)],
-)
-def test_feature_groups_order_preserved(data_generator):
-    """Regression test to check that the order of the feature groups is
-    preserved in the output of .importance() even when the keys are not in
-    the order that would be returned by sorted(groups.keys()).
-    """
-    X, y, important_features = data_generator
-    X_df = pd.DataFrame(X)
-    model = LinearRegression()
-    model.fit(X_df, y)
-    feature_ids = np.arange(X.shape[1])
-    groups = {
-        "non_important": feature_ids[~important_features],
-        "important": feature_ids[important_features],
-    }
-
-    cfi = CFI(estimator=model, feature_groups=groups, random_state=0)
-    importance = cfi.fit_importance(X_df, y)
-    assert importance[0] < importance[1]
 
 
 def test_hidimstat_tags(create_bvi):

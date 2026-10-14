@@ -113,19 +113,36 @@ class CFI(BasePerturbation):
         # Not checking categorical_max_cardinality since it's an attribute
         # check on ConditionalSampler side.
 
-        if self.imputation_model_continuous is not None and not isinstance(
-            self.imputation_model_continuous, BaseEstimator
-        ):
-            raise TypeError("Continuous imputation model invalid")
+        if self.imputation_model_continuous is None:
+            raise ValueError("'imputation_model_continuous' cannot be None.")
+        elif not isinstance(self.imputation_model_continuous, BaseEstimator):
+            raise TypeError("Continuous imputation model invalid.")
 
-        if self.imputation_model_categorical is not None and not isinstance(
-            self.imputation_model_categorical, BaseEstimator
-        ):
-            raise TypeError("Categorial imputation model invalid")
+        if self.imputation_model_categorical is None:
+            raise ValueError("'imputation_model_categorical' cannot be None.")
+        elif not isinstance(self.imputation_model_categorical, BaseEstimator):
+            raise TypeError("Categorial imputation model invalid.")
 
-        if self.feature_types not in ["auto", "continuous", "categorical"]:
+        if isinstance(self.feature_types, str) and self.feature_types not in [
+            "auto",
+            "continuous",
+            "categorical",
+        ]:
             raise ValueError(
-                "feature_types support only the string 'auto', 'continuous', 'categorical'"
+                "'feature_types' support only the string 'auto', 'continuous', 'categorical'."
+            )
+        elif isinstance(self.feature_types, list) and any(
+            t not in ["auto", "continuous", "categorical"]
+            for t in self.feature_types
+        ):
+            raise ValueError(
+                "One of 'feature_types' is not 'auto', 'continuous', 'categorical'."
+            )
+        elif not isinstance(self.feature_types, str) and not isinstance(
+            self.feature_types, list
+        ):
+            raise TypeError(
+                "'feature_types' needs to be a str or list of str."
             )
 
     def fit(self, X, y=None):
@@ -146,9 +163,10 @@ class CFI(BasePerturbation):
         """
         super().fit(X, y)
 
-        self.feature_types = [
-            self.feature_types for _ in range(self.n_feature_groups_)
-        ]
+        if isinstance(self.feature_types, str):
+            self.feature_types = [
+                self.feature_types for _ in range(self.n_feature_groups_)
+            ]
 
         self._list_imputation_models = [
             ConditionalSampler(

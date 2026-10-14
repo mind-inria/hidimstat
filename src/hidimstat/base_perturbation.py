@@ -1,3 +1,5 @@
+import numbers
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -145,9 +147,13 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         """
         Check attributes needed during fitting of the estimator.
         """
+        super()._check_fit_attributes()
         BaseVariableImportance._check_fit_attributes(self)
+
+        if not isinstance(self.n_permutations, numbers.Number):
+            raise TypeError("'n_permutations' must be a float.")
         if self.n_permutations <= 0:
-            raise ValueError("n_permutations must be positive")
+            raise ValueError("'n_permutations' must be strictly positive.")
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
@@ -295,7 +301,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         self.importances_ = np.mean(score_differences_, axis=1)
         self.pvalues_ = statistical_test(score_differences_).pvalue
 
-        if self.pvalues_.shape[0] == self.n_feature_groups_:
+        if self.pvalues_.shape[0] != self.n_feature_groups_:
             raise ValueError(
                 "The statistical test doesn't provide the correct dimension."
             )

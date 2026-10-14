@@ -536,10 +536,10 @@ class GroupVariableImportanceMixin:
         """
         Check attributes needed during fitting of the estimator.
         """
-        if not isinstance(self.feature_groups, dict):
-            raise ValueError(
-                r"Attribute 'feature_groups' needs to be a dictionary."
-            )
+        if self.feature_groups is not None and not isinstance(
+            self.feature_groups, dict
+        ):
+            raise TypeError(r"'feature_groups' needs to be a dictionary.")
 
     def fit(self, X, y=None):
         """

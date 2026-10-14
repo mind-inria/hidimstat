@@ -55,15 +55,14 @@ class ClusterImportance(BaseVariableImportance):
         """
         Check attributes needed during fitting of the estimator.
         """
-        super()._check_fit_attributes()
         if not isinstance(self.vim, BaseVariableImportance):
             raise TypeError(
-                "estimator needs to be a subclass of BaseVariableImportance"
+                "'vim' needs to be a subclass of BaseVariableImportance"
             )
 
         if not isinstance(self.clustering, FeatureAgglomeration):
             raise TypeError(
-                "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
+                "'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration"
             )
 
     def fit(self, X, y):
@@ -82,6 +81,8 @@ class ClusterImportance(BaseVariableImportance):
         self : CluVI
             Fitted estimator.
         """
+        self._check_fit_attributes()
+
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
         X_reduced = self.clustering_.transform(X)

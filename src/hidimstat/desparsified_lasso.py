@@ -166,6 +166,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         """
         # Attributes that are checked outside of class:
         # confidence, distribution, n_jobs, memory, verbose
+        super()._check_fit_attributes()
 
         if not isinstance(self.centered, bool):
             raise TypeError("'centered' needs to be a boolean.")
@@ -266,9 +267,9 @@ class DesparsifiedLasso(BaseVariableImportance):
             estimator = LassoCV(
                 max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
             )
-        if isinstance(LassoCV, estimator):
+        if isinstance(estimator, LassoCV):
             self.n_task_ = 1
-        elif isinstance(MultiTaskLassoCV, estimator):
+        elif isinstance(estimator, MultiTaskLassoCV):
             self.n_task_ = -1
         else:
             raise ValueError(
