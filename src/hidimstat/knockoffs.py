@@ -113,8 +113,14 @@ class ModelXKnockoff(BaseVariableImportance):
     ----------
     importances_ : ndarray, shape (n_repeats, n_features)
         Knockoff statistics :math:`W_j` for each original feature across repetitions.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     threshold_fdr_ : float
         Threshold computed by the FDR selection procedure.
     aggregated_pval_ : ndarray or None
