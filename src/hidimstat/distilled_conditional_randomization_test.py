@@ -196,28 +196,26 @@ class D0CRT(BaseVariableImportance):
         super()._check_fit_attributes()
         _check_vim_predict_method(self.method)
 
-        if (
-            self.estimated_coef is not None
-            and not isinstance(self.estimated_coef, np.ndarray)
-            and self.estimated_coef.ndim > 1
-        ):
-            raise TypeError(
-                "'estimated_coef' needs to be a np.ndarray of dimension 1."
-            )
+        if self.estimated_coef is not None:
+            if not isinstance(self.estimated_coef, np.ndarray):
+                raise TypeError("'estimated_coef' needs to be a np.ndarray.")
+            elif self.estimated_coef.ndim != 1:
+                raise ValueError(
+                    "'estimated_coef' needs to be a np.ndarray of dimension 1."
+                )
 
-        if self.self.estimated_intercept is not None and not isinstance(
-            self.self.estimated_intercept, numbers.Number
+        if self.estimated_intercept is not None and not isinstance(
+            self.estimated_intercept, numbers.Number
         ):
             raise TypeError("'estimated_intercept' needs to be a float.")
 
-        if (
-            self.sigma_X is not None
-            and not isinstance(self.sigma_X, np.ndarray)
-            and self.sigma_X.ndim != 2
-        ):
-            raise TypeError(
-                "'sigma_X' needs to be a np.ndarray of dimension 2."
-            )
+        if self.sigma_X is not None:
+            if not isinstance(self.sigma_X, np.ndarray):
+                raise TypeError("'sigma_X' needs to be a np.ndarray.")
+            elif self.sigma_X.ndim != 2:
+                raise ValueError(
+                    "'sigma_X' needs to be a np.ndarray of dimension 2."
+                )
 
         if not (
             isinstance(
@@ -225,8 +223,8 @@ class D0CRT(BaseVariableImportance):
                 (LassoCV, Lasso, LogisticRegressionCV, LogisticRegression),
             )
         ):
-            raise ValueError(
-                "'lasso_screening' must be an instance of Lasso or LassoCV"
+            raise TypeError(
+                "'lasso_screening' must be an instance of Lasso or LassoCV."
             )
 
         if not isinstance(self.model_distillation_x, BaseEstimator):
@@ -238,7 +236,7 @@ class D0CRT(BaseVariableImportance):
             raise TypeError("'refit' needs to be a bool.")
 
         if not isinstance(self.centered, bool):
-            raise TypeError("'refit' needs to be a bool.")
+            raise TypeError("'centered' needs to be a bool.")
 
         if not isinstance(self.fit_y, bool):
             raise TypeError("'fit_y' needs to be a bool.")
