@@ -1,10 +1,11 @@
+import numbers
 import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
 from scipy import stats
 from scipy.special import expit
-from sklearn.base import clone
+from sklearn.base import BaseEstimator, clone
 from sklearn.linear_model import (
     Lasso,
     LassoCV,
@@ -12,6 +13,7 @@ from sklearn.linear_model import (
     LogisticRegressionCV,
 )
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils.validation import check_X_y
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
@@ -162,7 +164,6 @@ class D0CRT(BaseVariableImportance):
         random_state=None,
     ):
         self.estimator = estimator
-        _check_vim_predict_method(method)
         self.estimated_coef = estimated_coef
         self.estimated_intercept = estimated_intercept
         self.method = method
@@ -179,13 +180,110 @@ class D0CRT(BaseVariableImportance):
         self.reuse_screening_model = reuse_screening_model
         self.random_state = random_state
 
-        self.is_logistic_ = self._check_logistic()
         self.coefficient_ = None
         self.intercept_ = None
         self.selection_set_ = None
         self.model_x_ = None
         self.model_y_ = None
         self.lasso_weights_ = None
+
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        # Attributes checked outside of class:
+        # n_jobs, joblib_verbose
+        super()._check_fit_attributes()
+        _check_vim_predict_method(self.method)
+
+        if (
+            self.estimated_coef is not None
+            and not isinstance(self.estimated_coef, np.ndarray)
+            and self.estimated_coef.ndim > 1
+        ):
+            raise TypeError(
+                "'estimated_coef' needs to be a np.ndarray of dimension 1."
+            )
+
+        if self.self.estimated_intercept is not None and not isinstance(
+            self.self.estimated_intercept, numbers.Number
+        ):
+            raise TypeError("'estimated_intercept' needs to be a float.")
+
+        if (
+            self.sigma_X is not None
+            and not isinstance(self.sigma_X, np.ndarray)
+            and self.sigma_X.ndim != 2
+        ):
+            raise TypeError(
+                "'sigma_X' needs to be a np.ndarray of dimension 2."
+            )
+
+        if not (
+            isinstance(
+                self.lasso_screening,
+                (LassoCV, Lasso, LogisticRegressionCV, LogisticRegression),
+            )
+        ):
+            raise ValueError(
+                "'lasso_screening' must be an instance of Lasso or LassoCV"
+            )
+
+        if not isinstance(self.model_distillation_x, BaseEstimator):
+            raise TypeError(
+                "'model_distillation_x' needs to be a sklearn-compatible estimator."
+            )
+
+        if not isinstance(self.refit, bool):
+            raise TypeError("'refit' needs to be a bool.")
+
+        if not isinstance(self.centered, bool):
+            raise TypeError("'refit' needs to be a bool.")
+
+        if not isinstance(self.fit_y, bool):
+            raise TypeError("'fit_y' needs to be a bool.")
+
+        if not isinstance(self.reuse_screening_model, bool):
+            raise TypeError("'reuse_screening_model' needs to be a bool.")
+
+    def _check_logistic(self):
+        """
+        If the estimator is a logistic regression, check that the screening model is
+        a l1-penalized logistic regression or None (no screening).
+        """
+        is_logistic = isinstance(
+            self.estimator, (LogisticRegression, LogisticRegressionCV)
+        ) or isinstance(
+            self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
+        )
+        if is_logistic and (
+            (
+                self.screening_threshold is not None
+                and not isinstance(
+                    self.lasso_screening,
+                    (LogisticRegression, LogisticRegressionCV),
+                )
+            )
+            or (
+                not isinstance(
+                    self.estimator, (LogisticRegression, LogisticRegressionCV)
+                )
+            )
+        ):
+            raise ValueError(
+                "For logistic regression, both the estimator and the lasso_screening "
+                "must be LogisticRegression or LogisticRegressionCV"
+            )
+        if is_logistic and (
+            self.screening_threshold is not None
+            and not all(
+                l1_ratio == 1 for l1_ratio in self.lasso_screening.l1_ratios
+            )
+        ):
+            raise ValueError(
+                "For logistic regression, lasso_screening.penalty must be 'l1'"
+            )
+        return is_logistic
 
     def fit(self, X, y):
         """
@@ -225,8 +323,11 @@ class D0CRT(BaseVariableImportance):
         ----------
         .. footbibliography::
         """
+        self._check_fit_attributes()
         rng = check_random_state(self.random_state)
         self.estimator = seed_estimator(self.estimator, random_state=rng)
+        self.is_logistic_ = self._check_logistic()
+        check_X_y(X, y)
 
         X_ = StandardScaler().fit_transform(X) if self.centered else X
         y_ = y  # avoid modifying the original y
@@ -345,6 +446,22 @@ class D0CRT(BaseVariableImportance):
                 "The D0CRT requires to be fit before any analysis"
             )
 
+    def _check_importance_attributes(self):
+        """
+        Check attributes needed during importance values computation.
+        """
+        if (
+            self.sigma_X is not None
+            and not isinstance(self.sigma_X, np.ndarray)
+            and self.sigma_X.ndim != 2
+        ):
+            raise TypeError(
+                "'sigma_X' needs to be a np.ndarray of dimension 2."
+            )
+
+        if not isinstance(self.scaled_statistics, bool):
+            raise TypeError("'scaled_statistics' needs to be a bool.")
+
     def importance(
         self,
         X,
@@ -384,6 +501,8 @@ class D0CRT(BaseVariableImportance):
         4. Computes p-value assuming standard normal distribution
         """
         self._check_fit()
+        self._check_importance_attributes()
+        check_X_y(X, y)
 
         y_ = y  # avoid modifying the original y
 
@@ -584,45 +703,6 @@ class D0CRT(BaseVariableImportance):
             warnings.warn("cv won't be used", stacklevel=find_stack_level())
         self.fit(X, y)
         return self.importance(X, y)
-
-    def _check_logistic(self):
-        """
-        If the estimator is a logistic regression, check that the screening model is
-        a l1-penalized logistic regression or None (no screening).
-        """
-        is_logistic = isinstance(
-            self.estimator, (LogisticRegression, LogisticRegressionCV)
-        ) or isinstance(
-            self.lasso_screening, (LogisticRegression, LogisticRegressionCV)
-        )
-        if is_logistic and (
-            (
-                self.screening_threshold is not None
-                and not isinstance(
-                    self.lasso_screening,
-                    (LogisticRegression, LogisticRegressionCV),
-                )
-            )
-            or (
-                not isinstance(
-                    self.estimator, (LogisticRegression, LogisticRegressionCV)
-                )
-            )
-        ):
-            raise ValueError(
-                "For logistic regression, both the estimator and the lasso_screening "
-                "must be LogisticRegression or LogisticRegressionCV"
-            )
-        if is_logistic and (
-            self.screening_threshold is not None
-            and not all(
-                l1_ratio == 1 for l1_ratio in self.lasso_screening.l1_ratios
-            )
-        ):
-            raise ValueError(
-                "For logistic regression, lasso_screening.penalty must be 'l1'"
-            )
-        return is_logistic
 
 
 def _joblib_fit(
@@ -841,13 +921,6 @@ def run_lasso_screening(
     lasso_model : sklearn estimator
         Fitted Lasso model used for screening.
     """
-    if not (
-        isinstance(
-            lasso_model,
-            (LassoCV, Lasso, LogisticRegressionCV, LogisticRegression),
-        )
-    ):
-        raise ValueError("lasso_model must be an instance of Lasso or LassoCV")
     lasso_model = seed_estimator(lasso_model, random_state=random_state)
     lasso_model.fit(X, y)
     selection_set = (

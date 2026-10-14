@@ -137,36 +137,28 @@ class BaseVariableImportance(BaseEstimator):
     def __init__(self):
         super().__init__()
 
-    def _check_importance(self):
+    def _check_fit_attributes(self):
         """
-        Checks if the importance scores have been computed.
+        Check attributes needed during fitting of the estimator.
         """
-        if getattr(self, "importances_", None) is None:
+        if self.estimator is None:
             raise ValueError(
-                "The importance method need to be called before calling this method."
+                "No 'estimator' was given. Please provide a valid sklearn compatible estimator."
+            )
+
+        if not isinstance(self.estimator, BaseEstimator):
+            raise TypeError(
+                "'estimator' must be a valid sklearn compatible estimator."
             )
 
     def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
-        """Run initial fit of a sklearn estimator.
+        """
+        Run initial fit of a sklearn estimator.
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
         self.importances_ = None
         self.pvalues_ = None
-
-        if estimator is None:
-            raise ValueError(
-                "'estimator' must be a valid sklearn compartible estimator."
-            )
-
-        if (
-            hasattr(estimator, "__sklearn_is_fitted__")
-            and not estimator.__sklearn_is_fitted__()
-        ):
-            print(
-                f"Running initial fit of the estimator {estimator.__class__.__name__}."
-            )
-            return clone(estimator).fit(*args)
 
         try:
             check_is_fitted(estimator)
@@ -180,6 +172,15 @@ class BaseVariableImportance(BaseEstimator):
 
     def __sklearn_is_fitted__(self):
         return hasattr(self, "estimator_")
+
+    def _check_importance(self):
+        """
+        Checks if the importance scores have been computed.
+        """
+        if getattr(self, "importances_", None) is None:
+            raise ValueError(
+                "The importance method need to be called before calling this method."
+            )
 
     def importance_selection(
         self,
@@ -531,6 +532,15 @@ class GroupVariableImportanceMixin:
         self.feature_groups = feature_groups
         self._feature_groups_ids = None
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        if not isinstance(self.feature_groups, dict):
+            raise ValueError(
+                r"Attribute 'feature_groups' needs to be a dictionary."
+            )
+
     def fit(self, X, y=None):
         """
         Base fit method for perturbation-based methods. Identifies the groups.
@@ -547,6 +557,7 @@ class GroupVariableImportanceMixin:
         self : object
             Returns the instance itself.
         """
+        self._check_fit_attributes()
         del y
         if self.feature_groups is None:
             self.n_feature_groups_ = X.shape[1]
@@ -579,8 +590,6 @@ class GroupVariableImportanceMixin:
                     np.array(ids, dtype=int)
                     for ids in list(self.feature_groups_.values())
                 ]
-        else:
-            raise ValueError("feature_groups needs to be a dictionary")
         return self
 
     def __sklearn_is_fitted__(self) -> bool:

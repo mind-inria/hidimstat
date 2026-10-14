@@ -15,7 +15,7 @@ from sklearn.linear_model import (
 )
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils.validation import check_memory
+from sklearn.utils.validation import check_memory, check_X_y
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
@@ -160,6 +160,71 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.memory = memory
         self.verbose = verbose
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        # Attributes that are checked outside of class:
+        # confidence, distribution, n_jobs, memory, verbose
+
+        if not isinstance(self.centered, bool):
+            raise TypeError("'centered' needs to be a boolean.")
+
+        if not isinstance(self.dof_ajdustement, bool):
+            raise TypeError("'dof_ajdustement' needs to be a boolean.")
+
+        if not isinstance(self.preconfigure_model_x_path, bool):
+            raise TypeError(
+                "'preconfigure_model_x_path' needs to be a boolean."
+            )
+
+        if self.alpha_max_fraction <= 0:
+            raise ValueError(
+                "'alpha_max_fraction' needs to be strictly positive."
+            )
+
+        if not isinstance(self.save_model_x, bool):
+            raise TypeError("'save_model_x' needs to be a boolean.")
+
+        if self.tolerance_reid <= 0:
+            raise ValueError("'tolerance_reid' needs to be strictly positive.")
+
+        if self.noise_method not in ["AR", "median"]:
+            raise ValueError(
+                "Unknown method for estimating the covariance matrix."
+            )
+
+        if self.model_x is not None and (
+            not isinstance(Lasso, self.model_x)
+            or not isinstance(MultiTaskLasso, self.model_x)
+            or not isinstance(LassoCV, self.model_x)
+        ):
+            raise TypeError(
+                "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
+            )
+
+        if self.order <= 0:
+            raise ValueError("'order' needs to be strictly positive.")
+
+        if not isinstance(self.stationary, bool):
+            raise TypeError("'stationary' needs to be a boolean.")
+
+        if self.covariance is not None and not isinstance(
+            self.covariance, np.ndarray
+        ):
+            raise TypeError("'covariance' needs to be a np.ndarray.")
+
+        if self.test not in {"chi2", "F"}:
+            raise ValueError(
+                f"'test' should be on of: 'chi2', 'F'. Got: '{self.test}'"
+            )
+
+        warnings.warn(
+            "'epsilon_pvalue' is deprecated and will be removed in 0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def fit(self, X, y):
         """
         Fit the Desparsified Lasso model.
@@ -193,33 +258,26 @@ class DesparsifiedLasso(BaseVariableImportance):
         4. Computes nodewise Lasso regressions in parallel
         5. Calculates debiased coefficients and precision matrix
         """
+        self._check_fit_attributes()
+        check_X_y(X, y)
+
         estimator = self.estimator
         if self.estimator is None:
             estimator = LassoCV(
                 max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
             )
-        if issubclass(LassoCV, estimator.__class__):
+        if isinstance(LassoCV, estimator):
             self.n_task_ = 1
-        elif issubclass(MultiTaskLassoCV, estimator.__class__):
+        elif isinstance(MultiTaskLassoCV, estimator):
             self.n_task_ = -1
         else:
             raise ValueError(
-                "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
+                "estimator needs to be a LassoCV or a MultiTaskLassoCV"
             )
 
         model_x = self.model_x
         if self.model_x is None:
             model_x = Lasso()
-        assert (
-            issubclass(Lasso, model_x.__class__)
-            or issubclass(MultiTaskLasso, model_x.__class__)
-            or issubclass(LassoCV, model_x.__class__)
-        ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
-
-        if self.test not in {"chi2", "F"}:
-            raise ValueError(
-                f"'test' should be on of: 'chi2', 'F'. Got: '{self.test}'"
-            )
 
         check_memory(self.memory)
         rng = check_random_state(self.random_state)
@@ -252,7 +310,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         list_model_x = [clone(model_x) for _ in range(self.n_features_in_)]
         # define the alphas for the Nodewise Lasso
-        if self.preconfigure_model_x_path is None:
+        if self.preconfigure_model_x_path:
             list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
             alphas = self.alpha_max_fraction * list_alpha_max
             list_model_x = [
@@ -439,8 +497,6 @@ class DesparsifiedLasso(BaseVariableImportance):
                     ),
                     1.0,
                 )
-            else:
-                raise ValueError(f"Unknown test '{self.test}'")
 
         self.pvalues_ = two_sided_pval
         return self.importances_
@@ -756,10 +812,6 @@ def reid(
                     "The AR method is not compatible with the non-stationary"
                     + " noise assumption."
                 )
-        else:
-            raise ValueError(
-                "Unknown method for estimating the covariance matrix"
-            )
         ## compute empirical correlation of the residual
         if stationary:
             # consideration of stationary noise
