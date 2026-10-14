@@ -50,12 +50,8 @@ def create_bvi():
 def test_check_estimator_attribute_before_fit():
     """Test checks on estimator attribute before fitting."""
     dl = DesparsifiedLasso()
-    dl.estimator = None
-
-    with pytest.raises(ValueError, match=r"No 'estimator' was given"):
-        dl._check_fit_attributes()
-
     dl.estimator = "wrongtype"
+
     with pytest.raises(
         TypeError,
         match=r"'estimator' must be a valid sklearn compatible estimator",

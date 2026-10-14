@@ -141,12 +141,9 @@ class BaseVariableImportance(BaseEstimator):
         """
         Check attributes needed during fitting of the estimator.
         """
-        if self.estimator is None:
-            raise ValueError(
-                "No 'estimator' was given. Please provide a valid sklearn compatible estimator."
-            )
-
-        if not isinstance(self.estimator, BaseEstimator):
+        if self.estimator is not None and not isinstance(
+            self.estimator, BaseEstimator
+        ):
             raise TypeError(
                 "'estimator' must be a valid sklearn compatible estimator."
             )
