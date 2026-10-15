@@ -644,6 +644,9 @@ class GroupVariableImportanceMixin:
             )
 
     def __sklearn_is_fitted__(self) -> bool:
+        """
+        Built-in sklearn method to check if estimator is fit.
+        """
         return (
             getattr(self, "n_feature_groups_", None) is not None
             or getattr(self, "_feature_groups_ids", None) is not None
