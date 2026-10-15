@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
+from sklearn.base import clone, is_classifier, is_regressor
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -190,18 +190,11 @@ class LOCI(BasePerturbation):
 
         return [scoring_loci]
 
-    def _check_fit(self):
-        """Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        super()._check_fit()
-        check_is_fitted(self.estimator_)
-        if self._list_estimators is None:
-            raise ValueError(
-                "The estimators require to be fit before to use them"
-            )
-        for m in self._list_estimators:
-            check_is_fitted(m)
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "estimator_", None) is not None
+            and getattr(self, "_dummy_estimator_", None) is not None
+        )
 
 
 def loci_importance(
