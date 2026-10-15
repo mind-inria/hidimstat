@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from numpy.testing import (
     assert_almost_equal,
     assert_array_almost_equal,
@@ -10,6 +11,25 @@ from hidimstat.statistical_tools.aggregation import (
     _fixed_quantile_aggregation,
     quantile_aggregation,
 )
+
+
+def test_quantile_aggregation_parameters():
+    """
+    Test parameter checks of quantile_aggregation method.
+    """
+    with pytest.raises(TypeError, match=r"'pvals' needs to be a np.ndarray"):
+        quantile_aggregation(pvals="NotAnArray")
+
+    with pytest.raises(
+        ValueError, match=r"'pvals' needs to be of dimension 2"
+    ):
+        quantile_aggregation(pvals=np.zeros((1, 1, 1)))
+
+    with pytest.raises(ValueError, match=r"gamma should be between 0 and 1"):
+        quantile_aggregation(pvals=np.zeros((1,)), gamma=-1)
+
+    with pytest.raises(ValueError, match=r"gamma should be between 0 and 1"):
+        quantile_aggregation(pvals=np.zeros((1,)), gamma=1.1)
 
 
 def test_quantile_aggregation():
