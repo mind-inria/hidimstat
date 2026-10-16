@@ -125,32 +125,31 @@ class ConditionalSampler:
             self.data_type, np.array(y), self.categorical_max_cardinality
         )
 
-        model = (
+        self.model = (
             self.model_categorical
             if self.data_type_ == "categorical"
             else self.model_regression
         )
-        if model is None:
+        if self.model is None:
             raise AttributeError(
                 f"No model was provided for {self.data_type_} data"
             )
-
-        model = clone(model)
 
         # Group of variables
         if (y.ndim > 1) and (y.shape[1] > 1):
             # Data types can only be "categorical" or "continuous".
             if self.data_type_ == "categorical":
-                model = MultiOutputClassifier(model)
-            elif not isinstance(self.model, MultiOutputMixin):
-                model = MultiOutputRegressor(model)
+                self.model = MultiOutputClassifier(self.model)
+            elif self.data_type_ == "continuous" and not isinstance(
+                self.model, MultiOutputMixin
+            ):
+                self.model = MultiOutputRegressor(self.model)
             self.multioutput_ = True
         else:
             if y.ndim > 1 and isinstance(y, np.ndarray):
                 y = y.ravel()
             self.multioutput_ = False
 
-        self.model = model
         self.model.fit(X, y)
         return self
 
@@ -183,7 +182,7 @@ class ConditionalSampler:
         check_is_fitted(self.model)
         rng = check_random_state(random_state)
 
-        if self.data_type == "continuous":
+        if self.data_type_ == "continuous":
             if not hasattr(self.model, "predict"):
                 raise AttributeError(
                     "The model must have a `predict` method to be used for \
@@ -197,7 +196,7 @@ class ConditionalSampler:
             )
             return y_hat[np.newaxis, ...] + residual_permuted
 
-        elif self.data_type == "categorical":
+        elif self.data_type_ == "categorical":
             if not hasattr(self.model, "predict_proba"):
                 raise AttributeError(
                     "The model must have a `predict_proba` method to be used for \

@@ -208,8 +208,9 @@ class CFI(BasePerturbation):
         """
         X_j = _get_array_cols(X, feature_groups_ids)
         X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
-        fitted_sampler_ = conditional_sampler.clone().fit(X_minus_j, X_j)
-        return fitted_sampler_
+        sampler_ = conditional_sampler.clone()
+        sampler_.fit(X_minus_j, X_j)
+        return sampler_
 
     def _check_fit(self):
         """
