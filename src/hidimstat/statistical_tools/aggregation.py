@@ -38,14 +38,11 @@ def quantile_aggregation(pvals, gamma=0.5, adaptive=False):
     # Parameter checks
     if not isinstance(pvals, np.ndarray):
         raise TypeError("'pvals' needs to be a np.ndarray.")
-    elif pvals.ndim > 2:
+    elif pvals.ndim != 2:
         raise ValueError("'pvals' needs to be of dimension 2.")
     if gamma <= 0 or gamma > 1:
         raise ValueError("gamma should be between 0 and 1.")
 
-    # if pvalues are one-dimensional, do nothing
-    if pvals.shape[0] == 1:
-        return pvals[0]
     if adaptive:
         return _adaptive_quantile_aggregation(pvals, gamma)
     else:

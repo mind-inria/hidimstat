@@ -365,7 +365,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self._check_importance()
         if self.importances_ is None:
             raise ValueError(
-                "this method doesn't support selection base on FDR"
+                "this method doesn't support selection based on FDR"
             )
 
         if self.importances_.shape[0] == 1:
@@ -375,9 +375,12 @@ class ModelXKnockoff(BaseVariableImportance):
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
             if fdr_control == "ebh":
-                raise ValueError(
-                    "for p-values, the fdr control can't be 'ebh'"
+                warnings.warn(
+                    "For p-values, the fdr control can't be 'ebh'."
+                    "Coercing value to 'bhq'.",
+                    stacklevel=2,
                 )
+                fdr_control = "bhq"
             pvalues = np.array(
                 [
                     self._empirical_knockoff_pval(test_score)
@@ -396,9 +399,12 @@ class ModelXKnockoff(BaseVariableImportance):
             selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
             if fdr_control != "ebh":
-                raise ValueError(
-                    "for e-value, the fdr control needs to be 'ebh'"
+                warnings.warn(
+                    "For e-values, the fdr control needs to be 'ebh'."
+                    "Coercing value to 'ebh'.",
+                    stacklevel=2,
                 )
+                fdr_control = "ebh"
             evalues = []
             for test_score in self.importances_:
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)

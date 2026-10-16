@@ -26,10 +26,10 @@ def test_quantile_aggregation_parameters():
         quantile_aggregation(pvals=np.zeros((1, 1, 1)))
 
     with pytest.raises(ValueError, match=r"gamma should be between 0 and 1"):
-        quantile_aggregation(pvals=np.zeros((1,)), gamma=-1)
+        quantile_aggregation(pvals=np.zeros((1, 1)), gamma=-1)
 
     with pytest.raises(ValueError, match=r"gamma should be between 0 and 1"):
-        quantile_aggregation(pvals=np.zeros((1,)), gamma=1.1)
+        quantile_aggregation(pvals=np.zeros((1, 1)), gamma=1.1)
 
 
 def test_quantile_aggregation():
@@ -67,11 +67,6 @@ def test_quantile_aggregation():
         quantile_aggregation(p_values, 0.5, adaptive=True) / (1 - np.log(0.5)),
         [nb_iter / 100] * nb_features,
     )
-
-    # One p-value within the quantile aggregation method
-    p_values = np.array([0.0])
-
-    assert quantile_aggregation(p_values) == 0.0
 
 
 def test_fixed_aggregate_quantiles():
