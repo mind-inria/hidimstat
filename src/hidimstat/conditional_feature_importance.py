@@ -1,5 +1,6 @@
 import warnings
 
+import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
@@ -65,6 +66,31 @@ class CFI(BasePerturbation):
         The number of jobs to run in parallel. Parallelization is done over the
         variables or groups of variables.
 
+    Attributes
+    ----------
+    estimator_ : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    feature_groups_ : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray (n_groups,)
+        Importance scores for each feature group.
+    score_reference_ : float
+        Score on original (non-perturbed) data.
+    score_ : dict
+        Score values for each permutation of each group.
+    pvalues_ : ndarray of shape (n_groups,)
+        P-values for importance scores.
+    fitted_samplers_ : list of hidimstat.conditional_sampling.ConditionalSampler
+        The list of fitted conditional samplers used for conditional permutations.
+
+        .. versionadded:: 0.5.0
+    feature_predictability_ : ndarray of shape (n_groups,)
+        Predictability of each group of variables $X^j$ from the others $X^{-j}$.
+        The chosen metrics is R2 for continuous groups, and
+        balanced accuracy for categorical groups.
+
+        .. versionadded:: 0.5.0
+
     References
     ----------
     .. footbibliography::
@@ -107,7 +133,7 @@ class CFI(BasePerturbation):
         ), "Categorial imputation model invalid"
 
         self.feature_types = feature_types
-        self._list_imputation_models = []
+        self._conditionnal_samplers = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
@@ -141,7 +167,7 @@ class CFI(BasePerturbation):
                     "feature_types support only the string 'auto', 'continuous', 'categorical'"
                 )
 
-        self._list_imputation_models = [
+        self._conditionnal_samplers = [
             ConditionalSampler(
                 data_type=self.feature_types[features_group_id],
                 model_regression=(
@@ -160,27 +186,31 @@ class CFI(BasePerturbation):
         ]
 
         # Parallelize the fitting of the covariate estimators
-        self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
+        self.fitted_samplers_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X, feature_groups_ids
+                conditional_sampler, X, feature_groups_ids
             )
-            for feature_groups_ids, imputation_model in zip(
+            for feature_groups_ids, conditional_sampler in zip(
                 self._feature_groups_ids,
-                self._list_imputation_models,
+                self._conditionnal_samplers,
                 strict=False,
             )
         )
 
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
-        """Fit a single imputation model, for a single group of features. This method
-        is parallelized.
+    def _joblib_fit_one_features_group(
+        self, conditional_sampler, X, feature_groups_ids
+    ):
+        """
+        Fit a single conditional sampler, for a single group of features.
+        This method is parallelized.
         """
         X_j = _get_array_cols(X, feature_groups_ids)
         X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
-        estimator.fit(X_minus_j, X_j)
-        return estimator
+        sampler_ = conditional_sampler.clone()
+        sampler_.fit(X_minus_j, X_j)
+        return sampler_
 
     def _check_fit(self):
         """
@@ -195,11 +225,11 @@ class CFI(BasePerturbation):
 
         """
         super()._check_fit()
-        if len(self._list_imputation_models) == 0:
+        if len(self.fitted_samplers_) == 0:
             raise ValueError(
                 "The imputation models require to be fitted before being used."
             )
-        for m in self._list_imputation_models:
+        for m in self.fitted_samplers_:
             check_is_fitted(m.model)
 
     def _permutation(self, X, features_group_id, random_state=None):
@@ -210,12 +240,59 @@ class CFI(BasePerturbation):
         X_minus_j = _get_array_cols(
             X, self._feature_groups_ids[features_group_id], drop=True
         )
-        return self._list_imputation_models[features_group_id].sample(
+        return self.fitted_samplers_[features_group_id].sample(
             X_minus_j,
             X_j,
             n_samples=self.n_permutations,
             random_state=random_state,
         )
+
+    def _joblib_score_one_conditional_sampler(
+        self, conditional_sampler, X, features_group_ids
+    ):
+        """
+        Score a single fitted conditional sampler on X.
+        """
+        X_j = _get_array_cols(X, features_group_ids)
+        X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
+        return conditional_sampler.feature_predictability(X_minus_j, X_j)
+
+    def importance(self, X, y):
+        """
+        Compute the importance scores for each group of covariates, and the
+        predictability of each group from the others.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+            The target values.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each feature group.
+
+        Notes
+        -----
+        The predictability scores are stored separately in feature_predictability_.
+        """
+        importances = super().importance(X, y)
+
+        self.feature_predictability_ = np.asarray(
+            Parallel(n_jobs=self.n_jobs)(
+                delayed(self._joblib_score_one_conditional_sampler)(
+                    sampler, X, feature_groups_ids
+                )
+                for feature_groups_ids, sampler in zip(
+                    self._feature_groups_ids,
+                    self.fitted_samplers_,
+                    strict=True,
+                )
+            )
+        )
+        return importances
 
 
 def cfi_importance(
