@@ -141,6 +141,11 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         super().fit(X, y)
         return self
 
+    def _check_fit(self):
+        """Check if the instance has been fitted. This will disappear."""
+        check_is_fitted(self)
+        super()._check_fit()
+
     def _check_compatibility(self, X):
         """Check compatibility between input data and fitted model."""
         super()._check_compatibility(X)
