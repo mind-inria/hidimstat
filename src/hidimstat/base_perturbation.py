@@ -1,3 +1,5 @@
+import numbers
+
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -127,7 +129,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         --------
         hidimstat.base_variable_importance.GroupVariableImportanceMixin.fit : Parent class fit method that performs the actual initialization.
         """
-        assert self.n_permutations > 0, "n_permutations must be positive"
+        self._check_fit_attributes()
         check_array(X)
 
         # variable set in importance
@@ -140,6 +142,18 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
         super().fit(X, y)
         return self
+
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+        BaseVariableImportance._check_fit_attributes(self)
+
+        if not isinstance(self.n_permutations, numbers.Number):
+            raise TypeError("'n_permutations' must be a float.")
+        if self.n_permutations <= 0:
+            raise ValueError("'n_permutations' must be strictly positive.")
 
     def _check_fit(self):
         """Check if the instance has been fitted."""
@@ -268,10 +282,9 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         self.scoring = check_scoring(
             estimator=self.estimator_, scoring=self.scoring
         )
+        rng = check_random_state(self.random_state)
 
         self.score_reference_ = self._compute_score_reference(X, y)
-
-        rng = check_random_state(self.random_state)
         # Parallelize the computation of the importance scores for each group
         out_list = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_score_one_feature_group)(
@@ -287,9 +300,11 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
 
         self.importances_ = np.mean(score_differences_, axis=1)
         self.pvalues_ = statistical_test(score_differences_).pvalue
-        assert self.pvalues_.shape[0] == self.n_feature_groups_, (
-            "The statistical test doesn't provide the correct dimension."
-        )
+
+        if self.pvalues_.shape[0] != self.n_feature_groups_:
+            raise ValueError(
+                "The statistical test doesn't provide the correct dimension."
+            )
         return self.importances_
 
     def fit_importance(self, X, y):
