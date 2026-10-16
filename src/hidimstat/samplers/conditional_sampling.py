@@ -5,7 +5,7 @@ from sklearn.base import (
     check_is_fitted,
     clone,
 )
-from sklearn.metrics import balanced_accuracy_score, r2_score
+from sklearn.metrics import r2_score, roc_auc_score
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 
 from hidimstat._utils.utils import check_random_state
@@ -225,7 +225,7 @@ class ConditionalSampler:
                 )
             return np.stack(y_pred_cond, axis=-1)
 
-    def score(self, X: np.ndarray, y: np.ndarray) -> float:
+    def feature_predictability(self, X: np.ndarray, y: np.ndarray) -> float:
         """
         Scores how well $X^j$ is predicted from $X^{-j}$.
 
@@ -246,7 +246,7 @@ class ConditionalSampler:
         Returns
         -------
         score : float
-            The $R^2$ (continuous) or balanced accuracy (categorical).
+            The $R^2$ (continuous) or AUC (categorical) with OVR strategy for multiclass.
         """
         check_is_fitted(self.model)
         y = np.asarray(y)
@@ -255,12 +255,23 @@ class ConditionalSampler:
             y_hat = np.asarray(self.model.predict(X)).reshape(y.shape)
             return r2_score(y, y_hat, multioutput="variance_weighted")
         else:
-            y_pred = np.asarray(self.model.predict(X))
+            y_proba = self.model.predict_proba(X)
             if not self.multioutput_:
-                return balanced_accuracy_score(y.ravel(), y_pred.ravel())
-            return np.mean(
-                [
-                    balanced_accuracy_score(y[:, k], y_pred[:, k])
-                    for k in range(y.shape[1])
-                ]
-            )
+                y_proba, classes = [y_proba], [self.model.classes_]
+            else:
+                classes = self.model.classes_
+            y = y.reshape(len(y), -1)
+            scores = []
+            for k, (proba, cls) in enumerate(
+                zip(y_proba, classes, strict=False)
+            ):
+                if len(cls) == 2:
+                    # sklearn expects the positive-class column only.
+                    scores.append(roc_auc_score(y[:, k], proba[:, 1]))
+                else:
+                    scores.append(
+                        roc_auc_score(
+                            y[:, k], proba, multi_class="ovr", labels=cls
+                        )
+                    )
+            return np.mean(scores)

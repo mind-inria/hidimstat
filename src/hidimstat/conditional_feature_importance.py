@@ -84,14 +84,10 @@ class CFI(BasePerturbation):
         The list of fitted conditional samplers used for conditional permutations.
 
         .. versionadded:: 0.5.0
-    conditional_scores_ : ndarray of shape (n_groups,)
+    feature_predictability_ : ndarray of shape (n_groups,)
         Predictability of each group of variables $X^j$ from the others $X^{-j}$.
         The chosen metrics is R2 for continuous groups, and
         balanced accuracy for categorical groups.
-
-        .. versionadded:: 0.5.0
-    conditional_score_types_ : list of str
-        "r2" or "balanced_accuracy" for each group.
 
         .. versionadded:: 0.5.0
 
@@ -258,7 +254,7 @@ class CFI(BasePerturbation):
         """
         X_j = _get_array_cols(X, features_group_ids)
         X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
-        return conditional_sampler.score(X_minus_j, X_j)
+        return conditional_sampler.feature_predictability(X_minus_j, X_j)
 
     def importance(self, X, y):
         """
@@ -279,11 +275,11 @@ class CFI(BasePerturbation):
 
         Notes
         -----
-        The predictability scores are stored separately in conditional_scores_.
+        The predictability scores are stored separately in feature_predictability_.
         """
         importances = super().importance(X, y)
 
-        self.conditional_scores_ = np.asarray(
+        self.feature_predictability_ = np.asarray(
             Parallel(n_jobs=self.n_jobs)(
                 delayed(self._joblib_score_one_conditional_sampler)(
                     sampler, X, feature_groups_ids
@@ -295,10 +291,6 @@ class CFI(BasePerturbation):
                 )
             )
         )
-        self.conditional_score_types_ = [
-            "r2" if sampler.data_type_ == "continuous" else "balanced_accuracy"
-            for sampler in self.fitted_samplers_
-        ]
         return importances
 
 
