@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import get_tags
 
@@ -95,7 +95,7 @@ class ClusterImportance(BaseVariableImportance):
         y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
             Target variable(s).
         """
-        check_is_fitted(self)
+        self._check_fit()
 
         tags = get_tags(self.vim_)
         if tags.needs_importance_data:
@@ -180,5 +180,12 @@ class ClusterImportance(BaseVariableImportance):
                 )
         return importance_degrouped
 
-    def __sklearn_is_fitted__(self) -> bool:
-        return getattr(self, "vim_", None) is not None
+    def _check_fit(self):
+        """
+        Check that an estimator has been fitted after removing each group of
+        covariates.
+        """
+        if self.vim_ is None:
+            raise ValueError(
+                "The estimator needs to be fit before using them."
+            )

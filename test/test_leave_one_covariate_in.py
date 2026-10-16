@@ -149,7 +149,7 @@ def test_raises_value_error(data_generator):
         loci.importance(X, None)
 
     with pytest.raises(
-        ValueError, match="This LOCI instance is not fitted yet"
+        ValueError, match="The estimators require to be fit before to use them"
     ):
         fitted_model = LinearRegression().fit(X, y)
         loci = LOCI(

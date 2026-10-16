@@ -75,7 +75,7 @@ def test_ensemble_importance_check_fit(data_generator):
     )
 
     with pytest.raises(
-        ValueError, match="This EnsembleImportance instance is not fitted yet"
+        ValueError, match="The estimators need to be fit before using them"
     ):
         encludl.importance(X, y)
 

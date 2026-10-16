@@ -142,7 +142,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         return self
 
     def _check_fit(self):
-        """Check if the instance has been fitted. This will disappear."""
+        """Check if the instance has been fitted."""
         check_is_fitted(self)
         super()._check_fit()
 
@@ -259,7 +259,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         When no group has been specified, the importance is computed for each single
         feature.
         """
-        check_is_fitted(self)
+        self._check_fit()
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
         self.scoring = _check_loss_method_parameter(
@@ -391,6 +391,9 @@ class BasePerturbationCV(BaseVariableImportance):
         Fit the estimator on the training data for a single split.
         """
         raise NotImplementedError
+
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimators_")
 
     def _initial_fit(self, estimators, cv, X, y):
         """Initial fit of the sklearn estimators on each fold.
@@ -550,6 +553,3 @@ class BasePerturbationCV(BaseVariableImportance):
         Fit the model to the data and computes feature importance scores."""
         self.fit(X, y)
         return self.importance(X, y)
-
-    def __sklearn_is_fitted__(self) -> bool:
-        return hasattr(self, "estimators_")

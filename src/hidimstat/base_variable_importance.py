@@ -178,6 +178,9 @@ class BaseVariableImportance(BaseEstimator):
 
         return estimator
 
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "estimator_")
+
     def importance_selection(
         self,
         k_best=None,
@@ -494,9 +497,6 @@ class BaseVariableImportance(BaseEstimator):
         tags.needs_importance_data = True
         return tags
 
-    def __sklearn_is_fitted__(self) -> bool:
-        return hasattr(self, "estimator_")
-
 
 class GroupVariableImportanceMixin:
     """
@@ -521,6 +521,8 @@ class GroupVariableImportanceMixin:
     -------
     fit(X, y=None)
         Identifies feature groups and validates input data structure.
+    _check_fit()
+        Verifies if the instance has been fitted.
     _check_compatibility(X)
         Validates compatibility between input data and fitted groups.
     """
@@ -580,6 +582,24 @@ class GroupVariableImportanceMixin:
         else:
             raise ValueError("feature_groups needs to be a dictionary")
         return self
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "n_feature_groups_", None) is not None
+            or getattr(self, "_feature_groups_ids", None) is not None
+        )
+
+    def _check_fit(self):
+        """
+        Check if the instance has been fitted.
+
+        Raises
+        ------
+        ValueError
+            If the class has not been fitted (i.e., if n_feature_groups_
+            or _feature_groups_ids attributes are missing).
+        """
+        check_is_fitted(self)
 
     def _check_compatibility(self, X):
         """
@@ -642,9 +662,3 @@ class GroupVariableImportanceMixin:
                 f"{number_unique_feature_in_groups}",
                 stacklevel=find_stack_level(),
             )
-
-    def __sklearn_is_fitted__(self) -> bool:
-        return (
-            getattr(self, "n_feature_groups_", None) is not None
-            or getattr(self, "_feature_groups_ids", None) is not None
-        )

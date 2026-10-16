@@ -8,7 +8,6 @@ interest is removed from the subset.
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -164,7 +163,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         return self
 
     def importance(self, X, y):
-        check_is_fitted(self)
+        self._check_fit()
         rng = check_random_state(self.random_state)
         self._check_compatibility(X)
         self.scoring = _check_loss_method_parameter(
