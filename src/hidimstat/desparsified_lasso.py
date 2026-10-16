@@ -309,14 +309,6 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         return self
 
-    def __sklearn_is_fitted__(self):
-        return (
-            hasattr(self, "clf_")
-            and hasattr(self, "importances_")
-            and hasattr(self, "precision_diagonal_")
-            and hasattr(self, "sigma_hat_")
-        )
-
     def _initial_fit(self, estimator, X_, y_):
         """
         Run initial fit of a sklearn estimator.
@@ -494,6 +486,14 @@ class DesparsifiedLasso(BaseVariableImportance):
         tags = super().__sklearn_tags__()
         tags.needs_importance_data = False
         return tags
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "clf_", None) is not None
+            and getattr(self, "importances_", None) is not None
+            and getattr(self, "precision_diagonal_", None) is not None
+            and getattr(self, "sigma_hat_", None) is not None
+        )
 
 
 def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):

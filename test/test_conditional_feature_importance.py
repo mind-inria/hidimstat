@@ -476,7 +476,7 @@ class TestCFIExceptions:
 
         with pytest.raises(
             ValueError,
-            match="The imputation models require to be fitted before being used",
+            match="This CFI instance is not fitted yet",
         ):
             cfi.importance(X, y)
 
