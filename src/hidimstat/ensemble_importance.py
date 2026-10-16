@@ -1,6 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import clone
+from sklearn.base import check_is_fitted, clone
 from sklearn.utils import get_tags
 from tqdm import tqdm
 
@@ -177,7 +177,7 @@ class EnsembleImportance(BaseVariableImportance):
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
             Estimated importance values at feature level.
         """
-        self._check_fit()
+        check_is_fitted(self)
 
         self.ensemble_vims_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_compute_importance)(
@@ -225,11 +225,5 @@ class EnsembleImportance(BaseVariableImportance):
         self.importance(X, y)
         return self.importances_
 
-    def _check_fit(self):
-        """
-        Check that the ensemble has been fitted.
-        """
-        if self.ensemble_vims_ is None:
-            raise ValueError(
-                "The estimators need to be fit before using them."
-            )
+    def __sklearn_is_fitted__(self) -> bool:
+        return getattr(self, "ensemble_vims_", None) is not None
