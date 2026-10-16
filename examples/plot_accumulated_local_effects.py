@@ -7,7 +7,8 @@ as defined by :footcite:t:`apley2020accumulatedlocaleffects`, to interpret
 machine learning models within the `hidimstat` library.
 
 ALE plots allow you to examine a model's dependence on a single feature or a pair of
-features. Unlike Partial Dependence Plots (PDPs), ALE avoids extrapolation bias,
+features.
+Unlike Partial Dependence Plots (PDPs), ALE avoids extrapolation bias,
 which occurs when the model is used to predict from out-of-distribution samples,
 by averaging localized differences in predictions within conditional intervals.
 """
