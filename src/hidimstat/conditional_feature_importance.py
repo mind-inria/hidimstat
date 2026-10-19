@@ -226,7 +226,7 @@ class CFI(BasePerturbation):
 
         """
         super()._check_fit()
-        if len(self.fitted_samplers_) == 0:
+        if not hasattr(self, "fitted_samplers_"):
             raise ValueError(
                 "The imputation models require to be fitted before being used."
             )

@@ -302,7 +302,7 @@ def test_group(data_generator):
     # Verify that important feature group has higher score
     # than non-important feature group
     assert importance[0] > importance[1]
-    assert all(model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(model.multioutput_ for model in cfi.fitted_samplers_)
 
 
 @pytest.mark.parametrize(
@@ -335,7 +335,7 @@ def test_no_group_output_detection(data_generator):
 
     # Check that the conditional samplers properly detect this is not a multi-output setting.
     cfi.fit(X_train_df)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
@@ -343,7 +343,7 @@ def test_no_group_output_detection(data_generator):
     # Check same thing when X is a np.ndarray
     regression_model.fit(X_train_df.values, y_train)
     cfi.fit(X_train_df.values)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df.values, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
@@ -387,7 +387,7 @@ class TestCFIClass:
 
         # Test fit with auto var_type
         cfi.fit(X)
-        assert len(cfi._list_imputation_models) == X.shape[1]
+        assert len(cfi._conditionnal_samplers) == X.shape[1]
         assert cfi.n_feature_groups_ == X.shape[1]
 
     def test_fit_group(self, data_generator):
@@ -404,7 +404,7 @@ class TestCFIClass:
         )
         cfi.fit(X)
 
-        assert len(cfi._list_imputation_models) == 2
+        assert len(cfi._conditionnal_samplers) == 2
         assert cfi.n_feature_groups_ == 2
 
     def test_categorical(
