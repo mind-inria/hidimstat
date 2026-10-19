@@ -328,19 +328,15 @@ class CFI(BasePerturbation):
                 "You need to install the seaborn package to use this functionality."
             ) from e
 
-        self._check_importance()
-
         if ax is None:
             _, ax = plt.subplots()
 
         if feature_names is None:
             feature_names = list(self.feature_groups_.keys())
-        elif isinstance(feature_names, list) and not np.all(
-            isinstance(name, str) for name in feature_names
-        ):
-            raise TypeError("'feature_names' should be a list of strings")
-        else:
+        elif not isinstance(feature_names, list):
             raise TypeError("'feature_names' should be a list")
+
+        self._check_importance()
 
         df = pd.DataFrame(
             {
