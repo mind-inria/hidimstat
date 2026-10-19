@@ -4,7 +4,7 @@ import pytest
 from sklearn.base import BaseEstimator
 
 from hidimstat import PFI, PFICV
-from hidimstat.selector import SelectorMixin
+from hidimstat.feature_selection.selector import SelectorMixin
 
 
 def test_estimator_parameter():

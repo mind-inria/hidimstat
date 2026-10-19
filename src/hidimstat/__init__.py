@@ -10,7 +10,6 @@ from .knockoffs import ModelXKnockoff, model_x_knockoff_importance
 from .leave_one_covariate_in import LOCI, LOCICV, loci_importance
 from .leave_one_covariate_out import LOCO, LOCOCV, loco_importance
 from .permutation_feature_importance import PFI, PFICV, pfi_importance
-from .selector import FDRSelect, FWERSelect, PValueSelect, SelectTopK
 from .shapley_additive_global_importance import SAGE
 
 try:
@@ -32,11 +31,7 @@ __all__ = [
     "ClusterImportance",
     "DesparsifiedLasso",
     "EnsembleImportance",
-    "FDRSelect",
-    "FWERSelect",
     "ModelXKnockoff",
-    "PValueSelect",
-    "SelectTopK",
     "cfi_importance",
     "d0crt_importance",
     "desparsified_lasso_importance",

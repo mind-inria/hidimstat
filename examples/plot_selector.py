@@ -33,7 +33,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat import CFICV, PValueSelect
+from hidimstat import CFICV
+from hidimstat.feature_selection import PValueSelect
 
 # Load dataset
 X, y = load_wine(return_X_y=True)
