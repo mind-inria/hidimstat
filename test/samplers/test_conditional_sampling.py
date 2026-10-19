@@ -278,3 +278,16 @@ def test_sample_categorical(rng):
         assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
+
+
+def test_check_fit_attributes():
+    """Tests for conditional sampler attributes check before fit."""
+    sampler = ConditionalSampler(model_regression="BaseEstimator")
+
+    with pytest.raises(TypeError, match=r"Regression model invalid"):
+        sampler._check_fit_attributes()
+
+    sampler = ConditionalSampler(model_categorical="BaseEstimator")
+
+    with pytest.raises(TypeError, match=r"Categorical model invalid"):
+        sampler._check_fit_attributes()

@@ -107,7 +107,7 @@ class ConditionalSampler:
         if self.model_categorical is not None and not isinstance(
             self.model_categorical, BaseEstimator
         ):
-            raise TypeError("Categorial model invalid.")
+            raise TypeError("Categorical model invalid.")
 
     def fit(self, X: np.ndarray, y: np.ndarray):
         r"""
