@@ -88,7 +88,8 @@ class CFI(BasePerturbation):
     feature_predictability_ : ndarray of shape (n_groups,)
         Predictability of each group of variables $X^j$ from the others $X^{-j}$.
         The chosen metrics is R2 for continuous groups, and
-        balanced accuracy for categorical groups.
+        ROC-AUC (One-VS-Rest strategy) for categorical groups. The scores are
+        computed at importance call.
 
         .. versionadded:: 0.5.0
 
@@ -274,10 +275,6 @@ class CFI(BasePerturbation):
         -------
         importances_ : ndarray of shape (n_groups,)
             The importance scores for each feature group.
-
-        Notes
-        -----
-        The predictability scores are stored separately in feature_predictability_.
         """
         importances = super().importance(X, y)
 
