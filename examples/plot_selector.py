@@ -40,7 +40,35 @@ from hidimstat.feature_selection import PValueSelect
 X, y = load_wine(return_X_y=True)
 feature_names = np.array(load_wine().feature_names)
 
-# Define and fit our classifier
+# We create noisy duplicates to test the selection process:
+rng = np.random.default_rng(0)
+features_to_duplicate = [
+    "flavanoids",
+    "proline",
+    "color_intensity",
+    "alcohol",
+    "hue",
+]
+noise_level = 0.5
+
+idx = [list(feature_names).index(name) for name in features_to_duplicate]
+noise = rng.normal(
+    loc=0.0,
+    scale=noise_level * X[:, idx].std(axis=0),
+    size=(X.shape[0], len(idx)),
+)
+X_replicates = X[:, idx] + noise
+
+X = np.hstack([X, X_replicates])
+feature_names = np.concatenate(
+    [feature_names, [f"{name}_noisy_copy" for name in features_to_duplicate]]
+)
+
+# %%
+# Now we define and fit our classifier as well as the Hidimstat feature importance
+# estimator and the Selector from the importance p-values with a standard
+# threshold of :math:`p<0.05`.
+
 clf = make_pipeline(
     StandardScaler(),
     MLPClassifier(
@@ -49,13 +77,6 @@ clf = make_pipeline(
         max_iter=500,
     ),
 )
-
-clf.fit(X, y)
-initial_score = clf.score
-
-# %%
-# Next, we define the Hidimstat feature importance estimator and the Selector from the importance
-# p-values with a standard threshold of :math:`p<0.05`.
 
 cficv = CFICV(
     estimators=clf,
@@ -70,6 +91,10 @@ cficv = CFICV(
 
 selector = PValueSelect(estimator=cficv, threshold_max=0.1)
 X_transformed = selector.fit_transform(X, y)
+
+# %%
+# We can now inspect how many features were selected, and which ones:
+
 print(
     f"Initial number of features: {X.shape[1]}. Number of selected features: {X_transformed.shape[1]}"
 )
@@ -101,8 +126,7 @@ pipeline = make_pipeline(
             scoring="log_loss",
             imputation_model_continuous=RidgeCV(),
             feature_groups={
-                feat_name: [i]
-                for i, feat_name in enumerate(load_wine().feature_names)
+                feat_name: [i] for i, feat_name in enumerate(feature_names)
             },
             random_state=0,
         ),
@@ -127,6 +151,11 @@ for train_idx, test_idx in cv.split(X, y):
     # Compute score from initial pipeline without feature selection
     clf.fit(X_train, y_train)
     initial_scores.append(clf.score(X_test, y_test))
+
+# %%
+# Now that we have computed scores from the initial pipeline without feature selection,
+# and scores with feature selection, we can plot the results with boxes to view
+# their distributions.
 
 _, ax = plt.subplots()
 ax.boxplot(
