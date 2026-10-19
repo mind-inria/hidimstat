@@ -143,6 +143,7 @@ importances = cfi.importance(X_test, y_test)
 _, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = cfi.plot_importance(ax=axes[0])
 ax.set_xlabel("Feature Importance")
+ax = cfi.plot_feature_predictability(ax=axes[1])
 
 df = pd.DataFrame(
     {
