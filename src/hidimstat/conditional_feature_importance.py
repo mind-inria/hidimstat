@@ -325,7 +325,7 @@ class CFI(BasePerturbation):
             import seaborn as sns
         except ImportError as e:
             raise Exception(
-                "You need to install seaborn for using this functionality"
+                "You need to install the seaborn package to use this functionality."
             ) from e
 
         self._check_importance()
@@ -351,7 +351,7 @@ class CFI(BasePerturbation):
         # Sort features by decreasing mean importance
         mean_predictability = df.groupby("Feature").mean()
         sorted_features = mean_predictability.sort_values(
-            by="Importance", ascending=ascending
+            by="Predictability", ascending=ascending
         ).index
         df["Feature"] = pd.Categorical(
             df["Feature"],
@@ -359,7 +359,11 @@ class CFI(BasePerturbation):
             ordered=True,
         )
         sns.barplot(
-            df, x="Predictability", y="Feature", ax=ax**seaborn_barplot_kwargs
+            df,
+            x="Predictability",
+            y="Feature",
+            ax=ax,
+            **seaborn_barplot_kwargs,
         )
         sns.despine(ax=ax)
         ax.set_ylabel("")

@@ -92,22 +92,13 @@ importances = cfi.importance(X_test, y_test)
 # Finally, we visualize the importance of each feature using a bar plot.
 
 import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 
 _, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = cfi.plot_importance(ax=axes[0])
 ax.set_xlabel("Feature Importance")
-
-df = pd.DataFrame(
-    {
-        "Predictability": cfi.feature_predictability_,
-        "Feature": feature_names,
-    }
-)
-sns.barplot(df, x="Predictability", y="Feature", ax=axes[1])
+ax = cfi.plot_feature_predictability(ax=axes[1])
+ax.set_xlabel("Feature predictability")
 plt.tight_layout()
-plt.show()
 
 # %%
 # Variable importance analysis is meant to help scientific understanding, in particular
@@ -144,14 +135,7 @@ _, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = cfi.plot_importance(ax=axes[0])
 ax.set_xlabel("Feature Importance")
 ax = cfi.plot_feature_predictability(ax=axes[1])
-
-df = pd.DataFrame(
-    {
-        "Predictability": cfi.feature_predictability_,
-        "Feature_groups": cfi.feature_groups.keys(),
-    }
-)
-sns.barplot(df, x="Predictability", y="Feature_groups", ax=axes[1])
+ax.set_xlabel("Feature predictability")
 plt.tight_layout()
 plt.show()
 
