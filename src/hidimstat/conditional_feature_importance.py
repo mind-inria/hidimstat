@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
@@ -293,6 +294,76 @@ class CFI(BasePerturbation):
             )
         )
         return importances
+
+    def plot_feature_predictability(
+        self,
+        ax=None,
+        ascending=False,
+        feature_names=None,
+        **seaborn_barplot_kwargs,
+    ):
+        """
+        Plot feature predictability computed by the conditional samplers as a horizontal bar plot.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes or None, (default=None)
+            Axes object to draw the plot onto, otherwise uses the current Axes.
+        ascending: bool, default=False
+            Whether to sort features by ascending importance.
+        **seaborn_barplot_kwargs : additional keyword arguments
+            Additional arguments passed to seaborn.barplot.
+            https://seaborn.pydata.org/generated/seaborn.barplot.html
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The Axes object with the plot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+        except ImportError as e:
+            raise Exception(
+                "You need to install seaborn for using this functionality"
+            ) from e
+
+        self._check_importance()
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if feature_names is None:
+            feature_names = list(self.feature_groups_.keys())
+        elif isinstance(feature_names, list) and not np.all(
+            isinstance(name, str) for name in feature_names
+        ):
+            raise TypeError("'feature_names' should be a list of strings")
+        else:
+            raise TypeError("'feature_names' should be a list")
+
+        df = pd.DataFrame(
+            {
+                "Predictability": self.feature_predictability_,
+                "Feature": feature_names,
+            }
+        )
+        # Sort features by decreasing mean importance
+        mean_predictability = df.groupby("Feature").mean()
+        sorted_features = mean_predictability.sort_values(
+            by="Importance", ascending=ascending
+        ).index
+        df["Feature"] = pd.Categorical(
+            df["Feature"],
+            categories=sorted_features,
+            ordered=True,
+        )
+        sns.barplot(
+            df, x="Predictability", y="Feature", ax=ax**seaborn_barplot_kwargs
+        )
+        sns.despine(ax=ax)
+        ax.set_ylabel("")
+        return ax
 
 
 def cfi_importance(
