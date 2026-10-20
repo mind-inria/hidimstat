@@ -229,10 +229,9 @@ class ConditionalSampler:
         Scores how well $X^j$ is predicted from $X^{-j}$.
 
         For continuous data, the coefficient of determination $R^2$ is used.
-        For a group of variables, columns are averaged weighted by their variance.
+        For categorical data, the ROC-AUC is computed.
 
-        For categorical data, the balanced accuracy is computed.
-        For a group of variables, the balanced accuracy is averaged uniformly
+        For a group of variables, the scores are averaged uniformly
         over the columns.
 
         Parameters
@@ -245,14 +244,14 @@ class ConditionalSampler:
         Returns
         -------
         score : float
-            The $R^2$ (continuous) or AUC (categorical) with OVR strategy for multiclass.
+            The $R^2$ (continuous) or ROC-AUC (categorical) with OVR strategy for multiclass.
         """
         check_is_fitted(self.model)
         y = np.asarray(y)
 
         if self.data_type_ == "continuous":
             y_hat = np.asarray(self.model.predict(X)).reshape(y.shape)
-            return r2_score(y, y_hat, multioutput="variance_weighted")
+            return r2_score(y, y_hat, multioutput="uniform_average")
         else:
             y_proba = self.model.predict_proba(X)
             if not self.multioutput_:

@@ -24,6 +24,8 @@ from sklearn.model_selection import train_test_split
 
 X, y = load_wine(return_X_y=True)
 feature_names = load_wine().feature_names
+# Renaming "od280/od315_of_diluted_wines" as "dilution" for readability reasons.
+feature_names[11] = "dilution"
 
 print(f"Feature names: {feature_names}")
 
@@ -95,9 +97,10 @@ import matplotlib.pyplot as plt
 
 _, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = cfi.plot_importance(ax=axes[0])
-ax.set_xlabel("Feature Importance")
+ax.set_xlabel("Feature\nImportance")
 ax = cfi.plot_feature_predictability(ax=axes[1])
-ax.set_xlabel("Feature predictability")
+ax.axvline(x=1.0, color="r")
+ax.set_xlabel("Feature\npredictability")
 plt.tight_layout()
 
 # %%
@@ -133,9 +136,10 @@ importances = cfi.importance(X_test, y_test)
 
 _, axes = plt.subplots(1, 2, figsize=(6, 3))
 ax = cfi.plot_importance(ax=axes[0])
-ax.set_xlabel("Feature Importance")
+ax.set_xlabel("Feature\nImportance")
 ax = cfi.plot_feature_predictability(ax=axes[1])
-ax.set_xlabel("Feature predictability")
+ax.axvline(x=1.0, color="r")
+ax.set_xlabel("Feature\npredictability")
 plt.tight_layout()
 plt.show()
 
