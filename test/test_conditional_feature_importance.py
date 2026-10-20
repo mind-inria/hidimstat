@@ -972,6 +972,24 @@ def test_plot_predictability_arguments_error(cfi_test_data):
         cfi.plot_feature_predictability(feature_names="Not a list")
 
 
+def test_plot_predictability_not_computed(cfi_test_data):
+    """
+    Test error raised when feature predictability is not computed but plotting
+    is called.
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test, feat_predictability=False)
+    with pytest.raises(
+        RuntimeError,
+        match=r"Attribute 'feature_predictability_' has not been computed",
+    ):
+        cfi.plot_feature_predictability()
+
+
 def test_plot_predictability_axis(cfi_test_data):
     """Test argument axis of plot function"""
     X_train, X_test, y_test, cfi_default_parameters = cfi_test_data

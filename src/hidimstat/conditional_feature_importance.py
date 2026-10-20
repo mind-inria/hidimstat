@@ -259,7 +259,7 @@ class CFI(BasePerturbation):
         X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
         return conditional_sampler.feature_predictability(X_minus_j, X_j)
 
-    def importance(self, X, y):
+    def importance(self, X, y, feat_predictability=True):
         """
         Compute the importance scores for each group of covariates, and the
         predictability of each group from the others.
@@ -270,6 +270,8 @@ class CFI(BasePerturbation):
             The input samples to compute importance scores for.
         y : array-like of shape (n_samples,)
             The target values.
+        feat_predictability : bool, default=True
+            Decides whether to compute feature predictability or not.
 
         Returns
         -------
@@ -278,18 +280,19 @@ class CFI(BasePerturbation):
         """
         importances = super().importance(X, y)
 
-        self.feature_predictability_ = np.asarray(
-            Parallel(n_jobs=self.n_jobs)(
-                delayed(self._joblib_compute_one_feature_predictability)(
-                    sampler, X, feature_groups_ids
-                )
-                for feature_groups_ids, sampler in zip(
-                    self._feature_groups_ids,
-                    self.fitted_samplers_,
-                    strict=True,
+        if feat_predictability:
+            self.feature_predictability_ = np.asarray(
+                Parallel(n_jobs=self.n_jobs)(
+                    delayed(self._joblib_compute_one_feature_predictability)(
+                        sampler, X, feature_groups_ids
+                    )
+                    for feature_groups_ids, sampler in zip(
+                        self._feature_groups_ids,
+                        self.fitted_samplers_,
+                        strict=True,
+                    )
                 )
             )
-        )
         return importances
 
     def plot_feature_predictability(
@@ -333,7 +336,11 @@ class CFI(BasePerturbation):
         elif not isinstance(feature_names, list):
             raise TypeError("'feature_names' should be a list")
 
-        self._check_importance()
+        if not hasattr(self, "feature_predictability_"):
+            raise RuntimeError(
+                "Attribute 'feature_predictability_' has not been computed."
+                "Please call the 'importance' method with feat_predictability=True."
+            )
 
         df = pd.DataFrame(
             {
