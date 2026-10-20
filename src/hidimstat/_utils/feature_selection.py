@@ -57,51 +57,11 @@ def _generic_selection(
     if n_criteria > 1:
         raise ValueError("Only support selection based on one criterion.")
     if k_best is not None:
-        if k_best <= 0:
-            raise ValueError("k_best needs to be strictly positive.")
-        if k_best > values.shape[0]:
-            warnings.warn(
-                f"k={k_best} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_best = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
-        return mask_k_best
+        return _k_best_selection(values=values, k_best=k_best)
     elif k_lowest is not None:
-        if k_lowest <= 0:
-            raise ValueError("k_lowest needs to be strictly positive.")
-        if k_lowest > values.shape[0]:
-            warnings.warn(
-                f"k={k_lowest} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_lowest = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
-        return mask_k_lowest
+        return _k_lowest_selection(values=values, k_lowest=k_lowest)
     elif percentile is not None:
-        if percentile <= 0 or percentile >= 100:
-            raise ValueError(
-                f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
-            )
-        # based on SelectPercentile in Scikit-Learn
-        threshold_percentile = np.percentile(values, 100 - percentile)
-        mask_percentile = values > threshold_percentile
-        ties = np.where(values == threshold_percentile)[0]
-        if len(ties):
-            max_feats = int(len(values) * percentile / 100)
-            kept_ties = ties[: max_feats - mask_percentile.sum()]
-            mask_percentile[kept_ties] = True
-        return mask_percentile
+        return _percentile_selection(values=values, percentile=percentile)
     elif threshold_max is not None:
         mask_threshold_max = values < threshold_max
         return mask_threshold_max
@@ -111,6 +71,106 @@ def _generic_selection(
     else:
         no_mask = np.ones_like(values, dtype=bool)
         return no_mask
+
+
+def _k_best_selection(values, k_best):
+    """
+    Select features from the K best input values.
+
+    Parameters
+    ----------
+    values : array-like of shape (n_features,)
+        Values to use for feature selection (e.g., importance scores or p-values)
+    k_best : int, default=None
+        Selects the top k features based on values.
+
+    Returns
+    -------
+    selection : array-like of shape (n_features,)
+        Boolean array indicating the selected features.
+    """
+    if k_best <= 0:
+        raise ValueError("k_best needs to be strictly positive.")
+    if k_best > values.shape[0]:
+        warnings.warn(
+            f"k={k_best} is greater than n_features={values.shape[0]}. "
+            "All the features will be returned.",
+            stacklevel=find_stack_level(),
+        )
+    mask_k_best = np.zeros_like(values, dtype=bool)
+
+    # based on SelectKBest in Scikit-Learn
+    # Request a stable sort. Mergesort takes more memory (~40MB per
+    # megafeature on x86-64).
+    mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
+    return mask_k_best
+
+
+def _k_lowest_selection(values, k_lowest):
+    """
+    Select features from the K lowest input values.
+
+    Parameters
+    ----------
+    values : array-like of shape (n_features,)
+        Values to use for feature selection (e.g., importance scores or p-values)
+    k_lowest : int, default=None
+        Selects the lowest k features based on values.
+
+    Returns
+    -------
+    selection : array-like of shape (n_features,)
+        Boolean array indicating the selected features.
+    """
+    if k_lowest <= 0:
+        raise ValueError("k_lowest needs to be strictly positive.")
+    if k_lowest > values.shape[0]:
+        warnings.warn(
+            f"k={k_lowest} is greater than n_features={values.shape[0]}. "
+            "All the features will be returned.",
+            stacklevel=find_stack_level(),
+        )
+    mask_k_lowest = np.zeros_like(values, dtype=bool)
+
+    # based on SelectKBest in Scikit-Learn
+    # Request a stable sort. Mergesort takes more memory (~40MB per
+    # megafeature on x86-64).
+    mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
+    return mask_k_lowest
+
+
+def _percentile_selection(values, percentile):
+    """
+    Select features from a percentile of input values.
+
+    Parameters
+    ----------
+    values : array-like of shape (n_features,)
+        Values to use for feature selection (e.g., importance scores or p-values)
+    percentile : float, default=None
+        Selects features based on a specified percentile of values.
+        If certain values lie exactly at the given percentile,
+        then ties are selected based on a maximum amount of values to return,
+        computed as the proportion of total features given by the percentile.
+
+    Returns
+    -------
+    selection : array-like of shape (n_features,)
+        Boolean array indicating the selected features.
+    """
+    if percentile <= 0 or percentile >= 100:
+        raise ValueError(
+            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
+        )
+    # based on SelectPercentile in Scikit-Learn
+    threshold_percentile = np.percentile(values, 100 - percentile)
+    mask_percentile = values > threshold_percentile
+    ties = np.where(values == threshold_percentile)[0]
+    if len(ties):
+        max_feats = int(len(values) * percentile / 100)
+        kept_ties = ties[: max_feats - mask_percentile.sum()]
+        mask_percentile[kept_ties] = True
+    return mask_percentile
 
 
 def _fdr_selection(
