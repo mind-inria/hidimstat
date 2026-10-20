@@ -21,7 +21,7 @@ class SelectorMixin(TransformerMixin):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible variable importance method.
+    estimator: variable importance estimator
         The estimator that will be used to perform feature selection. Must derive from
         hidimstat.BaseVariableImportance. For perturbation-based estimators, such as
         PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.)
@@ -81,7 +81,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
+    estimator: variable importance estimator
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -124,7 +124,7 @@ class PValueSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
+    estimator: variable importance estimator
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -186,7 +186,7 @@ class FDRSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
+    estimator: variable importance estimator
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
@@ -250,7 +250,7 @@ class FWERSelect(SelectorMixin, BaseEstimator):
 
     Parameters
     ----------
-    estimator: hidimstat-compatible estimator that derives from hidimstat.BaseVariableImportance
+    estimator: variable importance estimator
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
