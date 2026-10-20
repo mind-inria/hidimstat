@@ -167,7 +167,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
             The scores of the predictions after perturbation of the data for each
             group of variables.
         """
-        features_group_ids = self._feature_groups_ids[features_group_id]
+        features_group_ids = self._feature_groups_ids_[features_group_id]
         non_features_group_ids = np.delete(
             np.arange(X.shape[1]), features_group_ids
         )

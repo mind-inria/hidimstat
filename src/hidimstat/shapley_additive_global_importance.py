@@ -184,7 +184,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         # subset of features without j
         self.subset_map_ = {}
         for j in range(self.n_feature_groups_):
-            group_ids = self._feature_groups_ids[j]
+            group_ids = self._feature_groups_ids_[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )

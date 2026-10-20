@@ -88,7 +88,7 @@ class PFI(BasePerturbation):
             [
                 rng.permutation(
                     _get_array_cols(
-                        X, self._feature_groups_ids[features_group_id]
+                        X, self._feature_groups_ids_[features_group_id]
                     )
                 )
                 for _ in range(self.n_permutations)

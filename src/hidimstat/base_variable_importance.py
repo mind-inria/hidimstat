@@ -514,7 +514,7 @@ class GroupVariableImportanceMixin:
     ----------
     n_feature_groups_ : int
         Number of feature groups.
-    _feature_groups_ids : array-like
+    _feature_groups_ids_ : array-like
         List of feature indices for each group.
 
     Methods
@@ -527,7 +527,6 @@ class GroupVariableImportanceMixin:
 
     def __init__(self, feature_groups=None):
         self.feature_groups = feature_groups
-        self._feature_groups_ids = None
 
     def fit(self, X, y=None):
         """
@@ -556,16 +555,16 @@ class GroupVariableImportanceMixin:
                 self.feature_groups_ = {
                     j: [j] for j in range(self.n_feature_groups_)
                 }
-            self._feature_groups_ids = np.arange(
+            self._feature_groups_ids_ = np.arange(
                 self.n_feature_groups_, dtype=int
             ).reshape(-1, 1)
         elif isinstance(self.feature_groups, dict):
             self.feature_groups_ = self.feature_groups
             self.n_feature_groups_ = len(self.feature_groups_)
             if isinstance(X, pd.DataFrame):
-                self._feature_groups_ids = []
+                self._feature_groups_ids_ = []
                 for features_group_key in self.feature_groups_:
-                    self._feature_groups_ids.append(
+                    self._feature_groups_ids_.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
@@ -573,7 +572,7 @@ class GroupVariableImportanceMixin:
                         ]
                     )
             else:
-                self._feature_groups_ids = [
+                self._feature_groups_ids_ = [
                     np.array(ids, dtype=int)
                     for ids in list(self.feature_groups_.values())
                 ]
@@ -649,5 +648,5 @@ class GroupVariableImportanceMixin:
         """
         return (
             getattr(self, "n_feature_groups_", None) is not None
-            or getattr(self, "_feature_groups_ids", None) is not None
+            or getattr(self, "_feature_groups_ids_", None) is not None
         )

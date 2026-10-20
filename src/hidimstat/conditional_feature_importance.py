@@ -165,7 +165,7 @@ class CFI(BasePerturbation):
                 imputation_model, X, feature_groups_ids
             )
             for feature_groups_ids, imputation_model in zip(
-                self._feature_groups_ids,
+                self._feature_groups_ids_,
                 self._list_imputation_models,
                 strict=False,
             )
@@ -186,9 +186,9 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = _get_array_cols(X, self._feature_groups_ids[features_group_id])
+        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
         X_minus_j = _get_array_cols(
-            X, self._feature_groups_ids[features_group_id], drop=True
+            X, self._feature_groups_ids_[features_group_id], drop=True
         )
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,

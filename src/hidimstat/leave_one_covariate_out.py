@@ -110,7 +110,7 @@ class LOCO(BasePerturbation):
                 estimator, X, y, feature_groups_ids
             )
             for feature_groups_ids, estimator in zip(
-                self._feature_groups_ids,
+                self._feature_groups_ids_,
                 self._list_estimators,
                 strict=False,
             )
@@ -133,9 +133,9 @@ class LOCO(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        # Since we don't have access to column names, we use the member _feature_groups_ids
+        # Since we don't have access to column names, we use the member _feature_groups_ids_
         X_minus_j = _get_array_cols(
-            X, self._feature_groups_ids[features_group_id], drop=True
+            X, self._feature_groups_ids_[features_group_id], drop=True
         )
 
         scoring_loco = self.scoring(
