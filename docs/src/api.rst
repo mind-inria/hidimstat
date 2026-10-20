@@ -17,7 +17,7 @@ Base Classes
    ~base_perturbation.BasePerturbation
    ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
-   ~selector.SelectorMixin
+   ~feature_selection.selector.SelectorMixin
 
 .. _feature_importance_classes:
 
@@ -50,10 +50,10 @@ Feature Selection Classes
    :toctree: ./generated/api/class/
    :template: class.rst
 
-   FDRSelect
-   FWERSelect
-   PValueSelect
-   SelectTopK
+   ~feature_selection.FDRSelect
+   ~feature_selection.FWERSelect
+   ~feature_selection.PValueSelect
+   ~feature_selection.SelectTopK
 
 Feature Importance functions
 ============================
