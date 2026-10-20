@@ -249,11 +249,11 @@ class CFI(BasePerturbation):
             random_state=random_state,
         )
 
-    def _joblib_score_one_conditional_sampler(
+    def _joblib_compute_one_feature_predictability(
         self, conditional_sampler, X, features_group_ids
     ):
         """
-        Score a single fitted conditional sampler on X.
+        Compute the predictability of one feature group from a single conditional sampler.
         """
         X_j = _get_array_cols(X, features_group_ids)
         X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
@@ -280,7 +280,7 @@ class CFI(BasePerturbation):
 
         self.feature_predictability_ = np.asarray(
             Parallel(n_jobs=self.n_jobs)(
-                delayed(self._joblib_score_one_conditional_sampler)(
+                delayed(self._joblib_compute_one_feature_predictability)(
                     sampler, X, feature_groups_ids
                 )
                 for feature_groups_ids, sampler in zip(
