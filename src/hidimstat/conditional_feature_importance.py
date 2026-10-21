@@ -267,7 +267,7 @@ class CFI(BasePerturbation):
                         sampler, X, feature_groups_ids
                     )
                     for feature_groups_ids, sampler in zip(
-                        self._feature_groups_ids,
+                        self._feature_groups_ids_,
                         self.fitted_samplers_,
                         strict=True,
                     )
@@ -350,8 +350,8 @@ class CFI(BasePerturbation):
         return ax
 
     def __sklearn_is_fitted__(self) -> bool:
-        return len(self._list_imputation_models) != 0 and all(
-            m.model is not None for m in self._list_imputation_models
+        return hasattr(self, "fitted_samplers_") and all(
+            m.model is not None for m in self.fitted_samplers_
         )
 
 
