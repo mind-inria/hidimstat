@@ -159,7 +159,7 @@ def test_raises_value_error(data_generator):
         loci.importance(X, y)
 
     with pytest.raises(
-        AssertionError,
+        ValueError,
         match="The statistical test doesn't provide the correct dimension",
     ):
         fitted_model = LinearRegression().fit(X, y)
