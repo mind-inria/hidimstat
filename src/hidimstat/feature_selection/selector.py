@@ -187,7 +187,7 @@ class FDRSelect(SelectorMixin, BaseEstimator):
     Parameters
     ----------
     estimator: variable importance estimator
-        The estimator that will be used to perform feature selection. For perturbation-based estimators,
+        The estimator that will be used to perform feature selection. For perturbation-based estimators
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
         operated with a warning.
