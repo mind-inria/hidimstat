@@ -114,8 +114,14 @@ class ModelXKnockoff(BaseVariableImportance):
     ----------
     importances_ : ndarray, shape (n_repeats, n_features)
         Knockoff statistics :math:`W_j` for each original feature across repetitions.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     threshold_fdr_ : float
         Threshold computed by the FDR selection procedure.
     aggregated_pval_ : ndarray or None
@@ -265,6 +271,12 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
+        warnings.warn(
+            r"Dimensions of 'importances_' and 'pvalues_' attributes will be swapped in 0.6.0 "
+            "for global API consistency.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if X is not None:
             warnings.warn("X won't be used", stacklevel=find_stack_level())
         if y is not None:
@@ -383,8 +395,8 @@ class ModelXKnockoff(BaseVariableImportance):
                 fdr_control = "bhq"
             pvalues = np.array(
                 [
-                    self._empirical_knockoff_pval(test_score)
-                    for test_score in self.importances_
+                    self._empirical_knockoff_pval(self.importances_[i])
+                    for i in range(self.importances_.shape[0])
                 ]
             )
             self.aggregated_pval_ = quantile_aggregation(
@@ -406,7 +418,8 @@ class ModelXKnockoff(BaseVariableImportance):
                 )
                 fdr_control = "ebh"
             evalues = []
-            for test_score in self.importances_:
+            for i in range(self.importances_.shape[0]):
+                test_score = self.importances_[i]
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
                 evalues.append(
                     self._empirical_knockoff_eval(test_score, ko_threshold)

@@ -5,7 +5,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from scipy import stats
 from scipy.special import expit
-from sklearn.base import BaseEstimator, clone
+from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.linear_model import (
     Lasso,
     LassoCV,
@@ -418,32 +418,6 @@ class D0CRT(BaseVariableImportance):
 
         return self
 
-    def _check_fit(self):
-        """
-        Check if the model has been fit before performing analysis.
-
-        This private method verifies that all necessary attributes have been set
-        during the fitting process.
-        These attributes include:
-        - model_x_
-        - model_y_
-        - selection_set_
-
-        Raises
-        ------
-        ValueError
-            If any of the required attributes are missing, indicating the model
-            hasn't been fit.
-        """
-        if (
-            self.model_x_ is None
-            or self.model_y_ is None
-            or self.selection_set_ is None
-        ):
-            raise ValueError(
-                "The D0CRT requires to be fit before any analysis"
-            )
-
     def _check_importance_attributes(self):
         """
         Check attributes needed during importance values computation.
@@ -498,9 +472,9 @@ class D0CRT(BaseVariableImportance):
         3. Calculates test statistic from correlation of residuals
         4. Computes p-value assuming standard normal distribution
         """
-        self._check_fit()
         self._check_importance_attributes()
         check_X_y(X, y)
+        check_is_fitted(self)
 
         y_ = y  # avoid modifying the original y
 
@@ -701,6 +675,13 @@ class D0CRT(BaseVariableImportance):
             warnings.warn("cv won't be used", stacklevel=find_stack_level())
         self.fit(X, y)
         return self.importance(X, y)
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "model_x_", None) is not None
+            and getattr(self, "model_y_", None) is not None
+            and getattr(self, "selection_set_", None) is not None
+        )
 
 
 def _joblib_fit(

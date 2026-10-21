@@ -110,7 +110,7 @@ def test_raises_value_error(data_generator):
         loco.importance(X, None)
 
     with pytest.raises(
-        ValueError, match="The estimators require to be fit before to use them"
+        ValueError, match="This LOCO instance is not fitted yet"
     ):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(

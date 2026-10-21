@@ -167,9 +167,6 @@ class BaseVariableImportance(BaseEstimator):
 
         return estimator
 
-    def __sklearn_is_fitted__(self):
-        return hasattr(self, "estimator_")
-
     def _check_importance(self):
         """
         Checks if the importance scores have been computed.
@@ -495,6 +492,9 @@ class BaseVariableImportance(BaseEstimator):
         tags.needs_importance_data = True
         return tags
 
+    def __sklearn_is_fitted__(self) -> bool:
+        return hasattr(self, "estimator_")
+
 
 class GroupVariableImportanceMixin:
     """
@@ -512,22 +512,19 @@ class GroupVariableImportanceMixin:
     ----------
     n_feature_groups_ : int
         Number of feature groups.
-    _feature_groups_ids : array-like
+    _feature_groups_ids_ : array-like
         List of feature indices for each group.
 
     Methods
     -------
     fit(X, y=None)
         Identifies feature groups and validates input data structure.
-    _check_fit()
-        Verifies if the instance has been fitted.
     _check_compatibility(X)
         Validates compatibility between input data and fitted groups.
     """
 
     def __init__(self, feature_groups=None):
         self.feature_groups = feature_groups
-        self._feature_groups_ids = None
 
     def _check_fit_attributes(self):
         """
@@ -566,16 +563,16 @@ class GroupVariableImportanceMixin:
                 self.feature_groups_ = {
                     j: [j] for j in range(self.n_feature_groups_)
                 }
-            self._feature_groups_ids = np.arange(
+            self._feature_groups_ids_ = np.arange(
                 self.n_feature_groups_, dtype=int
             ).reshape(-1, 1)
         elif isinstance(self.feature_groups, dict):
             self.feature_groups_ = self.feature_groups
             self.n_feature_groups_ = len(self.feature_groups_)
             if isinstance(X, pd.DataFrame):
-                self._feature_groups_ids = []
+                self._feature_groups_ids_ = []
                 for features_group_key in self.feature_groups_:
-                    self._feature_groups_ids.append(
+                    self._feature_groups_ids_.append(
                         [
                             i
                             for i, col in enumerate(X.columns)
@@ -583,29 +580,11 @@ class GroupVariableImportanceMixin:
                         ]
                     )
             else:
-                self._feature_groups_ids = [
+                self._feature_groups_ids_ = [
                     np.array(ids, dtype=int)
                     for ids in list(self.feature_groups_.values())
                 ]
         return self
-
-    def __sklearn_is_fitted__(self) -> bool:
-        return (
-            getattr(self, "n_feature_groups_", None) is not None
-            or getattr(self, "_feature_groups_ids", None) is not None
-        )
-
-    def _check_fit(self):
-        """
-        Check if the instance has been fitted.
-
-        Raises
-        ------
-        ValueError
-            If the class has not been fitted (i.e., if n_feature_groups_
-            or _feature_groups_ids attributes are missing).
-        """
-        check_is_fitted(self)
 
     def _check_compatibility(self, X):
         """
@@ -668,3 +647,12 @@ class GroupVariableImportanceMixin:
                 f"{number_unique_feature_in_groups}",
                 stacklevel=find_stack_level(),
             )
+
+    def __sklearn_is_fitted__(self) -> bool:
+        """
+        Built-in sklearn method to check if estimator is fit.
+        """
+        return (
+            getattr(self, "n_feature_groups_", None) is not None
+            or getattr(self, "_feature_groups_ids_", None) is not None
+        )

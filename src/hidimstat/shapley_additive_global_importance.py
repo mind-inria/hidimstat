@@ -10,6 +10,7 @@ import numbers
 
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -179,7 +180,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         return self
 
     def importance(self, X, y):
-        self._check_fit()
+        check_is_fitted(self)
         rng = check_random_state(self.random_state)
         self._check_compatibility(X)
         self.scoring = _check_loss_method_parameter(
@@ -199,7 +200,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         # subset of features without j
         self.subset_map_ = {}
         for j in range(self.n_feature_groups_):
-            group_ids = self._feature_groups_ids[j]
+            group_ids = self._feature_groups_ids_[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )

@@ -405,6 +405,17 @@ class TestModelXKnockoffExceptions:
         with pytest.raises(NotFittedError):
             model_x_knockoff.importance(X, y)
 
+    @pytest.mark.filterwarnings("error:Dimensions of")
+    def test_importance_dimension_swap_warning(self, data_generator):
+        """Test that a DeprecationWarning is issued at importance call."""
+        X, y, _ = data_generator
+        model_x_knockoff = ModelXKnockoff().fit(X, y)
+        with pytest.raises(
+            DeprecationWarning,
+            match=r"Dimensions of 'importances_' and 'pvalues_'",
+        ):
+            model_x_knockoff.importance(X, y)
+
 
 def test_hidimstat_tags():
     """Test to check that custom tag exists, and checks value of custom tags"""

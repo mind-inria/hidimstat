@@ -1,7 +1,7 @@
 import warnings
 
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted, clone
+from sklearn.base import BaseEstimator, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -192,7 +192,7 @@ class CFI(BasePerturbation):
                 imputation_model, X, feature_groups_ids
             )
             for feature_groups_ids, imputation_model in zip(
-                self._feature_groups_ids,
+                self._feature_groups_ids_,
                 self._list_imputation_models,
                 strict=False,
             )
@@ -209,39 +209,24 @@ class CFI(BasePerturbation):
         estimator.fit(X_minus_j, X_j)
         return estimator
 
-    def _check_fit(self):
-        """
-        Check if base class and imputation models have been fitted.
-
-        Raises
-        ------
-        ValueError
-            If the class has not been fitted (i.e., if n_feature_groups_
-            or _feature_groups_ids attributes are missing).
-            If the class has not been fitted or imputation models are not fitted.
-
-        """
-        super()._check_fit()
-        if len(self._list_imputation_models) == 0:
-            raise ValueError(
-                "The imputation models require to be fitted before being used."
-            )
-        for m in self._list_imputation_models:
-            check_is_fitted(m.model)
-
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = _get_array_cols(X, self._feature_groups_ids[features_group_id])
+        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
         X_minus_j = _get_array_cols(
-            X, self._feature_groups_ids[features_group_id], drop=True
+            X, self._feature_groups_ids_[features_group_id], drop=True
         )
         return self._list_imputation_models[features_group_id].sample(
             X_minus_j,
             X_j,
             n_samples=self.n_permutations,
             random_state=random_state,
+        )
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return len(self._list_imputation_models) != 0 and all(
+            m.model is not None for m in self._list_imputation_models
         )
 
 
