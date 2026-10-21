@@ -421,7 +421,7 @@ def test_exception_not_fitted(generate_classif_data):
         scaled_statistics=True,
     )
     with pytest.raises(
-        ValueError, match="The D0CRT requires to be fit before any analysis"
+        ValueError, match="This D0CRT instance is not fitted yet"
     ):
         _, _ = d0crt.importance(X, y)
 

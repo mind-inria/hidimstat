@@ -1,7 +1,7 @@
 import warnings
 
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone
+from sklearn.base import clone
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
@@ -110,7 +110,7 @@ class LOCO(BasePerturbation):
                 estimator, X, y, feature_groups_ids
             )
             for feature_groups_ids, estimator in zip(
-                self._feature_groups_ids,
+                self._feature_groups_ids_,
                 self._list_estimators,
                 strict=False,
             )
@@ -133,9 +133,9 @@ class LOCO(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        # Since we don't have access to column names, we use the member _feature_groups_ids
+        # Since we don't have access to column names, we use the member _feature_groups_ids_
         X_minus_j = _get_array_cols(
-            X, self._feature_groups_ids[features_group_id], drop=True
+            X, self._feature_groups_ids_[features_group_id], drop=True
         )
 
         scoring_loco = self.scoring(
@@ -144,19 +144,11 @@ class LOCO(BasePerturbation):
 
         return [scoring_loco]
 
-    def _check_fit(self):
-        """
-        Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        super()._check_fit()
-        check_is_fitted(self.estimator)
-        if self._list_estimators is None:
-            raise ValueError(
-                "The estimators require to be fit before to use them"
-            )
-        for m in self._list_estimators:
-            check_is_fitted(m)
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "estimator_", None) is not None
+            and getattr(self, "_list_estimators", None) is not None
+        )
 
 
 def loco_importance(

@@ -86,7 +86,7 @@ def test_cluster_importance_check_fit(data_generator):
     )
 
     with pytest.raises(
-        ValueError, match="The estimator needs to be fit before using them"
+        ValueError, match="This ClusterImportance instance is not fitted yet"
     ):
         cludl.importance(X, y)
 
