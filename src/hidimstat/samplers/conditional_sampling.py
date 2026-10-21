@@ -226,11 +226,9 @@ class ConditionalSampler:
 
     def feature_predictability(self, X: np.ndarray, y: np.ndarray) -> float:
         """
-        Scores how well $X^j$ is predicted from $X^{-j}$.
-
+        Computes how well $X^j$ is predicted from $X^{-j}$.
         For continuous data, the coefficient of determination $R^2$ is used.
         For categorical data, the ROC-AUC is computed.
-
         For a group of variables, the scores are averaged uniformly
         over the columns.
 
