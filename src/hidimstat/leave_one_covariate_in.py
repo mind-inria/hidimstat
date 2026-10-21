@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import check_is_fitted, clone, is_classifier, is_regressor
+from sklearn.base import clone, is_classifier, is_regressor
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
 from hidimstat._utils.docstring import _aggregate_docstring
@@ -107,7 +107,7 @@ class LOCI(BasePerturbation):
                 estimator, X, y, feature_groups_ids
             )
             for feature_groups_ids, estimator in zip(
-                self._feature_groups_ids,
+                self._feature_groups_ids_,
                 self._list_estimators,
                 strict=False,
             )
@@ -181,8 +181,8 @@ class LOCI(BasePerturbation):
         Used in parallel.
         """
         del random_state  # not used (only there for API compatibility)
-        # Since we don't have access to column names, we use the member _feature_groups_ids
-        X_j = _get_array_cols(X, self._feature_groups_ids[features_group_id])
+        # Since we don't have access to column names, we use the member _feature_groups_ids_
+        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
 
         scoring_loci = self.scoring(
             self._list_estimators[features_group_id], X_j, y
@@ -190,18 +190,11 @@ class LOCI(BasePerturbation):
 
         return [scoring_loci]
 
-    def _check_fit(self):
-        """Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        super()._check_fit()
-        check_is_fitted(self.estimator_)
-        if self._list_estimators is None:
-            raise ValueError(
-                "The estimators require to be fit before to use them"
-            )
-        for m in self._list_estimators:
-            check_is_fitted(m)
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "estimator_", None) is not None
+            and getattr(self, "_dummy_estimator_", None) is not None
+        )
 
 
 def loci_importance(

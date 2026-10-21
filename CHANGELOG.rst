@@ -26,3 +26,4 @@ Changes
 - :bdg-primary:`Doc` Added an example giving an overview of a feature importance analysis with ``hidimstat`` (:gh:`800` by `Joseph Paillard`_).
 - :bdg-warning:`API` Swapped ModelXKnockoffs importance dimensions for API consistencies (:gh:`825` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Exposing fitted conditional samplers and adding a ``feature_predictability_`` attribute in CFI (:gh:`829` by `Marc Hulcelle`_).
+- :bdg-warning:`API` Deleted custom ``_check_fit()`` method for more sklearn compliance (:gh:`834` by `Marc Hulcelle`_).
