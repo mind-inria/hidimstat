@@ -52,7 +52,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Whether to center X and y before fitting.
     dof_ajdustement : bool, default=False
         Whether to apply degrees of freedom adjustment for small samples.
-    preconfigure_model_x_path: bool, default=True
+    preconfigure_model_x_path: bool, default=False
         Whether to preconfigure model_x with n_jobs and random_state.
     alpha_max_fraction : float, default=0.01
         Only used if preconfigure_model_x_path is True. Fraction of maximum alpha to
@@ -118,7 +118,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         dof_ajdustement=False,
         # parameters for model_x
         model_x=None,
-        preconfigure_model_x_path=True,
+        preconfigure_model_x_path=False,
         alpha_max_fraction=0.01,
         random_state=None,
         save_model_x=False,
