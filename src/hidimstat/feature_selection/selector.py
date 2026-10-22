@@ -26,7 +26,7 @@ class SelectorMixin(TransformerMixin):
         hidimstat.BaseVariableImportance. For perturbation-based estimators, such as
         PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.)
         for a proper feature importance estimation. Automatic fallback to the cross-validated
-        alternative is operated with a warning.
+        alternative is executed with a warning.
 
     Raises
     ------
@@ -85,7 +85,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
-        operated with a warning.
+        executed with a warning.
     k_best : int, default=5
         Selects the top k features based on values.
 
@@ -128,7 +128,7 @@ class PValueSelect(SelectorMixin, BaseEstimator):
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
-        operated with a warning.
+        executed with a warning.
     k_lowest : int, default=None
         Selects the lowest k features based on values.
     percentile : float, default=None
@@ -190,7 +190,7 @@ class FDRSelect(SelectorMixin, BaseEstimator):
         The estimator that will be used to perform feature selection. For perturbation-based estimators
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
-        operated with a warning.
+        executed with a warning.
     fdr : float
         The target false discovery rate level (between 0 and 1)
     fdr_control: {'bhq', 'bhy'}, default='bhq'
@@ -254,7 +254,7 @@ class FWERSelect(SelectorMixin, BaseEstimator):
         The estimator that will be used to perform feature selection. For perturbation-based estimators,
         such as PFI / CFI / LOCI / LOCO, please use the cross-validated alternative (PFICV etc.) for a
         proper feature importance estimation. Automatic fallback to the cross-validated alternative is
-        operated with a warning.
+        executed with a warning.
     fwer : float
         The target family-wise error rate level (between 0 and 1)
     procedure : {'bonferroni'}, default='bonferroni'
