@@ -26,7 +26,7 @@ We provide an overview of accounts and tools necessary to help maintaining the l
   and uploads the output files on the documentation repository.
   A new maintainer should have a direct access to CircleCI by authentifying
   themselves on the website with their GitHub account. The organization ``mind-inria`` in CircleCI uses the
-  `GitHub OAuth app integration <https://circleci.com/docs/guides/getting-started/invite-your-team/#join-via-github>`_,
+  `GitHub OAuth app integration <https://circleci.com/docs/guides/getting-started/invite-your-team/>`_,
   which means all CircleCI role and permission settings are inherited from GitHub.
   No additional parametrization is required.
 * `CodeCov <https://about.codecov.io/>`_: this tool creates easy-to-read test reports to assess the code coverage of tests.
