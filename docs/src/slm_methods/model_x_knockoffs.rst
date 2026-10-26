@@ -3,10 +3,10 @@
 Model-X Knockoffs
 =================
 
-The Model-X Knockoffs method :footcite:t:`candes2018panning` is a method for variable
-selection that controls the false discovery rate (FDR). It is particularly useful in
-high-dimensional settings since its default implementation leverages sparse regression
-with the Lasso.
+The Model-X Knockoffs method is a method for variable selection that controls the false
+discovery rate (FDR) :footcite:t:`barber2015controlling`, :footcite:t:`candes2018panning`.
+It is particularly useful in high-dimensional settings since its default implementation
+leverages sparse regression with the Lasso.
 
 
 Regression example
@@ -112,7 +112,8 @@ The generation of knockoff variables introduces randomness in the selection proc
 Indeed, the sample of knockoff variables :math:`\tilde{X}` corresponds to a single draw
 and repeating the entire procedure, with a different set of knockoff variables, may lead
 to a different selection set. To mitigate this source of variability, the selection can
-be de-randomized by aggregating the results of multiple runs of the Knockoff procedure.
+be de-randomized by aggregating the results of multiple runs of the Knockoff procedure
+:footcite:t:`pmlr-v119-nguyen20a`.
 This can be done using the ``n_repeats`` parameter, for instance,
 ``ModelXKnockoff(n_repeats=10)``.
 
