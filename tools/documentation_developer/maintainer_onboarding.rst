@@ -38,8 +38,8 @@ Library Management
 ------------------
 
 The rest of the developer documentation explains the :ref:`developer guidelines<developer_guidelines>`
-that detail the repository and code structure, provides guidelines on general code
-writing conventions, and design choices on reproducibility and randomness.
+for the repository and code structure, and provides guidelines on general code
+writing conventions and design choices on reproducibility and randomness.
 Our guide on the :ref:`test suite<test_suite>` details its organization, and design choices.
 The general :ref:`contribution rules<how_to_contribute_hidimstat>` of the repository explain the
 management of issues and Pull Requests (PR).
