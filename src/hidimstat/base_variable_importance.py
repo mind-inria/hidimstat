@@ -215,7 +215,7 @@ class BaseVariableImportance(BaseEstimator):
         ------
         ValueError
             If `importances_` haven't been computed yet
-        AssertionError
+        hidimstat.InternalError
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
@@ -489,7 +489,6 @@ class GroupVariableImportanceMixin:
         ValueError
             If X is not a pandas DataFrame or numpy array.
             If column names in X don't match those used during fitting.
-        AssertionError
             If feature indices are out of bounds.
             If required feature names are missing from X.
         Warning

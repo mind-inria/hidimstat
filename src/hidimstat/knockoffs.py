@@ -371,7 +371,7 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Raises
         ------
-        AssertionError
+        ValueError
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
