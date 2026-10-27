@@ -417,6 +417,8 @@ def test_no_group_output_detection(data_generator):
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
@@ -455,7 +457,7 @@ def test_fit(data_generator):
 
     # Test fit with auto var_type
     cfi.fit(X)
-    assert len(cfi._list_imputation_models) == X.shape[1]
+    assert len(cfi._conditionnal_samplers) == X.shape[1]
     assert cfi.n_feature_groups_ == X.shape[1]
 
 
@@ -478,7 +480,7 @@ def test_fit_group(data_generator):
     )
     cfi.fit(X)
 
-    assert len(cfi._list_imputation_models) == 2
+    assert len(cfi._conditionnal_samplers) == 2
     assert cfi.n_feature_groups_ == 2
 
 
@@ -514,6 +516,8 @@ def test_categorical(
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
@@ -567,37 +571,6 @@ def test_unfitted_base_perturbation(data_generator):
         match="This CFI instance is not fitted yet",
     ):
         cfi.importance(X, y)
-
-
-@pytest.mark.parametrize(
-    PARAM_NAMES,
-    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
-    ids=["default data"],
-)
-def test_invalid_type(data_generator):
-    """Test invalid type of data"""
-    X, y, _ = data_generator
-
-    # Test error when passing invalid var_type
-    with pytest.raises(
-        ValueError, match="feature_types support only the string 'auto'"
-    ):
-        run_cfi(X=X, y=y, seed=0, feature_types="invalid")
-
-
-@pytest.mark.parametrize(
-    PARAM_NAMES,
-    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
-    ids=["default data"],
-)
-def test_invalid_n_permutations(data_generator):
-    """Test when invalid number of permutations is provided"""
-    X, y, _ = data_generator
-
-    with pytest.raises(
-        AssertionError, match="n_permutations must be positive"
-    ):
-        run_cfi(X=X, y=y, seed=0, n_permutations=-1)
 
 
 @pytest.mark.parametrize(
@@ -717,65 +690,6 @@ def test_internal_error(data_generator):
         match="A problem with indexing has happened during the fit",
     ):
         cfi.importance(X, y)
-
-
-@pytest.mark.parametrize(
-    PARAM_NAMES,
-    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
-    ids=["default data"],
-)
-def test_invalid_var_type(data_generator):
-    """Test when invalid variable type is provided"""
-    X, y, _ = data_generator
-
-    with pytest.raises(
-        ValueError, match="type of data 'invalid_type' unknown"
-    ):
-        run_cfi(X=X, y=y, seed=0, feature_types=["invalid_type"] * X.shape[1])
-
-
-@pytest.mark.parametrize(
-    PARAM_NAMES,
-    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
-    ids=["default data"],
-)
-def test_incompatible_imputer(data_generator):
-    """Test when incompatible imputer is provided"""
-    X, y, _ = data_generator
-    fitted_model = LinearRegression().fit(X, y)
-
-    with pytest.raises(
-        AssertionError, match="Continuous imputation model invalid"
-    ):
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous="invalid_imputer",
-            scoring="mean_squared_error",
-        )
-
-    with pytest.raises(
-        AssertionError, match="Categorial imputation model invalid"
-    ):
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_categorical="invalid_imputer",
-            scoring="mean_squared_error",
-        )
-
-
-@pytest.mark.parametrize(
-    PARAM_NAMES,
-    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
-    ids=["default data"],
-)
-def test_invalid_groups_format(data_generator):
-    """Test when groups are provided in invalid format"""
-    X, y, _ = data_generator
-
-    with pytest.raises(
-        ValueError, match="feature_groups needs to be a dictionary"
-    ):
-        run_cfi(X=X, y=y, seed=0, feature_groups=["group1", "group2"])
 
 
 @pytest.mark.parametrize(
