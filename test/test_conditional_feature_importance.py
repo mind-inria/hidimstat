@@ -369,7 +369,7 @@ def test_group(data_generator):
     # Verify that important feature group has higher score
     # than non-important feature group
     assert importance[0] > importance[1]
-    assert all(model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(model.multioutput_ for model in cfi.fitted_samplers_)
 
 
 @pytest.mark.parametrize(
@@ -402,7 +402,7 @@ def test_no_group_output_detection(data_generator):
 
     # Check that the conditional samplers properly detect this is not a multi-output setting.
     cfi.fit(X_train_df)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
@@ -410,7 +410,7 @@ def test_no_group_output_detection(data_generator):
     # Check same thing when X is a np.ndarray
     regression_model.fit(X_train_df.values, y_train)
     cfi.fit(X_train_df.values)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df.values, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
@@ -454,7 +454,7 @@ class TestCFIClass:
 
         # Test fit with auto var_type
         cfi.fit(X)
-        assert len(cfi._list_imputation_models) == X.shape[1]
+        assert len(cfi._conditionnal_samplers) == X.shape[1]
         assert cfi.n_feature_groups_ == X.shape[1]
 
     def test_fit_group(self, data_generator):
@@ -471,7 +471,7 @@ class TestCFIClass:
         )
         cfi.fit(X)
 
-        assert len(cfi._list_imputation_models) == 2
+        assert len(cfi._conditionnal_samplers) == 2
         assert cfi.n_feature_groups_ == 2
 
     def test_categorical(
@@ -580,7 +580,7 @@ class TestCFIExceptions:
         cfi.fit(X)
 
         with pytest.raises(
-            AssertionError, match="X does not correspond to the fitting data"
+            ValueError, match="X does not correspond to the fitting data"
         ):
             cfi.importance(X[:, :-1], y)
 
@@ -606,7 +606,7 @@ class TestCFIExceptions:
         cfi.fit(X)
 
         with pytest.raises(
-            AssertionError,
+            ValueError,
             match=r"The array is missing at least one of the following columns \['col_10', 'col_11', 'col_12',",
         ):
             cfi.importance(
@@ -965,3 +965,124 @@ def test_unfitted_estimator(data_generator):
 def test_deprecation_warning():
     with pytest.raises(DeprecationWarning, match="Please use class CFI"):
         cfi_importance(estimator=None, X=None, y=None)
+
+
+def test_plot_predictability_arguments_error(cfi_test_data):
+    """Test CFI feature predictability argument plot"""
+    _X_train, _X_test, _y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    with pytest.raises(TypeError, match=r"'feature_names' should be a list"):
+        cfi.plot_feature_predictability(feature_names="Not a list")
+
+
+def test_plot_predictability_not_computed(cfi_test_data):
+    """
+    Test error raised when feature predictability is not computed but plotting
+    is called.
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test, feat_predictability=False)
+    with pytest.raises(
+        RuntimeError,
+        match=r"Attribute 'feature_predictability_' has not been computed",
+    ):
+        cfi.plot_feature_predictability()
+
+
+def test_plot_predictability_axis(cfi_test_data):
+    """Test argument axis of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+    n_features = X_train.shape[1]
+    feature_names = [str(i) for i in range(n_features)]
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    ax_1 = cfi.plot_feature_predictability(
+        ax=None, feature_names=feature_names
+    )
+    assert isinstance(ax_1, plt.Axes)
+
+    _, ax_2 = plt.subplots()
+    ax_2_bis = cfi.plot_feature_predictability(
+        ax=ax_2, feature_names=feature_names
+    )
+    assert isinstance(ax_2_bis, plt.Axes)
+    assert ax_2_bis == ax_2
+
+
+def test_plot_predictability_ascending(cfi_test_data):
+    """Test argument ascending of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    ax_decending = cfi.plot_feature_predictability(ascending=False)
+    assert np.all(
+        ax_decending.containers[0].datavalues
+        == np.flip(np.sort(cfi.feature_predictability_))
+    )
+
+    ax_ascending = cfi.plot_feature_predictability(ascending=True)
+    assert np.all(
+        ax_ascending.containers[0].datavalues
+        == np.sort(cfi.feature_predictability_)
+    )
+
+
+def test_plot_predictability_feature_names(cfi_test_data):
+    """Test argument ascending of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    features_name = [
+        str(j) for j in np.flip(np.argsort(cfi.feature_predictability_))
+    ]
+    ax_none = cfi.plot_feature_predictability(feature_names=None)
+    assert np.all(
+        np.array([label.get_text() for label in ax_none.get_yticklabels()])
+        == features_name
+    )
+
+    features_name = [
+        "features_" + str(j)
+        for j in np.flip(np.sort(cfi.feature_predictability_))
+    ]
+    ax_setup = cfi.plot_feature_predictability(feature_names=features_name)
+    assert np.all(
+        np.array([label.get_text() for label in ax_setup.get_yticklabels()])
+        == np.flip(
+            np.array(features_name)[np.argsort(cfi.feature_predictability_)]
+        )
+    )
+
+    cfi.feature_groups_ = {
+        str(j * 2): [] for j in np.flip(np.sort(cfi.feature_predictability_))
+    }
+    features_name = [
+        str(j * 2) for j in np.flip(np.sort(cfi.feature_predictability_))
+    ]
+    ax_none_group = cfi.plot_feature_predictability(feature_names=None)
+    assert np.all(
+        np.array(
+            [label.get_text() for label in ax_none_group.get_yticklabels()]
+        )
+        == np.flip(
+            np.array(features_name)[np.argsort(cfi.feature_predictability_)]
+        )
+    )

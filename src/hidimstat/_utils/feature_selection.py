@@ -220,8 +220,10 @@ def _fdr_selection(
         raise ValueError(
             r"Shape mismatch of 'p_values' and 'importances' on axis 0."
         )
-    if fdr < 0 or fdr > 1:
-        raise ValueError(f"'fdr' must be a float between 0 and 1, got {fdr}.")
+    if fdr <= 0 or fdr >= 1:
+        raise ValueError(
+            f"'fdr' must be a float strictly between 0 and 1, got {fdr}."
+        )
     if fdr_control not in {"bhq", "bhy"}:
         raise ValueError(
             f"'fdr_control' must be one of ('bhq', 'bhy'), got {fdr_control}."

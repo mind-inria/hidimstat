@@ -27,5 +27,6 @@ Changes
 - :bdg-primary:`API` Added sklearn-compatible feature selectors (SelectTopK / PValueSelect / FDRSelect / FWERSelect) (:gh:`824` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Moved parameter checks to ``fit()`` and ``importance()`` methods (:gh:`827` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Swapped ModelXKnockoffs importance dimensions for API consistencies (:gh:`825` by `Marc Hulcelle`_).
+- :bdg-warning:`API` Exposing fitted conditional samplers and adding a ``feature_predictability_`` attribute in CFI (:gh:`829` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Deleted custom ``_check_fit()`` method for more sklearn compliance (:gh:`834` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` Added upper bound to pandas version due to sklearn incompatibility (:gh:`840` by `Marc Hulcelle`_).

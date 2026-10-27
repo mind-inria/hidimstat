@@ -146,7 +146,8 @@ class TestSelectionFDRParameterChecks:
         """Test selection fdr wrong"""
         importances, pvalues = create_importances_pvalues
         with pytest.raises(
-            ValueError, match=r"'fdr' must be a float between 0 and 1, got -1."
+            ValueError,
+            match=r"'fdr' must be a float strictly between 0 and 1, got -1.",
         ):
             _fdr_selection(
                 p_values=pvalues,
@@ -155,7 +156,7 @@ class TestSelectionFDRParameterChecks:
             )
         with pytest.raises(
             ValueError,
-            match=r"'fdr' must be a float between 0 and 1, got 1.1.",
+            match=r"'fdr' must be a float strictly between 0 and 1, got 1.1.",
         ):
             _fdr_selection(
                 p_values=pvalues,

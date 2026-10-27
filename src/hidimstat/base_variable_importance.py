@@ -147,22 +147,28 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features (True for selected).
         """
         self._check_importance()
-        assert self.pvalues_ is not None, (
-            "The selection on p-value can't be done because the current method does not compute p-values."
-        )
-        if threshold_min is not None:
-            assert threshold_min > 0 and threshold_min < 1, (
-                "threshold_min needs to be between 0 and 1"
+        if self.pvalues_ is None:
+            raise InternalError(
+                "The selection on p-value can't be done because the current method does not compute p-values."
             )
-        if threshold_max is not None:
-            assert threshold_max > 0 and threshold_max < 1, (
-                "threshold_max needs to be between 0 and 1"
+        if threshold_max is not None and (
+            threshold_max <= 0 or threshold_max >= 1
+        ):
+            raise ValueError(
+                "'threshold_max' strictly needs to be between 0 and 1"
             )
-        assert alternative_hypothesis is None or isinstance(
+        if threshold_min is not None and (
+            threshold_min <= 0 or threshold_min >= 1
+        ):
+            raise ValueError(
+                "'threshold_min' strictly needs to be between 0 and 1"
+            )
+        if alternative_hypothesis is not None and not isinstance(
             alternative_hypothesis, bool
-        ), (
-            "alternative_hippothesis can have only three values: True, False and None."
-        )
+        ):
+            raise ValueError(
+                "'alternative_hypothesis' can have only three values: True, False and None."
+            )
         return _generic_selection(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
@@ -213,13 +219,10 @@ class BaseVariableImportance(BaseEstimator):
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
-        assert fdr > 0 and fdr < 1, "FDR needs to be between 0 and 1 excluded"
-        assert self.pvalues_ is not None, (
-            "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
-        )
-        assert fdr_control in {"bhq", "bhy"}, (
-            "only 'bhq' and 'bhy' are supported"
-        )
+        if self.pvalues_ is None:
+            raise InternalError(
+                "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
+            )
 
         return _fdr_selection(
             p_values=self.pvalues_,
@@ -327,11 +330,10 @@ class BaseVariableImportance(BaseEstimator):
                     str(j) for j in range(self.importances_.shape[-1])
                 ]
         elif isinstance(feature_names, list):
-            assert np.all(isinstance(name, str) for name in feature_names), (
-                "feature_names should be a list of strings"
-            )
+            if not np.all(isinstance(name, str) for name in feature_names):
+                raise ValueError("'feature_names' should be a list of strings")
         else:
-            raise ValueError("feature_names should be a list")
+            raise ValueError("'feature_names' should be a list")
 
         if self.importances_.ndim == 2:
             df_plot = {
@@ -508,15 +510,19 @@ class GroupVariableImportanceMixin:
         number_columns = X.shape[1]
         for index_variables in self.feature_groups_.values():
             if isinstance(index_variables[0], numbers.Integral):
-                assert np.all(
+                if not np.all(
                     np.array(index_variables, dtype=int) < number_columns
-                ), "X does not correspond to the fitting data."
+                ):
+                    raise ValueError(
+                        "X does not correspond to the fitting data."
+                    )
             elif type(index_variables[0]) is str or np.issubdtype(
                 type(index_variables[0]), str
             ):
-                assert np.all([name in names for name in index_variables]), (
-                    f"The array is missing at least one of the following columns {index_variables}."
-                )
+                if not np.all([name in names for name in index_variables]):
+                    raise ValueError(
+                        f"The array is missing at least one of the following columns {index_variables}."
+                    )
             else:
                 raise InternalError(
                     "A problem with indexing has happened during the fit."
