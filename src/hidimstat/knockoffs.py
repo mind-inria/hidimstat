@@ -375,10 +375,6 @@ class ModelXKnockoff(BaseVariableImportance):
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
-        if self.importances_ is None:
-            raise ValueError(
-                "this method doesn't support selection based on FDR"
-            )
 
         if self.importances_.shape[0] == 1:
             self.threshold_fdr_ = self.knockoff_threshold(
@@ -388,8 +384,9 @@ class ModelXKnockoff(BaseVariableImportance):
         elif not evalues:
             if fdr_control == "ebh":
                 warnings.warn(
-                    "For p-values, the fdr control can't be 'ebh'."
+                    "For p-values, the fdr control can't be 'ebh'. "
                     "Coercing value to 'bhq'.",
+                    UserWarning,
                     stacklevel=2,
                 )
                 fdr_control = "bhq"
@@ -412,8 +409,9 @@ class ModelXKnockoff(BaseVariableImportance):
         else:
             if fdr_control != "ebh":
                 warnings.warn(
-                    "For e-values, the fdr control needs to be 'ebh'."
+                    "For e-values, the fdr control needs to be 'ebh'. "
                     "Coercing value to 'ebh'.",
+                    UserWarning,
                     stacklevel=2,
                 )
                 fdr_control = "ebh"

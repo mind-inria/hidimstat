@@ -422,15 +422,6 @@ class D0CRT(BaseVariableImportance):
         """
         Check attributes needed during importance values computation.
         """
-        if (
-            self.sigma_X is not None
-            and not isinstance(self.sigma_X, np.ndarray)
-            and self.sigma_X.ndim != 2
-        ):
-            raise TypeError(
-                "'sigma_X' needs to be a np.ndarray of dimension 2."
-            )
-
         if not isinstance(self.scaled_statistics, bool):
             raise TypeError("'scaled_statistics' needs to be a bool.")
 

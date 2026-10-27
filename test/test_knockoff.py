@@ -445,3 +445,25 @@ def test_deprecation_warning():
         DeprecationWarning, match="Please use class ModelXKnockoff"
     ):
         model_x_knockoff_importance(estimator=None, X=None, y=None)
+
+
+@pytest.mark.filterwarnings("error:For p-values, the fdr control")
+def test_p_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For p-values, the fdr control can't be 'ebh'. Coercing value to 'bhq'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="ebh", evalues=False)
+
+
+@pytest.mark.filterwarnings("error:For e-values, the fdr control")
+def test_e_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For e-values, the fdr control needs to be 'ebh'. Coercing value to 'ebh'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="bhq", evalues=True)

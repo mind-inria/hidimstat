@@ -200,6 +200,16 @@ def test_check_reuse_screening_model_attribute_before_fit():
         dcrt._check_fit_attributes()
 
 
+def test_check_scaled_statistics_attribute_before_importance():
+    dcrt = D0CRT(estimator=None)
+
+    dcrt.scaled_statistics = "bool"
+    with pytest.raises(
+        TypeError, match=r"'scaled_statistics' needs to be a bool"
+    ):
+        dcrt._check_importance_attributes()
+
+
 ###########################################################################################
 
 
