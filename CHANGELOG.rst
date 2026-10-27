@@ -26,3 +26,4 @@ Changes
 - :bdg-primary:`Doc` Added an example giving an overview of a feature importance analysis with ``hidimstat`` (:gh:`800` by `Joseph Paillard`_).
 - :bdg-warning:`API` Swapped ModelXKnockoffs importance dimensions for API consistencies (:gh:`825` by `Marc Hulcelle`_).
 - :bdg-warning:`API` Deleted custom ``_check_fit()`` method for more sklearn compliance (:gh:`834` by `Marc Hulcelle`_).
+- :bdg-secondary:`Maint` Added upper bound to pandas version due to sklearn incompatibility (:gh:`840` by `Marc Hulcelle`_).

@@ -37,6 +37,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "joblib       >= 1.4",
+    # TODO: remove upper bound when new sklearn version fixes incompatibility with pandas
     "pandas       >= 2.2, < 3.1",
     "scikit-learn >= 1.6",
     "scipy        >= 1.13",
