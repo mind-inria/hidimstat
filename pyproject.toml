@@ -169,6 +169,7 @@ skip-magic-trailing-comma = false
 fixable = ["ALL"]
 ignore = [
     "B008",
+    "C901",
     "D100",
     "D101",
     "D102",
