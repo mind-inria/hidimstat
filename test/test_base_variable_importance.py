@@ -5,6 +5,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.linear_model import LassoCV
 
 from hidimstat import ClusterImportance, DesparsifiedLasso
+from hidimstat._utils.exception import InternalError
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
@@ -297,7 +298,7 @@ class TestBVIExceptions:
         vi = set_100_variable_sorted
         vi.pvalues_ = None
         with pytest.raises(
-            AssertionError,
+            InternalError,
             match="The selection on p-value can't be done because the current method does not compute p-values",
         ):
             vi.pvalue_selection(threshold_min=-1)
@@ -306,19 +307,23 @@ class TestBVIExceptions:
         """Test selection threshold wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
-            AssertionError, match="threshold_min needs to be between 0 and 1"
+            ValueError,
+            match="'threshold_min' strictly needs to be between 0 and 1",
         ):
             vi.pvalue_selection(threshold_min=-1)
         with pytest.raises(
-            AssertionError, match="threshold_min needs to be between 0 and 1"
+            ValueError,
+            match="'threshold_min' strictly needs to be between 0 and 1",
         ):
             vi.pvalue_selection(threshold_min=1.1)
         with pytest.raises(
-            AssertionError, match="threshold_max needs to be between 0 and 1"
+            ValueError,
+            match="'threshold_max' strictly needs to be between 0 and 1",
         ):
             vi.pvalue_selection(threshold_max=-1)
         with pytest.raises(
-            AssertionError, match="threshold_max needs to be between 0 and 1"
+            ValueError,
+            match="'threshold_max' strictly needs to be between 0 and 1",
         ):
             vi.pvalue_selection(threshold_max=1.1)
 
@@ -337,18 +342,18 @@ class TestSelectionFDRExceptions:
         """Test selection fdr with wrong fdr"""
         vi = set_100_variable_sorted
         with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
+            ValueError,
+            match=r"'fdr' must be a float strictly between 0 and 1, got 0.0",
         ):
             vi.fdr_selection(fdr=0.0)
         with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
+            ValueError,
+            match=r"'fdr' must be a float strictly between 0 and 1, got 1.0",
         ):
             vi.fdr_selection(fdr=1.0)
         with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
+            ValueError,
+            match=r"'fdr' must be a float strictly between 0 and 1, got -1.0",
         ):
             vi.fdr_selection(fdr=-1.0)
 
@@ -357,7 +362,7 @@ class TestSelectionFDRExceptions:
         vi = set_100_variable_sorted
         vi.pvalues_ = None
         with pytest.raises(
-            AssertionError,
+            InternalError,
             match=r"FDR-based selection requires p-values to be computed first. The current method does not support p-values",
         ):
             vi.fdr_selection(fdr=0.1)
@@ -366,8 +371,8 @@ class TestSelectionFDRExceptions:
         """Test selection fdr_control wrong"""
         vi = set_100_variable_sorted
         with pytest.raises(
-            AssertionError,
-            match="only 'bhq' and 'bhy' are supported",
+            ValueError,
+            match=r"'fdr_control' must be one of \('bhq', 'bhy'\), got ehb.",
         ):
             vi.fdr_selection(fdr=0.1, fdr_control="ehb")
 
@@ -446,7 +451,7 @@ def test_plot_importance_feature_names(rng, create_bvi):
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    with pytest.raises(ValueError, match="feature_names should be a list"):
+    with pytest.raises(ValueError, match="'feature_names' should be a list"):
         ax_none_group = vi.plot_importance(feature_names="ttt")
 
 

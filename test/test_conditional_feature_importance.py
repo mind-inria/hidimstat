@@ -580,7 +580,7 @@ class TestCFIExceptions:
         cfi.fit(X)
 
         with pytest.raises(
-            AssertionError, match="X does not correspond to the fitting data"
+            ValueError, match="X does not correspond to the fitting data"
         ):
             cfi.importance(X[:, :-1], y)
 
@@ -606,7 +606,7 @@ class TestCFIExceptions:
         cfi.fit(X)
 
         with pytest.raises(
-            AssertionError,
+            ValueError,
             match=r"The array is missing at least one of the following columns \['col_10', 'col_11', 'col_12',",
         ):
             cfi.importance(
