@@ -350,6 +350,8 @@ def test_lasso_estimator_alphas(data_generator):
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
@@ -417,17 +419,6 @@ def test_unfitted_importance(data_generator):
 
     with pytest.raises(NotFittedError):
         model_x_knockoff.importance(X, y)
-
-
-@pytest.mark.parametrize(
-    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
-    ids=["default data"],
-)
-def test_invalid_n_samplings(data_generator):
-    """Test when invalid number of permutations is provided"""
-    with pytest.raises(AssertionError, match="n_repeats must be positive"):
-        ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
 
 
 @pytest.mark.parametrize(

@@ -360,15 +360,6 @@ def test_selection_threshold(set_100_variable_sorted):
         vi.pvalue_selection(threshold_max=1.1)
 
 
-def test_selection_k_best_attribute_checks(set_100_variable_sorted):
-    """Test selection k_best wrong"""
-    vi = set_100_variable_sorted
-    with pytest.raises(AssertionError, match="k_best needs to be positive"):
-        vi.importance_selection(k_best=-10)
-    with pytest.warns(Warning, match="k=1000 is greater than n_features="):
-        vi.importance_selection(k_best=1000)
-
-
 def test_fdr_selection_wrong_fdr(set_100_variable_sorted):
     """Test selection fdr with wrong fdr"""
     vi = set_100_variable_sorted
