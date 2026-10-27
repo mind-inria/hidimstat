@@ -35,6 +35,61 @@ def test_check_estimator_sklearn(estimator, check):
     check(estimator)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_ko_generator_attribute_before_fit():
+    """Test checks on ko_generator attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.ko_generator = LassoCV()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'ko_generator' needs to be a hidimstat.samplers.GaussianKnockoffs",
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.n_repeats = "smthg"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be a number"):
+        ko._check_fit_attributes()
+
+    ko.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.centered = "smthg"
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a bool"):
+        ko._check_fit_attributes()
+
+
+def test_check_preconfigure_lasso_path_attribute_before_fit():
+    """Test checks on preconfigure_lasso_path attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.preconfigure_lasso_path = "smthg"
+
+    with pytest.raises(
+        TypeError, match=r"'preconfigure_lasso_path' needs to be a bool"
+    ):
+        ko._check_fit_attributes()
+
+
+###########################################################################################
+
+
 def test_knockoff_bootstrap_quantile(rng):
     """Test bootstrap knockoof with quantile aggregation"""
     n = 100
@@ -192,7 +247,7 @@ def test_model_x_knockoff_estimator(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -261,7 +316,7 @@ def test_model_x_knockoff_null(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -420,3 +475,25 @@ def test_deprecation_warning():
         DeprecationWarning, match="Please use class ModelXKnockoff"
     ):
         model_x_knockoff_importance(estimator=None, X=None, y=None)
+
+
+@pytest.mark.filterwarnings("error:For p-values, the fdr control")
+def test_p_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For p-values, the fdr control can't be 'ebh'. Coercing value to 'bhq'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="ebh", evalues=False)
+
+
+@pytest.mark.filterwarnings("error:For e-values, the fdr control")
+def test_e_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For e-values, the fdr control needs to be 'ebh'. Coercing value to 'ebh'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="bhq", evalues=True)

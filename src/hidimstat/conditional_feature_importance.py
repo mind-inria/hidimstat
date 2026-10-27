@@ -1,5 +1,7 @@
 import warnings
 
+import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
@@ -65,6 +67,32 @@ class CFI(BasePerturbation):
         The number of jobs to run in parallel. Parallelization is done over the
         variables or groups of variables.
 
+    Attributes
+    ----------
+    estimator_ : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    feature_groups_ : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray (n_groups,)
+        Importance scores for each feature group.
+    score_reference_ : float
+        Score on original (non-perturbed) data.
+    score_ : dict
+        Score values for each permutation of each group.
+    pvalues_ : ndarray of shape (n_groups,)
+        P-values for importance scores.
+    fitted_samplers_ : list of hidimstat.conditional_sampling.ConditionalSampler
+        The list of fitted conditional samplers used for conditional permutations.
+
+        .. versionadded:: 0.5.0
+    feature_predictability_ : ndarray of shape (n_groups,)
+        Predictability of each group of variables $X^j$ from the others $X^{-j}$.
+        The chosen metrics is R2 for continuous groups, and
+        ROC-AUC (One-VS-Rest strategy) for categorical groups. The scores are
+        computed at importance call.
+
+        .. versionadded:: 0.5.0
+
     References
     ----------
     .. footbibliography::
@@ -98,19 +126,52 @@ class CFI(BasePerturbation):
             random_state=random_state,
         )
 
-        # check the validity of the inputs
-        assert imputation_model_continuous is None or issubclass(
-            imputation_model_continuous.__class__, BaseEstimator
-        ), "Continuous imputation model invalid"
-        assert imputation_model_categorical is None or issubclass(
-            imputation_model_categorical.__class__, BaseEstimator
-        ), "Categorial imputation model invalid"
-
         self.feature_types = feature_types
-        self._list_imputation_models = []
+        self._conditionnal_samplers = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
+
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+
+        # Not checking categorical_max_cardinality since it's an attribute
+        # check on ConditionalSampler side.
+
+        if self.imputation_model_continuous is None:
+            raise ValueError("'imputation_model_continuous' cannot be None.")
+        elif not isinstance(self.imputation_model_continuous, BaseEstimator):
+            raise TypeError("Continuous imputation model invalid.")
+
+        if self.imputation_model_categorical is None:
+            raise ValueError("'imputation_model_categorical' cannot be None.")
+        elif not isinstance(self.imputation_model_categorical, BaseEstimator):
+            raise TypeError("Categorial imputation model invalid.")
+
+        if isinstance(self.feature_types, str) and self.feature_types not in [
+            "auto",
+            "continuous",
+            "categorical",
+        ]:
+            raise ValueError(
+                "'feature_types' support only the string 'auto', 'continuous', 'categorical'."
+            )
+        elif isinstance(self.feature_types, list) and any(
+            t not in ["auto", "continuous", "categorical"]
+            for t in self.feature_types
+        ):
+            raise ValueError(
+                "One of 'feature_types' is not 'auto', 'continuous', 'categorical'."
+            )
+        elif not isinstance(self.feature_types, str) and not isinstance(
+            self.feature_types, list
+        ):
+            raise TypeError(
+                "'feature_types' needs to be a str or list of str."
+            )
 
     def fit(self, X, y=None):
         """
@@ -130,18 +191,12 @@ class CFI(BasePerturbation):
         """
         super().fit(X, y)
 
-        # check the feature type
         if isinstance(self.feature_types, str):
-            if self.feature_types in ["auto", "continuous", "categorical"]:
-                self.feature_types = [
-                    self.feature_types for _ in range(self.n_feature_groups_)
-                ]
-            else:
-                raise ValueError(
-                    "feature_types support only the string 'auto', 'continuous', 'categorical'"
-                )
+            self.feature_types = [
+                self.feature_types for _ in range(self.n_feature_groups_)
+            ]
 
-        self._list_imputation_models = [
+        self._conditionnal_samplers = [
             ConditionalSampler(
                 data_type=self.feature_types[features_group_id],
                 model_regression=(
@@ -160,27 +215,31 @@ class CFI(BasePerturbation):
         ]
 
         # Parallelize the fitting of the covariate estimators
-        self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
+        self.fitted_samplers_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X, feature_groups_ids
+                conditional_sampler, X, feature_groups_ids
             )
-            for feature_groups_ids, imputation_model in zip(
+            for feature_groups_ids, conditional_sampler in zip(
                 self._feature_groups_ids_,
-                self._list_imputation_models,
+                self._conditionnal_samplers,
                 strict=False,
             )
         )
 
         return self
 
-    def _joblib_fit_one_features_group(self, estimator, X, feature_groups_ids):
-        """Fit a single imputation model, for a single group of features. This method
-        is parallelized.
+    def _joblib_fit_one_features_group(
+        self, conditional_sampler, X, feature_groups_ids
+    ):
+        """
+        Fit a single conditional sampler, for a single group of features.
+        This method is parallelized.
         """
         X_j = _get_array_cols(X, feature_groups_ids)
         X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
-        estimator.fit(X_minus_j, X_j)
-        return estimator
+        sampler_ = conditional_sampler.clone()
+        sampler_.fit(X_minus_j, X_j)
+        return sampler_
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
@@ -190,16 +249,136 @@ class CFI(BasePerturbation):
         X_minus_j = _get_array_cols(
             X, self._feature_groups_ids_[features_group_id], drop=True
         )
-        return self._list_imputation_models[features_group_id].sample(
+        return self.fitted_samplers_[features_group_id].sample(
             X_minus_j,
             X_j,
             n_samples=self.n_permutations,
             random_state=random_state,
         )
 
+    def _joblib_compute_one_feature_predictability(
+        self, conditional_sampler, X, features_group_ids
+    ):
+        """
+        Compute the predictability of one feature group from a single conditional sampler.
+        """
+        X_j = _get_array_cols(X, features_group_ids)
+        X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
+        return conditional_sampler.feature_predictability(X_minus_j, X_j)
+
+    def importance(self, X, y, feat_predictability=True):
+        """
+        Compute the importance scores for each group of covariates, and the
+        predictability of each group from the others.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+            The target values.
+        feat_predictability : bool, default=True
+            Decides whether to compute feature predictability or not.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each feature group.
+        """
+        importances = super().importance(X, y)
+
+        if feat_predictability:
+            self.feature_predictability_ = np.asarray(
+                Parallel(n_jobs=self.n_jobs)(
+                    delayed(self._joblib_compute_one_feature_predictability)(
+                        sampler, X, feature_groups_ids
+                    )
+                    for feature_groups_ids, sampler in zip(
+                        self._feature_groups_ids_,
+                        self.fitted_samplers_,
+                        strict=True,
+                    )
+                )
+            )
+        return importances
+
+    def plot_feature_predictability(
+        self,
+        ax=None,
+        ascending=False,
+        feature_names=None,
+        **seaborn_barplot_kwargs,
+    ):
+        """
+        Plot feature predictability computed by the conditional samplers as a horizontal bar plot.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes or None, (default=None)
+            Axes object to draw the plot onto, otherwise uses the current Axes.
+        ascending: bool, default=False
+            Whether to sort features by ascending importance.
+        **seaborn_barplot_kwargs : additional keyword arguments
+            Additional arguments passed to seaborn.barplot.
+            https://seaborn.pydata.org/generated/seaborn.barplot.html
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The Axes object with the plot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+        except ImportError as e:
+            raise Exception(
+                "You need to install the seaborn package to use this functionality."
+            ) from e
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if feature_names is None:
+            feature_names = list(self.feature_groups_.keys())
+        elif not isinstance(feature_names, list):
+            raise TypeError("'feature_names' should be a list")
+
+        if not hasattr(self, "feature_predictability_"):
+            raise RuntimeError(
+                "Attribute 'feature_predictability_' has not been computed."
+                "Please call the 'importance' method with feat_predictability=True."
+            )
+
+        df = pd.DataFrame(
+            {
+                "Predictability": self.feature_predictability_,
+                "Feature": feature_names,
+            }
+        )
+        # Sort features by decreasing mean importance
+        mean_predictability = df.groupby("Feature").mean()
+        sorted_features = mean_predictability.sort_values(
+            by="Predictability", ascending=ascending
+        ).index
+        df["Feature"] = pd.Categorical(
+            df["Feature"],
+            categories=sorted_features,
+            ordered=True,
+        )
+        sns.barplot(
+            df,
+            x="Predictability",
+            y="Feature",
+            ax=ax,
+            **seaborn_barplot_kwargs,
+        )
+        sns.despine(ax=ax)
+        ax.set_ylabel("")
+        return ax
+
     def __sklearn_is_fitted__(self) -> bool:
-        return len(self._list_imputation_models) != 0 and all(
-            m.model is not None for m in self._list_imputation_models
+        return hasattr(self, "fitted_samplers_") and all(
+            m.model is not None for m in self.fitted_samplers_
         )
 
 
