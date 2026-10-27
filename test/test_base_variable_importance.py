@@ -303,6 +303,17 @@ class TestBVIExceptions:
         ):
             vi.pvalue_selection(threshold_min=-1)
 
+    def test_selection_pvalue_alternative_hypothesis(
+        self, set_100_variable_sorted
+    ):
+        """Test selection on pvalue without it"""
+        vi = set_100_variable_sorted
+        with pytest.raises(
+            ValueError,
+            match=r"'alternative_hypothesis' can have only three values: True, False and None",
+        ):
+            vi.pvalue_selection(alternative_hypothesis="True")
+
     def test_selection_threshold(self, set_100_variable_sorted):
         """Test selection threshold wrong"""
         vi = set_100_variable_sorted

@@ -167,7 +167,7 @@ class BaseVariableImportance(BaseEstimator):
             alternative_hypothesis, bool
         ):
             raise ValueError(
-                "'alternative_hippothesis' can have only three values: True, False and None."
+                "'alternative_hypothesis' can have only three values: True, False and None."
             )
         return _generic_selection(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
