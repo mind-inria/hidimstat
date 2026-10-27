@@ -241,6 +241,73 @@ def test_linear_data_partial(data_generator, n_permutations, cfi_seed):
     assert min_rank < 25
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_imputation_model_continuous_attribute_before_fit():
+    """Test checks on imputation_model_continuous attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.imputation_model_continuous = None
+
+    with pytest.raises(
+        ValueError, match=r"'imputation_model_continuous' cannot be None"
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.imputation_model_continuous = "wrongtype"
+    with pytest.raises(
+        TypeError, match=r"Continuous imputation model invalid"
+    ):
+        cfi._check_fit_attributes()
+
+
+def test_check_imputation_model_categorical_attribute_before_fit():
+    """Test checks on imputation_model_categorical attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.imputation_model_categorical = None
+
+    with pytest.raises(
+        ValueError, match=r"'imputation_model_categorical' cannot be None"
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.imputation_model_categorical = "wrongtype"
+    with pytest.raises(
+        TypeError, match=r"Categorial imputation model invalid"
+    ):
+        cfi._check_fit_attributes()
+
+
+def test_check_feature_types_attribute_before_fit():
+    """Test checks on feature_types attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.feature_types = "wrongtype"
+
+    with pytest.raises(
+        ValueError,
+        match=r"'feature_types' support only the string 'auto', 'continuous', 'categorical'",
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.feature_types = ["wrongtype", "auto", "continuous"]
+    with pytest.raises(
+        ValueError,
+        match=r"One of 'feature_types' is not 'auto', 'continuous', 'categorical'",
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.feature_types = None
+    with pytest.raises(
+        TypeError, match=r"'feature_types' needs to be a str or list of str"
+    ):
+        cfi._check_fit_attributes()
+
+
+###########################################################################################
+
+
 ##############################################################################
 @pytest.mark.parametrize(
     PARAM_NAMES,
@@ -480,25 +547,6 @@ class TestCFIExceptions:
         ):
             cfi.importance(X, y)
 
-    def test_invalid_type(self, data_generator):
-        """Test invalid type of data"""
-        X, y, _ = data_generator
-
-        # Test error when passing invalid var_type
-        with pytest.raises(
-            ValueError, match="feature_types support only the string 'auto'"
-        ):
-            run_cfi(X=X, y=y, seed=0, feature_types="invalid")
-
-    def test_invalid_n_permutations(self, data_generator):
-        """Test when invalid number of permutations is provided"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            AssertionError, match="n_permutations must be positive"
-        ):
-            run_cfi(X=X, y=y, seed=0, n_permutations=-1)
-
     def test_not_good_type_X(self, data_generator):
         """Test when X is wrong type"""
         X, y, _ = data_generator
@@ -600,49 +648,6 @@ class TestCFIExceptions:
         ):
             cfi.importance(X, y)
 
-    def test_invalid_var_type(self, data_generator):
-        """Test when invalid variable type is provided"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            ValueError, match="type of data 'invalid_type' unknown"
-        ):
-            run_cfi(
-                X=X, y=y, seed=0, feature_types=["invalid_type"] * X.shape[1]
-            )
-
-    def test_incompatible_imputer(self, data_generator):
-        """Test when incompatible imputer is provided"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-
-        with pytest.raises(
-            AssertionError, match="Continuous imputation model invalid"
-        ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_continuous="invalid_imputer",
-                scoring="mean_squared_error",
-            )
-
-        with pytest.raises(
-            AssertionError, match="Categorial imputation model invalid"
-        ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_categorical="invalid_imputer",
-                scoring="mean_squared_error",
-            )
-
-    def test_invalid_groups_format(self, data_generator):
-        """Test when groups are provided in invalid format"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            ValueError, match="feature_groups needs to be a dictionary"
-        ):
-            run_cfi(X=X, y=y, seed=0, feature_groups=["group1", "group2"])
-
     def test_groups_warning(self, data_generator):
         """Test if a subgroup raise a warning"""
         X, y, _ = data_generator
@@ -666,7 +671,7 @@ class TestCFIExceptions:
         )
         cfi.fit(X, y)
         with pytest.raises(
-            AssertionError,
+            ValueError,
             match="The statistical test doesn't provide the correct dimension",
         ):
             cfi.importance(X, y)

@@ -175,14 +175,12 @@ plt.show()
 # available data, we repeat this procedure in a cross-validated manner with the
 # :class:`~hidimstat.CFICV` class.
 
-from sklearn.metrics import log_loss
 
 from hidimstat import CFICV
 
 vim = CFICV(
     estimators=HistGradientBoostingClassifier(random_state=0),
-    method="predict_proba",  # log-loss is computed on predicted probabilities
-    loss=log_loss,
+    scoring="log_loss",
     cv=cv,
     random_state=0,
 )
