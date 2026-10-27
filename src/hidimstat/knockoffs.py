@@ -1,3 +1,4 @@
+import numbers
 import warnings
 
 import numpy as np
@@ -163,6 +164,32 @@ class ModelXKnockoff(BaseVariableImportance):
         # unnecessary to have n_jobs > number of bootstraps
         self.n_jobs = n_jobs
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+        # Attributes that are checked outside of the class:
+        # n_jobs, joblib_verbose, random_state
+        # 'estimator' is checked during importance call.
+        if self.ko_generator is not None and not isinstance(
+            self.ko_generator, GaussianKnockoffs
+        ):
+            raise TypeError(
+                "'ko_generator' needs to be a hidimstat.samplers.GaussianKnockoffs."
+            )
+
+        if not isinstance(self.n_repeats, numbers.Number):
+            raise TypeError("'n_repeats' needs to be a number.")
+        elif self.n_repeats <= 0:
+            raise ValueError("'n_repeats' needs to be strictly positive.")
+
+        if not isinstance(self.centered, bool):
+            raise TypeError("'centered' needs to be a bool.")
+
+        if not isinstance(self.preconfigure_lasso_path, bool):
+            raise TypeError("'preconfigure_lasso_path' needs to be a bool.")
+
     def fit(self, X, y):
         """
         Fit the knockoff generator and estimators to the data.
@@ -180,7 +207,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
-        assert self.n_repeats > 0, "n_repeats must be positive"
+        self._check_fit_attributes()
         n_jobs = min(self.n_jobs, self.n_repeats)
 
         rng = check_random_state(self.random_state)
@@ -348,9 +375,6 @@ class ModelXKnockoff(BaseVariableImportance):
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
-        assert self.importances_ is not None, (
-            "this method doesn't support selection base on FDR"
-        )
 
         if self.importances_.shape[0] == 1:
             self.threshold_fdr_ = self.knockoff_threshold(
@@ -358,9 +382,14 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
-            assert fdr_control != "ebh", (
-                "for p-values, the fdr control can't be 'ebh'"
-            )
+            if fdr_control == "ebh":
+                warnings.warn(
+                    "For p-values, the fdr control can't be 'ebh'. "
+                    "Coercing value to 'bhq'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                fdr_control = "bhq"
             pvalues = np.array(
                 [
                     self._empirical_knockoff_pval(self.importances_[i])
@@ -378,9 +407,14 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
-            assert fdr_control == "ebh", (
-                "for e-value, the fdr control need to be 'ebh'"
-            )
+            if fdr_control != "ebh":
+                warnings.warn(
+                    "For e-values, the fdr control needs to be 'ebh'. "
+                    "Coercing value to 'ebh'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                fdr_control = "ebh"
             evalues = []
             for i in range(self.importances_.shape[0]):
                 test_score = self.importances_[i]

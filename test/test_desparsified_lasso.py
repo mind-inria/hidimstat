@@ -38,6 +38,178 @@ def test_check_estimator_sklearn(estimator, check):
     check(estimator)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.centered = None
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a boolean"):
+        dl._check_fit_attributes()
+
+
+def test_check_dof_ajdustement_attribute_before_fit():
+    """Test checks on dof_ajdustement attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.dof_ajdustement = None
+
+    with pytest.raises(
+        TypeError, match=r"'dof_ajdustement' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_preconfigure_model_x_path_attribute_before_fit():
+    """Test checks on preconfigure_model_x_path attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.preconfigure_model_x_path = None
+
+    with pytest.raises(
+        TypeError, match=r"'preconfigure_model_x_path' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_alpha_max_fraction_attribute_before_fit():
+    """Test checks on alpha_max_fraction attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.alpha_max_fraction = None
+
+    with pytest.raises(
+        TypeError, match=r"'alpha_max_fraction' needs to be a float"
+    ):
+        dl._check_fit_attributes()
+
+    dl.alpha_max_fraction = -1
+    with pytest.raises(
+        ValueError, match=r"'alpha_max_fraction' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_save_model_x_attribute_before_fit():
+    """Test checks on save_model_x attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.save_model_x = None
+
+    with pytest.raises(
+        TypeError, match=r"'save_model_x' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_tolerance_reid_attribute_before_fit():
+    """Test checks on tolerance_reid attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.tolerance_reid = None
+
+    with pytest.raises(
+        TypeError, match=r"'tolerance_reid' needs to be a float"
+    ):
+        dl._check_fit_attributes()
+
+    dl.tolerance_reid = -1
+    with pytest.raises(
+        ValueError, match=r"'tolerance_reid' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_noise_method_attribute_before_fit():
+    """Test checks on noise_method attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.noise_method = None
+
+    with pytest.raises(
+        TypeError, match=r"'noise_method' needs to be one of {'AR', 'median'}"
+    ):
+        dl._check_fit_attributes()
+
+    dl.noise_method = "wrongtype"
+    with pytest.raises(
+        ValueError,
+        match=r"Unknown method for estimating the covariance matrix",
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_model_x_attribute_before_fit():
+    """Test checks on model_x attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.model_x = RandomForestClassifier()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'model_x' needs to be a Lasso, LassoCV, or a MultiTaskLasso",
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_order_attribute_before_fit():
+    """Test checks on order attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.order = None
+
+    with pytest.raises(TypeError, match=r"'order' needs to be a float"):
+        dl._check_fit_attributes()
+
+    dl.order = -1
+    with pytest.raises(
+        ValueError, match=r"'order' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_stationary_attribute_before_fit():
+    """Test checks on stationary attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.stationary = None
+
+    with pytest.raises(TypeError, match=r"'stationary' needs to be a boolean"):
+        dl._check_fit_attributes()
+
+
+def test_check_covariance_attribute_before_fit():
+    """Test checks on covariance attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.covariance = [[1, 2], [3, 4]]
+
+    with pytest.raises(
+        TypeError, match=r"'covariance' needs to be a np.ndarray"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_test_attribute_before_fit():
+    """Test checks on test attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.test = "wrongtest"
+
+    with pytest.raises(
+        ValueError,
+        match=r"'test' should be on of: 'chi2', 'F'. Got: 'wrongtest'",
+    ):
+        dl._check_importance_attributes()
+
+
+@pytest.mark.filterwarnings(r"error:'epsilon_pvalue' is deprecated")
+def test_check_epsilon_pvalue_attribute_deprecation_before_fit():
+    """Test checks on test attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+
+    with pytest.raises(
+        DeprecationWarning, match=r"'epsilon_pvalue' is deprecated"
+    ):
+        dl._check_fit_attributes()
+
+
+###########################################################################################
+
+
 @ignore_warnings(category=UserWarning)
 def test_desparsified_lasso(rng):
     """
@@ -227,38 +399,11 @@ def test_exception(data_generator):
         random_state=1,
     )
 
-    desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
-    with pytest.raises(
-        AssertionError,
-        match="model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso",
-    ):
-        desparsified_lasso.fit(X, y)
-
-    desparsified_lasso = DesparsifiedLasso(estimator=RandomForestClassifier())
-    with pytest.raises(
-        ValueError,
-        match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
-    ):
-        desparsified_lasso.fit(X, y)
-
-    desparsified_lasso = DesparsifiedLasso(test="r2")
-    with pytest.raises(
-        ValueError, match="'test' should be on of: 'chi2', 'F'"
-    ):
-        desparsified_lasso.fit(X, y)
-
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv)
     with pytest.raises(
         ValueError,
         match="This DesparsifiedLasso instance is not fitted yet",
     ):
-        desparsified_lasso.importance()
-
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
-        X, y
-    )
-    desparsified_lasso.test = "r2"
-    with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
@@ -416,10 +561,6 @@ def test_group_reid_2(data_generator):
 def test_reid_exception(data_generator):
     """Test for testing the exceptions on the arguments of reid function"""
     X, y, _ = data_generator
-    with pytest.raises(
-        ValueError, match="Unknown method for estimating the covariance matrix"
-    ):
-        reid(X, y, method="test", multioutput=True)
     with pytest.raises(
         ValueError,
         match="The AR method is not compatible with the non-stationary",
