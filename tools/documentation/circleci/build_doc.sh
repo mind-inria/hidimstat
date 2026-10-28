@@ -115,7 +115,7 @@ else
 fi
 
 # The pipefail is requested to propagate exit code
-set -o pipefail && cd docs && codecarbon monitor -- make N_JOB=2 "$make_target" 2>&1 | tee ~/output_sphinx.txt
+set -o pipefail && cd docs && codecarbon monitor --offline --country-iso-code USA -- make N_JOB=2 "$make_target" 2>&1 | tee ~/output_sphinx.txt
 cd -
 
 set +o pipefail
