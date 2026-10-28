@@ -44,7 +44,7 @@ the development of this project for instance::
 HiDimStat depends on the following packages::
 
   joblib >= 1.4
-  numpy
+  numpy >= 1.19.5
   pandas >= 2.2
   scipy >= 1.13
   scikit-learn >= 1.6
