@@ -95,6 +95,7 @@ class LOCI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        # check of fit attributes is done here during this call.
         super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
         self._list_estimators = [

@@ -35,6 +35,61 @@ def test_check_estimator_sklearn(estimator, check):
     check(estimator)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_ko_generator_attribute_before_fit():
+    """Test checks on ko_generator attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.ko_generator = LassoCV()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'ko_generator' needs to be a hidimstat.samplers.GaussianKnockoffs",
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.n_repeats = "smthg"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be a number"):
+        ko._check_fit_attributes()
+
+    ko.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        ko._check_fit_attributes()
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.centered = "smthg"
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a bool"):
+        ko._check_fit_attributes()
+
+
+def test_check_preconfigure_lasso_path_attribute_before_fit():
+    """Test checks on preconfigure_lasso_path attribute before fitting."""
+    ko = ModelXKnockoff()
+    ko.preconfigure_lasso_path = "smthg"
+
+    with pytest.raises(
+        TypeError, match=r"'preconfigure_lasso_path' needs to be a bool"
+    ):
+        ko._check_fit_attributes()
+
+
+###########################################################################################
+
+
 def test_knockoff_bootstrap_quantile(rng):
     """Test bootstrap knockoof with quantile aggregation"""
     n = 100
@@ -192,7 +247,7 @@ def test_model_x_knockoff_estimator(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -261,7 +316,7 @@ def test_model_x_knockoff_null(data_generator):
         estimator=GridSearchCV(
             Lasso(), param_grid={"alpha": np.linspace(0.2, 0.3, 5)}
         ),
-        preconfigure_lasso_path=None,
+        preconfigure_lasso_path=False,
     ).fit(X, y)
     model_x_knockoff.importance()
     selected = model_x_knockoff.fdr_selection(fdr=fdr)
@@ -295,76 +350,92 @@ def test_lasso_estimator_alphas(data_generator):
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
     ids=["default data"],
 )
-class TestModelXKnockoffExceptions:
-    """Test class for ModelXKnockoff exceptions"""
+def test_warning(data_generator):
+    """Test if some warning are raised"""
+    X, y, _ = data_generator
+    model_x_knockoff = ModelXKnockoff(n_repeats=5)
+    model_x_knockoff.fit(X, y)
+    with pytest.warns(Warning, match="X won't be used"):
+        model_x_knockoff.importance(X=X)
+    with pytest.warns(Warning, match="y won't be used"):
+        model_x_knockoff.importance(y=y)
 
-    def test_warning(self, data_generator):
-        """Test if some warning are raised"""
-        X, y, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(n_repeats=5)
-        model_x_knockoff.fit(X, y)
-        with pytest.warns(Warning, match="X won't be used"):
-            model_x_knockoff.importance(X=X)
-        with pytest.warns(Warning, match="y won't be used"):
-            model_x_knockoff.importance(y=y)
 
-    def test_error_lasso_statistic_with_sampling_with_bad_config(
-        self, data_generator
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
+)
+def test_error_lasso_statistic_with_sampling_with_bad_config(data_generator):
+    """Test error lasso statistic"""
+    X, y, _ = data_generator
+    model_x_knockoff = ModelXKnockoff(n_repeats=1, estimator=SVR())
+    with pytest.raises(
+        TypeError,
+        match="You should not use this function to configure the estimator",
     ):
-        """Test error lasso statistic"""
-        X, y, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(n_repeats=1, estimator=SVR())
-        with pytest.raises(
-            TypeError,
-            match="You should not use this function to configure the estimator",
-        ):
-            model_x_knockoff.fit(X, y)
+        model_x_knockoff.fit(X, y)
 
-    def test_error_lasso_statistic_with_sampling(self, data_generator):
-        """Test error lasso statistic"""
-        X, y, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(
-            n_repeats=1,
-            estimator=SVR(),
-            preconfigure_lasso_path=False,
-        )
-        with pytest.raises(TypeError, match="estimator should be linear"):
-            model_x_knockoff.fit_importance(X, y)
 
-    def test_unfitted_importance(self, data_generator):
-        """Test importance method with unfitted model"""
-        X, y, _ = data_generator
-        model_x_knockoff = ModelXKnockoff(
-            n_repeats=5,
-            ko_generator=GaussianKnockoffs(
-                cov_estimator=LedoitWolf(assume_centered=True)
-            ),
-            random_state=0,
-        )
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
+)
+def test_error_lasso_statistic_with_sampling(data_generator):
+    """Test error lasso statistic"""
+    X, y, _ = data_generator
+    model_x_knockoff = ModelXKnockoff(
+        n_repeats=1,
+        estimator=SVR(),
+        preconfigure_lasso_path=False,
+    )
+    with pytest.raises(TypeError, match="estimator should be linear"):
+        model_x_knockoff.fit_importance(X, y)
 
-        with pytest.raises(NotFittedError):
-            model_x_knockoff.importance(X, y)
 
-    def test_invalid_n_samplings(self, data_generator):
-        """Test when invalid number of permutations is provided"""
-        with pytest.raises(AssertionError, match="n_repeats must be positive"):
-            ModelXKnockoff(n_repeats=-1).fit(*data_generator[:2])
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
+)
+def test_unfitted_importance(data_generator):
+    """Test importance method with unfitted model"""
+    X, y, _ = data_generator
+    model_x_knockoff = ModelXKnockoff(
+        n_repeats=5,
+        ko_generator=GaussianKnockoffs(
+            cov_estimator=LedoitWolf(assume_centered=True)
+        ),
+        random_state=0,
+    )
 
-    @pytest.mark.filterwarnings("error:Dimensions of")
-    def test_importance_dimension_swap_warning(self, data_generator):
-        """Test that a DeprecationWarning is issued at importance call."""
-        X, y, _ = data_generator
-        model_x_knockoff = ModelXKnockoff().fit(X, y)
-        with pytest.raises(
-            DeprecationWarning,
-            match=r"Dimensions of 'importances_' and 'pvalues_'",
-        ):
-            model_x_knockoff.importance(X, y)
+    with pytest.raises(NotFittedError):
+        model_x_knockoff.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
+    ids=["default data"],
+)
+@pytest.mark.filterwarnings("error:Dimensions of")
+def test_importance_dimension_swap_warning(data_generator):
+    """Test that a DeprecationWarning is issued at importance call."""
+    X, y, _ = data_generator
+    model_x_knockoff = ModelXKnockoff().fit(X, y)
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"Dimensions of 'importances_' and 'pvalues_'",
+    ):
+        model_x_knockoff.importance(X, y)
 
 
 def test_hidimstat_tags():
@@ -395,3 +466,25 @@ def test_deprecation_warning():
         DeprecationWarning, match="Please use class ModelXKnockoff"
     ):
         model_x_knockoff_importance(estimator=None, X=None, y=None)
+
+
+@pytest.mark.filterwarnings("error:For p-values, the fdr control")
+def test_p_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For p-values, the fdr control can't be 'ebh'. Coercing value to 'bhq'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="ebh", evalues=False)
+
+
+@pytest.mark.filterwarnings("error:For e-values, the fdr control")
+def test_e_values_fdr_control_warning():
+    mxko = ModelXKnockoff()
+    mxko.importances_ = np.zeros((2, 2))
+    with pytest.raises(
+        UserWarning,
+        match=r"For e-values, the fdr control needs to be 'ebh'. Coercing value to 'ebh'",
+    ):
+        mxko.fdr_selection(fdr=0.8, fdr_control="bhq", evalues=True)

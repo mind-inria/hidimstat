@@ -8,107 +8,13 @@ from sklearn.base import BaseEstimator, check_is_fitted, clone
 from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
+from hidimstat._utils.feature_selection import (
+    _fdr_selection,
+    _fwer_selection,
+    _generic_selection,
+)
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat._utils.utils import find_stack_level
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
-
-
-def _selection_generic(
-    values,
-    k_best=None,
-    k_lowest=None,
-    percentile=None,
-    threshold_max=None,
-    threshold_min=None,
-):
-    """
-    Helper function for selecting features based on multiple criteria.
-
-    Parameters
-    ----------
-    values : array-like of shape (n_features,)
-        Values to use for feature selection (e.g., importance scores or p-values)
-    k_best : int, default=None
-        Selects the top k features based on values.
-    k_lowest : int, default=None
-        Selects the lowest k features based on values.
-    percentile : float, default=None
-        Selects features based on a specified percentile of values.
-    threshold_max : float, default=None
-        Selects features with values below the specified maximum threshold.
-    threshold_min : float, default=None
-        Selects features with values above the specified minimum threshold.
-
-    Returns
-    -------
-    selection : array-like of shape (n_features,)
-        Boolean array indicating the selected features.
-    """
-    n_criteria = np.sum(
-        [
-            criteria is not None
-            for criteria in [
-                k_best,
-                k_lowest,
-                percentile,
-                threshold_max,
-                threshold_min,
-            ]
-        ]
-    )
-    assert n_criteria <= 1, "Only support selection based on one criteria."
-    if k_best is not None:
-        assert k_best >= 1, "k_best needs to be positive or None"
-        if k_best > values.shape[0]:
-            warnings.warn(
-                f"k={k_best} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_best = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_best[np.argsort(values, kind="mergesort")[-k_best:]] = 1
-        return mask_k_best
-    elif k_lowest is not None:
-        assert k_lowest >= 1, "k_lowest needs to be positive or None"
-        if k_lowest > values.shape[0]:
-            warnings.warn(
-                f"k={k_lowest} is greater than n_features={values.shape[0]}. "
-                "All the features will be returned.",
-                stacklevel=find_stack_level(),
-            )
-        mask_k_lowest = np.zeros_like(values, dtype=bool)
-
-        # based on SelectKBest in Scikit-Learn
-        # Request a stable sort. Mergesort takes more memory (~40MB per
-        # megafeature on x86-64).
-        mask_k_lowest[np.argsort(values, kind="mergesort")[:k_lowest]] = 1
-        return mask_k_lowest
-    elif percentile is not None:
-        assert 0 < percentile < 100, (
-            f"percentile must be between 0 and 100 (exclusive). Got {percentile}."
-        )
-        # based on SelectPercentile in Scikit-Learn
-        threshold_percentile = np.percentile(values, 100 - percentile)
-        mask_percentile = values > threshold_percentile
-        ties = np.where(values == threshold_percentile)[0]
-        if len(ties):
-            max_feats = int(len(values) * percentile / 100)
-            kept_ties = ties[: max_feats - mask_percentile.sum()]
-            mask_percentile[kept_ties] = True
-        return mask_percentile
-    elif threshold_max is not None:
-        mask_threshold_max = values < threshold_max
-        return mask_threshold_max
-    elif threshold_min is not None:
-        mask_threshold_min = values > threshold_min
-        return mask_threshold_min
-    else:
-        no_mask = np.ones_like(values, dtype=bool)
-        return no_mask
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -137,36 +43,25 @@ class BaseVariableImportance(BaseEstimator):
     def __init__(self):
         super().__init__()
 
-    def _check_importance(self):
+    def _check_fit_attributes(self):
         """
-        Checks if the importance scores have been computed.
+        Check attributes needed during fitting of the estimator.
         """
-        if getattr(self, "importances_", None) is None:
-            raise ValueError(
-                "The importance method need to be called before calling this method."
+        if self.estimator is not None and not isinstance(
+            self.estimator, BaseEstimator
+        ):
+            raise TypeError(
+                "'estimator' must be a valid sklearn compatible estimator."
             )
 
     def _initial_fit(self, estimator: BaseEstimator, *args) -> BaseEstimator:
-        """Run initial fit of a sklearn estimator.
+        """
+        Run initial fit of a sklearn estimator.
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
         self.importances_ = None
         self.pvalues_ = None
-
-        if estimator is None:
-            raise ValueError(
-                "'estimator' must be a valid sklearn compartible estimator."
-            )
-
-        if (
-            hasattr(estimator, "__sklearn_is_fitted__")
-            and not estimator.__sklearn_is_fitted__()
-        ):
-            print(
-                f"Running initial fit of the estimator {estimator.__class__.__name__}."
-            )
-            return clone(estimator).fit(*args)
 
         try:
             check_is_fitted(estimator)
@@ -177,6 +72,15 @@ class BaseVariableImportance(BaseEstimator):
             return clone(estimator).fit(*args)
 
         return estimator
+
+    def _check_importance(self):
+        """
+        Checks if the importance scores have been computed.
+        """
+        if getattr(self, "importances_", None) is None:
+            raise ValueError(
+                "The importance method need to be called before calling this method."
+            )
 
     def importance_selection(
         self,
@@ -205,7 +109,7 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        return _selection_generic(
+        return _generic_selection(
             self.importances_,
             k_best=k_best,
             percentile=percentile,
@@ -243,23 +147,29 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features (True for selected).
         """
         self._check_importance()
-        assert self.pvalues_ is not None, (
-            "The selection on p-value can't be done because the current method does not compute p-values."
-        )
-        if threshold_min is not None:
-            assert threshold_min > 0 and threshold_min < 1, (
-                "threshold_min needs to be between 0 and 1"
+        if self.pvalues_ is None:
+            raise InternalError(
+                "The selection on p-value can't be done because the current method does not compute p-values."
             )
-        if threshold_max is not None:
-            assert threshold_max > 0 and threshold_max < 1, (
-                "threshold_max needs to be between 0 and 1"
+        if threshold_max is not None and (
+            threshold_max <= 0 or threshold_max >= 1
+        ):
+            raise ValueError(
+                "'threshold_max' strictly needs to be between 0 and 1"
             )
-        assert alternative_hypothesis is None or isinstance(
+        if threshold_min is not None and (
+            threshold_min <= 0 or threshold_min >= 1
+        ):
+            raise ValueError(
+                "'threshold_min' strictly needs to be between 0 and 1"
+            )
+        if alternative_hypothesis is not None and not isinstance(
             alternative_hypothesis, bool
-        ), (
-            "alternative_hippothesis can have only three values: True, False and None."
-        )
-        return _selection_generic(
+        ):
+            raise ValueError(
+                "'alternative_hypothesis' can have only three values: True, False and None."
+            )
+        return _generic_selection(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
             percentile=percentile,
@@ -305,39 +215,23 @@ class BaseVariableImportance(BaseEstimator):
         ------
         ValueError
             If `importances_` haven't been computed yet
-        AssertionError
+        hidimstat.InternalError
             If `pvalues_` are missing or fdr_control is invalid
         """
         self._check_importance()
-        assert fdr > 0 and fdr < 1, "FDR needs to be between 0 and 1 excluded"
-        assert self.pvalues_ is not None, (
-            "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
-        )
-        assert fdr_control in {"bhq", "bhy"}, (
-            "only 'bhq' and 'bhy' are supported"
-        )
+        if self.pvalues_ is None:
+            raise InternalError(
+                "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
+            )
 
-        # Adjust fdr for two-tailed test
-        if two_tailed_test:
-            fdr = fdr / 2
-
-        threshold_pvalues = fdr_threshold(
-            self.pvalues_,
+        return _fdr_selection(
+            p_values=self.pvalues_,
+            importances=self.importances_,
             fdr=fdr,
-            method=fdr_control,
+            two_tailed_test=two_tailed_test,
+            fdr_control=fdr_control,
             reshaping_function=reshaping_function,
         )
-        selected = (self.pvalues_ <= threshold_pvalues).astype(int)
-
-        # For two-tailed test, determine the sign of the effect
-        if two_tailed_test:
-            if self.importances_.ndim > 1:
-                sign_beta = np.sign(self.importances_.sum(axis=1))
-            else:
-                sign_beta = np.sign(self.importances_)
-            selected = selected * sign_beta
-
-        return selected
 
     def fwer_selection(
         self, fwer, procedure="bonferroni", n_tests=None, two_tailed_test=False
@@ -369,35 +263,26 @@ class BaseVariableImportance(BaseEstimator):
         """
         self._check_importance()
 
-        if procedure == "bonferroni":
-            if n_tests is None:
-                if hasattr(self, "clustering_"):
-                    print(
-                        "Using number of clusters for multiple testing correction."
-                    )
-                    n_tests = self.clustering_.n_clusters_
-                else:
-                    print(
-                        "Using number of features for multiple testing correction."
-                    )
-                    n_tests = self.importances_.shape[0]
+        if n_tests is None:
+            if hasattr(self, "clustering_"):
+                print(
+                    "Using number of clusters for multiple testing correction."
+                )
+                n_tests = self.clustering_.n_clusters_
+            else:
+                print(
+                    "Using number of features for multiple testing correction."
+                )
+                n_tests = self.importances_.shape[0]
 
-            # Adjust fwer for two-tailed test
-            if two_tailed_test:
-                fwer = fwer / 2
-
-            threshold_pvalue = fwer / n_tests
-            selected = (self.pvalues_ < threshold_pvalue).astype(int)
-            if two_tailed_test:
-                if self.importances_.ndim > 1:
-                    sign_beta = np.sign(self.importances_.sum(axis=1))
-                else:
-                    sign_beta = np.sign(self.importances_)
-                selected = selected * sign_beta
-            return selected
-
-        else:
-            raise ValueError("Only 'bonferroni' procedure is supported")
+        return _fwer_selection(
+            p_values=self.pvalues_,
+            importances=self.importances_,
+            fwer=fwer,
+            n_tests=n_tests,
+            procedure=procedure,
+            two_tailed_test=two_tailed_test,
+        )
 
     def plot_importance(
         self,
@@ -445,11 +330,10 @@ class BaseVariableImportance(BaseEstimator):
                     str(j) for j in range(self.importances_.shape[-1])
                 ]
         elif isinstance(feature_names, list):
-            assert np.all(isinstance(name, str) for name in feature_names), (
-                "feature_names should be a list of strings"
-            )
+            if not np.all(isinstance(name, str) for name in feature_names):
+                raise ValueError("'feature_names' should be a list of strings")
         else:
-            raise ValueError("feature_names should be a list")
+            raise ValueError("'feature_names' should be a list")
 
         if self.importances_.ndim == 2:
             df_plot = {
@@ -528,6 +412,15 @@ class GroupVariableImportanceMixin:
     def __init__(self, feature_groups=None):
         self.feature_groups = feature_groups
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        if self.feature_groups is not None and not isinstance(
+            self.feature_groups, dict
+        ):
+            raise TypeError(r"'feature_groups' needs to be a dictionary.")
+
     def fit(self, X, y=None):
         """
         Base fit method for perturbation-based methods. Identifies the groups.
@@ -544,6 +437,7 @@ class GroupVariableImportanceMixin:
         self : object
             Returns the instance itself.
         """
+        self._check_fit_attributes()
         del y
         if self.feature_groups is None:
             self.n_feature_groups_ = X.shape[1]
@@ -576,8 +470,6 @@ class GroupVariableImportanceMixin:
                     np.array(ids, dtype=int)
                     for ids in list(self.feature_groups_.values())
                 ]
-        else:
-            raise ValueError("feature_groups needs to be a dictionary")
         return self
 
     def _check_compatibility(self, X):
@@ -597,7 +489,6 @@ class GroupVariableImportanceMixin:
         ValueError
             If X is not a pandas DataFrame or numpy array.
             If column names in X don't match those used during fitting.
-        AssertionError
             If feature indices are out of bounds.
             If required feature names are missing from X.
         Warning
@@ -618,15 +509,19 @@ class GroupVariableImportanceMixin:
         number_columns = X.shape[1]
         for index_variables in self.feature_groups_.values():
             if isinstance(index_variables[0], numbers.Integral):
-                assert np.all(
+                if not np.all(
                     np.array(index_variables, dtype=int) < number_columns
-                ), "X does not correspond to the fitting data."
+                ):
+                    raise ValueError(
+                        "X does not correspond to the fitting data."
+                    )
             elif type(index_variables[0]) is str or np.issubdtype(
                 type(index_variables[0]), str
             ):
-                assert np.all([name in names for name in index_variables]), (
-                    f"The array is missing at least one of the following columns {index_variables}."
-                )
+                if not np.all([name in names for name in index_variables]):
+                    raise ValueError(
+                        f"The array is missing at least one of the following columns {index_variables}."
+                    )
             else:
                 raise InternalError(
                     "A problem with indexing has happened during the fit."
