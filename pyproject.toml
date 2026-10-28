@@ -92,6 +92,10 @@ test = [
     "seaborn                >= 0.13.2",
 ]
 
+energy = [
+    "codecarbon             >= 3.0.0",
+]
+
 
 [project.urls]
 Repository = "https://github.com/mind-inria/hidimstat"
