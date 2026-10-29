@@ -4,7 +4,8 @@ Source localization of somatosensory MEG data
 
 This example adapts the experiment presented in
 :footcite:t:`chevalier2020statistical`. We show how to identify which cortical
-sources are activated during a somatosensory task. To do so, we leverage
+sources are activated during a somatosensory task.
+To do so, we leverage
 spatially constrained clustering to effectively reduce the dimensionality of
 the problem while accounting for the spatial structure of the data. We then
 perform inference with the desparsified multitask Lasso to perform support
@@ -194,7 +195,7 @@ stc_pvals = mne.SourceEstimate(
 fs_dir = Path(subjects_dir) / "fsaverage"
 if fs_dir.is_symlink():
     fs_dir.unlink()
-mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir, verbose=1)
 
 morph = mne.compute_source_morph(
     src=forward["src"],
