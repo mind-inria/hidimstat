@@ -31,3 +31,4 @@ Changes
 - :bdg-warning:`API` Deleted custom ``_check_fit()`` method for more sklearn compliance (:gh:`834` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` Added upper bound to pandas version due to sklearn incompatibility (:gh:`840` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Reworked landing page of hidimstat website (:gh:`841` by `Marc Hulcelle`_).
+- :bdg-primary:`Doc` Added an onboarding document for new maintainers (:gh:`838` by `Marc Hulcelle`_).
