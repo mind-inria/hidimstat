@@ -27,6 +27,68 @@ problem of support recovery in the context of high-dimensional and
 spatially structured data.
 
 
+Documentation & Examples
+------------------------
+
+API documentation about the main HiDimStat functions is available
+:ref:`here <api_documentation>`, and a :ref:`User guide <user_guide>` provides
+further details on the various variable importance methods and concepts used in the library.
+
+.. grid:: 1 2 3 3
+   :gutter: 3
+
+   .. grid-item-card:: Methods
+      :link-type: ref
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
+      :img-alt: Variable Importance Method
+
+      You can find examples for each Variable Importance Method:
+      :ref:`LOCO <sphx_glr_generated_gallery_examples_plot_loco.py>`,
+      :ref:`LOCI <sphx_glr_generated_gallery_examples_plot_loci.py>`,
+      :ref:`PFI <sphx_glr_generated_gallery_examples_plot_pitfalls_permutation_importance.py>`,
+      :ref:`CFI <sphx_glr_generated_gallery_examples_plot_cfi.py>`,
+      :ref:`Desparsified Lasso <sphx_glr_generated_gallery_examples_plot_dl_diabetes_confidence.py>`,
+      :ref:`DCRT <sphx_glr_generated_gallery_examples_plot_dcrt_logit.py>`,
+      :ref:`Model-X Knockoffs <sphx_glr_generated_gallery_examples_plot_knockoffs_wisconsin.py>`,
+      :ref:`SAGE <sphx_glr_generated_gallery_examples_plot_msage.py>`,
+      :ref:`Cluster Importance <sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py>`,
+      and :ref:`Ensemble Importance <sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py>`.
+
+
+   .. grid-item-card:: Visualization
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_partial_dependency_plot_003.png
+      :img-alt: Visualization
+      :link-type: ref
+
+      The library implements two different feature importance visualization methods
+      such as :ref:`Partial Dependency Plot <sphx_glr_generated_gallery_examples_plot_partial_dependency_plot.py>`
+      and :ref:`Accumulated Local Effects <sphx_glr_generated_gallery_examples_plot_accumulated_local_effects.py>`
+
+
+   .. grid-item-card:: Spatially structured data
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_fmri_data_example_001.png
+      :img-alt: Image stuff
+      :link-type: ref
+
+      You can find here applications to spatially structured data, such as
+      :ref:`fMRI data <sphx_glr_generated_gallery_examples_plot_fmri_data_example.py>`,
+      :ref:`somatosensory MEG data <sphx_glr_generated_gallery_examples_plot_meg_somato.py>`,
+      or the :ref:`MNIST digit dataset <sphx_glr_generated_gallery_examples_plot_digits.py>`
+
+All examples are available :ref:`there <general_examples>`.
+If you have cloned the repository, you can run any of the examples locally by running the
+following command in a terminal:
+
+.. code-block::
+
+  python examples/plot_2D_simulation_example.py
+
+To run examples it is necessary to install the ``seaborn`` package.
+Some additional dependencies might be required depending on the target example
+to run. You can find further instructions on building the documentation
+:ref:`here <developer_documentation_build>`.
+
+
 Installation & Dependencies
 ---------------------------
 
@@ -50,68 +112,6 @@ HiDimStat depends on the following packages::
   scipy >= 1.13
   scikit-learn >= 1.6
   tqdm >= 4.66.3
-
-
-Documentation & Examples
-------------------------
-
-API documentation about the main HiDimStat functions is available
-:ref:`here <api_documentation>`, and a :ref:`User guide <user_guide>` provides
-further details on the various variable importance methods and concepts used in the library.
-
-.. grid:: 1 2 3 3
-   :gutter: 3
-
-   .. grid-item-card:: Methods
-      :link-type: ref
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_cfi_thumb.png
-      :img-alt: Variable Importance Method
-
-      You can find examples for each Variable Importance Method:
-      :ref:`LOCO <sphx_glr_generated_gallery_examples_plot_loco.py>`,
-      :ref:`LOCI <sphx_glr_generated_gallery_examples_plot_loci.py>`,
-      :ref:`PFI <sphx_glr_generated_gallery_examples_plot_pitfalls_permutation_importance.py>`,
-      :ref:`CFI <sphx_glr_generated_gallery_examples_plot_cfi.py>`,
-      :ref:`Desparsified Lasso <sphx_glr_generated_gallery_examples_plot_dl_diabetes_confidence.py>`,
-      :ref:`DCRT <sphx_glr_generated_gallery_examples_plot_dcrt_logit.py>`,
-      :ref:`Model-X Knockoffs <sphx_glr_generated_gallery_examples_plot_knockoffs_wisconsin.py>`,
-      :ref:`SAGE <sphx_glr_generated_gallery_examples_plot_msage.py>`,
-      :ref:`Cluster Importance <sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py>`,
-      and :ref:`Ensemble Importance <sphx_glr_generated_gallery_examples_plot_conditional_vs_marginal_xor_data.py>`,
-
-
-   .. grid-item-card:: Visualization
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_partial_dependency_plot_thumb.png
-      :img-alt: Visualization
-      :link-type: ref
-
-      The library implements two different feature importance visualization methods
-      such as :ref:`Partial Dependency Plot <sphx_glr_generated_gallery_examples_plot_partial_dependency_plot.py>`
-      and :ref:`Accumulated Local Effects <sphx_glr_generated_gallery_examples_plot_accumulated_local_effects.py>`
-
-
-   .. grid-item-card:: Spatially structured data
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_fmri_data_example_thumb.png
-      :img-alt: Image stuff
-      :link-type: ref
-
-      You can find here applications to spatially structured data, such as
-      :ref:`fMRI data <sphx_glr_generated_gallery_examples_plot_fmri_data_example.py>`,
-      :ref:`somatosensory MEG data <sphx_glr_generated_gallery_examples_plot_meg_somato.py>`,
-      or the :ref:`MNIST digit dataset <sphx_glr_generated_gallery_examples_plot_digits.py>`
-
-All examples are available :ref:`there <general_examples>`.
-If you have cloned the repository, you can run any of the examples locally by running the
-following command in a terminal:
-
-.. code-block::
-
-  python examples/plot_2D_simulation_example.py
-
-To run examples it is necessary to install the ``seaborn`` package.
-Some additional dependencies might be required depending on the target example
-to run. You can find further instructions on building the documentation
-:ref:`here <developer_documentation_build>`.
 
 
 References
