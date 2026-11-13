@@ -11,10 +11,10 @@ HiDimStat: High-dimensional statistical inference tool for Python
    :target: https://github.com/mind-inria/hidimstat/actions/workflows/ci.yml?branch=main
 
 .. |CircleCI/Documentation| image:: https://circleci.com/gh/mind-inria/hidimstat.svg?style=shield
-   :target: https://circleci.com/gh/mind-inria/hidimstat
+   :target: https://app.circleci.com/pipelines/github/mind-inria/hidimstat
 
 .. |codecov| image:: https://codecov.io/github/mind-inria/hidimstat/branch/main/graph/badge.svg?token=O1YZDTFTNS
-   :target: https://codecov.io/github/mind-inria/hidimstat
+   :target: https://app.codecov.io/github/mind-inria/hidimstat
 
 .. |codestyle| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
@@ -39,7 +39,7 @@ further details on the various variable importance methods and concepts used in 
 
    .. grid-item-card:: Methods
       :link-type: ref
-      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
+      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_cfi_thumb.png
       :img-alt: Variable Importance Method
 
       You can find examples for each Variable Importance Method:
@@ -56,7 +56,7 @@ further details on the various variable importance methods and concepts used in 
 
 
    .. grid-item-card:: Visualization
-      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_partial_dependency_plot_003.png
+      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_partial_dependency_plot_thumb.png
       :img-alt: Visualization
       :link-type: ref
 
@@ -66,7 +66,7 @@ further details on the various variable importance methods and concepts used in 
 
 
    .. grid-item-card:: Spatially structured data
-      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_fmri_data_example_001.png
+      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_fmri_data_example_thumb.png
       :img-alt: Image stuff
       :link-type: ref
 
