@@ -119,7 +119,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         # parameters for model_x
         model_x=None,
         preconfigure_model_x_path=True,
-        alpha_max_fraction=0.2,
+        alpha_max_fraction=0.01,
         random_state=None,
         save_model_x=False,
         # parameters for reid

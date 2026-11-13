@@ -172,7 +172,7 @@ def test_cluvi_spatial():
      - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
      - Test that the statistical power is above a specified threshold (0.8).
     """
-    n_samples = 50
+    n_samples = 100
     shape = (10, 10)
     n_features = shape[1] * shape[0]
     roi_size = 2  # size of the edge of the four predictive regions
@@ -272,7 +272,7 @@ def test_cluvi_temporal():
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 50, 200, 3
+    n_samples, n_features, n_target = 100, 500, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
