@@ -34,14 +34,6 @@ recovery from spatio-temporal data.
 import mne
 import numpy as np
 from mne.datasets import somato
-from mne.datasets.utils import MNE_DATASETS
-
-# MNE <= 1.11.0 ships a somato dataset archive (version=7) that is no longer supported.
-# TODO: remove once mne >= 1.12 is used.
-# Fix presented in https://github.com/mne-tools/mne-python/pull/13630
-if MNE_DATASETS["somato"]["url"].endswith("version=7"):
-    MNE_DATASETS["somato"]["hash"] = "md5:9a191907b326b9402341ee7a0d1240d8"
-    MNE_DATASETS["somato"]["url"] = "https://osf.io/download/tp4sg?version=8"
 
 cond = "somato"
 data_path = somato.data_path(verbose=True)
@@ -155,15 +147,13 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 from sklearn.linear_model import MultiTaskLassoCV
 
-from hidimstat import CluDL, DesparsifiedLasso
+from hidimstat import ClusterImportance, DesparsifiedLasso
 
 # Setting theoretical FWER target
 fwer_target = 0.1
 
-cludl = CluDL(
-    clustering=ward,
-    desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV()),
-    random_state=0,
+cludl = ClusterImportance(
+    vim=DesparsifiedLasso(estimator=MultiTaskLassoCV()), clustering=ward
 )
 
 cludl.fit_importance(gain, y)
@@ -173,8 +163,8 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 
 
 # %%
-# We here used CluDL, which relies on a single clustering. Alternatively,
-# :class:`~hidimstat.EnCluDL` can be used, which relies on aggregating the
+# We here used ClusterImportance, which relies on a single clustering. Alternatively,
+# :class:`~hidimstat.EnsembleImportance` can be used, which relies on aggregating the
 # results over multiple clusterings obtained by running the clustering
 # algorithm on bootstrapped samples of the data. This can lead to more stable
 # results at the cost of a higher computational time.

@@ -80,9 +80,8 @@ HiDimStat requires:
 
 - Python (>= |PythonMinVersion|)
 - joblib (>= |JoblibMinVersion|)
-- NumPy (>= |NumPyMinVersion|)
 - Pandas (>= |PandasMinVersion|)
-- Scikit-learn (>= |SklearnMinVersion|)
+- Scikit-learn (>= |SklearnMinVersion|, < 1.9)
 - SciPy (>= |SciPyMinVersion|)
 
 HiDimStat's plotting capabilities require Matplotlib (>= |MatplotlibMinVersion|).
@@ -118,7 +117,7 @@ For bug reports, feature requests, documentation improvements, or other issues,
 you can create a `GitHub issue <https://github.com/mind-inria/hidimstat/issues>`_.
 
 If you want to contribute directly to the library, check the
-`how to contribute <https://hidimstat.github.io/dev/how_to_contribute.html/>`_ page
+`how to contribute <https://hidimstat.github.io/stable/dev/how_to_contribute.html>`_ page
 on the website for more information.
 
 Contact us
@@ -135,11 +134,11 @@ Contact us
 | For less formal discussions or to exchange ideas, you can contact the main
   contributors:
 
-+-------------------+-------------------+-------------------+-------------------+
-|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |
-+-------------------+-------------------+-------------------+-------------------+
-|    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |
-+-------------------+-------------------+-------------------+-------------------+
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |   Marc Hulcelle   |
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |    |avatar MH|    |
++-------------------+-------------------+-------------------+-------------------+-------------------+
 
 .. |avatar LK| image:: https://avatars.githubusercontent.com/u/17182418?v=4
   :target: https://github.com/lionelkusch
@@ -149,6 +148,8 @@ Contact us
   :target: https://github.com/jpaillard
 .. |avatar AR| image:: https://avatars.githubusercontent.com/u/79699169?v=4
   :target: https://github.com/AngelReyero
+.. |avatar MH| image:: https://avatars.githubusercontent.com/u/9165180?v=4
+  :target: https://github.com/GrituX
 
 Citation
 --------

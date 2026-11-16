@@ -1,3 +1,4 @@
+import numbers
 import warnings
 
 import numpy as np
@@ -19,7 +20,12 @@ from sklearn.utils.validation import check_memory
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
-from hidimstat._utils.utils import check_random_state, seed_estimator
+from hidimstat._utils.utils import (
+    _generate_group_mask,
+    check_random_state,
+    find_stack_level,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_cb
 
@@ -46,7 +52,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Whether to center X and y before fitting.
     dof_ajdustement : bool, default=False
         Whether to apply degrees of freedom adjustment for small samples.
-    preconfigure_model_x_path: bool, default=True
+    preconfigure_model_x_path: bool, default=False
         Whether to preconfigure model_x with n_jobs and random_state.
     alpha_max_fraction : float, default=0.01
         Only used if preconfigure_model_x_path is True. Fraction of maximum alpha to
@@ -71,6 +77,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         Distribution for p-values, only 'norm' supported.
     epsilon_pvalue : float, default=1e-14
         Small constant to avoid numerical issues.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0.
     test : {'chi2', 'F'}, default='chi2'
         Test statistic for p-values:
         - 'chi2': Chi-squared test (large samples)
@@ -86,12 +95,12 @@ class DesparsifiedLasso(BaseVariableImportance):
 
     Attributes
     ----------
-    importances_ : ndarray of shape (n_features)
-        Debiased coefficient estimates.
-    pvalues_ : ndarray of shape (n_features)
-        Two-sided p-values.
-    pvalues_corr_ : ndarray of shape (n_features)
-        Multiple testing corrected p-values.
+    importances_ : ndarray of shape (n_features,)
+        Debiased coefficient estimates for each feature.
+    pvalues_ : ndarray of shape (n_features,)
+        Two-sided p-values for each feature.
+    pvalues_corr_ : ndarray of shape (n_features,)
+        Multiple testing corrected p-values for each feature.
     sigma_hat_ : float or ndarray of shape (n_task, n_task)
         Estimated noise level.
     precision_diagonal_ : ndarray of shape (n_features)
@@ -109,7 +118,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         dof_ajdustement=False,
         # parameters for model_x
         model_x=None,
-        preconfigure_model_x_path=True,
+        preconfigure_model_x_path=False,
         alpha_max_fraction=0.01,
         random_state=None,
         save_model_x=False,
@@ -155,6 +164,77 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.memory = memory
         self.verbose = verbose
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        # Attributes that are checked outside of class:
+        # confidence, distribution, n_jobs, memory, verbose
+        super()._check_fit_attributes()
+
+        if not isinstance(self.centered, bool):
+            raise TypeError("'centered' needs to be a boolean.")
+
+        if not isinstance(self.dof_ajdustement, bool):
+            raise TypeError("'dof_ajdustement' needs to be a boolean.")
+
+        if not isinstance(self.preconfigure_model_x_path, bool):
+            raise TypeError(
+                "'preconfigure_model_x_path' needs to be a boolean."
+            )
+
+        if not isinstance(self.alpha_max_fraction, numbers.Number):
+            raise TypeError("'alpha_max_fraction' needs to be a float.")
+        elif self.alpha_max_fraction <= 0:
+            raise ValueError(
+                "'alpha_max_fraction' needs to be strictly positive."
+            )
+
+        if not isinstance(self.save_model_x, bool):
+            raise TypeError("'save_model_x' needs to be a boolean.")
+
+        if not isinstance(self.tolerance_reid, numbers.Number):
+            raise TypeError("'tolerance_reid' needs to be a float.")
+        if self.tolerance_reid <= 0:
+            raise ValueError("'tolerance_reid' needs to be strictly positive.")
+
+        if not isinstance(self.noise_method, str):
+            raise TypeError(
+                r"'noise_method' needs to be one of {'AR', 'median'}"
+            )
+        if self.noise_method not in ["AR", "median"]:
+            raise ValueError(
+                "Unknown method for estimating the covariance matrix."
+            )
+
+        if self.model_x is not None and (
+            not isinstance(self.model_x, Lasso)
+            and not isinstance(self.model_x, MultiTaskLasso)
+            and not isinstance(self.model_x, LassoCV)
+        ):
+            raise TypeError(
+                r"'model_x' needs to be a Lasso, LassoCV, or a MultiTaskLasso."
+            )
+
+        if not isinstance(self.order, numbers.Number):
+            raise TypeError("'order' needs to be a float.")
+        if self.order <= 0:
+            raise ValueError("'order' needs to be strictly positive.")
+
+        if not isinstance(self.stationary, bool):
+            raise TypeError("'stationary' needs to be a boolean.")
+
+        if self.covariance is not None and not isinstance(
+            self.covariance, np.ndarray
+        ):
+            raise TypeError("'covariance' needs to be a np.ndarray.")
+
+        warnings.warn(
+            "'epsilon_pvalue' is deprecated and will be removed in 0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def fit(self, X, y):
         """
         Fit the Desparsified Lasso model.
@@ -188,37 +268,27 @@ class DesparsifiedLasso(BaseVariableImportance):
         4. Computes nodewise Lasso regressions in parallel
         5. Calculates debiased coefficients and precision matrix
         """
-        estimator = self.estimator
+        self._check_fit_attributes()
+
         if self.estimator is None:
-            estimator = LassoCV(
+            self.estimator_ = LassoCV(
                 max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
             )
-        if issubclass(LassoCV, estimator.__class__):
-            self.n_task_ = 1
-        elif issubclass(MultiTaskLassoCV, estimator.__class__):
-            self.n_task_ = -1
         else:
-            raise ValueError(
-                "lasso_cv needs to be a LassoCV or a MultiTaskLassoCV"
-            )
+            self.estimator_ = self.estimator
+
+        if isinstance(self.estimator_, LassoCV):
+            self.n_task_ = 1
+        elif isinstance(self.estimator_, MultiTaskLassoCV):
+            self.n_task_ = -1
 
         model_x = self.model_x
         if self.model_x is None:
             model_x = Lasso()
-        assert (
-            issubclass(Lasso, model_x.__class__)
-            or issubclass(MultiTaskLasso, model_x.__class__)
-            or issubclass(LassoCV, model_x.__class__)
-        ), "model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso"
-
-        if self.test not in {"chi2", "F"}:
-            raise ValueError(
-                f"'test' should be on of: 'chi2', 'F'. Got: '{self.test}'"
-            )
 
         check_memory(self.memory)
         rng = check_random_state(self.random_state)
-        estimator = seed_estimator(estimator, rng)
+        self.estimator_ = seed_estimator(self.estimator_, rng)
 
         if self.n_task_ == -1:
             self.n_task_ = y.shape[1]
@@ -231,12 +301,12 @@ class DesparsifiedLasso(BaseVariableImportance):
             X_ = X
             y_ = y
 
-        estimator = self._initial_fit(estimator, X_, y_)
+        self.estimator_ = self._initial_fit(self.estimator_, X_, y_)
 
         # Lasso regression and noise standard deviation estimation
         self.sigma_hat_ = reid(
-            estimator.coef_,  # estimated support of the variable importance
-            estimator.predict(X_) - y_,  # compute the residual,
+            self.estimator_.coef_,  # estimated support of the variable importance
+            self.estimator_.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
             # for group
             multioutput=self.n_task_ > 1,
@@ -247,7 +317,7 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         list_model_x = [clone(model_x) for _ in range(self.n_features_in_)]
         # define the alphas for the Nodewise Lasso
-        if self.preconfigure_model_x_path is None:
+        if self.preconfigure_model_x_path:
             list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
             alphas = self.alpha_max_fraction * list_alpha_max
             list_model_x = [
@@ -278,8 +348,10 @@ class DesparsifiedLasso(BaseVariableImportance):
 
         # Computing the degrees of freedom adjustment
         if self.dof_ajdustement:
-            coefficient_max = np.max(np.abs(estimator.coef_))
-            support = np.sum(np.abs(estimator.coef_) > 0.01 * coefficient_max)
+            coefficient_max = np.max(np.abs(self.estimator_.coef_))
+            support = np.sum(
+                np.abs(self.estimator_.coef_) > 0.01 * coefficient_max
+            )
             support = min(support, self.n_samples_ - 1)
             dof_factor = self.n_samples_ / (self.n_samples_ - support)
         else:
@@ -295,25 +367,19 @@ class DesparsifiedLasso(BaseVariableImportance):
         p_nodiagonal = dof_factor * p_nodiagonal + (
             dof_factor - 1
         ) * np.identity(self.n_features_in_)
-        self.importances_ = beta_bias.T - p_nodiagonal.dot(estimator.coef_.T)
+        self.importances_ = beta_bias.T - p_nodiagonal.dot(
+            self.estimator_.coef_.T
+        )
         # confidence intervals
         self.precision_diagonal_ = precision_diagonal * dof_factor**2
 
-        self.estimator_ = estimator
         self.model_x_ = model_x
 
         return self
 
-    def __sklearn_is_fitted__(self):
-        return (
-            hasattr(self, "clf_")
-            and hasattr(self, "importances_")
-            and hasattr(self, "precision_diagonal_")
-            and hasattr(self, "sigma_hat_")
-        )
-
     def _initial_fit(self, estimator, X_, y_):
-        """Run initial fit of a sklearn estimator.
+        """
+        Run initial fit of a sklearn estimator.
 
         Use during fit if an unfitted estimator was passed at instantiation.
         """
@@ -331,7 +397,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 )
                 warnings.warn(
                     f"'max_iter' has been increased to {estimator.max_iter}",
-                    stacklevel=2,
+                    stacklevel=find_stack_level(),
                 )
             # use the cross-validation for define the best alpha of Lasso
             estimator.set_params(n_jobs=self.n_jobs)
@@ -340,6 +406,15 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.n_features_in_ = estimator.n_features_in_
 
         return estimator
+
+    def _check_importance_attributes(self):
+        """
+        Check attributes needed during importance computation.
+        """
+        if self.test not in {"chi2", "F"}:
+            raise ValueError(
+                f"'test' should be on of: 'chi2', 'F'. Got: '{self.test}'"
+            )
 
     def importance(self, X=None, y=None):
         """
@@ -361,7 +436,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         Returns
         -------
         importances_ : ndarray of shape (n_features,) or (n_features, n_task)
-            Desparsified lasso coefficient estimates.
+            Desparsified lasso coefficient estimates for each feature.
 
         Notes
         -----
@@ -375,10 +450,12 @@ class DesparsifiedLasso(BaseVariableImportance):
         For multi-task case, p-values are based on chi-squared or F tests,
         configured by the test parameter ('chi2' or 'F').
         """
+        self._check_importance_attributes()
+
         if X is not None:
-            warnings.warn("X won't be used.", stacklevel=2)
+            warnings.warn("X won't be used.", stacklevel=find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used.", stacklevel=2)
+            warnings.warn("y won't be used.", stacklevel=find_stack_level())
 
         check_is_fitted(self)
 
@@ -433,8 +510,6 @@ class DesparsifiedLasso(BaseVariableImportance):
                     ),
                     1.0,
                 )
-            else:
-                raise ValueError(f"Unknown test '{self.test}'")
 
         self.pvalues_ = two_sided_pval
         return self.importances_
@@ -468,12 +543,33 @@ class DesparsifiedLasso(BaseVariableImportance):
     ):
         """
         Overrides the signature to set two_tailed_test=True by default.
+
+        Returns
+        -------
+        selected : ndarray of int of shape (n_features,)
+            Integer array indicating the selected features.
+            1 indicates selected features with positive effects,
+            -1 indicates selected features with negative effects,
+            0 indicates non-selected features.
         """
         return super().fdr_selection(
             fdr=fdr,
             fdr_control=fdr_control,
             reshaping_function=reshaping_function,
             two_tailed_test=two_tailed_test,
+        )
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return (
+            getattr(self, "clf_", None) is not None
+            and getattr(self, "importances_", None) is not None
+            and getattr(self, "precision_diagonal_", None) is not None
+            and getattr(self, "sigma_hat_", None) is not None
         )
 
 
@@ -512,13 +608,14 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
-    X_minus_i = np.delete(X, id_column, axis=1)
-    X_i = np.copy(X[:, id_column])
+    mask = _generate_group_mask(X.shape[1], id_column, selected=False)
+    X_minus_i = X[:, mask]
+    X_i = X[:, id_column]
 
     clf.set_params(
-        precompute=np.delete(
-            np.delete(gram, id_column, axis=0), id_column, axis=1
-        )
+        precompute=gram[
+            :, _generate_group_mask(gram.shape[0], id_column, selected=False)
+        ][_generate_group_mask(gram.shape[1], id_column, selected=False)]
     )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
@@ -574,6 +671,13 @@ def desparsified_lasso_importance(
     threshold_min=None,
     threshold_max=None,
 ):
+    warnings.warn(
+        "desparsified_lasso_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class DesparsifiedLasso instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = DesparsifiedLasso(
         estimator=estimator,
         centered=centered,
@@ -615,17 +719,17 @@ desparsified_lasso_importance.__doc__ = _aggregate_docstring(
         DesparsifiedLasso.pvalue_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics. For features not selected
-        during screening, scores are set to 0.
-    pvalues : ndarray of shape (n_features,)
-        Two-sided p-values for each feature under Gaussian null hypothesis.
-        For features not selected during screening, p-values are set to 1.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_features,)
+    Boolean array indicating selected features (True = selected)
+importances : ndarray of shape (n_features,)
+    Feature importance scores/test statistics. For features not selected
+    during screening, scores are set to 0.
+pvalues : ndarray of shape (n_features,)
+    Two-sided p-values for each feature under Gaussian null hypothesis.
+    For features not selected during screening, p-values are set to 1.
+""",
 )
 
 
@@ -729,10 +833,6 @@ def reid(
                     "The AR method is not compatible with the non-stationary"
                     + " noise assumption."
                 )
-        else:
-            raise ValueError(
-                "Unknown method for estimating the covariance matrix"
-            )
         ## compute empirical correlation of the residual
         if stationary:
             # consideration of stationary noise

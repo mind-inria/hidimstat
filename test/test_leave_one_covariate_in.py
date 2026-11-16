@@ -1,0 +1,237 @@
+from functools import partial
+
+import numpy as np
+import pandas as pd
+import pytest
+from scipy.stats import ttest_1samp
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
+from sklearn.model_selection import KFold, train_test_split
+
+from hidimstat import LOCI, LOCICV, loci_importance
+from hidimstat.base_perturbation import BasePerturbation
+from hidimstat.statistical_tools.multiple_testing import fdp_power
+
+
+def run_loci(
+    X,
+    y,
+    estimator,
+    feature_groups=None,
+    scoring="mean_squared_error",
+):
+    """Run the Leave-One-Covariate-In algorithm on given data."""
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    estimator.fit(X_train, y_train)
+
+    loci = LOCI(
+        estimator=estimator,
+        scoring=scoring,
+        feature_groups=feature_groups,
+        n_jobs=1,
+    )
+
+    loci.fit(
+        X_train,
+        y_train,
+    )
+    loci.importance(X_test, y_test)
+
+    return loci
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_loci(data_generator):
+    """Test the Leave-One-Covariate-In algorithm on a linear scenario."""
+    X, y, important_features = data_generator
+
+    loci = run_loci(X=X, y=y, estimator=LinearRegression())
+    importance = loci.importances_
+
+    assert importance.shape == (X.shape[1],)
+    assert (
+        importance[important_features].mean()
+        > importance[~important_features].mean()
+    )
+
+    # Same with groups and a pd.DataFrame
+    feature_ids = np.arange(X.shape[1])
+    groups = {
+        "group_0": [f"col_{i}" for i in feature_ids[important_features]],
+        "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
+    }
+    X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
+    loci = run_loci(
+        X=X_df, y=y, estimator=LinearRegression(), feature_groups=groups
+    )
+    importance = loci.importances_
+
+    assert importance[0].mean() > importance[1].mean()
+
+    # Classification case
+    y_clf = (y > np.median(y)).astype(int)
+    loci_clf = run_loci(
+        X=X,
+        y=y_clf,
+        estimator=LogisticRegression(),
+        feature_groups={
+            "group_0": feature_ids[important_features],
+            "the_group_1": feature_ids[~important_features],
+        },
+        scoring="log_loss",
+    )
+    importance_clf = loci_clf.importances_
+
+    assert importance_clf.shape == (2,)
+    assert importance_clf[0].mean() > importance_clf[1].mean()
+
+
+def test_multiclass_loci():
+    """Test LOCI in a multiclass classification setup."""
+    important_features = 4
+    n_features = 20
+
+    X, y = make_classification(
+        n_samples=100,
+        n_features=n_features,
+        n_informative=important_features,
+        n_classes=3,
+        random_state=42,
+        shuffle=False,
+    )
+    groups = {
+        "important": list(range(important_features)),
+        "unimportant": list(range(important_features, n_features)),
+    }
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    logistic_model = LogisticRegression(random_state=0)
+    logistic_model.fit(X_train, y_train)
+
+    loci_clf = LOCI(
+        estimator=logistic_model,
+        feature_groups=groups,
+        scoring="log_loss",
+    )
+    loci_clf.fit(
+        X_train,
+        y_train,
+    )
+    importance_clf = loci_clf.importance(X_test, y_test)
+
+    assert importance_clf.shape == (2,)
+    assert importance_clf[0].mean() > importance_clf[1].mean()
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_raises_value_error(data_generator):
+    """Test for error when model does not have predict_proba or predict."""
+    X, y, _ = data_generator
+
+    # Not fitted sub-model when calling importance and predict
+    with pytest.raises(
+        ValueError, match="This LOCI instance is not fitted yet"
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        loci = LOCI(
+            estimator=fitted_model,
+        )
+        loci.importance(X, None)
+
+    with pytest.raises(
+        ValueError, match="This LOCI instance is not fitted yet"
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        loci = LOCI(
+            estimator=fitted_model,
+        )
+        BasePerturbation.fit(loci, X, y)
+        loci.importance(X, y)
+
+    with pytest.raises(
+        ValueError,
+        match="The statistical test doesn't provide the correct dimension",
+    ):
+        fitted_model = LinearRegression().fit(X, y)
+        loci = LOCI(
+            estimator=fitted_model,
+            statistical_test=partial(ttest_1samp, popmean=0, axis=0),
+        ).fit(X, y)
+        loci.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_loci_function(data_generator):
+    """Test the function of LOCI algorithm on a linear scenario."""
+    X, y, important_features = data_generator
+
+    X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
+
+    regression_model = LinearRegression()
+    regression_model.fit(X_train, y_train)
+
+    _, importance, _ = loci_importance(
+        regression_model,
+        X,
+        y,
+    )
+
+    assert importance.shape == (X.shape[1],)
+    assert (
+        importance[important_features].mean()
+        > importance[~important_features].mean()
+    )
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 50, None, 5, 0.0, 0, 2.0, 8, 0.0)],
+    ids=["default data"],
+)
+def test_loci_cv(data_generator):
+    """
+    Test that LOCI with cross-validated estimator works as expected. In particular,
+        - Empirical FDP is below the target FDR level
+        - Power is above 0.8, which is an arbitrary threshold
+
+    Note: even though the only the expected FDP should be controlled, in practice
+    the simulation setting is simple enough to satisfy this stronger condition.
+    """
+    X, y, important_features = data_generator
+
+    model = RidgeCV()
+    cv = KFold(n_splits=5, shuffle=True, random_state=0)
+    loci_cv = LOCICV(
+        estimators=model,
+        cv=cv,
+    )
+    loci_cv.fit(X, y)
+    loci_cv.importance(X, y)
+
+    alpha = 0.2
+    selected = loci_cv.fdr_selection(fdr=alpha)
+    fdp, power = fdp_power(
+        selected=selected, ground_truth=important_features.astype(int)
+    )
+    assert fdp < alpha
+    assert power >= 0.8
+
+
+@pytest.mark.filterwarnings("error:loci_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class LOCI"):
+        loci_importance(estimator=None, X=None, y=None)

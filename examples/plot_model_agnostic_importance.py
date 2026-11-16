@@ -64,6 +64,7 @@ from sklearn.svm import SVC
 non_linear_model = SVC(kernel="rbf", random_state=0)
 linear_model = LogisticRegressionCV(
     penalty="l1",
+    l1_ratios=(1,),
     solver="liblinear",
     max_iter=1000,
 )
@@ -104,7 +105,7 @@ print(f"{pval_dcrt_non_linear=}")
 # similarly to d0CRT. However, when using a non-linear model (SVC), LOCO is able to
 # identify the important variables.
 
-from sklearn.metrics import hinge_loss, log_loss
+from sklearn.metrics import hinge_loss, make_scorer
 from sklearn.model_selection import KFold
 
 from hidimstat import LOCO
@@ -121,14 +122,12 @@ for train, test in cv.split(X):
 
     vim_linear = LOCO(
         estimator=linear_model_,
-        loss=log_loss,
-        method="predict_proba",
+        scoring="log_loss",
         n_jobs=2,
     )
     vim_non_linear = LOCO(
         estimator=non_linear_model_,
-        loss=hinge_loss,
-        method="decision_function",
+        scoring=make_scorer(hinge_loss, response_method="decision_function"),
         n_jobs=2,
     )
     vim_linear.fit(X[train], y[train])

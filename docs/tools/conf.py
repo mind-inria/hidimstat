@@ -1,10 +1,14 @@
 import inspect
 import os
+import re
 import shutil
+import subprocess
 import sys
 import warnings
+from pathlib import Path
 
 import matplotlib
+import yaml
 
 from hidimstat import __version__
 
@@ -70,6 +74,22 @@ project = "HiDimStat"
 copyright = "2025, The hidimstat developers"
 author = "The hidimstat developers"
 release = __version__
+# Version for the documentation switcher dropdown. We extract the nearest git
+# tag (e.g. "0.3.1") rather than using setuptools_scm which appends commit
+# info (e.g. "0.3.2.dev2+g..."). If HEAD is past the tag, append ".dev".
+_git_describe = subprocess.run(
+    ["git", "describe", "--tags"],
+    capture_output=True,
+    text=True,
+).stdout.strip()
+_tag_match = re.match(r"v?(\d+\.\d+\.\d+)(.*)", _git_describe)
+if _tag_match:
+    _version_match = _tag_match.group(1)
+    if _tag_match.group(2):  # commits after tag
+        _version_match += ".dev"
+else:
+    _version_match = release
+
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
 # -- Copy files for docs --------------------------------------------------
@@ -91,9 +111,11 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinxcontrib.bibtex",
     "sphinx.ext.mathjax",
+    "sphinx_design",
     "sphinx_gallery.gen_gallery",
     "sphinx_prompt",
     "numpydoc",
@@ -101,8 +123,27 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+# --changelog PR references --------------------------------------------------
+extlinks = {
+    "gh": (f"{git_root_url}/issues/%s", "#%s"),
+}
+# -- contributor link targets (from CITATION.cff) ----------------------------
+_citation_path = Path(__file__).parent / ".." / ".." / "CITATION.cff"
+if _citation_path.exists():
+    with open(_citation_path) as _f:
+        _citation = yaml.safe_load(_f)
+    rst_epilog = "\n".join(
+        f".. _{author['given-names']} {author['family-names']}: {author['website']}"
+        for author in _citation.get("authors", [])
+        if "website" in author
+    )
+
 # Specify how to identify the prompt when copying a code snippet
-copybutton_prompt_text = r">>> |\.\.\. "
+# We want avoid the copy button to only take
+# the first line of a multiline input.
+copybutton_prompt_text = (
+    r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
+)
 copybutton_prompt_is_regexp = True
 copybutton_exclude = "style"
 
@@ -150,7 +191,7 @@ html_theme_options = {
         "json_url": (
             "https://raw.githubusercontent.com/mind-inria/hidimstat/refs/heads/main/docs/tools/version.json"
         ),
-        "version_match": release,
+        "version_match": _version_match,
     },
 }
 
@@ -163,7 +204,7 @@ html_context = {
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-source_suffix = [".rst", ".md"]
+source_suffix = {".rst": "restructuredtext"}
 
 # sphinxcontrib-bibtex
 bibtex_bibfiles = ["../tools/references.bib"]
@@ -210,6 +251,7 @@ sphinx_gallery_conf = {
         # We don't specify the other modules as we use the intershpinx ext.
         # See https://sphinx-gallery.github.io/stable/configuration.html#link-to-documentation
     },
+    "remove_config_comments": True,
 }
 
 
@@ -238,4 +280,5 @@ nitpick_ignore = [
     # Found here
     # https://stackoverflow.com/questions/11417221/sphinx-autodoc-gives-warning-pyclass-reference-target-not-found-type-warning
     ("py:class", "type"),
+    ("py:class", "callable"),
 ]
