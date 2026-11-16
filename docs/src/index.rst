@@ -38,8 +38,7 @@ further details on the various variable importance methods and concepts used in 
    :gutter: 3
 
    .. grid-item-card:: Methods
-      :link-type: ref
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_cfi_thumb.png
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_cfi_001.png
       :img-alt: Variable Importance Method
 
       You can find examples for each Variable Importance Method:
@@ -56,7 +55,7 @@ further details on the various variable importance methods and concepts used in 
 
 
    .. grid-item-card:: Visualization
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_partial_dependency_plot_thumb.png
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_partial_dependency_plot_003.png
       :img-alt: Visualization
       :link-type: ref
 
@@ -66,7 +65,7 @@ further details on the various variable importance methods and concepts used in 
 
 
    .. grid-item-card:: Spatially structured data
-      :img-bottom: /generated/gallery/examples/images/thumb/sphx_glr_plot_fmri_data_example_thumb.png
+      :img-bottom: /generated/gallery/examples/images/sphx_glr_plot_fmri_data_example_001.png
       :img-alt: Image stuff
       :link-type: ref
 
