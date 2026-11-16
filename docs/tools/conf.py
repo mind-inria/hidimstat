@@ -9,6 +9,7 @@ from pathlib import Path
 
 import matplotlib
 import yaml
+from sklearn.exceptions import ConvergenceWarning
 
 from hidimstat import __version__
 
@@ -19,6 +20,7 @@ def _reset_warning_filters(_gallery_conf, _fname):
     TODO: remove when minimum sklearn is bumped to >= 1.7.
     """
     warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 
 # Passing a function to reset the warning makes the config unpickable
