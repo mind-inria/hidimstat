@@ -21,7 +21,6 @@ def _reset_warning_filters(_gallery_conf, _fname):
     """
     warnings.filterwarnings("ignore", category=FutureWarning)
     warnings.filterwarnings("ignore", category=ConvergenceWarning)
-    warnings.filterwarnings("ignore", category=UserWarning)
 
 
 # Passing a function to reset the warning makes the config unpickable

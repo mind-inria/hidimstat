@@ -30,9 +30,14 @@ e-values. We illustrate both procedures in this example.
 # different aggregation procedures. We generate data with `n=300` samples and `p=100`
 # correlated features.
 
+import warnings
+
 import numpy as np
 
 from hidimstat._utils.scenario import multivariate_simulation
+
+# This is to avoid "matrix for knockoffs is not positive definite" UserWarning flooding.
+warnings.filterwarnings("default", category=UserWarning)
 
 n_features = 100
 n_samples = 300
