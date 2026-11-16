@@ -163,7 +163,7 @@ sns.pointplot(
     y="importance",
     hue="selected",
     linestyles="",
-    palette=["tab:green", "tab:red"],
+    palette=["tab:green", "tab:red", "tab:orange"],
     markeredgewidth=0.5,
     markeredgecolor="gray",
     markersize=8,
