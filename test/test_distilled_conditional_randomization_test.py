@@ -565,6 +565,7 @@ def test_warning_not_used_parameters(generate_classif_data):
         _ = d0crt.fit_importance(X, y, cv=cv)
 
 
+@pytest.mark.filterwarnings("ignore:d0crt_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
