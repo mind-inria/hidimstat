@@ -41,8 +41,11 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
         if not SKLEARN_LT_1_8:
-            # TODO: remove this when sklearn min reaches 1.10
-            kwargs["use_legacy_attributes"] = True
+            try:
+                # TODO: remove this when sklearn min reaches 1.10
+                kwargs["use_legacy_attributes"] = True
+            except TypeError:
+                print("Wrong sklearn version.")
             if "penalty" in kwargs:
                 penalty = kwargs.pop("penalty")
                 if penalty == "l1":
