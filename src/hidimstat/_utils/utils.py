@@ -25,6 +25,7 @@ from hidimstat.statistical_tools.holdout_randomization_test import (
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
+SKLEARN_LT_1_8 = parse(sklearn_version).minor < 8
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
 
@@ -39,13 +40,13 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
             kwargs["alphas"] = kwargs.pop("n_alphas")
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
-        if SKLEARN_LT_1_9 and "penalty" in kwargs:
+        if not SKLEARN_LT_1_8 and "penalty" in kwargs:
             penalty = kwargs.pop("penalty")
             if penalty == "l1":
                 kwargs["l1_ratios"] = (1,)
             elif penalty == "l2":
                 kwargs["l1_ratios"] = (0,)
-        elif not SKLEARN_LT_1_9 and "l1_ratios" in kwargs:
+        elif SKLEARN_LT_1_8 and "l1_ratios" in kwargs:
             if kwargs["l1_ratios"] == (1,):
                 kwargs["penalty"] = "l1"
             elif kwargs["l1_ratios"] == (0,):

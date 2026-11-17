@@ -36,9 +36,6 @@ def expected_failed_checks(estimator):
         }
 
 
-alphas_attr = "n_alphas"
-
-
 @parametrize_with_checks(
     estimators=ESTIMATORS_TO_CHECK,
     expected_failed_checks=expected_failed_checks,
@@ -63,10 +60,11 @@ def d0crt_test_data():
     dcrt_default_parameters = {
         "estimator": LassoCV(cv=KFold(shuffle=True)),
         "screening_threshold": None,
-        "model_distillation_x": LassoCV(cv=KFold(shuffle=True)),
+        "model_distillation_x": _make_sklearn_estimator(
+            LassoCV, cv=KFold(shuffle=True), n_alphas=10
+        ),
         "n_jobs": 1,
     }
-    setattr(dcrt_default_parameters["model_distillation_x"], alphas_attr, 10)
     return X, y, beta, dcrt_default_parameters
 
 
@@ -664,8 +662,7 @@ def test_d0crt_linear(d0crt_test_data):
     features.
     """
     X, y, beta, _ = d0crt_test_data
-    lasso_estimator = LassoCV(n_jobs=1)
-    setattr(lasso_estimator, alphas_attr, 10)
+    lasso_estimator = _make_sklearn_estimator(LassoCV, n_jobs=1, n_alphas=10)
 
     d0crt = D0CRT(
         estimator=lasso_estimator,
