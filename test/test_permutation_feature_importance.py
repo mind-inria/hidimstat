@@ -101,6 +101,7 @@ def test_permutation_importance(data_generator):
     assert importance_clf.shape == (X.shape[1],)
 
 
+@pytest.mark.filterwarnings("ignore:pfi_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 20, None, 4, 0, 42, 1, 10, 0)],
