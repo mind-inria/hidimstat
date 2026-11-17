@@ -110,7 +110,7 @@ def test_check_test_statistic_warning():
 
 def test__make_sklearn_estimator(monkeypatch):
 
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_8", False)
 
     for penalty, expected in zip(["l1", "l2"], [(1,), (0,)], strict=False):
         est = _make_sklearn_estimator(
@@ -120,7 +120,7 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.l1_ratios == expected
 
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", False)
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_8", True)
 
     for l1_ratio, expected in zip([(1,), (0,)], ["l1", "l2"], strict=False):
         est = _make_sklearn_estimator(
@@ -204,6 +204,9 @@ def test_check_loss_method_parameter_deprecation_warning():
         )
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Parameters 'method' and 'loss' are deprecated"
+)
 def test_check_loss_method_parameter():
     """
     Test the following:
