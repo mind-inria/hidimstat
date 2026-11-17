@@ -143,6 +143,8 @@ def test_ensemble_importance_check_fit(data_generator):
         encludl.importance(X, y)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, None, 10, 0, 42, 1, 10, 0)],
@@ -173,6 +175,8 @@ def test_ensemble_importance(data_generator):
     )
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 20, None, 10, 0, 42, 1, 10, 0)],
@@ -202,6 +206,8 @@ def test_importance_data_no_warning_raised(data_generator):
             )
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_spatial(rng):
     """
     Test EnCluVI on a 2D spatial simulation. Testing for support recovery methods using
@@ -272,6 +278,8 @@ def test_encluvi_spatial(rng):
     assert result.pvalue > 0.01
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
@@ -336,6 +344,8 @@ def test_encluvi_temporal(rng):
     assert np.mean(fdp_list) <= alpha
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_independence():
     """Test that EnCluVI works with n_jobs=1. Non regression for #425"""
     n_samples = 50
@@ -395,6 +405,8 @@ def ensemble_test_data():
     return X_train, y_train, X_test, y_test, en_dl_default_parameters
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_repeatibility(ensemble_test_data):
     """
     Test that multiple calls of .importance() when EnsembleImportance is not seeded
@@ -412,6 +424,8 @@ def test_ensemble_repeatibility(ensemble_test_data):
     assert not np.array_equal(importance, importance_repeat)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_none(ensemble_test_data):
     """
     Test randomness of multiple calls of .importance() when
@@ -434,6 +448,8 @@ def test_ensemble_randomness_with_none(ensemble_test_data):
     assert not np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_integer(ensemble_test_data):
     """
     Test reproducibility of multiple calls of .importance() when
@@ -458,6 +474,8 @@ def test_ensemble_randomness_with_integer(ensemble_test_data):
     assert np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_rng(ensemble_test_data):
     """
     Test that:
