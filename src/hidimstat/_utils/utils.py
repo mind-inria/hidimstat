@@ -40,12 +40,15 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
             kwargs["alphas"] = kwargs.pop("n_alphas")
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
-        if not SKLEARN_LT_1_8 and "penalty" in kwargs:
-            penalty = kwargs.pop("penalty")
-            if penalty == "l1":
-                kwargs["l1_ratios"] = (1,)
-            elif penalty == "l2":
-                kwargs["l1_ratios"] = (0,)
+        if not SKLEARN_LT_1_8:
+            # TODO: remove this when sklearn min reaches 1.10
+            kwargs["use_legacy_attributes"] = True
+            if "penalty" in kwargs:
+                penalty = kwargs.pop("penalty")
+                if penalty == "l1":
+                    kwargs["l1_ratios"] = (1,)
+                elif penalty == "l2":
+                    kwargs["l1_ratios"] = (0,)
         elif SKLEARN_LT_1_8 and "l1_ratios" in kwargs:
             if kwargs["l1_ratios"] == (1,):
                 kwargs["penalty"] = "l1"
