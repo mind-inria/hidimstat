@@ -130,9 +130,16 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.penalty == expected
 
-    target = 10
-    est = _make_sklearn_estimator(LassoCV, n_alphas=target)
-    assert est.alphas == 10
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", False)
+
+    alpha_target = 10
+    est = _make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
+    assert est.alphas == alpha_target
+
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", True)
+
+    est = _make_sklearn_estimator(LassoCV, alphas=alpha_target)
+    assert est.n_alphas == alpha_target
 
 
 def test_find_stack_level():

@@ -36,7 +36,7 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
     if estimator_cls.__name__ == "LassoCV":
         if SKLEARN_LT_1_7 and "alphas" in kwargs:
             kwargs["n_alphas"] = kwargs.pop("alphas")
-        elif "n_alphas" in kwargs:
+        elif not SKLEARN_LT_1_7 and "n_alphas" in kwargs:
             kwargs["alphas"] = kwargs.pop("n_alphas")
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
