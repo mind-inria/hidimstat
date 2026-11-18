@@ -110,7 +110,7 @@ def test_check_test_statistic_warning():
 
 def test__make_sklearn_estimator(monkeypatch):
 
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_8", False)
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
 
     for penalty, expected in zip(["l1", "l2"], [(1,), (0,)], strict=False):
         est = _make_sklearn_estimator(
@@ -120,11 +120,7 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.l1_ratios == expected
 
-    target = 10
-    est = _make_sklearn_estimator(LassoCV, n_alphas=target)
-    assert est.alphas == 10
-
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_8", True)
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", False)
 
     for l1_ratio, expected in zip([(1,), (0,)], ["l1", "l2"], strict=False):
         est = _make_sklearn_estimator(
@@ -133,6 +129,10 @@ def test__make_sklearn_estimator(monkeypatch):
         )
 
         assert est.penalty == expected
+
+    target = 10
+    est = _make_sklearn_estimator(LassoCV, n_alphas=target)
+    assert est.alphas == 10
 
 
 def test_find_stack_level():
