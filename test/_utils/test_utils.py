@@ -108,7 +108,7 @@ def test_check_test_statistic_warning():
         check_statistical_test([])
 
 
-def test__make_sklearn_estimator(monkeypatch):
+def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
 
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
 
@@ -130,6 +130,8 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.penalty == expected
 
+
+def test__make_sklearn_estimator_alphas_args(monkeypatch):
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", False)
 
     alpha_target = 10
