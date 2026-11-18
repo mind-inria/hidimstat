@@ -40,25 +40,27 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
             kwargs["alphas"] = kwargs.pop("n_alphas")
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
-        if not SKLEARN_LT_1_8:
-            try:
-                # TODO: remove this when sklearn min reaches 1.10
-                kwargs["use_legacy_attributes"] = True
-            except TypeError:
-                print("Wrong sklearn version.")
-            if "penalty" in kwargs:
-                penalty = kwargs.pop("penalty")
-                if penalty == "l1":
-                    kwargs["l1_ratios"] = (1,)
-                elif penalty == "l2":
-                    kwargs["l1_ratios"] = (0,)
+        if not SKLEARN_LT_1_8 and "penalty" in kwargs:
+            # TODO: remove this when sklearn min reaches 1.10
+            kwargs["use_legacy_attributes"] = True
+            penalty = kwargs.pop("penalty")
+            if penalty == "l1":
+                kwargs["l1_ratios"] = (1,)
+            elif penalty == "l2":
+                kwargs["l1_ratios"] = (0,)
         elif SKLEARN_LT_1_8 and "l1_ratios" in kwargs:
             if kwargs["l1_ratios"] == (1,):
                 kwargs["penalty"] = "l1"
             elif kwargs["l1_ratios"] == (0,):
                 kwargs["penalty"] = "l2"
 
-    return estimator_cls(**kwargs)
+    try:
+        est = estimator_cls(**kwargs)
+    except TypeError:
+        # Workaround for inexistent "use_legacy_attributes" for sklearn < 1.8
+        kwargs.pop("use_legacy_attributes")
+        est = estimator_cls(**kwargs)
+    return est
 
 
 def _check_vim_predict_method(method):
