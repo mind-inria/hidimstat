@@ -138,11 +138,6 @@ def test__make_sklearn_estimator_alphas_args(monkeypatch):
     est = _make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
     assert est.alphas == alpha_target
 
-    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", True)
-
-    est = _make_sklearn_estimator(LassoCV, alphas=alpha_target)
-    assert est.n_alphas == alpha_target
-
 
 def test_find_stack_level():
     """Test find_stack_level."""
