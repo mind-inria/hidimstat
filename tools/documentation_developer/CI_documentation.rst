@@ -12,7 +12,7 @@ configurations supported by hidimstat.
 - **CircleCI**:
   Host the project documentation for pull requests.
 
-If any of the following markers appear in the committed message, the following
+If any of the following markers appear in the commit message, the following
 actions are taken.
 
     ============================  =======================================
@@ -24,18 +24,35 @@ actions are taken.
     [example] name_of_example.py  trigger build of some specific examples
     ============================  =======================================
 
+.. important::
+
+    Markers are only read from the **last (head) commit** of the push.
+    A marker in an earlier commit of the pull request is ignored,
+    so it must be repeated in each commit where it should apply.
+    For example:
+
+    .. prompt:: bash
+
+        git commit --allow-empty -m "[full doc] request a full doc build"
+
+    ``[skip doc]`` is only detected in the first line (subject) of the commit message,
+    while the other markers can be anywhere in the message.
+
 Note that, by default, the documentation is built with all the modified examples.
 
 For more details, the GitHub Action builds the documentation
 and stores it as an artefact on https://nightly.link.
-It then creates an event on the CircleCI pipeline,
-which downloads the artefact and deploys of the documentation.
+On pull requests, it then creates an event on the CircleCI pipeline,
+which downloads the artefact and hosts it so it can be previewed
+(see "Check the HTML doc here!" at the bottom of the pull request).
+On ``main`` and on releases, the documentation is deployed
+by GitHub Actions directly to https://github.com/hidimstat/hidimstat.github.io.
 
 CI is testing all possible configurations supported by hidimstat,
 so tests may fail with configurations different from your development setup.
 See with the maintainers to identify the cause of any possible failure.
 
-Test results are posted on a CircleCI workspace that is accessible
+Test results are posted as CircleCI artifacts that are accessible
 by clicking on the associated Github actions at the bottom of a pull-request's page.
 
 

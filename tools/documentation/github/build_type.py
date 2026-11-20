@@ -88,17 +88,18 @@ def main():
         Path("build.txt").write_text("html\n")
         return
 
-    # Check for [example] in commit message
+    # Check for [example] in commit message:
+    # keep every '*.py' token that follows the marker,
+    # e.g. "[DOC] fix [example] plot_cfi.py plot_loco.py".
     example = []
     if "[example]" in COMMIT_MSG:
         print(f"Building selected example:\n{COMMIT_MSG}")
-        # Extract everything after the first "] "
-        try:
-            examples_in_message = COMMIT_MSG.split("] ", 1)[1].strip()
-            for ex in examples_in_message.split(" "):
-                example.extend([f"examples/*/{ex.strip()}"])
-        except IndexError:
-            ...
+        examples_in_message = COMMIT_MSG.split("[example]", 1)[1]
+        example = [
+            f"examples/{Path(token).name}"
+            for token in examples_in_message.split()
+            if token.endswith(".py")
+        ]
 
     # Generate examples.txt
     merge_base = run(f"git merge-base {COMMIT_SHA} upstream/main")
