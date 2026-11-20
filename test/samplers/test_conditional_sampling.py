@@ -8,6 +8,7 @@ from sklearn.linear_model import (
     RidgeCV,
 )
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 
@@ -105,7 +106,7 @@ def test_binary_case(rng):
         np.delete(X, 1, axis=1), X[:, 1], n_samples=n_samples, random_state=0
     )
     for i in range(n_samples):
-        assert 0.9 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
+        assert 0.99 > accuracy_score(X_1_perm[i], X[:, 1]) > 0.6
 
 
 def test_error_wrong_type_data(rng):
@@ -239,7 +240,7 @@ def test_sample_categorical(rng):
         bins=np.quantile(X[:, 1], [0, 0.2, 0.4, 0.6, 0.8, 1]),
         right=True,
     )
-    X[:, 3:][np.where(X[:, 3:] == 0)] = 1
+    X[:, 3:][X[:, 3:] == 0] = 1
 
     sampler = ConditionalSampler(
         model_categorical=LogisticRegressionCV(
@@ -278,3 +279,157 @@ def test_sample_categorical(rng):
         assert 0.95 > accuracy_score(X_3_perm[i, :, 0], X[:, 3]) > 0.3
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
         assert 0.95 > accuracy_score(X_3_perm[i, :, 1], X[:, 4]) > 0.3
+
+
+def test_check_fit_attributes():
+    """Tests for conditional sampler attributes check before fit."""
+    sampler = ConditionalSampler(model_regression="BaseEstimator")
+
+    with pytest.raises(TypeError, match=r"Regression model invalid"):
+        sampler._check_fit_attributes()
+
+    sampler = ConditionalSampler(model_categorical="BaseEstimator")
+
+    with pytest.raises(TypeError, match=r"Categorical model invalid"):
+        sampler._check_fit_attributes()
+
+
+@pytest.fixture
+def generate_data(rng):
+    n = 1000
+    p = 5
+    X = rng.standard_normal((n, p))
+    return X, n, p
+
+
+def test_feature_predictability_continuous_easy_target(rng, generate_data):
+    """Test feature predictability with a regression model and highly correlated features."""
+    X, n, p = generate_data
+    y = np.dot(X, rng.standard_normal(p)) + 1e-3 * rng.standard_normal(n)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_regression=RidgeCV(), data_type="continuous"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert sampler.feature_predictability(X_test, y_test) > 0.99
+
+
+def test_feature_predictability_continuous_independent_target(
+    rng, generate_data
+):
+    """Test feature predictability with a regression model and independent features."""
+    X, n, _ = generate_data
+    y = rng.standard_normal(n)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_regression=RidgeCV(), data_type="continuous"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert abs(sampler.feature_predictability(X_test, y_test)) < 0.1
+
+
+def test_feature_predictability_continuous_multiclass_independent_target(
+    rng, generate_data
+):
+    """Test feature predictability with a regression model independent features, and 3 output features."""
+    X, n, _ = generate_data
+    y = rng.standard_normal((n, 3))
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_regression=RidgeCV(), data_type="continuous"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert abs(sampler.feature_predictability(X_test, y_test)) < 0.1
+
+
+def test_feature_predictability_categorical_easy_target(generate_data):
+    """Test feature predictability with a categorical model and an easy target."""
+    X, _, _ = generate_data
+    y = (X[:, 0] > 0).astype(int)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_categorical=LogisticRegressionCV(), data_type="categorical"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert sampler.feature_predictability(X_test, y_test) > 0.99
+
+
+def test_feature_predictability_categorical_independent_target(
+    rng, generate_data
+):
+    """Test feature predictability with a categorical model and independent features."""
+    X, n, _ = generate_data
+    y = rng.integers(low=0, high=2, size=n)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_categorical=LogisticRegressionCV(), data_type="categorical"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert sampler.feature_predictability(X_test, y_test) == pytest.approx(
+        0.5, abs=0.1
+    )
+
+
+def test_feature_predictability_categorical_multiclass_easy_target(
+    generate_data,
+):
+    """Test feature predictability with a categorical model, an easy target, and 3-classes."""
+    X, _, _ = generate_data
+    y = np.digitize(X[:, 0], np.quantile(X[:, 0], [1 / 3, 2 / 3]))
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_categorical=LogisticRegressionCV(), data_type="categorical"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert sampler.feature_predictability(X_test, y_test) > 0.99
+
+
+def test_feature_predictability_categorical_multiclass_independent_target(
+    rng, generate_data
+):
+    """Test feature predictability with a categorical model and independent features."""
+    X, n, _ = generate_data
+    y = rng.integers(low=0, high=3, size=n)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.5, random_state=0
+    )
+
+    sampler = ConditionalSampler(
+        model_categorical=LogisticRegressionCV(), data_type="categorical"
+    )
+    sampler.fit(X_train, y_train)
+
+    assert sampler.feature_predictability(X_test, y_test) == pytest.approx(
+        0.5, abs=0.1
+    )

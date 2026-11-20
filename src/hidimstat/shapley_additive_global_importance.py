@@ -6,12 +6,19 @@ The value function is defined as the loss increase when the features of
 interest is removed from the subset.
 """
 
+import numbers
+
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.metrics import mean_squared_error
+from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import (
+    _check_loss_method_parameter,
+    _get_array_cols,
+    check_random_state,
+    check_scoring,
+)
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
     GroupVariableImportanceMixin,
@@ -23,8 +30,7 @@ def _sage_value_function(
     X,
     y,
     subset,
-    method,
-    loss,
+    scoring,
     n_permutations,
     imputation="marginal",
     random_state=None,
@@ -42,25 +48,21 @@ def _sage_value_function(
         )
 
     # Sample the complement of the subset according to the marginal distribution
-    n_samples, n_features = X.shape
+    _n_samples, n_features = X.shape
     complement = np.setdiff1d(np.arange(n_features), subset)
     X_sampled = np.tile(
         X, (n_permutations, 1, 1)
     )  # (n_permutations, n_samples, n_features)
     for perm_idx in range(n_permutations):
         for col in complement:
-            X_sampled[perm_idx, :, col] = rng.permutation(X[:, col])
-
-    X_sampled_batch = X_sampled.reshape(-1, n_features)
-    y_pred = getattr(estimator, method)(X_sampled_batch)
-    # In case of classification, the output is a 2D array. Reshape accordingly
-    if y_pred.ndim == 1:
-        y_pred = y_pred.reshape(n_permutations, n_samples)
-    else:
-        y_pred = y_pred.reshape(n_permutations, n_samples, y_pred.shape[1])
-
-    losses = np.array([loss(y, y_pred[i]) for i in range(n_permutations)])
-    return subset, np.mean(losses)
+            X_col = _get_array_cols(X, col)
+            X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
+                -1,
+            )
+    scores = np.array(
+        [scoring(estimator, X_sampled[i], y) for i in range(n_permutations)]
+    )
+    return subset, np.mean(scores)
 
 
 def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
@@ -81,19 +83,30 @@ def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
     return subsets
 
 
-class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
+class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
     """
-    Shaple Additive Global Importance (SAGE) values for feature importance,
-    from :footcite:t:`Covert2020`.
+    Shapley Additive Global Importance (SAGE) values for feature importance.
+
+    This method is presented in :footcite:t:`Covert2020`.
+    Read more in the :ref:`User Guide <shapley_additive_global_explanation>`.
 
     Parameters
     ----------
     estimator : object
         The fitted model for which to compute the SAGE values.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
     method : str, default="predict"
         The method of the estimator to use for predictions.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     loss : callable, default=mean_squared_error
         The loss function to use for computing the SAGE values.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     imputation : str, default="marginal"
         The imputation strategy to use for sampling the complement of the
         subset. Currently, only "marginal" is implemented.
@@ -103,7 +116,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
     n_permutations : int, default=50
         The number of samples to draw using the `imputation` strategy for each
         subset (the samples are drawn from the complement of the subset).
-    features_groups : dict, optional
+    feature_groups : dict, optional
         Group of features for which to compute the importance. Default is None,
         which means that the importance of each individual feature will be
         computed.
@@ -111,25 +124,29 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         Random state for reproducibility. Default is None.
     n_jobs : int, default=1
         The number of parallel jobs to run for computing the SAGE values.
+
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
 
     def __init__(
         self,
         estimator,
-        method="predict",
-        loss=mean_squared_error,
+        scoring="mean_squared_error",
+        method=None,
+        loss=None,
         imputation="marginal",
         n_subsets=50,
         n_permutations=50,
-        features_groups=None,
+        feature_groups=None,
         random_state=None,
         n_jobs=1,
     ):
-        super().__init__()
-        GroupVariableImportanceMixin.__init__(
-            self, features_groups=features_groups
-        )
+        super().__init__(feature_groups=feature_groups)
+        BaseVariableImportance.__init__(self)
         self.estimator = estimator
+        self.scoring = scoring
         self.method = method
         self.loss = loss
         self.imputation = imputation
@@ -138,31 +155,52 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-    def fit(self, X, y=None):
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+        BaseVariableImportance._check_fit_attributes(self)
+
+        if not isinstance(self.n_subsets, numbers.Number):
+            raise TypeError("'n_subsets' needs to be an int.")
+        elif self.n_subsets <= 0:
+            raise ValueError("'n_subsets' needs to be strictly positive.")
+
         if self.imputation != "marginal":
             raise NotImplementedError(
                 "Only marginal imputation is currently implemented for SAGE "
                 "values."
             )
+
+    def fit(self, X, y=None):
+        self._check_fit_attributes()
         self.estimator_ = self._initial_fit(self.estimator, X, y)
-        GroupVariableImportanceMixin.fit(self, X, y)
+        super().fit(X, y)
         return self
 
     def importance(self, X, y):
-        self._check_fit()
+        check_is_fitted(self)
         rng = check_random_state(self.random_state)
+        self._check_compatibility(X)
+        self.scoring = _check_loss_method_parameter(
+            scoring=self.scoring, method=self.method, loss=self.loss
+        )
+        self.scoring = check_scoring(
+            estimator=self.estimator_, scoring=self.scoring
+        )
 
         # 1. Sample all subsets, create a dictionary mapping between subsets
         # and corresponding SAGE value function to avoid redundant computation.
 
         # For each feature, list of tuples (S, S U {j})
-        self.sum_terms_ = {j: [] for j in range(self.n_features_groups_)}
+        self.sum_terms_ = {j: [] for j in range(self.n_feature_groups_)}
         # dictionary to store computed SAGE values for subsets
         self.subset_value_map_ = {}
         # subset of features without j
         self.subset_map_ = {}
-        for j in range(self.n_features_groups_):
-            group_ids = self.features_groups_[j]
+        for j in range(self.n_feature_groups_):
+            group_ids = self._feature_groups_ids_[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )
@@ -183,8 +221,7 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
                 X,
                 y,
                 subset=self.subset_map_[subset_key],
-                method=self.method,
-                loss=self.loss,
+                scoring=self.scoring,
                 n_permutations=self.n_permutations,
                 imputation=self.imputation,
                 random_state=rng,
@@ -197,8 +234,8 @@ class SAGE(BaseVariableImportance, GroupVariableImportanceMixin):
             subset_key = tuple(subset)
             self.subset_value_map_[subset_key] = value
 
-        self.importances_ = np.zeros(self.n_features_groups_)
-        for j in range(self.n_features_groups_):
+        self.importances_ = np.zeros(self.n_feature_groups_)
+        for j in range(self.n_feature_groups_):
             for S_key, S_j_key in self.sum_terms_[j]:
                 self.importances_[j] += (
                     self.subset_value_map_[S_key]

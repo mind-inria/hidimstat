@@ -135,14 +135,14 @@ changes:
 
 .PHONY: linkcheck
 linkcheck:
-	$(SPHINXBUILD) -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
+	$(SPHINXBUILD) -D suppress_warnings=image.not_readable -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 		  "or in $(BUILDDIR)/linkcheck/output.txt."
 
 .PHONY: doctest
 doctest:
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/doctest
+	$(SPHINXBUILD) -D plot_gallery=0 -b doctest $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/doctest
 	@echo "Testing of doctests in the sources finished, look at the " \
 		  "results in $(BUILDDIR)/doctest/output.txt."
 

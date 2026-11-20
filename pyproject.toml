@@ -37,7 +37,8 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "joblib       >= 1.4",
-    "pandas       >= 2.2",
+    # TODO: remove upper bound when new sklearn version fixes incompatibility with pandas
+    "pandas       >= 2.2, < 3.1",
     "scikit-learn >= 1.6",
     "scipy        >= 1.13",
     "tqdm         >= 4.66.3",
@@ -169,6 +170,7 @@ skip-magic-trailing-comma = false
 fixable = ["ALL"]
 ignore = [
     "B008",
+    "C901",
     "D100",
     "D101",
     "D102",
@@ -185,7 +187,6 @@ ignore = [
     "E501",
     "E741",
     "ERA001",
-    "F401",
     "F841",
     "PERF203",
     "PLR2004",
