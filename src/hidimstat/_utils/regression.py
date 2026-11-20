@@ -31,7 +31,7 @@ def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     """
     n_samples, _ = X.shape
 
-    Xt_y = np.dot(X.T, y)
+    Xt_y = np.abs(np.dot(X.T, y))
     if fill_diagonal:
         np.fill_diagonal(Xt_y, 0)
 
