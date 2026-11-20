@@ -21,7 +21,12 @@ Read more in the :ref:`User Guide <slm_methods>`.
 # contains 10 features corresponding to baseline measurements and a quantitative
 # measure of disease progression.
 
+import warnings
+
 from sklearn.datasets import load_diabetes
+
+# This is to avoid "Gram matrix" UserWarning flooding.
+warnings.filterwarnings("ignore", category=UserWarning)
 
 data = load_diabetes(as_frame=True)
 X = data["data"].to_numpy()
@@ -163,7 +168,7 @@ sns.pointplot(
     y="importance",
     hue="selected",
     linestyles="",
-    palette=["tab:green", "tab:red"],
+    palette=["tab:green", "tab:red", "tab:orange"],
     markeredgewidth=0.5,
     markeredgecolor="gray",
     markersize=8,

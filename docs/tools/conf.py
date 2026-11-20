@@ -79,6 +79,9 @@ else:
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
+# Handle filtering out warnings for child processes.
+os.environ["PYTHONWARNINGS"] = "ignore:sklearn.exceptions.ConvergenceWarning"
+
 # -- Copy files for docs --------------------------------------------------
 #
 # We avoid duplicating the information, but we do not use symlinks to be
@@ -231,6 +234,7 @@ sphinx_gallery_conf = {
     "backreferences_dir": "./generated/gallery/backreference/",
     "parallel": False,
     "show_memory": True,  # can't show memory if it's in parallel
+    "reset_modules": ("matplotlib", "seaborn"),
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,
