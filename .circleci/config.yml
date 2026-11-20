@@ -1,6 +1,3 @@
----
-# See https://nilearn.github.io/dev/ci.html for details.
-
 version: 2.1
 
 # Parameters required to trigger the execution of the "host_docs" job
