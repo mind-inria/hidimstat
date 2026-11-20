@@ -18,7 +18,6 @@
 # From the root of the repo
 #
 #  # Set env variables
-#  HEAD_COMMIT_MESSAGE='foo'
 #  COMMIT_SHA='xxxx'
 #
 #  # must be dev or stable
@@ -65,7 +64,7 @@ if [ "${DEPLOY_TYPE}" == "stable" ]; then
     MSG="${VERSIONTAG}"
 else
     HEAD_COMMIT_MESSAGE=$(git log -1 --format=%s)
-    MSG="https://github.com/hidimstat/hidimstat/commit/${COMMIT_SHA} : ${HEAD_COMMIT_MESSAGE}"
+    MSG="https://github.com/mind-inria/hidimstat/commit/${COMMIT_SHA} : ${HEAD_COMMIT_MESSAGE}"
 fi
 git -C ${CLONED_DOC} commit -m "${DEPLOY_TYPE} docs: ${MSG}"
 

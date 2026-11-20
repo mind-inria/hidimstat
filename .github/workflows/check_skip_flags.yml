@@ -1,9 +1,19 @@
 ---
 # Job to check skip flags in a commit message.
 #
+# Sets the ``skip`` output to ``'true'`` if the head commit message
+# contains ``[skip <skip_type>]``, ``'false'`` otherwise.
+#
 # To reuse from a job, use:
 #
-#     uses: ./.github/workflows/check_skip_flags.yml
+#     check_skip_flags:
+#         uses: ./.github/workflows/check_skip_flags.yml
+#         with:
+#             skip_type: doc
+#
+#     other_job:
+#         needs: [check_skip_flags]
+#         if: needs.check_skip_flags.outputs.skip != 'true'
 #
 ###
 name: Check skip flags
@@ -14,21 +24,30 @@ on:
                 description: The type of test to skip
                 required: true
                 type: string
+        outputs:
+            skip:
+                description: "'true' if the skip flag was found in the head commit message"
+                value: ${{ jobs.check_skip_flags.outputs.skip }}
 
 jobs:
     check_skip_flags:
         runs-on: ubuntu-latest
         env:
             SKIP_TYPE: ${{ inputs.skip_type }}
+        outputs:
+            skip: ${{ steps.check.outputs.skip }}
         steps:
         -   name: Get repo
             uses: actions/checkout@v7
             with:
                 ref: ${{ github.event.pull_request.head.sha }}
         -   name: Check head git commit message
+            id: check
             run: |
                 headCommitMsg=$(git show -s --format=%s)
                 if [[ $headCommitMsg == *"[skip ${SKIP_TYPE}]"* ]]; then
                     echo "Skipping ${SKIP_TYPE}"
-                    exit 1
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                else
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
                 fi

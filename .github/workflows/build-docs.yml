@@ -2,7 +2,9 @@
 # Workflow to build the documentation.
 #
 # - build doc and upload it as artifact
-# - on ``main`` (or on github release): trigger hosting of dev (or stable) doc on https://github.com/nilearn//nilearn.github.io.git
+# - on ``main`` (or on github release): deploy the dev (or stable) doc
+#   to https://github.com/hidimstat/hidimstat.github.io
+#
 # .. admonition:: Control via commit message
 #    :class: tip
 #
@@ -39,7 +41,7 @@
 #
 # .. code-block:: bash
 #
-#   $ git commit --message "[example] plot_nilearn_101.py"
+#   $ git commit --message "[example] plot_cfi.py"
 #
 # However for quick checks to do yourself
 # you should always opt for local builds.
@@ -70,9 +72,7 @@ concurrency:
 env:
     # Force to use color
     FORCE_COLOR: true
-    DISPLAY: :99.0
     MIN_PYTHON_VERSION: '3.10'
-    HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
 jobs:
     check_skip_flags:
@@ -85,6 +85,9 @@ jobs:
     # Upload as an artifact for other jobs.
     build_type:
         needs: [check_skip_flags]
+        # Downstream jobs (build_docs, deploy_on_main) are skipped as well
+        # since a skipped dependency propagates.
+        if: needs.check_skip_flags.outputs.skip != 'true'
         runs-on: ubuntu-latest
         steps:
         -   name: Checkout
@@ -128,13 +131,6 @@ jobs:
             SCIKIT_LEARN_DATA: /home/runner/work/hidimstat/hidimstat/sklearn_data
             _MNE_FAKE_HOME_DIR: /home/runner/work/hidimstat/hidimstat/mne_data
 
-        strategy:
-            fail-fast: false
-            matrix:
-                include:
-                -   py: '3.10'
-                    toxenv: doc
-
         defaults:
             run:
                 shell: bash -el {0}
@@ -162,7 +158,7 @@ jobs:
         -   name: Setup python
             uses: actions/setup-python@v6
             with:
-                python-version: ${{ matrix.py }}
+                python-version: ${{ env.MIN_PYTHON_VERSION }}
 
         -   name: Download build type
             uses: actions/download-artifact@v8
@@ -170,7 +166,7 @@ jobs:
                 name: build_type
 
         -   name: Install tox
-            run: uv tool install tox --with=tox-uv --with=tox-gh-actions
+            run: uv tool install tox --with=tox-uv
 
         -   name: Show tox config
             run: tox c
@@ -200,19 +196,28 @@ jobs:
             # We let tox handle creating virtual env and install dependencies.
         -   name: Build docs
             id: build-docs
-            if: ${{ matrix.toxenv == 'doc' }}
             run: |
                 set -o pipefail;
                 export PATTERN=$(cat pattern.txt)
                 tox run \
                     --colored yes \
                     --list-dependencies \
-                    -e  ${{ matrix.toxenv }} -- $(cat build.txt) 2>&1 | tee log.txt;
+                    -e doc -- $(cat build.txt) 2>&1 | tee log.txt;
 
+        -   name: Upload build log
+            if: always()
+            uses: actions/upload-artifact@v7
+            with:
+                name: doc_build_log
+                path: log.txt
+                if-no-files-found: ignore
+
+        # The artifact name 'doc' is used by the deploy_on_main job
+        # and by the CircleCI host_docs job (doc.zip).
         -   name: Upload documentation
             uses: actions/upload-artifact@v7
             with:
-                name: ${{ matrix.toxenv }}
+                name: doc
                 path: docs/_build/html
 
         -   name: Save monthly data cache
@@ -228,9 +233,15 @@ jobs:
     deploy_on_main:
         runs-on: ubuntu-latest
         needs: [build_docs]
+        # Manual runs (workflow_dispatch) only deploy when started from main,
+        # to avoid overwriting the dev doc with a feature branch.
         if: >
             github.repository == 'mind-inria/hidimstat' &&
-            contains(fromJSON('["push", "workflow_dispatch", "release"]'), github.event_name)
+            (
+                github.event_name == 'push' ||
+                github.event_name == 'release' ||
+                (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+            )
         steps:
         -   name: Checkout
             uses: actions/checkout@v7
