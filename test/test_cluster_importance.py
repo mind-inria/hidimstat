@@ -100,6 +100,8 @@ def test_cluster_importance_check_fit(data_generator):
         cludl.importance(X, y)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, None, 10, 0, 42, 1, 10, 0)],
@@ -133,6 +135,8 @@ def test_cluster_importance(data_generator):
     assert importance[beta].mean() > importance[~beta].mean()
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 20, None, 10, 0, 42, 1, 10, 0)],
@@ -162,6 +166,8 @@ def test_importance_data_no_warning_raised(data_generator):
             )
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_spatial():
     """
     Test ClusterImportance on a 2D spatial simulation. Testing for support recovery methods using
@@ -222,6 +228,8 @@ def test_cluvi_spatial():
     assert np.mean(fp_list) <= fwer
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_independence():
     """Test that CluVI works with repeated calls
     non-regression test for #425
@@ -265,6 +273,8 @@ def test_cluvi_independence():
     )
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
