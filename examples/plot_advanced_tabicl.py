@@ -45,15 +45,14 @@ print(f"Model accuracy on the test data {model.score(X_test, y_test):.3}.")
 # which lets us compute feature importance as easily as follows:
 
 import pandas as pd
-from sklearn.metrics import mean_squared_error
+import seaborn as sns
 
 from hidimstat import CFI
 
 cfi = CFI(
     estimator=model,
-    method="predict",
+    scoring="mean_squared_error",
     n_permutations=5,
-    loss=mean_squared_error,
     n_jobs=-1,
 )
 cfi.fit(X_train, y_train)
@@ -62,24 +61,36 @@ selection = cfi.fdr_selection(fdr=0.1)
 
 # %%
 # Let's wrap the results in a Pandas dataframe and plot the importance
-# and the selected variables.
+# and the selected variables. We also display a second plot showing the
+# predictability score of each group of variables $X^j$ from the others $X^{-j}$
+# based on the conditional samplers fitted with CFI.
 
 df = pd.DataFrame(
     {
         "feature": feat_names,
         "importance": importance,
         "selected": selection,
+        "feature_predictability": cfi.feature_predictability_,
     }
 ).sort_values("importance", ascending=False)
 
 import matplotlib.pyplot as plt
 
-_, ax = plt.subplots()
-cfi.plot_importance(ax=ax)
-ax.set_yticklabels(df["feature"].values)
+_, axes = plt.subplots(1, 2)
+
+cfi.plot_importance(ax=axes[0])
+axes[0].set_yticklabels(df["feature"].values)
+axes[0].set_title("Feature importance")
+
+sns.barplot(df, x="feature_predictability", y="feature", ax=axes[1])
+sns.despine(ax=axes[1])
+axes[1].set_ylabel("")
+axes[1].set_yticks(ticks=[], labels=[])
+axes[1].set_title("Feature predictability")
+
 plt.tight_layout()
 plt.show()
 
 # %%
-# As you can see from the timer under, even with 1000 samples and 9 features,
-# running TabICL on the CPU is slow. Using a GPU allows for an important speedup.
+# As you can see from the timer under, even with 500 samples and 9 features,
+# running TabICL on the CPU is slow. Using a GPU would allow for an important speedup.
