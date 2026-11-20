@@ -62,6 +62,7 @@ doc = [
     "sphinx-copybutton      >= 0.5.2",
     "sphinx-design          >= 0.5.0",
     "pyyaml                 >= 6.0",
+    "codecarbon             >= 3.0.0",
 ]
 example = [
     "matplotlib             >= 3.9",
@@ -89,6 +90,10 @@ test = [
     "pytest-timeout         >= 2.3.1",
     "pytest-xdist[psutil]   >= 3.6.1",
     "seaborn                >= 0.13.2",
+]
+
+energy = [
+    "codecarbon             >= 3.0.0",
 ]
 
 
