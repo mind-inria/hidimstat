@@ -37,7 +37,7 @@ import numpy as np
 from hidimstat._utils.scenario import multivariate_simulation
 
 # This is to avoid "matrix for knockoffs is not positive definite" UserWarning flooding.
-warnings.filterwarnings("default", category=UserWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 n_features = 100
 n_samples = 300

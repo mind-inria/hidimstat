@@ -26,7 +26,7 @@ import warnings
 from sklearn.datasets import load_diabetes
 
 # This is to avoid "Gram matrix" UserWarning flooding.
-warnings.filterwarnings("default", category=UserWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 data = load_diabetes(as_frame=True)
 X = data["data"].to_numpy()

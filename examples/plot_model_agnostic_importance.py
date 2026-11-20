@@ -66,6 +66,7 @@ linear_model = LogisticRegressionCV(
     l1_ratios=(1,),
     solver="liblinear",
     max_iter=1000,
+    use_legacy_attributes=True,
 )
 
 # %%
