@@ -90,6 +90,7 @@ def test_check_preconfigure_lasso_path_attribute_before_fit():
 ###########################################################################################
 
 
+# TODO: remove this in v0.6.0
 @pytest.mark.filterwarnings(
     "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
 )
