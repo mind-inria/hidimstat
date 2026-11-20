@@ -44,29 +44,38 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_cluster_parameter_check():
-    """
-    Test to verify parameter's class compliance.
-    """
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_vim_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
-        vim=LassoCV(),
+        vim=None,
         clustering=FeatureAgglomeration(),
     )
     with pytest.raises(
-        AssertionError,
-        match="estimator needs to be a subclass of BaseVariableImportance",
+        TypeError,
+        match=r"'vim' needs to be a subclass of BaseVariableImportance",
     ):
-        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        clu_vi._check_fit_attributes()
 
+
+def test_check_clustering_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
-        clustering=LassoCV(),
+        clustering=None,
     )
     with pytest.raises(
-        AssertionError,
-        match=r"clustering needs to be an instance of sklearn\.cluster\.FeatureAgglomeration",
+        TypeError,
+        match=r"'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration",
     ):
-        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        clu_vi._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(
@@ -86,7 +95,7 @@ def test_cluster_importance_check_fit(data_generator):
     )
 
     with pytest.raises(
-        ValueError, match="The estimator needs to be fit before using them"
+        ValueError, match="This ClusterImportance instance is not fitted yet"
     ):
         cludl.importance(X, y)
 

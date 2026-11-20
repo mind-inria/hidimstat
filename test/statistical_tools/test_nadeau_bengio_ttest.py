@@ -93,68 +93,62 @@ def test_wrong_dimension():
         nadeau_bengio_ttest(np.zeros((2, 3, 4, 5)), 0, test_frac=0.25)
 
 
-class TestTtest_1samp:
-    """
-    Adapted from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/test_mstats_basic.py#L1455
-    """
+def test_result_attributes(rng):
+    """Test attribute"""
+    outcome = rng.standard_normal((20, 4)) + np.asarray([0, 0, 1, 2])
 
-    def setup_method(self):
-        self.rng = np.random.default_rng(6043813830)
+    res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
+    attributes = ("statistic", "pvalue")
+    check_named_results(res, attributes)
 
-    def test_result_attributes(self):
-        """Test attribute"""
-        outcome = self.rng.standard_normal((20, 4)) + np.asarray([0, 0, 1, 2])
 
-        res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
-        attributes = ("statistic", "pvalue")
-        check_named_results(res, attributes)
+@pytest.mark.parametrize("alternative", ["less", "greater", "two-sided"])
+def test_alternative(alternative):
+    """Test option alternative"""
+    x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
 
-    @pytest.mark.parametrize("alternative", ["less", "greater", "two-sided"])
-    def test_alternative(self, alternative):
-        """Test option alternative"""
-        x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
+    t_ex, p_ex = nadeau_bengio_ttest(
+        x, 9, test_frac=0.0, alternative=alternative
+    )
+    t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
+    assert_allclose(t, t_ex, rtol=1e-14)
+    assert_allclose(p, p_ex, rtol=1e-14)
 
-        t_ex, p_ex = nadeau_bengio_ttest(
-            x, 9, test_frac=0.0, alternative=alternative
-        )
-        t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
-        assert_allclose(t, t_ex, rtol=1e-14)
-        assert_allclose(p, p_ex, rtol=1e-14)
+    t_ex_1, p_ex_1 = nadeau_bengio_ttest(
+        x, 9, test_frac=0.1, alternative=alternative
+    )
+    assert not np.array_equal(t_ex_1, t_ex)
+    assert not np.array_equal(t_ex_1, t)
+    assert not np.array_equal(p_ex_1, p_ex)
+    assert not np.array_equal(p_ex_1, p)
 
-        t_ex_1, p_ex_1 = nadeau_bengio_ttest(
-            x, 9, test_frac=0.1, alternative=alternative
-        )
-        assert not np.array_equal(t_ex_1, t_ex)
-        assert not np.array_equal(t_ex_1, t)
-        assert not np.array_equal(p_ex_1, p_ex)
-        assert not np.array_equal(p_ex_1, p)
+    # test with masked arrays
+    x[1:10] = np.nan
+    x = np.ma.masked_array(x, mask=np.isnan(x))
+    t_ex, p_ex = nadeau_bengio_ttest(
+        x.compressed(),
+        9,
+        test_frac=0.0,
+        alternative=alternative,
+    )
+    t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
+    assert_allclose(t, t_ex, rtol=1e-14)
+    assert_allclose(p, p_ex, rtol=1e-14)
 
-        # test with masked arrays
-        x[1:10] = np.nan
-        x = np.ma.masked_array(x, mask=np.isnan(x))
-        t_ex, p_ex = nadeau_bengio_ttest(
-            x.compressed(),
-            9,
-            test_frac=0.0,
-            alternative=alternative,
-        )
-        t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
-        assert_allclose(t, t_ex, rtol=1e-14)
-        assert_allclose(p, p_ex, rtol=1e-14)
+    t_ex_1, p_ex_1 = nadeau_bengio_ttest(
+        x, 9, test_frac=0.1, alternative=alternative
+    )
+    assert not np.array_equal(t_ex_1, t_ex)
+    assert not np.array_equal(t_ex_1, t)
+    assert not np.array_equal(p_ex_1, p_ex)
+    assert not np.array_equal(p_ex_1, p)
 
-        t_ex_1, p_ex_1 = nadeau_bengio_ttest(
-            x, 9, test_frac=0.1, alternative=alternative
-        )
-        assert not np.array_equal(t_ex_1, t_ex)
-        assert not np.array_equal(t_ex_1, t)
-        assert not np.array_equal(p_ex_1, p_ex)
-        assert not np.array_equal(p_ex_1, p)
 
-    def test_alternative_exception(self):
-        """Test exception for bad alternative"""
-        x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
-        with pytest.raises(
-            ValueError,
-            match="`alternative` must be 'less', 'greater', or 'two-sided'",
-        ):
-            nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")
+def test_alternative_exception():
+    """Test exception for bad alternative"""
+    x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
+    with pytest.raises(
+        ValueError,
+        match="`alternative` must be 'less', 'greater', or 'two-sided'",
+    ):
+        nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")

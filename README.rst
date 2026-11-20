@@ -134,11 +134,11 @@ Contact us
 | For less formal discussions or to exchange ideas, you can contact the main
   contributors:
 
-+-------------------+-------------------+-------------------+-------------------+
-|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |
-+-------------------+-------------------+-------------------+-------------------+
-|    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |
-+-------------------+-------------------+-------------------+-------------------+
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|   Lionel Kusch    | Bertrand Thirion  |  Joseph Paillard  | Angel Reyero Lobo |   Marc Hulcelle   |
++-------------------+-------------------+-------------------+-------------------+-------------------+
+|    |avatar LK|    |    |avatar BT|    |     |avatar JP|   |    |avatar AR|    |    |avatar MH|    |
++-------------------+-------------------+-------------------+-------------------+-------------------+
 
 .. |avatar LK| image:: https://avatars.githubusercontent.com/u/17182418?v=4
   :target: https://github.com/lionelkusch
@@ -148,6 +148,8 @@ Contact us
   :target: https://github.com/jpaillard
 .. |avatar AR| image:: https://avatars.githubusercontent.com/u/79699169?v=4
   :target: https://github.com/AngelReyero
+.. |avatar MH| image:: https://avatars.githubusercontent.com/u/9165180?v=4
+  :target: https://github.com/GrituX
 
 Citation
 --------

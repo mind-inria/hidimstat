@@ -1,9 +1,12 @@
+import numpy as np
+import pandas as pd
 import pytest
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
+from hidimstat import CFI
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -82,6 +85,40 @@ def test_no_implemented_methods(rng):
         basic_class._permutation(X, features_group_id=None)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_npermutations_attribute_before_fit():
+    """Test checks on n_permutations attribute before fitting."""
+    basic_class = BasePerturbation(estimator=LinearRegression())
+    basic_class.n_permutations = "not_a_number"
+
+    with pytest.raises(TypeError, match=r"n_permutations' must be a float"):
+        basic_class._check_fit_attributes()
+
+    basic_class.n_permutations = -1
+    with pytest.raises(
+        ValueError, match=r"'n_permutations' must be strictly positive"
+    ):
+        basic_class._check_fit_attributes()
+
+
+def test_check_feature_groupes_attribute_before_fit():
+    """Test checks on feature_groupes attribute before fitting."""
+    basic_class = BasePerturbation(estimator=LinearRegression())
+    basic_class.feature_groups = ["1", "2"]
+
+    with pytest.raises(
+        TypeError, match=r"'feature_groups' needs to be a dictionary"
+    ):
+        basic_class._check_fit_attributes()
+
+
+###########################################################################################
+
+
 def test_check_importance(rng):
     """Test that the methods are not implemented in the base class"""
     X = rng.integers(0, 2, size=(100, 2, 1))
@@ -149,6 +186,30 @@ def test_deprecation_warning(rng):
         match="Parameters 'method' and 'loss' are deprecated",
     ):
         perturbation.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 5, 0.5, 0, 1.0, 64.0, 0.5)],
+)
+def test_feature_groups_order_preserved(data_generator):
+    """Regression test to check that the order of the feature groups is
+    preserved in the output of .importance() even when the keys are not in
+    the order that would be returned by sorted(groups.keys()).
+    """
+    X, y, important_features = data_generator
+    X_df = pd.DataFrame(X)
+    model = LinearRegression()
+    model.fit(X_df, y)
+    feature_ids = np.arange(X.shape[1])
+    groups = {
+        "non_important": feature_ids[~important_features],
+        "important": feature_ids[important_features],
+    }
+
+    cfi = CFI(estimator=model, feature_groups=groups, random_state=0)
+    importance = cfi.fit_importance(X_df, y)
+    assert importance[0] < importance[1]
 
 
 def test_mro():

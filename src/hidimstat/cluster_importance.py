@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.base import clone
+from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import get_tags
 
@@ -51,6 +51,20 @@ class ClusterImportance(BaseVariableImportance):
         self.vim_ = None
         self.clustering_ = None
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        if not isinstance(self.vim, BaseVariableImportance):
+            raise TypeError(
+                "'vim' needs to be a subclass of BaseVariableImportance"
+            )
+
+        if not isinstance(self.clustering, FeatureAgglomeration):
+            raise TypeError(
+                "'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration"
+            )
+
     def fit(self, X, y):
         """
         Fit the clustering and variable importance method on the data.
@@ -67,12 +81,7 @@ class ClusterImportance(BaseVariableImportance):
         self : CluVI
             Fitted estimator.
         """
-        assert issubclass(self.vim.__class__, BaseVariableImportance), (
-            "estimator needs to be a subclass of BaseVariableImportance"
-        )
-        assert issubclass(self.clustering.__class__, FeatureAgglomeration), (
-            "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
-        )
+        self._check_fit_attributes()
 
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
@@ -95,7 +104,7 @@ class ClusterImportance(BaseVariableImportance):
         y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
             Target variable(s).
         """
-        self._check_fit()
+        check_is_fitted(self)
 
         tags = get_tags(self.vim_)
         if tags.needs_importance_data:
@@ -180,12 +189,5 @@ class ClusterImportance(BaseVariableImportance):
                 )
         return importance_degrouped
 
-    def _check_fit(self):
-        """
-        Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        if self.vim_ is None:
-            raise ValueError(
-                "The estimator needs to be fit before using them."
-            )
+    def __sklearn_is_fitted__(self) -> bool:
+        return getattr(self, "vim_", None) is not None

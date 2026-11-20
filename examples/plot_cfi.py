@@ -23,6 +23,11 @@ from sklearn.datasets import load_wine
 from sklearn.model_selection import train_test_split
 
 X, y = load_wine(return_X_y=True)
+feature_names = load_wine().feature_names
+# Renaming "od280/od315_of_diluted_wines" as "dilution" for readability reasons.
+feature_names[11] = "dilution"
+
+print(f"Feature names: {feature_names}")
 
 X_train, X_test, y_train, y_test = train_test_split(
     X,
@@ -56,6 +61,7 @@ clf = make_pipeline(
 clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 print(f"Accuracy: {clf.score(X_test, y_test):.3f}")
+
 # %%
 # Next, we use the CFI class to measure feature importance. Here, we use a RidgeCV
 # model to estimate the conditional expectation :math:`\mathbb{E}[X^j | X^{-j}]`.
@@ -71,7 +77,7 @@ cfi = CFI(
     scoring="log_loss",
     imputation_model_continuous=RidgeCV(),
     feature_groups={
-        feat_name: [i] for i, feat_name in enumerate(load_wine().feature_names)
+        feat_name: [i] for i, feat_name in enumerate(feature_names)
     },
     random_state=0,
 )
@@ -89,20 +95,53 @@ importances = cfi.importance(X_test, y_test)
 
 import matplotlib.pyplot as plt
 
-_, ax = plt.subplots(figsize=(6, 3))
-ax = cfi.plot_importance(ax=ax)
-ax.set_xlabel("Feature Importance")
+_, axes = plt.subplots(1, 2, figsize=(6, 3))
+ax = cfi.plot_importance(ax=axes[0])
+ax.set_xlabel("Feature\nImportance")
+ax = cfi.plot_feature_predictability(ax=axes[1])
+ax.axvline(x=1.0, color="r")
+ax.set_xlabel("Feature\npredictability")
 plt.tight_layout()
-plt.show()
 
 # %%
 # Variable importance analysis is meant to help scientific understanding, in particular
 # to identify which features are important to differentiate Barolo, Grignolino, and
 # Barbera wine types.
-# Note: Despite very large marginal importance, the features 'flavanoids' and '
-# total_phenols' are not picked by CFI, probably due to their high correlation
+# Note: Despite very large marginal importance, the features 'flavanoids' and
+# 'total_phenols' are not picked by CFI, probably due to their high correlation
 # (0.86 between these two) and their redundancy with other features.
 
+
+# %%
+# Group feature importance
+# ------------------------
+# Feature importance can be computed also by grouping them together as follows:
+
+cfi = CFI(
+    estimator=clf,
+    scoring="log_loss",
+    imputation_model_continuous=RidgeCV(),
+    feature_groups={
+        "ripeness": [0, 12],
+        "minerals": [1, 2, 3, 4],
+        "phenolics_and_color": [5, 6, 7, 8, 9, 10, 11],
+    },
+    random_state=0,
+)
+cfi.fit(
+    X_train,
+    y_train,
+)
+importances = cfi.importance(X_test, y_test)
+
+_, axes = plt.subplots(1, 2, figsize=(6, 3))
+ax = cfi.plot_importance(ax=axes[0])
+ax.set_xlabel("Feature\nImportance")
+ax = cfi.plot_feature_predictability(ax=axes[1])
+ax.axvline(x=1.0, color="r")
+ax.set_xlabel("Feature\npredictability")
+plt.tight_layout()
+plt.show()
 
 # %%
 # References

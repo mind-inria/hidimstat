@@ -10,6 +10,41 @@ from hidimstat.base_variable_importance import (
     GroupVariableImportanceMixin,
 )
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_n_subsets_attribute_before_fit():
+    """Test checks on n_subsets attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.n_subsets = "not_a_number"
+
+    with pytest.raises(TypeError, match=r"'n_subsets' needs to be an int"):
+        sage._check_fit_attributes()
+
+    sage.n_subsets = -1
+    with pytest.raises(
+        ValueError, match=r"'n_subsets' needs to be strictly positive"
+    ):
+        sage._check_fit_attributes()
+
+
+def test_check_imputation_attribute_before_fit():
+    """Test checks on imputation attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.imputation = "not_marginal"
+
+    with pytest.raises(
+        NotImplementedError,
+        match=r"Only marginal imputation is currently implemented for SAGE "
+        "values",
+    ):
+        sage._check_fit_attributes()
+
+
+###########################################################################################
+
 
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",

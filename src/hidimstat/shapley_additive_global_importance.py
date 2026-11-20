@@ -6,8 +6,11 @@ The value function is defined as the loss increase when the features of
 interest is removed from the subset.
 """
 
+import numbers
+
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -152,18 +155,32 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-    def fit(self, X, y=None):
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+        BaseVariableImportance._check_fit_attributes(self)
+
+        if not isinstance(self.n_subsets, numbers.Number):
+            raise TypeError("'n_subsets' needs to be an int.")
+        elif self.n_subsets <= 0:
+            raise ValueError("'n_subsets' needs to be strictly positive.")
+
         if self.imputation != "marginal":
             raise NotImplementedError(
                 "Only marginal imputation is currently implemented for SAGE "
                 "values."
             )
+
+    def fit(self, X, y=None):
+        self._check_fit_attributes()
         self.estimator_ = self._initial_fit(self.estimator, X, y)
         super().fit(X, y)
         return self
 
     def importance(self, X, y):
-        self._check_fit()
+        check_is_fitted(self)
         rng = check_random_state(self.random_state)
         self._check_compatibility(X)
         self.scoring = _check_loss_method_parameter(
@@ -183,7 +200,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         # subset of features without j
         self.subset_map_ = {}
         for j in range(self.n_feature_groups_):
-            group_ids = self._feature_groups_ids[j]
+            group_ids = self._feature_groups_ids_[j]
             subsets = _sample_feature_subsets(
                 X.shape[1], group_ids, self.n_subsets, random_state=rng
             )
