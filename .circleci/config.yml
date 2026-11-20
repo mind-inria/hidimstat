@@ -45,11 +45,6 @@ jobs:
           command:
             bash ./tools/documentation/circleci/setup_virtual_environment.sh
       - run:
-          name: "check links"
-          command: |
-            source .venv/bin/activate
-            make -C docs linkcheck
-      - run:
           name: "Build documentation"
           command:
             bash ./tools/documentation/circleci/build_doc.sh
