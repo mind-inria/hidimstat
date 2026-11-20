@@ -732,6 +732,7 @@ def test_assert_dimension_pvalue(data_generator):
         cfi.importance(X, y)
 
 
+@pytest.mark.filterwarnings("ignore:cfi_importance is deprecated")
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(150, 200, None, 4, 0.2, 42, 1.0, 1.0, 0.0)],

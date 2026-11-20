@@ -25,6 +25,7 @@ from hidimstat.statistical_tools.holdout_randomization_test import (
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
 
 SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
+SKLEARN_LT_1_8 = parse(sklearn_version).minor < 8
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
 
@@ -35,7 +36,7 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
     if estimator_cls.__name__ == "LassoCV":
         if SKLEARN_LT_1_7 and "alphas" in kwargs:
             kwargs["n_alphas"] = kwargs.pop("alphas")
-        elif "n_alphas" in kwargs:
+        elif not SKLEARN_LT_1_7 and "n_alphas" in kwargs:
             kwargs["alphas"] = kwargs.pop("n_alphas")
 
     elif estimator_cls.__name__ == "LogisticRegressionCV":
@@ -50,8 +51,17 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
                 kwargs["penalty"] = "l1"
             elif kwargs["l1_ratios"] == (0,):
                 kwargs["penalty"] = "l2"
+        if not SKLEARN_LT_1_8:
+            # TODO: remove this when sklearn min reaches 1.10
+            kwargs["use_legacy_attributes"] = True
 
-    return estimator_cls(**kwargs)
+    try:
+        est = estimator_cls(**kwargs)
+    except TypeError:
+        # Workaround for inexistent "use_legacy_attributes" for sklearn < 1.8
+        kwargs.pop("use_legacy_attributes")
+        est = estimator_cls(**kwargs)
+    return est
 
 
 def _check_vim_predict_method(method):
