@@ -16,29 +16,10 @@ Knockoffs (KO) method is able to address this issue.
 # The downstream task is to classify tumors as benign or malignant. We leave out 10% of
 # the data to evaluate the performance of the Logistic Lasso (Logistic Regression with
 # L1 regularization) on the prediction task.
-import os
 
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-
-# To silence CI output on "use_legacy_attributes" FutureWarning that otherwise
-# works locally.
-os.environ["PYTHONWARNINGS"] = "ignore::FutureWarning"
-
-import os
-
-from joblib import Parallel, delayed
-
-
-def check():
-    import warnings
-
-    return os.environ.get("PYTHONWARNINGS"), warnings.filters[:3]
-
-
-print(os.environ.get("PYTHONWARNINGS"))
-print(Parallel(n_jobs=2)(delayed(check)() for _ in range(2)))
 
 data = load_breast_cancer()
 X = data.data
