@@ -21,12 +21,12 @@ Read more in the :ref:`User Guide <slm_methods>`.
 # contains 10 features corresponding to baseline measurements and a quantitative
 # measure of disease progression.
 
-import warnings
+import os
 
 from sklearn.datasets import load_diabetes
 
 # This is to avoid "Gram matrix" UserWarning flooding.
-warnings.filterwarnings("ignore", category=UserWarning)
+os.environ["PYTHONWARNINGS"] = "ignore:Gram matrix:UserWarning"
 
 data = load_diabetes(as_frame=True)
 X = data["data"].to_numpy()

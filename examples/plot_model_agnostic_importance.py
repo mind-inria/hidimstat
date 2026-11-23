@@ -27,10 +27,16 @@ where :math:`\psi_{j}` is the LOCO importance of the j-th variable.
 # Generate data where classes are not linearly separable
 # ------------------------------------------------------
 
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.datasets import make_circles
+
+# To silence CI output on "use_legacy_attributes" FutureWarning that otherwise
+# works locally.
+os.environ["PYTHONWARNINGS"] = "ignore::FutureWarning"
 
 rng = np.random.default_rng(0)
 X, y = make_circles(

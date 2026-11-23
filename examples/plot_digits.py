@@ -15,15 +15,14 @@ MNIST dataset contains 28x28 pixel images of handwritten digits.
 # for the second task and digits 0 and 9 for the third task. To speed up the example, we
 # downsample the dataset to 4000 samples for each task.
 
-import warnings
+import os
 
 import matplotlib.pyplot as plt
 from sklearn.datasets import fetch_openml
-from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import resample
 
-# This is to avoid "Objective did not converge" ConvergenceWarning flooding.
-warnings.filterwarnings("ignore", category=ConvergenceWarning)
+# to avoid ConvergenceWarning flooding the output of the example.
+os.environ["PYTHONWARNINGS"] = "ignore:Objective did not converge:UserWarning"
 
 mnist_dataset = fetch_openml("mnist_784", version=1, as_frame=False)
 X_mnist, y_mnist = mnist_dataset.data, mnist_dataset.target
