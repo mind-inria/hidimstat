@@ -26,6 +26,20 @@ from sklearn.preprocessing import StandardScaler
 # works locally.
 os.environ["PYTHONWARNINGS"] = "ignore::FutureWarning"
 
+import os
+
+from joblib import Parallel, delayed
+
+
+def check():
+    import warnings
+
+    return os.environ.get("PYTHONWARNINGS"), warnings.filters[:3]
+
+
+print(os.environ.get("PYTHONWARNINGS"))
+print(Parallel(n_jobs=2)(delayed(check)() for _ in range(2)))
+
 data = load_breast_cancer()
 X = data.data
 y = data.target
