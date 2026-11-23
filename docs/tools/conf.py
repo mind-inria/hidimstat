@@ -82,7 +82,7 @@ git_root_url = "https://github.com/mind-inria/hidimstat"
 # Handle filtering out warnings for child processes.
 os.environ["PYTHONWARNINGS"] = (
     "ignore:The default value of the parameter 'scoring':FutureWarning,"
-    "ignore:use_legacy_attributes:FutureWarning,"
+    "ignore:The fitted attributes of LogisticRegressionCV:FutureWarning,"
     "ignore:Objective did not converge:UserWarning,"
     "ignore:Gram matrix:UserWarning,"
     "ignore:matrix for knockoffs is not positive definite:UserWarning"

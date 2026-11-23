@@ -115,7 +115,6 @@ else
 fi
 
 # The pipefail is requested to propagate exit code
-make -C docs clean
 set -o pipefail && cd docs && make N_JOB=2 "$make_target" 2>&1 | tee ~/output_sphinx.txt
 cd -
 
