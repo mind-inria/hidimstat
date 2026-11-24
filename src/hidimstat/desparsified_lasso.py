@@ -21,10 +21,10 @@ from sklearn.utils.validation import check_memory
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.utils import (
+    _check_random_state,
+    _find_stack_level,
     _generate_group_mask,
-    check_random_state,
-    find_stack_level,
-    seed_estimator,
+    _seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_cb
@@ -287,8 +287,8 @@ class DesparsifiedLasso(BaseVariableImportance):
             model_x = Lasso()
 
         check_memory(self.memory)
-        rng = check_random_state(self.random_state)
-        self.estimator_ = seed_estimator(self.estimator_, rng)
+        rng = _check_random_state(self.random_state)
+        self.estimator_ = _seed_estimator(self.estimator_, rng)
 
         if self.n_task_ == -1:
             self.n_task_ = y.shape[1]
@@ -334,7 +334,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             delayed(_joblib_compute_residuals)(
                 X=X_,
                 id_column=i,
-                clf=seed_estimator(list_model_x[i], rng_spwan),
+                clf=_seed_estimator(list_model_x[i], rng_spwan),
                 gram=gram,  # gram matrix is passed to the job to avoid memory issue
                 return_clf=self.save_model_x,
             )
@@ -397,7 +397,7 @@ class DesparsifiedLasso(BaseVariableImportance):
                 )
                 warnings.warn(
                     f"'max_iter' has been increased to {estimator.max_iter}",
-                    stacklevel=find_stack_level(),
+                    stacklevel=_find_stack_level(),
                 )
             # use the cross-validation for define the best alpha of Lasso
             estimator.set_params(n_jobs=self.n_jobs)
@@ -453,9 +453,9 @@ class DesparsifiedLasso(BaseVariableImportance):
         self._check_importance_attributes()
 
         if X is not None:
-            warnings.warn("X won't be used.", stacklevel=find_stack_level())
+            warnings.warn("X won't be used.", stacklevel=_find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used.", stacklevel=find_stack_level())
+            warnings.warn("y won't be used.", stacklevel=_find_stack_level())
 
         check_is_fitted(self)
 

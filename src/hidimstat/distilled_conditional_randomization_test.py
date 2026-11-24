@@ -17,12 +17,12 @@ from sklearn.utils.validation import check_X_y
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
+    _check_random_state,
     _check_vim_predict_method,
+    _find_stack_level,
     _generate_group_mask,
     _make_sklearn_estimator,
-    check_random_state,
-    find_stack_level,
-    seed_estimator,
+    _seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
 
@@ -322,8 +322,8 @@ class D0CRT(BaseVariableImportance):
         .. footbibliography::
         """
         self._check_fit_attributes()
-        rng = check_random_state(self.random_state)
-        self.estimator = seed_estimator(self.estimator, random_state=rng)
+        rng = _check_random_state(self.random_state)
+        self.estimator = _seed_estimator(self.estimator, random_state=rng)
         self.is_logistic_ = self._check_logistic()
         check_X_y(X, y)
 
@@ -335,7 +335,7 @@ class D0CRT(BaseVariableImportance):
                 warnings.warn(
                     "Precomputed coefficients were provided, screening is skipped and "
                     "screening_threshold is set to 100.",
-                    stacklevel=find_stack_level(),
+                    stacklevel=_find_stack_level(),
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
@@ -663,7 +663,7 @@ class D0CRT(BaseVariableImportance):
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
-            warnings.warn("cv won't be used", stacklevel=find_stack_level())
+            warnings.warn("cv won't be used", stacklevel=_find_stack_level())
         self.fit(X, y)
         return self.importance(X, y)
 
@@ -742,7 +742,7 @@ def _joblib_fit(
             2 * lasso_weights if lasso_weights is not None else None
         )
         model_x = clone(model_distillation_x)
-        model_x = seed_estimator(model_x, random_state=random_state)
+        model_x = _seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
     else:
         model_x = None
@@ -752,7 +752,7 @@ def _joblib_fit(
         model_y = np.delete(np.copy(estimator.coef_), idx)
     elif fit_y:
         model_y = clone(estimator)
-        model_y = seed_estimator(model_y, random_state=random_state)
+        model_y = _seed_estimator(model_y, random_state=random_state)
         model_y.fit(X_minus_idx, y)
         if isinstance(estimator, (Lasso, LassoCV)):
             model_y = model_y.coef_
@@ -891,7 +891,7 @@ def run_lasso_screening(
     lasso_model : sklearn estimator
         Fitted Lasso model used for screening.
     """
-    lasso_model = seed_estimator(lasso_model, random_state=random_state)
+    lasso_model = _seed_estimator(lasso_model, random_state=random_state)
     lasso_model.fit(X, y)
     selection_set = (
         np.abs(lasso_model.coef_)

@@ -8,7 +8,7 @@ from sklearn.base import (
 from sklearn.metrics import r2_score, roc_auc_score
 from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import _check_random_state
 
 
 def _check_data_type(
@@ -180,7 +180,7 @@ class ConditionalSampler:
             The samples from the conditional distribution.
         """
         check_is_fitted(self.model)
-        rng = check_random_state(random_state)
+        rng = _check_random_state(random_state)
 
         if self.data_type_ == "continuous":
             if not hasattr(self.model, "predict"):

@@ -18,13 +18,13 @@ from sklearn.metrics import (
 
 from hidimstat._utils.utils import (
     _check_loss_method_parameter,
+    _check_random_state,
+    _check_scoring,
+    _check_statistical_test,
+    _find_stack_level,
+    _get_fitted_attributes,
     _make_sklearn_estimator,
-    check_random_state,
-    check_scoring,
-    check_statistical_test,
-    find_stack_level,
-    get_fitted_attributes,
-    one_level_deeper,
+    _one_level_deeper,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -40,21 +40,21 @@ def test_generated_attributes():
             self.attr4__ = 4
             self.attr5_ = 5
 
-    attributes = get_fitted_attributes(MyClass())
+    attributes = _get_fitted_attributes(MyClass())
     assert attributes == ["attr2_", "attr5_"]
 
 
 def test_none():
     """Test random state is None"""
     random_state = None
-    rng = check_random_state(random_state)
+    rng = _check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
 def test_integer():
     """Test random state is integer"""
     random_state = 10
-    rng = check_random_state(random_state)
+    rng = _check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
@@ -71,7 +71,7 @@ def test_random_state():
         ValueError,
         match=r"numpy\.random\.RandomState is deprecated\. Please use numpy\.random.Generator",
     ):
-        _ = check_random_state(random_state)
+        _ = _check_random_state(random_state)
 
 
 def test_error():
@@ -81,31 +81,31 @@ def test_error():
         ValueError,
         match=r"cannot be used to seed a numpy\.random\.Generator instance",
     ):
-        check_random_state(random_state)
+        _check_random_state(random_state)
 
 
 def test_check_test_statistic():
     """Test the function of check"""
-    test_func = check_statistical_test("wilcoxon")
+    test_func = _check_statistical_test("wilcoxon")
     assert test_func.func == wilcoxon
-    test_func = check_statistical_test("ttest")
+    test_func = _check_statistical_test("ttest")
     assert test_func.func == ttest_1samp
-    test_func = check_statistical_test("nb-ttest")
+    test_func = _check_statistical_test("nb-ttest")
     assert test_func.func == nadeau_bengio_ttest
-    test_func = check_statistical_test(print)
+    test_func = _check_statistical_test(print)
     assert test_func == print
-    test_func = check_statistical_test(lambda x: x)
+    test_func = _check_statistical_test(lambda x: x)
     assert test_func.__class__.__name__ == "function"
 
 
 def test_check_test_statistic_warning():
     """Test the exception"""
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
-        check_statistical_test("test")
+        _check_statistical_test("test")
     with pytest.raises(
         ValueError, match="Unsupported value for 'statistical_test'"
     ):
-        check_statistical_test([])
+        _check_statistical_test([])
 
 
 def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
@@ -139,38 +139,38 @@ def test__make_sklearn_estimator_alphas_args(monkeypatch):
     assert est.alphas == alpha_target
 
 
-def test_find_stack_level():
-    """Test find_stack_level."""
-    assert find_stack_level() == 1
-    assert one_level_deeper() == 2
+def test__find_stack_level():
+    """Test _find_stack_level."""
+    assert _find_stack_level() == 1
+    assert _one_level_deeper() == 2
 
 
-def test_check_scoring():
-    """Test the in-house check_scoring function"""
+def test__check_scoring():
+    """Test the in-house _check_scoring function"""
     regressor_scorer = repr(get_scorer(make_scorer(mean_squared_error)))
     assert (
-        repr(check_scoring(scoring="mean_squared_error")) == regressor_scorer
+        repr(_check_scoring(scoring="mean_squared_error")) == regressor_scorer
     )
     assert (
-        repr(check_scoring(scoring=make_scorer(mean_squared_error)))
+        repr(_check_scoring(scoring=make_scorer(mean_squared_error)))
         == regressor_scorer
     )
-    assert repr(check_scoring(estimator=Ridge())) == regressor_scorer
+    assert repr(_check_scoring(estimator=Ridge())) == regressor_scorer
 
     classifier_scorer = repr(
         get_scorer(make_scorer(log_loss, response_method="predict_proba"))
     )
-    assert repr(check_scoring(scoring="log_loss")) == classifier_scorer
+    assert repr(_check_scoring(scoring="log_loss")) == classifier_scorer
     assert (
         repr(
-            check_scoring(
+            _check_scoring(
                 scoring=make_scorer(log_loss, response_method="predict_proba")
             )
         )
         == classifier_scorer
     )
     assert (
-        repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
+        repr(_check_scoring(estimator=RidgeClassifier())) == classifier_scorer
     )
 
     with pytest.raises(
@@ -178,12 +178,12 @@ def test_check_scoring():
         match=r"should be one of two types "
         "'classifier' or 'regressor'",
     ):
-        check_scoring(estimator=SelectFdr())
+        _check_scoring(estimator=SelectFdr())
 
     with pytest.raises(
         ValueError, match="No scoring nor estimator was passed to the method"
     ):
-        check_scoring()
+        _check_scoring()
 
 
 @pytest.mark.filterwarnings(
@@ -248,7 +248,7 @@ def test_check_loss_method_parameter():
     )
     with pytest.raises(ValueError, match=r"is not a 'sklearn.metrics'"):
         _check_loss_method_parameter(
-            scoring=None, method=None, loss=check_scoring
+            scoring=None, method=None, loss=_check_scoring
         )
 
     assert (

@@ -11,14 +11,13 @@ from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import (
-    check_random_state,
-    find_stack_level,
-    seed_estimator,
+    _check_random_state,
+    _find_stack_level,
+    _seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+from hidimstat.statistical_tools import fdr_threshold, quantile_aggregation
 
 
 def set_alpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
@@ -210,7 +209,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self._check_fit_attributes()
         n_jobs = min(self.n_jobs, self.n_repeats)
 
-        rng = check_random_state(self.random_state)
+        rng = _check_random_state(self.random_state)
         X_ = StandardScaler().fit_transform(X) if self.centered else X
 
         if self.ko_generator is None:
@@ -229,7 +228,7 @@ class ModelXKnockoff(BaseVariableImportance):
             )
         else:
             self.estimator_ = clone(self.estimator)
-        self.estimator_ = seed_estimator(self.estimator_, self.random_state)
+        self.estimator_ = _seed_estimator(self.estimator_, self.random_state)
         self.estimators_ = Parallel(n_jobs, verbose=self.joblib_verbose)(
             delayed(self._joblib_fit_estimator)(
                 self.estimator_,
@@ -278,9 +277,9 @@ class ModelXKnockoff(BaseVariableImportance):
             stacklevel=2,
         )
         if X is not None:
-            warnings.warn("X won't be used", stacklevel=find_stack_level())
+            warnings.warn("X won't be used", stacklevel=_find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used", stacklevel=find_stack_level())
+            warnings.warn("y won't be used", stacklevel=_find_stack_level())
         check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
@@ -468,7 +467,7 @@ class ModelXKnockoff(BaseVariableImportance):
                 estimator_, X_ko, n_features, y, n_alphas=n_alphas
             )
 
-        estimator_ = seed_estimator(estimator_, random_state)
+        estimator_ = _seed_estimator(estimator_, random_state)
         estimator_.fit(X_ko, y)
         return estimator_
 

@@ -16,7 +16,7 @@ from hidimstat.knockoffs import (
     set_alpha_max_lasso_path,
 )
 from hidimstat.samplers import GaussianKnockoffs
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 
 def expected_failed_checks(estimator):

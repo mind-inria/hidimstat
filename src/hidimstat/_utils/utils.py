@@ -114,7 +114,7 @@ def _get_array_cols(X, columns_ids, drop=False):
         return X[:, mask]
 
 
-def get_fitted_attributes(cls):
+def _get_fitted_attributes(cls):
     """
     Get all attributes from a class that end with a single underscore
     and doesn't start with one underscore.
@@ -147,10 +147,10 @@ def get_fitted_attributes(cls):
     return result
 
 
-def check_random_state(seed):
+def _check_random_state(seed):
     """
-    Modified version of sklearn's check_random_state using np.random.Generator.
-    This is based on the implementation of check_random_state of sciktilearn:
+    Modified version of sklearn's _check_random_state using np.random.Generator.
+    This is based on the implementation of _check_random_state of sciktilearn:
     https://github.com/scikit-learn/scikit-learn/blob/25dee604bae18205b01548348388baf7a1cdfe0e/sklearn/utils/validation.py#L1488
 
     Parameters
@@ -169,8 +169,8 @@ def check_random_state(seed):
 
     Examples
     --------
-    >>> from sklearn.utils.validation import check_random_state
-    >>> random_state = check_random_state(42)
+    >>> from sklearn.utils.validation import _check_random_state
+    >>> random_state = _check_random_state(42)
     """
     if seed is None or seed is np.random:
         return np.random.default_rng()
@@ -189,7 +189,7 @@ def check_random_state(seed):
     )
 
 
-def seed_estimator(estimator, random_state=None):
+def _seed_estimator(estimator, random_state=None):
     """
     Sets the random_state for a scikit-learn estimator and its components.
 
@@ -207,7 +207,7 @@ def seed_estimator(estimator, random_state=None):
     -------
     The seeded estimator object.
     """
-    rng = check_random_state(random_state)
+    rng = _check_random_state(random_state)
     # Set the random_state of the main estimator
     if hasattr(estimator, "random_state"):
         estimator.random_state = RandomState(rng.bit_generator)
@@ -220,7 +220,7 @@ def seed_estimator(estimator, random_state=None):
     return estimator
 
 
-def check_statistical_test(statistical_test, test_frac=None):
+def _check_statistical_test(statistical_test, test_frac=None):
     """
     Validates and returns a test statistic function.
 
@@ -290,7 +290,7 @@ def check_statistical_test(statistical_test, test_frac=None):
         )
 
 
-def check_scoring(estimator=None, scoring=None):
+def _check_scoring(estimator=None, scoring=None):
     """
     Determine sklearn-compatible scorer from user options.
     A TypeError will be thrown if the estimator cannot be scored.
@@ -373,7 +373,7 @@ def _check_loss_method_parameter(scoring, method, loss):
     return scoring
 
 
-def find_stack_level() -> int:
+def _find_stack_level() -> int:
     """
     Find the first place in the stack that is not inside hidimstat
     (tests notwithstanding).
@@ -418,9 +418,9 @@ def find_stack_level() -> int:
     return n
 
 
-def one_level_deeper() -> int:
-    """Use for testing find_stack_level.
+def _one_level_deeper() -> int:
+    """Use for testing _find_stack_level.
 
     Needs to be in a module that does not start with 'test'
     """
-    return find_stack_level()
+    return _find_stack_level()

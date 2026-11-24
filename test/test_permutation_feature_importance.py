@@ -13,7 +13,7 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat import PFI, PFICV, pfi_importance
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 from .conftest import fitted_linear_regression
 

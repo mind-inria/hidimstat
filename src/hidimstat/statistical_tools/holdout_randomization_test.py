@@ -1,6 +1,6 @@
 import numpy as np
 
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools import quantile_aggregation
 from hidimstat.statistical_tools.utils import TestResult
 
 

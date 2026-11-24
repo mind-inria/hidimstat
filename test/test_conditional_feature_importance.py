@@ -22,7 +22,7 @@ from hidimstat._utils.exception import InternalError
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.conditional_feature_importance import CFICV
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 
 def make_cfi(X, y, **kwargs):

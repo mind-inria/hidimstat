@@ -14,7 +14,7 @@ from hidimstat._utils.feature_selection import (
     _generic_selection,
 )
 from hidimstat._utils.tags import HidimstatTags
-from hidimstat._utils.utils import find_stack_level
+from hidimstat._utils.utils import _find_stack_level
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -534,7 +534,7 @@ class GroupVariableImportanceMixin:
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}",
-                stacklevel=find_stack_level(),
+                stacklevel=_find_stack_level(),
             )
 
     def __sklearn_is_fitted__(self) -> bool:

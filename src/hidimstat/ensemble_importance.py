@@ -6,10 +6,10 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.utils import get_tags
 from tqdm import tqdm
 
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import _check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers.utils import _subsampling
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools import quantile_aggregation
 
 
 class EnsembleImportance(BaseVariableImportance):
@@ -161,7 +161,7 @@ class EnsembleImportance(BaseVariableImportance):
             Fitted estimator.
         """
         self._check_fit_attributes()
-        rng = check_random_state(self.random_state)
+        rng = _check_random_state(self.random_state)
 
         if hasattr(self.vim, "random_state"):
             self.vim.random_state = self.random_state

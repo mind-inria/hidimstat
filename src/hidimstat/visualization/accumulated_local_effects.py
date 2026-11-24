@@ -13,7 +13,7 @@ from hidimstat._utils.grid import (
     _build_quantile_grid_1d,
     _build_quantile_grid_2d,
 )
-from hidimstat._utils.utils import check_random_state
+from hidimstat._utils.utils import _check_random_state
 from hidimstat.samplers.conditional_sampling import _check_data_type
 
 
@@ -170,7 +170,7 @@ def _compute_ale_1d_curve(
     return ale_curve
 
 
-def compute_ale_1d(
+def _compute_ale_1d(
     estimator,
     X,
     feature_idx,
@@ -307,7 +307,7 @@ def compute_ale_1d(
         if n_bootstraps < 1:
             raise ValueError("'n_bootstrap' must be strictly greater than 0.")
 
-        rng = check_random_state(random_state)
+        rng = _check_random_state(random_state)
 
         bootstrap_curves = Parallel(n_jobs=n_jobs)(
             delayed(_compute_ale_1d_curve)(
@@ -333,7 +333,7 @@ def compute_ale_1d(
     return ale, grid_values, ale_err
 
 
-def compute_ale_2d(
+def _compute_ale_2d(
     estimator,
     X,
     feature_indices,
@@ -681,7 +681,7 @@ class ALE:
                 )
             else:
                 plotting_func = self._plot_1d
-                ale, grid_values, ale_err = compute_ale_1d(
+                ale, grid_values, ale_err = _compute_ale_1d(
                     self.estimator,
                     X,
                     feature_idx=features,
@@ -707,7 +707,7 @@ class ALE:
                 )
             feature_ids = copy(features)
             plotting_func = self._plot_2d
-            ale, quantiles_i, quantiles_j = compute_ale_2d(
+            ale, quantiles_i, quantiles_j = _compute_ale_2d(
                 self.estimator,
                 X,
                 feature_indices=features,

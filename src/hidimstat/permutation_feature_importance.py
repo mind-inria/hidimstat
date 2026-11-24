@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols, check_random_state
+from hidimstat._utils.utils import _check_random_state, _get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -83,7 +83,7 @@ class PFI(BasePerturbation):
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Create the permuted data for the j-th group of covariates"""
-        rng = check_random_state(random_state)
+        rng = _check_random_state(random_state)
         X_perm_j = np.array(
             [
                 rng.permutation(

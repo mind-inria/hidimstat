@@ -11,9 +11,9 @@ from sklearn.linear_model import LinearRegression
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.visualization import ALE
 from hidimstat.visualization.accumulated_local_effects import (
+    _compute_ale_1d,
+    _compute_ale_2d,
     _predict_fn,
-    compute_ale_1d,
-    compute_ale_2d,
 )
 
 matplotlib.use("Agg")
@@ -175,7 +175,7 @@ def test_compute_ale_1d_continuous(ale_test_data):
     grid_resolution = 10
 
     # Without confidence intervals
-    ale, grid_values, ale_err = compute_ale_1d(
+    ale, grid_values, ale_err = _compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
@@ -190,7 +190,7 @@ def test_compute_ale_1d_continuous(ale_test_data):
     assert len(grid_values) <= grid_resolution + 1
 
     # With confidence interval
-    _, grid_values_ci, ale_err_ci = compute_ale_1d(
+    _, grid_values_ci, ale_err_ci = _compute_ale_1d(
         model,
         X,
         feature_idx=important_features[0],
@@ -217,7 +217,7 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
     with pytest.raises(
         ValueError, match="has fewer than 2 unique quantile edges"
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X_const,
             feature_idx=0,
@@ -228,7 +228,7 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
         ValueError,
         match="must be a string among 'continuous' and 'categorical'",
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X_const,
             feature_idx=0,
@@ -236,7 +236,7 @@ def test_compute_ale_1d_continuous_error(ale_test_data):
             grid_resolution=10,
         )
     with pytest.raises(ValueError, match="must be strictly greater than"):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=important_features[0],
@@ -252,7 +252,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
     X, model = data["X"], data["model"]
 
     # Without confidence intervals
-    ale, grid_values, ale_err = compute_ale_1d(
+    ale, grid_values, ale_err = _compute_ale_1d(
         model,
         X,
         feature_idx=0,
@@ -266,7 +266,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
     assert len(grid_values) <= 3
 
     # With confidence intervals
-    _, grid_values_ci, ale_err_ci = compute_ale_1d(
+    _, grid_values_ci, ale_err_ci = _compute_ale_1d(
         model,
         X,
         feature_idx=0,
@@ -278,7 +278,7 @@ def test_compute_ale_1d_discrete(ale_test_data):
 
     # To test _bootstrap()
     with parallel_backend("threading"):
-        result_bootstrap = compute_ale_1d(
+        result_bootstrap = _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -297,11 +297,11 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     X_const[:, 0] = 7
 
     with pytest.raises(ValueError, match="has fewer than 2 unique values"):
-        compute_ale_1d(
+        _compute_ale_1d(
             model, X_const, feature_idx=0, feature_type="categorical"
         )
     with pytest.raises(ValueError, match="must be strictly greater than"):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -313,7 +313,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -323,7 +323,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -333,7 +333,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -343,7 +343,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_1d(
+        _compute_ale_1d(
             model,
             X,
             feature_idx=0,
@@ -352,7 +352,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
         )
 
 
-def test_compute_ale_2d(ale_test_data):
+def test__compute_ale_2d(ale_test_data):
     """Test the 2D ALE calculation"""
     data = ale_test_data["continuous"]
     X, model, important_features = (
@@ -364,7 +364,7 @@ def test_compute_ale_2d(ale_test_data):
     # Grid resolution is an int
     grid_resolution = 5
 
-    ale, quantiles_i, quantiles_j = compute_ale_2d(
+    ale, quantiles_i, quantiles_j = _compute_ale_2d(
         model,
         X,
         feature_indices=[important_features[0], important_features[1]],
@@ -383,7 +383,7 @@ def test_compute_ale_2d(ale_test_data):
     # Grid resolution is a tuple
     grid_resolution = (4, 6)
 
-    ale, quantiles_i, quantiles_j = compute_ale_2d(
+    ale, quantiles_i, quantiles_j = _compute_ale_2d(
         model,
         X,
         feature_indices=[important_features[0], important_features[1]],
@@ -393,7 +393,7 @@ def test_compute_ale_2d(ale_test_data):
     assert len(quantiles_j) <= grid_resolution[1] + 1
 
 
-def test_compute_ale_2d_errors(ale_test_data):
+def test__compute_ale_2d_errors(ale_test_data):
     """Check the raised error of the 2D ALE."""
     data = ale_test_data["continuous"]
     X, model, important_features = (
@@ -405,49 +405,49 @@ def test_compute_ale_2d_errors(ale_test_data):
     with pytest.raises(
         ValueError, match="must contain exactly two feature indices"
     ):
-        compute_ale_2d(model, X, feature_indices=[0])
+        _compute_ale_2d(model, X, feature_indices=[0])
     with pytest.raises(
         ValueError, match="must contain exactly two feature indices"
     ):
-        compute_ale_2d(model, X, feature_indices=[0, 1, 2])
+        _compute_ale_2d(model, X, feature_indices=[0, 1, 2])
 
     with pytest.raises(
         ValueError, match="must contain exactly 2 strictly positive integers"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], grid_resolution=(5, -1)
         )
     with pytest.raises(
         ValueError, match="must contain exactly 2 strictly positive integers"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], grid_resolution=(5, 5, 5)
         )
     with pytest.raises(ValueError, match="'grid_resolution' must be 'auto'"):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], grid_resolution="invalid_str"
         )
 
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_2d(model, X, feature_indices=[0, 1], percentiles=[5, 95])
+        _compute_ale_2d(model, X, feature_indices=[0, 1], percentiles=[5, 95])
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], percentiles=(5, 25, 50, 75, 95)
         )
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], percentiles=(-100, 50)
         )
     with pytest.raises(
         ValueError, match="'percentiles' must be a tuple of 2 floats"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model, X, feature_indices=[0, 1], percentiles=(50, -100)
         )
 
@@ -456,7 +456,7 @@ def test_compute_ale_2d_errors(ale_test_data):
     with pytest.raises(
         ValueError, match="has fewer than 2 unique quantile edges"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model,
             X_const_i,
             feature_indices=[important_features[0], important_features[1]],
@@ -467,7 +467,7 @@ def test_compute_ale_2d_errors(ale_test_data):
     with pytest.raises(
         ValueError, match="has fewer than 2 unique quantile edges"
     ):
-        compute_ale_2d(
+        _compute_ale_2d(
             model,
             X_const_j,
             feature_indices=[important_features[0], important_features[1]],

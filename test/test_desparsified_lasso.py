@@ -19,7 +19,7 @@ from hidimstat.desparsified_lasso import (
     desparsified_lasso_importance,
     reid,
 )
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 

@@ -8,7 +8,7 @@ from hidimstat import ClusterImportance, DesparsifiedLasso
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.tags import HidimstatTags
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 

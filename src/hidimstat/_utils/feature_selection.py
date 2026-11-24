@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 
-from hidimstat._utils.utils import find_stack_level
+from hidimstat._utils.utils import _find_stack_level
 from hidimstat.statistical_tools.multiple_testing import (
     fdr_threshold,
 )
@@ -95,7 +95,7 @@ def _k_best_selection(values, k_best):
         warnings.warn(
             f"k={k_best} is greater than n_features={values.shape[0]}. "
             "All the features will be returned.",
-            stacklevel=find_stack_level(),
+            stacklevel=_find_stack_level(),
         )
     mask_k_best = np.zeros_like(values, dtype=bool)
 
@@ -128,7 +128,7 @@ def _k_lowest_selection(values, k_lowest):
         warnings.warn(
             f"k={k_lowest} is greater than n_features={values.shape[0]}. "
             "All the features will be returned.",
-            stacklevel=find_stack_level(),
+            stacklevel=_find_stack_level(),
         )
     mask_k_lowest = np.zeros_like(values, dtype=bool)
 

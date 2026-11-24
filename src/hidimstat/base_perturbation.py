@@ -10,9 +10,9 @@ from tqdm import tqdm
 
 from hidimstat._utils.utils import (
     _check_loss_method_parameter,
-    check_random_state,
-    check_scoring,
-    check_statistical_test,
+    _check_random_state,
+    _check_scoring,
+    _check_statistical_test,
 )
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -270,14 +270,14 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         """
         check_is_fitted(self)
         self._check_compatibility(X)
-        statistical_test = check_statistical_test(self.statistical_test)
+        statistical_test = _check_statistical_test(self.statistical_test)
         self.scoring = _check_loss_method_parameter(
             scoring=self.scoring, method=self.method, loss=self.loss
         )
-        self.scoring = check_scoring(
+        self.scoring = _check_scoring(
             estimator=self.estimator_, scoring=self.scoring
         )
-        rng = check_random_state(self.random_state)
+        rng = _check_random_state(self.random_state)
 
         self.score_reference_ = self._compute_score_reference(X, y)
         # Parallelize the computation of the importance scores for each group
@@ -528,7 +528,7 @@ class BasePerturbationCV(BaseVariableImportance):
         importances_ : ndarray of shape (n_groups, n_folds)
             The importance scores for each group of features.
         """
-        statistical_test = check_statistical_test(
+        statistical_test = _check_statistical_test(
             self.statistical_test, test_frac=self.test_train_frac_
         )
 

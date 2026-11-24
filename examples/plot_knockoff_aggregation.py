@@ -64,7 +64,7 @@ X, y, beta_true, noise = multivariate_simulation(
 # the inference.
 
 from hidimstat.knockoffs import ModelXKnockoff
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 fdr = 0.1
 n_repeats = 25
