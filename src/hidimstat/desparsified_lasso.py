@@ -304,7 +304,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.estimator_ = self._initial_fit(self.estimator_, X_, y_)
 
         # Lasso regression and noise standard deviation estimation
-        self.sigma_hat_ = reid(
+        self.sigma_hat_ = _reid(
             self.estimator_.coef_,  # estimated support of the variable importance
             self.estimator_.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
@@ -733,7 +733,7 @@ pvalues : ndarray of shape (n_features,)
 )
 
 
-def reid(
+def _reid(
     beta_hat,
     residual,
     tolerance=1e-4,

@@ -339,7 +339,7 @@ class D0CRT(BaseVariableImportance):
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
-                self.selection_set_, lasso_model_ = run_lasso_screening(
+                self.selection_set_, lasso_model_ = _run_lasso_screening(
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
@@ -861,7 +861,7 @@ def _joblib_distill(
     return X_residual, sigma2, y_residual
 
 
-def run_lasso_screening(
+def _run_lasso_screening(
     X,
     y,
     lasso_model=LassoCV(fit_intercept=False, random_state=0),

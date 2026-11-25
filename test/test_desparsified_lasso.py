@@ -16,8 +16,8 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.desparsified_lasso import (
     DesparsifiedLasso,
+    _reid,
     desparsified_lasso_importance,
-    reid,
 )
 from hidimstat.statistical_tools import fdp_power
 
@@ -455,7 +455,7 @@ def test_reid_no_structure_with_support(data_generator):
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
-    sigma_hat = reid(lasso_cv.coef_, residual, tolerance=1e-3)
+    sigma_hat = _reid(lasso_cv.coef_, residual, tolerance=1e-3)
     expected_sigma = support_size / signal_noise_ratio
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.3
@@ -472,7 +472,7 @@ def test_reid_no_structure_with_no_support(data_generator):
     lasso_cv = LassoCV(n_jobs=1).fit(X, y)
     residual = lasso_cv.predict(X) - y
 
-    sigma_hat = reid(lasso_cv.coef_, residual)
+    sigma_hat = _reid(lasso_cv.coef_, residual)
     expected_sigma = 1.0  # when there is no signal, the variance is 1.0
     error_relative = np.abs(sigma_hat - expected_sigma) / expected_sigma
     assert error_relative < 0.2
@@ -483,7 +483,7 @@ def test_reid_no_structure_with_no_support(data_generator):
     [(100, 20, 50, 2, 0, 0, 1, 3.0, 0.9)],
     ids=["group reid"],
 )
-def test_group_reid(data_generator):
+def test_group__reid(data_generator):
     """
     Estimating (temporal) noise covariance matrix in two scenarios with
     no data structure and an empty support.
@@ -501,7 +501,7 @@ def test_group_reid(data_generator):
     residual = lasso_cv.predict(X) - y
 
     # max_iter=1 to get a better coverage
-    cov_hat = reid(
+    cov_hat = _reid(
         lasso_cv.coef_,
         residual,
         multioutput=True,
@@ -510,7 +510,7 @@ def test_group_reid(data_generator):
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(
+    cov_hat = _reid(
         lasso_cv.coef_,
         residual,
         multioutput=True,
@@ -519,7 +519,7 @@ def test_group_reid(data_generator):
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(
+    cov_hat = _reid(
         lasso_cv.coef_,
         residual,
         multioutput=True,
@@ -551,15 +551,15 @@ def test_group_reid_2(data_generator):
     lasso_cv = MultiTaskLassoCV().fit(X, y)
     residual = lasso_cv.predict(X) - y
 
-    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True)
+    cov_hat = _reid(lasso_cv.coef_, residual, multioutput=True)
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(lasso_cv.coef_, residual, multioutput=True, method="AR")
+    cov_hat = _reid(lasso_cv.coef_, residual, multioutput=True, method="AR")
     error_relative = np.abs(cov_hat - cov) / cov
     assert np.max(error_relative) < 0.3
 
-    cov_hat = reid(
+    cov_hat = _reid(
         lasso_cv.coef_, residual, multioutput=True, stationary=False
     )
     error_relative = np.abs(cov_hat - cov) / cov
@@ -578,11 +578,11 @@ def test_reid_exception(data_generator):
         ValueError,
         match="The AR method is not compatible with the non-stationary",
     ):
-        reid(X, y, method="AR", stationary=False, multioutput=True)
+        _reid(X, y, method="AR", stationary=False, multioutput=True)
     with pytest.raises(
         ValueError, match="The requested AR order is to high with"
     ):
-        reid(X, y, method="AR", order=1e4, multioutput=True)
+        _reid(X, y, method="AR", order=1e4, multioutput=True)
 
 
 @pytest.fixture(scope="module")

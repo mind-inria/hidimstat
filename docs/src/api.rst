@@ -114,12 +114,3 @@ Statistical Tools
    ~statistical_tools.two_sided_pval_from_zscore
    ~statistical_tools.zscore_from_cb
    ~statistical_tools.zscore_from_pval
-
-Helper Functions
-================
-
-.. autosummary::
-   :toctree: ./generated/api/helper_functions/
-   :template: function.rst
-
-   ~desparsified_lasso.reid
