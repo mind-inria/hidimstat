@@ -4,6 +4,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import clone, is_classifier, is_regressor
 from sklearn.dummy import DummyClassifier, DummyRegressor
+from sklearn.linear_model import LassoCV
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _get_array_cols
@@ -21,8 +22,9 @@ class LOCI(BasePerturbation):
 
     Parameters
     ----------
-    estimator : sklearn compatible estimator
+    estimator : sklearn compatible estimator, default=None.
         The estimator to use for the prediction.
+        Set to LassoCV() if None is passed.
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
@@ -60,7 +62,7 @@ class LOCI(BasePerturbation):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         scoring=None,
         method=None,
         loss=None,
@@ -95,6 +97,13 @@ class LOCI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+            )
+        else:
+            self.estimator_ = self.estimator
+
         # check of fit attributes is done here during this call.
         super().fit(X, y)
         # create a list of covariate estimators for each group if not provided
