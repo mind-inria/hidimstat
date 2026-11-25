@@ -19,7 +19,7 @@ from hidimstat.statistical_tools.p_values import (
 )
 
 
-def test__replace_infinity():
+def test_replace_infinity():
     x = np.asarray([10, np.inf, -np.inf])
 
     # replace inf by the largest absolute value times two

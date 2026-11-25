@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+__all__ = ["aggregate_docstring"]
+
 
 def _detection_section(lines):
     """
@@ -71,7 +73,7 @@ def _reindent(lines):
     return "\n".join(l.strip() for s in lines for l in s.split("\n"))
 
 
-def _aggregate_docstring(list_docstring, returns_docstring):
+def aggregate_docstring(list_docstring, returns_docstring):
     """
     Combine multiple numpy-style docstrings into a single docstring.
 

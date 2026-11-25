@@ -76,7 +76,7 @@ def test_check_preconfigure_model_x_path_attribute_before_fit():
         dl._check_fit_attributes()
 
 
-def test_check_alpha_max_fraction_attribute_before_fit():
+def test_checkalpha_max_fraction_attribute_before_fit():
     """Test checks on alpha_max_fraction attribute before fitting."""
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.alpha_max_fraction = None

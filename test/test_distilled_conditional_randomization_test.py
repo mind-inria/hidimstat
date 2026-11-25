@@ -13,9 +13,9 @@ from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat import D0CRT, d0crt_importance
-from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.regression import alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import _make_sklearn_estimator
+from hidimstat._utils.utils import make_sklearn_estimator
 
 ESTIMATORS_TO_CHECK = [
     D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
@@ -60,7 +60,7 @@ def d0crt_test_data():
     dcrt_default_parameters = {
         "estimator": LassoCV(cv=KFold(shuffle=True)),
         "screening_threshold": None,
-        "model_distillation_x": _make_sklearn_estimator(
+        "model_distillation_x": make_sklearn_estimator(
             LassoCV, cv=KFold(shuffle=True), n_alphas=10
         ),
         "n_jobs": 1,
@@ -419,7 +419,7 @@ def test_dcrt_distillation_x_different(data_generator):
     """
     X, y, _ = data_generator
     d0crt = D0CRT(
-        estimator=Lasso(alpha=0.5 * _alpha_max(X, y), fit_intercept=False),
+        estimator=Lasso(alpha=0.5 * alpha_max(X, y), fit_intercept=False),
         scaled_statistics=True,
     )
     pvalue = d0crt.fit_importance(X, y)
@@ -663,7 +663,7 @@ def test_d0crt_linear(d0crt_test_data):
     features.
     """
     X, y, beta, _ = d0crt_test_data
-    lasso_estimator = _make_sklearn_estimator(LassoCV, n_jobs=1, n_alphas=10)
+    lasso_estimator = make_sklearn_estimator(LassoCV, n_jobs=1, n_alphas=10)
 
     d0crt = D0CRT(
         estimator=lasso_estimator,
@@ -703,14 +703,14 @@ def test_dcrt_logit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=_make_sklearn_estimator(
+        estimator=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
@@ -738,7 +738,7 @@ def test_dcrt_logit_errors():
     ValueError.
     """
     dcrt = D0CRT(
-        estimator=_make_sklearn_estimator(
+        estimator=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
@@ -757,14 +757,14 @@ def test_dcrt_logit_errors():
         dcrt.fit(None, None)
 
     dcrt = D0CRT(
-        estimator=_make_sklearn_estimator(
+        estimator=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(0,),
             solver="liblinear",
@@ -788,14 +788,14 @@ def test_dcrt_logit_refit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=_make_sklearn_estimator(
+        estimator=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
@@ -861,14 +861,14 @@ def test_importance_sign_dcrt_logit(generate_binary_classif_dataset):
     """
     X, y, beta = generate_binary_classif_dataset
     dcrt = D0CRT(
-        estimator=_make_sklearn_estimator(
+        estimator=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",
             max_iter=1000,
             random_state=0,
         ),
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=(1,),
             solver="liblinear",

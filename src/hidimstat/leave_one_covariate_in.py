@@ -5,8 +5,8 @@ from joblib import Parallel, delayed
 from sklearn.base import clone, is_classifier, is_regressor
 from sklearn.dummy import DummyClassifier, DummyRegressor
 
-from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols
+from hidimstat._utils.docstring import aggregate_docstring
+from hidimstat._utils.utils import get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -133,7 +133,7 @@ class LOCI(BasePerturbation):
         Fit the estimator on a group of covariates.
         Used in parallel.
         """
-        X_j = _get_array_cols(X, feature_groups_ids)
+        X_j = get_array_cols(X, feature_groups_ids)
         estimator.fit(X_j, y)
         return estimator
 
@@ -183,7 +183,7 @@ class LOCI(BasePerturbation):
         """
         del random_state  # not used (only there for API compatibility)
         # Since we don't have access to column names, we use the member _feature_groups_ids_
-        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
+        X_j = get_array_cols(X, self._feature_groups_ids_[features_group_id])
 
         scoring_loci = self.scoring(
             self._list_estimators[features_group_id], X_j, y
@@ -240,7 +240,7 @@ def loci_importance(
 
 
 # use the docstring of the class for the function
-loci_importance.__doc__ = _aggregate_docstring(
+loci_importance.__doc__ = aggregate_docstring(
     [
         LOCI.__doc__,
         LOCI.__init__.__doc__,

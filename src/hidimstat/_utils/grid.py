@@ -1,7 +1,9 @@
 import numpy as np
 
+__all__ = ["bin_indices", "build_quantile_grid_1d", "build_quantile_grid_2d"]
 
-def _build_quantile_grid_1d(x, grid_resolution, percentiles=(5, 95)):
+
+def build_quantile_grid_1d(x, grid_resolution, percentiles=(5, 95)):
     """Build a 1D quantile grid for a single continuous feature.
 
     Parameters
@@ -68,7 +70,7 @@ def _build_quantile_grid_1d(x, grid_resolution, percentiles=(5, 95)):
     )
 
 
-def _build_quantile_grid_2d(x, y, grid_resolution, percentiles=(5, 95)):
+def build_quantile_grid_2d(x, y, grid_resolution, percentiles=(5, 95)):
     """Build a 2D quantile grid for a pair of continuous features.
 
     Parameters
@@ -174,17 +176,17 @@ def _build_quantile_grid_2d(x, y, grid_resolution, percentiles=(5, 95)):
             "'grid_resolution' must be 'auto', an int strictly greater than 0, or a tuple of 2 int strictly greater than 0."
         )
 
-    quantiles_x = _build_quantile_grid_1d(
+    quantiles_x = build_quantile_grid_1d(
         x, grid_resolution=res_x, percentiles=percentiles
     )
-    quantiles_y = _build_quantile_grid_1d(
+    quantiles_y = build_quantile_grid_1d(
         y, grid_resolution=res_y, percentiles=percentiles
     )
 
     return quantiles_x, quantiles_y
 
 
-def _bin_indices(x, quantiles):
+def bin_indices(x, quantiles):
     """Assign each sample to a bin defined by *quantiles*.
 
     Samples are placed in bin `k` when `quantiles[k] <= x < quantiles[k+1]`.

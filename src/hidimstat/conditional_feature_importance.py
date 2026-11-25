@@ -6,8 +6,8 @@ from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
 
-from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols
+from hidimstat._utils.docstring import aggregate_docstring
+from hidimstat._utils.utils import get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -235,8 +235,8 @@ class CFI(BasePerturbation):
         Fit a single conditional sampler, for a single group of features.
         This method is parallelized.
         """
-        X_j = _get_array_cols(X, feature_groups_ids)
-        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
+        X_j = get_array_cols(X, feature_groups_ids)
+        X_minus_j = get_array_cols(X, feature_groups_ids, drop=True)
         sampler_ = conditional_sampler.clone()
         sampler_.fit(X_minus_j, X_j)
         return sampler_
@@ -245,8 +245,8 @@ class CFI(BasePerturbation):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
-        X_minus_j = _get_array_cols(
+        X_j = get_array_cols(X, self._feature_groups_ids_[features_group_id])
+        X_minus_j = get_array_cols(
             X, self._feature_groups_ids_[features_group_id], drop=True
         )
         return self.fitted_samplers_[features_group_id].sample(
@@ -262,8 +262,8 @@ class CFI(BasePerturbation):
         """
         Compute the predictability of one feature group from a single conditional sampler.
         """
-        X_j = _get_array_cols(X, features_group_ids)
-        X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
+        X_j = get_array_cols(X, features_group_ids)
+        X_minus_j = get_array_cols(X, features_group_ids, drop=True)
         return conditional_sampler.feature_predictability(X_minus_j, X_j)
 
     def importance(self, X, y, feat_predictability=True):
@@ -436,7 +436,7 @@ def cfi_importance(
 
 
 # use the docstring of the class for the function
-cfi_importance.__doc__ = _aggregate_docstring(
+cfi_importance.__doc__ = aggregate_docstring(
     [
         CFI.__doc__,
         CFI.__init__.__doc__,

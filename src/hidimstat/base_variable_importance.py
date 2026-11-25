@@ -9,12 +9,12 @@ from sklearn.exceptions import NotFittedError
 
 from hidimstat._utils.exception import InternalError
 from hidimstat._utils.feature_selection import (
-    _fdr_selection,
-    _fwer_selection,
-    _generic_selection,
+    fdr_selection,
+    fwer_selection,
+    generic_selection,
 )
 from hidimstat._utils.tags import HidimstatTags
-from hidimstat._utils.utils import _find_stack_level
+from hidimstat._utils.utils import find_stack_level
 
 
 class BaseVariableImportance(BaseEstimator):
@@ -109,7 +109,7 @@ class BaseVariableImportance(BaseEstimator):
             Binary array indicating the selected features.
         """
         self._check_importance()
-        return _generic_selection(
+        return generic_selection(
             self.importances_,
             k_best=k_best,
             percentile=percentile,
@@ -169,7 +169,7 @@ class BaseVariableImportance(BaseEstimator):
             raise ValueError(
                 "'alternative_hypothesis' can have only three values: True, False and None."
             )
-        return _generic_selection(
+        return generic_selection(
             self.pvalues_ if not alternative_hypothesis else 1 - self.pvalues_,
             k_lowest=k_lowest,
             percentile=percentile,
@@ -224,7 +224,7 @@ class BaseVariableImportance(BaseEstimator):
                 "FDR-based selection requires p-values to be computed first. The current method does not support p-values."
             )
 
-        return _fdr_selection(
+        return fdr_selection(
             p_values=self.pvalues_,
             importances=self.importances_,
             fdr=fdr,
@@ -275,7 +275,7 @@ class BaseVariableImportance(BaseEstimator):
                 )
                 n_tests = self.importances_.shape[0]
 
-        return _fwer_selection(
+        return fwer_selection(
             p_values=self.pvalues_,
             importances=self.importances_,
             fwer=fwer,
@@ -534,7 +534,7 @@ class GroupVariableImportanceMixin:
                 f"The number of features in X: {X.shape[1]} differs from the"
                 " number of features for which importance is computed: "
                 f"{number_unique_feature_in_groups}",
-                stacklevel=_find_stack_level(),
+                stacklevel=find_stack_level(),
             )
 
     def __sklearn_is_fitted__(self) -> bool:

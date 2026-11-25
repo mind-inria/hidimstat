@@ -1,3 +1,6 @@
+__all__ = ["InternalError"]
+
+
 class InternalError(BaseException):
     """
     Create an error for internal error of the library

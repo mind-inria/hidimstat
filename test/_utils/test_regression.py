@@ -1,6 +1,6 @@
 import numpy as np
 
-from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.regression import alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
 
 seed = 42
@@ -14,8 +14,8 @@ def test_alpha_max():
     X, y, _, _ = multivariate_simulation(
         n, p, signal_noise_ratio=signal_noise_ratio, seed=0
     )
-    max_alpha = _alpha_max(X, y)
-    max_alpha_noise = _alpha_max(X, y, use_noise_estimate=True)
+    max_alpha = alpha_max(X, y)
+    max_alpha_noise = alpha_max(X, y, use_noise_estimate=True)
     # Assert alpha_max is positive
     assert max_alpha > 0
     assert max_alpha_noise > 0
@@ -25,5 +25,5 @@ def test_alpha_max():
 
     # Test with zero target vector
     y_zero = np.zeros_like(y)
-    alpha_zero = _alpha_max(X, y_zero)
+    alpha_zero = alpha_max(X, y_zero)
     assert alpha_zero == 0

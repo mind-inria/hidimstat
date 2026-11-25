@@ -2,6 +2,8 @@ from dataclasses import dataclass
 
 from sklearn.utils import Tags
 
+__all__ = ["HidimstatTags"]
+
 
 @dataclass
 class HidimstatTags(Tags):

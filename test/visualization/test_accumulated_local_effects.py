@@ -352,7 +352,7 @@ def test_compute_ale_1d_discrete_error(ale_test_data):
         )
 
 
-def test__compute_ale_2d(ale_test_data):
+def test_compute_ale_2d(ale_test_data):
     """Test the 2D ALE calculation"""
     data = ale_test_data["continuous"]
     X, model, important_features = (
@@ -393,7 +393,7 @@ def test__compute_ale_2d(ale_test_data):
     assert len(quantiles_j) <= grid_resolution[1] + 1
 
 
-def test__compute_ale_2d_errors(ale_test_data):
+def test_compute_ale_2d_errors(ale_test_data):
     """Check the raised error of the 2D ALE."""
     data = ale_test_data["continuous"]
     X, model, important_features = (

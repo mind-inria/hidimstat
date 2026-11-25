@@ -17,14 +17,14 @@ from sklearn.metrics import (
 )
 
 from hidimstat._utils.utils import (
-    _check_loss_method_parameter,
-    _check_random_state,
-    _check_scoring,
-    _check_statistical_test,
-    _find_stack_level,
     _get_fitted_attributes,
-    _make_sklearn_estimator,
     _one_level_deeper,
+    check_loss_method_parameter,
+    check_random_state,
+    check_scoring,
+    check_statistical_test,
+    find_stack_level,
+    make_sklearn_estimator,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -47,14 +47,14 @@ def test_generated_attributes():
 def test_none():
     """Test random state is None"""
     random_state = None
-    rng = _check_random_state(random_state)
+    rng = check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
 def test_integer():
     """Test random state is integer"""
     random_state = 10
-    rng = _check_random_state(random_state)
+    rng = check_random_state(random_state)
     assert isinstance(rng, np.random.Generator)
 
 
@@ -71,7 +71,7 @@ def test_random_state():
         ValueError,
         match=r"numpy\.random\.RandomState is deprecated\. Please use numpy\.random.Generator",
     ):
-        _ = _check_random_state(random_state)
+        _ = check_random_state(random_state)
 
 
 def test_error():
@@ -81,39 +81,39 @@ def test_error():
         ValueError,
         match=r"cannot be used to seed a numpy\.random\.Generator instance",
     ):
-        _check_random_state(random_state)
+        check_random_state(random_state)
 
 
 def test_check_test_statistic():
     """Test the function of check"""
-    test_func = _check_statistical_test("wilcoxon")
+    test_func = check_statistical_test("wilcoxon")
     assert test_func.func == wilcoxon
-    test_func = _check_statistical_test("ttest")
+    test_func = check_statistical_test("ttest")
     assert test_func.func == ttest_1samp
-    test_func = _check_statistical_test("nb-ttest")
+    test_func = check_statistical_test("nb-ttest")
     assert test_func.func == nadeau_bengio_ttest
-    test_func = _check_statistical_test(print)
+    test_func = check_statistical_test(print)
     assert test_func == print
-    test_func = _check_statistical_test(lambda x: x)
+    test_func = check_statistical_test(lambda x: x)
     assert test_func.__class__.__name__ == "function"
 
 
 def test_check_test_statistic_warning():
     """Test the exception"""
     with pytest.raises(ValueError, match="the test 'test' is not supported"):
-        _check_statistical_test("test")
+        check_statistical_test("test")
     with pytest.raises(
         ValueError, match="Unsupported value for 'statistical_test'"
     ):
-        _check_statistical_test([])
+        check_statistical_test([])
 
 
-def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
+def test_make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
 
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
 
     for penalty, expected in zip(["l1", "l2"], [(1,), (0,)], strict=False):
-        est = _make_sklearn_estimator(
+        est = make_sklearn_estimator(
             LogisticRegressionCV,
             penalty=penalty,
         )
@@ -123,7 +123,7 @@ def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", False)
 
     for l1_ratio, expected in zip([(1,), (0,)], ["l1", "l2"], strict=False):
-        est = _make_sklearn_estimator(
+        est = make_sklearn_estimator(
             LogisticRegressionCV,
             l1_ratios=l1_ratio,
         )
@@ -131,46 +131,46 @@ def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
         assert est.penalty == expected
 
 
-def test__make_sklearn_estimator_alphas_args(monkeypatch):
+def test_make_sklearn_estimator_alphas_args(monkeypatch):
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", False)
 
     alpha_target = 10
-    est = _make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
+    est = make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
     assert est.alphas == alpha_target
 
 
-def test__find_stack_level():
-    """Test _find_stack_level."""
-    assert _find_stack_level() == 1
+def test_find_stack_level():
+    """Test find_stack_level."""
+    assert find_stack_level() == 1
     assert _one_level_deeper() == 2
 
 
-def test__check_scoring():
-    """Test the in-house _check_scoring function"""
+def test_check_scoring():
+    """Test the in-house check_scoring function"""
     regressor_scorer = repr(get_scorer(make_scorer(mean_squared_error)))
     assert (
-        repr(_check_scoring(scoring="mean_squared_error")) == regressor_scorer
+        repr(check_scoring(scoring="mean_squared_error")) == regressor_scorer
     )
     assert (
-        repr(_check_scoring(scoring=make_scorer(mean_squared_error)))
+        repr(check_scoring(scoring=make_scorer(mean_squared_error)))
         == regressor_scorer
     )
-    assert repr(_check_scoring(estimator=Ridge())) == regressor_scorer
+    assert repr(check_scoring(estimator=Ridge())) == regressor_scorer
 
     classifier_scorer = repr(
         get_scorer(make_scorer(log_loss, response_method="predict_proba"))
     )
-    assert repr(_check_scoring(scoring="log_loss")) == classifier_scorer
+    assert repr(check_scoring(scoring="log_loss")) == classifier_scorer
     assert (
         repr(
-            _check_scoring(
+            check_scoring(
                 scoring=make_scorer(log_loss, response_method="predict_proba")
             )
         )
         == classifier_scorer
     )
     assert (
-        repr(_check_scoring(estimator=RidgeClassifier())) == classifier_scorer
+        repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
     )
 
     with pytest.raises(
@@ -178,12 +178,12 @@ def test__check_scoring():
         match=r"should be one of two types "
         "'classifier' or 'regressor'",
     ):
-        _check_scoring(estimator=SelectFdr())
+        check_scoring(estimator=SelectFdr())
 
     with pytest.raises(
         ValueError, match="No scoring nor estimator was passed to the method"
     ):
-        _check_scoring()
+        check_scoring()
 
 
 @pytest.mark.filterwarnings(
@@ -195,7 +195,7 @@ def test_check_loss_method_parameter_deprecation_warning():
         DeprecationWarning,
         match="Parameters 'method' and 'loss' are deprecated",
     ):
-        _check_loss_method_parameter(
+        check_loss_method_parameter(
             scoring=None, method="mean_squared_error", loss=None
         )
 
@@ -203,7 +203,7 @@ def test_check_loss_method_parameter_deprecation_warning():
         DeprecationWarning,
         match="Parameters 'method' and 'loss' are deprecated",
     ):
-        _check_loss_method_parameter(
+        check_loss_method_parameter(
             scoring=None, method=None, loss=mean_squared_error
         )
 
@@ -218,41 +218,39 @@ def test_check_loss_method_parameter():
     - returns the appropriate loss or method when on of them is input
     """
     assert (
-        _check_loss_method_parameter(
+        check_loss_method_parameter(
             scoring=None, method="predict_proba", loss=None
         )
         == log_loss
     )
     assert (
-        _check_loss_method_parameter(scoring=None, method="predict", loss=None)
+        check_loss_method_parameter(scoring=None, method="predict", loss=None)
         == mean_squared_error
     )
     with pytest.raises(ValueError, match="is not a valid method"):
-        _check_loss_method_parameter(scoring=None, method="unknown", loss=None)
+        check_loss_method_parameter(scoring=None, method="unknown", loss=None)
 
     assert (
-        _check_loss_method_parameter(
+        check_loss_method_parameter(
             scoring=None, method=None, loss=mean_squared_error
         )
         == mean_squared_error
     )
     assert (
-        _check_loss_method_parameter(scoring=None, method=None, loss=log_loss)
+        check_loss_method_parameter(scoring=None, method=None, loss=log_loss)
         == log_loss
     )
     assert (
-        _check_loss_method_parameter(
-            scoring=None, method=None, loss=hinge_loss
-        )
+        check_loss_method_parameter(scoring=None, method=None, loss=hinge_loss)
         == hinge_loss
     )
     with pytest.raises(ValueError, match=r"is not a 'sklearn.metrics'"):
-        _check_loss_method_parameter(
-            scoring=None, method=None, loss=_check_scoring
+        check_loss_method_parameter(
+            scoring=None, method=None, loss=check_scoring
         )
 
     assert (
-        _check_loss_method_parameter(
+        check_loss_method_parameter(
             scoring="mean_squared_error", method=None, loss=mean_squared_error
         )
         == "mean_squared_error"

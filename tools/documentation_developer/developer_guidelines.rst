@@ -86,7 +86,7 @@ parallel process has its own unique sequence of random numbers, preventing inter
 and guaranteeing that the overall result remains reproducible.
 
 The Generator object for any given method is instantiated by the internal
-``_check_random_state`` utility function, which handles the logic based on the user's
+``check_random_state`` utility function, which handles the logic based on the user's
 input.
 
 

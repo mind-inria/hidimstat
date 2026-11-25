@@ -14,10 +14,10 @@ from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
-    _check_loss_method_parameter,
-    _check_random_state,
-    _check_scoring,
-    _get_array_cols,
+    check_loss_method_parameter,
+    check_random_state,
+    check_scoring,
+    get_array_cols,
 )
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -40,7 +40,7 @@ def _sage_value_function(
     complement of the subset is sampled according to the specified imputation
     strategy. Then the loss is computed for the perturbed data.
     """
-    rng = _check_random_state(random_state)
+    rng = check_random_state(random_state)
 
     if imputation != "marginal":
         raise NotImplementedError(
@@ -55,7 +55,7 @@ def _sage_value_function(
     )  # (n_permutations, n_samples, n_features)
     for perm_idx in range(n_permutations):
         for col in complement:
-            X_col = _get_array_cols(X, col)
+            X_col = get_array_cols(X, col)
             X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
                 -1,
             )
@@ -75,7 +75,7 @@ def _sample_feature_subsets(n_features, j, n_subsets, random_state=None):
     """
     minus_j = np.delete(np.arange(n_features), j)
 
-    rng = _check_random_state(random_state)
+    rng = check_random_state(random_state)
     subsets = [
         np.sort(rng.choice(minus_j, size=k, replace=False))
         for k in rng.integers(0, len(minus_j) + 1, size=n_subsets)
@@ -181,12 +181,12 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
 
     def importance(self, X, y):
         check_is_fitted(self)
-        rng = _check_random_state(self.random_state)
+        rng = check_random_state(self.random_state)
         self._check_compatibility(X)
-        self.scoring = _check_loss_method_parameter(
+        self.scoring = check_loss_method_parameter(
             scoring=self.scoring, method=self.method, loss=self.loss
         )
-        self.scoring = _check_scoring(
+        self.scoring = check_scoring(
             estimator=self.estimator_, scoring=self.scoring
         )
 

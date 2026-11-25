@@ -15,14 +15,14 @@ from sklearn.linear_model import (
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_X_y
 
-from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.docstring import aggregate_docstring
 from hidimstat._utils.utils import (
-    _check_random_state,
-    _check_vim_predict_method,
-    _find_stack_level,
-    _generate_group_mask,
-    _make_sklearn_estimator,
-    _seed_estimator,
+    check_random_state,
+    check_vim_predict_method,
+    find_stack_level,
+    generate_group_mask,
+    make_sklearn_estimator,
+    seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
 
@@ -140,14 +140,14 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LassoCV,
             alphas=10,
             tol=1e-6,
             fit_intercept=False,
             random_state=0,
         ),
-        model_distillation_x=_make_sklearn_estimator(
+        model_distillation_x=make_sklearn_estimator(
             LassoCV,
             alphas=10,
             n_jobs=1,
@@ -194,7 +194,7 @@ class D0CRT(BaseVariableImportance):
         # Attributes checked outside of class:
         # n_jobs, joblib_verbose
         super()._check_fit_attributes()
-        _check_vim_predict_method(self.method)
+        check_vim_predict_method(self.method)
 
         if self.estimated_coef is not None:
             if not isinstance(self.estimated_coef, np.ndarray):
@@ -322,8 +322,8 @@ class D0CRT(BaseVariableImportance):
         .. footbibliography::
         """
         self._check_fit_attributes()
-        rng = _check_random_state(self.random_state)
-        self.estimator = _seed_estimator(self.estimator, random_state=rng)
+        rng = check_random_state(self.random_state)
+        self.estimator = seed_estimator(self.estimator, random_state=rng)
         self.is_logistic_ = self._check_logistic()
         check_X_y(X, y)
 
@@ -335,7 +335,7 @@ class D0CRT(BaseVariableImportance):
                 warnings.warn(
                     "Precomputed coefficients were provided, screening is skipped and "
                     "screening_threshold is set to 100.",
-                    stacklevel=_find_stack_level(),
+                    stacklevel=find_stack_level(),
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
@@ -663,7 +663,7 @@ class D0CRT(BaseVariableImportance):
         See fit() and importance() for details on the underlying computations.
         """
         if cv is not None:
-            warnings.warn("cv won't be used", stacklevel=_find_stack_level())
+            warnings.warn("cv won't be used", stacklevel=find_stack_level())
         self.fit(X, y)
         return self.importance(X, y)
 
@@ -732,7 +732,7 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
-    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    mask = generate_group_mask(X.shape[1], idx, selected=False)
     X_minus_idx = X[:, mask]
 
     # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
@@ -742,7 +742,7 @@ def _joblib_fit(
             2 * lasso_weights if lasso_weights is not None else None
         )
         model_x = clone(model_distillation_x)
-        model_x = _seed_estimator(model_x, random_state=random_state)
+        model_x = seed_estimator(model_x, random_state=random_state)
         model_x.fit(X_minus_idx, X[:, idx], sample_weight=sample_weight)
     else:
         model_x = None
@@ -752,7 +752,7 @@ def _joblib_fit(
         model_y = np.delete(np.copy(estimator.coef_), idx)
     elif fit_y:
         model_y = clone(estimator)
-        model_y = _seed_estimator(model_y, random_state=random_state)
+        model_y = seed_estimator(model_y, random_state=random_state)
         model_y.fit(X_minus_idx, y)
         if isinstance(estimator, (Lasso, LassoCV)):
             model_y = model_y.coef_
@@ -815,7 +815,7 @@ def _joblib_distill(
     ----------
     .. footbibliography::
     """
-    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    mask = generate_group_mask(X.shape[1], idx, selected=False)
     X_minus_idx = X[:, mask]
 
     # Distill X with least square loss
@@ -827,18 +827,18 @@ def _joblib_distill(
     else:
         # Distill X with sigma_X
         sigma_temp = sigma_X[
-            _generate_group_mask(sigma_X.shape[0], idx, selected=False)
+            generate_group_mask(sigma_X.shape[0], idx, selected=False)
         ]
         b = sigma_temp[:, idx]
         A = sigma_temp[
-            :, _generate_group_mask(sigma_temp.shape[1], idx, selected=False)
+            :, generate_group_mask(sigma_temp.shape[1], idx, selected=False)
         ]
         coefs_X = np.linalg.solve(A, b)
         X_residual = X[:, idx] - np.dot(X_minus_idx, coefs_X)
         sigma2 = sigma_X[idx, idx] - np.dot(
             sigma_X[
                 idx,
-                _generate_group_mask(sigma_X.shape[1], idx, selected=False),
+                generate_group_mask(sigma_X.shape[1], idx, selected=False),
             ],
             coefs_X,
         )
@@ -891,7 +891,7 @@ def run_lasso_screening(
     lasso_model : sklearn estimator
         Fitted Lasso model used for screening.
     """
-    lasso_model = _seed_estimator(lasso_model, random_state=random_state)
+    lasso_model = seed_estimator(lasso_model, random_state=random_state)
     lasso_model.fit(X, y)
     selection_set = (
         np.abs(lasso_model.coef_)
@@ -908,14 +908,14 @@ def d0crt_importance(
     method="predict",
     estimated_coef=None,
     sigma_X=None,
-    lasso_screening=_make_sklearn_estimator(
+    lasso_screening=make_sklearn_estimator(
         LassoCV,
         alphas=10,
         tol=1e-6,
         fit_intercept=False,
         random_state=0,
     ),
-    model_distillation_x=_make_sklearn_estimator(
+    model_distillation_x=make_sklearn_estimator(
         LassoCV,
         alphas=10,
         n_jobs=1,
@@ -972,7 +972,7 @@ def d0crt_importance(
 
 
 # use the docstring of the class for the function
-d0crt_importance.__doc__ = _aggregate_docstring(
+d0crt_importance.__doc__ = aggregate_docstring(
     [
         D0CRT.__doc__,
         D0CRT.__init__.__doc__,

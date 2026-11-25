@@ -2,13 +2,15 @@ import warnings
 
 import numpy as np
 
-from hidimstat._utils.utils import _find_stack_level
+from hidimstat._utils.utils import find_stack_level
 from hidimstat.statistical_tools.multiple_testing import (
     fdr_threshold,
 )
 
+__all__ = ["fdr_selection", "fwer_selection", "generic_selection"]
 
-def _generic_selection(
+
+def generic_selection(
     values,
     k_best=None,
     k_lowest=None,
@@ -95,7 +97,7 @@ def _k_best_selection(values, k_best):
         warnings.warn(
             f"k={k_best} is greater than n_features={values.shape[0]}. "
             "All the features will be returned.",
-            stacklevel=_find_stack_level(),
+            stacklevel=find_stack_level(),
         )
     mask_k_best = np.zeros_like(values, dtype=bool)
 
@@ -128,7 +130,7 @@ def _k_lowest_selection(values, k_lowest):
         warnings.warn(
             f"k={k_lowest} is greater than n_features={values.shape[0]}. "
             "All the features will be returned.",
-            stacklevel=_find_stack_level(),
+            stacklevel=find_stack_level(),
         )
     mask_k_lowest = np.zeros_like(values, dtype=bool)
 
@@ -173,7 +175,7 @@ def _percentile_selection(values, percentile):
     return mask_percentile
 
 
-def _fdr_selection(
+def fdr_selection(
     p_values,
     importances,
     fdr,
@@ -251,7 +253,7 @@ def _fdr_selection(
     return selected
 
 
-def _fwer_selection(
+def fwer_selection(
     p_values,
     importances,
     fwer,

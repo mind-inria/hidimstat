@@ -1,10 +1,10 @@
 import pytest
 
 from hidimstat._utils.docstring import (
-    _aggregate_docstring,
     _detection_section,
     _parse_docstring,
     _reindent,
+    aggregate_docstring,
 )
 
 INPUT1 = [
@@ -167,7 +167,7 @@ def test_reindent_embedded_newline_with_trailing_blank_line():
     assert _reindent(lines) == "hello\nworld\nfoo\nbar"
 
 
-def test_smoke_aggregate_docstring():
+def test_smokeaggregate_docstring():
     """
     Smoke test for docstring aggregation function
     """
@@ -234,7 +234,7 @@ def test_smoke_aggregate_docstring():
     .. footbibliography::
 
     """
-    final_doc = _aggregate_docstring(
+    final_doc = aggregate_docstring(
         [doc_minimum_1, None, doc_minimum_2, doc_minimum_3],
         """
         Returns
@@ -293,10 +293,10 @@ def test_aggregate_docstring_missing_parameters_section_raises():
     None
     """
     with pytest.raises(KeyError):
-        _aggregate_docstring([doc_no_params], _RETURNS_TRAILING_NEWLINE)
+        aggregate_docstring([doc_no_params], _RETURNS_TRAILING_NEWLINE)
 
 
 def test_aggregate_docstring_all_none_raises():
     """If every docstring in the list is None, there's nothing to build the summary from."""
     with pytest.raises(IndexError):
-        _aggregate_docstring([None, None], _RETURNS_TRAILING_NEWLINE)
+        aggregate_docstring([None, None], _RETURNS_TRAILING_NEWLINE)

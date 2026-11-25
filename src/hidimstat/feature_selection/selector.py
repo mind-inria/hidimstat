@@ -4,7 +4,7 @@ import warnings
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.model_selection import StratifiedKFold
 
-from hidimstat._utils.feature_selection import _generic_selection
+from hidimstat._utils.feature_selection import generic_selection
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.base_variable_importance import BaseVariableImportance
 
@@ -104,7 +104,7 @@ class SelectTopK(SelectorMixin, BaseEstimator):
     def transform(self, X):
         if isinstance(self.estimator, BasePerturbationCV):
             # importance shape is gonna be (n_feature_groups, n_folds)
-            self.selected_ = _generic_selection(
+            self.selected_ = generic_selection(
                 self.estimator.importances_.mean(axis=1),
                 k_best=self.k_best,
             )

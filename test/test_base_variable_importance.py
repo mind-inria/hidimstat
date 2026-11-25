@@ -522,7 +522,7 @@ def test_fwer_selection(rng, create_bvi):
         vim.fwer_selection(fwer=0.1, procedure="invalid_procedure")
 
 
-def test_clustered_fwer_selection(rng):
+def test_clusteredfwer_selection(rng):
     """
     Test to improve coverage by exploring the case where the number of clusters is used
     as default for `n_tests` in fwer_selection.

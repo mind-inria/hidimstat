@@ -1,10 +1,10 @@
-from hidimstat._utils.utils import _check_random_state
+from hidimstat._utils.utils import check_random_state
 from hidimstat.samplers.utils import _subsampling
 
 
 def test_subsample_size():
     n_samples = 50
-    rng = _check_random_state(42)
+    rng = check_random_state(42)
 
     samples = _subsampling(
         n_samples=n_samples,
