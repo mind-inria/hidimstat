@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator, clone
-from sklearn.linear_model import LogisticRegressionCV, RidgeCV
+from sklearn.linear_model import LassoCV, LogisticRegressionCV, RidgeCV
 
 from hidimstat._utils.docstring import _aggregate_docstring
 from hidimstat._utils.utils import _get_array_cols
@@ -20,8 +20,9 @@ class CFI(BasePerturbation):
 
     Parameters
     ----------
-    estimator : sklearn compatible estimator
+    estimator : sklearn compatible estimator, default=None
         The estimator to use for the prediction.
+        Set to LassoCV() if None is passed.
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
@@ -100,7 +101,7 @@ class CFI(BasePerturbation):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         scoring=None,
         method=None,
         loss=None,
@@ -189,6 +190,15 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
+        self._check_fit_attributes()
+
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+            )
+        else:
+            self.estimator_ = self.estimator
+
         super().fit(X, y)
 
         if isinstance(self.feature_types, str):
