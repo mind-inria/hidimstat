@@ -138,8 +138,7 @@ of LOCI on a classification task::
     >>> model = RandomForestClassifier().fit(X_train, y_train)
     >>> loci = LOCI(
     ...     estimator=model,
-    ...     loss=log_loss,
-    ...     method="predict_proba",
+    ...     scoring="log_loss",
     ... )
     >>> loci = loci.fit(X_train, y_train)
     >>> features_importance = loci.importance(X_test, y_test)

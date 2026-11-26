@@ -100,8 +100,7 @@ of LOCO on a classification task::
     >>> model = RandomForestClassifier().fit(X_train, y_train)
     >>> loco = LOCO(
     ...     estimator=model,
-    ...     loss=log_loss,
-    ...     method="predict_proba",
+    ...     scoring="log_loss",
     ... )
     >>> loco = loco.fit(X_train, y_train)
     >>> features_importance = loco.importance(X_test, y_test)
