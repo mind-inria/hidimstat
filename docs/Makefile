@@ -63,8 +63,6 @@ clean:
 	rm -rfv $(SOURCEDIR)/generated/*
 	rm -rfv $(SOURCEDIR)/sg_execution_times.rst
 	rm -rfv $(SOURCEDIR)/whats_news/CHANGELOG.rst
-	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTING.rst
-	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTORS.rst
 
 html-noplot:
 	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
@@ -135,7 +133,7 @@ changes:
 
 .PHONY: linkcheck
 linkcheck:
-	$(SPHINXBUILD) -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
+	$(SPHINXBUILD) -D suppress_warnings=image.not_readable -D plot_gallery=0 -b linkcheck $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 		  "or in $(BUILDDIR)/linkcheck/output.txt."

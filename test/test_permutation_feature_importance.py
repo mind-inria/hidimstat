@@ -8,16 +8,14 @@ from sklearn.linear_model import (
     LogisticRegression,
     RidgeCV,
 )
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat import PFI, PFICV, pfi_importance
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
-from .conftest import check_estimator, fitted_linear_regression
+from .conftest import fitted_linear_regression
 
 
 def run_pfi(
@@ -25,9 +23,8 @@ def run_pfi(
     y,
     estimator,
     n_permutations=20,
-    features_groups=None,
-    method="predict",
-    loss=mean_squared_error,
+    feature_groups=None,
+    scoring="mean_squared_error",
 ):
     """Test the Permutation Feature Importance algorithm on a linear scenario."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -36,10 +33,9 @@ def run_pfi(
 
     pfi = PFI(
         estimator=estimator,
-        method=method,
-        loss=loss,
+        scoring=scoring,
         n_permutations=n_permutations,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         random_state=0,
     )
 
@@ -74,9 +70,9 @@ def test_permutation_importance(data_generator):
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     pfi = run_pfi(X=X_df, y=y, estimator=LinearRegression())
     importance = pfi.importances_
-    features_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
+    feature_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
 
-    assert pfi.features_groups_ == features_groups
+    assert pfi.feature_groups_ == feature_groups
     assert importance[0].mean() > importance[1].mean()
 
     # Now with groups
@@ -89,7 +85,7 @@ def test_permutation_importance(data_generator):
         X=X_df,
         y=y,
         estimator=LinearRegression(),
-        features_groups=groups,
+        feature_groups=groups,
     )
     importance = pfi.importances_
 
@@ -98,17 +94,14 @@ def test_permutation_importance(data_generator):
     # Classification case
     y_clf = (y > np.median(y)).astype(int)
     pfi = run_pfi(
-        X=X,
-        y=y_clf,
-        estimator=LogisticRegression(),
-        method="predict_proba",
-        loss=log_loss,
+        X=X, y=y_clf, estimator=LogisticRegression(), scoring="log_loss"
     )
     importance_clf = pfi.importances_
 
     assert importance_clf.shape == (X.shape[1],)
 
 
+@pytest.mark.filterwarnings("ignore:pfi_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 20, None, 4, 0, 42, 1, 10, 0)],
@@ -127,7 +120,7 @@ def test_permutation_importance_function(data_generator):
         X,
         y,
         n_permutations=20,
-        method="predict",
+        scoring="mean_squared_error",
         random_state=0,
     )
 
@@ -160,7 +153,7 @@ def pfi_test_data():
     pfi_default_parameters = {
         "estimator": model,
         "n_permutations": 20,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_train, y_test, pfi_default_parameters
@@ -336,37 +329,16 @@ ESTIMATORS_TO_CHECK = [
     ),
 ]
 
-if SKLEARN_LT_1_6:
 
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
 
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@pytest.mark.filterwarnings("error:pfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class PFI"):
+        pfi_importance(estimator=None, X=None, y=None)

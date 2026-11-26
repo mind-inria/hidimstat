@@ -1,6 +1,9 @@
+import numbers
+
 import numpy as np
 from joblib import Parallel, delayed
-from sklearn.base import clone
+from sklearn.base import check_is_fitted, clone
+from sklearn.utils import get_tags
 from tqdm import tqdm
 
 from hidimstat._utils.utils import check_random_state
@@ -88,6 +91,40 @@ class EnsembleImportance(BaseVariableImportance):
         self.vim_ = None
         self.ensemble_vims_ = None
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        # Attributes that are checked outside of class:
+        # n_jobs, random_state, gamme, aggregation, adaptive_aggregation
+
+        if not isinstance(self.vim, BaseVariableImportance):
+            raise TypeError(
+                "'vim' needs to be a subclass of BaseVariableImportance."
+            )
+
+        if not isinstance(self.n_repeats, numbers.Number):
+            raise TypeError("'n_repeats' needs to be an int.")
+        elif self.n_repeats <= 0:
+            raise ValueError("'n_repeats' needs to be strictly positive.")
+
+        if not isinstance(self.bootstrap_frac, numbers.Number):
+            raise TypeError("'bootstrap_frac' needs to be an float.")
+        elif self.bootstrap_frac < 0 or self.bootstrap_frac > 1:
+            raise ValueError(
+                "'bootstrap_frac' needs to be in [0, 1] interval."
+            )
+
+        if self.bootstrap_groups is not None:
+            if not isinstance(self.bootstrap_groups, np.ndarray):
+                raise TypeError(
+                    "'bootstrap_groups' needs to be an np.ndarray."
+                )
+            elif self.bootstrap_groups.ndim != 1:
+                raise ValueError(
+                    "'bootstrap_groups' needs to be of shape (n_samples,)."
+                )
+
     @staticmethod
     def _joblib_fit_one(
         vim,
@@ -123,11 +160,8 @@ class EnsembleImportance(BaseVariableImportance):
         self : EnsembleImportance
             Fitted estimator.
         """
+        self._check_fit_attributes()
         rng = check_random_state(self.random_state)
-
-        assert issubclass(self.vim.__class__, BaseVariableImportance), (
-            "estimator needs to be a subclass of BaseVariableImportance"
-        )
 
         if hasattr(self.vim, "random_state"):
             self.vim.random_state = self.random_state
@@ -152,7 +186,11 @@ class EnsembleImportance(BaseVariableImportance):
 
     @staticmethod
     def _joblib_compute_importance(vim, X, y):
-        vim.importance(X, y)
+        tags = get_tags(vim)
+        if tags.needs_importance_data:
+            vim.importance(X, y)
+        else:
+            vim.importance()
         return vim
 
     def importance(self, X, y):
@@ -172,7 +210,7 @@ class EnsembleImportance(BaseVariableImportance):
         importances_ : ndarray, shape (n_features,) or (n_features, n_tasks)
             Estimated importance values at feature level.
         """
-        self._check_fit()
+        check_is_fitted(self)
 
         self.ensemble_vims_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_compute_importance)(
@@ -220,11 +258,5 @@ class EnsembleImportance(BaseVariableImportance):
         self.importance(X, y)
         return self.importances_
 
-    def _check_fit(self):
-        """
-        Check that the ensemble has been fitted.
-        """
-        if self.ensemble_vims_ is None:
-            raise ValueError(
-                "The estimators need to be fit before using them."
-            )
+    def __sklearn_is_fitted__(self) -> bool:
+        return getattr(self, "ensemble_vims_", None) is not None

@@ -4,13 +4,10 @@ import numpy as np
 import pandas as pd
 import pytest
 from scipy.stats import ttest_1samp
-from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LinearRegression, LogisticRegression, RidgeCV
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
-from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.base_perturbation import BasePerturbation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
@@ -19,9 +16,8 @@ def run_loco(
     X,
     y,
     estimator,
-    features_groups=None,
-    method="predict",
-    loss=mean_squared_error,
+    feature_groups=None,
+    scoring="mean_squared_error",
 ):
     """Run the Leave-One-Covariate-Out algorithm on given data."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
@@ -30,9 +26,8 @@ def run_loco(
 
     loco = LOCO(
         estimator=estimator,
-        method=method,
-        loss=loss,
-        features_groups=features_groups,
+        scoring=scoring,
+        feature_groups=feature_groups,
         n_jobs=1,
     )
 
@@ -71,7 +66,7 @@ def test_loco(data_generator):
     }
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
     loco = run_loco(
-        X=X_df, y=y, estimator=LinearRegression(), features_groups=groups
+        X=X_df, y=y, estimator=LinearRegression(), feature_groups=groups
     )
     importance = loco.importances_
 
@@ -83,12 +78,11 @@ def test_loco(data_generator):
         X=X,
         y=y_clf,
         estimator=LogisticRegression(),
-        features_groups={
+        feature_groups={
             "group_0": feature_ids[important_features],
             "the_group_1": feature_ids[~important_features],
         },
-        method="predict_proba",
-        loss=log_loss,
+        scoring="log_loss",
     )
     importance_clf = loco_clf.importances_
 
@@ -112,23 +106,21 @@ def test_raises_value_error(data_generator):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
-            method="predict",
         )
         loco.importance(X, None)
 
     with pytest.raises(
-        ValueError, match="The estimators require to be fit before to use them"
+        ValueError, match="This LOCO instance is not fitted yet"
     ):
         fitted_model = LinearRegression().fit(X, y)
         loco = LOCO(
             estimator=fitted_model,
-            method="predict",
         )
         BasePerturbation.fit(loco, X, y)
         loco.importance(X, y)
 
     with pytest.raises(
-        AssertionError,
+        ValueError,
         match="The statistical test doesn't provide the correct dimension",
     ):
         fitted_model = LinearRegression().fit(X, y)
@@ -139,6 +131,7 @@ def test_raises_value_error(data_generator):
         loco.importance(X, y)
 
 
+@pytest.mark.filterwarnings("ignore:loco_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 20, None, 4, 0, 42, 1, 10, 0)],
@@ -156,7 +149,6 @@ def test_loco_function(data_generator):
         regression_model,
         X,
         y,
-        method="predict",
     )
 
     assert importance.shape == (X.shape[1],)
@@ -198,3 +190,9 @@ def test_loco_cv(data_generator):
     )
     assert fdp < alpha
     assert power > 0.8
+
+
+@pytest.mark.filterwarnings("error:loco_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class LOCO"):
+        loco_importance(estimator=None, X=None, y=None)

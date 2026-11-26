@@ -14,7 +14,6 @@ from sklearn.linear_model import (
     LogisticRegressionCV,
     RidgeCV,
 )
-from sklearn.metrics import log_loss, mean_squared_error
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.utils.validation import check_is_fitted
 
@@ -39,8 +38,8 @@ def run_cfi(
     y,
     seed,
     n_permutations=20,
-    method="predict",
-    features_groups=None,
+    scoring="mean_squared_error",
+    feature_groups=None,
     feature_types="auto",
 ):
     """
@@ -83,8 +82,8 @@ def run_cfi(
         y=y_train,
         imputation_model_continuous=LinearRegression(),
         n_permutations=n_permutations,
-        method=method,
-        features_groups=features_groups,
+        scoring=scoring,
+        feature_groups=feature_groups,
         feature_types=feature_types,
         random_state=seed,
     )
@@ -119,7 +118,7 @@ def cfi_test_data():
         "estimator": model,
         "imputation_model_continuous": LinearRegression(),
         "n_permutations": 20,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_test, cfi_default_parameters
@@ -188,9 +187,8 @@ def test_classification(data_generator):
         estimator=logistic_model,
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
-        method="predict_proba",
-        loss=log_loss,
-        features_groups=None,
+        scoring="log_loss",
+        feature_groups=None,
         feature_types=["continuous"] * X.shape[1],
         random_state=0,
         n_jobs=1,
@@ -241,6 +239,73 @@ def test_linear_data_partial(data_generator, n_permutations, cfi_seed):
         min_rank = max(min_rank, rank)
     # accept missing ranking of 15 elements
     assert min_rank < 25
+
+
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_imputation_model_continuous_attribute_before_fit():
+    """Test checks on imputation_model_continuous attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.imputation_model_continuous = None
+
+    with pytest.raises(
+        ValueError, match=r"'imputation_model_continuous' cannot be None"
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.imputation_model_continuous = "wrongtype"
+    with pytest.raises(
+        TypeError, match=r"Continuous imputation model invalid"
+    ):
+        cfi._check_fit_attributes()
+
+
+def test_check_imputation_model_categorical_attribute_before_fit():
+    """Test checks on imputation_model_categorical attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.imputation_model_categorical = None
+
+    with pytest.raises(
+        ValueError, match=r"'imputation_model_categorical' cannot be None"
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.imputation_model_categorical = "wrongtype"
+    with pytest.raises(
+        TypeError, match=r"Categorial imputation model invalid"
+    ):
+        cfi._check_fit_attributes()
+
+
+def test_check_feature_types_attribute_before_fit():
+    """Test checks on feature_types attribute before fitting."""
+    cfi = CFI(estimator=LinearRegression())
+    cfi.feature_types = "wrongtype"
+
+    with pytest.raises(
+        ValueError,
+        match=r"'feature_types' support only the string 'auto', 'continuous', 'categorical'",
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.feature_types = ["wrongtype", "auto", "continuous"]
+    with pytest.raises(
+        ValueError,
+        match=r"One of 'feature_types' is not 'auto', 'continuous', 'categorical'",
+    ):
+        cfi._check_fit_attributes()
+
+    cfi.feature_types = None
+    with pytest.raises(
+        TypeError, match=r"'feature_types' needs to be a str or list of str"
+    ):
+        cfi._check_fit_attributes()
+
+
+###########################################################################################
 
 
 ##############################################################################
@@ -295,7 +360,7 @@ def test_group(data_generator):
         X=X_df,
         y=y,
         seed=0,
-        features_groups=groups,
+        feature_groups=groups,
     )
     importance = cfi.importances_
 
@@ -304,7 +369,7 @@ def test_group(data_generator):
     # Verify that important feature group has higher score
     # than non-important feature group
     assert importance[0] > importance[1]
-    assert all(model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(model.multioutput_ for model in cfi.fitted_samplers_)
 
 
 @pytest.mark.parametrize(
@@ -328,8 +393,8 @@ def test_no_group_output_detection(data_generator):
         estimator=regression_model,
         imputation_model_continuous=LinearRegression(),
         n_permutations=20,
-        method="predict",
-        features_groups=None,
+        scoring="mean_squared_error",
+        feature_groups=None,
         feature_types="auto",
         random_state=0,
         n_jobs=1,
@@ -337,7 +402,7 @@ def test_no_group_output_detection(data_generator):
 
     # Check that the conditional samplers properly detect this is not a multi-output setting.
     cfi.fit(X_train_df)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
@@ -345,336 +410,329 @@ def test_no_group_output_detection(data_generator):
     # Check same thing when X is a np.ndarray
     regression_model.fit(X_train_df.values, y_train)
     cfi.fit(X_train_df.values)
-    assert all(not model.multioutput_ for model in cfi._list_imputation_models)
+    assert all(not model.multioutput_ for model in cfi.fitted_samplers_)
     importance = cfi.importance(X_test_df.values, y_test)
     # Check that importance scores are defined for each feature
     assert importance.shape == (X.shape[1],)
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
-class TestCFIClass:
-    """Test the element of the class"""
+def test_init(data_generator):
+    """Test CFI initialization"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        scoring="mean_squared_error",
+    )
+    assert cfi.n_jobs == 1
+    assert cfi.n_permutations == 50
+    assert cfi.scoring == "mean_squared_error"
+    assert cfi.categorical_max_cardinality == 10
+    assert isinstance(cfi.imputation_model_categorical, LogisticRegressionCV)
+    assert isinstance(cfi.imputation_model_continuous, RidgeCV)
 
-    def test_init(self, data_generator):
-        """Test CFI initialization"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-        )
-        assert cfi.n_jobs == 1
-        assert cfi.n_permutations == 50
-        assert cfi.loss == mean_squared_error
-        assert cfi.method == "predict"
-        assert cfi.categorical_max_cardinality == 10
-        assert isinstance(
-            cfi.imputation_model_categorical, LogisticRegressionCV
-        )
-        assert isinstance(cfi.imputation_model_continuous, RidgeCV)
 
-    def test_fit(self, data_generator):
-        """Test fitting CFI"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            random_state=42,
-        )
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_fit(data_generator):
+    """Test fitting CFI"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        random_state=42,
+    )
 
-        # Test fit with auto var_type
-        cfi.fit(X)
-        assert len(cfi._list_imputation_models) == X.shape[1]
-        assert cfi.n_features_groups_ == X.shape[1]
+    # Test fit with auto var_type
+    cfi.fit(X)
+    assert len(cfi._conditionnal_samplers) == X.shape[1]
+    assert cfi.n_feature_groups_ == X.shape[1]
 
-    def test_fit_group(self, data_generator):
-        """Test fitting CFI with group"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        # Test with specified groups
-        groups = {"g1": [0, 1], "g2": [2, 3, 4]}
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            features_groups=groups,
-            random_state=42,
-        )
-        cfi.fit(X)
 
-        assert len(cfi._list_imputation_models) == 2
-        assert cfi.n_features_groups_ == 2
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_fit_group(data_generator):
+    """Test fitting CFI with group"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    # Test with specified groups
+    groups = {"g1": [0, 1], "g2": [2, 3, 4]}
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        feature_groups=groups,
+        random_state=42,
+    )
+    cfi.fit(X)
 
-    def test_categorical(
-        self,
-        n_samples,
-        n_features,  # noqa: ARG002
-        n_targets,  # noqa: ARG002
-        support_size,  # noqa: ARG002
-        rho,  # noqa: ARG002
-        seed,
-        value,  # noqa: ARG002
-        signal_noise_ratio,  # noqa: ARG002
-        rho_serial,  # noqa: ARG002
-    ):
-        """Test CFI with categorical variables"""
-        rng = np.random.default_rng(seed)
-        X_cont = rng.random((n_samples, 2))
-        X_cat = rng.integers(low=0, high=3, size=(n_samples, 1))
-        X = np.hstack([X_cont, X_cat])
-        y = rng.random((n_samples, 1))
-        feature_types = ["continuous", "continuous", "categorical"]
+    assert len(cfi._conditionnal_samplers) == 2
+    assert cfi.n_feature_groups_ == 2
 
-        cfi = run_cfi(
-            X=X, y=y, n_permutations=50, feature_types=feature_types, seed=0
-        )
-        importances = cfi.importances_
-        assert len(importances) == 3
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_categorical(
+    n_samples,
+    n_features,  # noqa: ARG001
+    n_targets,  # noqa: ARG001
+    support_size,  # noqa: ARG001
+    rho,  # noqa: ARG001
+    seed,
+    value,  # noqa: ARG001
+    signal_noise_ratio,  # noqa: ARG001
+    rho_serial,  # noqa: ARG001
+):
+    """Test CFI with categorical variables"""
+    rng = np.random.default_rng(seed)
+    X_cont = rng.random((n_samples, 2))
+    X_cat = rng.integers(low=0, high=3, size=(n_samples, 1))
+    X = np.hstack([X_cont, X_cat])
+    y = rng.random((n_samples, 1))
+    feature_types = ["continuous", "continuous", "categorical"]
+
+    cfi = run_cfi(
+        X=X, y=y, n_permutations=50, feature_types=feature_types, seed=0
+    )
+    importances = cfi.importances_
+    assert len(importances) == 3
 
 
 ##############################################################################
+
+
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
     ids=["default data"],
 )
-class TestCFIExceptions:
-    """Test class for CFI exceptions"""
+def test_unknown_predict_method(data_generator):
+    """Test when an unknown prediction method is provided"""
+    X, y, _ = data_generator
 
-    def test_unknown_predict_method(self, data_generator):
-        """Test when an unknown prediction method is provided"""
-        X, y, _ = data_generator
+    with pytest.raises(ValueError):
+        run_cfi(X=X, y=y, seed=0, scoring="unknown method")
 
-        with pytest.raises(ValueError):
-            run_cfi(X=X, y=y, seed=0, method="unknown method")
 
-    def test_unfitted_importance(self, data_generator):
-        """Test importance method with unfitted model"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_unfitted_importance(data_generator):
+    """Test importance method with unfitted model"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        scoring="mean_squared_error",
+    )
+
+    with pytest.raises(
+        ValueError, match="This CFI instance is not fitted yet"
+    ):
+        cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_unfitted_base_perturbation(data_generator):
+    """Test base perturbation with unfitted estimators"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        scoring="mean_squared_error",
+    )
+    BasePerturbation.fit(cfi, X, y)
+
+    with pytest.raises(
+        ValueError,
+        match="This CFI instance is not fitted yet",
+    ):
+        cfi.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_not_good_type_X(data_generator):
+    """Test when X is wrong type"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        feature_groups=None,
+        feature_types="auto",
+        scoring="mean_squared_error",
+    )
+    cfi.fit(X)
+
+    with pytest.raises(
+        ValueError,
+        match="X should be a pandas dataframe or a numpy array",
+    ):
+        cfi.importance(X.tolist(), y)
+
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_mismatched_features(data_generator):
+    """Test when number of features doesn't match between fit and predict"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        scoring="mean_squared_error",
+        feature_groups=None,
+        feature_types="auto",
+    )
+    cfi.fit(X)
+
+    with pytest.raises(
+        ValueError, match="X does not correspond to the fitting data"
+    ):
+        cfi.importance(X[:, :-1], y)
+
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_mismatched_features_string(data_generator):
+    """Test when name of features doesn't match between fit and predict"""
+    X, y, _ = data_generator
+    X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
+    subgroups = {
+        "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
+        "group2": [
+            "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
+        ],
+    }
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        scoring="mean_squared_error",
+        feature_groups=subgroups,
+        feature_types="auto",
+    )
+    cfi.fit(X)
+
+    with pytest.raises(
+        ValueError,
+        match=r"The array is missing at least one of the following columns \['col_10', 'col_11', 'col_12',",
+    ):
+        cfi.importance(
+            X[np.concatenate([subgroups["group1"], subgroups["group2"][:-2]])],
+            y,
         )
 
-        with pytest.raises(
-            ValueError, match="This CFI instance is not fitted yet"
-        ):
-            cfi.importance(X, y)
 
-    def test_unfitted_base_perturbation(self, data_generator):
-        """Test base perturbation with unfitted estimators"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            method="predict",
-        )
-        BasePerturbation.fit(cfi, X, y)
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_internal_error(data_generator):
+    """Test when name of features doesn't match between fit and predict"""
+    X, y, _ = data_generator
+    X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
+    subgroups = {
+        "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
+        "group2": [
+            "col_" + str(i) for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
+        ],
+    }
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        scoring="mean_squared_error",
+        feature_groups=subgroups,
+        feature_types="auto",
+    )
+    cfi.fit(X)
+    cfi.feature_groups["group1"] = [None for i in range(100)]
 
-        with pytest.raises(
-            ValueError,
-            match="The imputation models require to be fitted before being used",
-        ):
-            cfi.importance(X, y)
-
-    def test_invalid_type(self, data_generator):
-        """Test invalid type of data"""
-        X, y, _ = data_generator
-
-        # Test error when passing invalid var_type
-        with pytest.raises(
-            ValueError, match="feature_types support only the string 'auto'"
-        ):
-            run_cfi(X=X, y=y, seed=0, feature_types="invalid")
-
-    def test_invalid_n_permutations(self, data_generator):
-        """Test when invalid number of permutations is provided"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            AssertionError, match="n_permutations must be positive"
-        ):
-            run_cfi(X=X, y=y, seed=0, n_permutations=-1)
-
-    def test_not_good_type_X(self, data_generator):
-        """Test when X is wrong type"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            features_groups=None,
-            feature_types="auto",
-            method="predict",
-        )
-        cfi.fit(X)
-
-        with pytest.raises(
-            ValueError,
-            match="X should be a pandas dataframe or a numpy array",
-        ):
-            cfi.importance(X.tolist(), y)
-
-    def test_mismatched_features(self, data_generator):
-        """Test when number of features doesn't match between fit and predict"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-            features_groups=None,
-            feature_types="auto",
-        )
-        cfi.fit(X)
-
-        with pytest.raises(
-            AssertionError, match="X does not correspond to the fitting data"
-        ):
-            cfi.importance(X[:, :-1], y)
-
-    def test_mismatched_features_string(self, data_generator):
-        """Test when name of features doesn't match between fit and predict"""
-        X, y, _ = data_generator
-        X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
-        subgroups = {
-            "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
-            "group2": [
-                "col_" + str(i)
-                for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
-            ],
-        }
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-            features_groups=subgroups,
-            feature_types="auto",
-        )
-        cfi.fit(X)
-
-        with pytest.raises(
-            AssertionError,
-            match=r"The array is missing at least one of the following columns \['col_10', 'col_11', 'col_12',",
-        ):
-            cfi.importance(
-                X[
-                    np.concatenate(
-                        [subgroups["group1"], subgroups["group2"][:-2]]
-                    )
-                ],
-                y,
-            )
-
-    def test_internal_error(self, data_generator):
-        """Test when name of features doesn't match between fit and predict"""
-        X, y, _ = data_generator
-        X = pd.DataFrame({"col_" + str(i): X[:, i] for i in range(X.shape[1])})
-        subgroups = {
-            "group1": ["col_" + str(i) for i in range(int(X.shape[1] / 2))],
-            "group2": [
-                "col_" + str(i)
-                for i in range(int(X.shape[1] / 2), X.shape[1] - 3)
-            ],
-        }
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            method="predict",
-            features_groups=subgroups,
-            feature_types="auto",
-        )
-        cfi.fit(X)
-        cfi.features_groups["group1"] = [None for i in range(100)]
-
-        X = X.to_records(index=False)
-        X = np.array(X, dtype=X.dtype.descr)
-        with pytest.raises(
-            InternalError,
-            match="A problem with indexing has happened during the fit",
-        ):
-            cfi.importance(X, y)
-
-    def test_invalid_var_type(self, data_generator):
-        """Test when invalid variable type is provided"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            ValueError, match="type of data 'invalid_type' unknown"
-        ):
-            run_cfi(
-                X=X, y=y, seed=0, feature_types=["invalid_type"] * X.shape[1]
-            )
-
-    def test_incompatible_imputer(self, data_generator):
-        """Test when incompatible imputer is provided"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-
-        with pytest.raises(
-            AssertionError, match="Continuous imputation model invalid"
-        ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_continuous="invalid_imputer",
-                method="predict",
-            )
-
-        with pytest.raises(
-            AssertionError, match="Categorial imputation model invalid"
-        ):
-            cfi = CFI(
-                estimator=fitted_model,
-                imputation_model_categorical="invalid_imputer",
-                method="predict",
-            )
-
-    def test_invalid_groups_format(self, data_generator):
-        """Test when groups are provided in invalid format"""
-        X, y, _ = data_generator
-
-        with pytest.raises(
-            ValueError, match="features_groups needs to be a dictionary"
-        ):
-            run_cfi(X=X, y=y, seed=0, features_groups=["group1", "group2"])
-
-    def test_groups_warning(self, data_generator):
-        """Test if a subgroup raise a warning"""
-        X, y, _ = data_generator
-        subgroups = {"group1": [0, 1], "group2": [2, 3]}
-
-        with pytest.warns(
-            UserWarning,
-            match="The number of features in X: 20 differs from the"
-            " number of features for which importance is computed: 4",
-        ):
-            run_cfi(X=X, y=y, seed=0, features_groups=subgroups)
-
-    def test_assert_dimension_pvalue(self, data_generator):
-        """Test that assert is raise if function stat is not good"""
-        X, y, _ = data_generator
-        fitted_model = LinearRegression().fit(X, y)
-        cfi = CFI(
-            estimator=fitted_model,
-            imputation_model_continuous=LinearRegression(),
-            statistical_test=partial(ttest_1samp, popmean=0, axis=0),
-        )
-        cfi.fit(X, y)
-        with pytest.raises(
-            AssertionError,
-            match="The statistical test doesn't provide the correct dimension",
-        ):
-            cfi.importance(X, y)
+    X = X.to_records(index=False)
+    X = np.array(X, dtype=X.dtype.descr)
+    with pytest.raises(
+        InternalError,
+        match="A problem with indexing has happened during the fit",
+    ):
+        cfi.importance(X, y)
 
 
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_groups_warning(data_generator):
+    """Test if a subgroup raise a warning"""
+    X, y, _ = data_generator
+    subgroups = {"group1": [0, 1], "group2": [2, 3]}
+
+    with pytest.warns(
+        UserWarning,
+        match="The number of features in X: 20 differs from the"
+        " number of features for which importance is computed: 4",
+    ):
+        run_cfi(X=X, y=y, seed=0, feature_groups=subgroups)
+
+
+@pytest.mark.parametrize(
+    PARAM_NAMES,
+    [(100, 20, None, 4, 0.0, 42, 1.0, 0.0, 0.0)],
+    ids=["default data"],
+)
+def test_assert_dimension_pvalue(data_generator):
+    """Test that assert is raise if function stat is not good"""
+    X, y, _ = data_generator
+    fitted_model = LinearRegression().fit(X, y)
+    cfi = CFI(
+        estimator=fitted_model,
+        imputation_model_continuous=LinearRegression(),
+        statistical_test=partial(ttest_1samp, popmean=0, axis=0),
+    )
+    cfi.fit(X, y)
+    with pytest.raises(
+        ValueError,
+        match="The statistical test doesn't provide the correct dimension",
+    ):
+        cfi.importance(X, y)
+
+
+@pytest.mark.filterwarnings("ignore:cfi_importance is deprecated")
 @pytest.mark.parametrize(
     PARAM_NAMES,
     [(150, 200, None, 4, 0.2, 42, 1.0, 1.0, 0.0)],
@@ -724,8 +782,8 @@ def test_cfi_plot(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -753,8 +811,8 @@ def test_cfi_plot_2d_imp(data_generator):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.stack(
         [
@@ -788,8 +846,8 @@ def test_cfi_plot_coverage(data_generator, rng):
         random_state=0,
     )
     cfi.fit(X_train, y_train)
-    cfi.loss_reference_ = []
-    cfi.loss_ = []
+    cfi.score_reference_ = []
+    cfi.score_ = []
     # Make the plot independent of data / randomness to test only the plotting function
     cfi.importances_ = np.arange(X.shape[1])
     _, ax = plt.subplots(figsize=(6, 3))
@@ -957,3 +1015,130 @@ def test_unfitted_estimator(data_generator):
     cfi.fit(X, y)
     # the estimator is fitted internally by CFI.fit
     check_is_fitted(cfi.estimator_)
+
+
+@pytest.mark.filterwarnings("error:cfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class CFI"):
+        cfi_importance(estimator=None, X=None, y=None)
+
+
+def test_plot_predictability_arguments_error(cfi_test_data):
+    """Test CFI feature predictability argument plot"""
+    _X_train, _X_test, _y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    with pytest.raises(TypeError, match=r"'feature_names' should be a list"):
+        cfi.plot_feature_predictability(feature_names="Not a list")
+
+
+def test_plot_predictability_not_computed(cfi_test_data):
+    """
+    Test error raised when feature predictability is not computed but plotting
+    is called.
+    """
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test, feat_predictability=False)
+    with pytest.raises(
+        RuntimeError,
+        match=r"Attribute 'feature_predictability_' has not been computed",
+    ):
+        cfi.plot_feature_predictability()
+
+
+def test_plot_predictability_axis(cfi_test_data):
+    """Test argument axis of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+    n_features = X_train.shape[1]
+    feature_names = [str(i) for i in range(n_features)]
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    ax_1 = cfi.plot_feature_predictability(
+        ax=None, feature_names=feature_names
+    )
+    assert isinstance(ax_1, plt.Axes)
+
+    _, ax_2 = plt.subplots()
+    ax_2_bis = cfi.plot_feature_predictability(
+        ax=ax_2, feature_names=feature_names
+    )
+    assert isinstance(ax_2_bis, plt.Axes)
+    assert ax_2_bis == ax_2
+
+
+def test_plot_predictability_ascending(cfi_test_data):
+    """Test argument ascending of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    ax_decending = cfi.plot_feature_predictability(ascending=False)
+    assert np.all(
+        ax_decending.containers[0].datavalues
+        == np.flip(np.sort(cfi.feature_predictability_))
+    )
+
+    ax_ascending = cfi.plot_feature_predictability(ascending=True)
+    assert np.all(
+        ax_ascending.containers[0].datavalues
+        == np.sort(cfi.feature_predictability_)
+    )
+
+
+def test_plot_predictability_feature_names(cfi_test_data):
+    """Test argument ascending of plot function"""
+    X_train, X_test, y_test, cfi_default_parameters = cfi_test_data
+    rng = np.random.default_rng(0)
+    cfi = CFI(random_state=rng, **cfi_default_parameters)
+
+    cfi.fit(X_train)
+    cfi.importance(X_test, y_test)
+
+    features_name = [
+        str(j) for j in np.flip(np.argsort(cfi.feature_predictability_))
+    ]
+    ax_none = cfi.plot_feature_predictability(feature_names=None)
+    assert np.all(
+        np.array([label.get_text() for label in ax_none.get_yticklabels()])
+        == features_name
+    )
+
+    features_name = [
+        "features_" + str(j)
+        for j in np.flip(np.sort(cfi.feature_predictability_))
+    ]
+    ax_setup = cfi.plot_feature_predictability(feature_names=features_name)
+    assert np.all(
+        np.array([label.get_text() for label in ax_setup.get_yticklabels()])
+        == np.flip(
+            np.array(features_name)[np.argsort(cfi.feature_predictability_)]
+        )
+    )
+
+    cfi.feature_groups_ = {
+        str(j * 2): [] for j in np.flip(np.sort(cfi.feature_predictability_))
+    }
+    features_name = [
+        str(j * 2) for j in np.flip(np.sort(cfi.feature_predictability_))
+    ]
+    ax_none_group = cfi.plot_feature_predictability(feature_names=None)
+    assert np.all(
+        np.array(
+            [label.get_text() for label in ax_none_group.get_yticklabels()]
+        )
+        == np.flip(
+            np.array(features_name)[np.argsort(cfi.feature_predictability_)]
+        )
+    )

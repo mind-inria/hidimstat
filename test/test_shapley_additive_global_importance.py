@@ -5,6 +5,45 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import SAGE
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
+
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_n_subsets_attribute_before_fit():
+    """Test checks on n_subsets attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.n_subsets = "not_a_number"
+
+    with pytest.raises(TypeError, match=r"'n_subsets' needs to be an int"):
+        sage._check_fit_attributes()
+
+    sage.n_subsets = -1
+    with pytest.raises(
+        ValueError, match=r"'n_subsets' needs to be strictly positive"
+    ):
+        sage._check_fit_attributes()
+
+
+def test_check_imputation_attribute_before_fit():
+    """Test checks on imputation attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.imputation = "not_marginal"
+
+    with pytest.raises(
+        NotImplementedError,
+        match=r"Only marginal imputation is currently implemented for SAGE "
+        "values",
+    ):
+        sage._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(
@@ -54,7 +93,7 @@ def sage_test_data():
     model.fit(X_train, y_train)
     sage_default_parameters = {
         "estimator": model,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_subsets": 20,
         "n_permutations": 10,
         "n_jobs": 1,
@@ -136,3 +175,10 @@ def test_sage_reproducibility_with_rng(sage_test_data):
     sage_2.fit(X_train, y_train)
     vim_reproducibility = sage_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(SAGE.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance

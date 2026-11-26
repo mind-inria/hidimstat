@@ -4,7 +4,8 @@ Desparsified Lasso
 ======================
 
 Desparsified Lasso, also known as debiased Lasso, is a method that aims at estimating
-the regression coefficients :footcite:t:`hastie2015statistical`. To do so, it uses coefficients obtained from a Lasso
+the regression coefficients :footcite:t:`hastie2015statistical`, :footcite:t:`javanmard2014confidence`,
+:footcite:t:`van2014asymptotically`. To do so, it uses coefficients obtained from a Lasso
 regression and corrects the bias induced by the L1-penalty. This method is particularly
 useful in high-dimensional settings where the number of features exceeds the number of
 samples.
@@ -77,9 +78,9 @@ Extensions to spatially structured data
 
 When the features have a known spatial structure, :class:`hidimstat.DesparsifiedLasso`
 can be suboptimal, identifying scattered elements of the support and making false
-discoveries far from the support. Methods like :class:`hidimstat.CluDL` and
-:class:`hidimstat.EnCluDL` address this issue by leveraging the spatial structure of the
-data. Read more in the :ref:`User Guide <high_dimension>`.
+discoveries far from the support. Clustering with :class:`hidimstat.ClusterImportance` and
+ensembling with :class:`hidimstat.EnsembleImportance` address this issue by leveraging
+the spatial structure of the data. Read more in the :ref:`User Guide <high_dimension>`.
 
 
 Examples

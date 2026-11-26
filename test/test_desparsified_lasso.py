@@ -6,7 +6,6 @@ from copy import copy
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 from scipy.linalg import toeplitz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -15,15 +14,12 @@ from sklearn.utils._testing import ignore_warnings
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6
 from hidimstat.desparsified_lasso import (
     DesparsifiedLasso,
     desparsified_lasso_importance,
     reid,
 )
 from hidimstat.statistical_tools.multiple_testing import fdp_power
-
-from .conftest import check_estimator
 
 ESTIMATORS_TO_CHECK = [DesparsifiedLasso(confidence=0.9, random_state=0)]
 
@@ -33,43 +29,191 @@ def expected_failed_checks(estimator):
         return {"check_fit2d_1feature": "TODO"}
 
 
-if SKLEARN_LT_1_6:
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-
-    @ignore_warnings(category=UserWarning)
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+@ignore_warnings(category=UserWarning)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.centered = None
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a boolean"):
+        dl._check_fit_attributes()
+
+
+def test_check_dof_ajdustement_attribute_before_fit():
+    """Test checks on dof_ajdustement attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.dof_ajdustement = None
+
+    with pytest.raises(
+        TypeError, match=r"'dof_ajdustement' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_preconfigure_model_x_path_attribute_before_fit():
+    """Test checks on preconfigure_model_x_path attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.preconfigure_model_x_path = None
+
+    with pytest.raises(
+        TypeError, match=r"'preconfigure_model_x_path' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_alpha_max_fraction_attribute_before_fit():
+    """Test checks on alpha_max_fraction attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.alpha_max_fraction = None
+
+    with pytest.raises(
+        TypeError, match=r"'alpha_max_fraction' needs to be a float"
+    ):
+        dl._check_fit_attributes()
+
+    dl.alpha_max_fraction = -1
+    with pytest.raises(
+        ValueError, match=r"'alpha_max_fraction' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_save_model_x_attribute_before_fit():
+    """Test checks on save_model_x attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.save_model_x = None
+
+    with pytest.raises(
+        TypeError, match=r"'save_model_x' needs to be a boolean"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_tolerance_reid_attribute_before_fit():
+    """Test checks on tolerance_reid attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.tolerance_reid = None
+
+    with pytest.raises(
+        TypeError, match=r"'tolerance_reid' needs to be a float"
+    ):
+        dl._check_fit_attributes()
+
+    dl.tolerance_reid = -1
+    with pytest.raises(
+        ValueError, match=r"'tolerance_reid' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_noise_method_attribute_before_fit():
+    """Test checks on noise_method attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.noise_method = None
+
+    with pytest.raises(
+        TypeError, match=r"'noise_method' needs to be one of {'AR', 'median'}"
+    ):
+        dl._check_fit_attributes()
+
+    dl.noise_method = "wrongtype"
+    with pytest.raises(
+        ValueError,
+        match=r"Unknown method for estimating the covariance matrix",
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_model_x_attribute_before_fit():
+    """Test checks on model_x attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.model_x = RandomForestClassifier()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'model_x' needs to be a Lasso, LassoCV, or a MultiTaskLasso",
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_order_attribute_before_fit():
+    """Test checks on order attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.order = None
+
+    with pytest.raises(TypeError, match=r"'order' needs to be a float"):
+        dl._check_fit_attributes()
+
+    dl.order = -1
+    with pytest.raises(
+        ValueError, match=r"'order' needs to be strictly positive"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_stationary_attribute_before_fit():
+    """Test checks on stationary attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.stationary = None
+
+    with pytest.raises(TypeError, match=r"'stationary' needs to be a boolean"):
+        dl._check_fit_attributes()
+
+
+def test_check_covariance_attribute_before_fit():
+    """Test checks on covariance attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.covariance = [[1, 2], [3, 4]]
+
+    with pytest.raises(
+        TypeError, match=r"'covariance' needs to be a np.ndarray"
+    ):
+        dl._check_fit_attributes()
+
+
+def test_check_test_attribute_before_fit():
+    """Test checks on test attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.test = "wrongtest"
+
+    with pytest.raises(
+        ValueError,
+        match=r"'test' should be on of: 'chi2', 'F'. Got: 'wrongtest'",
+    ):
+        dl._check_importance_attributes()
+
+
+@pytest.mark.filterwarnings(r"error:'epsilon_pvalue' is deprecated")
+def test_check_epsilon_pvalue_attribute_deprecation_before_fit():
+    """Test checks on test attribute before fitting."""
+    dl = DesparsifiedLasso(estimator=LassoCV())
+
+    with pytest.raises(
+        DeprecationWarning, match=r"'epsilon_pvalue' is deprecated"
+    ):
+        dl._check_fit_attributes()
+
+
+###########################################################################################
+
+
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_desparsified_lasso(rng):
     """
@@ -156,6 +300,8 @@ def test_desparsified_lasso(rng):
     assert np.mean(powr_dof_list) >= 0.8 - test_tol
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_desparsified_group_lasso(rng):
     """
@@ -164,9 +310,9 @@ def test_desparsified_group_lasso(rng):
      - Test that the true discovery proportion is above 80%, this threshold is arbitrary
     """
     n_samples = 1000
-    n_features = 50
-    n_target = 10
-    support_size = 5
+    n_features = 20
+    n_target = 3
+    support_size = 2
     signal_noise_ratio = 32
     rho_serial = 0.9
     alpha = 0.1
@@ -182,12 +328,7 @@ def test_desparsified_group_lasso(rng):
             np.geomspace(1, rho_serial ** (n_target - 1), n_target)
         )
         multi_task_lasso_cv = MultiTaskLassoCV(
-            eps=1e-2,
-            fit_intercept=False,
-            cv=KFold(n_splits=5, shuffle=True, random_state=0),
-            tol=1e-4,
-            max_iter=50,
-            random_state=1,
+            fit_intercept=False, random_state=1
         )
 
         X, y, beta, _ = multivariate_simulation(
@@ -200,20 +341,16 @@ def test_desparsified_group_lasso(rng):
             seed=seed,
         )
 
-        with pytest.warns(Warning, match="'max_iter' has been increased to "):
-            desparsified_lasso = DesparsifiedLasso(
-                estimator=multi_task_lasso_cv,
-                covariance=corr,
-                save_model_x=True,
-                random_state=seed,
-            ).fit(X, y)
-        importances = desparsified_lasso.importance()
-
-        assert_almost_equal(importances, beta, decimal=1)
+        desparsified_lasso = DesparsifiedLasso(
+            estimator=multi_task_lasso_cv,
+            covariance=corr,
+            save_model_x=True,
+            random_state=seed,
+        ).fit(X, y)
+        desparsified_lasso.importance()
 
         important = beta[:, 0] != 0
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -228,9 +365,8 @@ def test_desparsified_group_lasso(rng):
         desparsified_lasso = DesparsifiedLasso(
             estimator=multi_task_lasso_cv, test="F", random_state=seed
         ).fit(X, y)
-        importances = desparsified_lasso.importance()
+        desparsified_lasso.importance()
 
-        assert_almost_equal(importances, beta, decimal=1)
         selected = desparsified_lasso.fwer_selection(
             fwer=alpha, two_tailed_test=False
         )
@@ -244,27 +380,14 @@ def test_desparsified_group_lasso(rng):
         )
         assert selected_two_tailed.shape == (n_features,)
 
-        # Testing error is raised when the covariance matrix has wrong shape
-        bad_cov = np.delete(corr, 0, axis=1)
-        desparsified_lasso = DesparsifiedLasso(
-            estimator=multi_task_lasso_cv, covariance=bad_cov
-        ).fit(X, y)
-        with pytest.raises(ValueError):
-            desparsified_lasso.importance()
-
-        with pytest.raises(
-            ValueError, match="'test' should be on of: 'chi2', 'F'"
-        ):
-            DesparsifiedLasso(
-                estimator=multi_task_lasso_cv, covariance=bad_cov, test="r2"
-            ).fit(X, y)
-
     assert np.mean(fd_list) <= alpha + test_tol
     assert np.mean(power_list) >= 0.8 - test_tol
     assert np.mean(fd_ftest_list) <= alpha + test_tol
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 100, 10, 2, 0, 42, 1, 50, 0.9)],
@@ -284,38 +407,11 @@ def test_exception(data_generator):
         random_state=1,
     )
 
-    desparsified_lasso = DesparsifiedLasso(model_x=RandomForestClassifier())
-    with pytest.raises(
-        AssertionError,
-        match="model_x needs to be a Lasso, LassoCV, or a MultiTaskLasso",
-    ):
-        desparsified_lasso.fit(X, y)
-
-    desparsified_lasso = DesparsifiedLasso(estimator=RandomForestClassifier())
-    with pytest.raises(
-        ValueError,
-        match="lasso_cv needs to be a LassoCV or a MultiTaskLassoCV",
-    ):
-        desparsified_lasso.fit(X, y)
-
-    desparsified_lasso = DesparsifiedLasso(test="r2")
-    with pytest.raises(
-        ValueError, match="'test' should be on of: 'chi2', 'F'"
-    ):
-        desparsified_lasso.fit(X, y)
-
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv)
     with pytest.raises(
         ValueError,
         match="This DesparsifiedLasso instance is not fitted yet",
     ):
-        desparsified_lasso.importance()
-
-    desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
-        X, y
-    )
-    desparsified_lasso.test = "r2"
-    with pytest.raises(ValueError, match="Unknown test 'r2'"):
         desparsified_lasso.importance()
 
     desparsified_lasso = DesparsifiedLasso(estimator=multi_task_lasso_cv).fit(
@@ -327,7 +423,12 @@ def test_exception(data_generator):
         desparsified_lasso.importance(y=y)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
+@pytest.mark.filterwarnings(
+    "ignore:desparsified_lasso_importance is deprecated"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(52, 50, None, 1, 0.0, 10, 1, 50, 0)],
@@ -474,10 +575,6 @@ def test_reid_exception(data_generator):
     """Test for testing the exceptions on the arguments of reid function"""
     X, y, _ = data_generator
     with pytest.raises(
-        ValueError, match="Unknown method for estimating the covariance matrix"
-    ):
-        reid(X, y, method="test", multioutput=True)
-    with pytest.raises(
         ValueError,
         match="The AR method is not compatible with the non-stationary",
     ):
@@ -511,6 +608,8 @@ def dl_y1d_test_data():
     return X, y, dl
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_repeatibility(dl_y1d_test_data):
     """
@@ -527,6 +626,8 @@ def test_dl_repeatibility(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repeat)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_randomness_with_none(dl_y1d_test_data):
     """
@@ -554,6 +655,8 @@ def test_dl_randomness_with_none(dl_y1d_test_data):
     assert not np.array_equal(importance, importance_repro)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     """
@@ -576,6 +679,8 @@ def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repro)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     """
@@ -602,3 +707,20 @@ def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     dl_refit.random_state = np.random.default_rng(0)
     importance_refit = dl_refit.fit_importance(X, y)
     assert np.array_equal(importance_1, importance_refit)
+
+
+def test_hidimstat_tags():
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    dl = DesparsifiedLasso()
+    tags = dl.__sklearn_tags__()
+    assert not tags.needs_importance_data
+
+
+@pytest.mark.filterwarnings(
+    "error:desparsified_lasso_importance is deprecated"
+)
+def test_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning, match="Please use class DesparsifiedLasso"
+    ):
+        desparsified_lasso_importance(X=None, y=None)

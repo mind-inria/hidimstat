@@ -2,6 +2,8 @@
 Test the clustered_inference module
 """
 
+import warnings
+
 import numpy as np
 import pytest
 from scipy.stats import binomtest
@@ -43,16 +45,79 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_ensemble_parameter_check():
-    """
-    Test to verify parameter's class compliance.
-    """
-    en_vi = EnsembleImportance(vim=LassoCV())
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_vim_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
+    endl = EnsembleImportance(vim=LassoCV())
+
     with pytest.raises(
-        AssertionError,
-        match="estimator needs to be a subclass of BaseVariableImportance",
+        TypeError,
+        match=r"'vim' needs to be a subclass of BaseVariableImportance",
     ):
-        en_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        endl._check_fit_attributes()
+
+
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.n_repeats = "1"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be an int"):
+        endl._check_fit_attributes()
+
+    endl.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_frac_attribute_before_fit():
+    """Test checks on bootstrap_frac attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_frac = "1"
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_frac' needs to be an float"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = -1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = 1.1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_groups_attribute_before_fit():
+    """Test checks on bootstrap_groups attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_groups = [1, 4]
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_groups' needs to be an np.ndarray"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_groups = np.array([[1, 2], [2, 1]])
+    with pytest.raises(
+        ValueError,
+        match=r"'bootstrap_groups' needs to be of shape \(n_samples,\)",
+    ):
+        endl._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(
@@ -73,11 +138,13 @@ def test_ensemble_importance_check_fit(data_generator):
     )
 
     with pytest.raises(
-        ValueError, match="The estimators need to be fit before using them"
+        ValueError, match="This EnsembleImportance instance is not fitted yet"
     ):
         encludl.importance(X, y)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, None, 10, 0, 42, 1, 10, 0)],
@@ -108,6 +175,39 @@ def test_ensemble_importance(data_generator):
     )
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_importance_data_no_warning_raised(data_generator):
+    """
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
+    X, y, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Check that no warnings related to handing out data to a method that
+    # doesn't need it for its importance function is raised.
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    endl = EnsembleImportance(vim=dl, n_repeats=2)
+    endl.fit(X_train, y_train)
+
+    # If warnings are raised, make sure it's not about "X/y won't be used"
+    with warnings.catch_warnings(record=True) as warnings_raised:
+        endl.importance(X_test, y_test)
+        if len(warnings_raised) > 0:
+            assert not any(
+                "won't be used" in str(w.message) for w in warnings_raised
+            )
+
+
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_spatial(rng):
     """
     Test EnCluVI on a 2D spatial simulation. Testing for support recovery methods using
@@ -178,6 +278,8 @@ def test_encluvi_spatial(rng):
     assert result.pvalue > 0.01
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
@@ -242,6 +344,8 @@ def test_encluvi_temporal(rng):
     assert np.mean(fdp_list) <= alpha
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_independence():
     """Test that EnCluVI works with n_jobs=1. Non regression for #425"""
     n_samples = 50
@@ -301,6 +405,8 @@ def ensemble_test_data():
     return X_train, y_train, X_test, y_test, en_dl_default_parameters
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_repeatibility(ensemble_test_data):
     """
     Test that multiple calls of .importance() when EnsembleImportance is not seeded
@@ -318,6 +424,8 @@ def test_ensemble_repeatibility(ensemble_test_data):
     assert not np.array_equal(importance, importance_repeat)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_none(ensemble_test_data):
     """
     Test randomness of multiple calls of .importance() when
@@ -340,6 +448,8 @@ def test_ensemble_randomness_with_none(ensemble_test_data):
     assert not np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_integer(ensemble_test_data):
     """
     Test reproducibility of multiple calls of .importance() when
@@ -364,6 +474,8 @@ def test_ensemble_randomness_with_integer(ensemble_test_data):
     assert np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_rng(ensemble_test_data):
     """
     Test that:

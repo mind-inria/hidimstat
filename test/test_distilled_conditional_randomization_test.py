@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from scipy.special import expit
 from sklearn.covariance import LedoitWolf
-from sklearn.datasets import make_classification, make_regression
+from sklearn.datasets import make_classification
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import Lasso, LassoCV, LogisticRegressionCV
 from sklearn.model_selection import KFold
@@ -15,9 +15,7 @@ from sklearn.utils.estimator_checks import parametrize_with_checks
 from hidimstat import D0CRT, d0crt_importance
 from hidimstat._utils.regression import _alpha_max
 from hidimstat._utils.scenario import multivariate_simulation
-from hidimstat._utils.utils import SKLEARN_LT_1_6, _make_sklearn_estimator
-
-from .conftest import check_estimator
+from hidimstat._utils.utils import _make_sklearn_estimator
 
 ESTIMATORS_TO_CHECK = [
     D0CRT(estimator=LassoCV(n_jobs=1), screening_threshold=None)
@@ -38,42 +36,12 @@ def expected_failed_checks(estimator):
         }
 
 
-if SKLEARN_LT_1_6:
-    alphas_attr = "n_alphas"
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-    alphas_attr = "alphas"
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 @pytest.fixture(scope="module")
@@ -92,10 +60,11 @@ def d0crt_test_data():
     dcrt_default_parameters = {
         "estimator": LassoCV(cv=KFold(shuffle=True)),
         "screening_threshold": None,
-        "model_distillation_x": LassoCV(cv=KFold(shuffle=True)),
+        "model_distillation_x": _make_sklearn_estimator(
+            LassoCV, cv=KFold(shuffle=True), n_alphas=10
+        ),
         "n_jobs": 1,
     }
-    setattr(dcrt_default_parameters["model_distillation_x"], alphas_attr, 10)
     return X, y, beta, dcrt_default_parameters
 
 
@@ -116,6 +85,130 @@ def generate_binary_classif_dataset(n=100, p=10, seed=0):
 def generate_classif_data():
     X, y = make_classification(n_samples=100, n_features=10, random_state=2024)
     return X, y
+
+
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_estimated_coef_attribute_before_fit():
+    """Test checks on estimated_coef attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.estimated_coef = [1, 2]
+
+    with pytest.raises(
+        TypeError, match=r"'estimated_coef' needs to be a np.ndarray"
+    ):
+        dcrt._check_fit_attributes()
+
+    dcrt.estimated_coef = np.array([[1, 2], [2, 3]])
+    with pytest.raises(
+        ValueError,
+        match=r"'estimated_coef' needs to be a np.ndarray of dimension 1",
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_estimated_intercept_attribute_before_fit():
+    """Test checks on estimated_intercept attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.estimated_intercept = "smthg"
+
+    with pytest.raises(
+        TypeError, match=r"'estimated_intercept' needs to be a float"
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_sigma_X_attribute_before_fit():
+    """Test checks on sigma_X attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.sigma_X = [[1, 2], [3, 2]]
+
+    with pytest.raises(TypeError, match=r"'sigma_X' needs to be a np.ndarray"):
+        dcrt._check_fit_attributes()
+
+    dcrt.sigma_X = np.array([1, 2, 3])
+    with pytest.raises(
+        ValueError, match=r"'sigma_X' needs to be a np.ndarray of dimension 2"
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_lasso_screening_attribute_before_fit():
+    """Test checks on lasso_screening attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.lasso_screening = RandomForestClassifier()
+
+    with pytest.raises(
+        TypeError,
+        match=r"'lasso_screening' must be an instance of Lasso or LassoCV",
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_model_distillation_x_attribute_before_fit():
+    """Test checks on model_distillation_x attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.model_distillation_x = "BaseEstimator"
+
+    with pytest.raises(
+        TypeError,
+        match=r"'model_distillation_x' needs to be a sklearn-compatible estimator",
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_refit_attribute_before_fit():
+    """Test checks on refit attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.refit = "bool"
+
+    with pytest.raises(TypeError, match=r"'refit' needs to be a bool"):
+        dcrt._check_fit_attributes()
+
+
+def test_check_centered_attribute_before_fit():
+    """Test checks on centered attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.centered = "bool"
+
+    with pytest.raises(TypeError, match=r"'centered' needs to be a bool"):
+        dcrt._check_fit_attributes()
+
+
+def test_check_fit_y_attribute_before_fit():
+    """Test checks on fit_y attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.fit_y = "bool"
+
+    with pytest.raises(TypeError, match=r"'fit_y' needs to be a bool"):
+        dcrt._check_fit_attributes()
+
+
+def test_check_reuse_screening_model_attribute_before_fit():
+    """Test checks on reuse_screening_model attribute before fitting."""
+    dcrt = D0CRT(estimator=None)
+    dcrt.reuse_screening_model = "bool"
+
+    with pytest.raises(
+        TypeError, match=r"'reuse_screening_model' needs to be a bool"
+    ):
+        dcrt._check_fit_attributes()
+
+
+def test_check_scaled_statistics_attribute_before_importance():
+    dcrt = D0CRT(estimator=None)
+
+    dcrt.scaled_statistics = "bool"
+    with pytest.raises(
+        TypeError, match=r"'scaled_statistics' needs to be a bool"
+    ):
+        dcrt._check_importance_attributes()
+
+
+###########################################################################################
 
 
 def test_dcrt_lasso_screening(d0crt_test_data):
@@ -450,7 +543,7 @@ def test_exception_not_fitted(generate_classif_data):
         scaled_statistics=True,
     )
     with pytest.raises(
-        ValueError, match="The D0CRT requires to be fit before any analysis"
+        ValueError, match="This D0CRT instance is not fitted yet"
     ):
         _, _ = d0crt.importance(X, y)
 
@@ -472,24 +565,7 @@ def test_warning_not_used_parameters(generate_classif_data):
         _ = d0crt.fit_importance(X, y, cv=cv)
 
 
-def test_dcrt_invalid_lasso_screening(d0crt_test_data):
-    """
-    Test that passing a non-Lasso model to lasso_screening raises a ValueError.
-    """
-    X, y, _, _ = d0crt_test_data
-
-    d0crt = D0CRT(
-        estimator=LassoCV(n_jobs=1),
-        lasso_screening=RandomForestRegressor(n_estimators=10, random_state=0),
-        screening_threshold=10,
-    )
-
-    with pytest.raises(
-        ValueError, match="lasso_model must be an instance of Lasso or LassoCV"
-    ):
-        d0crt.fit(X, y)
-
-
+@pytest.mark.filterwarnings("ignore:d0crt_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 10, None, 10, 0, 42, 1, 0.2, 0.0)],
@@ -587,8 +663,7 @@ def test_d0crt_linear(d0crt_test_data):
     features.
     """
     X, y, beta, _ = d0crt_test_data
-    lasso_estimator = LassoCV(n_jobs=1)
-    setattr(lasso_estimator, alphas_attr, 10)
+    lasso_estimator = _make_sklearn_estimator(LassoCV, n_jobs=1, n_alphas=10)
 
     d0crt = D0CRT(
         estimator=lasso_estimator,
@@ -662,45 +737,48 @@ def test_dcrt_logit_errors():
     Test that passing inconsistent models to estimator and lasso_screening raises a
     ValueError.
     """
+    dcrt = D0CRT(
+        estimator=_make_sklearn_estimator(
+            LogisticRegressionCV,
+            l1_ratios=(1,),
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        lasso_screening=LassoCV(n_jobs=1),
+        screening_threshold=50,
+        random_state=0,
+    )
     with pytest.raises(
         ValueError,
         match="For logistic regression, both the estimator and the lasso_screening "
         "must be LogisticRegression or LogisticRegressionCV",
     ):
-        D0CRT(
-            estimator=_make_sklearn_estimator(
-                LogisticRegressionCV,
-                l1_ratios=(1,),
-                solver="liblinear",
-                max_iter=1000,
-                random_state=0,
-            ),
-            lasso_screening=LassoCV(n_jobs=1),
-            screening_threshold=50,
+        dcrt.fit(None, None)
+
+    dcrt = D0CRT(
+        estimator=_make_sklearn_estimator(
+            LogisticRegressionCV,
+            l1_ratios=(1,),
+            solver="liblinear",
+            max_iter=1000,
             random_state=0,
-        )
+        ),
+        lasso_screening=_make_sklearn_estimator(
+            LogisticRegressionCV,
+            l1_ratios=(0,),
+            solver="liblinear",
+            max_iter=1000,
+            random_state=0,
+        ),
+        screening_threshold=50,
+        random_state=0,
+    )
     with pytest.raises(
         ValueError,
         match=r"For logistic regression, lasso_screening\.penalty must be 'l1'",
     ):
-        D0CRT(
-            estimator=_make_sklearn_estimator(
-                LogisticRegressionCV,
-                l1_ratios=(1,),
-                solver="liblinear",
-                max_iter=1000,
-                random_state=0,
-            ),
-            lasso_screening=_make_sklearn_estimator(
-                LogisticRegressionCV,
-                l1_ratios=(0,),
-                solver="liblinear",
-                max_iter=1000,
-                random_state=0,
-            ),
-            screening_threshold=50,
-            random_state=0,
-        )
+        dcrt.fit(None, None)
 
 
 def test_dcrt_logit_refit(generate_binary_classif_dataset):
@@ -873,3 +951,9 @@ def test_d0crt_no_regression_variance_fix(d0crt_test_data):
     )
     # FDR should remain controlled
     assert fdp_current <= fdr_target + tolerance
+
+
+@pytest.mark.filterwarnings("error:d0crt_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class D0CRT"):
+        d0crt_importance(estimator=None, X=None, y=None)

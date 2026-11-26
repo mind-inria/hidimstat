@@ -2,6 +2,8 @@
 Test the clustered_inference module
 """
 
+import warnings
+
 import numpy as np
 import pytest
 from sklearn.cluster import FeatureAgglomeration
@@ -42,29 +44,38 @@ def spatially_relaxed_fdp_power(
     return fdp, power
 
 
-def test_cluster_parameter_check():
-    """
-    Test to verify parameter's class compliance.
-    """
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_vim_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
-        vim=LassoCV(),
+        vim=None,
         clustering=FeatureAgglomeration(),
     )
     with pytest.raises(
-        AssertionError,
-        match="estimator needs to be a subclass of BaseVariableImportance",
+        TypeError,
+        match=r"'vim' needs to be a subclass of BaseVariableImportance",
     ):
-        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        clu_vi._check_fit_attributes()
 
+
+def test_check_clustering_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
-        clustering=LassoCV(),
+        clustering=None,
     )
     with pytest.raises(
-        AssertionError,
-        match=r"clustering needs to be an instance of sklearn\.cluster\.FeatureAgglomeration",
+        TypeError,
+        match=r"'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration",
     ):
-        clu_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        clu_vi._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(
@@ -84,11 +95,13 @@ def test_cluster_importance_check_fit(data_generator):
     )
 
     with pytest.raises(
-        ValueError, match="The estimator needs to be fit before using them"
+        ValueError, match="This ClusterImportance instance is not fitted yet"
     ):
         cludl.importance(X, y)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(150, 200, None, 10, 0, 42, 1, 10, 0)],
@@ -122,6 +135,39 @@ def test_cluster_importance(data_generator):
     assert importance[beta].mean() > importance[~beta].mean()
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_importance_data_no_warning_raised(data_generator):
+    """
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
+    X, y, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Check that no warnings related to handing out data to a method that
+    # doesn't need it for its importance function is raised.
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    cludl = ClusterImportance(vim=dl, clustering=FeatureAgglomeration())
+    cludl.fit(X_train, y_train)
+
+    # If warnings are raised, make sure it's not about "X/y won't be used"
+    with warnings.catch_warnings(record=True) as warnings_raised:
+        cludl.importance(X_test, y_test)
+        if len(warnings_raised) > 0:
+            assert not any(
+                "won't be used" in str(w.message) for w in warnings_raised
+            )
+
+
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_spatial():
     """
     Test ClusterImportance on a 2D spatial simulation. Testing for support recovery methods using
@@ -182,6 +228,8 @@ def test_cluvi_spatial():
     assert np.mean(fp_list) <= fwer
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_independence():
     """Test that CluVI works with repeated calls
     non-regression test for #425
@@ -225,6 +273,8 @@ def test_cluvi_independence():
     )
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_cluvi_temporal():
     """
     Testing the procedure on two simulations with a 1D data structure and
