@@ -37,11 +37,11 @@ We provide an overview of accounts and tools necessary to help maintaining the l
 Library Management
 ------------------
 
-The rest of the developer documentation explains the :ref:`developer guidelines<developer_guidelines>`
+The rest of the developer documentation explains the :ref:`developer guidelines<dev_contributing>`
 for the repository and code structure, and provides guidelines on general code
 writing conventions and design choices on reproducibility and randomness.
 Our guide on the :ref:`test suite<test_suite>` details its organization, and design choices.
-The general :ref:`contribution rules<how_to_contribute_hidimstat>` of the repository explain the
+The general :ref:`contribution rules<dev_contributing>` of the repository explain the
 management of issues and Pull Requests (PR).
 Each push on a PR or a merge on the main branch triggers a cycle of our CI pipeline, which is detailed
 :ref:`here<developer_documentation_CI>`

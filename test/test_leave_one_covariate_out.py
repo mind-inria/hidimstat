@@ -131,6 +131,7 @@ def test_raises_value_error(data_generator):
         loco.importance(X, y)
 
 
+@pytest.mark.filterwarnings("ignore:loco_importance is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 20, None, 4, 0, 42, 1, 10, 0)],
