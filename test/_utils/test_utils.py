@@ -108,7 +108,7 @@ def test_check_test_statistic_warning():
         check_statistical_test([])
 
 
-def test__make_sklearn_estimator(monkeypatch):
+def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
 
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
 
@@ -130,9 +130,13 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.penalty == expected
 
-    target = 10
-    est = _make_sklearn_estimator(LassoCV, n_alphas=target)
-    assert est.alphas == 10
+
+def test__make_sklearn_estimator_alphas_args(monkeypatch):
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", False)
+
+    alpha_target = 10
+    est = _make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
+    assert est.alphas == alpha_target
 
 
 def test_find_stack_level():
@@ -204,6 +208,9 @@ def test_check_loss_method_parameter_deprecation_warning():
         )
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Parameters 'method' and 'loss' are deprecated"
+)
 def test_check_loss_method_parameter():
     """
     Test the following:

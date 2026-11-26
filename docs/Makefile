@@ -55,8 +55,6 @@ clean:
 	rm -rfv $(SOURCEDIR)/generated/*
 	rm -rfv $(SOURCEDIR)/sg_execution_times.rst
 	rm -rfv $(SOURCEDIR)/whats_news/CHANGELOG.rst
-	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTING.rst
-	rm -rfv $(SOURCEDIR)/dev/CONTRIBUTORS.rst
 
 html-noplot:
 	$(SPHINXBUILD) -D plot_gallery=0 -b html $(ALLSPHINXOPTS) $(SOURCEDIR) $(BUILDDIR)/html
