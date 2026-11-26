@@ -122,7 +122,8 @@ _ = plt.tight_layout()
 # ----------------------------------------------------
 # To mitigate the randomness introduced by clustering, we ensemble the results from
 # multiple clustered inference procedures. This approach derandomizes the inference
-# procedure and produces more stable results. We use the class:`hidimstat.EnCluDL`
+# procedure and produces more stable results. We use the classes :class:`hidimstat.EnsembleImportance`,
+# :class:`hidimstat.ClusterImportance`, and :class:`hidimstat.DesparsifiedLasso`
 # for this purpose with 10 bootstraps. While this approach is more computationally intensive than
 # single clustered inference, the procedure can be parallelized across clustering
 # repetitions using the ``n_jobs`` parameter.
@@ -132,20 +133,21 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV
 
-from hidimstat import DesparsifiedLasso
-from hidimstat.ensemble_clustered_inference import EnCluDL
+from hidimstat import ClusterImportance, DesparsifiedLasso, EnsembleImportance
 
 fwer = 0.1
 n_jobs = 5
 n_clusters = 100
 
-encludl = EnCluDL(
-    clustering=clustering,
-    desparsified_lasso=DesparsifiedLasso(estimator=LassoCV(max_iter=1000)),
-    n_bootstraps=10,
+encludl = EnsembleImportance(
+    vim=ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV(max_iter=1000)),
+        clustering=clustering,
+    ),
+    n_repeats=10,
+    bootstrap_frac=0.5,
     n_jobs=n_jobs,
     random_state=0,
-    cluster_bootstrap_size=0.5,
 )
 
 encludl.fit_importance(X_4_7, y_4_7)

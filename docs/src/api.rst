@@ -17,6 +17,9 @@ Base Classes
    ~base_perturbation.BasePerturbation
    ~base_perturbation.BasePerturbationCV
    ~base_variable_importance.GroupVariableImportanceMixin
+   ~feature_selection.selector.SelectorMixin
+
+.. _feature_importance_classes:
 
 Feature Importance Classes
 ==========================
@@ -25,17 +28,32 @@ Feature Importance Classes
    :toctree: ./generated/api/class/
    :template: class.rst
 
+   LOCI
+   LOCICV
    LOCO
    LOCOCV
    CFI
    CFICV
-   CluDL
-   EnCluDL
+   ClusterImportance
+   EnsembleImportance
    PFI
    PFICV
+   SAGE
    D0CRT
    ModelXKnockoff
    DesparsifiedLasso
+
+Feature Selection Classes
+=========================
+
+.. autosummary::
+   :toctree: ./generated/api/class/
+   :template: class.rst
+
+   ~feature_selection.FDRSelect
+   ~feature_selection.FWERSelect
+   ~feature_selection.PValueSelect
+   ~feature_selection.SelectTopK
 
 Feature Importance functions
 ============================
@@ -48,6 +66,7 @@ Feature Importance functions
    d0crt_importance
    desparsified_lasso_importance
    model_x_knockoff_importance
+   loci_importance
    loco_importance
    pfi_importance
 
@@ -72,6 +91,17 @@ Samplers
    ~samplers.ConditionalSampler
    ~samplers.GaussianKnockoffs
 
+
+Statistical Tests
+=================
+
+.. autosummary::
+   :toctree: ./generated/api/statistical_tests/
+   :template: function.rst
+
+   ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.holdout_randomization_test
+
 Helper Functions
 ================
 
@@ -81,4 +111,3 @@ Helper Functions
 
    ~statistical_tools.aggregation.quantile_aggregation
    ~desparsified_lasso.reid
-   ~statistical_tools.nadeau_bengio_ttest

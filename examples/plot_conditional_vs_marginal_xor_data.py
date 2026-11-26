@@ -13,7 +13,7 @@ import numpy as np
 import seaborn as sns
 from sklearn.base import clone
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import hinge_loss
+from sklearn.metrics import hinge_loss, make_scorer
 from sklearn.model_selection import KFold, train_test_split
 from sklearn.svm import SVC
 
@@ -124,8 +124,7 @@ for _, (train_index, test_index) in enumerate(cv.split(X)):
 
     vim = CFI(
         estimator=clf_c,
-        method="decision_function",
-        loss=hinge_loss,
+        scoring=make_scorer(hinge_loss, response_method="decision_function"),
         imputation_model_continuous=RidgeCV(np.logspace(-3, 3, 10)),
         n_permutations=50,
         random_state=0,

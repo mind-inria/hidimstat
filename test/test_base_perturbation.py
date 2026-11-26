@@ -1,28 +1,26 @@
 import numpy as np
+import pandas as pd
 import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import KFold
 from sklearn.utils.estimator_checks import parametrize_with_checks
 
-from hidimstat._utils.utils import SKLEARN_LT_1_6
+from hidimstat import CFI
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
-from .conftest import _rng, check_estimator
-
-
-def _fitted_linear_regression():
-    X = _rng().integers(0, 2, size=(100, 2, 1))
-    estimator = LinearRegression()
-    estimator.fit(X[:, 0], X[:, 1])
-    return estimator
-
+from .conftest import fitted_linear_regression
 
 ESTIMATORS_TO_CHECK = [
-    BasePerturbation(estimator=_fitted_linear_regression()),
+    BasePerturbation(estimator=fitted_linear_regression()),
     BasePerturbation(estimator=LinearRegression()),
     BasePerturbationCV(estimators=LinearRegression(), cv=KFold(n_splits=2)),
     BasePerturbationCV(
-        estimators=[_fitted_linear_regression(), _fitted_linear_regression()],
+        estimators=[fitted_linear_regression(), fitted_linear_regression()],
         cv=KFold(n_splits=2),
     ),
 ]
@@ -70,50 +68,55 @@ def expected_failed_checks(estimator):
         return failed_checks
 
 
-if SKLEARN_LT_1_6:
-
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
-
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
 
 def test_no_implemented_methods(rng):
     """Test that the methods are not implemented in the base class"""
     X = rng.integers(0, 2, size=(100, 2, 1))
     estimator = LinearRegression()
-    estimator.fit(X[:, 0], X[:, 1])
     basic_class = BasePerturbation(estimator=estimator)
     with pytest.raises(NotImplementedError):
         basic_class._permutation(X, features_group_id=None)
+
+
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_npermutations_attribute_before_fit():
+    """Test checks on n_permutations attribute before fitting."""
+    basic_class = BasePerturbation(estimator=LinearRegression())
+    basic_class.n_permutations = "not_a_number"
+
+    with pytest.raises(TypeError, match=r"n_permutations' must be a float"):
+        basic_class._check_fit_attributes()
+
+    basic_class.n_permutations = -1
+    with pytest.raises(
+        ValueError, match=r"'n_permutations' must be strictly positive"
+    ):
+        basic_class._check_fit_attributes()
+
+
+def test_check_feature_groupes_attribute_before_fit():
+    """Test checks on feature_groupes attribute before fitting."""
+    basic_class = BasePerturbation(estimator=LinearRegression())
+    basic_class.feature_groups = ["1", "2"]
+
+    with pytest.raises(
+        TypeError, match=r"'feature_groups' needs to be a dictionary"
+    ):
+        basic_class._check_fit_attributes()
+
+
+###########################################################################################
 
 
 def test_check_importance(rng):
@@ -149,3 +152,68 @@ def test_base_cv_errors(rng):
     )
     with pytest.raises(NotImplementedError):
         vim.fit(X, y)
+
+
+@pytest.mark.filterwarnings(
+    "error:Parameters 'method' and 'loss' are deprecated"
+)
+def test_deprecation_warning(rng):
+    """
+    Test that a deprecation warning is issued when inputting a method
+    or loss argument.
+    """
+    X = rng.random((100, 5))
+    y = rng.random(100)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), method="mean_squared_error"
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
+
+    perturbation = BasePerturbation(
+        estimator=LinearRegression(), loss=mean_squared_error
+    )
+    perturbation.fit(X, y)
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        perturbation.importance(X, y)
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 10, None, 5, 0.5, 0, 1.0, 64.0, 0.5)],
+)
+def test_feature_groups_order_preserved(data_generator):
+    """Regression test to check that the order of the feature groups is
+    preserved in the output of .importance() even when the keys are not in
+    the order that would be returned by sorted(groups.keys()).
+    """
+    X, y, important_features = data_generator
+    X_df = pd.DataFrame(X)
+    model = LinearRegression()
+    model.fit(X_df, y)
+    feature_ids = np.arange(X.shape[1])
+    groups = {
+        "non_important": feature_ids[~important_features],
+        "important": feature_ids[important_features],
+    }
+
+    cfi = CFI(estimator=model, feature_groups=groups, random_state=0)
+    importance = cfi.fit_importance(X_df, y)
+    assert importance[0] < importance[1]
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(BasePerturbation.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance

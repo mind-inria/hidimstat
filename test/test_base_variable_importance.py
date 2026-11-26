@@ -1,19 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import pytest
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.linear_model import LassoCV, LinearRegression
+from sklearn.linear_model import LassoCV
 
-from hidimstat import CFI, CluDL, DesparsifiedLasso
+from hidimstat import ClusterImportance, DesparsifiedLasso
+from hidimstat._utils.exception import InternalError
+from hidimstat._utils.tags import HidimstatTags
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 from hidimstat.statistical_tools.p_values import two_sided_pval_from_pval
 
 
 @pytest.fixture
-def set_100_variable_sorted(rng):
+def set_100_variable_sorted(rng, create_bvi):
     """Create a BaseVariableImportance instance with test data for testing purposes.
+
+    Parameters
+    ----------
+    rng: Python fixture
+        Returns a Generator for random number generation.
+    create_bvi: Python fixture
+        Returns a new instance of hidimstat.BaseVariableImportance
 
     Returns
     -------
@@ -21,7 +29,7 @@ def set_100_variable_sorted(rng):
         A BaseVariableImportance instance with test data.
     """
     n_features = 100
-    vi = BaseVariableImportance()
+    vi = create_bvi
     vi.importances_ = np.arange(n_features)
     rng.shuffle(vi.importances_)
     vi.pvalues_ = np.flip(np.sort(rng.uniform(0, 1, n_features)))[
@@ -30,88 +38,128 @@ def set_100_variable_sorted(rng):
     return vi
 
 
-class TestSelection:
-    """Test selection based on importance"""
+@pytest.fixture(scope="function")
+def create_bvi():
+    return BaseVariableImportance()
 
-    def test_selection_k_best(self, set_100_variable_sorted):
-        """Test selection of the k_best"""
-        vi = set_100_variable_sorted
-        true_value = vi.importances_ >= 95
-        selection = vi.importance_selection(k_best=5)
-        np.testing.assert_array_equal(true_value, selection)
 
-    def test_selection_k_best_none(self, set_100_variable_sorted):
-        """Test selection when there none"""
-        vi = set_100_variable_sorted
-        true_value = np.ones_like(vi.importances_, dtype=bool)
-        selection = vi.importance_selection(k_best=None)
-        np.testing.assert_array_equal(true_value, selection)
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
 
-    def test_selection_k_lowest(self, set_100_variable_sorted):
-        """Test selection of the k_lowest"""
-        vi = set_100_variable_sorted
-        true_value = vi.pvalues_ < vi.pvalues_[np.argsort(vi.pvalues_)[5]]
-        selection = vi.pvalue_selection(k_lowest=5, threshold_max=None)
-        np.testing.assert_array_equal(true_value, selection)
 
-    def test_selection_k_lowest_none(self, set_100_variable_sorted):
-        """Test selection when there none"""
-        vi = set_100_variable_sorted
-        true_value = np.ones_like(vi.pvalues_ > 0, dtype=bool)
-        selection = vi.pvalue_selection(k_lowest=None, threshold_max=None)
-        np.testing.assert_array_equal(true_value, selection)
+def test_check_estimator_attribute_before_fit():
+    """Test checks on estimator attribute before fitting."""
+    dl = DesparsifiedLasso()
+    dl.estimator = "wrongtype"
 
-    def test_selection_percentile(self, set_100_variable_sorted):
-        """Test selection bae on percentile"""
-        vi = set_100_variable_sorted
-        true_value = vi.importances_ >= 50
-        selection = vi.importance_selection(percentile=50)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_percentile_all(self, set_100_variable_sorted):
-        """Test selection when percentile is 100"""
-        vi = set_100_variable_sorted
-        true_value = np.ones_like(vi.importances_, dtype=bool)
-        true_value[np.argsort(vi.importances_)[0]] = False
-        selection = vi.importance_selection(percentile=99.99)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_percentile_none(self, set_100_variable_sorted):
-        """Test selection when percentile is 0"""
-        vi = set_100_variable_sorted
-        true_value = np.zeros_like(vi.importances_, dtype=bool)
-        true_value[np.argsort(vi.importances_)[-1:]] = True
-        selection = vi.importance_selection(percentile=0.1)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_percentile_threshols_value(
-        self, set_100_variable_sorted
+    with pytest.raises(
+        TypeError,
+        match=r"'estimator' must be a valid sklearn compatible estimator",
     ):
-        """Test selection when percentile when the percentile equal on value"""
-        vi = set_100_variable_sorted
-        mask = np.ones_like(vi.importances_, dtype=bool)
-        mask[np.where(vi.importances_ == 99)] = False
-        vi.importances_ = vi.importances_[mask]
-        true_value = vi.importances_ >= 50
-        selection = vi.importance_selection(percentile=50)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_threshold_min(self, set_100_variable_sorted):
-        """Test threshold minimal on importance"""
-        vi = set_100_variable_sorted
-        true_value = vi.importances_ > 5
-        selection = vi.importance_selection(threshold_min=5)
-        np.testing.assert_array_equal(true_value, selection)
-
-    def test_selection_threshold_max(self, set_100_variable_sorted):
-        """Test threshold maximal on importance"""
-        vi = set_100_variable_sorted
-        true_value = vi.importances_ < 5
-        selection = vi.importance_selection(threshold_max=5)
-        np.testing.assert_array_equal(true_value, selection)
+        dl._check_fit_attributes()
 
 
-def test_selection_fdr(rng):
+###########################################################################################
+
+
+def test_selection_k_best(set_100_variable_sorted):
+    """Test selection of the k_best"""
+    vi = set_100_variable_sorted
+    true_value = vi.importances_ >= 95
+    selection = vi.importance_selection(k_best=5)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_k_best_none(set_100_variable_sorted):
+    """Test selection when there none"""
+    vi = set_100_variable_sorted
+    true_value = np.ones_like(vi.importances_, dtype=bool)
+    selection = vi.importance_selection(k_best=None)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_k_lowest(set_100_variable_sorted):
+    """Test selection of the k_lowest"""
+    vi = set_100_variable_sorted
+    true_value = vi.pvalues_ < vi.pvalues_[np.argsort(vi.pvalues_)[5]]
+    selection = vi.pvalue_selection(k_lowest=5, threshold_max=None)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_k_lowest_none(set_100_variable_sorted):
+    """Test selection when there none"""
+    vi = set_100_variable_sorted
+    true_value = np.ones_like(vi.pvalues_ > 0, dtype=bool)
+    selection = vi.pvalue_selection(k_lowest=None, threshold_max=None)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_percentile(set_100_variable_sorted):
+    """Test selection based on percentile"""
+    vi = set_100_variable_sorted
+    true_value = vi.importances_ >= 50
+    selection = vi.importance_selection(percentile=50)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_percentile_threshold_value(set_100_variable_sorted):
+    """Test selection when percentile when the percentile equal on value"""
+    vi = set_100_variable_sorted
+    mask = np.ones_like(vi.importances_, dtype=bool)
+    mask[vi.importances_ == 99] = False
+    vi.importances_ = vi.importances_[mask]
+    true_value = vi.importances_ >= 50
+    selection = vi.importance_selection(percentile=50)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_percentile_all(set_100_variable_sorted):
+    """Test selection when percentile is 100"""
+    vi = set_100_variable_sorted
+    true_value = np.ones_like(vi.importances_, dtype=bool)
+    true_value[np.argsort(vi.importances_)[0]] = False
+    selection = vi.importance_selection(percentile=99.99)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_percentile_none(set_100_variable_sorted):
+    """Test selection when percentile is 0"""
+    vi = set_100_variable_sorted
+    true_value = np.zeros_like(vi.importances_, dtype=bool)
+    true_value[np.argsort(vi.importances_)[-1:]] = True
+    selection = vi.importance_selection(percentile=0.1)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_percentile_threshols_value(set_100_variable_sorted):
+    """Test selection when percentile when the percentile equal on value"""
+    vi = set_100_variable_sorted
+    mask = np.ones_like(vi.importances_, dtype=bool)
+    mask[vi.importances_ == 99] = False
+    vi.importances_ = vi.importances_[mask]
+    true_value = vi.importances_ >= 50
+    selection = vi.importance_selection(percentile=50)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_threshold_min(set_100_variable_sorted):
+    """Test threshold minimal on importance"""
+    vi = set_100_variable_sorted
+    true_value = vi.importances_ > 5
+    selection = vi.importance_selection(threshold_min=5)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_selection_threshold_max(set_100_variable_sorted):
+    """Test threshold maximal on importance"""
+    vi = set_100_variable_sorted
+    true_value = vi.importances_ < 5
+    selection = vi.importance_selection(threshold_max=5)
+    np.testing.assert_array_equal(true_value, selection)
+
+
+def test_fdr_selection(rng, create_bvi):
     """
     Test that the FDR-based selection using BH and BHY procedures achieve the good
     guarantees:
@@ -119,7 +167,7 @@ def test_selection_fdr(rng):
      - Power is greater than 0.8 (arbitrary threshold)
 
     The p-values are generated as uniform for null features and very small (divided by
-    100) for important features. The computation of FDP and power is repeated over 100
+    500) for important features. The computation of FDP and power is repeated over 100
     random draws.
 
     """
@@ -132,7 +180,7 @@ def test_selection_fdr(rng):
     test_tol = 0.1
 
     for _ in range(100):
-        vim = BaseVariableImportance()
+        vim = create_bvi
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
         vim.pvalues_ = rng.uniform(0, 1, n_features)
@@ -165,14 +213,14 @@ def test_selection_fdr(rng):
     assert np.mean(bhy_power_list) > 0.8 - test_tol
 
 
-def test_selection_bhq():
+def test_selection_bhq(create_bvi):
     """
     Test selection based on Benjamini-Hochberg procedure. p-values are logarithmically
     spaced between 2^-20 and 0.5 then between 0.5 and 1-2^-20 to have significant
     features for both tails. The BH procedure is compared to ground truth selection,
     based on the analytical critical p-value threshold.
     """
-    vim = BaseVariableImportance()
+    vim = create_bvi
     n_features = 100
     vim.importances_ = np.hstack(
         [
@@ -187,7 +235,7 @@ def test_selection_bhq():
             1 - np.logspace(-1, -20, n_features // 2, base=2),
         ]
     )
-    vim.pvalues_ = pvalues_.copy()
+    vim.pvalues_ = pvalues_
     one_minus_pval = 1 - vim.pvalues_
 
     # Test selection based on pvalues_
@@ -243,156 +291,120 @@ def test_selection_bhq():
         np.testing.assert_array_equal(selected_gt, selected)
 
 
-class TestBVIExceptions:
-    """Test class for BVI Exception"""
+def test_not_fit(create_bvi):
+    """Test detection unfit"""
+    vi = create_bvi
 
-    def test_not_fit(self):
-        """Test detection unfit"""
-        vi = BaseVariableImportance()
-        with pytest.raises(
-            ValueError,
-            match="The importance method need to be called before calling this method",
-        ):
-            vi._check_importance()
-        with pytest.raises(
-            ValueError,
-            match="The importance method need to be called before calling this method",
-        ):
-            vi.importance_selection()
+    with pytest.raises(
+        ValueError,
+        match="The importance method need to be called before calling this method",
+    ):
+        vi._check_importance()
 
-    def test_selection_k_best(self, set_100_variable_sorted):
-        """Test selection k_best wrong"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError, match="k_best needs to be positive"
-        ):
-            vi.importance_selection(k_best=-10)
-        with pytest.warns(Warning, match="k=1000 is greater than n_features="):
-            vi.importance_selection(k_best=1000)
+    with pytest.raises(
+        ValueError,
+        match="The importance method need to be called before calling this method",
+    ):
+        vi.importance_selection()
 
-    def test_selection_k_lowest(self, set_100_variable_sorted):
-        """Test selection k_lowest wrong"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError, match="k_lowest needs to be positive"
-        ):
-            vi.pvalue_selection(k_lowest=-10, threshold_max=None)
-        with pytest.warns(Warning, match="k=1000 is greater than n_features="):
-            vi.pvalue_selection(k_lowest=1000, threshold_max=None)
-
-    def test_selection_percentile(self, set_100_variable_sorted):
-        """Test selection percentile wrong"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError,
-            match=r"percentile must be between 0 and 100 \(exclusive\). Got -1.",
-        ):
-            vi.importance_selection(percentile=-1)
-        with pytest.raises(
-            AssertionError,
-            match=r"percentile must be between 0 and 100 \(exclusive\). Got 102.",
-        ):
-            vi.importance_selection(percentile=102)
-        with pytest.raises(
-            AssertionError,
-            match=r"percentile must be between 0 and 100 \(exclusive\). Got 0.",
-        ):
-            vi.importance_selection(percentile=0)
-        with pytest.raises(
-            AssertionError,
-            match=r"percentile must be between 0 and 100 \(exclusive\). Got 100",
-        ):
-            vi.importance_selection(percentile=100)
-
-    def test_selection_pvalue_None(self, set_100_variable_sorted):
-        """Test selection on pvalue without it"""
-        vi = set_100_variable_sorted
-        vi.pvalues_ = None
-        with pytest.raises(
-            AssertionError,
-            match="The selection on p-value can't be done because the current method does not compute p-values",
-        ):
-            vi.pvalue_selection(threshold_min=-1)
-
-    def test_selection_threshold(self, set_100_variable_sorted):
-        """Test selection threshold wrong"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError, match="threshold_min needs to be between 0 and 1"
-        ):
-            vi.pvalue_selection(threshold_min=-1)
-        with pytest.raises(
-            AssertionError, match="threshold_min needs to be between 0 and 1"
-        ):
-            vi.pvalue_selection(threshold_min=1.1)
-        with pytest.raises(
-            AssertionError, match="threshold_max needs to be between 0 and 1"
-        ):
-            vi.pvalue_selection(threshold_max=-1)
-        with pytest.raises(
-            AssertionError, match="threshold_max needs to be between 0 and 1"
-        ):
-            vi.pvalue_selection(threshold_max=1.1)
-        with pytest.raises(
-            AssertionError,
-            match="Only support selection based on one criteria",
-        ):
-            vi.pvalue_selection(threshold_max=0.5, threshold_min=0.9)
+    with pytest.raises(
+        ValueError,
+        match="The importance method need to be called before calling this method",
+    ):
+        vi.fdr_selection(0.1)
 
 
-class TestSelectionFDRExceptions:
-    def test_not_fit(self):
-        """Test detection unfit"""
-        vi = BaseVariableImportance()
-        with pytest.raises(
-            ValueError,
-            match="The importance method need to be called before calling this method",
-        ):
-            vi.fdr_selection(0.1)
-
-    def test_selection_fdr_wrong_fdr(self, set_100_variable_sorted):
-        """Test selection fdr with wrong fdr"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
-        ):
-            vi.fdr_selection(fdr=0.0)
-        with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
-        ):
-            vi.fdr_selection(fdr=1.0)
-        with pytest.raises(
-            AssertionError,
-            match="FDR needs to be between 0 and 1 excluded",
-        ):
-            vi.fdr_selection(fdr=-1.0)
-
-    def test_selection_fdr_pvalue_None(self, set_100_variable_sorted):
-        """Test selection fdr without pvalue"""
-        vi = set_100_variable_sorted
-        vi.pvalues_ = None
-        with pytest.raises(
-            AssertionError,
-            match=r"FDR-based selection requires p-values to be computed first. The current method does not support p-values",
-        ):
-            vi.fdr_selection(fdr=0.1)
-
-    def test_selection_fdr_fdr_control(self, set_100_variable_sorted):
-        """Test selection fdr_control wrong"""
-        vi = set_100_variable_sorted
-        with pytest.raises(
-            AssertionError,
-            match="only 'bhq' and 'bhy' are supported",
-        ):
-            vi.fdr_selection(fdr=0.1, fdr_control="ehb")
+def test_selection_pvalue_None(set_100_variable_sorted):
+    """Test selection on pvalue without it"""
+    vi = set_100_variable_sorted
+    vi.pvalues_ = None
+    with pytest.raises(
+        InternalError,
+        match="The selection on p-value can't be done because the current method does not compute p-values",
+    ):
+        vi.pvalue_selection(threshold_min=-1)
 
 
-def test_plot_importance_axis(rng):
+def test_selection_pvalue_alternative_hypothesis(set_100_variable_sorted):
+    """Test selection on pvalue without it"""
+    vi = set_100_variable_sorted
+    with pytest.raises(
+        ValueError,
+        match=r"'alternative_hypothesis' can have only three values: True, False and None",
+    ):
+        vi.pvalue_selection(alternative_hypothesis="True")
+
+
+def test_selection_threshold(set_100_variable_sorted):
+    """Test selection threshold wrong"""
+    vi = set_100_variable_sorted
+    with pytest.raises(
+        ValueError,
+        match="'threshold_min' strictly needs to be between 0 and 1",
+    ):
+        vi.pvalue_selection(threshold_min=-1)
+    with pytest.raises(
+        ValueError,
+        match="'threshold_min' strictly needs to be between 0 and 1",
+    ):
+        vi.pvalue_selection(threshold_min=1.1)
+    with pytest.raises(
+        ValueError,
+        match="'threshold_max' strictly needs to be between 0 and 1",
+    ):
+        vi.pvalue_selection(threshold_max=-1)
+    with pytest.raises(
+        ValueError,
+        match="'threshold_max' strictly needs to be between 0 and 1",
+    ):
+        vi.pvalue_selection(threshold_max=1.1)
+
+
+def test_fdr_selection_wrong_fdr(set_100_variable_sorted):
+    """Test selection fdr with wrong fdr"""
+    vi = set_100_variable_sorted
+    with pytest.raises(
+        ValueError,
+        match=r"'fdr' must be a float strictly between 0 and 1, got 0.0",
+    ):
+        vi.fdr_selection(fdr=0.0)
+    with pytest.raises(
+        ValueError,
+        match=r"'fdr' must be a float strictly between 0 and 1, got 1.0",
+    ):
+        vi.fdr_selection(fdr=1.0)
+    with pytest.raises(
+        ValueError,
+        match=r"'fdr' must be a float strictly between 0 and 1, got -1.0",
+    ):
+        vi.fdr_selection(fdr=-1.0)
+
+
+def test_fdr_selection_pvalue_None(set_100_variable_sorted):
+    """Test selection fdr without pvalue"""
+    vi = set_100_variable_sorted
+    vi.pvalues_ = None
+    with pytest.raises(
+        InternalError,
+        match=r"FDR-based selection requires p-values to be computed first. The current method does not support p-values",
+    ):
+        vi.fdr_selection(fdr=0.1)
+
+
+def test_fdr_selection_fdr_control(set_100_variable_sorted):
+    """Test selection fdr_control wrong"""
+    vi = set_100_variable_sorted
+    with pytest.raises(
+        ValueError,
+        match=r"'fdr_control' must be one of \('bhq', 'bhy'\), got ehb.",
+    ):
+        vi.fdr_selection(fdr=0.1, fdr_control="ehb")
+
+
+def test_plot_importance_axis(rng, create_bvi):
     """Test argument axis of plot function"""
     n_features = 10
-    vi = BaseVariableImportance()
+    vi = create_bvi
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
     ax_1 = vi.plot_importance(ax=None)
@@ -405,10 +417,10 @@ def test_plot_importance_axis(rng):
     assert ax_2_bis == ax_2
 
 
-def test_plot_importance_ascending(rng):
+def test_plot_importance_ascending(rng, create_bvi):
     """Test argument ascending of plot function"""
     n_features = 10
-    vi = BaseVariableImportance()
+    vi = create_bvi
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
@@ -426,10 +438,10 @@ def test_plot_importance_ascending(rng):
     )
 
 
-def test_plot_importance_feature_names(rng):
+def test_plot_importance_feature_names(rng, create_bvi):
     """Test argument feature of plot function"""
     n_features = 10
-    vi = BaseVariableImportance()
+    vi = create_bvi
 
     # Make the plot independent of data / randomness to test only the plotting function
     vi.importances_ = np.arange(n_features)
@@ -451,7 +463,7 @@ def test_plot_importance_feature_names(rng):
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    vi.features_groups_ = {
+    vi.feature_groups_ = {
         str(j * 2): [] for j in np.flip(np.sort(vi.importances_))
     }
     features_name = [str(j * 2) for j in np.flip(np.sort(vi.importances_))]
@@ -463,11 +475,11 @@ def test_plot_importance_feature_names(rng):
         == np.flip(np.array(features_name)[np.argsort(vi.importances_)])
     )
 
-    with pytest.raises(ValueError, match="feature_names should be a list"):
+    with pytest.raises(ValueError, match="'feature_names' should be a list"):
         ax_none_group = vi.plot_importance(feature_names="ttt")
 
 
-def test_fwer_selection(rng):
+def test_fwer_selection(rng, create_bvi):
     """
     Test that the FWER selection procedure achieves the desired guarantees.
     For 100 draws of p-values with 10 important ones the rest drawn from a uniform
@@ -481,7 +493,7 @@ def test_fwer_selection(rng):
     test_tol = 0.1
 
     for _ in range(100):
-        vim = BaseVariableImportance()
+        vim = create_bvi
         vim.importances_ = np.ones(n_features)
         # Generate uniform p-values (null hypothesis)
         vim.pvalues_ = rng.uniform(0, 1, n_features)
@@ -516,8 +528,8 @@ def test_clustered_fwer_selection(rng):
     as default for `n_tests` in fwer_selection.
     """
     n_features = 10
-    cludl = CluDL(
-        desparsified_lasso=DesparsifiedLasso(estimator=LassoCV()),
+    cludl = ClusterImportance(
+        vim=DesparsifiedLasso(estimator=LassoCV()),
         clustering=FeatureAgglomeration(n_clusters=5),
     )
     cludl.fit_importance(rng.random((100, n_features)), rng.random(100))
@@ -530,24 +542,9 @@ def test_clustered_fwer_selection(rng):
     assert selection.shape[0] == n_features
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(100, 10, 5, 0.5, 0, 1.0, 64.0, 0.5)],
-)
-def test_feature_groups_order_preserved(data_generator):
-    """Regression test to check that the order of the feature groups is
-    preserved in the output of .importance() even when the keys are not in
-    the order that would be returned by sorted(groups.keys()).
-    """
-    X, y, important_features, non_important_features = data_generator
-    X_df = pd.DataFrame(X)
-    model = LinearRegression()
-    model.fit(X_df, y)
-    groups = {
-        "non_important": non_important_features,
-        "important": important_features,
-    }
-
-    cfi = CFI(estimator=model, features_groups=groups, random_state=0)
-    importance = cfi.fit_importance(X_df, y)
-    assert importance[0] < importance[1]
+def test_hidimstat_tags(create_bvi):
+    """Test to check that custom tag exists, and checks value of custom tags"""
+    bvi = create_bvi
+    tags = bvi.__sklearn_tags__()
+    assert isinstance(tags, HidimstatTags)
+    assert tags.needs_importance_data
