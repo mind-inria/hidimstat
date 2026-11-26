@@ -31,6 +31,7 @@ jobs:
     environment:
       - PYTHON_VERSION: "3.13"
       - OPENBLAS_NUM_THREADS: "1"
+      - HF_HOME: /home/circleci/huggingface
     steps:
       - checkout
       - run:
@@ -63,11 +64,13 @@ jobs:
           paths: .
       - save_cache:
           # cache some library
-          key: saved-cache
+          # Had to change name since caches are immutable on CircleCI.
+          key: saved-cache-v2
           paths:
             - /home/circleci/nilearn_data
             - /home/circleci/sklearn_data
             - /home/circleci/mne_data
+            - /home/circleci/huggingface
 
   get-tests-reports:
     docker:
