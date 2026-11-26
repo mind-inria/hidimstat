@@ -62,16 +62,18 @@ class PDP:
             feature_names = [f"X{idx}" for idx in feature_ids]
 
         pd = partial_dependence(self.estimator, X, features=features)
-        return plotting_func(pd, feature_names, cmap=cmap, **kwargs)
+        return plotting_func(
+            X, pd, feature_ids, feature_names, cmap=cmap, **kwargs
+        )
 
     @staticmethod
-    def _plot_1d(pd, feature_names, cmap=None, **kwargs):
+    def _plot_1d(X, pd, feature_ids, feature_names, cmap=None, **kwargs):
         del cmap  # only there for API compatibility
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1])
         ax = axes[0]
 
-        sns.kdeplot(pd["grid_values"], ax=ax, legend=False, fill=True)
-        sns.rugplot(pd["grid_values"], ax=ax, height=0.25, legend=False)
+        sns.kdeplot(X[:, feature_ids[0]], ax=ax, legend=False, fill=True)
+        sns.rugplot(X[:, feature_ids[0]], ax=ax, height=0.25, legend=False)
         sns.despine(ax=ax, left=True)
         # Plot partial dependence
         ax.spines["left"].set_visible(False)
@@ -88,7 +90,7 @@ class PDP:
         return axes
 
     @staticmethod
-    def _plot_2d(pd, feature_names, cmap="viridis", **kwargs):
+    def _plot_2d(X, pd, feature_ids, feature_names, cmap="viridis", **kwargs):
         x = pd["grid_values"][0]
         y = pd["grid_values"][1]
         z = pd["average"][0]
@@ -106,8 +108,8 @@ class PDP:
         sns.despine(ax=ax)
 
         ax = axes[0, 0]
-        sns.kdeplot(x, ax=ax, legend=False, fill=True)
-        sns.rugplot(x, ax=ax, height=0.25, legend=False)
+        sns.kdeplot(X[:, feature_ids[0]], ax=ax, legend=False, fill=True)
+        sns.rugplot(X[:, feature_ids[0]], ax=ax, height=0.25, legend=False)
         sns.despine(ax=ax)
         ax.spines["left"].set_visible(False)
         ax.spines["bottom"].set_visible(True)
@@ -115,8 +117,8 @@ class PDP:
         ax.yaxis.set_visible(False)
 
         ax = axes[1, 1]
-        sns.kdeplot(y=y, ax=ax, legend=False, fill=True)
-        sns.rugplot(y=y, ax=ax, height=0.25, legend=False)
+        sns.kdeplot(y=X[:, feature_ids[1]], ax=ax, legend=False, fill=True)
+        sns.rugplot(y=X[:, feature_ids[1]], ax=ax, height=0.25, legend=False)
         sns.despine(ax=ax)
         ax.spines["bottom"].set_visible(False)
         ax.yaxis.set_ticks([])
