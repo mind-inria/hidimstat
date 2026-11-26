@@ -6,33 +6,32 @@ Leave-One-Covariate-In
 Leave One Covariate In (LOCI) is a model-agnostic approach for quantifying the
 relevance of individual or groups of features in predictive models. It is a
 refitting-based method that compares the predictive performance of the empty
-model with performance of a model refitted just with the feature(s) of interest.
+model (dummy, predicting at change level) with the performance of a model
+refitted just with the feature(s) of interest.
 
 Theoretical index
 ------------------
 
-Leave One Covariate In (LOCI) is a model-agnostic method for estimating feature
-importance through refitting. The goal is to measure how predictive the model
-would be when accommodating only the given feature. The importance of feature
-:math:`j` is then quantified by the resulting gain in model performance when the
-model is refitted using only that feature.
+LOCI measures how predictive the model would be when using only the given
+feature. The importance of feature :math:`j` is then quantified by the
+resulting gain in model performance when the model is refitted using only that
+feature.
 
 .. math::
   \psi^j_{\mathrm{LOCI}}
-  = \mathbb{E}\left[\mathcal{L}\left(Y, \mu_{\emptyset}(X^{\emptyset})\right)\right]
+  = \mathbb{E}\left[\mathcal{L}\left(Y, \mathbb{E}\left[Y\right]\right)\right]
   - \mathbb{E}\left[\mathcal{L}\left(Y, \mu_j(X^j)\right)\right].
 
-Here, :math:`\mu_{\emptyset}(X^{\emptyset})` denotes the theoretical model
+Here, :math:`\mathbb{E}\left[Y\right]` is the output of the dummy model
 without any features (e.g., the mean of :math:`Y` when the loss is the mean
 squared error), while :math:`\mu_j(X^j)` denotes the theoretical model using
 only the :math:`j`-th feature.
 
-Thus, in contrast to LOCO, which aims to quantify the performance drop resulting
-from removing feature :math:`j` while retaining all other features, LOCI studies
-the performance gain obtained when feature :math:`j` is used as the only
-predictor. The target quantity estimated by LOCI is therefore closely related
-to the first-order Sobol index, which corresponds to the fraction of the
-variance of the output that can be explained by the studied feature alone.
+Thus, LOCI studies the performance gain obtained when feature :math:`j` is used
+as the only predictor. The target quantity estimated by LOCI is therefore
+closely related to the `first-order Sobol index <https://en.wikipedia.org/wiki/Variance-based_sensitivity_analysis#First-order_indices>`_,
+which corresponds to the fraction of the variance of the output that can be
+explained by the studied feature alone.
 
 Indeed, under the quadratic loss, we have
 
@@ -40,7 +39,7 @@ Indeed, under the quadratic loss, we have
   \begin{aligned}
   \psi^j_{\mathrm{LOCI}}
   &= \mathbb{E}\left[
-  \mathcal{L}\left(Y,\mu_{\emptyset}(X^{\emptyset})\right)
+  \mathcal{L}\left(Y,\mathbb{E}\left[Y\right]\right)
   \right]
   -
   \mathbb{E}\left[
@@ -86,7 +85,7 @@ information about the response. In other words, we test whether the response
 is independent of the feature under consideration:
 
 .. math::
-  \mathcal{H}_0: Y \perp!!!\perp X^j.
+  \mathcal{H}_0: Y \perp X^j.
 
 The core of this inference is to test the statistical significance of the loss
 difference estimated by LOCI. Consequently, a one-sample test on the loss
