@@ -251,10 +251,13 @@ jobs:
         -   name: Add SSH key
             env:
                 SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+                # Pass the secret through the environment
+                # so it is not interpolated into the script itself.
+                ACTIONS_SSH_DEPLOY: ${{ secrets.ACTIONS_SSH_DEPLOY }}
             run: |
                 mkdir -p ~/.ssh
                 ssh-keyscan github.com >> ~/.ssh/known_hosts
-                echo "${{ secrets.ACTIONS_SSH_DEPLOY }}" > ~/.ssh/github_actions
+                printf '%s\n' "$ACTIONS_SSH_DEPLOY" > ~/.ssh/github_actions
                 chmod 600 ~/.ssh/github_actions
                 ssh-agent -a $SSH_AUTH_SOCK > /dev/null
                 ssh-add ~/.ssh/github_actions
