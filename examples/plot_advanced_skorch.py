@@ -128,7 +128,6 @@ from joblib import parallel_config
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split
 
 from hidimstat import CFI
@@ -165,8 +164,7 @@ with parallel_config(backend="threading"):
         feature_groups=feature_groups,
         imputation_model_continuous=LinearRegression(),
         n_permutations=5,
-        method="predict_proba",
-        loss=log_loss,
+        scoring="log_loss",
         random_state=0,
         n_jobs=-1,
     )
