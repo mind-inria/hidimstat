@@ -132,6 +132,13 @@ class CFI(BasePerturbation):
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
 
+        warnings.warn(
+            "The parameter 'estimator' will default to"
+            "sklearn.linear_model.LassoCV in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def _check_fit_attributes(self):
         """
         Check attributes needed during fitting of the estimator.

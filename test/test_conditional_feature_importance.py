@@ -1142,3 +1142,13 @@ def test_plot_predictability_feature_names(cfi_test_data):
             np.array(features_name)[np.argsort(cfi.feature_predictability_)]
         )
     )
+
+
+@pytest.mark.filterwarnings("error:The parameter 'estimator' will default")
+def test_default_estimator_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'estimator' will default to"
+        "sklearn.linear_model.LassoCV in v0.6.0",
+    ):
+        CFI(estimator=None)

@@ -79,6 +79,13 @@ class LOCI(BasePerturbation):
         )
         self._list_estimators = None
 
+        warnings.warn(
+            "The parameter 'estimator' will default to"
+            "sklearn.linear_model.LassoCV in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def fit(self, X, y):
         """
         Fit a model for a single covariate/group of covariates.

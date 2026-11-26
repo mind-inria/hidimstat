@@ -7,6 +7,7 @@ interest is removed from the subset.
 """
 
 import numbers
+import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -154,6 +155,13 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         self.n_permutations = n_permutations
         self.random_state = random_state
         self.n_jobs = n_jobs
+
+        warnings.warn(
+            "The parameter 'estimator' will default to"
+            "sklearn.linear_model.LassoCV in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def _check_fit_attributes(self):
         """

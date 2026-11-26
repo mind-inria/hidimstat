@@ -187,6 +187,13 @@ class D0CRT(BaseVariableImportance):
         self.model_y_ = None
         self.lasso_weights_ = None
 
+        warnings.warn(
+            "The parameter 'estimator' will default to"
+            "sklearn.linear_model.LassoCV in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
     def _check_fit_attributes(self):
         """
         Check attributes needed during fitting of the estimator.
