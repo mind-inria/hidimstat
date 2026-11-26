@@ -1,10 +1,10 @@
 """
-Using PyTorch with HiDimStat
+Using PyTorch with Hidimstat
 ============================
-HiDimStat was designed with the goal of being easily compatible with Sklearn.
-PyTorch models might not be used directly with HiDimStat for that reason.
+Hidimstat was designed with the goal of being easily compatible with Sklearn.
+PyTorch models might not be used directly with Hidimstat for that reason.
 However, with the help of a third party library `Skorch <https://skorch.readthedocs.io/en/stable/>`_,
-PyTorch can be interfaced with HiDimStat, and provide all of its functionalities.
+PyTorch can be interfaced with Hidimstat, and provide all of its functionalities.
 In this example, we define a Convolutional Neural Network (CNN) in Skorch,
 and perform pixel-wise feature importance in a binary classification setup,
 through the MNIST digits dataset, between digits 4 vs 7 and 0 vs 1.
@@ -96,8 +96,6 @@ axes[2].set_title("Digits 4 vs 7", fontweight="bold", y=1.0)
 # Skorch allows the model to be run either on a cuda device or on cpu.
 
 import torch.cuda
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 from skorch import NeuralNetClassifier
 from torch.optim import Adam
 
@@ -113,11 +111,11 @@ net = NeuralNetClassifier(
 )
 
 # Current hotfix of API compatibility issue (Skorch doesn't automatically set this during fitting).
-# This needs to be set, otherwise HiDimStat throws an error.
+# This needs to be set, otherwise the Hidimstat library throws an error.
 net.n_features_in_ = 28 * 28
 
 # %%
-# Running HiDimStat feature importance computation
+# Running Hidimstat feature importance computation
 # ------------------------------------------------
 # We cluster pixels through feature agglomeration, while leveraging their grid structure
 # and assess feature importance at the group level.
@@ -148,13 +146,13 @@ clustering = FeatureAgglomeration(
 )
 clustering.fit(X_cluster)
 
-# CFI expects features_groups to be a dictionary where the keys are the group names
+# CFI expects feature_groups to be a dictionary where the keys are the group names
 # and the values are the list of column names corresponding to each features group.
 order = np.argsort(clustering.labels_)
 sorted_ids = clustering.labels_[order]
 unique_ids, start_idx = np.unique(sorted_ids, return_index=True)
 positions = np.split(order, start_idx[1:])
-features_groups = dict(zip(unique_ids, positions, strict=False))
+feature_groups = dict(zip(unique_ids, positions, strict=False))
 
 # %%
 # We now instantiate the CFI and fit it on the two tasks.
@@ -164,7 +162,7 @@ features_groups = dict(zip(unique_ids, positions, strict=False))
 with parallel_config(backend="threading"):
     cfi = CFI(
         estimator=net,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         imputation_model_continuous=LinearRegression(),
         n_permutations=5,
         method="predict_proba",
