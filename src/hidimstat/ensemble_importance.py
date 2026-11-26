@@ -1,4 +1,5 @@
 import numbers
+import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -90,6 +91,13 @@ class EnsembleImportance(BaseVariableImportance):
 
         self.vim_ = None
         self.ensemble_vims_ = None
+
+        warnings.warn(
+            "The parameter 'vim' will default to"
+            "hidimstat.DesparsifiedLasso in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def _check_fit_attributes(self):
         """
