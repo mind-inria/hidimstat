@@ -348,7 +348,7 @@ def test_encluvi_temporal(rng):
 @pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_independence():
     """Test that EnCluVI works with n_jobs=1. Non regression for #425"""
-    n_samples = 50
+    n_samples = 100
     shape = (20, 20)
     roi_size = 4  # size of the edge of the four predictive regions
     X_init, y, _, _ = multivariate_simulation_spatial(

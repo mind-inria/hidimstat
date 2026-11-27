@@ -118,7 +118,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         dof_ajdustement=False,
         # parameters for model_x
         model_x=None,
-        preconfigure_model_x_path=False,
+        preconfigure_model_x_path=True,
         alpha_max_fraction=0.01,
         random_state=None,
         save_model_x=False,
@@ -322,7 +322,7 @@ class DesparsifiedLasso(BaseVariableImportance):
             alphas = self.alpha_max_fraction * list_alpha_max
             list_model_x = [
                 model.set_params(alpha=alpha)
-                for model, alpha in zip(list_model_x, alphas, strict=False)
+                for model, alpha in zip(list_model_x, alphas, strict=True)
             ]
 
         gram = np.dot(X_.T, X_)  # Gram matrix
