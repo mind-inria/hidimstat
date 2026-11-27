@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
@@ -50,6 +52,20 @@ class ClusterImportance(BaseVariableImportance):
 
         self.vim_ = None
         self.clustering_ = None
+
+        warnings.warn(
+            "The parameter 'vim' will default to"
+            "hidimstat.DesparsifiedLasso in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        warnings.warn(
+            "The parameter 'clustering' will default to"
+            "sklearn.cluster.FeatureAgglomeration in v0.6.0",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def _check_fit_attributes(self):
         """

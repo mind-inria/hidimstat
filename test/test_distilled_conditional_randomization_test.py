@@ -957,3 +957,13 @@ def test_d0crt_no_regression_variance_fix(d0crt_test_data):
 def test_deprecation_warning():
     with pytest.raises(DeprecationWarning, match="Please use class D0CRT"):
         d0crt_importance(estimator=None, X=None, y=None)
+
+
+@pytest.mark.filterwarnings("error:The parameter 'estimator' will default")
+def test_default_estimator_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'estimator' will default to"
+        "sklearn.linear_model.LassoCV in v0.6.0",
+    ):
+        D0CRT(estimator=None)

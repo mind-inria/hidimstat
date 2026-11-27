@@ -509,3 +509,13 @@ def test_ensemble_randomness_with_rng(ensemble_test_data):
     endl2.fit(X_train, y_train)
     importance_reproducibility = endl2.importance(X_test, y_test)
     assert np.array_equal(importance, importance_reproducibility)
+
+
+@pytest.mark.filterwarnings("error:The parameter 'vim' will default")
+def test_default_vim_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'vim' will default to"
+        "hidimstat.DesparsifiedLasso in v0.6.0",
+    ):
+        ClusterImportance(vim=None, clustering=None)

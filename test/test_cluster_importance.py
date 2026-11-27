@@ -332,3 +332,23 @@ def test_cluvi_temporal():
 
     assert np.mean(power_list) >= 0.5 - test_tol
     assert np.mean(fdp_list) <= alpha + test_tol
+
+
+@pytest.mark.filterwarnings("error:The parameter 'vim' will default")
+def test_default_vim_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'vim' will default to"
+        "hidimstat.DesparsifiedLasso in v0.6.0",
+    ):
+        ClusterImportance(vim=None, clustering=None)
+
+
+@pytest.mark.filterwarnings("error:The parameter 'clustering' will default")
+def test_default_clustering_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'clustering' will default to"
+        "sklearn.cluster.FeatureAgglomeration in v0.6.0",
+    ):
+        ClusterImportance(vim=None, clustering=None)

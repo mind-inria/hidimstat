@@ -196,3 +196,13 @@ def test_loco_cv(data_generator):
 def test_deprecation_warning():
     with pytest.raises(DeprecationWarning, match="Please use class LOCO"):
         loco_importance(estimator=None, X=None, y=None)
+
+
+@pytest.mark.filterwarnings("error:The parameter 'estimator' will default")
+def test_default_estimator_deprecation_warning():
+    with pytest.raises(
+        DeprecationWarning,
+        match=r"The parameter 'estimator' will default to"
+        "sklearn.linear_model.LassoCV in v0.6.0",
+    ):
+        LOCO(estimator=None)
