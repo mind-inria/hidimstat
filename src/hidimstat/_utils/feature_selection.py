@@ -7,8 +7,10 @@ from hidimstat.statistical_tools.multiple_testing import (
     fdr_threshold,
 )
 
+__all__ = ["fdr_selection", "fwer_selection", "generic_selection"]
 
-def _generic_selection(
+
+def generic_selection(
     values,
     k_best=None,
     k_lowest=None,
@@ -173,7 +175,7 @@ def _percentile_selection(values, percentile):
     return mask_percentile
 
 
-def _fdr_selection(
+def fdr_selection(
     p_values,
     importances,
     fdr,
@@ -251,7 +253,7 @@ def _fdr_selection(
     return selected
 
 
-def _fwer_selection(
+def fwer_selection(
     p_values,
     importances,
     fwer,

@@ -15,13 +15,13 @@ from sklearn.linear_model import (
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_X_y
 
-from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.docstring import aggregate_docstring
 from hidimstat._utils.utils import (
-    _check_vim_predict_method,
-    _generate_group_mask,
-    _make_sklearn_estimator,
     check_random_state,
+    check_vim_predict_method,
     find_stack_level,
+    generate_group_mask,
+    make_sklearn_estimator,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -140,14 +140,14 @@ class D0CRT(BaseVariableImportance):
         estimated_coef=None,
         estimated_intercept=None,
         sigma_X=None,
-        lasso_screening=_make_sklearn_estimator(
+        lasso_screening=make_sklearn_estimator(
             LassoCV,
             alphas=10,
             tol=1e-6,
             fit_intercept=False,
             random_state=0,
         ),
-        model_distillation_x=_make_sklearn_estimator(
+        model_distillation_x=make_sklearn_estimator(
             LassoCV,
             alphas=10,
             n_jobs=1,
@@ -194,7 +194,7 @@ class D0CRT(BaseVariableImportance):
         # Attributes checked outside of class:
         # n_jobs, joblib_verbose
         super()._check_fit_attributes()
-        _check_vim_predict_method(self.method)
+        check_vim_predict_method(self.method)
 
         if self.estimated_coef is not None:
             if not isinstance(self.estimated_coef, np.ndarray):
@@ -339,7 +339,7 @@ class D0CRT(BaseVariableImportance):
                 )
                 self.selection_set_ = np.ones(X.shape[1], dtype=bool)
             else:
-                self.selection_set_, lasso_model_ = run_lasso_screening(
+                self.selection_set_, lasso_model_ = _run_lasso_screening(
                     X_,
                     y_,
                     lasso_model=self.lasso_screening,
@@ -732,7 +732,7 @@ def _joblib_fit(
     ----------
     .. footbibliography::
     """
-    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    mask = generate_group_mask(X.shape[1], idx, selected=False)
     X_minus_idx = X[:, mask]
 
     # Distill X with least square loss. Use lasso_weights for d0CRT-logit as described
@@ -815,7 +815,7 @@ def _joblib_distill(
     ----------
     .. footbibliography::
     """
-    mask = _generate_group_mask(X.shape[1], idx, selected=False)
+    mask = generate_group_mask(X.shape[1], idx, selected=False)
     X_minus_idx = X[:, mask]
 
     # Distill X with least square loss
@@ -827,18 +827,18 @@ def _joblib_distill(
     else:
         # Distill X with sigma_X
         sigma_temp = sigma_X[
-            _generate_group_mask(sigma_X.shape[0], idx, selected=False)
+            generate_group_mask(sigma_X.shape[0], idx, selected=False)
         ]
         b = sigma_temp[:, idx]
         A = sigma_temp[
-            :, _generate_group_mask(sigma_temp.shape[1], idx, selected=False)
+            :, generate_group_mask(sigma_temp.shape[1], idx, selected=False)
         ]
         coefs_X = np.linalg.solve(A, b)
         X_residual = X[:, idx] - np.dot(X_minus_idx, coefs_X)
         sigma2 = sigma_X[idx, idx] - np.dot(
             sigma_X[
                 idx,
-                _generate_group_mask(sigma_X.shape[1], idx, selected=False),
+                generate_group_mask(sigma_X.shape[1], idx, selected=False),
             ],
             coefs_X,
         )
@@ -861,7 +861,7 @@ def _joblib_distill(
     return X_residual, sigma2, y_residual
 
 
-def run_lasso_screening(
+def _run_lasso_screening(
     X,
     y,
     lasso_model=LassoCV(fit_intercept=False, random_state=0),
@@ -908,14 +908,14 @@ def d0crt_importance(
     method="predict",
     estimated_coef=None,
     sigma_X=None,
-    lasso_screening=_make_sklearn_estimator(
+    lasso_screening=make_sklearn_estimator(
         LassoCV,
         alphas=10,
         tol=1e-6,
         fit_intercept=False,
         random_state=0,
     ),
-    model_distillation_x=_make_sklearn_estimator(
+    model_distillation_x=make_sklearn_estimator(
         LassoCV,
         alphas=10,
         n_jobs=1,
@@ -972,7 +972,7 @@ def d0crt_importance(
 
 
 # use the docstring of the class for the function
-d0crt_importance.__doc__ = _aggregate_docstring(
+d0crt_importance.__doc__ = aggregate_docstring(
     [
         D0CRT.__doc__,
         D0CRT.__init__.__doc__,

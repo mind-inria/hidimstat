@@ -2,8 +2,8 @@ import warnings
 
 import numpy as np
 
-from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import _get_array_cols, check_random_state
+from hidimstat._utils.docstring import aggregate_docstring
+from hidimstat._utils.utils import check_random_state, get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
 
@@ -87,7 +87,7 @@ class PFI(BasePerturbation):
         X_perm_j = np.array(
             [
                 rng.permutation(
-                    _get_array_cols(
+                    get_array_cols(
                         X, self._feature_groups_ids_[features_group_id]
                     )
                 )
@@ -143,7 +143,7 @@ def pfi_importance(
 
 
 # use the docstring of the class for the function
-pfi_importance.__doc__ = _aggregate_docstring(
+pfi_importance.__doc__ = aggregate_docstring(
     [
         PFI.__doc__,
         PFI.__init__.__doc__,

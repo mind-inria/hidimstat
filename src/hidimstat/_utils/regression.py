@@ -1,7 +1,9 @@
 import numpy as np
 
+__all__ = ["alpha_max"]
 
-def _alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
+
+def alpha_max(X, y, use_noise_estimate=False, fill_diagonal=False, axis=None):
     """
     Calculate alpha_max, which is the smallest value of the regularization parameter
     in the LASSO regression that yields non-zero coefficients.

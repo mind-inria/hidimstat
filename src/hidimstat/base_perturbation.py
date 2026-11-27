@@ -9,7 +9,7 @@ from sklearn.utils.validation import check_array, check_X_y
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
-    _check_loss_method_parameter,
+    check_loss_method_parameter,
     check_random_state,
     check_scoring,
     check_statistical_test,
@@ -271,7 +271,7 @@ class BasePerturbation(GroupVariableImportanceMixin, BaseVariableImportance):
         check_is_fitted(self)
         self._check_compatibility(X)
         statistical_test = check_statistical_test(self.statistical_test)
-        self.scoring = _check_loss_method_parameter(
+        self.scoring = check_loss_method_parameter(
             scoring=self.scoring, method=self.method, loss=self.loss
         )
         self.scoring = check_scoring(

@@ -28,8 +28,21 @@ SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
 SKLEARN_LT_1_8 = parse(sklearn_version).minor < 8
 SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
 
+__all__ = [
+    "check_loss_method_parameter",
+    "check_random_state",
+    "check_scoring",
+    "check_statistical_test",
+    "check_vim_predict_method",
+    "find_stack_level",
+    "generate_group_mask",
+    "get_array_cols",
+    "make_sklearn_estimator",
+    "seed_estimator",
+]
 
-def _make_sklearn_estimator(estimator_cls, **kwargs):
+
+def make_sklearn_estimator(estimator_cls, **kwargs):
     """Internal method to handle deprecated arguments on various Scikit Learn versions during estimator instantiation."""
     kwargs = kwargs.copy()
 
@@ -64,7 +77,7 @@ def _make_sklearn_estimator(estimator_cls, **kwargs):
     return est
 
 
-def _check_vim_predict_method(method):
+def check_vim_predict_method(method):
     """
     Validates that the method is a valid scikit-learn prediction method for variable importance measures.
 
@@ -93,7 +106,7 @@ def _check_vim_predict_method(method):
         )
 
 
-def _generate_group_mask(array_size, indexes, selected=True):
+def generate_group_mask(array_size, indexes, selected=True):
     """
     Generates a mask to select indexes or its opposite.
     """
@@ -102,19 +115,19 @@ def _generate_group_mask(array_size, indexes, selected=True):
     return mask
 
 
-def _get_array_cols(X, columns_ids, drop=False):
+def get_array_cols(X, columns_ids, drop=False):
     """
     Retrieves columns from X depending on type numpy array or pandas DataFrame,
     or drops them from X.
     """
-    mask = _generate_group_mask(X.shape[1], columns_ids, selected=not drop)
+    mask = generate_group_mask(X.shape[1], columns_ids, selected=not drop)
     if isinstance(X, pd.DataFrame):
         return X[X.columns[mask]]
     else:
         return X[:, mask]
 
 
-def get_fitted_attributes(cls):
+def _get_fitted_attributes(cls):
     """
     Get all attributes from a class that end with a single underscore
     and doesn't start with one underscore.
@@ -340,7 +353,7 @@ def check_scoring(estimator=None, scoring=None):
             )
 
 
-def _check_loss_method_parameter(scoring, method, loss):
+def check_loss_method_parameter(scoring, method, loss):
     """Check values of method and loss parameters in regard to scoring parameter."""
     if scoring is None and (method is not None or loss is not None):
         warnings.warn(
@@ -349,10 +362,7 @@ def _check_loss_method_parameter(scoring, method, loss):
             DeprecationWarning,
             stacklevel=2,
         )
-        if (
-            method is not None
-            and _check_vim_predict_method(method) is not None
-        ):
+        if method is not None and check_vim_predict_method(method) is not None:
             if method == "predict_proba":
                 return log_loss
             elif method == "predict":
@@ -418,7 +428,7 @@ def find_stack_level() -> int:
     return n
 
 
-def one_level_deeper() -> int:
+def _one_level_deeper() -> int:
     """Use for testing find_stack_level.
 
     Needs to be in a module that does not start with 'test'

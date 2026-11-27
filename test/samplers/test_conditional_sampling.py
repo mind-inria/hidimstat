@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.preprocessing import StandardScaler
 
-from hidimstat._utils.utils import _make_sklearn_estimator
+from hidimstat._utils.utils import make_sklearn_estimator
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
 
@@ -63,7 +63,7 @@ def test_binary_case(rng):
     n = 1000
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
         ),
         data_type="categorical",
@@ -94,7 +94,7 @@ def test_binary_case(rng):
 
     sampler = ConditionalSampler(
         model_regression=RidgeCV(alphas=np.logspace(-2, 2, 10)),
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
         ),
         data_type="auto",
@@ -205,7 +205,7 @@ def test_group_case_binary_case():
     )
     X[:, 4] = 2 * X[:, 1] - 1 + np.random.randn(X.shape[0]) * 0.3 > 0  # noqa : NPY002
 
-    model = _make_sklearn_estimator(
+    model = make_sklearn_estimator(
         LogisticRegressionCV, Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
     )
     sampler = ConditionalSampler(
@@ -246,7 +246,7 @@ def test_sample_categorical(rng):
     X[:, 3:][X[:, 3:] == 0] = 1
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
         ),
         data_type="categorical",
@@ -266,7 +266,7 @@ def test_sample_categorical(rng):
     # Using a provided OneVsRestClassifier
     sampler = ConditionalSampler(
         model_categorical=OneVsRestClassifier(
-            _make_sklearn_estimator(
+            make_sklearn_estimator(
                 LogisticRegressionCV, Cs=np.logspace(-2, 2, 10), l1_ratios=(0,)
             )
         ),
@@ -372,7 +372,7 @@ def test_feature_predictability_categorical_easy_target(generate_data):
     )
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, l1_ratios=(0,)
         ),
         data_type="categorical",
@@ -394,7 +394,7 @@ def test_feature_predictability_categorical_independent_target(
     )
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, l1_ratios=(0,)
         ),
         data_type="categorical",
@@ -418,7 +418,7 @@ def test_feature_predictability_categorical_multiclass_easy_target(
     )
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, l1_ratios=(0,)
         ),
         data_type="categorical",
@@ -440,7 +440,7 @@ def test_feature_predictability_categorical_multiclass_independent_target(
     )
 
     sampler = ConditionalSampler(
-        model_categorical=_make_sklearn_estimator(
+        model_categorical=make_sklearn_estimator(
             LogisticRegressionCV, l1_ratios=(0,)
         ),
         data_type="categorical",

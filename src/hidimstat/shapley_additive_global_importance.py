@@ -14,10 +14,10 @@ from sklearn.base import check_is_fitted
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
-    _check_loss_method_parameter,
-    _get_array_cols,
+    check_loss_method_parameter,
     check_random_state,
     check_scoring,
+    get_array_cols,
 )
 from hidimstat.base_variable_importance import (
     BaseVariableImportance,
@@ -55,7 +55,7 @@ def _sage_value_function(
     )  # (n_permutations, n_samples, n_features)
     for perm_idx in range(n_permutations):
         for col in complement:
-            X_col = _get_array_cols(X, col)
+            X_col = get_array_cols(X, col)
             X_sampled[perm_idx, :, col] = rng.permutation(X_col).reshape(
                 -1,
             )
@@ -183,7 +183,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
         check_is_fitted(self)
         rng = check_random_state(self.random_state)
         self._check_compatibility(X)
-        self.scoring = _check_loss_method_parameter(
+        self.scoring = check_loss_method_parameter(
             scoring=self.scoring, method=self.method, loss=self.loss
         )
         self.scoring = check_scoring(

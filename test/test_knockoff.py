@@ -13,10 +13,10 @@ from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.knockoffs import (
     ModelXKnockoff,
     model_x_knockoff_importance,
-    set_alpha_max_lasso_path,
+    setalpha_max_lasso_path,
 )
 from hidimstat.samplers import GaussianKnockoffs
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 
 def expected_failed_checks(estimator):
@@ -481,7 +481,7 @@ def test_preconfigure_LassoCV(rng):
         TypeError,
         match="You should not use this function to configure the estimator",
     ):
-        set_alpha_max_lasso_path(
+        setalpha_max_lasso_path(
             estimator=RidgeCV(),
             X_ko=rng.random((10, 20)),
             n_features=10,

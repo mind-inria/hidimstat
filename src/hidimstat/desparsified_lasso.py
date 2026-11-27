@@ -18,12 +18,12 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_memory
 
-from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.regression import _alpha_max
+from hidimstat._utils.docstring import aggregate_docstring
+from hidimstat._utils.regression import alpha_max
 from hidimstat._utils.utils import (
-    _generate_group_mask,
     check_random_state,
     find_stack_level,
+    generate_group_mask,
     seed_estimator,
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
@@ -304,7 +304,7 @@ class DesparsifiedLasso(BaseVariableImportance):
         self.estimator_ = self._initial_fit(self.estimator_, X_, y_)
 
         # Lasso regression and noise standard deviation estimation
-        self.sigma_hat_ = reid(
+        self.sigma_hat_ = _reid(
             self.estimator_.coef_,  # estimated support of the variable importance
             self.estimator_.predict(X_) - y_,  # compute the residual,
             tolerance=self.tolerance_reid,
@@ -318,8 +318,8 @@ class DesparsifiedLasso(BaseVariableImportance):
         list_model_x = [clone(model_x) for _ in range(self.n_features_in_)]
         # define the alphas for the Nodewise Lasso
         if self.preconfigure_model_x_path:
-            list_alpha_max = _alpha_max(X_, X_, fill_diagonal=True, axis=0)
-            alphas = self.alpha_max_fraction * list_alpha_max
+            listalpha_max = alpha_max(X_, X_, fill_diagonal=True, axis=0)
+            alphas = self.alpha_max_fraction * listalpha_max
             list_model_x = [
                 model.set_params(alpha=alpha)
                 for model, alpha in zip(list_model_x, alphas, strict=False)
@@ -608,14 +608,14 @@ def _joblib_compute_residuals(X, id_column, clf, gram, return_clf):
     n_samples, _ = X.shape
 
     # Removing the column to regress against the others
-    mask = _generate_group_mask(X.shape[1], id_column, selected=False)
+    mask = generate_group_mask(X.shape[1], id_column, selected=False)
     X_minus_i = X[:, mask]
     X_i = X[:, id_column]
 
     clf.set_params(
         precompute=gram[
-            :, _generate_group_mask(gram.shape[0], id_column, selected=False)
-        ][_generate_group_mask(gram.shape[1], id_column, selected=False)]
+            :, generate_group_mask(gram.shape[0], id_column, selected=False)
+        ][generate_group_mask(gram.shape[1], id_column, selected=False)]
     )
     # Fitting the Lasso model and computing the residuals
     clf.fit(X_minus_i, X_i)
@@ -711,7 +711,7 @@ def desparsified_lasso_importance(
 
 
 # use the docstring of the class for the function
-desparsified_lasso_importance.__doc__ = _aggregate_docstring(
+desparsified_lasso_importance.__doc__ = aggregate_docstring(
     [
         DesparsifiedLasso.__doc__,
         DesparsifiedLasso.__init__.__doc__,
@@ -733,7 +733,7 @@ pvalues : ndarray of shape (n_features,)
 )
 
 
-def reid(
+def _reid(
     beta_hat,
     residual,
     tolerance=1e-4,

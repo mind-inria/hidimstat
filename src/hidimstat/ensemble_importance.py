@@ -9,7 +9,7 @@ from tqdm import tqdm
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers.utils import _subsampling
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
+from hidimstat.statistical_tools import quantile_aggregation
 
 
 class EnsembleImportance(BaseVariableImportance):

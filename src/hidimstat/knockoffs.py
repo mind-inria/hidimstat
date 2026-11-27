@@ -9,7 +9,7 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
-from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.docstring import aggregate_docstring
 from hidimstat._utils.utils import (
     check_random_state,
     find_stack_level,
@@ -17,11 +17,10 @@ from hidimstat._utils.utils import (
 )
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
-from hidimstat.statistical_tools.aggregation import quantile_aggregation
-from hidimstat.statistical_tools.multiple_testing import fdr_threshold
+from hidimstat.statistical_tools import fdr_threshold, quantile_aggregation
 
 
-def set_alpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
+def setalpha_max_lasso_path(estimator, X_ko, n_features, y, n_alphas=20):
     """
     Configure a LassoCV estimator's regularization path for concatenated features.
 
@@ -464,7 +463,7 @@ class ModelXKnockoff(BaseVariableImportance):
                 n_alphas = estimator_.n_alphas
             else:
                 n_alphas = 10
-            estimator_ = set_alpha_max_lasso_path(
+            estimator_ = setalpha_max_lasso_path(
                 estimator_, X_ko, n_features, y, n_alphas=n_alphas
             )
 
@@ -676,7 +675,7 @@ def model_x_knockoff_importance(
 
 
 # use the docstring of the class for the function
-model_x_knockoff_importance.__doc__ = _aggregate_docstring(
+model_x_knockoff_importance.__doc__ = aggregate_docstring(
     [
         ModelXKnockoff.__doc__,
         ModelXKnockoff.__init__.__doc__,

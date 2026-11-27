@@ -9,7 +9,7 @@ from sklearn.model_selection import KFold, train_test_split
 
 from hidimstat import LOCO, LOCOCV, loco_importance
 from hidimstat.base_perturbation import BasePerturbation
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 
 def run_loco(

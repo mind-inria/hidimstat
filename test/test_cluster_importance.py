@@ -16,7 +16,7 @@ from hidimstat._utils.scenario import (
     multivariate_simulation,
     multivariate_simulation_spatial,
 )
-from hidimstat.statistical_tools.multiple_testing import fdp_power
+from hidimstat.statistical_tools import fdp_power
 
 
 def spatially_relaxed_fdp_power(

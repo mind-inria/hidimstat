@@ -92,7 +92,7 @@ Samplers
    ~samplers.GaussianKnockoffs
 
 
-Statistical Tests
+Statistical Tools
 =================
 
 .. autosummary::
@@ -100,14 +100,17 @@ Statistical Tests
    :template: function.rst
 
    ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.fdp_power
+   ~statistical_tools.fdr_threshold
    ~statistical_tools.holdout_randomization_test
-
-Helper Functions
-================
-
-.. autosummary::
-   :toctree: ./generated/api/helper_functions/
-   :template: function.rst
-
-   ~statistical_tools.aggregation.quantile_aggregation
-   ~desparsified_lasso.reid
+   ~statistical_tools.nadeau_bengio_ttest
+   ~statistical_tools.pval_corr_from_pval
+   ~statistical_tools.pval_from_cb
+   ~statistical_tools.pval_from_scale
+   ~statistical_tools.pval_from_two_sided_pval_and_sign
+   ~statistical_tools.quantile_aggregation
+   ~statistical_tools.two_sided_pval_from_cb
+   ~statistical_tools.two_sided_pval_from_pval
+   ~statistical_tools.two_sided_pval_from_zscore
+   ~statistical_tools.zscore_from_cb
+   ~statistical_tools.zscore_from_pval

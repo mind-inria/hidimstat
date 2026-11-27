@@ -3,9 +3,9 @@ import warnings
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.docstring import aggregate_docstring
 from hidimstat._utils.utils import (
-    _get_array_cols,
+    get_array_cols,
 )
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 
@@ -122,7 +122,7 @@ class LOCO(BasePerturbation):
         self, estimator, X, y, feature_groups_ids
     ):
         """Fit the estimator after removing a group of covariates. Used in parallel."""
-        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
+        X_minus_j = get_array_cols(X, feature_groups_ids, drop=True)
         estimator.fit(X_minus_j, y)
         return estimator
 
@@ -135,7 +135,7 @@ class LOCO(BasePerturbation):
         """
         del random_state  # not used (only there for API compatibility)
         # Since we don't have access to column names, we use the member _feature_groups_ids_
-        X_minus_j = _get_array_cols(
+        X_minus_j = get_array_cols(
             X, self._feature_groups_ids_[features_group_id], drop=True
         )
 
@@ -194,7 +194,7 @@ def loco_importance(
 
 
 # use the docstring of the class for the function
-loco_importance.__doc__ = _aggregate_docstring(
+loco_importance.__doc__ = aggregate_docstring(
     [
         LOCO.__doc__,
         LOCO.__init__.__doc__,

@@ -9,9 +9,9 @@ from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.grid import (
-    _bin_indices,
-    _build_quantile_grid_1d,
-    _build_quantile_grid_2d,
+    bin_indices,
+    build_quantile_grid_1d,
+    build_quantile_grid_2d,
 )
 from hidimstat._utils.utils import check_random_state
 from hidimstat.samplers.conditional_sampling import _check_data_type
@@ -105,7 +105,7 @@ def _compute_ale_1d_curve(
 
     if feature_type == "continuous":
         n_bins = len(grid_values) - 1
-        bin_idx = _bin_indices(X_j_sample, grid_values)
+        bin_idx = bin_indices(X_j_sample, grid_values)
 
         # For each sample, evaluate the model at the lower and upper edge of its bin
         X_low[:, feature_idx] = grid_values[bin_idx]
@@ -170,7 +170,7 @@ def _compute_ale_1d_curve(
     return ale_curve
 
 
-def compute_ale_1d(
+def _compute_ale_1d(
     estimator,
     X,
     feature_idx,
@@ -245,7 +245,7 @@ def compute_ale_1d(
 
     if feature_type == "continuous":
         # Grid defined by quantiles
-        grid_values = _build_quantile_grid_1d(
+        grid_values = build_quantile_grid_1d(
             X_j, grid_resolution=grid_resolution, percentiles=percentiles
         )
         n_bins = len(grid_values) - 1
@@ -333,7 +333,7 @@ def compute_ale_1d(
     return ale, grid_values, ale_err
 
 
-def compute_ale_2d(
+def _compute_ale_2d(
     estimator,
     X,
     feature_indices,
@@ -395,7 +395,7 @@ def compute_ale_2d(
     idx_i, idx_j = feature_indices
     X_i, X_j = X[:, idx_i], X[:, idx_j]
 
-    quantiles_i, quantiles_j = _build_quantile_grid_2d(
+    quantiles_i, quantiles_j = build_quantile_grid_2d(
         X_i, X_j, grid_resolution=grid_resolution, percentiles=percentiles
     )
 
@@ -411,8 +411,8 @@ def compute_ale_2d(
             f"Feature {idx_j} has fewer than 2 unique quantile edges. Increase grid_resolution or check your data."
         )
 
-    bin_idx_i = _bin_indices(X_i, quantiles_i)
-    bin_idx_j = _bin_indices(X_j, quantiles_j)
+    bin_idx_i = bin_indices(X_i, quantiles_i)
+    bin_idx_j = bin_indices(X_j, quantiles_j)
     bin_idx = [bin_idx_i, bin_idx_j]
 
     # Second-order finite differences: evaluate at the four corners of each 2D bin
@@ -681,7 +681,7 @@ class ALE:
                 )
             else:
                 plotting_func = self._plot_1d
-                ale, grid_values, ale_err = compute_ale_1d(
+                ale, grid_values, ale_err = _compute_ale_1d(
                     self.estimator,
                     X,
                     feature_idx=features,
@@ -707,7 +707,7 @@ class ALE:
                 )
             feature_ids = copy(features)
             plotting_func = self._plot_2d
-            ale, quantiles_i, quantiles_j = compute_ale_2d(
+            ale, quantiles_i, quantiles_j = _compute_ale_2d(
                 self.estimator,
                 X,
                 feature_indices=features,
