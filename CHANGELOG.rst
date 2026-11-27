@@ -14,22 +14,16 @@ under development (0.4.1.dev)
       :bdg-warning:`API`         API changes, deprecations
       :bdg-secondary:`Maint`     CI, testing, maintenance, dependencies
 
-Changes
--------
-
-- :bdg-success:`Feature` Add the holdout randomization test (HRT). As a side effect, ``nadeau_bengio_ttest`` loses its ``axis`` argument and now always reduces over the last axis (:gh:`754` by `Joseph Paillard`_).
-- :bdg-danger:`Fix` Removed unnecessary warning in ``fit_importance`` when (X, y) are passed to estimators that don't need it to compute importance scores (:gh:`804` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Deprecated feature importance functions such as ``cfi_importance`` to be removed in v0.6 (:gh:`783` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Removed deprecated classes ``CluDL`` and ``EnCluDL`` (:gh:`807` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Deprecated ``method`` and ``loss`` parameters of classes to replace with sklearn compatible ``scoring`` (:gh:`787` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Re-orded class inheritance with ``GroupVariableImportanceMixin`` (:gh:`788` by `Marc Hulcelle`_).
-- :bdg-primary:`Doc` Added an example giving an overview of a feature importance analysis with ``hidimstat`` (:gh:`800` by `Joseph Paillard`_).
-- :bdg-primary:`API` Added sklearn-compatible feature selectors (SelectTopK / PValueSelect / FDRSelect / FWERSelect) (:gh:`824` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Moved parameter checks to ``fit()`` and ``importance()`` methods (:gh:`827` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Swapped ModelXKnockoffs importance dimensions for API consistencies (:gh:`825` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Exposing fitted conditional samplers and adding a ``feature_predictability_`` attribute in CFI (:gh:`829` by `Marc Hulcelle`_).
-- :bdg-warning:`API` Deleted custom ``_check_fit()`` method for more sklearn compliance (:gh:`834` by `Marc Hulcelle`_).
-- :bdg-secondary:`Maint` Added upper bound to pandas version due to sklearn incompatibility (:gh:`840` by `Marc Hulcelle`_).
-- :bdg-primary:`Doc` Reworked landing page of hidimstat website (:gh:`841` by `Marc Hulcelle`_).
-- :bdg-primary:`Doc` Added an onboarding document for new maintainers (:gh:`838` by `Marc Hulcelle`_).
-- :bdg-secondary:`Maint` Reduced warnings in test suite (:gh:`847` by `Marc Hulcelle`_).
+- :bdg-secondary:`Maint` Update version in doc's dropdown menu to 0.3.1 (stable) and clean changelog (:gh:`637` by `Joseph Paillard`_).
+- :bdg-danger:`Fix` Fix bug in the KO methods: ``threshold_mesh`` was computed but not assigned to the variable (:gh:`643` by `Bertrand Thirion`_ amd `Joseph Paillard`_).
+- :bdg-secondary:`Maint` add badges and functional links to the changelog (:gh:`644` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` add documentation on how to contribute with issues, pull-requests, explanation of the CI process, and dev guidelines on class templates and folder architecture. (:gh:`653` by `Marc Hulcelle`_).
+- :bdg-primary:`Doc` add naming conventions for classes, files, and functions, as well as citation conventions (:gh:`647` and :gh:`648` by `Marc Hulcelle`_).
+- :bdg-danger:`Fix` Fix typo in issue template (:gh:`659` by `Joseph Paillard`_).
+- :bdg-primary:`Doc` Added an AGENTS.md file for AI agents, and AI disclosures to contribution guidelines (:gh:`655` by `Marc Hulcelle`).
+- :bdg-secondary:`Maint` added a maintenance-related issue template (:gh:`666` by `Marc Hulcelle`_).
+- :bdg-secondary:`Maint` temporary fix for the CI upper-bounding scikit-learn to 1.9.0 (:gh:`669` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint` remove pinned poosh dependency (problem with somato dataset solved) (:gh:`670` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint`: remove extra term in variance of X-residual (DOCRT). See  [Reid et al., A Study of Error Variance Estimation in Lasso Regression 2016](https://arxiv.org/pdf/1311.5274) for reference. (:gh:`649` by `Joseph Paillard`_).
+- :bdg-secondary:`Maint`: Fix conditional sampling test by verifying that sampler produces diverse samples. (:gh:`692` by `Joseph Paillard`_).
+- :bdg-primary:`Doc`: Modify the commit tag allowing to build the documentation in draft PR (:gh:`695` by `Joseph Paillard`_).
