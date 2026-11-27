@@ -130,6 +130,7 @@ jobs:
             NILEARN_DATA: /home/runner/work/hidimstat/hidimstat/nilearn_data
             SCIKIT_LEARN_DATA: /home/runner/work/hidimstat/hidimstat/sklearn_data
             _MNE_FAKE_HOME_DIR: /home/runner/work/hidimstat/hidimstat/mne_data
+            HF_HOME: /home/runner/work/hidimstat/hidimstat/huggingface
 
         defaults:
             run:
@@ -182,6 +183,7 @@ jobs:
                     nilearn_data
                     sklearn_data
                     mne_data
+                    huggingface
                 key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
 
         -   name: Create data cache dir
