@@ -1,14 +1,30 @@
 import numpy as np
 import pytest
 from scipy.stats import ttest_1samp, wilcoxon
-from sklearn.linear_model import LassoCV, LogisticRegressionCV
+from sklearn.feature_selection import SelectFdr
+from sklearn.linear_model import (
+    LassoCV,
+    LogisticRegressionCV,
+    Ridge,
+    RidgeClassifier,
+)
+from sklearn.metrics import (
+    get_scorer,
+    hinge_loss,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 
 from hidimstat._utils.utils import (
-    SKLEARN_LT_1_6,
+    _check_loss_method_parameter,
     _make_sklearn_estimator,
     check_random_state,
+    check_scoring,
     check_statistical_test,
+    find_stack_level,
     get_fitted_attributes,
+    one_level_deeper,
 )
 from hidimstat.statistical_tools import nadeau_bengio_ttest
 
@@ -92,7 +108,7 @@ def test_check_test_statistic_warning():
         check_statistical_test([])
 
 
-def test__make_sklearn_estimator(monkeypatch):
+def test__make_sklearn_estimator_penalty_l1_ratios_args(monkeypatch):
 
     monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_9", True)
 
@@ -114,16 +130,130 @@ def test__make_sklearn_estimator(monkeypatch):
 
         assert est.penalty == expected
 
-    target = 10
-    if SKLEARN_LT_1_6:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            alphas=target,
+
+def test__make_sklearn_estimator_alphas_args(monkeypatch):
+    monkeypatch.setattr("hidimstat._utils.utils.SKLEARN_LT_1_7", False)
+
+    alpha_target = 10
+    est = _make_sklearn_estimator(LassoCV, n_alphas=alpha_target)
+    assert est.alphas == alpha_target
+
+
+def test_find_stack_level():
+    """Test find_stack_level."""
+    assert find_stack_level() == 1
+    assert one_level_deeper() == 2
+
+
+def test_check_scoring():
+    """Test the in-house check_scoring function"""
+    regressor_scorer = repr(get_scorer(make_scorer(mean_squared_error)))
+    assert (
+        repr(check_scoring(scoring="mean_squared_error")) == regressor_scorer
+    )
+    assert (
+        repr(check_scoring(scoring=make_scorer(mean_squared_error)))
+        == regressor_scorer
+    )
+    assert repr(check_scoring(estimator=Ridge())) == regressor_scorer
+
+    classifier_scorer = repr(
+        get_scorer(make_scorer(log_loss, response_method="predict_proba"))
+    )
+    assert repr(check_scoring(scoring="log_loss")) == classifier_scorer
+    assert (
+        repr(
+            check_scoring(
+                scoring=make_scorer(log_loss, response_method="predict_proba")
+            )
         )
-        assert est.n_alphas == target
-    else:
-        est = _make_sklearn_estimator(
-            LassoCV,
-            n_alphas=target,
+        == classifier_scorer
+    )
+    assert (
+        repr(check_scoring(estimator=RidgeClassifier())) == classifier_scorer
+    )
+
+    with pytest.raises(
+        TypeError,
+        match=r"should be one of two types "
+        "'classifier' or 'regressor'",
+    ):
+        check_scoring(estimator=SelectFdr())
+
+    with pytest.raises(
+        ValueError, match="No scoring nor estimator was passed to the method"
+    ):
+        check_scoring()
+
+
+@pytest.mark.filterwarnings(
+    "error:Parameters 'method' and 'loss' are deprecated"
+)
+def test_check_loss_method_parameter_deprecation_warning():
+    """Test deprecation warning"""
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        _check_loss_method_parameter(
+            scoring=None, method="mean_squared_error", loss=None
         )
-        assert est.alphas == target
+
+    with pytest.raises(
+        DeprecationWarning,
+        match="Parameters 'method' and 'loss' are deprecated",
+    ):
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=mean_squared_error
+        )
+
+
+@pytest.mark.filterwarnings(
+    "ignore:Parameters 'method' and 'loss' are deprecated"
+)
+def test_check_loss_method_parameter():
+    """
+    Test the following:
+    - returns the score when no method nor loss is given
+    - returns the appropriate loss or method when on of them is input
+    """
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method="predict_proba", loss=None
+        )
+        == log_loss
+    )
+    assert (
+        _check_loss_method_parameter(scoring=None, method="predict", loss=None)
+        == mean_squared_error
+    )
+    with pytest.raises(ValueError, match="is not a valid method"):
+        _check_loss_method_parameter(scoring=None, method="unknown", loss=None)
+
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=mean_squared_error
+        )
+        == mean_squared_error
+    )
+    assert (
+        _check_loss_method_parameter(scoring=None, method=None, loss=log_loss)
+        == log_loss
+    )
+    assert (
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=hinge_loss
+        )
+        == hinge_loss
+    )
+    with pytest.raises(ValueError, match=r"is not a 'sklearn.metrics'"):
+        _check_loss_method_parameter(
+            scoring=None, method=None, loss=check_scoring
+        )
+
+    assert (
+        _check_loss_method_parameter(
+            scoring="mean_squared_error", method=None, loss=mean_squared_error
+        )
+        == "mean_squared_error"
+    )

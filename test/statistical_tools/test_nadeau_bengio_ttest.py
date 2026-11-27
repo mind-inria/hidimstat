@@ -20,8 +20,8 @@ def check_named_results(res, attributes):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [[100, 6, 2, 0.2, 0, 1.0, 10.0, 0.0]],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [[100, 6, None, 2, 0.2, 0, 1.0, 10.0, 0.0]],
 )
 def test_ttest_1samp_corrected_NB(data_generator):
     """
@@ -32,7 +32,7 @@ def test_ttest_1samp_corrected_NB(data_generator):
        larger (more conservative).
      - Check that it allows to identify important features.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
     importance_list = []
     for train_idx, test_idx in cv.split(X):
@@ -47,85 +47,108 @@ def test_ttest_1samp_corrected_NB(data_generator):
         vim.fit(X_train, y_train)
         importances = vim.importance(X_test, y_test)
         importance_list.append(importances)
-    importance_array = np.array(importance_list)
+    importance_array = np.stack(
+        importance_list, axis=1
+    )  # shape (n_features, n_folds)
 
     pvalue_corr = nadeau_bengio_ttest(
         importance_array, 0, test_frac=0.2
     ).pvalue
-    pvalue = ttest_1samp(importance_array, 0, alternative="greater").pvalue
+    pvalue = ttest_1samp(
+        importance_array, 0, alternative="greater", axis=1
+    ).pvalue
     n_features = X.shape[1]
     alpha = 0.05
     assert pvalue_corr.shape == (n_features,)
     assert np.all(pvalue_corr >= pvalue)
     assert np.all(pvalue_corr[important_features] < alpha)
-    assert np.all(
-        pvalue_corr[np.setdiff1d(np.arange(n_features), important_features)]
-        >= alpha
+    assert np.all(pvalue_corr[~important_features] >= alpha)
+
+
+def test_average_over_permutations():
+    """
+    Test the three-dimensional input, of shape
+    (n_features, n_permutations, n_folds).
+     - Test that the permutations are averaged out before the test is computed
+       over the folds, i.e. that it matches the two-dimensional call on the
+       permutation-averaged array.
+     - Test that the reduced axes are dropped.
+    """
+    rng = np.random.default_rng(0)
+    n_features, n_permutations, n_folds = 4, 10, 5
+    a = rng.normal(loc=0.5, size=(n_features, n_permutations, n_folds))
+
+    result = nadeau_bengio_ttest(a, 0, test_frac=0.25)
+    expected = nadeau_bengio_ttest(np.mean(a, axis=1), 0, test_frac=0.25)
+
+    assert result.statistic.shape == (n_features,)
+    assert result.pvalue.shape == (n_features,)
+    assert_allclose(result.statistic, expected.statistic, rtol=1e-14)
+    assert_allclose(result.pvalue, expected.pvalue, rtol=1e-14)
+
+
+def test_wrong_dimension():
+    """Test that only 1D, 2D and 3D inputs are accepted."""
+    with pytest.raises(ValueError, match="must be 1D, 2D, or 3D"):
+        nadeau_bengio_ttest(np.zeros((2, 3, 4, 5)), 0, test_frac=0.25)
+
+
+def test_result_attributes(rng):
+    """Test attribute"""
+    outcome = rng.standard_normal((20, 4)) + np.asarray([0, 0, 1, 2])
+
+    res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
+    attributes = ("statistic", "pvalue")
+    check_named_results(res, attributes)
+
+
+@pytest.mark.parametrize("alternative", ["less", "greater", "two-sided"])
+def test_alternative(alternative):
+    """Test option alternative"""
+    x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
+
+    t_ex, p_ex = nadeau_bengio_ttest(
+        x, 9, test_frac=0.0, alternative=alternative
     )
+    t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
+    assert_allclose(t, t_ex, rtol=1e-14)
+    assert_allclose(p, p_ex, rtol=1e-14)
+
+    t_ex_1, p_ex_1 = nadeau_bengio_ttest(
+        x, 9, test_frac=0.1, alternative=alternative
+    )
+    assert not np.array_equal(t_ex_1, t_ex)
+    assert not np.array_equal(t_ex_1, t)
+    assert not np.array_equal(p_ex_1, p_ex)
+    assert not np.array_equal(p_ex_1, p)
+
+    # test with masked arrays
+    x[1:10] = np.nan
+    x = np.ma.masked_array(x, mask=np.isnan(x))
+    t_ex, p_ex = nadeau_bengio_ttest(
+        x.compressed(),
+        9,
+        test_frac=0.0,
+        alternative=alternative,
+    )
+    t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
+    assert_allclose(t, t_ex, rtol=1e-14)
+    assert_allclose(p, p_ex, rtol=1e-14)
+
+    t_ex_1, p_ex_1 = nadeau_bengio_ttest(
+        x, 9, test_frac=0.1, alternative=alternative
+    )
+    assert not np.array_equal(t_ex_1, t_ex)
+    assert not np.array_equal(t_ex_1, t)
+    assert not np.array_equal(p_ex_1, p_ex)
+    assert not np.array_equal(p_ex_1, p)
 
 
-class TestTtest_1samp:
-    """
-    Adapted from https://github.com/scipy/scipy/blob/2878daa7083375847e3a181553b146e843efcfad/scipy/stats/tests/test_mstats_basic.py#L1455
-    """
-
-    def setup_method(self):
-        self.rng = np.random.default_rng(6043813830)
-
-    def test_result_attributes(self):
-        """Test attribute"""
-        outcome = self.rng.standard_normal((20, 4)) + np.asarray([0, 0, 1, 2])
-
-        res = nadeau_bengio_ttest(outcome[:, 0], 1, 0.1)
-        attributes = ("statistic", "pvalue")
-        check_named_results(res, attributes)
-
-    @pytest.mark.parametrize("alternative", ["less", "greater", "two-sided"])
-    def test_alternative(self, alternative):
-        """Test option alternative"""
-        x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
-
-        t_ex, p_ex = nadeau_bengio_ttest(
-            x, 9, test_frac=0.0, alternative=alternative
-        )
-        t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
-        assert_allclose(t, t_ex, rtol=1e-14)
-        assert_allclose(p, p_ex, rtol=1e-14)
-
-        t_ex_1, p_ex_1 = nadeau_bengio_ttest(
-            x, 9, test_frac=0.1, alternative=alternative
-        )
-        assert not np.array_equal(t_ex_1, t_ex)
-        assert not np.array_equal(t_ex_1, t)
-        assert not np.array_equal(p_ex_1, p_ex)
-        assert not np.array_equal(p_ex_1, p)
-
-        # test with masked arrays
-        x[1:10] = np.nan
-        x = np.ma.masked_array(x, mask=np.isnan(x))
-        t_ex, p_ex = nadeau_bengio_ttest(
-            x.compressed(),
-            9,
-            test_frac=0.0,
-            alternative=alternative,
-        )
-        t, p = mstats.ttest_1samp(x, 9, alternative=alternative)
-        assert_allclose(t, t_ex, rtol=1e-14)
-        assert_allclose(p, p_ex, rtol=1e-14)
-
-        t_ex_1, p_ex_1 = nadeau_bengio_ttest(
-            x, 9, test_frac=0.1, alternative=alternative
-        )
-        assert not np.array_equal(t_ex_1, t_ex)
-        assert not np.array_equal(t_ex_1, t)
-        assert not np.array_equal(p_ex_1, p_ex)
-        assert not np.array_equal(p_ex_1, p)
-
-    def test_alternative_exception(self):
-        """Test exception for bad alternative"""
-        x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
-        with pytest.raises(
-            ValueError,
-            match="`alternative` must be 'less', 'greater', or 'two-sided'",
-        ):
-            nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")
+def test_alternative_exception():
+    """Test exception for bad alternative"""
+    x = stats.norm.rvs(loc=10, scale=2, size=100, random_state=123)
+    with pytest.raises(
+        ValueError,
+        match="`alternative` must be 'less', 'greater', or 'two-sided'",
+    ):
+        nadeau_bengio_ttest(x, 9, test_frac=0.0, alternative="ttt")

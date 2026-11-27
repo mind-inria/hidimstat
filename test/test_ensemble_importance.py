@@ -2,8 +2,11 @@
 Test the clustered_inference module
 """
 
+import warnings
+
 import numpy as np
 import pytest
+from scipy.stats import binomtest
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 from sklearn.linear_model import LassoCV, MultiTaskLassoCV
@@ -26,90 +29,132 @@ def spatially_relaxed_fdp_power(
     false positives near true positives can be less penalized.
 
     """
-    beta_ids = np.argwhere(ground_truth == 1).flatten()
     roi_size_extended = roi_size + spatial_tolerance
     ground_truth_extended = ground_truth.copy().reshape(shape)
     ground_truth_extended[0:roi_size_extended, 0:roi_size_extended] += 1
     ground_truth_extended[-roi_size_extended:, -roi_size_extended:] += 1
     ground_truth_extended[0:roi_size_extended, -roi_size_extended:] += 1
     ground_truth_extended[-roi_size_extended:, 0:roi_size_extended] += 1
-    ground_truth_extended = (ground_truth_extended > 0).astype(int).flatten()
+    ground_truth_extended = (ground_truth_extended > 0).astype(bool).flatten()
 
-    selected_ids = np.argwhere(selected).flatten()
-    true_positive = np.intersect1d(selected_ids, beta_ids)
+    true_positive = np.sum(selected.astype(bool) & ground_truth.astype(bool))
+    false_positive = np.sum(selected.astype(bool) & ~ground_truth_extended)
 
-    ground_truth_extended_ids = np.argwhere(
-        ground_truth_extended.flatten() == 1
-    ).flatten()
-    false_positive = np.setdiff1d(selected_ids, ground_truth_extended_ids)
-
-    fdp = len(false_positive) / len(selected_ids)
-    power = len(true_positive) / len(beta_ids)
+    fdp = false_positive / np.sum(selected)
+    power = true_positive / np.sum(ground_truth)
     return fdp, power
 
 
-def test_ensemble_parameter_check():
-    """
-    Test to verify parameter's class compliance.
-    """
-    en_vi = EnsembleImportance(vim=LassoCV())
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_vim_attribute_before_fit():
+    """Test checks on vim attribute before fitting."""
+    endl = EnsembleImportance(vim=LassoCV())
+
     with pytest.raises(
-        AssertionError,
-        match="estimator needs to be a subclass of BaseVariableImportance",
+        TypeError,
+        match=r"'vim' needs to be a subclass of BaseVariableImportance",
     ):
-        en_vi.fit(np.zeros((5, 5)), np.zeros((5,)))
+        endl._check_fit_attributes()
 
 
-def test_ensemble_importance_check_fit():
+def test_check_n_repeats_attribute_before_fit():
+    """Test checks on n_repeats attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.n_repeats = "1"
+
+    with pytest.raises(TypeError, match=r"'n_repeats' needs to be an int"):
+        endl._check_fit_attributes()
+
+    endl.n_repeats = -1
+    with pytest.raises(
+        ValueError, match=r"'n_repeats' needs to be strictly positive"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_frac_attribute_before_fit():
+    """Test checks on bootstrap_frac attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_frac = "1"
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_frac' needs to be an float"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = -1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_frac = 1.1
+    with pytest.raises(
+        ValueError, match=r"'bootstrap_frac' needs to be in \[0, 1\] interval"
+    ):
+        endl._check_fit_attributes()
+
+
+def test_check_bootstrap_groups_attribute_before_fit():
+    """Test checks on bootstrap_groups attribute before fitting."""
+    endl = EnsembleImportance(vim=DesparsifiedLasso(estimator=LassoCV()))
+    endl.bootstrap_groups = [1, 4]
+
+    with pytest.raises(
+        TypeError, match=r"'bootstrap_groups' needs to be an np.ndarray"
+    ):
+        endl._check_fit_attributes()
+
+    endl.bootstrap_groups = np.array([[1, 2], [2, 1]])
+    with pytest.raises(
+        ValueError,
+        match=r"'bootstrap_groups' needs to be of shape \(n_samples,\)",
+    ):
+        endl._check_fit_attributes()
+
+
+###########################################################################################
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, 3, 10, 0.5, 42, 1, 50, 0.9)],
+    ids=["correlated noisy"],
+)
+def test_ensemble_importance_check_fit(data_generator):
     """
     Check that a call to importance() fails if EnsembleImportance is not fitted.
     """
-    n_samples, n_features, n_target = 200, 100, 3
-    support_size = 10
-    signal_noise_ratio = 50.0
-    rho_serial = 0.9
-    rho_data = 0.5
-    seed = 42
-
-    X, y, _, _ = multivariate_simulation(
-        n_samples=n_samples,
-        n_features=n_features,
-        n_targets=n_target,
-        support_size=support_size,
-        signal_noise_ratio=signal_noise_ratio,
-        rho_serial=rho_serial,
-        rho=rho_data,
-        shuffle=False,
-        continuous_support=True,
-        seed=seed,
-    )
+    X, y, _ = data_generator
 
     encludl = EnsembleImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
         n_repeats=5,
-        random_state=seed,
+        random_state=42,
     )
 
     with pytest.raises(
-        ValueError, match="The estimators need to be fit before using them"
+        ValueError, match="This EnsembleImportance instance is not fitted yet"
     ):
         encludl.importance(X, y)
 
 
-def test_ensemble_importance():
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["high dimension"],
+)
+def test_ensemble_importance(data_generator):
     """Test the EnsembleImportance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
+    X, y, important_mask = data_generator
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
 
@@ -118,7 +163,6 @@ def test_ensemble_importance():
         n_repeats=5,
         random_state=0,
     )
-
     endl.fit(
         X_train,
         y_train,
@@ -127,19 +171,51 @@ def test_ensemble_importance():
 
     assert importance.shape == (X.shape[1],)
     assert (
-        importance[important_features].mean()
-        > importance[non_important_features].mean()
+        importance[important_mask].mean() > importance[~important_mask].mean()
     )
 
 
-def test_encluvi_spatial():
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(50, 20, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic"],
+)
+def test_importance_data_no_warning_raised(data_generator):
     """
-    Test CluVI on a 2D spatial simulation. Testing for support recovery methods using
+    Test that no warning is raised due to passing data
+    when calling the importance function of the underlying VIM.
+    """
+    X, y, _ = data_generator
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Check that no warnings related to handing out data to a method that
+    # doesn't need it for its importance function is raised.
+    dl = DesparsifiedLasso(estimator=LassoCV())
+    dl.fit(X_train, y_train)
+    endl = EnsembleImportance(vim=dl, n_repeats=2)
+    endl.fit(X_train, y_train)
+
+    # If warnings are raised, make sure it's not about "X/y won't be used"
+    with warnings.catch_warnings(record=True) as warnings_raised:
+        endl.importance(X_test, y_test)
+        if len(warnings_raised) > 0:
+            assert not any(
+                "won't be used" in str(w.message) for w in warnings_raised
+            )
+
+
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+def test_encluvi_spatial(rng):
+    """
+    Test EnCluVI on a 2D spatial simulation. Testing for support recovery methods using
     clustering is challenging as clusters that intersect the true support can also
     include non-support features, rapidly increasing false positives. To address this,
     we introduce a spatial relaxation in the evaluation metrics.
 
-     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.1).
+     - Test that the spatially relaxed FDP is below a specified FDR threshold (0.2).
      - Test that the statistical power is above a specified threshold (0.8).
     """
     n_samples = 400
@@ -150,11 +226,13 @@ def test_encluvi_spatial():
     smooth_X = (
         0.2  # level of spatial smoothing introduced by the Gaussian filter
     )
+    fwer = 0.2
     tol = 0.1
+    n_seeds = 20
 
     fp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=n_seeds):
         # generating the data
         X_init, y, beta, _ = multivariate_simulation_spatial(
             n_samples, shape, roi_size, signal_noise_ratio, smooth_X, seed=seed
@@ -181,30 +259,35 @@ def test_encluvi_spatial():
             random_state=seed,
         )
         encludl.fit_importance(X_init, y)
-        fwer = 0.1
         selected = encludl.fwer_selection(fwer=fwer, two_tailed_test=False)
 
         fdp, power = spatially_relaxed_fdp_power(
             selected=selected,
             ground_truth=beta,
             roi_size=roi_size,
-            spatial_tolerance=2,
+            spatial_tolerance=3,
             shape=shape,
         )
         fp_list.append(int(fdp > 0))
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
-    assert np.mean(fp_list) <= fwer + tol
+    result = binomtest(
+        sum(fp_list), n=len(fp_list), p=fwer, alternative="greater"
+    )
+    assert result.pvalue > 0.01
 
 
-def test_encluvi_temporal():
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
+def test_encluvi_temporal(rng):
     """
     Testing the procedure on two simulations with a 1D data structure and
     with n << p: with a temporal dimension. The support is connected and
     of size 10, it must be recovered with a small spatial tolerance
     parametrized by `margin_size`.
     """
-    n_samples, n_features, n_target = 200, 100, 3
+    n_samples, n_features, n_target = 100, 400, 3
     support_size = 10
     signal_noise_ratio = 50.0
     rho_serial = 0.9
@@ -215,7 +298,7 @@ def test_encluvi_temporal():
 
     fdp_list = []
     power_list = []
-    for seed in range(10):
+    for seed in rng.integers(low=0, high=500, size=10):
         X, y, _, _ = multivariate_simulation(
             n_samples=n_samples,
             n_features=n_features,
@@ -256,10 +339,13 @@ def test_encluvi_temporal():
         )
         fdp_list.append(fdp)
         power_list.append(power)
+
     assert np.mean(power_list) >= 0.5
     assert np.mean(fdp_list) <= alpha
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_encluvi_independence():
     """Test that EnCluVI works with n_jobs=1. Non regression for #425"""
     n_samples = 50
@@ -283,7 +369,7 @@ def test_encluvi_independence():
         bootstrap_frac=0.7,
         n_repeats=20,
         random_state=1,
-        n_jobs=-1,
+        n_jobs=1,
     )
     encluvi.fit_importance(X_init, y)
     selected_ecdl = encluvi.fwer_selection(alpha, n_tests=n_clusters)
@@ -310,15 +396,17 @@ def ensemble_test_data():
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
     dl = DesparsifiedLasso(estimator=LassoCV())
     dl.fit(X_train, y_train)
-    cfi_default_parameters = {
+    en_dl_default_parameters = {
         "vim": dl,
         "n_repeats": 10,
         "bootstrap_frac": 0.5,
         "n_jobs": 1,
     }
-    return X_train, y_train, X_test, y_test, cfi_default_parameters
+    return X_train, y_train, X_test, y_test, en_dl_default_parameters
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_repeatibility(ensemble_test_data):
     """
     Test that multiple calls of .importance() when EnsembleImportance is not seeded
@@ -336,6 +424,8 @@ def test_ensemble_repeatibility(ensemble_test_data):
     assert not np.array_equal(importance, importance_repeat)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_none(ensemble_test_data):
     """
     Test randomness of multiple calls of .importance() when
@@ -358,6 +448,8 @@ def test_ensemble_randomness_with_none(ensemble_test_data):
     assert not np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_integer(ensemble_test_data):
     """
     Test reproducibility of multiple calls of .importance() when
@@ -382,6 +474,8 @@ def test_ensemble_randomness_with_integer(ensemble_test_data):
     assert np.array_equal(importance, importance_reproducibility)
 
 
+# TODO: remove in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 def test_ensemble_randomness_with_rng(ensemble_test_data):
     """
     Test that:

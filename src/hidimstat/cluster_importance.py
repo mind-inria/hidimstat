@@ -1,11 +1,8 @@
-import inspect
-
 import numpy as np
-from sklearn.base import clone
+from sklearn.base import check_is_fitted, clone
 from sklearn.cluster import FeatureAgglomeration
-from sklearn.utils.validation import check_memory
+from sklearn.utils import get_tags
 
-from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
 
 
@@ -38,6 +35,9 @@ class ClusterImportance(BaseVariableImportance):
     n_features_ : int
         Number of features in the original data.
 
+    Notes
+    -----
+    .. versionadded:: 0.4.0
     """
 
     def __init__(
@@ -50,6 +50,20 @@ class ClusterImportance(BaseVariableImportance):
 
         self.vim_ = None
         self.clustering_ = None
+
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        if not isinstance(self.vim, BaseVariableImportance):
+            raise TypeError(
+                "'vim' needs to be a subclass of BaseVariableImportance"
+            )
+
+        if not isinstance(self.clustering, FeatureAgglomeration):
+            raise TypeError(
+                "'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration"
+            )
 
     def fit(self, X, y):
         """
@@ -67,12 +81,7 @@ class ClusterImportance(BaseVariableImportance):
         self : CluVI
             Fitted estimator.
         """
-        assert issubclass(self.vim.__class__, BaseVariableImportance), (
-            "estimator needs to be a subclass of BaseVariableImportance"
-        )
-        assert issubclass(self.clustering.__class__, FeatureAgglomeration), (
-            "clustering needs to be an instance of sklearn.cluster.FeatureAgglomeration"
-        )
+        self._check_fit_attributes()
 
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
@@ -95,10 +104,14 @@ class ClusterImportance(BaseVariableImportance):
         y : ndarray, shape (n_samples,) or (n_samples, n_tasks)
             Target variable(s).
         """
-        self._check_fit()
+        check_is_fitted(self)
 
-        X_reduced = self.clustering_.transform(X)
-        self.vim_.importance(X_reduced, y)
+        tags = get_tags(self.vim_)
+        if tags.needs_importance_data:
+            X_reduced = self.clustering_.transform(X)
+            self.vim_.importance(X_reduced, y)
+        else:
+            self.vim_.importance()
 
         self.pvalues_ = self.clustering_.inverse_transform(self.vim_.pvalues_)
 
@@ -176,12 +189,5 @@ class ClusterImportance(BaseVariableImportance):
                 )
         return importance_degrouped
 
-    def _check_fit(self):
-        """
-        Check that an estimator has been fitted after removing each group of
-        covariates.
-        """
-        if self.vim_ is None:
-            raise ValueError(
-                "The estimator needs to be fit before using them."
-            )
+    def __sklearn_is_fitted__(self) -> bool:
+        return getattr(self, "vim_", None) is not None

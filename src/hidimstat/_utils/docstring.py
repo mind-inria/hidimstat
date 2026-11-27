@@ -20,7 +20,7 @@ def _detection_section(lines):
     index_line = 1
     begin_section = index_line
     while len(lines) > index_line:
-        if "-------" in lines[index_line]:
+        if "-----" in lines[index_line]:
             sections.append(lines[begin_section : index_line - 2])
             begin_section = index_line - 1
         index_line += 1
@@ -54,13 +54,13 @@ def _parse_docstring(docstring):
     return sections
 
 
-def _reindent(string):
+def _reindent(lines):
     """
     Reindent a string by stripping whitespace and normalizing line breaks.
 
     Parameters
     ----------
-    string : list of str
+    lines : list of str
         The string content to reindent.
 
     Returns
@@ -68,11 +68,7 @@ def _reindent(string):
     str
         Reindented string with normalized line breaks and indentation.
     """
-    new_string = deepcopy(string)
-    for i in range(len(new_string)):
-        new_string[i] = "\n" + new_string[i]
-    new_string = "".join(new_string)
-    return "\n".join(l.strip() for l in new_string.strip().split("\n"))
+    return "\n".join(l.strip() for s in lines for l in s.split("\n"))
 
 
 def _aggregate_docstring(list_docstring, returns_docstring):
@@ -98,7 +94,10 @@ def _aggregate_docstring(list_docstring, returns_docstring):
             list_line.append(_parse_docstring(docstring=docstring))
 
     # add summary
-    final_docstring = deepcopy(list_line[0]["short"])
+    final_docstring = [
+        *deepcopy(list_line[0]["short"]),
+        "\n.. deprecated:: 0.6.0\n\n",
+    ]
     # add parameter
     final_docstring += list_line[0]["Parameters"]
     for i in range(1, len(list_line)):
@@ -106,4 +105,5 @@ def _aggregate_docstring(list_docstring, returns_docstring):
         final_docstring += list_line[i]["Parameters"][2:]
     # the last return
     final_docstring += [returns_docstring]
-    return _reindent(final_docstring)
+    final_docstring = _reindent(final_docstring)
+    return final_docstring

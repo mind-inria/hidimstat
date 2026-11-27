@@ -1,3 +1,4 @@
+import numbers
 import warnings
 
 import numpy as np
@@ -9,7 +10,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.utils.validation import check_is_fitted
 
 from hidimstat._utils.docstring import _aggregate_docstring
-from hidimstat._utils.utils import check_random_state, seed_estimator
+from hidimstat._utils.utils import (
+    check_random_state,
+    find_stack_level,
+    seed_estimator,
+)
 from hidimstat.base_variable_importance import BaseVariableImportance
 from hidimstat.samplers import GaussianKnockoffs
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
@@ -109,8 +114,14 @@ class ModelXKnockoff(BaseVariableImportance):
     ----------
     importances_ : ndarray, shape (n_repeats, n_features)
         Knockoff statistics :math:`W_j` for each original feature across repetitions.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     pvalues_ : ndarray, shape (n_repeats, n_features)
         Empirical p-values for each repeat.
+
+        .. warning::
+            Shape will change to (n_features, n_repeats) in version 0.6.0
     threshold_fdr_ : float
         Threshold computed by the FDR selection procedure.
     aggregated_pval_ : ndarray or None
@@ -153,6 +164,32 @@ class ModelXKnockoff(BaseVariableImportance):
         # unnecessary to have n_jobs > number of bootstraps
         self.n_jobs = n_jobs
 
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+        # Attributes that are checked outside of the class:
+        # n_jobs, joblib_verbose, random_state
+        # 'estimator' is checked during importance call.
+        if self.ko_generator is not None and not isinstance(
+            self.ko_generator, GaussianKnockoffs
+        ):
+            raise TypeError(
+                "'ko_generator' needs to be a hidimstat.samplers.GaussianKnockoffs."
+            )
+
+        if not isinstance(self.n_repeats, numbers.Number):
+            raise TypeError("'n_repeats' needs to be a number.")
+        elif self.n_repeats <= 0:
+            raise ValueError("'n_repeats' needs to be strictly positive.")
+
+        if not isinstance(self.centered, bool):
+            raise TypeError("'centered' needs to be a bool.")
+
+        if not isinstance(self.preconfigure_lasso_path, bool):
+            raise TypeError("'preconfigure_lasso_path' needs to be a bool.")
+
     def fit(self, X, y):
         """
         Fit the knockoff generator and estimators to the data.
@@ -170,7 +207,7 @@ class ModelXKnockoff(BaseVariableImportance):
         self : object
             Returns the instance itself.
         """
-        assert self.n_repeats > 0, "n_repeats must be positive"
+        self._check_fit_attributes()
         n_jobs = min(self.n_jobs, self.n_repeats)
 
         rng = check_random_state(self.random_state)
@@ -234,10 +271,16 @@ class ModelXKnockoff(BaseVariableImportance):
         and computes test statistics comparing original features against their knockoffs.
         When n_repeats > 1, multiple sets of knockoffs are generated and results are averaged.
         """
+        warnings.warn(
+            r"Dimensions of 'importances_' and 'pvalues_' attributes will be swapped in 0.6.0 "
+            "for global API consistency.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if X is not None:
-            warnings.warn("X won't be used", stacklevel=2)
+            warnings.warn("X won't be used", stacklevel=find_stack_level())
         if y is not None:
-            warnings.warn("y won't be used", stacklevel=2)
+            warnings.warn("y won't be used", stacklevel=find_stack_level())
         check_is_fitted(self)
 
         self.importances_ = self.lasso_coefficient_difference_statistic(
@@ -328,13 +371,10 @@ class ModelXKnockoff(BaseVariableImportance):
 
         Raises
         ------
-        AssertionError
+        ValueError
             If `importances_` is None or if incompatible combinations of parameters are provided
         """
         self._check_importance()
-        assert self.importances_ is not None, (
-            "this method doesn't support selection base on FDR"
-        )
 
         if self.importances_.shape[0] == 1:
             self.threshold_fdr_ = self.knockoff_threshold(
@@ -342,13 +382,18 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.importances_[0] >= self.threshold_fdr_
         elif not evalues:
-            assert fdr_control != "ebh", (
-                "for p-values, the fdr control can't be 'ebh'"
-            )
+            if fdr_control == "ebh":
+                warnings.warn(
+                    "For p-values, the fdr control can't be 'ebh'. "
+                    "Coercing value to 'bhq'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                fdr_control = "bhq"
             pvalues = np.array(
                 [
-                    self._empirical_knockoff_pval(test_score)
-                    for test_score in self.importances_
+                    self._empirical_knockoff_pval(self.importances_[i])
+                    for i in range(self.importances_.shape[0])
                 ]
             )
             self.aggregated_pval_ = quantile_aggregation(
@@ -362,11 +407,17 @@ class ModelXKnockoff(BaseVariableImportance):
             )
             selected = self.aggregated_pval_ <= self.threshold_fdr_
         else:
-            assert fdr_control == "ebh", (
-                "for e-value, the fdr control need to be 'ebh'"
-            )
+            if fdr_control != "ebh":
+                warnings.warn(
+                    "For e-values, the fdr control needs to be 'ebh'. "
+                    "Coercing value to 'ebh'.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                fdr_control = "ebh"
             evalues = []
-            for test_score in self.importances_:
+            for i in range(self.importances_.shape[0]):
+                test_score = self.importances_[i]
                 ko_threshold = self.knockoff_threshold(test_score, fdr=fdr)
                 evalues.append(
                     self._empirical_knockoff_eval(test_score, ko_threshold)
@@ -571,6 +622,11 @@ class ModelXKnockoff(BaseVariableImportance):
 
         return np.array(evals)
 
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.needs_importance_data = False
+        return tags
+
 
 def model_x_knockoff_importance(
     X,
@@ -590,6 +646,13 @@ def model_x_knockoff_importance(
     adaptive_aggregation=False,
     gamma=0.5,
 ):
+    warnings.warn(
+        "model_x_knockoff_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class ModelXKnockoff instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = ModelXKnockoff(
         ko_generator=ko_generator,
         n_repeats=n_repeats,
@@ -621,13 +684,13 @@ model_x_knockoff_importance.__doc__ = _aggregate_docstring(
         ModelXKnockoff.fdr_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection: binary array-like of shape (n_features)
-        Binary array of the selected features
-    importance : array-like of shape (n_features)
-        The computed feature importance scores.
-    pvalues : array-like of shape (n_features)
-        The computed significant of feature for the prediction.
-    """,
+Returns
+-------
+selection: binary array-like of shape (n_features)
+    Binary array of the selected features
+importance : array-like of shape (n_features)
+    The computed feature importance scores.
+pvalues : array-like of shape (n_features)
+    The computed significant of feature for the prediction.
+""",
 )
