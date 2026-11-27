@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 from hidimstat.samplers.utils import _subsampling
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
@@ -22,8 +23,9 @@ class EnsembleImportance(BaseVariableImportance):
 
     Parameters
     ----------
-    vim: hidimstat.BaseVariableImportance
+    vim: hidimstat.BaseVariableImportance, default=None.
         Any variable importance method that derives from hidimstat's BaseVariableImportance class.
+        Set to hidimstat.DesparsifiedLasso if None is passed.
     n_repeats: int, optional (default=25)
         Number of bootstrap iterations for ensemble inference.
     bootstrap_frac: float, optional (default=0.3)
@@ -68,7 +70,7 @@ class EnsembleImportance(BaseVariableImportance):
 
     def __init__(
         self,
-        vim,
+        vim=None,
         n_repeats=25,
         bootstrap_frac=0.3,
         bootstrap_groups=None,
@@ -98,7 +100,9 @@ class EnsembleImportance(BaseVariableImportance):
         # Attributes that are checked outside of class:
         # n_jobs, random_state, gamme, aggregation, adaptive_aggregation
 
-        if not isinstance(self.vim, BaseVariableImportance):
+        if self.vim is not None and not isinstance(
+            self.vim, BaseVariableImportance
+        ):
             raise TypeError(
                 "'vim' needs to be a subclass of BaseVariableImportance."
             )
@@ -162,6 +166,11 @@ class EnsembleImportance(BaseVariableImportance):
         """
         self._check_fit_attributes()
         rng = check_random_state(self.random_state)
+
+        if self.vim is None:
+            self.vim_ = DesparsifiedLasso()
+        else:
+            self.vim_ = self.vim
 
         if hasattr(self.vim, "random_state"):
             self.vim.random_state = self.random_state

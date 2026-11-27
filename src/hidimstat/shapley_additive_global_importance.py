@@ -11,6 +11,7 @@ import numbers
 import numpy as np
 from joblib import Parallel, delayed
 from sklearn.base import check_is_fitted
+from sklearn.linear_model import LassoCV
 from tqdm import tqdm
 
 from hidimstat._utils.utils import (
@@ -92,8 +93,9 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
 
     Parameters
     ----------
-    estimator : object
+    estimator : sklearn compatible estimator, default=None.
         The fitted model for which to compute the SAGE values.
+        Set to LassoCV() if None is passed.
     scoring : srt, callable
         Strategy to evaluate the performance of the estimator to compute
         importance scores. Based on :func:`sklearn.metrics.check_scoring`.
@@ -132,7 +134,7 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         scoring="mean_squared_error",
         method=None,
         loss=None,
@@ -175,6 +177,14 @@ class SAGE(GroupVariableImportanceMixin, BaseVariableImportance):
 
     def fit(self, X, y=None):
         self._check_fit_attributes()
+
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+            )
+        else:
+            self.estimator_ = self.estimator
+
         self.estimator_ = self._initial_fit(self.estimator, X, y)
         super().fit(X, y)
         return self

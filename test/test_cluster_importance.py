@@ -52,7 +52,7 @@ def spatially_relaxed_fdp_power(
 def test_check_vim_attribute_before_fit():
     """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
-        vim=None,
+        vim="DesparsifiedLasso",
         clustering=FeatureAgglomeration(),
     )
     with pytest.raises(
@@ -66,7 +66,7 @@ def test_check_clustering_attribute_before_fit():
     """Test checks on vim attribute before fitting."""
     clu_vi = ClusterImportance(
         vim=DesparsifiedLasso(estimator=LassoCV()),
-        clustering=None,
+        clustering="FeatureAgglomeration",
     )
     with pytest.raises(
         TypeError,

@@ -42,9 +42,10 @@ class D0CRT(BaseVariableImportance):
 
     Parameters
     ----------
-    estimator : sklearn estimator
+    estimator : sklearn estimator, default=None
         The base estimator used for y-distillation and prediction
         (e.g., Lasso, RandomForest, ...).
+        Set to LassoCV() if None is passed.
     method : str, default="predict"
         Method of the estimator to use for predictions ("predict", "predict_proba",
         "decision_function").
@@ -135,7 +136,7 @@ class D0CRT(BaseVariableImportance):
 
     def __init__(
         self,
-        estimator,
+        estimator=None,
         method: str = "predict",
         estimated_coef=None,
         estimated_intercept=None,
@@ -323,7 +324,15 @@ class D0CRT(BaseVariableImportance):
         """
         self._check_fit_attributes()
         rng = check_random_state(self.random_state)
-        self.estimator = seed_estimator(self.estimator, random_state=rng)
+
+        if self.estimator is None:
+            self.estimator_ = LassoCV(
+                max_iter=1000, tol=0.0001, eps=0.01, fit_intercept=False
+            )
+        else:
+            self.estimator_ = self.estimator
+
+        self.estimator_ = seed_estimator(self.estimator_, random_state=rng)
         self.is_logistic_ = self._check_logistic()
         check_X_y(X, y)
 

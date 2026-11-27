@@ -4,6 +4,7 @@ from sklearn.cluster import FeatureAgglomeration
 from sklearn.utils import get_tags
 
 from hidimstat.base_variable_importance import BaseVariableImportance
+from hidimstat.desparsified_lasso import DesparsifiedLasso
 
 
 class ClusterImportance(BaseVariableImportance):
@@ -15,10 +16,12 @@ class ClusterImportance(BaseVariableImportance):
 
     Parameters
     ----------
-    vim: hidimstat.BaseVariableImportance
+    vim: hidimstat.BaseVariableImportance, default=None.
         An instance of any variable importance method that derives from hidimstat's BaseVariableImportance.
-    clustering: sklearn.cluster.FeatureAgglomeration
+        Set to hidimstat.DesparsifiedLasso if None is passed.
+    clustering: sklearn.cluster.FeatureAgglomeration, default=None.
         An instance of a clustering method that operates on features.
+        Set to sklearn.cluster.FeatureAgglomeration if None is passed.
 
     Attributes
     ----------
@@ -42,8 +45,8 @@ class ClusterImportance(BaseVariableImportance):
 
     def __init__(
         self,
-        vim,
-        clustering,
+        vim=None,
+        clustering=None,
     ):
         self.vim = vim
         self.clustering = clustering
@@ -55,12 +58,16 @@ class ClusterImportance(BaseVariableImportance):
         """
         Check attributes needed during fitting of the estimator.
         """
-        if not isinstance(self.vim, BaseVariableImportance):
+        if self.vim is not None and not isinstance(
+            self.vim, BaseVariableImportance
+        ):
             raise TypeError(
                 "'vim' needs to be a subclass of BaseVariableImportance"
             )
 
-        if not isinstance(self.clustering, FeatureAgglomeration):
+        if self.clustering is not None and not isinstance(
+            self.clustering, FeatureAgglomeration
+        ):
             raise TypeError(
                 "'clustering' needs to be an instance of sklearn.cluster.FeatureAgglomeration"
             )
@@ -82,6 +89,16 @@ class ClusterImportance(BaseVariableImportance):
             Fitted estimator.
         """
         self._check_fit_attributes()
+
+        if self.vim is None:
+            self.vim_ = DesparsifiedLasso()
+        else:
+            self.vim_ = self.vim
+
+        if self.clustering is None:
+            self.clustering_ = FeatureAgglomeration()
+        else:
+            self.clustering_ = self.clustering
 
         self.n_features_in_ = X.shape[1]
         self.clustering_ = self.clustering.fit(X)
