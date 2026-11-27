@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+import warnings
 from pathlib import Path
 
 import matplotlib
@@ -80,12 +81,15 @@ else:
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
 # Handle filtering out warnings for child processes.
-os.environ["PYTHONWARNINGS"] = (
-    "ignore:The default value of the parameter 'scoring':FutureWarning,"
-    "ignore:The fitted attributes of LogisticRegressionCV:FutureWarning,"
-    "ignore:Objective did not converge:UserWarning,"
-    "ignore:Gram matrix:UserWarning,"
-    "ignore:matrix for knockoffs is not positive definite:UserWarning"
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message=(
+        ".*matplotlib backend that is non-interactive.*|"
+        ".*Objective did not converge.*"
+        ".*matrix for knockoffs is not positive definite.*"
+        ".*Gram matrix.*"
+    ),
 )
 
 # -- Copy files for docs --------------------------------------------------

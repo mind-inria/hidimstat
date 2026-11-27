@@ -199,7 +199,7 @@ importances = vim.importance(X, y)
 # plot of all features.
 
 _, ax = plt.subplots(figsize=(6, 4))
-ax.boxplot(importances[:10, :].T, orientation="horizontal")
+ax.boxplot(importances[:10, :].T)
 ax.set_yticklabels(feature_names[:10])
 ax.set_xlabel("CFI importance (increase in log-loss)")
 sns.despine(ax=ax)
