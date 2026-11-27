@@ -68,6 +68,7 @@ class PDP:
 
     @staticmethod
     def _plot_1d(X, pd, feature_ids, feature_names, cmap=None, **kwargs):
+        """Plot the Partial Dependence Plot for a single feature."""
         del cmap  # only there for API compatibility
         _, axes = plt.subplots(2, 1, height_ratios=[0.2, 1])
         ax = axes[0]
@@ -91,6 +92,7 @@ class PDP:
 
     @staticmethod
     def _plot_2d(X, pd, feature_ids, feature_names, cmap="viridis", **kwargs):
+        """Plot the Partial Dependence Plot for two features."""
         x = pd["grid_values"][0]
         y = pd["grid_values"][1]
         z = pd["average"][0]

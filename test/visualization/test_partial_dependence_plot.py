@@ -1,7 +1,10 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import pytest
+from sklearn.datasets import make_circles
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.visualization import PDP
@@ -67,3 +70,37 @@ def test_pdp_invalid_features_length(pdp_test_data):
         ValueError, match="Only 1D and 2D PDP plots are supported"
     ):
         pdp.plot(X, features=[0, 1, 2])
+
+
+@pytest.mark.mpl_image_compare
+def test_pdp_plot_1d():
+    """Test PDP plot function with a single feature."""
+    X, y = make_circles(n_samples=500, noise=0.1, factor=0.7, random_state=0)
+    X_train, X_test, y_train, _ = train_test_split(
+        X, y, test_size=0.3, random_state=0
+    )
+
+    model = HistGradientBoostingClassifier(random_state=0)
+    model.fit(X_train, y_train)
+
+    pdp = PDP(model)
+    axes = pdp.plot(X_test, features=0)
+
+    return axes[0].figure
+
+
+@pytest.mark.mpl_image_compare
+def test_pdp_plot_2d():
+    """Test PDP plot function with two features."""
+    X, y = make_circles(n_samples=500, noise=0.1, factor=0.7, random_state=0)
+    X_train, X_test, y_train, _ = train_test_split(
+        X, y, test_size=0.3, random_state=0
+    )
+
+    model = HistGradientBoostingClassifier(random_state=0)
+    model.fit(X_train, y_train)
+
+    pdp = PDP(model)
+    axes = pdp.plot(X_test, features=[0, 1])
+
+    return axes[0, 0].figure
