@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 import sys
-import warnings
 from pathlib import Path
 
 import matplotlib
@@ -80,16 +79,18 @@ else:
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
-# Handle filtering out warnings for child processes.
-warnings.filterwarnings(
-    "ignore",
-    category=UserWarning,
-    message=(
-        ".*matplotlib backend that is non-interactive.*|"
-        ".*Objective did not converge.*"
-        ".*matrix for knockoffs is not positive definite.*"
-        ".*Gram matrix.*"
-    ),
+
+# Filter out warnings in child processes (e.g. joblib/loky workers),
+# which do not inherit the filters above but do read PYTHONWARNINGS.
+# PYTHONWARNINGS does not support regexes:
+# each message is a literal, case-insensitive prefix of the warning message.
+_child_warning_filters = [
+    "ignore:Objective did not converge:UserWarning",
+    "ignore:The equi-correlated matrix for knockoffs:UserWarning",
+    "ignore:Gram matrix was provided:UserWarning",
+]
+os.environ["PYTHONWARNINGS"] = ",".join(
+    filter(None, [os.environ.get("PYTHONWARNINGS"), *_child_warning_filters])
 )
 
 # -- Copy files for docs --------------------------------------------------
