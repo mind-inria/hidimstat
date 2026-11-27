@@ -166,7 +166,7 @@ jobs:
                 name: build_type
 
         -   name: Install tox
-            run: uv tool install codecarbon tox --with=tox-uv
+            run: uv tool install tox --with=tox-uv --with=codecarbon
 
         -   name: Show tox config
             run: tox c
