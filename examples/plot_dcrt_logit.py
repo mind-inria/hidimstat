@@ -77,7 +77,7 @@ for seed, (X, y, beta_true) in enumerate(
     # Fit the dCRT-logit model
     dcrt_logit = D0CRT(
         estimator=LogisticRegressionCV(
-            l1_ratios=(1,),
+            penalty="l1",
             solver="liblinear",
             random_state=seed,
         ),
@@ -90,7 +90,7 @@ for seed, (X, y, beta_true) in enumerate(
 
     # Fit the dCRT with Lasso-distillation
     dcrt = D0CRT(
-        estimator=LassoCV(random_state=seed, alphas=10, fit_intercept=False),
+        estimator=LassoCV(random_state=seed, n_alphas=10, fit_intercept=False),
         screening_threshold=None,
         n_jobs=5,
     )

@@ -53,7 +53,7 @@ only once all target modifications for the new version have been included on the
 1. Update the information related to the release:
 
    - Update ``hidimstat\CHANGELOG.rst`` with the missing elements.
-   - Update ``hidimstat\CONTRIBUTORS.rst`` with the missing contributors for the new version.
+   - Update ``hidimstat\docs\src\dev\CONTRIBUTORS.rst`` with the missing contributors for the new version.
 
 2. Update the docstring of function based on CHANGELOG with ``deprecated``, ``versionchanged``
    and ``versionadded`` directives in the docstrings under a ``Note`` section.
@@ -84,7 +84,7 @@ only once all target modifications for the new version have been included on the
    - Update the file ``CONTRIBUTORS.rst`` in the documentation
      .. code::
 
-        cp CONTRIBUTORS.rst docs\src\whats_news\CONTRIBUTORS.rst
+        cp docs\src\dev\CONTRIBUTORS.rst docs\src\whats_news\CONTRIBUTORS.rst
 
    - Update the file ``docs\tools\version.json`` which defines all the versions of the project.
      The first two elements indicate the development version and the last stable version.

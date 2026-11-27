@@ -92,8 +92,6 @@ os.environ["PYTHONWARNINGS"] = (
 #
 # We avoid duplicating the information, but we do not use symlinks to be
 # able to build the docs on Windows
-shutil.copyfile("../../CONTRIBUTING.rst", "../src/dev/CONTRIBUTING.rst")
-shutil.copyfile("../../CONTRIBUTOR.rst", "../src/dev/CONTRIBUTORS.rst")
 shutil.copyfile("../../CHANGELOG.rst", "../src/whats_news/CHANGELOG.rst")
 
 # -- General configuration ---------------------------------------------------
