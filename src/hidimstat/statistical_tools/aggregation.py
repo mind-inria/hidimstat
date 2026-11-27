@@ -35,9 +35,14 @@ def quantile_aggregation(pvals, gamma=0.5, adaptive=False):
     The aggregated p-values are guaranteed to be valid p-values in [0,1].
     When adaptive=True, gamma is treated as the minimum gamma value to consider.
     """
-    # if pvalues are one-dimensional, do nothing
-    if pvals.shape[0] == 1:
-        return pvals[0]
+    # Parameter checks
+    if not isinstance(pvals, np.ndarray):
+        raise TypeError("'pvals' needs to be a np.ndarray.")
+    elif pvals.ndim != 2:
+        raise ValueError("'pvals' needs to be of dimension 2.")
+    if gamma <= 0 or gamma > 1:
+        raise ValueError("gamma should be between 0 and 1.")
+
     if adaptive:
         return _adaptive_quantile_aggregation(pvals, gamma)
     else:
@@ -67,7 +72,6 @@ def _fixed_quantile_aggregation(pvals, gamma=0.5):
     ----------
     .. footbibliography::
     """
-    assert gamma > 0 and gamma <= 1, "gamma should be between 0 and 1"
     # equation 2.2 of meinshausen2009pvalues
     converted_score = np.quantile(pvals, q=gamma, axis=0) / gamma
     return np.minimum(1, converted_score)
@@ -95,8 +99,6 @@ def _adaptive_quantile_aggregation(pvals, gamma_min=0.05):
     ----------
     .. footbibliography::
     """
-    assert gamma_min > 0 and gamma_min <= 1, "gamma min should between 0 and 1"
-
     n_iter, _ = pvals.shape
 
     n_min = int(np.floor(gamma_min * n_iter))

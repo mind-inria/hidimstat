@@ -20,10 +20,12 @@ jobs:
     permissions:
       actions: read   # required to download artifacts from another run
     outputs:
-      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME }}
-      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH }}
+      BRANCH_NAME: ${{ steps.read_meta.outputs.BRANCH_NAME || steps.push_meta.outputs.BRANCH_NAME }}
+      SHOULD_PUBLISH: ${{ steps.read_meta.outputs.SHOULD_PUBLISH || steps.push_meta.outputs.SHOULD_PUBLISH }}
+      PR_NUMBER: ${{ steps.read_meta.outputs.PR_NUMBER }}
     steps:
       - name: Download PR metadata from the triggering run
+        if: github.event.workflow_run.event == 'pull_request'
         uses: actions/download-artifact@v8
         with:
           name: pr-meta
@@ -33,24 +35,31 @@ jobs:
 
       - name: Read PR metadata
         id: read_meta
+        if: github.event.workflow_run.event == 'pull_request'
         run: |
-          if [ "${{ github.event.workflow_run.event }}" == "push" ]; then
-            # a push trigger on main
-            echo "BRANCH_NAME=main" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(cat pr-meta/pr_number.txt)
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error::pr_number.txt was empty"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT
+          PR_DRAFT=$(cat pr-meta/pr_draft.txt)
+          DOC_FLAG=$(cat pr-meta/doc_flag.txt)
+
+          echo "BRANCH_NAME=pull/$PR_NUMBER/head" >> $GITHUB_OUTPUT
+
+          if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
             echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
           else
-            BRANCH_NAME=$(cat pr-meta/branch_name.txt)
-            PR_DRAFT=$(cat pr-meta/pr_draft.txt)
-            DOC_FLAG=$(cat pr-meta/doc_flag.txt)
-
-            echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
-
-            if [ "$PR_DRAFT" == "false" ] || [ "$DOC_FLAG" == "true" ]; then
-              echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
-            else
-              echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
-            fi
+            echo "SHOULD_PUBLISH=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Set metadata for a push to main
+        id: push_meta
+        if: github.event.workflow_run.event == 'push'
+        run: |
+          echo "BRANCH_NAME=main" >> $GITHUB_OUTPUT
+          echo "SHOULD_PUBLISH=true" >> $GITHUB_OUTPUT
 
   merge_and_upload_test_data:
     name: Merge and upload test data
@@ -103,17 +112,7 @@ jobs:
         run: |
           #display command executed with argument
           set -x -a
-          # get the number of the PR
-          PULL_REQUEST_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
-          # get the branch of the PR — passed through an env var, never
-          # interpolated directly into the script, since branch names are
-          # attacker-controlled and can contain shell metacharacters
-          if [ "$PULL_REQUEST_NUMBER" == "null" ]
-          then
-            BRANCH="$BRANCH_INPUT"
-          else
-            BRANCH="pull/$PULL_REQUEST_NUMBER/head"
-          fi
+          BRANCH="$BRANCH_INPUT"
           # get URL for download artifact without identification
           GITHUB_RUN_URL="https://nightly.link/$(echo "$ARTIFACT_URL" | cut -d/ -f4-8)/pytest-results-all.zip"
           # Build the request body with jq rather than string interpolation.
@@ -182,10 +181,13 @@ jobs:
     # Upload coverage report for Codecov
     - name: Upload coverage reports to Codecov
       if: ${{ env.FILE_SIZE > 1 }}
-      uses: codecov/codecov-action@v7.0.0
+      uses: codecov/codecov-action@v7.1.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
         env_vars: OS,PYTHON
-        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version are available
+        files: cov-results-${{ env.PYTHON }}-os-${{ env.OS }}/cov-${{ env.PYTHON }}-os-${{ env.OS }}.xml    #CHECK: need to be updated when new version is available
         fail_ci_if_error: true
+        override_commit: ${{ github.event.workflow_run.head_sha }}
+        override_branch: ${{ github.event.workflow_run.head_branch }}
+        override_pr: ${{ needs.gather_metadata.outputs.PR_NUMBER }}

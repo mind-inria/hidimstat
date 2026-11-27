@@ -5,27 +5,65 @@ from sklearn.model_selection import train_test_split
 
 from hidimstat import SAGE
 from hidimstat._utils.scenario import multivariate_simulation
+from hidimstat.base_variable_importance import (
+    BaseVariableImportance,
+    GroupVariableImportanceMixin,
+)
 
-parameter_smoke = [
-    ("sage", 150, 20, 5, 0.2, 42, 1.0, 4.0, 0.0),
-]
+###########################################################################################
+#################.              Tests of attribute checks.               ##################
+###########################################################################################
+
+
+def test_check_n_subsets_attribute_before_fit():
+    """Test checks on n_subsets attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.n_subsets = "not_a_number"
+
+    with pytest.raises(TypeError, match=r"'n_subsets' needs to be an int"):
+        sage._check_fit_attributes()
+
+    sage.n_subsets = -1
+    with pytest.raises(
+        ValueError, match=r"'n_subsets' needs to be strictly positive"
+    ):
+        sage._check_fit_attributes()
+
+
+def test_check_imputation_attribute_before_fit():
+    """Test checks on imputation attribute before fitting."""
+    sage = SAGE(estimator=None)
+    sage.imputation = "not_marginal"
+
+    with pytest.raises(
+        NotImplementedError,
+        match=r"Only marginal imputation is currently implemented for SAGE "
+        "values",
+    ):
+        sage._check_fit_attributes()
+
+
+###########################################################################################
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    zip(*(list(zip(*parameter_smoke, strict=False))[1:]), strict=False),
-    ids=next(zip(*parameter_smoke, strict=False)),
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 20, None, 5, 0.2, 42, 1.0, 4.0, 0.0)],
+    ids=["sage"],
 )
 def test_sage_smoke(data_generator):
     """Smoke test for SAGE. Checks that the importance values are computed and
     have the expected shape.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = LinearRegression()
     model.fit(X, y)
     sage = SAGE(
-        estimator=model, n_permutations=10, n_subsets=20, random_state=42
+        estimator=model,
+        n_permutations=10,
+        n_subsets=20,
+        random_state=42,
     )
     sage.fit(X)
     importance = sage.importance(X, y)
@@ -55,7 +93,7 @@ def sage_test_data():
     model.fit(X_train, y_train)
     sage_default_parameters = {
         "estimator": model,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_subsets": 20,
         "n_permutations": 10,
         "n_jobs": 1,
@@ -137,3 +175,10 @@ def test_sage_reproducibility_with_rng(sage_test_data):
     sage_2.fit(X_train, y_train)
     vim_reproducibility = sage_2.importance(X_test, y_test)
     assert np.array_equal(vim, vim_reproducibility)
+
+
+def test_mro():
+    """Test the Method Resolution Order"""
+    mro = list(SAGE.__mro__)
+    assert mro[1] == GroupVariableImportanceMixin
+    assert mro[2] == BaseVariableImportance
