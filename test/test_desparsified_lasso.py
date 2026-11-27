@@ -29,6 +29,8 @@ def expected_failed_checks(estimator):
         return {"check_fit2d_1feature": "TODO"}
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 @parametrize_with_checks(
     estimators=ESTIMATORS_TO_CHECK,
@@ -210,6 +212,8 @@ def test_check_epsilon_pvalue_attribute_deprecation_before_fit():
 ###########################################################################################
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_desparsified_lasso(rng):
     """
@@ -296,6 +300,8 @@ def test_desparsified_lasso(rng):
     assert np.mean(powr_dof_list) >= 0.8 - test_tol
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_desparsified_group_lasso(rng):
     """
@@ -380,6 +386,8 @@ def test_desparsified_group_lasso(rng):
     assert np.mean(power_ftest_list) >= 0.8 - test_tol
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(50, 100, 10, 2, 0, 42, 1, 50, 0.9)],
@@ -415,7 +423,12 @@ def test_exception(data_generator):
         desparsified_lasso.importance(y=y)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
+@pytest.mark.filterwarnings(
+    "ignore:desparsified_lasso_importance is deprecated"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(52, 50, None, 1, 0.0, 10, 1, 50, 0)],
@@ -595,6 +608,8 @@ def dl_y1d_test_data():
     return X, y, dl
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_repeatibility(dl_y1d_test_data):
     """
@@ -611,6 +626,8 @@ def test_dl_repeatibility(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repeat)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_randomness_with_none(dl_y1d_test_data):
     """
@@ -638,6 +655,8 @@ def test_dl_randomness_with_none(dl_y1d_test_data):
     assert not np.array_equal(importance, importance_repro)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     """
@@ -660,6 +679,8 @@ def test_dl_reproducibility_with_integer(dl_y1d_test_data):
     assert np.array_equal(importance, importance_repro)
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings("ignore:'epsilon_pvalue' is deprecated")
 @ignore_warnings(category=UserWarning)
 def test_dl_reproducibility_with_rng(dl_y1d_test_data):
     """

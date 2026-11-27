@@ -116,7 +116,8 @@ globally optimal clustering, the wiser solution is to *average* the results
 across clusterings. Since it may not be a good idea to average p-values, an
 alternative *ensembling* or  *aggregation* strategy is used instead. When the
 inference engine is Desparsified Lasso, the resulting method is called
-Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnsembleImportance`.
+Ensemble of Clustered Desparsified lasso, or :class:`hidimstat.EnsembleImportance`,
+:footcite:t:`chevalier2018statistical`.
 
 The behavior is illustrated here:
 

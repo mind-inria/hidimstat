@@ -90,6 +90,10 @@ def test_check_preconfigure_lasso_path_attribute_before_fit():
 ###########################################################################################
 
 
+# TODO: remove this in v0.6.0
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 def test_knockoff_bootstrap_quantile(rng):
     """Test bootstrap knockoof with quantile aggregation"""
     n = 100
@@ -123,6 +127,9 @@ def test_knockoff_bootstrap_quantile(rng):
     assert np.mean(power_list) > 0.2
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 def test_knockoff_bootstrap_e_values(rng):
     """Test bootstrap Knockoff with e-values"""
     n = 100
@@ -160,6 +167,9 @@ def test_knockoff_bootstrap_e_values(rng):
     assert np.mean(power_list) > 0.2
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 def test_invariant_with_bootstrap():
     """Test bootstrap Knockoff"""
     n = 100
@@ -207,6 +217,9 @@ def test_invariant_with_bootstrap():
     assert not np.array_equal(selected, selected_repeat)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 def test_model_x_knockoff(rng):
     """Test the selection of variable from knockoff"""
     fdr = 0.2
@@ -233,6 +246,9 @@ def test_model_x_knockoff(rng):
     assert np.mean(power_list) > 0.7
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(200, 50, None, 10, 0, 42, 1, 10, 0)],
@@ -256,6 +272,9 @@ def test_model_x_knockoff_estimator(data_generator):
     assert selected.shape == (50,)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(200, 20, None, 10, 0, 42, 1, 10, 0)],
@@ -283,6 +302,10 @@ def test_estimate_distribution(data_generator):
     assert np.all(beta[selected])
 
 
+@pytest.mark.filterwarnings("ignore:model_x_knockoff_importance is deprecated")
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(100, 50, None, 10, 0, 0, 1, 10, 0)],
@@ -302,6 +325,9 @@ def test_knockoff_function_not_centered(data_generator):
     assert pvalues.shape == (5, p)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(200, 50, None, 10, 0, 42, 1, 10, 0)],
@@ -352,6 +378,9 @@ def test_lasso_estimator_alphas(data_generator):
 ##############################################################################
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
@@ -384,6 +413,9 @@ def test_error_lasso_statistic_with_sampling_with_bad_config(data_generator):
         model_x_knockoff.fit(X, y)
 
 
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
+)
 @pytest.mark.parametrize(
     "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
     [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
@@ -401,14 +433,11 @@ def test_error_lasso_statistic_with_sampling(data_generator):
         model_x_knockoff.fit_importance(X, y)
 
 
-@pytest.mark.parametrize(
-    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(300, 20, None, 5, 0.0, 42, 1.0, np.inf, 0.0)],
-    ids=["default data"],
+@pytest.mark.filterwarnings(
+    "ignore:Dimensions of 'importances_' and 'pvalues_' attributes will be swapped"
 )
-def test_unfitted_importance(data_generator):
+def test_unfitted_importance():
     """Test importance method with unfitted model"""
-    X, y, _ = data_generator
     model_x_knockoff = ModelXKnockoff(
         n_repeats=5,
         ko_generator=GaussianKnockoffs(
@@ -418,7 +447,7 @@ def test_unfitted_importance(data_generator):
     )
 
     with pytest.raises(NotFittedError):
-        model_x_knockoff.importance(X, y)
+        model_x_knockoff.importance()
 
 
 @pytest.mark.parametrize(

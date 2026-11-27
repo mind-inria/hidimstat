@@ -6,15 +6,16 @@ Developer Documentation
 
 .. toctree::
       CONTRIBUTING
+      :maxdepth: 2
 
-You need more information, look here:
+If you need more information, look here:
 
-- :ref:`How to contribute <how_to_contribute_hidimstat>`
+- :ref:`Onboarding for new maintainers <maintainer_onboarding>`
+- :ref:`Test suite organization <test_suite>`
+- :ref:`Building the documentation <developer_documentation_build>`
 - :ref:`Continuous Integration <developer_documentation_CI>`
-- :ref:`Building the documentation<developer_documentation_build>`
 - :ref:`How to create a release <how_to_release>`
 - :ref:`Contributor's Code of Conduct <dev_code_of_conduct>`
-- :ref:`Test suite organization <test_suite>`
 
 ============
 CONTRIBUTORS
@@ -25,12 +26,11 @@ CONTRIBUTORS
 .. toctree::
   :hidden:
 
-  developer_guidelines
-  how_to_contribute
+  maintainer_onboarding
+  test_suite
   building_documentation
   CI_documentation
-  CONTRIBUTORS
   how_to_release
   release_useful_links
   developer_code_of_conduct
-  test_suite
+  CONTRIBUTORS
