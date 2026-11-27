@@ -60,8 +60,7 @@ jobs:
       - name: Install the dependence
         if: ${{ inputs.skip_test == false }}
         run: |
-          uv pip install -e ".[test]"
-          uv pip install -e ".[energy]"
+          uv pip install -e ".[test,energy]"
 
       # Run the tests with coverage and report add this end
       # option for the coverage: --cov=. --cov-report=xml:...
