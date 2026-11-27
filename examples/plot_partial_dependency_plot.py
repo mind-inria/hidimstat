@@ -77,6 +77,7 @@ print(f"ROC AUC on the test set: {auc:.2f}")
 from hidimstat.visualization import PDP
 
 # sphinx_gallery_thumbnail_number = 2
+# sphinx_gallery_dummy_images=3
 pdp = PDP(model)
 _ = pdp.plot(X_test, features=0)
 
