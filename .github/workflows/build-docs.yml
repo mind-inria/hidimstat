@@ -130,6 +130,7 @@ jobs:
             NILEARN_DATA: /home/runner/work/hidimstat/hidimstat/nilearn_data
             SCIKIT_LEARN_DATA: /home/runner/work/hidimstat/hidimstat/sklearn_data
             _MNE_FAKE_HOME_DIR: /home/runner/work/hidimstat/hidimstat/mne_data
+            HF_HOME: /home/runner/work/hidimstat/hidimstat/huggingface
 
         defaults:
             run:
@@ -182,14 +183,15 @@ jobs:
                     nilearn_data
                     sklearn_data
                     mne_data
+                    huggingface
                 key: data_cache-${{ github.workflow }}_month-${{ hashFiles('month_num') }}
 
         -   name: Create data cache dir
             # necessary if previous step failed (e.g github cache was deleted)
             # ensure we can write to them
             run: |
-                mkdir -p mne_data nilearn_data sklearn_data
-                chmod +w mne_data nilearn_data sklearn_data
+                mkdir -p mne_data nilearn_data sklearn_data huggingface
+                chmod +w mne_data nilearn_data sklearn_data huggingface
 
             # Run the doc build
             #

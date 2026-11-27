@@ -32,4 +32,5 @@ Changes
 - :bdg-secondary:`Maint` Added upper bound to pandas version due to sklearn incompatibility (:gh:`840` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Reworked landing page of hidimstat website (:gh:`841` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` Added an onboarding document for new maintainers (:gh:`838` by `Marc Hulcelle`_).
+- :bdg-primary:`Doc` introduced an example to interface TabICL with the library (:gh:`716` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` Reduced warnings in test suite (:gh:`847` by `Marc Hulcelle`_).
