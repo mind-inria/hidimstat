@@ -52,7 +52,6 @@ clf = LogisticRegressionCV(
     Cs=np.logspace(-3, 3, 10),
     penalty="l1",
     solver="liblinear",
-    use_legacy_attributes=True,
     random_state=0,
 )
 clf.fit(X_train, y_train)
@@ -110,7 +109,6 @@ lasso_noisy = LogisticRegressionCV(
     penalty="l1",
     solver="liblinear",
     random_state=0,
-    use_legacy_attributes=True,
     n_jobs=4,
 )
 lasso_noisy.fit(noisy_train, y_train)
@@ -167,7 +165,6 @@ model_x_knockoff = ModelXKnockoff(
         random_state=0,
         tol=1e-3,
         max_iter=1000,
-        use_legacy_attributes=True,
     ),
     random_state=0,
     preconfigure_lasso_path=False,
