@@ -190,8 +190,8 @@ jobs:
             # necessary if previous step failed (e.g github cache was deleted)
             # ensure we can write to them
             run: |
-                mkdir -p mne_data nilearn_data sklearn_data
-                chmod +w mne_data nilearn_data sklearn_data
+                mkdir -p mne_data nilearn_data sklearn_data huggingface
+                chmod +w mne_data nilearn_data sklearn_data huggingface
 
             # Run the doc build
             #
