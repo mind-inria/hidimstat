@@ -168,9 +168,6 @@ jobs:
         -   name: Install tox
             run: uv tool install codecarbon --with=tox-uv --with=tox
 
-        -   name: Show tox config
-            run: tox c
-
         -   name: Key for cache based on month number
             run: date +%m > month_num;
 
