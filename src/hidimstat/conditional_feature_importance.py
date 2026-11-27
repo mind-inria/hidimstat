@@ -1,10 +1,13 @@
+import warnings
+
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator, check_is_fitted, clone
+from sklearn.base import BaseEstimator, clone
 from sklearn.linear_model import LogisticRegressionCV, RidgeCV
-from sklearn.metrics import mean_squared_error
 
 from hidimstat._utils.docstring import _aggregate_docstring
+from hidimstat._utils.utils import _get_array_cols
 from hidimstat.base_perturbation import BasePerturbation, BasePerturbationCV
 from hidimstat.samplers.conditional_sampling import ConditionalSampler
 
@@ -19,13 +22,22 @@ class CFI(BasePerturbation):
     ----------
     estimator : sklearn compatible estimator
         The estimator to use for the prediction.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict", and
+        "predict_proba".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -36,10 +48,10 @@ class CFI(BasePerturbation):
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     feature_types: str or list, default="auto"
         The feature type. Supported types include "auto", "continuous", and
         "categorical". If "auto", the type is inferred from the cardinality
@@ -55,6 +67,32 @@ class CFI(BasePerturbation):
         The number of jobs to run in parallel. Parallelization is done over the
         variables or groups of variables.
 
+    Attributes
+    ----------
+    estimator_ : sklearn-compatible estimator
+        The fitted estimator used for predictions.
+    feature_groups_ : dict
+        Mapping of feature groups identified during fit.
+    importances_ : ndarray (n_groups,)
+        Importance scores for each feature group.
+    score_reference_ : float
+        Score on original (non-perturbed) data.
+    score_ : dict
+        Score values for each permutation of each group.
+    pvalues_ : ndarray of shape (n_groups,)
+        P-values for importance scores.
+    fitted_samplers_ : list of hidimstat.conditional_sampling.ConditionalSampler
+        The list of fitted conditional samplers used for conditional permutations.
+
+        .. versionadded:: 0.5.0
+    feature_predictability_ : ndarray of shape (n_groups,)
+        Predictability of each group of variables $X^j$ from the others $X^{-j}$.
+        The chosen metrics is R2 for continuous groups, and
+        ROC-AUC (One-VS-Rest strategy) for categorical groups. The scores are
+        computed at importance call.
+
+        .. versionadded:: 0.5.0
+
     References
     ----------
     .. footbibliography::
@@ -63,12 +101,13 @@ class CFI(BasePerturbation):
     def __init__(
         self,
         estimator,
-        method: str = "predict",
-        loss: callable = mean_squared_error,
+        scoring=None,
+        method=None,
+        loss=None,
         n_permutations: int = 50,
         imputation_model_continuous=RidgeCV(),
-        imputation_model_categorical=LogisticRegressionCV(),
-        features_groups=None,
+        imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
+        feature_groups=None,
         feature_types="auto",
         categorical_max_cardinality: int = 10,
         statistical_test="ttest",
@@ -77,28 +116,62 @@ class CFI(BasePerturbation):
     ):
         super().__init__(
             estimator=estimator,
+            scoring=scoring,
             method=method,
             loss=loss,
             n_permutations=n_permutations,
             statistical_test=statistical_test,
             n_jobs=n_jobs,
-            features_groups=features_groups,
+            feature_groups=feature_groups,
             random_state=random_state,
         )
 
-        # check the validity of the inputs
-        assert imputation_model_continuous is None or issubclass(
-            imputation_model_continuous.__class__, BaseEstimator
-        ), "Continuous imputation model invalid"
-        assert imputation_model_categorical is None or issubclass(
-            imputation_model_categorical.__class__, BaseEstimator
-        ), "Categorial imputation model invalid"
-
         self.feature_types = feature_types
-        self._list_imputation_models = []
+        self._conditionnal_samplers = []
         self.categorical_max_cardinality = categorical_max_cardinality
         self.imputation_model_categorical = imputation_model_categorical
         self.imputation_model_continuous = imputation_model_continuous
+
+    def _check_fit_attributes(self):
+        """
+        Check attributes needed during fitting of the estimator.
+        """
+        super()._check_fit_attributes()
+
+        # Not checking categorical_max_cardinality since it's an attribute
+        # check on ConditionalSampler side.
+
+        if self.imputation_model_continuous is None:
+            raise ValueError("'imputation_model_continuous' cannot be None.")
+        elif not isinstance(self.imputation_model_continuous, BaseEstimator):
+            raise TypeError("Continuous imputation model invalid.")
+
+        if self.imputation_model_categorical is None:
+            raise ValueError("'imputation_model_categorical' cannot be None.")
+        elif not isinstance(self.imputation_model_categorical, BaseEstimator):
+            raise TypeError("Categorial imputation model invalid.")
+
+        if isinstance(self.feature_types, str) and self.feature_types not in [
+            "auto",
+            "continuous",
+            "categorical",
+        ]:
+            raise ValueError(
+                "'feature_types' support only the string 'auto', 'continuous', 'categorical'."
+            )
+        elif isinstance(self.feature_types, list) and any(
+            t not in ["auto", "continuous", "categorical"]
+            for t in self.feature_types
+        ):
+            raise ValueError(
+                "One of 'feature_types' is not 'auto', 'continuous', 'categorical'."
+            )
+        elif not isinstance(self.feature_types, str) and not isinstance(
+            self.feature_types, list
+        ):
+            raise TypeError(
+                "'feature_types' needs to be a str or list of str."
+            )
 
     def fit(self, X, y=None):
         """
@@ -116,21 +189,14 @@ class CFI(BasePerturbation):
         self : object
             Returns the instance itself.
         """
-        del y
-        super().fit(X, None)
+        super().fit(X, y)
 
-        # check the feature type
         if isinstance(self.feature_types, str):
-            if self.feature_types in ["auto", "continuous", "categorical"]:
-                self.feature_types = [
-                    self.feature_types for _ in range(self.n_features_groups_)
-                ]
-            else:
-                raise ValueError(
-                    "feature_types support only the string 'auto', 'continuous', 'categorical'"
-                )
+            self.feature_types = [
+                self.feature_types for _ in range(self.n_feature_groups_)
+            ]
 
-        self._list_imputation_models = [
+        self._conditionnal_samplers = [
             ConditionalSampler(
                 data_type=self.feature_types[features_group_id],
                 model_regression=(
@@ -145,94 +211,174 @@ class CFI(BasePerturbation):
                 ),
                 categorical_max_cardinality=self.categorical_max_cardinality,
             )
-            for features_group_id in range(self.n_features_groups_)
+            for features_group_id in range(self.n_feature_groups_)
         ]
 
         # Parallelize the fitting of the covariate estimators
-        X_ = np.asarray(X)
-        self._list_imputation_models = Parallel(n_jobs=self.n_jobs)(
+        self.fitted_samplers_ = Parallel(n_jobs=self.n_jobs)(
             delayed(self._joblib_fit_one_features_group)(
-                imputation_model, X_, features_groups_ids
+                conditional_sampler, X, feature_groups_ids
             )
-            for features_groups_ids, imputation_model in zip(
-                self._features_groups_ids,
-                self._list_imputation_models,
+            for feature_groups_ids, conditional_sampler in zip(
+                self._feature_groups_ids_,
+                self._conditionnal_samplers,
                 strict=False,
             )
         )
 
         return self
 
-    def fit_importance(self, X, y):
-        """
-        Fits the model to the data and computes feature importance scores.
-        Convenience method that combines fit() and importance() into a single call.
-
-        Parameters
-        ----------
-        X : array-like of shape (n_samples, n_features)
-            Training data.
-        y : array-like of shape (n_samples,)
-            Target values.
-
-        Returns
-        -------
-        importances_ : ndarray of shape (n_groups,)
-            The calculated importance scores for each feature group.
-            Higher values indicate greater importance.
-
-        Notes
-        -----
-        This method first calls fit() to identify feature groups, then calls
-        importance() to compute the importance scores for each group.
-        """
-        self.fit(X, y)
-        return self.importance(X, y)
-
     def _joblib_fit_one_features_group(
-        self, estimator, X, features_groups_ids
+        self, conditional_sampler, X, feature_groups_ids
     ):
-        """Fit a single imputation model, for a single group of features. This method
-        is parallelized.
         """
-        X_j = X[:, features_groups_ids].copy()
-        X_minus_j = np.delete(X, features_groups_ids, axis=1)
-        estimator.fit(X_minus_j, X_j)
-        return estimator
-
-    def _check_fit(self):
+        Fit a single conditional sampler, for a single group of features.
+        This method is parallelized.
         """
-        Check if base class and imputation models have been fitted.
-
-        Raises
-        ------
-        ValueError
-            If the class has not been fitted (i.e., if n_features_groups_
-            or _features_groups_ids attributes are missing).
-            If the class has not been fitted or imputation models are not fitted.
-
-        """
-        super()._check_fit()
-        if len(self._list_imputation_models) == 0:
-            raise ValueError(
-                "The imputation models require to be fitted before being used."
-            )
-        for m in self._list_imputation_models:
-            check_is_fitted(m.model)
+        X_j = _get_array_cols(X, feature_groups_ids)
+        X_minus_j = _get_array_cols(X, feature_groups_ids, drop=True)
+        sampler_ = conditional_sampler.clone()
+        sampler_.fit(X_minus_j, X_j)
+        return sampler_
 
     def _permutation(self, X, features_group_id, random_state=None):
         """Sample from the conditional distribution using a permutation of the
         residuals.
         """
-        X_j = X[:, self._features_groups_ids[features_group_id]].copy()
-        X_minus_j = np.delete(
-            X, self._features_groups_ids[features_group_id], axis=1
+        X_j = _get_array_cols(X, self._feature_groups_ids_[features_group_id])
+        X_minus_j = _get_array_cols(
+            X, self._feature_groups_ids_[features_group_id], drop=True
         )
-        return self._list_imputation_models[features_group_id].sample(
+        return self.fitted_samplers_[features_group_id].sample(
             X_minus_j,
             X_j,
             n_samples=self.n_permutations,
             random_state=random_state,
+        )
+
+    def _joblib_compute_one_feature_predictability(
+        self, conditional_sampler, X, features_group_ids
+    ):
+        """
+        Compute the predictability of one feature group from a single conditional sampler.
+        """
+        X_j = _get_array_cols(X, features_group_ids)
+        X_minus_j = _get_array_cols(X, features_group_ids, drop=True)
+        return conditional_sampler.feature_predictability(X_minus_j, X_j)
+
+    def importance(self, X, y, feat_predictability=True):
+        """
+        Compute the importance scores for each group of covariates, and the
+        predictability of each group from the others.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            The input samples to compute importance scores for.
+        y : array-like of shape (n_samples,)
+            The target values.
+        feat_predictability : bool, default=True
+            Decides whether to compute feature predictability or not.
+
+        Returns
+        -------
+        importances_ : ndarray of shape (n_groups,)
+            The importance scores for each feature group.
+        """
+        importances = super().importance(X, y)
+
+        if feat_predictability:
+            self.feature_predictability_ = np.asarray(
+                Parallel(n_jobs=self.n_jobs)(
+                    delayed(self._joblib_compute_one_feature_predictability)(
+                        sampler, X, feature_groups_ids
+                    )
+                    for feature_groups_ids, sampler in zip(
+                        self._feature_groups_ids_,
+                        self.fitted_samplers_,
+                        strict=True,
+                    )
+                )
+            )
+        return importances
+
+    def plot_feature_predictability(
+        self,
+        ax=None,
+        ascending=False,
+        feature_names=None,
+        **seaborn_barplot_kwargs,
+    ):
+        """
+        Plot feature predictability computed by the conditional samplers as a horizontal bar plot.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes or None, (default=None)
+            Axes object to draw the plot onto, otherwise uses the current Axes.
+        ascending: bool, default=False
+            Whether to sort features by ascending importance.
+        **seaborn_barplot_kwargs : additional keyword arguments
+            Additional arguments passed to seaborn.barplot.
+            https://seaborn.pydata.org/generated/seaborn.barplot.html
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The Axes object with the plot.
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import seaborn as sns
+        except ImportError as e:
+            raise Exception(
+                "You need to install the seaborn package to use this functionality."
+            ) from e
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        if feature_names is None:
+            feature_names = list(self.feature_groups_.keys())
+        elif not isinstance(feature_names, list):
+            raise TypeError("'feature_names' should be a list")
+
+        if not hasattr(self, "feature_predictability_"):
+            raise RuntimeError(
+                "Attribute 'feature_predictability_' has not been computed."
+                "Please call the 'importance' method with feat_predictability=True."
+            )
+
+        df = pd.DataFrame(
+            {
+                "Predictability": self.feature_predictability_,
+                "Feature": feature_names,
+            }
+        )
+        # Sort features by decreasing mean importance
+        mean_predictability = df.groupby("Feature").mean()
+        sorted_features = mean_predictability.sort_values(
+            by="Predictability", ascending=ascending
+        ).index
+        df["Feature"] = pd.Categorical(
+            df["Feature"],
+            categories=sorted_features,
+            ordered=True,
+        )
+        sns.barplot(
+            df,
+            x="Predictability",
+            y="Feature",
+            ax=ax,
+            **seaborn_barplot_kwargs,
+        )
+        sns.despine(ax=ax)
+        ax.set_ylabel("")
+        return ax
+
+    def __sklearn_is_fitted__(self) -> bool:
+        return hasattr(self, "fitted_samplers_") and all(
+            m.model is not None for m in self.fitted_samplers_
         )
 
 
@@ -240,12 +386,13 @@ def cfi_importance(
     estimator,
     X,
     y,
-    method: str = "predict",
-    loss: callable = mean_squared_error,
+    scoring="mean_squared_error",
+    method=None,
+    loss=None,
     n_permutations: int = 50,
     imputation_model_continuous=RidgeCV(),
-    imputation_model_categorical=LogisticRegressionCV(),
-    features_groups=None,
+    imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
+    feature_groups=None,
     feature_types="auto",
     categorical_max_cardinality: int = 10,
     test_statistic="ttest",
@@ -256,14 +403,22 @@ def cfi_importance(
     random_state: int | None = None,
     n_jobs: int = 1,
 ):
+    warnings.warn(
+        "cfi_importance is deprecated and will be removed in version 0.6.0. "
+        "Please use class CFI instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     methods = CFI(
         estimator=estimator,
+        scoring=scoring,
         method=method,
         loss=loss,
         n_permutations=n_permutations,
         imputation_model_continuous=imputation_model_continuous,
         imputation_model_categorical=imputation_model_categorical,
-        features_groups=features_groups,
+        feature_groups=feature_groups,
         feature_types=feature_types,
         categorical_max_cardinality=categorical_max_cardinality,
         statistical_test=test_statistic,
@@ -289,15 +444,15 @@ cfi_importance.__doc__ = _aggregate_docstring(
         CFI.importance_selection.__doc__,
     ],
     """
-    Returns
-    -------
-    selection : ndarray of shape (n_features,)
-        Boolean array indicating selected features (True = selected)
-    importances : ndarray of shape (n_features,)
-        Feature importance scores/test statistics.
-    pvalues : ndarray of shape (n_features,)
-        P-values for importance scores.
-    """,
+Returns
+-------
+selection : ndarray of shape (n_groups,)
+    Boolean array indicating selected feature groups (True = selected)
+importances : ndarray of shape (n_groups,)
+    Feature group importance scores/test statistics.
+pvalues : ndarray of shape (n_groups,)
+    P-values for importance scores.
+""",
 )
 
 
@@ -314,13 +469,22 @@ class CFICV(BasePerturbationCV):
         A cross-validation generator object (e.g., KFold, StratifiedKFold).
     statistical_test : callable or str, default="nb-ttest"
         Statistical test function for computing p-values from importance scores.
-    method : str, default="predict"
-        The method to use for the prediction. This determines the predictions passed
-        to the loss function. Supported methods are "predict", "predict_proba" or
-        "decision_function".
-    loss : callable, default=mean_squared_error
-        The loss function to use when comparing the perturbed model to the full
-        model.
+    scoring : srt, callable
+        Strategy to evaluate the performance of the estimator to compute
+        importance scores. Based on :func:`sklearn.metrics.check_scoring`.
+    method : str, default=None
+        The method used for making predictions. This determines the predictions
+        passed to the loss function. Supported methods are "predict",
+        "predict_proba", "decision_function", "transform".
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
+    loss : callable, default=None
+        The function to compute the loss when comparing the perturbed model
+        to the original model.
+
+        .. deprecated:: 0.5.0
+            Will be removed in 0.6.0. Please use parameter 'scoring' instead.
     n_permutations : int, default=50
         The number of permutations to perform. For each variable/group of variables,
         the mean of the losses over the `n_permutations` is computed.
@@ -331,10 +495,10 @@ class CFICV(BasePerturbationCV):
         The model used to estimate the conditional distribution of a given
         categorical variable/group of variables given the others. Binary is
         considered as a special case of categorical.
-    features_groups: dict or None, default=None
+    feature_groups: dict or None, default=None
         A dictionary where the keys are the group names and the values are the
         list of column names corresponding to each features group. If None,
-        the features_groups are identified based on the columns of X.
+        the feature_groups are identified based on the columns of X.
     feature_types: str or list, default="auto"
         The feature type. Supported types include "auto", "continuous", and
         "categorical". If "auto", the type is inferred from the cardinality
@@ -368,24 +532,26 @@ class CFICV(BasePerturbationCV):
         estimators,
         cv,
         statistical_test="nb-ttest",
-        method="predict",
-        loss=mean_squared_error,
+        scoring="mean_squared_error",
+        method=None,
+        loss=None,
         n_permutations=50,
         imputation_model_continuous=RidgeCV(),
-        imputation_model_categorical=LogisticRegressionCV(),
-        features_groups=None,
+        imputation_model_categorical=LogisticRegressionCV(l1_ratios=(0,)),
+        feature_groups=None,
         feature_types="auto",
         categorical_max_cardinality=10,
         random_state=None,
         n_jobs=1,
     ):
         super().__init__(estimators, cv, statistical_test, n_jobs)
+        self.scoring = scoring
         self.method = method
         self.loss = loss
         self.n_permutations = n_permutations
         self.imputation_model_continuous = imputation_model_continuous
         self.imputation_model_categorical = imputation_model_categorical
-        self.features_groups = features_groups
+        self.feature_groups = feature_groups
         self.feature_types = feature_types
         self.categorical_max_cardinality = categorical_max_cardinality
         self.random_state = random_state
@@ -394,12 +560,13 @@ class CFICV(BasePerturbationCV):
         """Fit a CFI instance on a single train/test split."""
         cfi = CFI(
             estimator=estimator,
+            scoring=self.scoring,
             method=self.method,
             loss=self.loss,
             n_permutations=self.n_permutations,
             imputation_model_continuous=self.imputation_model_continuous,
             imputation_model_categorical=self.imputation_model_categorical,
-            features_groups=self.features_groups,
+            feature_groups=self.feature_groups,
             feature_types=self.feature_types,
             categorical_max_cardinality=self.categorical_max_cardinality,
             random_state=self.random_state,

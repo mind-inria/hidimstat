@@ -48,7 +48,10 @@ import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 
 clf = LogisticRegressionCV(
-    Cs=np.logspace(-3, 3, 10), penalty="l1", solver="liblinear", random_state=0
+    Cs=np.logspace(-3, 3, 10),
+    penalty="l1",
+    solver="liblinear",
+    random_state=0,
 )
 clf.fit(X_train, y_train)
 print(f"Accuracy of Lasso on test set: {clf.score(X_test, y_test):.3f}")
@@ -254,3 +257,6 @@ plt.show()
 # References
 # ----------
 # .. footbibliography::
+
+
+# sphinx_gallery_dummy_images=2

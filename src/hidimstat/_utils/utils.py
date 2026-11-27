@@ -1,11 +1,67 @@
+import inspect
 import numbers
+import warnings
 from functools import partial
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from numpy.random import RandomState
+from packaging.version import parse
 from scipy.stats import ttest_1samp, wilcoxon
+from sklearn import __version__ as sklearn_version
+from sklearn.base import is_classifier, is_regressor
+from sklearn.metrics import (
+    get_scorer,
+    log_loss,
+    make_scorer,
+    mean_squared_error,
+)
 
+import hidimstat as hd
+from hidimstat.statistical_tools.holdout_randomization_test import (
+    holdout_randomization_test,
+)
 from hidimstat.statistical_tools.nadeau_bengio_ttest import nadeau_bengio_ttest
+
+SKLEARN_LT_1_7 = parse(sklearn_version).minor < 7
+SKLEARN_LT_1_8 = parse(sklearn_version).minor < 8
+SKLEARN_LT_1_9 = parse(sklearn_version).minor == 9
+
+
+def _make_sklearn_estimator(estimator_cls, **kwargs):
+    """Internal method to handle deprecated arguments on various Scikit Learn versions during estimator instantiation."""
+    kwargs = kwargs.copy()
+
+    if estimator_cls.__name__ == "LassoCV":
+        if SKLEARN_LT_1_7 and "alphas" in kwargs:
+            kwargs["n_alphas"] = kwargs.pop("alphas")
+        elif not SKLEARN_LT_1_7 and "n_alphas" in kwargs:
+            kwargs["alphas"] = kwargs.pop("n_alphas")
+
+    elif estimator_cls.__name__ == "LogisticRegressionCV":
+        if SKLEARN_LT_1_9 and "penalty" in kwargs:
+            penalty = kwargs.pop("penalty")
+            if penalty == "l1":
+                kwargs["l1_ratios"] = (1,)
+            elif penalty == "l2":
+                kwargs["l1_ratios"] = (0,)
+        elif not SKLEARN_LT_1_9 and "l1_ratios" in kwargs:
+            if kwargs["l1_ratios"] == (1,):
+                kwargs["penalty"] = "l1"
+            elif kwargs["l1_ratios"] == (0,):
+                kwargs["penalty"] = "l2"
+        if not SKLEARN_LT_1_8:
+            # TODO: remove this when sklearn min reaches 1.10
+            kwargs["use_legacy_attributes"] = True
+
+    try:
+        est = estimator_cls(**kwargs)
+    except TypeError:
+        # Workaround for inexistent "use_legacy_attributes" for sklearn < 1.8
+        kwargs.pop("use_legacy_attributes")
+        est = estimator_cls(**kwargs)
+    return est
 
 
 def _check_vim_predict_method(method):
@@ -35,6 +91,27 @@ def _check_vim_predict_method(method):
             f"The method {method} is not a valid method "
             "for variable importance measure prediction"
         )
+
+
+def _generate_group_mask(array_size, indexes, selected=True):
+    """
+    Generates a mask to select indexes or its opposite.
+    """
+    mask = np.full(array_size, not selected, dtype=bool)
+    mask[indexes] = selected
+    return mask
+
+
+def _get_array_cols(X, columns_ids, drop=False):
+    """
+    Retrieves columns from X depending on type numpy array or pandas DataFrame,
+    or drops them from X.
+    """
+    mask = _generate_group_mask(X.shape[1], columns_ids, selected=not drop)
+    if isinstance(X, pd.DataFrame):
+        return X[X.columns[mask]]
+    else:
+        return X[:, mask]
 
 
 def get_fitted_attributes(cls):
@@ -93,8 +170,7 @@ def check_random_state(seed):
     Examples
     --------
     >>> from sklearn.utils.validation import check_random_state
-    >>> check_random_state(42)
-    BitGenerator (PCG64) at 0x...
+    >>> random_state = check_random_state(42)
     """
     if seed is None or seed is np.random:
         return np.random.default_rng()
@@ -150,9 +226,22 @@ def check_statistical_test(statistical_test, test_frac=None):
 
     Parameters
     ----------
-    statisticcal_test : str or callable
-        If str, must be either 'ttest' or 'wilcoxon'.
-        If callable, must be a function that can be used as a test statistic.
+    statistical_test : str or callable
+        If str, must be one of:
+
+        - 'ttest': one-sample Student's t-test against a zero mean
+          (:func:`scipy.stats.ttest_1samp`).
+        - 'wilcoxon': Wilcoxon signed-rank test, non-parametric counterpart
+          of the t-test (:func:`scipy.stats.wilcoxon`).
+        - 'nb-ttest': Nadeau-Bengio t-test, a t-test whose variance is
+          corrected for the dependence between cross-validation folds
+          (:func:`~hidimstat.statistical_tools.nadeau_bengio_ttest`).
+        - 'hrt': holdout randomization test, folds combined with a Bonferroni
+          correction
+          (:func:`~hidimstat.statistical_tools.holdout_randomization_test`).
+
+        When specified with a string, all tests are one-sided ('greater'). If
+        callable, must be a function that can be used as a test statistic.
     test_frac : float, optional
         The fraction of data used for testing in the Nadeau-Bengio t-test.
 
@@ -166,7 +255,8 @@ def check_statistical_test(statistical_test, test_frac=None):
     Raises
     ------
     ValueError
-        If test is a string but not one of the supported test names ('ttest' or 'wilcoxon').
+        If test is a string but not one of the supported test names ('ttest',
+        'wilcoxon', 'nb-ttest', 'hrt').
     ValueError
         If test is neither a string nor a callable.
     """
@@ -183,8 +273,9 @@ def check_statistical_test(statistical_test, test_frac=None):
                 popmean=0,
                 test_frac=test_frac,
                 alternative="greater",
-                axis=1,
             )
+        elif statistical_test == "hrt":
+            return holdout_randomization_test
         else:
             raise ValueError(f"the test '{statistical_test}' is not supported")
     elif callable(statistical_test):
@@ -194,6 +285,142 @@ def check_statistical_test(statistical_test, test_frac=None):
             f"Unsupported value for 'statistical_test'."
             f"The provided argument was '{statistical_test}'. "
             f"Please choose from the following valid options: "
-            f"string values ('ttest', 'wilcoxon', 'nb-ttest') "
+            f"string values ('ttest', 'wilcoxon', 'nb-ttest', 'hrt') "
             f"or a custom callable function with a `scipy.stats` API-compatible signature."
         )
+
+
+def check_scoring(estimator=None, scoring=None):
+    """
+    Determine sklearn-compatible scorer from user options.
+    A TypeError will be thrown if the estimator cannot be scored.
+
+    Parameters
+    ----------
+    estimator: sklearn-compatible estimator, default=None
+        The estimator that will be used for predictions. If no scoring is explicitly
+        provided, the scorer will be set to "log_loss" for classifiers, and
+        "mean_squared_error" for regressors.
+    scoring: str, callable, default=None
+        Sklearn-comptabile scorer to use.
+
+    Returns
+    -------
+    scoring : callable
+        A scorer callable object / function with signature ``scorer(estimator, X, y)``.
+    """
+    if isinstance(scoring, str):
+        if scoring == "log_loss":
+            return get_scorer(
+                make_scorer(log_loss, response_method="predict_proba")
+            )
+        if scoring == "mean_squared_error":
+            return get_scorer(make_scorer(mean_squared_error))
+        return get_scorer(scoring)
+    elif callable(scoring):
+        return get_scorer(scoring)
+    elif scoring is None:
+        if estimator is not None:
+            if is_classifier(estimator):
+                return get_scorer(
+                    make_scorer(log_loss, response_method="predict_proba")
+                )
+            elif is_regressor(estimator):
+                return get_scorer(
+                    make_scorer(mean_squared_error, response_method="predict")
+                )
+            else:
+                raise TypeError(
+                    f"Estimator {estimator} should be one of two types "
+                    "'classifier' or 'regressor'."
+                )
+        else:
+            raise ValueError(
+                "No scoring nor estimator was passed to the method."
+            )
+
+
+def _check_loss_method_parameter(scoring, method, loss):
+    """Check values of method and loss parameters in regard to scoring parameter."""
+    if scoring is None and (method is not None or loss is not None):
+        warnings.warn(
+            "Parameters 'method' and 'loss' are deprecated,"
+            "and will be removed in v0.6.0. Please use 'scoring' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if (
+            method is not None
+            and _check_vim_predict_method(method) is not None
+        ):
+            if method == "predict_proba":
+                return log_loss
+            elif method == "predict":
+                return mean_squared_error
+            else:
+                raise ValueError(
+                    r"Only 'predict' and 'predict_proba' are supported."
+                )
+        elif loss is not None:
+            # Verify that loss is a sklearn metric.
+            module = getattr(loss, "__module__", None)
+            if hasattr(module, "startswith") and module.startswith(
+                "sklearn.metrics."
+            ):
+                return loss
+            else:
+                raise ValueError(f"The loss {loss} is not a 'sklearn.metrics'")
+    return scoring
+
+
+def find_stack_level() -> int:
+    """
+    Find the first place in the stack that is not inside hidimstat
+    (tests notwithstanding).
+
+    Originally based on the pandas codebase.
+    https://github.com/pandas-dev/pandas/tree/main/pandas/util/_exceptions.py#L37
+    and its adaptation in nilearn
+    https://github.com/nilearn/nilearn/blob/3a71575a67ea5cd252142c05b7e784b590b6d4f5/nilearn/_utils/logger.py#L162
+    """
+    pkg_dir = Path(hd.__file__).parent
+
+    # list of stack frames to skip
+    skip_list = [
+        Path("sklearn") / "utils" / "_set_output.py",
+        Path("sklearn") / "base.py",
+        Path("joblib") / "memory.py",
+        Path("joblib") / "parallel.py",
+    ]
+
+    # https://stackoverflow.com/questions/17407119/python-inspect-stack-is-slow
+    frame = inspect.currentframe()
+    try:
+        n = 0
+        while frame:
+            filename = inspect.getfile(frame)
+
+            is_test_file = Path(filename).name.startswith("test_")
+
+            in_hidimstat_code = filename.startswith(str(pkg_dir))
+            skip = any(str(x) in filename for x in skip_list)
+            if (not in_hidimstat_code and not skip) or is_test_file:
+                break
+
+            frame = frame.f_back
+
+            n += 1
+
+    finally:
+        # See note in
+        # https://docs.python.org/3/library/inspect.html#inspect.Traceback
+        del frame
+    return n
+
+
+def one_level_deeper() -> int:
+    """Use for testing find_stack_level.
+
+    Needs to be in a module that does not start with 'test'
+    """
+    return find_stack_level()

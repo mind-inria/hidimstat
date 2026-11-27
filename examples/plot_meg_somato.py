@@ -4,7 +4,8 @@ Source localization of somatosensory MEG data
 
 This example adapts the experiment presented in
 :footcite:t:`chevalier2020statistical`. We show how to identify which cortical
-sources are activated during a somatosensory task. To do so, we leverage
+sources are activated during a somatosensory task.
+To do so, we leverage
 spatially constrained clustering to effectively reduce the dimensionality of
 the problem while accounting for the spatial structure of the data. We then
 perform inference with the desparsified multitask Lasso to perform support
@@ -147,15 +148,13 @@ ward = FeatureAgglomeration(n_clusters=n_clusters, connectivity=connectivity)
 
 from sklearn.linear_model import MultiTaskLassoCV
 
-from hidimstat import CluDL, DesparsifiedLasso
+from hidimstat import ClusterImportance, DesparsifiedLasso
 
 # Setting theoretical FWER target
 fwer_target = 0.1
 
-cludl = CluDL(
-    clustering=ward,
-    desparsified_lasso=DesparsifiedLasso(estimator=MultiTaskLassoCV()),
-    random_state=0,
+cludl = ClusterImportance(
+    vim=DesparsifiedLasso(estimator=MultiTaskLassoCV()), clustering=ward
 )
 
 cludl.fit_importance(gain, y)
@@ -165,8 +164,8 @@ log_pvalues = -np.log10(cludl.pvalues_) * selected
 
 
 # %%
-# We here used CluDL, which relies on a single clustering. Alternatively,
-# :class:`~hidimstat.EnCluDL` can be used, which relies on aggregating the
+# We here used ClusterImportance, which relies on a single clustering. Alternatively,
+# :class:`~hidimstat.EnsembleImportance` can be used, which relies on aggregating the
 # results over multiple clusterings obtained by running the clustering
 # algorithm on bootstrapped samples of the data. This can lead to more stable
 # results at the cost of a higher computational time.
@@ -196,7 +195,7 @@ stc_pvals = mne.SourceEstimate(
 fs_dir = Path(subjects_dir) / "fsaverage"
 if fs_dir.is_symlink():
     fs_dir.unlink()
-mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir)
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir, verbose=1)
 
 morph = mne.compute_source_morph(
     src=forward["src"],

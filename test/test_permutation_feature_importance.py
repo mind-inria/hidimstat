@@ -1,119 +1,115 @@
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.linear_model import LassoCV, LinearRegression, LogisticRegression
-from sklearn.metrics import log_loss
+from sklearn.base import clone
+from sklearn.linear_model import (
+    LassoCV,
+    LinearRegression,
+    LogisticRegression,
+    RidgeCV,
+)
 from sklearn.model_selection import KFold, train_test_split
+from sklearn.utils.estimator_checks import parametrize_with_checks
 
 from hidimstat import PFI, PFICV, pfi_importance
 from hidimstat._utils.scenario import multivariate_simulation
 from hidimstat.statistical_tools.multiple_testing import fdp_power
 
+from .conftest import fitted_linear_regression
 
-def test_permutation_importance():
-    """Test the Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = np.where(beta != 0)[0]
-    non_important_features = np.where(beta == 0)[0]
 
+def run_pfi(
+    X,
+    y,
+    estimator,
+    n_permutations=20,
+    feature_groups=None,
+    scoring="mean_squared_error",
+):
+    """Test the Permutation Feature Importance algorithm on a linear scenario."""
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
-    regression_model = LinearRegression()
-    regression_model.fit(X_train, y_train)
+    estimator.fit(X_train, y_train)
 
     pfi = PFI(
-        estimator=regression_model,
-        n_permutations=20,
-        method="predict",
-        features_groups=None,
+        estimator=estimator,
+        scoring=scoring,
+        n_permutations=n_permutations,
+        feature_groups=feature_groups,
         random_state=0,
-        n_jobs=1,
     )
 
     pfi.fit(
         X_train,
         y_train,
     )
-    importance = pfi.importance(X_test, y_test)
+    pfi.importance(X_test, y_test)
+
+    return pfi
+
+
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(150, 200, None, 10, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_permutation_importance(data_generator):
+    """Test the Permutation Importance algorithm on a linear scenario."""
+    X, y, important_features = data_generator
+
+    pfi = run_pfi(X=X, y=y, estimator=LinearRegression())
+    importance = pfi.importances_
 
     assert importance.shape == (X.shape[1],)
     assert (
         importance[important_features].mean()
-        > importance[non_important_features].mean()
+        > importance[~important_features].mean()
     )
 
-    # Same with groups and a pd.DataFrame
-    groups = {
-        "group_0": [f"col_{i}" for i in important_features],
-        "the_group_1": [f"col_{i}" for i in non_important_features],
-    }
+    # Same with a pd.DataFrame
     X_df = pd.DataFrame(X, columns=[f"col_{i}" for i in range(X.shape[1])])
-    X_train_df, X_test_df, y_train, y_test = train_test_split(
-        X_df, y, random_state=0
+    pfi = run_pfi(X=X_df, y=y, estimator=LinearRegression())
+    importance = pfi.importances_
+    feature_groups = {i: [f"col_{i}"] for i in range(X.shape[1])}
+
+    assert pfi.feature_groups_ == feature_groups
+    assert importance[0].mean() > importance[1].mean()
+
+    # Now with groups
+    feature_ids = np.arange(X.shape[1])
+    groups = {
+        "group_0": [f"col_{i}" for i in feature_ids[important_features]],
+        "the_group_1": [f"col_{i}" for i in feature_ids[~important_features]],
+    }
+    pfi = run_pfi(
+        X=X_df,
+        y=y,
+        estimator=LinearRegression(),
+        feature_groups=groups,
     )
-    regression_model.fit(X_train_df, y_train)
-    pfi = PFI(
-        estimator=regression_model,
-        n_permutations=20,
-        method="predict",
-        features_groups=groups,
-        random_state=0,
-        n_jobs=1,
-    )
-    pfi.fit(
-        X_train_df,
-        y_train,
-    )
-    # warnings because we doesn't consider the name of columns of pandas
-    with pytest.warns(
-        UserWarning, match="X does not have valid feature names, but"
-    ):
-        importance = pfi.importance(X_test_df, y_test)
+    importance = pfi.importances_
 
     assert importance[0].mean() > importance[1].mean()
 
     # Classification case
-    y_clf = np.where(y > np.median(y), 1, 0)
-    _, _, y_train_clf, y_test_clf = train_test_split(X, y_clf, random_state=0)
-    logistic_model = LogisticRegression()
-    logistic_model.fit(X_train, y_train_clf)
-
-    pfi_clf = PFI(
-        estimator=logistic_model,
-        n_permutations=20,
-        method="predict_proba",
-        loss=log_loss,
-        features_groups=None,
-        random_state=0,
-        n_jobs=1,
+    y_clf = (y > np.median(y)).astype(int)
+    pfi = run_pfi(
+        X=X, y=y_clf, estimator=LogisticRegression(), scoring="log_loss"
     )
-
-    pfi_clf.fit(
-        X_train,
-        y_train_clf,
-    )
-    importance_clf = pfi_clf.importance(X_test, y_test_clf)
+    importance_clf = pfi.importances_
 
     assert importance_clf.shape == (X.shape[1],)
 
 
-def test_permutation_importance_function():
+@pytest.mark.filterwarnings("ignore:pfi_importance is deprecated")
+@pytest.mark.parametrize(
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(100, 20, None, 4, 0, 42, 1, 10, 0)],
+    ids=["basic data"],
+)
+def test_permutation_importance_function(data_generator):
     """Test the function of Permutation Importance algorithm on a linear scenario."""
-    X, y, beta, _ = multivariate_simulation(
-        n_samples=150,
-        n_features=200,
-        support_size=10,
-        shuffle=False,
-        seed=42,
-    )
-    important_features = beta != 0
-
+    X, y, important_features = data_generator
     X_train, _, y_train, _ = train_test_split(X, y, random_state=0)
 
     regression_model = LinearRegression()
@@ -124,9 +120,8 @@ def test_permutation_importance_function():
         X,
         y,
         n_permutations=20,
-        method="predict",
+        scoring="mean_squared_error",
         random_state=0,
-        n_jobs=1,
     )
 
     assert importance.shape == (X.shape[1],)
@@ -158,7 +153,7 @@ def pfi_test_data():
     pfi_default_parameters = {
         "estimator": model,
         "n_permutations": 20,
-        "method": "predict",
+        "scoring": "mean_squared_error",
         "n_jobs": 1,
     }
     return X_train, X_test, y_train, y_test, pfi_default_parameters
@@ -238,8 +233,8 @@ def test_pfi_reproducibility_with_rng(pfi_test_data):
 
 
 @pytest.mark.parametrize(
-    "n_samples, n_features, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
-    [(500, 100, 5, 0.0, 0, 2.0, 8, 0.0)],
+    "n_samples, n_features, n_targets, support_size, rho, seed, value, signal_noise_ratio, rho_serial",
+    [(500, 100, None, 5, 0.0, 0, 2.0, 8, 0.0)],
     ids=["default data"],
 )
 def test_pfi_cv(data_generator):
@@ -257,7 +252,7 @@ def test_pfi_cv(data_generator):
      of correlated features. Increasing p should not come at a high computational cost
      with PFI.
     """
-    X, y, important_features, _ = data_generator
+    X, y, important_features = data_generator
 
     model = LassoCV()
     cv = KFold(n_splits=5, shuffle=True, random_state=0)
@@ -266,7 +261,6 @@ def test_pfi_cv(data_generator):
         cv=cv,
         n_permutations=20,
         random_state=0,
-        n_jobs=2,
     )
     pfi_cv.fit(X, y)
     pfi_cv.importance(X, y)
@@ -274,18 +268,11 @@ def test_pfi_cv(data_generator):
     alpha = 0.05
     selected = pfi_cv.fdr_selection(fdr=alpha)
     fdp, power = fdp_power(
-        selected=np.argwhere(selected).flatten(),
-        ground_truth=important_features,
+        selected=selected,
+        ground_truth=important_features.astype(int),
     )
     assert fdp < alpha
     assert power > 0.8
-
-
-from sklearn.base import clone
-from sklearn.linear_model import RidgeCV
-from sklearn.utils.estimator_checks import parametrize_with_checks
-
-from .conftest import SKLEARN_LT_1_6, check_estimator, fitted_linear_regression
 
 
 def fitted_ridged_cv():
@@ -342,37 +329,16 @@ ESTIMATORS_TO_CHECK = [
     ),
 ]
 
-if SKLEARN_LT_1_6:
 
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_valid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
+@parametrize_with_checks(
+    estimators=ESTIMATORS_TO_CHECK,
+    expected_failed_checks=expected_failed_checks,
+)
+def test_check_estimator_sklearn(estimator, check):
+    check(estimator)
 
-    @pytest.mark.xfail(reason="invalid checks should fail")
-    @pytest.mark.parametrize(
-        "estimator, check, name",
-        check_estimator(
-            estimators=ESTIMATORS_TO_CHECK,
-            valid=False,
-            return_expected_failed_checks=expected_failed_checks,
-        ),
-    )
-    def test_check_estimator_sklearn_invalid(estimator, check, name):  # noqa: ARG001
-        """Check compliance with sklearn estimators."""
-        check(estimator)
 
-else:
-
-    @parametrize_with_checks(
-        estimators=ESTIMATORS_TO_CHECK,
-        expected_failed_checks=expected_failed_checks,
-    )
-    def test_check_estimator_sklearn(estimator, check):
-        check(estimator)
+@pytest.mark.filterwarnings("error:pfi_importance is deprecated")
+def test_deprecation_warning():
+    with pytest.raises(DeprecationWarning, match="Please use class PFI"):
+        pfi_importance(estimator=None, X=None, y=None)

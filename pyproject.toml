@@ -37,8 +37,9 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "joblib       >= 1.4",
-    "pandas       >= 2.2",
-    "scikit-learn >= 1.6, < 1.9",
+    # TODO: remove upper bound when new sklearn version fixes incompatibility with pandas
+    "pandas       >= 2.2, < 3.1",
+    "scikit-learn >= 1.6",
     "scipy        >= 1.13",
     "tqdm         >= 4.66.3",
 ]
@@ -89,6 +90,7 @@ test = [
     "pytest-xdist[psutil]   >= 3.6.1",
     "seaborn                >= 0.13.2",
 ]
+
 
 
 [project.urls]
@@ -144,14 +146,14 @@ OMP_NUM_THREADS = 1
 
 
 [tool.ruff]
-extend-exclude = ["doc/auto_examples/*", "hidimstat/_version.py"]
+extend-exclude = ["docs/auto_examples/*", "hidimstat/_version.py"]
 include = [
     "pyproject.toml",
     "src/**/*.py",
     "examples/**/*.py",
     "test/**/*.py",
     "tools/**/*.py",
-    "doc/**/*.py"
+    "docs/**/*.py"
 ]
 indent-width = 4
 line-length = 79
@@ -168,6 +170,7 @@ skip-magic-trailing-comma = false
 fixable = ["ALL"]
 ignore = [
     "B008",
+    "C901",
     "D100",
     "D101",
     "D102",
@@ -184,7 +187,6 @@ ignore = [
     "E501",
     "E741",
     "ERA001",
-    "F401",
     "F841",
     "PERF203",
     "PLR2004",

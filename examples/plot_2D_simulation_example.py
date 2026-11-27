@@ -4,12 +4,13 @@ Ensemble Clustered Inference on 2D Data
 
 In this example, we present how to perform inference on simulated 2D data. This setting
 is particularly challenging since the number of features (pixels in 2D) is much larger
-than the number of samples. We first illustrate the limitations of the Desparsified
+than the number of samples.
+We first illustrate the limitations of the Desparsified
 Lasso method in this setting and then present two methods that leverage the data's
 spatial structure to build clusters and perform the inference at the cluster level.
-We first show how to use clustered inference with DL (:class:`hidimstat.CluDL`).
+We first show how to use clustered inference with DL (:class:`hidimstat.ClusterImportance`).
 We then show how to use clustered inference with Ensembled CluDL
-(:class:`hidimstat.EnCluDL`).
+(:class:`hidimstat.EnsembleImportance`).
 """
 
 # %%
@@ -139,7 +140,7 @@ from sklearn.base import clone
 from sklearn.cluster import FeatureAgglomeration
 from sklearn.feature_extraction import image
 
-from hidimstat import CluDL
+from hidimstat import ClusterImportance
 
 # Clustering step
 n_clusters = 200
@@ -149,7 +150,7 @@ clustering = FeatureAgglomeration(
 )
 
 dl_2 = DesparsifiedLasso(estimator=clone(estimator), n_jobs=n_jobs)
-clu_dl = CluDL(desparsified_lasso=dl_2, clustering=clustering, random_state=0)
+clu_dl = ClusterImportance(vim=dl_2, clustering=clustering)
 clu_dl.fit_importance(X_init, y)
 
 selected_cdl = clu_dl.fwer_selection(fwer=fwer_target, n_tests=n_clusters)
@@ -198,15 +199,14 @@ plt.tight_layout()
 # obtained by aggregating the different ``CluDL`` runs. For more details about ``EnCluDL``,
 # see :footcite:t:`chevalier2022spatially`.
 
-from hidimstat.ensemble_clustered_inference import EnCluDL
+from hidimstat import EnsembleImportance
 
-enclu_dl = EnCluDL(
-    desparsified_lasso=DesparsifiedLasso(estimator=clone(estimator), n_jobs=1),
-    clustering=clustering,
-    n_bootstraps=20,
-    random_state=0,
+enclu_dl = EnsembleImportance(
+    vim=clu_dl,
+    n_repeats=20,
+    bootstrap_frac=0.5,
     n_jobs=n_jobs,
-    cluster_bootstrap_size=0.5,
+    random_state=0,
 )
 enclu_dl.fit_importance(X_init, y)
 
@@ -327,6 +327,7 @@ legend_handles = [
 ]
 axes[0].legend(handles=legend_handles, loc="lower center")
 plt.tight_layout()
+plt.show()
 
 
 # %%
