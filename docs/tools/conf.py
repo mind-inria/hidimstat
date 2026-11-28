@@ -79,6 +79,20 @@ else:
 
 git_root_url = "https://github.com/mind-inria/hidimstat"
 
+
+# Filter out warnings in child processes (e.g. joblib/loky workers),
+# which do not inherit the filters above but do read PYTHONWARNINGS.
+# PYTHONWARNINGS does not support regexes:
+# each message is a literal, case-insensitive prefix of the warning message.
+_child_warning_filters = [
+    "ignore:Objective did not converge:UserWarning",
+    "ignore:The equi-correlated matrix for knockoffs:UserWarning",
+    "ignore:Gram matrix was provided:UserWarning",
+]
+os.environ["PYTHONWARNINGS"] = ",".join(
+    filter(None, [os.environ.get("PYTHONWARNINGS"), *_child_warning_filters])
+)
+
 # -- Copy files for docs --------------------------------------------------
 #
 # We avoid duplicating the information, but we do not use symlinks to be
@@ -229,6 +243,7 @@ sphinx_gallery_conf = {
     "backreferences_dir": "./generated/gallery/backreference/",
     "parallel": False,
     "show_memory": True,  # can't show memory if it's in parallel
+    "reset_modules": ("matplotlib", "seaborn"),
     "reference_url": {
         # The module we locally document (so, hidimstat) uses None
         "hidimstat": None,

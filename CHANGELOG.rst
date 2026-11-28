@@ -34,3 +34,4 @@ Changes
 - :bdg-primary:`Doc` Added an onboarding document for new maintainers (:gh:`838` by `Marc Hulcelle`_).
 - :bdg-primary:`Doc` introduced an example to interface TabICL with the library (:gh:`716` by `Marc Hulcelle`_).
 - :bdg-secondary:`Maint` Reduced warnings in test suite (:gh:`847` by `Marc Hulcelle`_).
+- :bdg-secondary:`Maint` Reduced warnings in doc build (:gh:`625` by `Joseph Paillard`_ and `Marc Hulcelle`_).
