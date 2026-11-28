@@ -257,6 +257,10 @@ jobs:
                 # so it is not interpolated into the script itself.
                 ACTIONS_SSH_DEPLOY: ${{ secrets.ACTIONS_SSH_DEPLOY }}
             run: |
+                if [ -z "$ACTIONS_SSH_DEPLOY" ]; then
+                    echo "::error::The ACTIONS_SSH_DEPLOY secret is not set. Add a deploy key with write access to hidimstat/hidimstat.github.io and store its private key as ACTIONS_SSH_DEPLOY in this repository."
+                    exit 1
+                fi
                 mkdir -p ~/.ssh
                 ssh-keyscan github.com >> ~/.ssh/known_hosts
                 printf '%s\n' "$ACTIONS_SSH_DEPLOY" > ~/.ssh/github_actions
