@@ -166,11 +166,10 @@ jobs:
             with:
                 name: build_type
 
-        -   name: Install tox
-            run: uv tool install tox --with=tox-uv
-
-        -   name: Show tox config
-            run: tox c
+        -   name: Install tox and codecarbon
+            run: |
+                uv tool install tox --with=tox-uv
+                uv tool install codecarbon
 
         -   name: Key for cache based on month number
             run: date +%m > month_num;
@@ -201,7 +200,7 @@ jobs:
             run: |
                 set -o pipefail;
                 export PATTERN=$(cat pattern.txt)
-                tox run \
+                codecarbon monitor --offline --country-iso-code USA -- tox run \
                     --colored yes \
                     --list-dependencies \
                     -e doc -- $(cat build.txt) 2>&1 | tee log.txt;
