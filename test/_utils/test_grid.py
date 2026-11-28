@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from hidimstat._utils.grid import (
+from hidimstat.visualization.utils import (
     _bin_indices,
     _build_quantile_grid_1d,
     _build_quantile_grid_2d,

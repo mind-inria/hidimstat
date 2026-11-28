@@ -8,13 +8,13 @@ from joblib import Parallel, delayed
 from scipy import stats
 from sklearn.utils.validation import check_is_fitted
 
-from hidimstat._utils.grid import (
+from hidimstat._utils.utils import check_random_state
+from hidimstat.samplers.conditional_sampling import _check_data_type
+from hidimstat.visualization.utils import (
     _bin_indices,
     _build_quantile_grid_1d,
     _build_quantile_grid_2d,
 )
-from hidimstat._utils.utils import check_random_state
-from hidimstat.samplers.conditional_sampling import _check_data_type
 
 
 def _predict_fn(estimator, X, method="predict"):

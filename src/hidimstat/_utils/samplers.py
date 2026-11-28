@@ -1,8 +1,10 @@
 import numpy as np
 from sklearn.utils import resample
 
+__all__ = ["subsampling"]
 
-def _subsampling(n_samples, train_size, groups=None, random_state=None):
+
+def subsampling(n_samples, train_size, groups=None, random_state=None):
     """
     Random subsampling for statistical inference.
 

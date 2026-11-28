@@ -6,9 +6,9 @@ from sklearn.base import check_is_fitted, clone
 from sklearn.utils import get_tags
 from tqdm import tqdm
 
+from hidimstat._utils.samplers import subsampling
 from hidimstat._utils.utils import check_random_state
 from hidimstat.base_variable_importance import BaseVariableImportance
-from hidimstat.samplers.utils import _subsampling
 from hidimstat.statistical_tools.aggregation import quantile_aggregation
 
 
@@ -134,7 +134,7 @@ class EnsembleImportance(BaseVariableImportance):
         y,
         random_state,
     ):
-        ensemble_samples = _subsampling(
+        ensemble_samples = subsampling(
             n_samples=X.shape[0],
             train_size=bootstrap_frac,
             groups=bootstrap_groups,
