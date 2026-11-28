@@ -46,8 +46,12 @@ HiDimStat: High-dimensional statistical inference tool for Python
 
 .. # Short description of the library
 
-The HiDimStat package provides statistical inference methods to solve the problem
-of variable importance evaluation in the context of predictive model using high-dimensional and spatially structured data.
+The HiDimStat package implements different estimators that
+compute variable importance for single or groups of features,
+and perform variable selection with statistical guarantees.
+The library provides statistical inference methods to solve the
+problem of support recovery in the context of high-dimensional and
+spatially structured data.
 
 .. # Add useful links
 
@@ -61,11 +65,67 @@ Visit our website, https://hidimstat.github.io/, for more information.
   If you use HiDimStat for your published research, we kindly ask you to :ref:`cite<citation>` our article:
   short reference
 
-Find your important variables in your data with the help of
-`our examples <https://hidimstat.github.io/dev/auto_examples/index.html>`_.
-
 If you have any problems, please report them to the `GitHub issue tracker <https://github.com/mind-inria/hidimstat/issues>`_
 or contribute to the library by opening a pull request.
+
+Main Features
+-------------
+
+Variable Importance Methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The library features different Variable Importance Methods (VIM):
+
+- `LOCO <https://hidimstat.github.io/stable/generated/gallery/examples/plot_loco.html>`_:
+  A refit-based model agnostic approach that measures how much a model's
+  predictive performance changes when a specific feature is removed while
+  conditioning on the remaining features.
+- `LOCI <https://hidimstat.github.io/stable/generated/gallery/examples/plot_loci.html>`_:
+  A refit-based model agnostic approach that compares the predictive performance
+  of the empty model (dummy, predicting at change level) with the performance of
+  a model refitted just with the feature(s) of interest.
+- `PFI <https://hidimstat.github.io/stable/generated/gallery/examples/plot_pitfalls_permutation_importance.html>`_:
+  A perturbation-based method that compares the predictive performance of a model on
+  unmodified test data to its performance when the studied feature is marginally permutated.
+- `CFI <https://hidimstat.github.io/stable/generated/gallery/examples/plot_cfi.html>`_:
+  A perturbation-based method that compares the predictive performance of a model on
+  unmodified test data to its performance when the studied feature is conditionally permutated.
+- `Desparsified Lasso <https://hidimstat.github.io/stable/generated/gallery/examples/plot_dl_diabetes_confidence.html>`_:
+  Also known as debiased Lasso, it is a method that aims at estimating
+  the regression coefficients.
+- `DCRT <https://hidimstat.github.io/stable/generated/gallery/examples/plot_dcrt_logit.html>`_:
+  A variable selection method that tests whether each feature is conditionally
+  independent of the target given all other features.
+- `Model-X Knockoffs <https://hidimstat.github.io/stable/generated/gallery/examples/plot_knockoffs_wisconsin.html>`_:
+  A variable selection method that controls the false discovery rate (FDR) by
+  producing synthetic 'knockoff' variables that mimic the correlation structure
+  of features without depending on the outcome.
+- `Shapley Additive Global Explanation (SAGE) <https://hidimstat.github.io/stable/generated/gallery/examples/plot_msage.html>`_:
+  Built on top of `Shapley values <https://en.wikipedia.org/wiki/Shapley_value>`_,
+  it determines each feature's contribution by considering how
+  much the overall model performance changes when they join each possible combination of
+  other features, and then averaging those changes.
+- `Cluster Importance <https://hidimstat.github.io/stable/generated/gallery/examples/plot_conditional_vs_marginal_xor_data.html>`_:
+  A meta VIM that produces clusters of features before passing them to a VIM.
+- `Ensemble Importance <https://hidimstat.github.io/stable/generated/gallery/examples/plot_conditional_vs_marginal_xor_data.html>`_:
+  A meta VIM that bootstraps a VIM.
+
+Visualization
+^^^^^^^^^^^^^
+The library currently implements two visualization methods:
+
+- `Partial Dependency Plot <https://hidimstat.github.io/stable/generated/gallery/examples/plot_partial_dependency_plot.html>`_:
+  A plot to visualize the marginal effect of one or two features on a model's
+  prediction.
+- `Accumulated Local Effects <https://hidimstat.github.io/stable/generated/gallery/examples/plot_accumulated_local_effects.html>`_:
+  A plot that describes how features influence the prediction of a model on by
+  averaging local effects.
+
+User Guide
+^^^^^^^^^^
+
+You can find additional information about the different methods in our `User guide <https://hidimstat.github.io/stable/user_guide.html>`_,
+or explore the possibilities of the library through the `Examples Gallery <https://hidimstat.github.io/stable/generated/gallery/examples/index.html>`_.
 
 Installation
 ------------
