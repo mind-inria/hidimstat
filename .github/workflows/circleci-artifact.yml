@@ -1,5 +1,11 @@
 ---
 # Display a link to the circle-CI artifacts at the bottom of a pull-request.
+#
+# No CircleCI api-token is passed on purpose:
+# without one, the action checks that ``artifact-path`` exists
+# directly on the (public) artifact host.
+# See https://github.com/scientific-python/circleci-artifacts-redirector-action
+#
 ###
 name: Redirect circleci artifacts
 permissions:
@@ -8,29 +14,28 @@ on: [status]
 jobs:
     circleci_artifacts_redirector_job:
         runs-on: ubuntu-latest
-        if: "${{ github.event.context == 'ci/circleci: host_docs' }}"
+        # For testing this action on a fork, remove the "github.repository ==" condition.
+        if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: host_docs'"
         name: Run CircleCI artifacts redirector
         steps:
         -   name: GitHub Action step
-            uses: scientific-python/circleci-artifacts-redirector-action@v1
+            uses: scientific-python/circleci-artifacts-redirector-action@da59f11a927f98f59dbe4f386aa044a5de38944b
             with:
                 repo-token: ${{ secrets.GITHUB_TOKEN }}
-                api-token: ${{ secrets.CIRCLE_CI }}
                 artifact-path: 0/dev/index.html
                 circleci-jobs: host_docs
                 job-title: Check the HTML doc here!
 
     circleci_artifact_tests_reports:
         runs-on: ubuntu-latest
-        # For testing this action on a fork, remove the "github.repository =="" condition.
+        # For testing this action on a fork, remove the "github.repository ==" condition.
         if: "github.repository == 'mind-inria/hidimstat' && github.event.context == 'ci/circleci: get-tests-reports'"
         name: Run CircleCI artifacts reports
         steps:
-        - name: GitHub Action step
-          uses: larsoner/circleci-artifacts-redirector-action@master
-          with:
-            repo-token: ${{ secrets.GITHUB_TOKEN }}
-            api-token: ${{ secrets.CIRCLE_CI }}
-            artifact-path: 0/documentation/test_reports/index.html
-            circleci-jobs: get-tests-reports
-            job-title: Check the reports of the tests here!
+        -   name: GitHub Action step
+            uses: scientific-python/circleci-artifacts-redirector-action@da59f11a927f98f59dbe4f386aa044a5de38944b
+            with:
+                repo-token: ${{ secrets.GITHUB_TOKEN }}
+                artifact-path: 0/documentation/test_reports/index.html
+                circleci-jobs: get-tests-reports
+                job-title: Check the reports of the tests here!
